@@ -1165,7 +1165,15 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.LongIdent(longDotId = SynLongIdent([ ident ], [], [ Some(ParenStarSynIdent(lpr, originalNotation, rpr)) ])) ->
         ExprParenFunctionNameWithStarNode(stn "(" lpr, stn originalNotation ident.idRange, stn ")" rpr, exprRange)
         |> Expr.ParenFunctionNameWithStar
-    | ParenExpr(lpr, e, rpr, pr) -> mkParenExpr creationAide lpr e rpr pr |> Expr.Paren
+    | ParenExpr(lpr, e, rpr, pr) ->
+        let hasBeginKeyword = (lpr.EndColumn - lpr.StartColumn) = 5
+        let hasEndKeyword = (rpr.EndColumn - rpr.StartColumn) = 3
+
+        if hasBeginKeyword && hasEndKeyword then
+            ExprBeginEndNode(stn "begin" lpr, mkExpr creationAide e, stn "end" rpr, pr)
+            |> Expr.BeginEnd
+        else
+            mkParenExpr creationAide lpr e rpr pr |> Expr.Paren
     | SynExpr.Dynamic(funcExpr, _, argExpr, _) ->
         ExprDynamicNode(mkExpr creationAide funcExpr, mkExpr creationAide argExpr, exprRange)
         |> Expr.Dynamic
@@ -1570,6 +1578,12 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.IndexRange
     | SynExpr.IndexFromEnd(e, _) -> ExprIndexFromEndNode(mkExpr creationAide e, exprRange) |> Expr.IndexFromEnd
     | SynExpr.Typar(typar, _) -> mkSynTypar typar |> Expr.Typar
+    | SynExpr.DotLambda(
+        expr = e
+        trivia = { DotRange = mDot
+                   UnderscoreRange = mUnderscore }) ->
+        ExprDotLambda(stn "_" mUnderscore, stn "." mDot, mkExpr creationAide e, exprRange)
+        |> Expr.DotLambda
     | _ -> failwithf "todo for %A" e
 
 let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
@@ -1976,7 +1990,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
         |> ModuleDecl.NestedModule
     | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
 
-let mkSynTyparDecl (creationAide: CreationAide) (SynTyparDecl(attrs, typar)) =
+let mkSynTyparDecl (creationAide: CreationAide) (SynTyparDecl(attributes = attrs; typar = typar)) =
     let m =
         match List.tryHead attrs with
         | None -> typar.Range
@@ -2010,16 +2024,39 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
         | SynRationalConst.Integer(i, range) ->
             stn (creationAide.TextFromSource (fun () -> string i) range) range
             |> RationalConstNode.Integer
-        | SynRationalConst.Rational(numerator, numeratorRange, denominator, denominatorRange, range) ->
+
+        | SynRationalConst.Paren(SynRationalConst.Rational(numerator,
+                                                           numeratorRange,
+                                                           divRange,
+                                                           denominator,
+                                                           denominatorRange,
+                                                           _),
+                                 range) ->
+            let openingParen =
+                let r =
+                    withEnd (Position.mkPos range.Start.Line (range.StartRange.StartColumn + 1)) range.StartRange
+
+                stn "(" r
+
             let n =
                 stn (creationAide.TextFromSource (fun () -> string numerator) numeratorRange) numeratorRange
+
+            let div = stn "/" divRange
 
             let d =
                 stn (creationAide.TextFromSource (fun () -> string denominator) denominatorRange) denominatorRange
 
-            RationalConstNode.Rational(RationalNode(n, d, range))
+            let closingParen =
+                let r =
+                    withStart (Position.mkPos range.End.Line (range.End.Column - 1)) range.EndRange
+
+                stn ")" r
+
+            RationalConstNode.Rational(RationalNode(openingParen, n, div, d, closingParen, range))
+        | SynRationalConst.Paren(innerRc, _) -> visit innerRc
         | SynRationalConst.Negate(innerRc, range) ->
             RationalConstNode.Negate(NegateRationalNode(stn "-" range.StartRange, visit innerRc, range))
+        | SynRationalConst.Rational _ -> failwith "SynRationalConst.Rational not wrapped in SynRationalConst.Paren"
 
     visit rc
 
@@ -2199,6 +2236,26 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.Or(lhs, rhs, _, trivia) ->
         TypeOrNode(mkType creationAide lhs, stn "or" trivia.OrKeyword, mkType creationAide rhs, typeRange)
         |> Type.Or
+    | SynType.Intersection(optTypar, ts, m, trivia) ->
+        let typesAndSeparators =
+            let headNode, ts =
+                match optTypar with
+                | Some typar ->
+                    // We model the typar as Type.Var out of convenience
+                    Type.Var(mkSynTypar typar), ts
+                | None ->
+                    match ts with
+                    | [] -> failwith "SynType.Intersection does not contain typar or any intersectionConstraints"
+                    | head :: tail -> mkType creationAide head, tail
+
+            assert (ts.Length = trivia.AmpersandRanges.Length)
+
+            [ yield Choice1Of2 headNode
+              for t, mAmp in List.zip ts trivia.AmpersandRanges do
+                  yield Choice2Of2(stn "&" mAmp)
+                  yield Choice1Of2(mkType creationAide t) ]
+
+        TypeIntersectionNode(typesAndSeparators, m) |> Type.Intersection
     | t -> failwith $"unexpected type: {t}"
 
 let rec (|OpenL|_|) =

@@ -245,11 +245,11 @@ let genRational (rat: RationalConstNode) =
     | RationalConstNode.Integer i -> genSingleTextNode i
     | RationalConstNode.Negate negate -> genSingleTextNode negate.Minus +> genRational negate.Rational
     | RationalConstNode.Rational rationalNode ->
-        genSingleTextNode (SingleTextNode("(", Fantomas.FCS.Text.Range.Zero))
+        genSingleTextNode rationalNode.OpeningParen
         +> genSingleTextNode rationalNode.Numerator
-        +> genSingleTextNode (SingleTextNode("/", Fantomas.FCS.Text.Range.Zero))
+        +> genSingleTextNode rationalNode.DivOp
         +> genSingleTextNode rationalNode.Denominator
-        +> genSingleTextNode (SingleTextNode(")", Fantomas.FCS.Text.Range.Zero))
+        +> genSingleTextNode rationalNode.ClosingParen
         |> genNode rationalNode
 
 let genAttributesCore (ats: AttributeNode list) =
@@ -1206,9 +1206,22 @@ let genExpr (e: Expr) =
 
                     genExpr node.FunctionExpr +> sep +> col sepSpace node.Arguments genExpr
 
-                let longExpression =
-                    genExpr node.FunctionExpr
-                    +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
+                let longExpression (ctx: Context) =
+                    let startColumn = ctx.Column
+
+                    let ensureArgumentsAreNotAlignedWithFunctionName f (ctx: Context) =
+                        let nextColumn =
+                            Math.Max(ctx.WriterModel.AtColumn, ctx.WriterModel.Indent)
+                            + ctx.Config.IndentSize
+
+                        if startColumn = nextColumn then
+                            (indent +> indent +> sepNln +> f +> unindent +> unindent) ctx
+                        else
+                            indentSepNlnUnindent f ctx
+
+                    (genExpr node.FunctionExpr
+                     +> ensureArgumentsAreNotAlignedWithFunctionName (col sepNln node.Arguments genExpr))
+                        ctx
 
                 expressionFitsOnRestOfLine shortExpression longExpression ctx
 
@@ -1578,6 +1591,26 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr |> genNode node
     | Expr.Typar node -> genSingleTextNode node
+    | Expr.DotLambda node ->
+        genSingleTextNode node.Underscore
+        +> genSingleTextNode node.Dot
+        +> genExpr node.Expr
+        |> genNode node
+    | Expr.BeginEnd node ->
+        let short =
+            genSingleTextNode node.Begin
+            +> sepSpace
+            +> genExpr node.Expr
+            +> sepSpace
+            +> genSingleTextNode node.End
+
+        let long =
+            genSingleTextNode node.Begin
+            +> indentSepNlnUnindent (genExpr node.Expr)
+            +> sepNln
+            +> genSingleTextNode node.End
+
+        expressionFitsOnRestOfLine short long |> genNode node
 
 let genQuoteExpr (node: ExprQuoteNode) =
     genSingleTextNode node.OpenToken
@@ -2456,6 +2489,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
 
 let sepSpaceBeforeParenInFuncInvocation (functionExpr: Expr) (argExpr: Expr) ctx =
     match functionExpr, argExpr with
+    | Expr.DotLambda _, _ -> ctx
     | Expr.Constant _, _ -> sepSpace ctx
     | ParenExpr _, _ -> sepSpace ctx
     | UppercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
@@ -3153,6 +3187,11 @@ let genType (t: Type) =
         |> genNode node
     | Type.LongIdentApp node ->
         genType node.AppType +> sepDot +> genIdentListNode node.LongIdent
+        |> genNode node
+    | Type.Intersection node ->
+        col sepSpace node.TypesAndSeparators (function
+            | Choice1Of2 t -> genType t
+            | Choice2Of2 amp -> genSingleTextNode amp)
         |> genNode node
 
 let genSynTupleTypeSegments (path: Choice<Type, SingleTextNode> list) =
