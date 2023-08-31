@@ -278,7 +278,26 @@ Example usage:</p>
 
 <span onmouseout="hideTip(event, 'fs30', 61)" onmouseover="showTip(event, 'fs30', 61)" class="m">Parse</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs31', 62)" onmouseover="showTip(event, 'fs31', 62)" class="id">parseFile</span> <span class="k">false</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs32', 63)" onmouseover="showTip(event, 'fs32', 63)" class="m">SourceText</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs33', 64)" onmouseover="showTip(event, 'fs33', 64)" class="id">ofString</span> <span class="s">&quot;let a = 1&quot;</span><span class="pn">)</span> <span class="pn">[</span><span class="pn">]</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code>No value returned by any evaluator</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>(ImplFile
+   (ParsedImplFileInput
+      ("tmp.fsx", true, QualifiedNameOfFile Tmp$fsx, [], [],
+       [SynModuleOrNamespace
+          ([Tmp], false, AnonModule,
+           [Let
+              (false,
+               [SynBinding
+                  (None, Normal, false, false, [],
+                   PreXmlDoc ((1,0), Fantomas.FCS.Xml.XmlDocCollector),
+                   SynValData
+                     (None, SynValInfo ([], SynArgInfo ([], false, None)), None,
+                      None), Named (SynIdent (a, None), false, None, (1,4--1,5)),
+                   None, Const (Int32 1, (1,8--1,9)), (1,4--1,5), Yes (1,0--1,9),
+                   { LeadingKeyword = Let (1,0--1,3)
+                     InlineKeyword = None
+                     EqualsRange = Some (1,6--1,7) })], (1,0--1,9))],
+           PreXmlDocEmpty, [], None, (1,0--1,9), { LeadingKeyword = None })],
+       (false, false), { ConditionalDirectives = []
+                         CodeComments = [] }, set [])), [])</code></pre></td></tr></table>
 <p>You can format untyped AST created from <code>Fantomas.FCS</code> using the <code>CodeFormatter</code> API.<br />
 However, we recommend to use the new <code>Oak</code> model (as in the example) instead.<br />
 The <code>Oak</code> model is easier to reason with as it structures certain concepts differently than the untyped AST.</p>
@@ -347,7 +366,7 @@ For example creating <a href="../../reference/fsharp-compiler-syntax-synexpr.htm
 
 <span onmouseout="hideTip(event, 'fs36', 143)" onmouseover="showTip(event, 'fs36', 143)" class="fn">mkCodeFromExpression</span> <span onmouseout="hideTip(event, 'fs43', 144)" onmouseover="showTip(event, 'fs43', 144)" class="id">lambdaExpr</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>fun a b -&gt; a + b</code></pre></td></tr></table>
 <p>How to know which nodes to include? Take a look at <code>CodePrinter.fs</code>!</p>
 <h3><a name="Create-your-own-set-of-helper-functions" class="anchor" href="#Create-your-own-set-of-helper-functions">Create your own set of helper functions</a></h3>
 <p>Throughout all these examples, we have duplicated a lot of code. You can typically easily refactor this into some helper functions.<br />
@@ -497,7 +516,7 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
   static member AwaitWaitHandle: waitHandle: WaitHandle * ?millisecondsTimeout: int -&gt; Async&lt;bool&gt;
   static member CancelDefaultToken: unit -&gt; unit
   static member Catch: computation: Async&lt;&#39;T&gt; -&gt; Async&lt;Choice&lt;&#39;T,exn&gt;&gt;
-  static member Choice: computations: seq&lt;Async&lt;&#39;T option&gt;&gt; -&gt; Async&lt;&#39;T option&gt;
+  static member Choice: computations: Async&lt;&#39;T option&gt; seq -&gt; Async&lt;&#39;T option&gt;
   static member FromBeginEnd: beginAction: (AsyncCallback * obj -&gt; IAsyncResult) * endAction: (IAsyncResult -&gt; &#39;T) * ?cancelAction: (unit -&gt; unit) -&gt; Async&lt;&#39;T&gt; + 3 overloads
   static member FromContinuations: callback: ((&#39;T -&gt; unit) * (exn -&gt; unit) * (OperationCanceledException -&gt; unit) -&gt; unit) -&gt; Async&lt;&#39;T&gt;
   ...<br /><br />--------------------<br />type Async&lt;&#39;T&gt;</div>

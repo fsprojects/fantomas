@@ -300,7 +300,7 @@ function Format-Changed(){
 <div class="fsdocs-tip" id="fs7">val output: string</div>
 <div class="fsdocs-tip" id="fs8">val psi: ProcessStartInfo</div>
 <div class="fsdocs-tip" id="fs9">Multiple items<br />type ProcessStartInfo =
-  new: unit -&gt; unit + 2 overloads
+  new: unit -&gt; unit + 3 overloads
   member ArgumentList: Collection&lt;string&gt;
   member Arguments: string
   member CreateNoWindow: bool
@@ -310,7 +310,7 @@ function Format-Changed(){
   member ErrorDialog: bool
   member ErrorDialogParentHandle: nativeint
   member FileName: string
-  ...<br /><em>&lt;summary&gt;Specifies a set of values that are used when you start a process.&lt;/summary&gt;</em><br /><br />--------------------<br />ProcessStartInfo() : ProcessStartInfo<br />ProcessStartInfo(fileName: string) : ProcessStartInfo<br />ProcessStartInfo(fileName: string, arguments: string) : ProcessStartInfo</div>
+  ...<br /><em>&lt;summary&gt;Specifies a set of values that are used when you start a process.&lt;/summary&gt;</em><br /><br />--------------------<br />ProcessStartInfo() : ProcessStartInfo<br />ProcessStartInfo(fileName: string) : ProcessStartInfo<br />ProcessStartInfo(fileName: string, arguments: string) : ProcessStartInfo<br />ProcessStartInfo(fileName: string, arguments: System.Collections.Generic.IEnumerable&lt;string&gt;) : ProcessStartInfo</div>
 <div class="fsdocs-tip" id="fs10">property ProcessStartInfo.RedirectStandardOutput: bool with get, set<br /><em>&lt;summary&gt;Gets or sets a value that indicates whether the textual output of an application is written to the &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt; stream.&lt;/summary&gt;<br />&lt;returns&gt;&lt;see langword=&quot;true&quot; /&gt; if output should be written to &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt;; otherwise, &lt;see langword=&quot;false&quot; /&gt;. The default is &lt;see langword=&quot;false&quot; /&gt;.&lt;/returns&gt;</em></div>
 <div class="fsdocs-tip" id="fs11">property ProcessStartInfo.UseShellExecute: bool with get, set<br /><em>&lt;summary&gt;Gets or sets a value indicating whether to use the operating system shell to start the process.&lt;/summary&gt;<br />&lt;exception cref=&quot;T:System.PlatformNotSupportedException&quot;&gt;An attempt to set the value to &lt;see langword=&quot;true&quot; /&gt; on Universal Windows Platform (UWP) apps occurs.&lt;/exception&gt;<br />&lt;returns&gt;&lt;see langword=&quot;true&quot; /&gt; if the shell should be used when starting the process; &lt;see langword=&quot;false&quot; /&gt; if the process should be created directly from the executable file. The default is &lt;see langword=&quot;true&quot; /&gt; on .NET Framework apps and &lt;see langword=&quot;false&quot; /&gt; on .NET Core apps.&lt;/returns&gt;</em></div>
 <div class="fsdocs-tip" id="fs12">val p: Process</div>
