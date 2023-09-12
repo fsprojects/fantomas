@@ -1630,7 +1630,9 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     let patternRange = p.Range
 
     match p with
-    | SynPat.OptionalVal(ident, _) -> stn $"?{ident.idText}" patternRange |> Pattern.OptionalVal
+    | SynPat.OptionalVal(ident, _) ->
+        let identNode = mkIdent ident
+        SingleTextNode($"?{identNode.Text}", patternRange) |> Pattern.OptionalVal
     | PatParameter(ats, pat, t) ->
         PatParameterNode(
             mkAttributes creationAide ats,
