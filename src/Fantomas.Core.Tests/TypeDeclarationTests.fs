@@ -3594,6 +3594,23 @@ type ArrayBuffer =
 """
 
 [<Test>]
+let ``optional member parameter with ticks, 2954`` () =
+    formatSourceString
+        false
+        """
+type C() =
+    static member foo(?``type``) = ``type``
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type C() =
+    static member foo(?``type``) = ``type``
+"""
+
+[<Test>]
 let ``trivia before comma in primary constructor`` () =
     formatSourceString
         false

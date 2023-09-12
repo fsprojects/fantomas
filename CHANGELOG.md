@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Backticks in optional parameter gets removed [#2954](https://github.com/fsprojects/fantomas/issues/2954)
+
 ## 6.2.0 - 2023-08-29
 
 ### Changed
