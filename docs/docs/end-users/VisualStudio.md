@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 7
+index: 8
 ---
 # Visual Studio
 The F# Formatting extension sets up Fantomas as the default formatter for F# files, configurable from Visual Studio's options.  
@@ -19,4 +19,4 @@ Do note that the extension might not be up to date with the latest version of Fa
   
 <img src="{{root}}/images/vsmac-external-tool.png" alt="drawing" width="70%"/>
 
-<fantomas-nav previous="./Rider.html" next="./VSCode.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

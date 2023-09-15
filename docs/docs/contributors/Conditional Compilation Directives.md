@@ -151,4 +151,4 @@ After merging:
 [ "let a ="; "#if DEBUG"; "0"; "#else"; "1"; "#endif" ]
 ```
 
-<fantomas-nav previous="./Formatted%20Code.html" next="./How%20Can%20I%20Contribute.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

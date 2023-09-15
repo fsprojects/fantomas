@@ -23,4 +23,4 @@ When there are any warnings or errors, we will throw an exception.
 Some warnings are are allowed as they indicate problems that were most likely already present in the input code.
 See `Validation.fs` for more details.
 
-<fantomas-nav previous="./Print%20AST%20with%20Context.html" next="./Conditional%20Compilation%20Directives.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

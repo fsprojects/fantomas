@@ -983,6 +983,6 @@ let singleList =
 (*** include-output ***)
 
 (**
-<fantomas-nav previous="./StyleGuide.html" next="./IgnoreFiles.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
 
 *)

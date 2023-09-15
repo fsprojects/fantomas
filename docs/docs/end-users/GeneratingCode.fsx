@@ -2,7 +2,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 9
+index: 10
 ---
 *)
 (**
@@ -208,5 +208,5 @@ We do not apply any semantic versioning to `Fantomas.FCS` or `Fantomas.Core.Synt
 Our recommendation is that you include a set of regression tests  to meet your own expectations when upgrading.  
 As none of our versions are compatible it is advised to take a very strict dependency on `Fantomas.Core`. Using constraints like `(>= 6.0.0)` will inevitably lead to unexpected problems. 
 
-<fantomas-nav previous="./VSCode.html" next="./UpgradeGuide.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
 *)

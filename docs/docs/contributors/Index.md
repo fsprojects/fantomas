@@ -27,4 +27,4 @@ There is currently [a known issue](https://github.com/fsprojects/fantomas/issues
 
 To workaround this in the meantime, you'll need to comment out the references to `Ionide.KeepAChangelog.Tasks` in `Directory.Build.props` and all of the `packages.lock.json` files, and then run `dotnet restore`. **Please be careful not to include these changes when submitting a PR!**
 
-<fantomas-nav next="./FSharp.html"></fantomas-nav>
+<fantomas-nav next="{{fsdocs-next-page-link}}"></fantomas-nav>

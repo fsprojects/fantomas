@@ -116,4 +116,4 @@ Or, more likely, you have something slightly different in your code base that is
 No matter the case, when you have a `--check` command somewhere in your continuous integration environment, please consider running a build with the latest compatible version from time to time.  
 It really helps us spotting problems early on and we can more easily pinpoint the problem due to lesser recent changes.
 
-<fantomas-nav previous="./IgnoreFiles.html" next="./GitHooks.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

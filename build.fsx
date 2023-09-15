@@ -1,6 +1,6 @@
-#r "nuget: Fun.Build, 0.3.8"
-#r "nuget: CliWrap, 3.5.0"
-#r "nuget: FSharp.Data, 5.0.2"
+#r "nuget: Fun.Build, 0.5.3"
+#r "nuget: CliWrap, 3.6.4"
+#r "nuget: FSharp.Data, 6.3.0"
 #r "nuget: Ionide.KeepAChangelog, 0.1.8"
 #r "nuget: Humanizer.Core, 2.14.1"
 
@@ -477,3 +477,5 @@ pipeline "Release" {
     }
     runIfOnlySpecified true
 }
+
+tryPrintPipelineCommandHelp ()

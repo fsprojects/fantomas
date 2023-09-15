@@ -37,4 +37,4 @@ Even if the tests are all green you should take a look at all the changes made t
 
 Think about tests to catch any regressions caused by the update and it's effects on Fantomas.
 
-<fantomas-nav previous="./Pull%20request%20ground%20rules.html" next="./Releases.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
