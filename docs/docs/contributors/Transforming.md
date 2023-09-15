@@ -161,4 +161,4 @@ graph TD
     B[Insert trivia into nodes]
  </div>
 
-<fantomas-nav previous="./Solution%20Structure.html" next="./Traverse.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

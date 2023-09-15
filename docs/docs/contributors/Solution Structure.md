@@ -61,4 +61,4 @@ A suite of end-to-end tests that run the actual `fantomas` command line applicat
 
 A suite of end-to-end tests that will verify the `Fantomas.Client` code against released versions of `fantomas`.
 
-<fantomas-nav previous="./Getting%20Started.html" next="./Transforming.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

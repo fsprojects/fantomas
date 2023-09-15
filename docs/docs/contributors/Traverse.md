@@ -87,4 +87,4 @@ The `dumpAndContinue` helper function can be used to inspect the `Context`.
 Please remove all usages when submitting a PR 😸.
 
 
-<fantomas-nav previous="./Transforming.html" next="./Formatted%20Code.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

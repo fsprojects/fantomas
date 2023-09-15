@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 8
+index: 9
 ---
 # Visual Studio Code
 The recommended way to use Fantomas in Visual Studio Code is by using the [Ionide plugin](http://ionide.io/). Fantomas is integrated in [FSAutoComplete](https://github.com/fsharp/FsAutoComplete/) which is the language server used by Ionide.  
@@ -24,4 +24,4 @@ Fantomas version detection will try and find a compatible version in the followi
 2. Your global Fantomas version. If fantomas was installed with `dotnet tool install fantomas -g`. You can see your global installations with `dotnet tool list -g`.  
 3. Executable named `fantomas` found in your PATH.
 
-<fantomas-nav previous="./VisualStudio.html" next="./GeneratingCode.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

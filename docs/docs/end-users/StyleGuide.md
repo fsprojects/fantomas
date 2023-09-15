@@ -54,4 +54,4 @@ To strengthen the message of unity we advice that you do not change the default 
 The **out-of-the-box experience** should be a result of what the **brightest minds of the community** came up with.
 If you are _new_ to the F# language, this is what you want.
 
-<fantomas-nav previous="./GettingStarted.html" next="./Configuration.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

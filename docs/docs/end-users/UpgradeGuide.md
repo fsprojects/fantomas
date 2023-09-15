@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 12
+index: 11
 ---
 # Upgrade guide
 
@@ -82,4 +82,4 @@ fsharp_experimental_stroustrup_style = true
 ### Miscellaneous
 - The namespace in [Fantomas.FCS](https://www.nuget.org/packages/Fantomas.FCS) changed from `FSharp.Compiler` to `Fantomas.FCS`.
 
-<fantomas-nav previous="./VSCode.html" next="./FAQ.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

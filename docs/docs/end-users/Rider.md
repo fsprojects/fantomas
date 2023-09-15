@@ -58,4 +58,4 @@ fsharp_keep_max_number_of_blank_lines=100
 fsharp_strict_mode=false
 ```
 
-<fantomas-nav previous="./GitHooks.html" next="./VisualStudio.html"></fantomas-nav>
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
