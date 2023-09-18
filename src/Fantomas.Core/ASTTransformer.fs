@@ -69,7 +69,7 @@ let mkLongIdent (longIdent: LongIdent) : IdentListNode =
         let range =
             longIdent |> List.map (fun ident -> ident.idRange) |> List.reduce unionRanges
 
-        IdentListNode(IdentifierOrDot.Ident(stn head.idText head.idRange) :: rest, range)
+        IdentListNode(IdentifierOrDot.Ident(mkIdent head) :: rest, range)
 
 let mkSynAccess (vis: SynAccess option) =
     match vis with
