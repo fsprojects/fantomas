@@ -1,9 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## 6.2.1 - 2023-09-18
 
 ### Fixed
 * Backticks in optional parameter gets removed [#2954](https://github.com/fsprojects/fantomas/issues/2954)
+* Ticks in namespace are lost [#2959](https://github.com/fsprojects/fantomas/issues/2959)
 
 ## 6.2.0 - 2023-08-29
 

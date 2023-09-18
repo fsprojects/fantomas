@@ -1106,3 +1106,24 @@ module Bar =
         | Why
         | Zed
 """
+
+[<Test>]
+let ``namespace with ticks, 2959`` () =
+    formatSourceString
+        false
+        """
+namespace ``G-Research``.``FSharp X``.``Analyzers Y``
+
+module StringAnalyzers =
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace ``G-Research``.``FSharp X``.``Analyzers Y``
+
+module StringAnalyzers =
+    ()
+"""
