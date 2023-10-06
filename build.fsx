@@ -77,6 +77,10 @@ pipeline "Build" {
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
     stage "RestoreAnalyzers" { run "dotnet restore ./analyzers/analyzers.fsproj" }
     stage "Build" { run "dotnet build -c Release" }
+    stage "Analyze" {
+        run
+            "dotnet fsharp-analyzers --project ./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj --analyzers-path ./.analyzerpackages\ --verbose"
+    }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
     stage "Docs" {
