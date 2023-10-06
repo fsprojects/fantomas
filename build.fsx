@@ -57,6 +57,9 @@ let pushPackage nupkg =
         return result.ExitCode
     }
 
+let analyzeProject projectPath =
+    $"dotnet fsharp-analyzers --project {projectPath} --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/ --verbose"
+
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
@@ -81,8 +84,9 @@ pipeline "Build" {
         envVars
             [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
                "DOTNET_ROLL_FORWARD", "LatestMajor" |]
-        run
-            "dotnet fsharp-analyzers --project ./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/ --verbose"
+        run (analyzeProject "./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj")
+        run (analyzeProject "./src/Fantomas.Client.Tests/Fantomas.Client.Tests.fsproj")
+        run (analyzeProject "./src/Fantomas.Tests/Fantomas.Tests.fsproj")
     }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
