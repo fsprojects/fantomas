@@ -78,8 +78,11 @@ pipeline "Build" {
     stage "RestoreAnalyzers" { run "dotnet restore ./analyzers/analyzers.fsproj" }
     stage "Build" { run "dotnet build -c Release" }
     stage "Analyze" {
+        envVars
+            [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
+               "DOTNET_ROLL_FORWARD", "LatestMajor" |]
         run
-            "dotnet fsharp-analyzers --project ./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj --analyzers-path ./.analyzerpackages\ --verbose"
+            "dotnet fsharp-analyzers --project ./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj --analyzers-path ./.analyzerpackages --verbose"
     }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
