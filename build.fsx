@@ -82,7 +82,7 @@ pipeline "Build" {
             [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
                "DOTNET_ROLL_FORWARD", "LatestMajor" |]
         run
-            "dotnet fsharp-analyzers --project ./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj --analyzers-path ./.analyzerpackages --verbose"
+            "dotnet fsharp-analyzers --project ./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/ --verbose"
     }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
