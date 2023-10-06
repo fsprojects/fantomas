@@ -64,8 +64,6 @@ pipeline "Build" {
         run (
             cleanFolders
                 [| "bin"
-                   "src/Fantomas.Analyzers/bin/Release"
-                   "src/Fantomas.Analyzers/obj/Release"
                    "src/Fantomas.FCS/bin/Release"
                    "src/Fantomas.FCS/obj/Release"
                    "src/Fantomas.Core/bin/Release"
