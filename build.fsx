@@ -89,8 +89,8 @@ pipeline "Build" {
         run (analyzeProject "./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj")
         run (analyzeProject "./src/Fantomas.Client/Fantomas.Client.fsproj")
         run (analyzeProject "./src/Fantomas.Client.Tests/Fantomas.Client.Tests.fsproj")
-        // run (analyzeProject "./src/Fantomas.Core/Fantomas.Core.fsproj") // compiler exn
-        // run (analyzeProject "./src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj") // compiler exn
+        run (analyzeProject "./src/Fantomas.Core/Fantomas.Core.fsproj")
+        run (analyzeProject "./src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj")
         run (analyzeProject "./src/Fantomas.FCS/Fantomas.FCS.fsproj")
         run (analyzeProject "./src/Fantomas.Tests/Fantomas.Tests.fsproj")
     }
