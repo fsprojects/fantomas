@@ -66,8 +66,8 @@ let analyzersVersion =
     let matches = regex.Match(s)
     matches.Groups[1].Value
 
-let analyzeProject projectPath =
-    $"dotnet fsharp-analyzers --project {projectPath} --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/{analyzersVersion} --verbose"
+let analyzeProjects (projectPaths: string seq) =
+    $"dotnet fsharp-analyzers --project {String.Join(' ', projectPaths)} --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/{analyzersVersion} --verbose"
 
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
@@ -93,14 +93,17 @@ pipeline "Build" {
         envVars
             [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
                "DOTNET_ROLL_FORWARD", "LatestMajor" |]
-        run (analyzeProject "./src/Fantomas/Fantomas.fsproj")
-        run (analyzeProject "./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj")
-        run (analyzeProject "./src/Fantomas.Client/Fantomas.Client.fsproj")
-        run (analyzeProject "./src/Fantomas.Client.Tests/Fantomas.Client.Tests.fsproj")
-        run (analyzeProject "./src/Fantomas.Core/Fantomas.Core.fsproj")
-        run (analyzeProject "./src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj")
-        run (analyzeProject "./src/Fantomas.FCS/Fantomas.FCS.fsproj")
-        run (analyzeProject "./src/Fantomas.Tests/Fantomas.Tests.fsproj")
+        run (
+            analyzeProjects
+                [ "./src/Fantomas/Fantomas.fsproj"
+                  "./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj"
+                  "./src/Fantomas.Client/Fantomas.Client.fsproj"
+                  "./src/Fantomas.Client.Tests/Fantomas.Client.Tests.fsproj"
+                  "./src/Fantomas.Core/Fantomas.Core.fsproj"
+                  "./src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj"
+                  "./src/Fantomas.FCS/Fantomas.FCS.fsproj"
+                  "./src/Fantomas.Tests/Fantomas.Tests.fsproj" ]
+        )
     }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
