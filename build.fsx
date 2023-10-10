@@ -6,6 +6,7 @@
 
 open System
 open System.IO
+open System.Text.RegularExpressions
 open Fun.Build
 open CliWrap
 open CliWrap.Buffered
@@ -57,8 +58,16 @@ let pushPackage nupkg =
         return result.ExitCode
     }
 
+let analyzersProjectPath = "./analyzers/analyzers.fsproj"
+
+let analyzersVersion =
+    let s = File.ReadAllText(analyzersProjectPath)
+    let regex = Regex(@"\[\s*(\d+\.\d+\.\d+)\s*\]")
+    let matches = regex.Match(s)
+    matches.Groups[1].Value
+
 let analyzeProject projectPath =
-    $"dotnet fsharp-analyzers --project {projectPath} --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/ --verbose"
+    $"dotnet fsharp-analyzers --project {projectPath} --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/{analyzersVersion} --verbose"
 
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
@@ -66,8 +75,7 @@ pipeline "Build" {
     stage "Clean" {
         run (
             cleanFolders
-                [| ".analyzerpackages/g-research.fsharp.analyzers"
-                   "bin"
+                [| "bin"
                    "src/Fantomas.FCS/bin/Release"
                    "src/Fantomas.FCS/obj/Release"
                    "src/Fantomas.Core/bin/Release"
@@ -79,7 +87,7 @@ pipeline "Build" {
         )
     }
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
-    stage "RestoreAnalyzers" { run "dotnet restore ./analyzers/analyzers.fsproj" }
+    stage "RestoreAnalyzers" { run $"dotnet restore {analyzersProjectPath}" }
     stage "Build" { run "dotnet build -c Release" }
     stage "Analyze" {
         envVars
