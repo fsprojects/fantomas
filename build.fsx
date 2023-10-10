@@ -85,7 +85,7 @@ pipeline "Build" {
         envVars
             [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
                "DOTNET_ROLL_FORWARD", "LatestMajor" |]
-        // run (analyzeProject "./src/Fantomas/Fantomas.fsproj") // compiler exn
+        run (analyzeProject "./src/Fantomas/Fantomas.fsproj")
         run (analyzeProject "./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj")
         run (analyzeProject "./src/Fantomas.Client/Fantomas.Client.fsproj")
         run (analyzeProject "./src/Fantomas.Client.Tests/Fantomas.Client.Tests.fsproj")
