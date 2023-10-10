@@ -66,7 +66,8 @@ pipeline "Build" {
     stage "Clean" {
         run (
             cleanFolders
-                [| "bin"
+                [| ".analyzerpackages/g-research.fsharp.analyzers"
+                   "bin"
                    "src/Fantomas.FCS/bin/Release"
                    "src/Fantomas.FCS/obj/Release"
                    "src/Fantomas.Core/bin/Release"
@@ -84,8 +85,13 @@ pipeline "Build" {
         envVars
             [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
                "DOTNET_ROLL_FORWARD", "LatestMajor" |]
+        // run (analyzeProject "./src/Fantomas/Fantomas.fsproj") // compiler exn
         run (analyzeProject "./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj")
+        run (analyzeProject "./src/Fantomas.Client/Fantomas.Client.fsproj")
         run (analyzeProject "./src/Fantomas.Client.Tests/Fantomas.Client.Tests.fsproj")
+        // run (analyzeProject "./src/Fantomas.Core/Fantomas.Core.fsproj") // compiler exn
+        // run (analyzeProject "./src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj") // compiler exn
+        run (analyzeProject "./src/Fantomas.FCS/Fantomas.FCS.fsproj")
         run (analyzeProject "./src/Fantomas.Tests/Fantomas.Tests.fsproj")
     }
     stage "UnitTests" { run "dotnet test -c Release" }
