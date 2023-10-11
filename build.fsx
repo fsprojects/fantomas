@@ -67,7 +67,7 @@ let analyzersVersion =
     matches.Groups[1].Value
 
 let analyzeProjects (projectPaths: string seq) =
-    $"dotnet fsharp-analyzers --project {String.Join(' ', projectPaths)} --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/{analyzersVersion} --verbose"
+    $"""dotnet fsharp-analyzers --project {String.concat " " projectPaths} --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/{analyzersVersion} --verbose"""
 
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
