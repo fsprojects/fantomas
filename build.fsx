@@ -101,7 +101,6 @@ pipeline "Build" {
                   "./src/Fantomas.Client.Tests/Fantomas.Client.Tests.fsproj"
                   "./src/Fantomas.Core/Fantomas.Core.fsproj"
                   "./src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj"
-                  "./src/Fantomas.FCS/Fantomas.FCS.fsproj"
                   "./src/Fantomas.Tests/Fantomas.Tests.fsproj" ]
         )
     }
