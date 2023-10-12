@@ -200,7 +200,7 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
             let ps = ProcessStartInfo("dotnet")
             ps.WorkingDirectory <- workingDirectory
             ps.Arguments <- "fantomas --daemon"
-            ps
+            ps //
         | FantomasToolStartInfo.GlobalTool ->
             let userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
 
