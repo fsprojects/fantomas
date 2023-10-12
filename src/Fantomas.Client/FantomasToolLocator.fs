@@ -192,7 +192,7 @@ let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasTo
             | Some(executableFile, FantomasVersion(CompatibleVersion version)) ->
                 Ok(FantomasToolFound((FantomasVersion(version)), FantomasToolStartInfo.ToolOnPath executableFile))
             | _ -> Error FantomasToolError.NoCompatibleVersionFound
-// touch file
+
 let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, ProcessStartError> =
     let processStart =
         match startInfo with
@@ -200,7 +200,7 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
             let ps = ProcessStartInfo("dotnet")
             ps.WorkingDirectory <- workingDirectory
             ps.Arguments <- "fantomas --daemon"
-            ps //
+            ps
         | FantomasToolStartInfo.GlobalTool ->
             let userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
 
