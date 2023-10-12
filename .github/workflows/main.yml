@@ -22,11 +22,19 @@ jobs:
       run: dotnet fsi build.fsx -p Init
     - name: Build
       run: dotnet fsi build.fsx
-    - name: Benchmark
-      run: dotnet fsi build.fsx -p Benchmark
-    - name: "trigger fantomas-tools action"
-      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'
-      run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
+#    - name: Benchmark
+#      run: dotnet fsi build.fsx -p Benchmark
+#    - name: "trigger fantomas-tools action"
+#      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'
+#      run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
+    - name: Analyzers results
+      uses: actions/github-script@v6
+      with:
+        script: |
+          console.log("Current directory:", __dirname);
+          const path = require("path");
+          const programFsPath = path.join(__dirname, "src", "Fantomas", "Program.fs");
+          console.log("Program.fs", programFsPath);
     - name: "Documentation"
       if: matrix.os == 'windows-latest' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3

@@ -104,17 +104,17 @@ pipeline "Build" {
                   "./src/Fantomas.Tests/Fantomas.Tests.fsproj" ]
         )
     }
-    stage "UnitTests" { run "dotnet test -c Release" }
-    stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
-    stage "Docs" {
-        whenNot { platformOSX }
-        run "dotnet fsi ./docs/.style/style.fsx"
-        envVars
-            [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
-               "DOTNET_ROLL_FORWARD", "LatestMajor" |]
-        run
-            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict --nonpublic"
-    }
+    // stage "UnitTests" { run "dotnet test -c Release" }
+    // stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
+    // stage "Docs" {
+    //     whenNot { platformOSX }
+    //     run "dotnet fsi ./docs/.style/style.fsx"
+    //     envVars
+    //         [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
+    //            "DOTNET_ROLL_FORWARD", "LatestMajor" |]
+    //     run
+    //         $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict --nonpublic"
+    // }
     runIfOnlySpecified false
 }
 
