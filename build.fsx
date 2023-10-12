@@ -6,6 +6,7 @@
 
 open System
 open System.IO
+open System.Text.RegularExpressions
 open Fun.Build
 open CliWrap
 open CliWrap.Buffered
@@ -57,6 +58,17 @@ let pushPackage nupkg =
         return result.ExitCode
     }
 
+let analyzersProjectPath = "./analyzers/analyzers.fsproj"
+
+let analyzersVersion =
+    let s = File.ReadAllText(analyzersProjectPath)
+    let regex = Regex(@"\[\s*(\d+\.\d+\.\d+)\s*\]")
+    let matches = regex.Match(s)
+    matches.Groups[1].Value
+
+let analyzeProjects (projectPaths: string seq) =
+    $"""dotnet fsharp-analyzers --project {String.concat " " projectPaths} --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/{analyzersVersion} --verbose --fail-on-warnings GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001"""
+
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
@@ -75,7 +87,23 @@ pipeline "Build" {
         )
     }
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
+    stage "RestoreAnalyzers" { run $"dotnet restore {analyzersProjectPath}" }
     stage "Build" { run "dotnet build -c Release" }
+    stage "Analyze" {
+        envVars
+            [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
+               "DOTNET_ROLL_FORWARD", "LatestMajor" |]
+        run (
+            analyzeProjects
+                [ "./src/Fantomas/Fantomas.fsproj"
+                  "./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj"
+                  "./src/Fantomas.Client/Fantomas.Client.fsproj"
+                  "./src/Fantomas.Client.Tests/Fantomas.Client.Tests.fsproj"
+                  "./src/Fantomas.Core/Fantomas.Core.fsproj"
+                  "./src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj"
+                  "./src/Fantomas.Tests/Fantomas.Tests.fsproj" ]
+        )
+    }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
     stage "Docs" {

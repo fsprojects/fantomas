@@ -5,6 +5,7 @@ open Fantomas.Core
 
 type ProfileInfo = { LineCount: int; TimeTaken: TimeSpan }
 
+[<RequireQualifiedAccess>]
 type FormatResult =
     | Formatted of filename: string * formattedContent: string * profileInfo: ProfileInfo option
     | Unchanged of filename: string * profileInfo: ProfileInfo option

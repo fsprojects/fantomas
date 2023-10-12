@@ -198,3 +198,6 @@ output/
 # Regression testing
 tests/.repositories/**
 !tests/.repositories/Directory.Build.props
+
+# Analyzer files
+.analyzerpackages

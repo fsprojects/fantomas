@@ -1,6 +1,7 @@
 ﻿module internal rec Fantomas.Core.ASTTransformer
 
 open System.Collections.Generic
+open System.Globalization
 open System.Text.RegularExpressions
 open Fantomas.FCS.Text
 open Fantomas.FCS.Text.Range
@@ -485,7 +486,9 @@ let (|SameInfixApps|_|) expr =
     match expr with
     | InfixApp(_, operator, _) ->
         let isRight =
-            Set.exists (fun (rOp: string) -> operator.Text.StartsWith(rOp)) rightOperators
+            Set.exists
+                (fun (rOp: string) -> operator.Text.StartsWith(rOp, false, CultureInfo.InvariantCulture))
+                rightOperators
 
         let head, xs =
             if isRight then
@@ -1497,9 +1500,11 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                     stn
                         (creationAide.TextFromSource
                             (fun () ->
-                                if idx = 0 && not (v.StartsWith("$")) then
+                                if idx = 0 && not (v.StartsWith("$", false, CultureInfo.InvariantCulture)) then
                                     $"$\"%s{v}{{"
-                                elif idx = lastIndex && not (v.EndsWith("\"")) then
+                                elif
+                                    idx = lastIndex && not (v.EndsWith("\"", false, CultureInfo.InvariantCulture))
+                                then
                                     $"}}%s{v}\""
                                 else
                                     $"}}{v}{{")
@@ -1533,7 +1538,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let c3Node = stn (creationAide.TextFromSource (fun () -> c3) mC3) mC3
 
         let dotText =
-            if c1Node.Text.EndsWith(".") || c2Node.Text.EndsWith(".") then
+            if
+                c1Node.Text.EndsWith(".", false, CultureInfo.InvariantCulture)
+                || c2Node.Text.EndsWith(".", false, CultureInfo.InvariantCulture)
+            then
                 " .. "
             else
                 ".."
@@ -1548,7 +1556,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             let hasSpaces =
                 let rec (|AtomicExpr|_|) e =
                     match e with
-                    | ConstNumberExpr(v, _) when v.StartsWith("-") -> None
+                    | ConstNumberExpr(v, _) when v.StartsWith("-", false, CultureInfo.InvariantCulture) -> None
                     | SynExpr.Ident _
                     | SynExpr.Const(SynConst.Int32 _, _)
                     | SynExpr.IndexRange(expr1 = Some(AtomicExpr _); expr2 = Some(AtomicExpr _))
@@ -1598,7 +1606,10 @@ let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
 let (|ParenStarSynIdent|_|) =
     function
     | IdentTrivia.OriginalNotationWithParen(lpr, originalNotation, rpr) ->
-        if originalNotation.Length > 1 && originalNotation.StartsWith("*") then
+        if
+            originalNotation.Length > 1
+            && originalNotation.StartsWith("*", false, CultureInfo.InvariantCulture)
+        then
             Some(lpr, originalNotation, rpr)
         else
             None

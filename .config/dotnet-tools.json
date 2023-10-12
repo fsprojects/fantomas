@@ -19,6 +19,12 @@
       "commands": [
         "fsdocs"
       ]
+    },
+    "fsharp-analyzers": {
+      "version": "0.15.0",
+      "commands": [
+        "fsharp-analyzers"
+      ]
     }
   }
 }
