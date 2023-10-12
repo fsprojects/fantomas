@@ -29,6 +29,7 @@ jobs:
 #      run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
     - name: Analyzers results
       uses: actions/github-script@v6
+      if: matrix.os == 'ubuntu-latest'
       with:
         script: |
           console.log("Current directory:", __dirname);
