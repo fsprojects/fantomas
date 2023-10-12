@@ -18,10 +18,12 @@ jobs:
     - uses: actions/checkout@v3
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
-    - name: Init
-      run: dotnet fsi build.fsx -p Init
-    - name: Build
-      run: dotnet fsi build.fsx
+    - name: Build Client
+      run: dotnet build ./src/Fantomas.Client/
+#    - name: Init
+#      run: dotnet fsi build.fsx -p Init
+#    - name: Build
+#      run: dotnet fsi build.fsx
 #    - name: Benchmark
 #      run: dotnet fsi build.fsx -p Benchmark
 #    - name: "trigger fantomas-tools action"
@@ -32,10 +34,14 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       with:
         script: |
-          console.log("Current directory:", __dirname);
+          const { cwd } = require('node:process');
+          const pwd = cwd();
+          console.log("Current directory:", pwd);
           const path = require("path");
-          const programFsPath = path.join(__dirname, "src", "Fantomas", "Program.fs");
-          console.log("Program.fs", programFsPath);
+          const toolLocatorPath = path.join(pwd, "src", "Fantomas.Client", "FantomasToolLocator.fs");
+          console.log("FantomasToolLocator.fs", toolLocatorPath);
+          const { existsSync } = require("node:fs");
+          console.log("toolLocatorPath exsits", existsSync(toolLocatorPath));
     - name: "Documentation"
       if: matrix.os == 'windows-latest' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
