@@ -6,6 +6,7 @@ open Fantomas.Core
 
 type ProfileInfo = { LineCount: int; TimeTaken: TimeSpan }
 
+[<RequireQualifiedAccess>]
 type FormatResult =
     | Formatted of filename: string * formattedContent: string * profileInfo: ProfileInfo option
     | Unchanged of filename: string * profileInfo: ProfileInfo option
@@ -46,7 +47,7 @@ module Format =
         (originalContent: string)
         : Async<FormatResult> =
         if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) formatParams.File then
-            async { return IgnoredFile formatParams.File }
+            async { return FormatResult.IgnoredFile formatParams.File }
         else
             async {
                 try
@@ -100,25 +101,29 @@ module Format =
                         let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isSignatureFile, formattedContent)
 
                         if not isValid then
-                            return InvalidCode(filename = formatParams.File, formattedContent = formattedContent)
+                            return
+                                FormatResult.InvalidCode(
+                                    filename = formatParams.File,
+                                    formattedContent = formattedContent
+                                )
                         else
                             return
-                                Formatted(
+                                FormatResult.Formatted(
                                     filename = formatParams.File,
                                     formattedContent = formattedContent,
                                     profileInfo = profileInfo
                                 )
                     else
-                        return Unchanged(filename = formatParams.File, profileInfo = profileInfo)
+                        return FormatResult.Unchanged(filename = formatParams.File, profileInfo = profileInfo)
                 with ex ->
-                    return Error(formatParams.File, ex)
+                    return FormatResult.Error(formatParams.File, ex)
             }
 
     let formatContentAsync = formatContentInternalAsync
 
     let private formatFileInternalAsync (parms: FormatParams) =
         if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) parms.File then
-            async { return IgnoredFile parms.File }
+            async { return FormatResult.IgnoredFile parms.File }
         else
 
             async {

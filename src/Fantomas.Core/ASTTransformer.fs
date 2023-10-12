@@ -1502,7 +1502,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                             (fun () ->
                                 if idx = 0 && not (v.StartsWith("$", false, CultureInfo.InvariantCulture)) then
                                     $"$\"%s{v}{{"
-                                elif idx = lastIndex && not (v.EndsWith("\"")) then
+                                elif
+                                    idx = lastIndex && not (v.EndsWith("\"", false, CultureInfo.InvariantCulture))
+                                then
                                     $"}}%s{v}\""
                                 else
                                     $"}}{v}{{")
@@ -1536,7 +1538,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let c3Node = stn (creationAide.TextFromSource (fun () -> c3) mC3) mC3
 
         let dotText =
-            if c1Node.Text.EndsWith(".") || c2Node.Text.EndsWith(".") then
+            if
+                c1Node.Text.EndsWith(".", false, CultureInfo.InvariantCulture)
+                || c2Node.Text.EndsWith(".", false, CultureInfo.InvariantCulture)
+            then
                 " .. "
             else
                 ".."

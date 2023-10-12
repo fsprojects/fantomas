@@ -2,6 +2,7 @@ module Fantomas.Client.Contracts
 
 open System
 open System.Collections.Generic
+open System.Globalization
 open System.Threading
 open System.Threading.Tasks
 
@@ -25,7 +26,8 @@ type FormatDocumentRequest =
       Config: IReadOnlyDictionary<string, string> option
       Cursor: FormatCursorPosition option }
 
-    member this.IsSignatureFile = this.FilePath.EndsWith(".fsi")
+    member this.IsSignatureFile =
+        this.FilePath.EndsWith(".fsi", false, CultureInfo.InvariantCulture)
 
 and FormatCursorPosition =
     class
@@ -47,7 +49,8 @@ type FormatSelectionRequest =
         Range: FormatSelectionRange
     }
 
-    member this.IsSignatureFile = this.FilePath.EndsWith(".fsi")
+    member this.IsSignatureFile =
+        this.FilePath.EndsWith(".fsi", false, CultureInfo.InvariantCulture)
 
 and FormatSelectionRange =
     class
