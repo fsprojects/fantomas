@@ -35,10 +35,15 @@ jobs:
       with:
         script: |
           const { cwd } = require('node:process');
-          const pwd = cwd();
-          console.log("Current directory:", pwd);
+          const repositoryRoot = cwd();
           const path = require("path");
-          const toolLocatorPath = path.join(pwd, "src", "Fantomas.Client", "FantomasToolLocator.fs");
+          const analysisPath = path.join(repositoryRoot, "analysis.json");
+          if (!existsSync(analysisPath)) {
+            console.log(`No F# analyzer report was found at ${analysisPath}`);  
+          } else {
+            const analysisResult = require(analysisPath);
+            console.table(analysisResult.messages);
+          }
           console.log("FantomasToolLocator.fs", toolLocatorPath);
           const { existsSync } = require("node:fs");
           console.log("toolLocatorPath exsits", existsSync(toolLocatorPath));

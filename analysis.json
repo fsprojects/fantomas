@@ -1,0 +1,42 @@
+{
+  "analyzerSDKVersion": "0.16.0.0",
+  "createdAt": "2023-10-12T13:36:23.8939971Z",
+  "messages": [
+    {
+      "type": "Casual info",
+      "message": "Example info that could some from an analyzer",
+      "severity": "info",
+      "range": {
+        "startLine": 15,
+        "startColumn": 12,
+        "endLine": 15,
+        "endColumn": 35
+      },
+      "file": "/home/runner/work/fantomas/fantomas/src/Fantomas.Client/FantomasToolLocator.fs"
+    },
+    {
+      "type": "Scary warning",
+      "message": "Example warning that could some from an analyzer",
+      "severity": "warning",
+      "range": {
+        "startLine": 42,
+        "startColumn": 9,
+        "endLine": 58,
+        "endColumn": 95
+      },
+      "file": "/home/runner/work/fantomas/fantomas/src/Fantomas.Client/FantomasToolLocator.fs"
+    },
+    {
+      "type": "Troublesome error",
+      "message": "Example error that could some from an analyzer",
+      "severity": "error",
+      "range": {
+        "startLine": 203,
+        "startColumn": 12,
+        "endLine": 203,
+        "endColumn": 14
+      },
+      "file": "/home/runner/work/fantomas/fantomas/src/Fantomas.Client/FantomasToolLocator.fs"
+    }
+  ]
+}
