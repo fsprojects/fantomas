@@ -38,15 +38,13 @@ jobs:
           const repositoryRoot = cwd();
           const path = require("path");
           const analysisPath = path.join(repositoryRoot, "analysis.json");
+          const { existsSync } = require("node:fs");
           if (!existsSync(analysisPath)) {
             console.log(`No F# analyzer report was found at ${analysisPath}`);  
           } else {
             const analysisResult = require(analysisPath);
             console.table(analysisResult.messages);
           }
-          console.log("FantomasToolLocator.fs", toolLocatorPath);
-          const { existsSync } = require("node:fs");
-          console.log("toolLocatorPath exsits", existsSync(toolLocatorPath));
     - name: "Documentation"
       if: matrix.os == 'windows-latest' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
