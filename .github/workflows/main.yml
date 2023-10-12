@@ -43,7 +43,40 @@ jobs:
             console.log(`No F# analyzer report was found at ${analysisPath}`);  
           } else {
             const analysisResult = require(analysisPath);
-            console.table(analysisResult.messages);
+            analysisResult.messages.forEach(({ type, message, severity, range, fileName }) => {
+              switch(severity) {
+                case "info":
+                  core.notice({ 
+                    title:type,
+                    file: fileName,
+                    startLine: range.startLine,
+                    startColumn: range.startColumn,
+                    endLine: range.endLine,
+                    endColumn: range.endColumn
+                  });
+                  break;
+                case "warning":
+                  core.warning({ 
+                    title:type,
+                    file: fileName,
+                    startLine: range.startLine,
+                    startColumn: range.startColumn,
+                    endLine: range.endLine,
+                    endColumn: range.endColumn
+                  });
+                  break;
+                case "error":
+                  core.error({ 
+                    title:type,
+                    file: fileName,
+                    startLine: range.startLine,
+                    startColumn: range.startColumn,
+                    endLine: range.endLine,
+                    endColumn: range.endColumn
+                  });
+                  break;
+              }
+            });
           }
     - name: "Documentation"
       if: matrix.os == 'windows-latest' && github.ref == 'refs/heads/main'

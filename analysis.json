@@ -12,7 +12,7 @@
         "endLine": 15,
         "endColumn": 35
       },
-      "file": "/home/runner/work/fantomas/fantomas/src/Fantomas.Client/FantomasToolLocator.fs"
+      "fileName": "/home/runner/work/fantomas/fantomas/src/Fantomas.Client/FantomasToolLocator.fs"
     },
     {
       "type": "Scary warning",
@@ -24,7 +24,7 @@
         "endLine": 58,
         "endColumn": 95
       },
-      "file": "/home/runner/work/fantomas/fantomas/src/Fantomas.Client/FantomasToolLocator.fs"
+      "fileName": "/home/runner/work/fantomas/fantomas/src/Fantomas.Client/FantomasToolLocator.fs"
     },
     {
       "type": "Troublesome error",
@@ -36,7 +36,7 @@
         "endLine": 203,
         "endColumn": 14
       },
-      "file": "/home/runner/work/fantomas/fantomas/src/Fantomas.Client/FantomasToolLocator.fs"
+      "fileName": "/home/runner/work/fantomas/fantomas/src/Fantomas.Client/FantomasToolLocator.fs"
     }
   ]
 }
