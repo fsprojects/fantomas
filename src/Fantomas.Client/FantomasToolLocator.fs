@@ -192,7 +192,7 @@ let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasTo
             | Some(executableFile, FantomasVersion(CompatibleVersion version)) ->
                 Ok(FantomasToolFound((FantomasVersion(version)), FantomasToolStartInfo.ToolOnPath executableFile))
             | _ -> Error FantomasToolError.NoCompatibleVersionFound
-
+// touch file
 let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, ProcessStartError> =
     let processStart =
         match startInfo with
