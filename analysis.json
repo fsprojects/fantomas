@@ -4,6 +4,7 @@
   "messages": [
     {
       "type": "Casual info",
+      "code": "GRA-STRING-001",
       "message": "Example info that could some from an analyzer",
       "severity": "info",
       "range": {
@@ -16,6 +17,7 @@
     },
     {
       "type": "Scary warning",
+      "code": "GRA-STRING-002",
       "message": "Example warning that could some from an analyzer",
       "severity": "warning",
       "range": {
@@ -28,6 +30,7 @@
     },
     {
       "type": "Troublesome error",
+      "code": "GRA-STRING-003",
       "message": "Example error that could some from an analyzer",
       "severity": "error",
       "range": {

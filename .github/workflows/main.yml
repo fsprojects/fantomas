@@ -43,10 +43,10 @@ jobs:
             console.log(`No F# analyzer report was found at ${analysisPath}`);  
           } else {
             const analysisResult = require(analysisPath);
-            analysisResult.messages.forEach(({ type, message, severity, range, fileName }) => {
+            analysisResult.messages.forEach(({ type, code, message, severity, range, fileName }) => {
               switch(severity) {
                 case "info":
-                  core.notice({ 
+                  core.notice(code, { 
                     title:type,
                     file: fileName,
                     startLine: range.startLine,
@@ -56,7 +56,7 @@ jobs:
                   });
                   break;
                 case "warning":
-                  core.warning({ 
+                  core.warning(code, { 
                     title:type,
                     file: fileName,
                     startLine: range.startLine,
@@ -66,7 +66,7 @@ jobs:
                   });
                   break;
                 case "error":
-                  core.error({ 
+                  core.error(code, { 
                     title:type,
                     file: fileName,
                     startLine: range.startLine,
