@@ -8,6 +8,9 @@ module String =
     let startsWithOrdinal (prefix: string) (str: string) =
         str.StartsWith(prefix, StringComparison.Ordinal)
 
+    let endsWithOrdinal (postfix: string) (str: string) =
+        str.EndsWith(postfix, StringComparison.Ordinal)
+
     let empty = String.Empty
     let isNotNullOrEmpty = String.IsNullOrEmpty >> not
     let isNotNullOrWhitespace = String.IsNullOrWhiteSpace >> not

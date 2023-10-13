@@ -1,6 +1,6 @@
 ﻿module internal Fantomas.Core.Trivia
 
-open System.Globalization
+open System
 open Fantomas.FCS.Syntax
 open Fantomas.FCS.SyntaxTrivia
 open Fantomas.FCS.Text
@@ -47,9 +47,9 @@ let internal collectTriviaFromCodeComments
             let content =
                 let trimmedLine = line.TrimStart(' ', ';')
 
-                if index = 0 && trimmedLine.StartsWith("#!", false, CultureInfo.InvariantCulture) then // shebang
+                if index = 0 && String.startsWithOrdinal "#!" trimmedLine then // shebang
                     CommentOnSingleLine content
-                else if trimmedLine.StartsWith("//", false, CultureInfo.InvariantCulture) then
+                else if String.startsWithOrdinal "//" trimmedLine then
                     CommentOnSingleLine content
                 else
                     LineCommentAfterSourceCode content
