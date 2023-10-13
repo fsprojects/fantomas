@@ -1,7 +1,6 @@
 module internal Fantomas.Core.Context
 
 open System
-open System.Globalization
 open Fantomas.FCS.Text
 open Fantomas.Core
 open Fantomas.Core.SyntaxOak
@@ -536,11 +535,7 @@ let sepSpace (ctx: Context) =
         (!- " ") ctx
     else
         match lastWriteEventOnLastLine ctx with
-        | Some w when
-            (w.EndsWith(" ", false, CultureInfo.InvariantCulture)
-             || w.EndsWith(Environment.NewLine, false, CultureInfo.InvariantCulture))
-            ->
-            ctx
+        | Some w when (String.endsWithOrdinal " " w || String.endsWithOrdinal Environment.NewLine w) -> ctx
         | None -> ctx
         | _ -> (!- " ") ctx
 
@@ -864,7 +859,7 @@ let sepColon (ctx: Context) =
         defaultExpr ctx
     else
         match lastWriteEventOnLastLine ctx with
-        | Some w when w.EndsWith(" ", false, CultureInfo.InvariantCulture) -> !- ": " ctx
+        | Some w when String.endsWithOrdinal " " w -> !- ": " ctx
         | None -> !- ": " ctx
         | _ -> defaultExpr ctx
 

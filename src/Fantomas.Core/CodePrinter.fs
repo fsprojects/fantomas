@@ -1,7 +1,6 @@
 module internal rec Fantomas.Core.CodePrinter
 
 open System
-open System.Globalization
 open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak
 open Microsoft.FSharp.Core.CompilerServices
@@ -751,9 +750,7 @@ let genExpr (e: Expr) =
 
         match node.Expr with
         | Expr.Constant _
-        | Expr.InterpolatedStringExpr _ when
-            not (node.Operator.Text.StartsWith("%", false, CultureInfo.InvariantCulture))
-            ->
+        | Expr.InterpolatedStringExpr _ when not (String.startsWithOrdinal "%" node.Operator.Text) ->
             genSingleTextNode node.Operator +> sepSpace +> genExpr node.Expr
         | Expr.AppSingleParenArg appNode ->
             genSingleTextNode node.Operator
@@ -1841,7 +1838,7 @@ let genArrayOrList (preferMultilineCramped: bool) (node: ExprArrayOrListNode) =
                     let (|YieldLikeExpr|_|) e =
                         match e with
                         | Expr.Single singleNode ->
-                            if singleNode.Leading.Text.StartsWith("yield", false, CultureInfo.InvariantCulture) then
+                            if String.startsWithOrdinal "yield" singleNode.Leading.Text then
                                 Some e
                             else
                                 None
@@ -2263,7 +2260,7 @@ let colGenericTypeParameters typeParameters =
     coli sepComma typeParameters (fun idx t ->
         let leadingSpace =
             match t with
-            | Type.Var n when idx = 0 && n.Text.StartsWith("^", false, CultureInfo.InvariantCulture) -> sepSpace
+            | Type.Var n when idx = 0 && String.startsWithOrdinal "^" n.Text -> sepSpace
             | _ -> sepNone
 
         leadingSpace +> genType t)
@@ -2514,10 +2511,7 @@ let genPatLeftMiddleRight (node: PatLeftMiddleRight) =
 
 let genTyparDecl (isFirstTypeParam: bool) (td: TyparDeclNode) =
     genOnelinerAttributes td.Attributes
-    +> onlyIf
-        (isFirstTypeParam
-         && td.TypeParameter.Text.StartsWith("^", false, CultureInfo.InvariantCulture))
-        sepSpace
+    +> onlyIf (isFirstTypeParam && String.startsWithOrdinal "^" td.TypeParameter.Text) sepSpace
     +> genSingleTextNode td.TypeParameter
     |> genNode td
 
@@ -3111,7 +3105,7 @@ let genType (t: Type) =
         let addExtraSpace =
             match node.Arguments with
             | [] -> sepNone
-            | Type.Var node :: _ when node.Text.StartsWith("^", false, CultureInfo.InvariantCulture) -> sepSpace
+            | Type.Var node :: _ when String.startsWithOrdinal "^" node.Text -> sepSpace
             | t :: _ -> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
 
         genType node.Identifier
@@ -3213,7 +3207,7 @@ let addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: Type) =
     match t with
     | Type.StaticConstant sc ->
         match sc with
-        | Constant.FromText node -> onlyIf (node.Text.StartsWith("@", false, CultureInfo.InvariantCulture)) sepSpace
+        | Constant.FromText node -> onlyIf (String.startsWithOrdinal "@" node.Text) sepSpace
         | _ -> sepNone
     | _ -> sepNone
 
