@@ -270,7 +270,7 @@ When combined with the <code>--recurse</code> flag, all passed folders will be p
 function Format-Changed(){
     $files = 
         git status --porcelain `
-        | Where-Object { ($_.StartsWith(" M") -or $_.StartsWith("AM")) `
+        | Where-Object { ($_.StartsWith(" M", "Ordinal") -or $_.StartsWith("AM", "Ordinal")) `
         -and (Test-FSharpExtension $_) } | ForEach-Object { $_.substring(3) }
     &amp; "dotnet" "fantomas" $files
 }
