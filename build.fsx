@@ -67,7 +67,14 @@ let analyzersVersion =
     matches.Groups[1].Value
 
 let analyzeProjects (projectPaths: string seq) =
-    $"""dotnet fsharp-analyzers --project {String.concat " " projectPaths} --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/{analyzersVersion} --verbose --fail-on-warnings GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001"""
+    let projects = String.concat " " projectPaths
+    let analyzerPath =
+        $"./.analyzerpackages/g-research.fsharp.analyzers/{analyzersVersion}"
+    let failOnWarnings =
+        "GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001"
+    let excludeAnalyzers = "PartialAppAnalyzer"
+    let report = "./analysis.sarif"
+    $"dotnet fsharp-analyzers --project %s{projects} --analyzers-path \"%s{analyzerPath}\" --verbose --fail-on-warnings %s{failOnWarnings} --report %s{report} --exclude-analyzer %s{excludeAnalyzers}"
 
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
@@ -87,7 +94,7 @@ pipeline "Build" {
         )
     }
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
-    stage "RestoreAnalyzers" { run $"dotnet restore {analyzersProjectPath}" }
+    stage "RestoreAnalyzers" { run $"dotnet restore %s{analyzersProjectPath}" }
     stage "Build" { run "dotnet build -c Release" }
     stage "Analyze" {
         envVars
@@ -104,17 +111,17 @@ pipeline "Build" {
                   "./src/Fantomas.Tests/Fantomas.Tests.fsproj" ]
         )
     }
-    // stage "UnitTests" { run "dotnet test -c Release" }
-    // stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
-    // stage "Docs" {
-    //     whenNot { platformOSX }
-    //     run "dotnet fsi ./docs/.style/style.fsx"
-    //     envVars
-    //         [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
-    //            "DOTNET_ROLL_FORWARD", "LatestMajor" |]
-    //     run
-    //         $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict --nonpublic"
-    // }
+    stage "UnitTests" { run "dotnet test -c Release" }
+    stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
+    stage "Docs" {
+        whenNot { platformOSX }
+        run "dotnet fsi ./docs/.style/style.fsx"
+        envVars
+            [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
+               "DOTNET_ROLL_FORWARD", "LatestMajor" |]
+        run
+            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict --nonpublic"
+    }
     runIfOnlySpecified false
 }
 

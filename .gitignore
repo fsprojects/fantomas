@@ -201,3 +201,4 @@ tests/.repositories/**
 
 # Analyzer files
 .analyzerpackages
+analysis.sarif
