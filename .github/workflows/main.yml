@@ -29,55 +29,11 @@ jobs:
 #    - name: "trigger fantomas-tools action"
 #      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'
 #      run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
-    - name: Analyzers results
-      uses: actions/github-script@v6
+    - name: Upload SARIF file
+      uses: github/codeql-action/upload-sarif@v2
       if: matrix.os == 'ubuntu-latest'
       with:
-        script: |
-          const { cwd } = require('node:process');
-          const repositoryRoot = cwd();
-          const path = require("path");
-          const analysisPath = path.join(repositoryRoot, "analysis.json");
-          const { existsSync } = require("node:fs");
-          if (!existsSync(analysisPath)) {
-            console.log(`No F# analyzer report was found at ${analysisPath}`);  
-          } else {
-            const analysisResult = require(analysisPath);
-            analysisResult.messages.forEach(({ type, code, message, severity, range, fileName }) => {
-              switch(severity) {
-                case "info":
-                  core.notice(code, { 
-                    title:type,
-                    file: fileName,
-                    startLine: range.startLine,
-                    startColumn: range.startColumn,
-                    endLine: range.endLine,
-                    endColumn: range.endColumn
-                  });
-                  break;
-                case "warning":
-                  core.warning(code, { 
-                    title:type,
-                    file: fileName,
-                    startLine: range.startLine,
-                    startColumn: range.startColumn,
-                    endLine: range.endLine,
-                    endColumn: range.endColumn
-                  });
-                  break;
-                case "error":
-                  core.error(code, { 
-                    title:type,
-                    file: fileName,
-                    startLine: range.startLine,
-                    startColumn: range.startColumn,
-                    endLine: range.endLine,
-                    endColumn: range.endColumn
-                  });
-                  break;
-              }
-            });
-          }
+        sarif_file: analysis.sarif
     - name: "Documentation"
       if: matrix.os == 'windows-latest' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
