@@ -3,6 +3,7 @@ namespace Fantomas.Core
 [<RequireQualifiedAccess>]
 module String =
     val startsWithOrdinal: prefix: string -> str: string -> bool
+    val endsWithOrdinal: postfix: string -> str: string -> bool
     val empty: string
     val isNotNullOrEmpty: (string -> bool)
     val isNotNullOrWhitespace: (string -> bool)

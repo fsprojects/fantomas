@@ -78,7 +78,7 @@ Consider the following PowerShell script:
 function Format-Changed(){
     $files = 
         git status --porcelain `
-        | Where-Object { ($_.StartsWith(" M") -or $_.StartsWith("AM")) `
+        | Where-Object { ($_.StartsWith(" M", "Ordinal") -or $_.StartsWith("AM", "Ordinal")) `
         -and (Test-FSharpExtension $_) } | ForEach-Object { $_.substring(3) }
     & "dotnet" "fantomas" $files
 }

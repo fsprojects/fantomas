@@ -165,8 +165,11 @@ pipeline "FormatChanged" {
                         |> Array.choose (fun line ->
                             let line = line.Trim()
                             if
-                                (line.StartsWith("AM") || line.StartsWith("M"))
-                                && (line.EndsWith(".fs") || line.EndsWith(".fsx") || line.EndsWith(".fsi"))
+                                (line.StartsWith("AM", StringComparison.Ordinal)
+                                 || line.StartsWith("M", StringComparison.Ordinal))
+                                && (line.EndsWith(".fs", StringComparison.Ordinal)
+                                    || line.EndsWith(".fsx", StringComparison.Ordinal)
+                                    || line.EndsWith(".fsi", StringComparison.Ordinal))
                             then
                                 Some(line.Replace("AM ", "").Replace("M ", ""))
                             else
@@ -379,7 +382,7 @@ let mkGithubRelease (v: SemanticVersion, d: DateTime, cd: ChangelogData option) 
                 None
             else
                 let output = cmdResult.StandardOutput.Trim()
-                let lastIdx = output.LastIndexOf("Z")
+                let lastIdx = output.LastIndexOf("Z", StringComparison.Ordinal)
                 Some(output.Substring(0, lastIdx))
 
         let sections =
