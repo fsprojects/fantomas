@@ -2024,7 +2024,7 @@ let genAppSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppSingle
         match node.ArgExpr with
         | Expr.Paren parenNode when parenNode.HasContentBefore ->
             // We make a copy of the parenthesis argument (without the trivia being copied).
-            // Then we check if that is was multiline or not.
+            // Then we check if that is multiline or not.
             let parenNode' =
                 mkExprParenNode parenNode.OpeningParen parenNode.Expr parenNode.ClosingParen parenNode.Range
 
