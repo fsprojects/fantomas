@@ -58,7 +58,7 @@ let pushPackage nupkg =
         return result.ExitCode
     }
 
-let analyzersProjectPath = "./analyzers/analyzers.fsproj"
+let analyzersProjectPath = __SOURCE_DIRECTORY__ </> "analyzers/analyzers.fsproj"
 
 let analyzersVersion =
     let s = File.ReadAllText(analyzersProjectPath)
