@@ -357,3 +357,63 @@ let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt (mapping)
         """
 let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(mapping)
 """
+
+[<Test>]
+let ``space should not be added when expression is indexed, 2965`` () =
+    formatSourceString
+        false
+        """
+fooo.Bar()[key]
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+fooo.Bar()[key]
+"""
+
+[<Test>]
+let ``space should not be added when expression is indexed, single ident application`` () =
+    formatSourceString
+        false
+        """
+Bar()[key]
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+Bar()[key]
+"""
+
+[<Test>]
+let ``space should not be added when expression is indexed, parentheses argument`` () =
+    formatSourceString
+        false
+        """
+fooo.Bar(1)[key]
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+fooo.Bar(1)[key]
+"""
+
+[<Test>]
+let ``space should not be added when expression is indexed, single ident application with parentheses argument`` () =
+    formatSourceString
+        false
+        """
+Bar(1)[key]
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+Bar(1)[key]
+"""
