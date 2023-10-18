@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.2.2 - 2023-10-18
+
+### Fixed
+* Space before should not be introduced for index expression. [#2965](https://github.com/fsprojects/fantomas/issues/2965)
+
 ## 6.2.1 - 2023-09-18
 
 ### Fixed

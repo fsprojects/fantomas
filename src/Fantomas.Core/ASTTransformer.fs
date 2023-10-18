@@ -1,6 +1,5 @@
 ﻿module internal rec Fantomas.Core.ASTTransformer
 
-open System
 open System.Collections.Generic
 open System.Text.RegularExpressions
 open Fantomas.FCS.Text
@@ -875,6 +874,7 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
 let (|AppSingleParenArg|_|) =
     function
     | App(SynExpr.DotGet _, [ (SynExpr.Paren(expr = SynExpr.Tuple _)) ]) -> None
+    | App(e, [ UnitExpr _ as px ]) -> Some(e, px)
     | App(e, [ SynExpr.Paren(expr = singleExpr) as px ]) ->
         match singleExpr with
         | SynExpr.Lambda _

@@ -603,8 +603,8 @@ module SomeModule =
         ()
         : Option<WatchWalletInfo> =
         let initialAbs =
-            initialFeeWithAMinimumGasPriceInWeiDictatedByAvailablePublicFullNodes.CalculateAbsoluteValue
-                ()
+            initialFeeWithAMinimumGasPriceInWeiDictatedByAvailablePublicFullNodes
+                .CalculateAbsoluteValue()
 
         initialAbs / 100
 """

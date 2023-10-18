@@ -851,9 +851,15 @@ let genExpr (e: Expr) =
                     ctx
 
     | Expr.IndexWithoutDot node ->
+        let genIdentifierExpr =
+            match node.Identifier with
+            | Expr.AppLongIdentAndSingleParenArg appNode -> genAppLongIdentAndSingleParenArgExpr sepNone appNode
+            | Expr.AppSingleParenArg appNode -> genAppSingleParenArgExpr sepNone appNode
+            | _ -> genExpr node.Identifier
+
         let genIndexExpr = genExpr node.Index
 
-        genExpr node.Identifier
+        genIdentifierExpr
         +> sepOpenLFixed
         +> expressionFitsOnRestOfLine genIndexExpr (atCurrentColumnIndent genIndexExpr)
         +> sepCloseLFixed
@@ -1016,53 +1022,11 @@ let genExpr (e: Expr) =
                 (Expr.OptVar(ExprOptVarNode(false, node.FunctionName, node.FunctionName.Range)))
                 node.ArgExpr
 
-        let shortLids = genIdentListNode node.FunctionName
-        let short = shortLids +> addSpace +> genExpr node.ArgExpr
-
-        let long =
-            let args =
-                addSpace
-                +> expressionFitsOnRestOfLine
-                    (genExpr node.ArgExpr)
-                    (genMultilineFunctionApplicationArguments node.ArgExpr)
-
-            ifElseCtx
-                (futureNlnCheck shortLids)
-                (genFunctionNameWithMultilineLids args node.FunctionName)
-                (shortLids +> args)
-
-        expressionFitsOnRestOfLine short long |> genNode node
+        genAppLongIdentAndSingleParenArgExpr addSpace node
     // fn (a, b, c)
     | Expr.AppSingleParenArg node ->
-        let short =
-            genExpr node.FunctionExpr
-            +> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
-            +> genExpr node.ArgExpr
-
-        let long ctx =
-            let genDefaultLong =
-                genExpr node.FunctionExpr
-                +> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
-                +> genMultilineFunctionApplicationArguments node.ArgExpr
-
-            match node.ArgExpr with
-            | Expr.Paren parenNode when parenNode.HasContentBefore ->
-                // We make a copy of the parenthesis argument (without the trivia being copied).
-                // Then we check if that is was multiline or not.
-                let parenNode' =
-                    mkExprParenNode parenNode.OpeningParen parenNode.Expr parenNode.ClosingParen parenNode.Range
-
-                let isSingleLineWithoutTriviaBefore = futureNlnCheck (genExpr parenNode') ctx
-
-                if not isSingleLineWithoutTriviaBefore then
-                    (genExpr node.FunctionExpr +> indentSepNlnUnindent (genExpr node.ArgExpr)) ctx
-                else
-                    (genExpr node.FunctionExpr
-                     +> indentSepNlnUnindent (genMultilineFunctionApplicationArguments node.ArgExpr))
-                        ctx
-            | _ -> genDefaultLong ctx
-
-        expressionFitsOnRestOfLine short long |> genNode node
+        let addSpace = sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
+        genAppSingleParenArgExpr addSpace node
 
     // functionName arg1 arg2 (fun x y z -> ...)
     | Expr.AppWithLambda node ->
@@ -2031,6 +1995,50 @@ let genLambdaAux (includeClosingParen: bool) (node: ExprLambdaNode) =
 
 let genLambda = genLambdaAux false
 let genLambdaWithParen = genLambdaAux true
+
+let genAppLongIdentAndSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppLongIdentAndSingleParenArgNode) =
+    let shortLids = genIdentListNode node.FunctionName
+    let short = shortLids +> addSpace +> genExpr node.ArgExpr
+
+    let long =
+        let args =
+            addSpace
+            +> expressionFitsOnRestOfLine (genExpr node.ArgExpr) (genMultilineFunctionApplicationArguments node.ArgExpr)
+
+        ifElseCtx
+            (futureNlnCheck shortLids)
+            (genFunctionNameWithMultilineLids args node.FunctionName)
+            (shortLids +> args)
+
+    expressionFitsOnRestOfLine short long |> genNode node
+
+let genAppSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppSingleParenArgNode) =
+    let short = genExpr node.FunctionExpr +> addSpace +> genExpr node.ArgExpr
+
+    let long ctx =
+        let genDefaultLong =
+            genExpr node.FunctionExpr
+            +> addSpace
+            +> genMultilineFunctionApplicationArguments node.ArgExpr
+
+        match node.ArgExpr with
+        | Expr.Paren parenNode when parenNode.HasContentBefore ->
+            // We make a copy of the parenthesis argument (without the trivia being copied).
+            // Then we check if that is was multiline or not.
+            let parenNode' =
+                mkExprParenNode parenNode.OpeningParen parenNode.Expr parenNode.ClosingParen parenNode.Range
+
+            let isSingleLineWithoutTriviaBefore = futureNlnCheck (genExpr parenNode') ctx
+
+            if not isSingleLineWithoutTriviaBefore then
+                (genExpr node.FunctionExpr +> indentSepNlnUnindent (genExpr node.ArgExpr)) ctx
+            else
+                (genExpr node.FunctionExpr
+                 +> indentSepNlnUnindent (genMultilineFunctionApplicationArguments node.ArgExpr))
+                    ctx
+        | _ -> genDefaultLong ctx
+
+    expressionFitsOnRestOfLine short long |> genNode node
 
 let genClauses (clauses: MatchClauseNode list) =
     let lastIndex = clauses.Length - 1
