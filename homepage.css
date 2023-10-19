@@ -3454,7 +3454,7 @@ progress {
 
 .tooltip {
   --bs-tooltip-zindex: 1080;
-  --bs-tooltip-max-width: 200px;
+  --bs-tooltip-max-width: 400px;
   --bs-tooltip-padding-x: 0.5rem;
   --bs-tooltip-padding-y: 0.25rem;
   --bs-tooltip-margin: ;

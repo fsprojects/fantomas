@@ -212,7 +212,7 @@ UI might be available depending on the IDE.</p>
 
 <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="fn">printf</span> <span class="s">$&quot;version: {</span><span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">Fantomas</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="id">Core</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs4', 4)" onmouseover="showTip(event, 'fs4', 4)" class="rt">CodeFormatter</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs5', 5)" onmouseover="showTip(event, 'fs5', 5)" class="id">GetVersion</span><span class="pn">(</span><span class="pn">)</span><span class="s">}&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code>version: 6.2.2+0d7da4c85f3db0f5f3def08bf9672daacc27cdd7</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 6.2.2+c24ecd6133ffab501030887f0b7a34c0fdda5237</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -244,9 +244,10 @@ However, there are settings that we do not recommend and generally should not be
 <p><fantomas-setting-icon green></fantomas-setting-icon><strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to change these as it's been agreed on the codebase, however, you can always use it's defaults.</p>
 <p><fantomas-setting-icon orange></fantomas-setting-icon><strong>Use with caution:</strong> Settings where it is not recommended to change the default value. They might lead to incomplete results.</p>
 <p><fantomas-setting-icon red></fantomas-setting-icon><strong>Do not use:</strong> Settings that don't follow any guidelines.</p>
-<p><fantomas-setting-icon gr></fantomas-setting-icon><strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p></p>
+<p><fantomas-setting-icon gr></fantomas-setting-icon><strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p>
+<p><i class="bi bi-clipboard"></i> <strong>Copy button:</strong> This copies the <code>.editorconfig</code> setting text you need to change the default. ⚠️ The copied text will not contain the default value.</p>
 <h2><a name="Auxiliary-settings" class="anchor" href="#Auxiliary-settings">Auxiliary settings</a></h2>
-<fantomas-setting name="indent_size" orange></fantomas-setting>
+<fantomas-setting name="indent_size" orange clip="2"></fantomas-setting>
 <p><code>indent_size</code> has to be between 1 and 10.</p>
 <p>This preference sets the indentation
 The common values are 2 and 4.<br />
@@ -278,7 +279,7 @@ The same indentation is ensured to be consistent in a source file.</p>
     | n -&gt; find (n - 1)
 
   find &lt;| f.Length - 1</code></pre></td></tr></table>
-<fantomas-setting name="max_line_length" green></fantomas-setting>
+<fantomas-setting name="max_line_length" green clip="100"></fantomas-setting>
 <p><code>max_line_length</code> has to be an integer greater or equal to 60.<br />
 This preference sets the column where we break F# constructs into new lines.</p>
 <table class="pre"><tr><td><pre><code>Default = 120</code></pre></td></tr></table>
@@ -295,11 +296,11 @@ This preference sets the column where we break F# constructs into new lines.</p>
 | Some foo -&gt;
     someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
 | None -&gt; printfn "nothing"</code></pre></td></tr></table>
-<fantomas-setting name="end_of_line" green></fantomas-setting>
+<fantomas-setting name="end_of_line" green clip="lf"></fantomas-setting>
 <p><code>end_of_line</code> determines the newline character, <code>lf</code> will add <code>\n</code> where <code>crlf</code> will add <code>\r\n</code>.<br />
 <code>cr</code> is not supported by the F# language spec.<br />
 If not set by the user, the default value is determined by <code>System.Environment.NewLine</code>.</p>
-<fantomas-setting name="insert_final_newline" orange></fantomas-setting>
+<fantomas-setting name="insert_final_newline" orange clip="false"></fantomas-setting>
 <p>Adds a final newline character at the end of the file.<br />
 <a href="https://stackoverflow.com/questions/729692/why-should-text-files-end-with-a-newline" target="_blank">Why should text files end with a newline?</a></p>
 <table class="pre"><tr><td><pre><code>Default = true</code></pre></td></tr></table>
@@ -311,7 +312,7 @@ If not set by the user, the default value is determined by <code>System.Environm
         <span class="prop">InsertFinalNewline</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>let a = 42</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_space_before_parameter" orange></fantomas-setting>
+<fantomas-setting name="fsharp_space_before_parameter" orange clip="false"></fantomas-setting>
 <p>Add a space after the name of a function and before the opening parenthesis of the first parameter.<br />
 This setting influences function definitions.</p>
 <table class="pre"><tr><td><pre><code>Default = true</code></pre></td></tr></table>
@@ -325,7 +326,7 @@ This setting influences function definitions.</p>
 </code></pre>
 <table class="pre"><tr><td><pre><code>let value(a: int) = x
 let DumpTrace() = ()</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_space_before_lowercase_invocation" orange></fantomas-setting>
+<fantomas-setting name="fsharp_space_before_lowercase_invocation" orange clip="false"></fantomas-setting>
 <p>Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.<br />
 This setting influences function invocation in expressions and patterns.</p>
 <table class="pre"><tr><td><pre><code>Default = true</code></pre></td></tr></table>
@@ -345,7 +346,7 @@ startTimer()
 
 match x with
 | value(a, b) -&gt; ()</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_space_before_uppercase_invocation" green gr></fantomas-setting>
+<fantomas-setting name="fsharp_space_before_uppercase_invocation" green gr clip="true"></fantomas-setting>
 <p>Add a space after the name of a uppercase function and before the opening parenthesis of the first argument.<br />
 This setting influences function invocation in expressions and patterns.</p>
 <table class="pre"><tr><td><pre><code>Default = false</code></pre></td></tr></table>
@@ -365,7 +366,7 @@ person.ToString ()
 
 match x with
 | Value (a, b) -&gt; ()</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_space_before_class_constructor" orange></fantomas-setting>
+<fantomas-setting name="fsharp_space_before_class_constructor" orange clip="true"></fantomas-setting>
 <p>Add a space after a type name and before the class constructor.</p>
 <table class="pre"><tr><td><pre><code>Default = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 73)" onmouseover="showTip(event, 'fs6', 73)" class="fn">formatCode</span>
@@ -380,7 +381,7 @@ match x with
 <table class="pre"><tr><td><pre><code>type Person () =
     class
     end</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_space_before_member" green gr></fantomas-setting>
+<fantomas-setting name="fsharp_space_before_member" green gr clip="true"></fantomas-setting>
 <p>Add a space after a member name and before the opening parenthesis of the first parameter.</p>
 <table class="pre"><tr><td><pre><code>Default = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 81)" onmouseover="showTip(event, 'fs6', 81)" class="fn">formatCode</span>
@@ -399,7 +400,7 @@ match x with
     member this.Sleep () = ignore
     member __.singAlong () = ()
     member __.swim (duration: TimeSpan) = ()</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_space_before_colon" green></fantomas-setting>
+<fantomas-setting name="fsharp_space_before_colon" green clip="true"></fantomas-setting>
 <p>Add a space before <code>:</code>. Please note that not every <code>:</code> is controlled by this setting.</p>
 <table class="pre"><tr><td><pre><code>Default = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 89)" onmouseover="showTip(event, 'fs6', 89)" class="fn">formatCode</span>
@@ -414,7 +415,7 @@ match x with
 <table class="pre"><tr><td><pre><code>type Point = { x : int; y : int }
 let myValue : int = 42
 let update (msg : Msg) (model : Model) : Model = model</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_space_after_comma" orange></fantomas-setting>
+<fantomas-setting name="fsharp_space_after_comma" orange clip="false"></fantomas-setting>
 <p>Adds a space after <code>,</code> in tuples.</p>
 <table class="pre"><tr><td><pre><code>Default = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 97)" onmouseover="showTip(event, 'fs6', 97)" class="fn">formatCode</span>
@@ -427,7 +428,7 @@ let update (msg : Msg) (model : Model) : Model = model</code></pre></td></tr></t
 </code></pre>
 <table class="pre"><tr><td><pre><code>myValue.SomeFunction(foo,bar,somethingElse)
 (a,b,c)</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_space_before_semicolon" green gr></fantomas-setting>
+<fantomas-setting name="fsharp_space_before_semicolon" green gr clip="true"></fantomas-setting>
 <p>Adds a space before <code>;</code> in records, arrays, lists, etc.</p>
 <table class="pre"><tr><td><pre><code>Default = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 105)" onmouseover="showTip(event, 'fs6', 105)" class="fn">formatCode</span>
@@ -442,7 +443,7 @@ let update (msg : Msg) (model : Model) : Model = model</code></pre></td></tr></t
 <table class="pre"><tr><td><pre><code>let a = [ 1 ; 2 ; 3 ]
 let b = [| foo ; bar |]
 type C = { X: int ; Y: int }</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_space_after_semicolon" orange></fantomas-setting>
+<fantomas-setting name="fsharp_space_after_semicolon" orange clip="false"></fantomas-setting>
 <p>Adds a space after <code>;</code> in records, arrays, lists, etc.</p>
 <table class="pre"><tr><td><pre><code>Default = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 113)" onmouseover="showTip(event, 'fs6', 113)" class="fn">formatCode</span>
@@ -457,7 +458,7 @@ type C = { X: int ; Y: int }</code></pre></td></tr></table>
 <table class="pre"><tr><td><pre><code>let a = [ 1;2;3 ]
 let b = [| foo;bar |]
 type C = { X: int;Y: int }</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_space_around_delimiter" orange></fantomas-setting>
+<fantomas-setting name="fsharp_space_around_delimiter" orange clip="false"></fantomas-setting>
 <p>Adds a space around delimiters like <code>[</code>,<code>[|</code>,{`.</p>
 <table class="pre"><tr><td><pre><code>Default = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 121)" onmouseover="showTip(event, 'fs6', 121)" class="fn">formatCode</span>
@@ -488,7 +489,7 @@ The <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatti
         <span class="prop">MaxIfThenShortWidth</span> <span class="o">=</span> <span class="n">15</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>if a then ()</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_max_if_then_else_short_width" green></fantomas-setting>
+<fantomas-setting name="fsharp_max_if_then_else_short_width" green clip="80"></fantomas-setting>
 <p>Fantomas by default follows the if/then/else conventions listed in the <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions">Microsoft F# style guide</a>.<br />
 This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.</p>
 <table class="pre"><tr><td><pre><code>Default = 60</code></pre></td></tr></table>
@@ -503,7 +504,7 @@ This setting facilitates this by determining the maximum character width where t
     truth
 else
     bogus</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_max_infix_operator_expression" green></fantomas-setting>
+<fantomas-setting name="fsharp_max_infix_operator_expression" green clip="100"></fantomas-setting>
 <p>Control the maximum length for which infix expression can be on one line.</p>
 <table class="pre"><tr><td><pre><code>Default = 80</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 142)" onmouseover="showTip(event, 'fs6', 142)" class="fn">formatCode</span>
@@ -518,7 +519,7 @@ else
     route "/ping"
     &gt;=&gt; authorized
     &gt;=&gt; text "pong"</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_max_record_width" green></fantomas-setting>
+<fantomas-setting name="fsharp_max_record_width" green clip="60"></fantomas-setting>
 <p>Control the maximum width for which records should be in one line.</p>
 <p>Requires <code>fsharp_record_multiline_formatter</code> to be <code>character_width</code> to take effect.</p>
 <table class="pre"><tr><td><pre><code>Default = 40</code></pre></td></tr></table>
@@ -539,7 +540,7 @@ let myInstance =
     { X = 10
       Y = 20
       Length = 90 }</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_max_record_number_of_items" green></fantomas-setting>
+<fantomas-setting name="fsharp_max_record_number_of_items" green clip="2"></fantomas-setting>
 <p>Control the maximum number of fields for which records should be in one line.</p>
 <p>Requires <code>fsharp_record_multiline_formatter</code> to be
 <code>number_of_items</code> to take effect.</p>
@@ -584,7 +585,7 @@ let myRecord''' =
         x = 3
         y = "hello"
         z = 0.0 }</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_record_multiline_formatter" green></fantomas-setting>
+<fantomas-setting name="fsharp_record_multiline_formatter" green clip="number_of_items"></fantomas-setting>
 <p>Split records expressions/statements into multiple lines based on the given condition.<br />
 <code>character_width</code> uses character count of the expression, controlled by <code>fsharp_max_record_width</code>.<br />
 <code>number_of_items</code> uses the number of fields in the record, controlled by <code>fsharp_max_record_number_of_items</code>.</p>
@@ -619,7 +620,7 @@ let myRecord'' =
     { r with
         x = 3
         y = "hello" }</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_max_array_or_list_width" green></fantomas-setting>
+<fantomas-setting name="fsharp_max_array_or_list_width" green clip="100"></fantomas-setting>
 <p>Control the maximum width for which lists and arrays can be in one line.</p>
 <p>Requires <code>fsharp_array_or_list_multiline_formatter</code> to be <code>character_width</code> to take effect</p>
 <table class="pre"><tr><td><pre><code>Default = 80</code></pre></td></tr></table>
@@ -634,7 +635,7 @@ let myRecord'' =
     [| one
        two
        three |]</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_max_array_or_list_number_of_items" green></fantomas-setting>
+<fantomas-setting name="fsharp_max_array_or_list_number_of_items" green clip="2"></fantomas-setting>
 <p>Control the maximum number of elements for which lists and arrays can be in one line.</p>
 <p>Requires <code>fsharp_array_or_list_multiline_formatter</code> to be <code>number_of_items</code> to take effect.</p>
 <table class="pre"><tr><td><pre><code>Default = 1</code></pre></td></tr></table>
@@ -653,7 +654,7 @@ let myArray =
     [| one
        two
        three |]</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_array_or_list_multiline_formatter" green></fantomas-setting>
+<fantomas-setting name="fsharp_array_or_list_multiline_formatter" green clip="number_of_items"></fantomas-setting>
 <p>Split arrays and lists into multiple lines based on the given condition.<br />
 <code>character_width</code> uses character count of the expression, controlled by <code>fsharp_max_array_or_list_width</code>.<br />
 <code>number_of_items</code> uses the number of elements in the array or list, controlled by <code>fsharp_max_array_or_list_number_of_items</code>.</p>
@@ -670,7 +671,7 @@ let myArray =
     [| one
        two
        three |]</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_max_value_binding_width" green></fantomas-setting>
+<fantomas-setting name="fsharp_max_value_binding_width" green clip="100"></fantomas-setting>
 <p>Control the maximum expression width for which let and member value/property bindings should be in one line.<br />
 The width is that of the pattern for the binding plus the right-hand expression but not the keywords (e.g. "let").</p>
 <table class="pre"><tr><td><pre><code>Default = 80</code></pre></td></tr></table>
@@ -689,7 +690,7 @@ The width is that of the pattern for the binding plus the right-hand expression 
 type MyType() =
     member this.HelpText =
         "Some help text"</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_max_function_binding_width" green></fantomas-setting>
+<fantomas-setting name="fsharp_max_function_binding_width" green clip="40"></fantomas-setting>
 <p>Control the maximum width for which function and member bindings should be in one line.<br />
 In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand side expression of the binding is measured.</p>
 <table class="pre"><tr><td><pre><code>Default = 40</code></pre></td></tr></table>
@@ -706,7 +707,7 @@ In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand 
 
 type MyType() =
     member this.HelpText = "Some help text"</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_max_dot_get_expression_width" green></fantomas-setting>
+<fantomas-setting name="fsharp_max_dot_get_expression_width" green clip="100"></fantomas-setting>
 <p>Control the maximum width for which (nested) <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#DotGet">SynExpr.DotGet</a> expressions should be in one line.</p>
 <table class="pre"><tr><td><pre><code>Default = 80</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 217)" onmouseover="showTip(event, 'fs6', 217)" class="fn">formatCode</span>
@@ -721,7 +722,7 @@ type MyType() =
         .UsingJobData(jobDataMap)
         .Create&lt;WrapperJob&gt;()
         .Build()</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_multiline_bracket_style" green gr></fantomas-setting>
+<fantomas-setting name="fsharp_multiline_bracket_style" green gr clip="stroustrup"></fantomas-setting>
 <p><code>Cramped</code> The default way in F# to format brackets.<br />
 <code>Aligned</code> Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.<br />
 <code>Stroustrup</code> Allow for easier reordering of members and keeping the code succinct.</p>
@@ -827,7 +828,7 @@ let a = [|
     (16, 17, 18)
     (19, 20, 21)
 |]</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_newline_before_multiline_computation_expression" green></fantomas-setting>
+<fantomas-setting name="fsharp_newline_before_multiline_computation_expression" green clip="false"></fantomas-setting>
 <p>Insert a newline before a computation expression that spans multiple lines</p>
 <table class="pre"><tr><td><pre><code>Default = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 240)" onmouseover="showTip(event, 'fs6', 240)" class="fn">formatCode</span>
@@ -848,7 +849,7 @@ let a = [|
 <h2><a name="G-Research-style" class="anchor" href="#G-Research-style">G-Research style</a></h2>
 <p>A series of settings required to conform with the <a href="https://github.com/G-Research/fsharp-formatting-conventions">G-Research style guide</a>.<br />
 From a consistency point of view, it is recommend to enable all these settings instead of cherry-picking a few.</p>
-<fantomas-setting name="fsharp_newline_between_type_definition_and_members" green gr></fantomas-setting>
+<fantomas-setting name="fsharp_newline_between_type_definition_and_members" green gr clip="false"></fantomas-setting>
 <p>Adds a new line between a type definition and its first member.</p>
 <table class="pre"><tr><td><pre><code>Default = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 248)" onmouseover="showTip(event, 'fs6', 248)" class="fn">formatCode</span>
@@ -867,7 +868,7 @@ From a consistency point of view, it is recommend to enable all these settings i
       To: float }
 
     member this.Length = this.To - this.From</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_align_function_signature_to_indentation" green gr></fantomas-setting>
+<fantomas-setting name="fsharp_align_function_signature_to_indentation" green gr clip="true"></fantomas-setting>
 <p>When a function signature exceeds the <code>max_line_length</code>, Fantomas will put all parameters on separate lines.<br />
 This setting also places the equals sign and return type on a new line.</p>
 <table class="pre"><tr><td><pre><code>Default = false</code></pre></td></tr></table>
@@ -890,7 +891,7 @@ let run
     : HttpResponse
     =
     Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_alternative_long_member_definitions" green gr></fantomas-setting>
+<fantomas-setting name="fsharp_alternative_long_member_definitions" green gr clip="true"></fantomas-setting>
 <p>Provides an alternative way of formatting long member and constructor definitions,
 where the difference is mainly in the equal sign and returned type placement.</p>
 <table class="pre"><tr><td><pre><code>Default = false</code></pre></td></tr></table>
@@ -937,7 +938,7 @@ type D() =
         : ReturnType
         =
         42</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_multi_line_lambda_closing_newline" green gr></fantomas-setting>
+<fantomas-setting name="fsharp_multi_line_lambda_closing_newline" green gr clip="true"></fantomas-setting>
 <p>Places the closing parenthesis of a multiline lambda argument on the next line.</p>
 <table class="pre"><tr><td><pre><code>Default = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 272)" onmouseover="showTip(event, 'fs6', 272)" class="fn">formatCode</span>
@@ -973,7 +974,7 @@ let printListWithOffset a list1 =
         // print stuff
         printfn "%d" (a + elem)
     )</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_experimental_keep_indent_in_branch" orange gr></fantomas-setting>
+<fantomas-setting name="fsharp_experimental_keep_indent_in_branch" orange gr clip="true"></fantomas-setting>
 <p>Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.<br />
 Only when the last pattern match or else branch was already at the same level of the entire match or if expression.</p>
 <p><em>This feature is considered experimental and is subject to change.</em></p>
@@ -1011,7 +1012,7 @@ Only when the last pattern match or else branch was already at the same level of
     let output = Library.execute instructions
     // do more stuff
     0</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_bar_before_discriminated_union_declaration" green gr></fantomas-setting>
+<fantomas-setting name="fsharp_bar_before_discriminated_union_declaration" green gr clip="true"></fantomas-setting>
 <p>Always use a <code>|</code> before every case in the declaration of a discriminated union.<br />
 If <code>false</code>, a <code>|</code> character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.</p>
 <table class="pre"><tr><td><pre><code>Default = false</code></pre></td></tr></table>
@@ -1025,7 +1026,7 @@ If <code>false</code>, a <code>|</code> character is used only in multiple-case 
 <table class="pre"><tr><td><pre><code>type MyDU = | Short of int</code></pre></td></tr></table>
 <h2><a name="Other" class="anchor" href="#Other">Other</a></h2>
 <p>Some additional settings that don't fit into any style guide.</p>
-<fantomas-setting name="fsharp_blank_lines_around_nested_multiline_expressions" green></fantomas-setting>
+<fantomas-setting name="fsharp_blank_lines_around_nested_multiline_expressions" green clip="false"></fantomas-setting>
 <p>Surround <strong>nested</strong> multi-line expressions with blank lines.<br />
 Existing blank lines are always preserved (via trivia), with exception when <a href="#fsharp_keep_max_number_of_blank_lines">fsharp_keep_max_number_of_blank_lines</a> is used.<br />
 Top level expressions will always follow the <a href="https://github.com/fsprojects/fantomas/blob/main/docs-old/FormattingConventions.md#2020-revision">2020 blank lines revision</a> principle.</p>
@@ -1061,7 +1062,7 @@ Top level expressions will always follow the <a href="https://github.com/fsproje
 let secondTopLevelFunction () =
     // ...
     ()</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_keep_max_number_of_blank_lines" green></fantomas-setting>
+<fantomas-setting name="fsharp_keep_max_number_of_blank_lines" green clip="1"></fantomas-setting>
 <p>Set maximal number of consecutive blank lines to keep from original source. It doesn't change number of new blank lines generated by Fantomas.</p>
 <table class="pre"><tr><td><pre><code>Default = 100</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs6', 297)" onmouseover="showTip(event, 'fs6', 297)" class="fn">formatCode</span>
@@ -1076,7 +1077,7 @@ let secondTopLevelFunction () =
 <table class="pre"><tr><td><pre><code>open Foo
 
 let x = 42</code></pre></td></tr></table>
-<fantomas-setting name="fsharp_experimental_elmish" orange></fantomas-setting>
+<fantomas-setting name="fsharp_experimental_elmish" orange clip="true"></fantomas-setting>
 <p>Applies the Stroustrup style to the final (two) array or list argument(s) in a function application.<br />
 Note that this behaviour is also active when <code>fsharp_multiline_bracket_style = stroustrup</code>.</p>
 <table class="pre"><tr><td><pre><code>Default = false</code></pre></td></tr></table>
