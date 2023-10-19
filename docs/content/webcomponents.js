@@ -1,5 +1,6 @@
-import {html} from 'https://cdn.skypack.dev/lit';
-import {component} from 'https://cdn.skypack.dev/haunted';
+import {html} from 'https://esm.sh/lit';
+import {component, virtual} from 'https://esm.sh/haunted';
+import copy from 'https://esm.sh/copy-to-clipboard@3.3.3';
 
 function FantomasSettingIconCore(type) {
     let settingType
@@ -51,7 +52,27 @@ function Navigation({next, previous}) {
         </div>`;
 }
 
-function FantomasSetting({name, green, orange, red, gr}) {
+const CopyToClipboard = virtual((clip) => {
+    const tooltipText = `Copy '${clip}'`;
+    const copyText = ev => {
+        ev.preventDefault();
+        const target = ev.target;
+        target.classList.toggle("bi-clipboard");
+        target.classList.toggle("bi-clipboard-check");
+        copy(clip);
+        setTimeout(() => {
+            target.classList.toggle("bi-clipboard");
+            target.classList.toggle("bi-clipboard-check");
+        }, 400);
+    }
+    
+    return html`<i class="bi bi-clipboard ms-2 copy-icon"
+                   data-bs-toggle="tooltip"
+                   data-bs-title="${tooltipText}"
+                   @click="${copyText}" />`
+});
+
+function FantomasSetting({name, clip, green, orange, red, gr}) {
     return html`
         <div class="d-flex align-items-center my-2">
             ${green && FantomasSettingIconCore('green')}
@@ -61,6 +82,7 @@ function FantomasSetting({name, green, orange, red, gr}) {
             <h4 id="${name}" class="m-0">
                 <a href="#${name}">${name}</a>
             </h4>
+            ${clip && CopyToClipboard(`${name} = ${clip}`)}
         </div>`
 }
 
@@ -78,7 +100,7 @@ customElements.define('fantomas-setting-icon', component(FantomasSettingIcon, {
 }));
 
 customElements.define('fantomas-setting', component(FantomasSetting, {
-    useShadowDOM: false, observedAttributes: ['name', 'green', 'orange', 'red', 'gr']
+    useShadowDOM: false, observedAttributes: ['name', 'clip', 'green', 'orange', 'red', 'gr']
 }));
 
 customElements.define('fantomas-nav', component(Navigation, {
