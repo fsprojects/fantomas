@@ -82,6 +82,9 @@ pipeline "Build" {
     stage "Build" { run "dotnet build -c Release" }
     stage "Analyze" {
         run (fun _ -> async { System.IO.Directory.CreateDirectory(analysisReportsDir) |> ignore })
+        envVars
+            [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
+               "DOTNET_ROLL_FORWARD", "LatestMajor" |]
         run "dotnet msbuild /t:AnalyzeSolution"
     }
     stage "UnitTests" { run "dotnet test -c Release" }
