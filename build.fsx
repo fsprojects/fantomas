@@ -6,7 +6,6 @@
 
 open System
 open System.IO
-open System.Text.RegularExpressions
 open Fun.Build
 open CliWrap
 open CliWrap.Buffered
