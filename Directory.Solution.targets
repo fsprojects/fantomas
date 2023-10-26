@@ -5,7 +5,7 @@
     </ItemGroup>
 
     <Target Name="AnalyzeSolution">
-        <Exec Command="dotnet build -c Release fantomas.sln" />
+        <Exec Command="dotnet build -c Release $(SolutionFileName)" />
         <MSBuild
                 Projects="@(ProjectsToAnalyze)"
                 Targets="AnalyzeProject"
