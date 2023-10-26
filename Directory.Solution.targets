@@ -1,0 +1,16 @@
+<Project>
+
+    <ItemGroup>
+        <ProjectsToAnalyze Include="src\**\*.fsproj" Exclude="src\Fantomas.FCS\Fantomas.FCS.fsproj"/>
+    </ItemGroup>
+
+    <Target Name="AnalyzeSolution">
+        <Message Importance="High" Text="@(ProjectsToAnalyze)" />
+
+        <MSBuild
+                Projects="@(ProjectsToAnalyze)"
+                Targets="AnalyzeProject"
+                Properties="Configuration=Release" />
+    </Target>
+
+</Project>

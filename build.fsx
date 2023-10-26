@@ -58,24 +58,6 @@ let pushPackage nupkg =
         return result.ExitCode
     }
 
-let analyzersProjectPath = __SOURCE_DIRECTORY__ </> "analyzers/analyzers.fsproj"
-
-let analyzersVersion =
-    let s = File.ReadAllText(analyzersProjectPath)
-    let regex = Regex(@"\[\s*(\d+\.\d+\.\d+)\s*\]")
-    let matches = regex.Match(s)
-    matches.Groups[1].Value
-
-let analyzeProjects (projectPaths: string seq) =
-    let projects = String.concat " " projectPaths
-    let analyzerPath =
-        $"./.analyzerpackages/g-research.fsharp.analyzers/{analyzersVersion}"
-    let failOnWarnings =
-        "GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001"
-    let excludeAnalyzers = "PartialAppAnalyzer"
-    let report = "./analysis.sarif"
-    $"dotnet fsharp-analyzers --project %s{projects} --analyzers-path \"%s{analyzerPath}\" --verbose --fail-on-warnings %s{failOnWarnings} --report %s{report} --exclude-analyzer %s{excludeAnalyzers}"
-
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
@@ -94,23 +76,8 @@ pipeline "Build" {
         )
     }
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
-    stage "RestoreAnalyzers" { run $"dotnet restore %s{analyzersProjectPath}" }
     stage "Build" { run "dotnet build -c Release" }
-    stage "Analyze" {
-        envVars
-            [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
-               "DOTNET_ROLL_FORWARD", "LatestMajor" |]
-        run (
-            analyzeProjects
-                [ "./src/Fantomas/Fantomas.fsproj"
-                  "./src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj"
-                  "./src/Fantomas.Client/Fantomas.Client.fsproj"
-                  "./src/Fantomas.Client.Tests/Fantomas.Client.Tests.fsproj"
-                  "./src/Fantomas.Core/Fantomas.Core.fsproj"
-                  "./src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj"
-                  "./src/Fantomas.Tests/Fantomas.Tests.fsproj" ]
-        )
-    }
+    stage "Analyze" { run "dotnet msbuild /t:AnalyzeSolution" }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
     stage "Docs" {

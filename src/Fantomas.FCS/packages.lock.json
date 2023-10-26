@@ -30,6 +30,12 @@
           "FsLexYacc.Runtime": "11.2.0"
         }
       },
+      "G-Research.FSharp.Analyzers": {
+        "type": "Direct",
+        "requested": "[0.1.5, )",
+        "resolved": "0.1.5",
+        "contentHash": "LUBFZ8xQ93R1e2uKa00DMoA5Zb4eAA550ZdoOk9rMwNqpZDLeiwM9/rYaTQCSoIpKL0EGwBvZrbKoL13dTj6qA=="
+      },
       "Ionide.KeepAChangelog.Tasks": {
         "type": "Direct",
         "requested": "[0.1.8, )",

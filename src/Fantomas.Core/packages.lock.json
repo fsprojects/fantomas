@@ -20,6 +20,12 @@
         "resolved": "6.0.1",
         "contentHash": "VrFAiW8dEEekk+0aqlbvMNZzDvYXmgWZwAt68AUBqaWK8RnoEVUNglj66bZzhs4/U63q0EfXlhcEKnH1sTYLjw=="
       },
+      "G-Research.FSharp.Analyzers": {
+        "type": "Direct",
+        "requested": "[0.1.5, )",
+        "resolved": "0.1.5",
+        "contentHash": "LUBFZ8xQ93R1e2uKa00DMoA5Zb4eAA550ZdoOk9rMwNqpZDLeiwM9/rYaTQCSoIpKL0EGwBvZrbKoL13dTj6qA=="
+      },
       "Ionide.KeepAChangelog.Tasks": {
         "type": "Direct",
         "requested": "[0.1.8, )",
