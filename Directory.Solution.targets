@@ -1,0 +1,15 @@
+<Project>
+
+    <ItemGroup>
+        <ProjectsToAnalyze Include="src\**\*.fsproj" Exclude="src\Fantomas.FCS\Fantomas.FCS.fsproj"/>
+    </ItemGroup>
+
+    <Target Name="AnalyzeSolution">
+        <Exec Command="dotnet build -c Release $(SolutionFileName)" />
+        <MSBuild
+                Projects="@(ProjectsToAnalyze)"
+                Targets="AnalyzeProject"
+                Properties="DesignTimeBuild=True;Configuration=Release;ProvideCommandLineArgs=True;SkipCompilerExecution=True" />
+    </Target>
+
+</Project>
