@@ -5,10 +5,11 @@
     </ItemGroup>
 
     <Target Name="AnalyzeSolution">
+        <Exec Command="dotnet build -c Release fantomas.sln" />
         <MSBuild
                 Projects="@(ProjectsToAnalyze)"
                 Targets="AnalyzeProject"
-                Properties="Configuration=Release" />
+                Properties="DesignTimeBuild=True;Configuration=Release;ProvideCommandLineArgs=True;SkipCompilerExecution=True" />
     </Target>
 
 </Project>
