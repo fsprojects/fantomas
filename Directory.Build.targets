@@ -2,7 +2,7 @@
 
     <Target Name="AnalyzeProject">
         <Message Importance="High" Text="$(MSBuildProjectFile)" />
-        <Exec Command= "dotnet fsharp-analyzers --project &quot;$(MSBuildProjectFile)&quot; --analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)&quot; --exclude-analyzer PartialAppAnalyzer --verbose --report &quot;../../$(MSBuildProjectName)-analysis.sarif&quot;"/>
+        <Exec Command= "dotnet fsharp-analyzers --project &quot;$(MSBuildProjectFile)&quot; --analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)&quot; --exclude-analyzer PartialAppAnalyzer --verbose --report &quot;../../analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;"/>
     </Target>
 
 </Project>

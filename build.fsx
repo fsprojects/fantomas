@@ -58,13 +58,16 @@ let pushPackage nupkg =
         return result.ExitCode
     }
 
+let analysisReportsDir = "analysisreports"
+
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" {
         run (
             cleanFolders
-                [| "bin"
+                [| analysisReportsDir
+                   "bin"
                    "src/Fantomas.FCS/bin/Release"
                    "src/Fantomas.FCS/obj/Release"
                    "src/Fantomas.Core/bin/Release"
@@ -77,7 +80,10 @@ pipeline "Build" {
     }
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
     stage "Build" { run "dotnet build -c Release" }
-    stage "Analyze" { run "dotnet msbuild /t:AnalyzeSolution" }
+    stage "Analyze" {
+        run (fun _ -> async { System.IO.Directory.CreateDirectory(analysisReportsDir) |> ignore })
+        run "dotnet msbuild /t:AnalyzeSolution"
+    }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
     stage "Docs" {

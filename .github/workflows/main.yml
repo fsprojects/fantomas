@@ -31,7 +31,7 @@ jobs:
       uses: github/codeql-action/upload-sarif@v2
       if: matrix.os == 'ubuntu-latest'
       with:
-        sarif_file: *.sarif
+        sarif_file: analysisreports
     - name: "Documentation"
       if: matrix.os == 'windows-latest' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
