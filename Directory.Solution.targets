@@ -5,8 +5,6 @@
     </ItemGroup>
 
     <Target Name="AnalyzeSolution">
-        <Message Importance="High" Text="@(ProjectsToAnalyze)" />
-
         <MSBuild
                 Projects="@(ProjectsToAnalyze)"
                 Targets="AnalyzeProject"
