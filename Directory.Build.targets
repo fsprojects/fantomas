@@ -2,16 +2,6 @@
 
     <Target Name="AnalyzeProject">
         <Message Importance="High" Text="Start analyzing $(MSBuildProjectFile)" />
-        <SetEnv
-            Name="DOTNET_ROLL_FORWARD_TO_PRERELEASE"
-            Value="1"
-            Prefix="false"
-        />
-        <SetEnv
-            Name="DOTNET_ROLL_FORWARD"
-            Value="LatestMajor"
-            Prefix="false"
-        />
         <Exec Command="dotnet fsharp-analyzers --project &quot;$(MSBuildProjectFile)&quot; --analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)&quot; --fail-on-warnings GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001 --exclude-analyzer PartialAppAnalyzer --verbose --report &quot;../../analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;"/>
     </Target>
 
