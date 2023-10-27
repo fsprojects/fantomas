@@ -30,6 +30,7 @@ jobs:
     - name: "Run analyzers"
       run: mkdir analysisreports && dotnet msbuild /t:AnalyzeSolution
       continue-on-error: true
+      if: matrix.os == 'ubuntu-latest'
     - name: Upload SARIF file
       uses: github/codeql-action/upload-sarif@v2
       if: matrix.os == 'ubuntu-latest' && always()
