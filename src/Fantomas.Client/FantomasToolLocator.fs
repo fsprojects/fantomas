@@ -221,7 +221,6 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
     processStart.RedirectStandardOutput <- true
     processStart.RedirectStandardError <- true
     processStart.CreateNoWindow <- true
-    "".EndsWith("") |> ignore
 
     match startProcess processStart with
     | Ok daemonProcess ->
