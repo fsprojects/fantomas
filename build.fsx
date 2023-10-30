@@ -77,13 +77,9 @@ pipeline "Build" {
                    "src/Fantomas.Client/obj/Release" |]
         )
     }
-    // stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
+    stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
     stage "Build" { run "dotnet build -c Release" }
-    // stage "Analyze" {
-    //     run (fun _ -> async { System.IO.Directory.CreateDirectory(analysisReportsDir) |> ignore })
-    //     run "dotnet msbuild /t:AnalyzeSolution"
-    // }
-    // stage "UnitTests" { run "dotnet test -c Release" }
+    stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
     stage "Docs" {
         whenNot { platformOSX }
