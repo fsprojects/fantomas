@@ -2235,3 +2235,31 @@ else
 printfn "hi!"
 0
 """
+
+[<Test>]
+let ``elseBranch aligns with if keyword in computation expression`` () =
+    formatSourceString
+        false
+        """
+async {
+    if not (proc.Start ()) then return Error "failed to start" else
+    use stdout = proc.StandardOutput
+    let! ct = Async.CancellationToken
+    return! Async.AwaitTask (stdout.ReadToEndAsync ct)
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+async {
+    if not (proc.Start()) then
+        return Error "failed to start"
+    else
+
+    use stdout = proc.StandardOutput
+    let! ct = Async.CancellationToken
+    return! Async.AwaitTask(stdout.ReadToEndAsync ct)
+}
+"""
