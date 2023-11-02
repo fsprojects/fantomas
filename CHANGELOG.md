@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.2.3 - 2023-11-2
+
+### Fixed
+* Crash when trying to format indexed property with three arguments. [#2971](https://github.com/fsprojects/fantomas/issues/2971)
+
 ## 6.2.2 - 2023-10-18
 
 ### Fixed

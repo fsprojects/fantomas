@@ -2661,24 +2661,27 @@ let mkPropertyGetSetBinding
 
         let pats =
             match ps with
-            | [ SynPat.Tuple(false, [ p1; p2; p3 ], [ comma ], _) ] ->
-                let mTuple = unionRanges p1.Range p2.Range
+            | [ SynPat.Tuple(false, ps, commas, _) ] when
+                // This the case for an indexer setter.
+                // The AST is weird in this case and doesn't properly reflect what the user wrote.
+                // It will represent `set (x: int, y: int, z: int) v` as a single tuple with 4 patterns and 2 commas.
+                ps.Length - 2 = commas.Length
+                ->
 
-                [ PatParenNode(
-                      stn "(" Range.Zero,
-                      Pattern.Tuple(
-                          PatTupleNode(
-                              [ Choice1Of2(mkPat creationAide p1)
-                                Choice2Of2(stn "," comma)
-                                Choice1Of2(mkPat creationAide p2) ],
-                              mTuple
-                          )
-                      ),
-                      stn ")" Range.Zero,
-                      mTuple
-                  )
-                  |> Pattern.Paren
-                  mkPat creationAide p3 ]
+                let tuplePat =
+                    let tuplePs = List.take (ps.Length - 1) ps
+                    let mTuple = tuplePs |> List.map (fun p -> p.Range) |> List.reduce unionRanges
+
+                    match tuplePs with
+                    // If there is only a single element, it does not need any additional parentheses.
+                    | [ singlePat ] -> singlePat
+                    | _ -> SynPat.Paren(SynPat.Tuple(false, tuplePs, commas, mTuple), mTuple)
+                    |> mkPat creationAide
+
+                [ tuplePat
+                  match List.tryLast ps with
+                  | None -> failwith ""
+                  | Some indexerPat -> mkPat creationAide indexerPat ]
             | [ SynPat.Tuple(false, [ p1; p2 ], _, _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
             | ps -> List.map (mkPat creationAide) ps
 

@@ -3642,3 +3642,26 @@ type Meh
     class
     end
 """
+
+[<Test>]
+let ``multi tuple setter with indexer, 2971`` () =
+    formatSourceString
+        false
+        """
+type MyArray3 () = 
+    member _.Item
+        with get (x: int, y: int, z: int) =
+            ()
+        and set (x: int, y: int, z: int) v =
+            ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type MyArray3() =
+    member _.Item
+        with get (x: int, y: int, z: int) = ()
+        and set (x: int, y: int, z: int) v = ()
+"""
