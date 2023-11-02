@@ -2662,7 +2662,7 @@ let mkPropertyGetSetBinding
         let pats =
             match ps with
             | [ SynPat.Tuple(false, ps, commas, _) ] when
-                // This the case for an indexer setter.
+                // This is the case for an indexer setter.
                 // The AST is weird in this case and doesn't properly reflect what the user wrote.
                 // It will represent `set (x: int, y: int, z: int) v` as a single tuple with 4 patterns and 2 commas.
                 ps.Length - 2 = commas.Length
