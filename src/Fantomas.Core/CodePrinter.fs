@@ -1298,7 +1298,7 @@ let genExpr (e: Expr) =
                     indentSepNlnUnindent (genExpr node.ThenExpr)
                     +> sepNln
                     +> genSingleTextNode node.Else
-                    +> genKeepIdent node.Else node.ElseExpr
+                    +> genKeepIdentIfThenElse node.If.Node node.Else node.ElseExpr
 
                 // Check if the `if expr then` is already multiline or cross the max_line_length.
                 let isMultiline =
@@ -1378,7 +1378,12 @@ let genExpr (e: Expr) =
                 +> indentSepNlnUnindent (genExpr node.ThenExpr)
                 |> genNode node)
             +> optSingle
-                (fun (elseNode, elseExpr) -> sepNln +> genSingleTextNode elseNode +> genKeepIdent elseNode elseExpr)
+                (fun (elseNode, elseExpr) ->
+                    let genKeepIdent =
+                        let branch = List.last node.Branches
+                        genKeepIdentIfThenElse branch.If.Node elseNode elseExpr
+
+                    sepNln +> genSingleTextNode elseNode +> genKeepIdent)
                 node.Else
 
         ifElseCtx areAllShort shortExpr longExpr
@@ -2073,7 +2078,7 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
                                 | None -> Pattern.Node node.Pattern
                                 | Some bar -> bar
 
-                            genKeepIdent startNode node.BodyExpr
+                            genKeepIdentMatchClause startNode node.BodyExpr
 
                         expressionFitsOnRestOfLine (sepSpace +> genExpr node.BodyExpr) long
 
@@ -2253,7 +2258,19 @@ let genExprInMultilineInfixExpr (e: Expr) =
     | Expr.Record _ -> atCurrentColumnIndent (genExpr e)
     | _ -> genExpr e
 
-let genKeepIdent (startNode: Node) (e: Expr) ctx =
+let genKeepIdentIfThenElse (ifKeyword: Node) (elseKeyword: Node) (e: Expr) ctx =
+    let exprNode = Expr.Node e
+
+    if
+        ctx.Config.ExperimentalKeepIndentInBranch
+        && (elseKeyword.Range.StartColumn = exprNode.Range.StartColumn
+            || ifKeyword.Range.StartColumn = exprNode.Range.StartColumn)
+    then
+        (sepNln +> sepNlnUnlessContentBefore exprNode +> genExpr e) ctx
+    else
+        indentSepNlnUnindent (genExpr e) ctx
+
+let genKeepIdentMatchClause (startNode: Node) (e: Expr) ctx =
     let exprNode = Expr.Node e
 
     if

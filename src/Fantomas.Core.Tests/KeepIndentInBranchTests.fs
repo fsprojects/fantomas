@@ -2183,3 +2183,55 @@ module Foo =
 
         failwith ""
 """
+
+[<Test>]
+let ``if keyword and elseBranch align, 2973`` () =
+    formatSourceString
+        false
+        """
+module Program =
+    let main _ =
+        if false then 1 else
+        printfn "hi!"
+        0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Program =
+    let main _ =
+        if false then
+            1
+        else
+
+        printfn "hi!"
+        0
+"""
+
+[<Test>]
+let ``elif keyword and elseBranch align`` () =
+    formatSourceString
+        false
+        """
+if false then
+    1
+elif false then 2 else
+printfn "hi!"
+0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if false then
+    1
+elif false then
+    2
+else
+
+printfn "hi!"
+0
+"""
