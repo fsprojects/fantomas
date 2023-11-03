@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## 6.3.0-alpha-001 - 2023-11-03
 
 ### Changed
+* Remove blank line between type extension. [#2970](https://github.com/fsprojects/fantomas/pull/2970)
 * ExperimentalKeepIndentInBranch should fire when first branch was all on one line. [#2973](https://github.com/fsprojects/fantomas/issues/2973)
 * Style for empty class. [#2976](https://github.com/fsprojects/fantomas/pull/2976)
 
