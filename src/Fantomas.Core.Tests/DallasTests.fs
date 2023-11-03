@@ -481,7 +481,6 @@ type Foo with
         equal
         """
 type Foo with
-
     member x.Bar = ()
 """
 

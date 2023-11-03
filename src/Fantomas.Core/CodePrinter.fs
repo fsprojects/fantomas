@@ -3535,7 +3535,7 @@ let genTypeDefn (td: TypeDefn) =
         header
         +> sepSpace
         +> optSingle genSingleTextNode typeName.WithKeyword
-        +> indentSepNlnUnindent (sepNlnBetweenTypeAndMembers typeDefnNode +> genMemberDefnList members)
+        +> indentSepNlnUnindent (genMemberDefnList members)
         |> genNode node
     | TypeDefn.Delegate node ->
         header

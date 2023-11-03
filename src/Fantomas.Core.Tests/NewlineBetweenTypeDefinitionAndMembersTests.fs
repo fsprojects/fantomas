@@ -120,7 +120,7 @@ type Color =
 """
 
 [<Test>]
-let ``type augmentation with members`` () =
+let ``type augmentation with members should not add newline`` () =
     formatSourceString
         false
         """
@@ -133,7 +133,6 @@ type HttpContext with
         equal
         """
 type HttpContext with
-
     member this.QueryString() = "?"
 """
 
@@ -232,7 +231,6 @@ type HttpContext with
 namespace Signature
 
 type HttpContext with
-
     member QueryString: unit -> string
 """
 
