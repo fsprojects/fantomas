@@ -144,9 +144,7 @@ module Runner =
     let mPerSecond = 1000<m / second> // foo
 
     [<Measure>]
-    type ProcessId =
-        class
-        end
+    type ProcessId = class end
 """
 
 [<Test>]

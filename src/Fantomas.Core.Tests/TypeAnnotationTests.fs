@@ -56,9 +56,7 @@ type Meh
             LongTupleItemTypeThree *
             LongThingFour *
             LongThingFiveYow
-    ) =
-    class
-    end
+    ) = class end
 """
 
 [<Test>]

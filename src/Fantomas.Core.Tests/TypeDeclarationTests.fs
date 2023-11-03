@@ -609,45 +609,25 @@ type Class14<'T,'U when 'T : equality and 'U : equality> =
     |> should
         equal
         """
-type Class1<'T when 'T :> System.Exception> =
-    class
-    end
+type Class1<'T when 'T :> System.Exception> = class end
 
-type Class2<'T when 'T :> System.IComparable> =
-    class
-    end
+type Class2<'T when 'T :> System.IComparable> = class end
 
-type Class3<'T when 'T: null> =
-    class
-    end
+type Class3<'T when 'T: null> = class end
 
-type Class8<'T when 'T: not struct> =
-    class
-    end
+type Class8<'T when 'T: not struct> = class end
 
-type Class9<'T when 'T: enum<uint32>> =
-    class
-    end
+type Class9<'T when 'T: enum<uint32>> = class end
 
-type Class10<'T when 'T: comparison> =
-    class
-    end
+type Class10<'T when 'T: comparison> = class end
 
-type Class11<'T when 'T: equality> =
-    class
-    end
+type Class11<'T when 'T: equality> = class end
 
-type Class12<'T when 'T: delegate<obj * System.EventArgs, unit>> =
-    class
-    end
+type Class12<'T when 'T: delegate<obj * System.EventArgs, unit>> = class end
 
-type Class13<'T when 'T: unmanaged> =
-    class
-    end
+type Class13<'T when 'T: unmanaged> = class end
 
-type Class14<'T, 'U when 'T: equality and 'U: equality> =
-    class
-    end
+type Class14<'T, 'U when 'T: equality and 'U: equality> = class end
 """
 
 [<Test>]
@@ -806,9 +786,7 @@ type t(x : int) =
         """
 let f (x : int) = x
 
-type t(x : int) =
-    class
-    end
+type t(x : int) = class end
 """
 
 [<Test>]
@@ -1754,9 +1732,7 @@ type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, '
     |> should
         equal
         """
-type INotifications<'a, 'b, 'c, 'd, 'e> =
-    class
-    end
+type INotifications<'a, 'b, 'c, 'd, 'e> = class end
 
 type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>
     private
@@ -2255,9 +2231,7 @@ type C
         aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,
         aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse
     )
-    =
-    class
-    end
+    = class end
 """
 
 [<Test>]
@@ -2285,9 +2259,7 @@ type C
         aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,
         aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse
     )
-    =
-    class
-    end
+    = class end
 """
 
 [<Test>]
@@ -3188,9 +3160,7 @@ type Event<'Delegate, 'Args when 'Delegate: delegate<'Args, unit> and 'Delegate 
         equal
         """
 type Event<'Delegate, 'Args
-    when 'Delegate: delegate<'Args, unit> and 'Delegate :> System.Delegate and 'Delegate: not struct>() =
-    class
-    end
+    when 'Delegate: delegate<'Args, unit> and 'Delegate :> System.Delegate and 'Delegate: not struct>() = class end
 """
 
 [<Test>]
@@ -3209,9 +3179,7 @@ type Event<'Delegate, 'Args when 'Delegate: delegate<'Args, unit> and 'Delegate 
 type Event<'Delegate, 'Args
     when 'Delegate: delegate<'Args, unit>
     and 'Delegate :> System.Delegate
-    and 'Delegate: not struct>() =
-    class
-    end
+    and 'Delegate: not struct>() = class end
 """
 
 [<Test>]
@@ -3638,9 +3606,7 @@ type Meh
         ,
         c
 #endif
-    ) =
-    class
-    end
+    ) = class end
 """
 
 [<Test>]

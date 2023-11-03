@@ -315,9 +315,7 @@ type UpdatedName = { PreviousName: string }
     |> should
         equal
         """
-type IEvent =
-    interface
-    end
+type IEvent = interface end
 
 type SomeEvent = {
     Id: string

@@ -2988,8 +2988,7 @@ type internal CompilerStateCache(readAllBytes: string -> byte[], projectOptions:
 #else
     =
 #endif
-    class
-    end
+    class end
 """
 
 [<Test>]

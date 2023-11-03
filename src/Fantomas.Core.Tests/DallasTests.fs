@@ -430,9 +430,7 @@ let ``trivia inside implicit constructor`` () =
 type MyType
     (
     (* some comment *)
-    ) =
-    class
-    end
+    ) = class end
 """
 
 [<Test>]
