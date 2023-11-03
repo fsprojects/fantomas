@@ -173,14 +173,10 @@ type Sample [<ImportingConstructor>] internal () = class end"""
         equal
         """
 [<Export>]
-type Sample [<ImportingConstructor>] (dependency: IDependency) =
-    class
-    end
+type Sample [<ImportingConstructor>] (dependency: IDependency) = class end
 
 [<Export>]
-type Sample [<ImportingConstructor>] internal () =
-    class
-    end
+type Sample [<ImportingConstructor>] internal () = class end
 """
 
 [<Test>]

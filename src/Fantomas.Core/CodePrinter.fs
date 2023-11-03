@@ -3521,15 +3521,24 @@ let genTypeDefn (td: TypeDefn) =
                 sepNlnUnlessContentBefore (MemberDefn.Node h)
                 +> indentSepNlnUnindent (genMemberDefnList members)
 
-        header
-        +> indentSepNlnUnindent (
-            genSingleTextNode bodyNode.Kind
-            +> onlyIfNot bodyNode.Members.IsEmpty (indentSepNlnUnindent (genMemberDefnList bodyNode.Members))
-            +> sepNln
-            +> genSingleTextNode bodyNode.End
-            |> genNode bodyNode
-        )
-        +> additionMembers
+        match bodyNode.Members, members with
+        | [], [] ->
+            // Empty class/struct/interface end
+            let genBody =
+                genSingleTextNode bodyNode.Kind +> sepSpace +> genSingleTextNode bodyNode.End
+                |> genNode bodyNode
+
+            header +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth genBody
+        | _ ->
+            header
+            +> indentSepNlnUnindent (
+                genSingleTextNode bodyNode.Kind
+                +> onlyIfNot bodyNode.Members.IsEmpty (indentSepNlnUnindent (genMemberDefnList bodyNode.Members))
+                +> sepNln
+                +> genSingleTextNode bodyNode.End
+                |> genNode bodyNode
+            )
+            +> additionMembers
         |> genNode node
     | TypeDefn.Augmentation node ->
         header

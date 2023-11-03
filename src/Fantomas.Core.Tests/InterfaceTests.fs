@@ -619,9 +619,7 @@ type IInterface3 =
     |> should
         equal
         """
-type IInterface =
-    interface
-    end
+type IInterface = interface end
 
 type IInterface2 =
     interface

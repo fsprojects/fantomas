@@ -16,9 +16,7 @@ let ``default config should not add space before unit in uppercase class definit
     formatSourceString false "type Person () = class end" config
     |> should
         equal
-        """type Person() =
-    class
-    end
+        """type Person() = class end
 """
 
 [<Test>]
@@ -33,9 +31,7 @@ let ``SpaceBeforeUnitParameterInUppercaseClassConstructor should add space after
     |> should
         equal
         """
-type Person () =
-    class
-    end
+type Person () = class end
 """
 
 // Space before unit in lowercase class definition
@@ -53,9 +49,7 @@ let ``default config should not add space before unit in lowercase class definit
     |> should
         equal
         """
-type t() =
-    class
-    end
+type t() = class end
 """
 
 [<Test>]
@@ -65,17 +59,14 @@ let ``SpaceBeforeUnitParameterInLowercaseClassConstructor should add space befor
     formatSourceString
         false
         """type t() =
-    class
-    end
+    class end
 """
         spaceBeforeConfig
     |> prepend newline
     |> should
         equal
         """
-type t () =
-    class
-    end
+type t () = class end
 """
 
 // Space before parentheses in Uppercase class definition
@@ -93,9 +84,7 @@ type Animal(length:int) =
     |> should
         equal
         """
-type Animal(length: int) =
-    class
-    end
+type Animal(length: int) = class end
 """
 
 [<Test>]
@@ -113,9 +102,7 @@ type Animal(length:int) =
     |> should
         equal
         """
-type Animal (length: int) =
-    class
-    end
+type Animal (length: int) = class end
 """
 
 // Space before parentheses in lowercase class definition
@@ -133,9 +120,7 @@ type animal(length:int) =
     |> should
         equal
         """
-type animal(length: int) =
-    class
-    end
+type animal(length: int) = class end
 """
 
 [<Test>]
@@ -153,9 +138,7 @@ type animal(length:int) =
     |> should
         equal
         """
-type animal (length: int) =
-    class
-    end
+type animal (length: int) = class end
 """
 
 // Space before parentheses in secondary class constructor

@@ -141,9 +141,7 @@ type NameStruct = struct end
     |> should
         equal
         """
-type NameStruct =
-    struct
-    end
+type NameStruct = struct end
 """
 
 [<Test>]
@@ -160,9 +158,7 @@ type NameStruct() =
     |> should
         equal
         """
-type NameStruct() =
-    struct
-    end
+type NameStruct() = struct end
 """
 
 [<Test>]
