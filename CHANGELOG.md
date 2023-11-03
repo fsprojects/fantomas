@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+* ExperimentalKeepIndentInBranch should fire when first branch was all on one line. [#2973](https://github.com/fsprojects/fantomas/issues/2973)
+
 ## 6.2.3 - 2023-11-2
 
 ### Fixed

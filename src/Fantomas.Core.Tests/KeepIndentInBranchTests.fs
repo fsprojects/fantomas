@@ -2183,3 +2183,83 @@ module Foo =
 
         failwith ""
 """
+
+[<Test>]
+let ``if keyword and elseBranch align, 2973`` () =
+    formatSourceString
+        false
+        """
+module Program =
+    let main _ =
+        if false then 1 else
+        printfn "hi!"
+        0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Program =
+    let main _ =
+        if false then
+            1
+        else
+
+        printfn "hi!"
+        0
+"""
+
+[<Test>]
+let ``elif keyword and elseBranch align`` () =
+    formatSourceString
+        false
+        """
+if false then
+    1
+elif false then 2 else
+printfn "hi!"
+0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if false then
+    1
+elif false then
+    2
+else
+
+printfn "hi!"
+0
+"""
+
+[<Test>]
+let ``elseBranch aligns with if keyword in computation expression`` () =
+    formatSourceString
+        false
+        """
+async {
+    if not (proc.Start ()) then return Error "failed to start" else
+    use stdout = proc.StandardOutput
+    let! ct = Async.CancellationToken
+    return! Async.AwaitTask (stdout.ReadToEndAsync ct)
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+async {
+    if not (proc.Start()) then
+        return Error "failed to start"
+    else
+
+    use stdout = proc.StandardOutput
+    let! ct = Async.CancellationToken
+    return! Async.AwaitTask(stdout.ReadToEndAsync ct)
+}
+"""
