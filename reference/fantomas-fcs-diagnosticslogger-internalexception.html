@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
-  <title>InlineDelayInit<'T> (fantomas)</title>
+  <title>InternalException (fantomas)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
@@ -201,28 +201,33 @@
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         <div>
   <h2>
-    InlineDelayInit<'T> Type
+    InternalException Type
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
       Namespace: 
-      <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library.html">
-        Internal.Utilities.Library
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs.html">
+        Fantomas.FCS
       </a>
     </dt>
     <dt>
       Assembly: Fantomas.FCS.dll
     </dt>
     <dt>
+      Parent Module: 
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-diagnosticslogger.html">
+        DiagnosticsLogger
+      </a>
+    </dt>
+    <dt>
       Base Type: 
-      <code><a href="https://learn.microsoft.com/dotnet/api/system.valuetype">ValueType</a></code>
+      <code>exn</code>
     </dt>
     <dt>
       All Interfaces: 
+      <code><a href="https://learn.microsoft.com/dotnet/api/system.runtime.serialization.iserializable">ISerializable</a></code>
+      , 
       <code><a href="https://learn.microsoft.com/dotnet/api/system.collections.istructuralequatable">IStructuralEquatable</a></code>
-    </dt>
-    <dt>
-      Kind: Struct
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
@@ -255,28 +260,25 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7332', 7332)" onmouseover="showTip(event, '7332', 7332)">
+              <code onmouseout="hideTip(event, '4290', 4290)" onmouseover="showTip(event, '4290', 4290)">
                 <p>
-                  <a id="func">
-                    <a href="#func">
-                      <code>func</code>
+                  <a id="exn">
+                    <a href="#exn">
+                      <code>exn</code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7332">
+              <div class="fsdocs-tip" id="4290">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code>func</code>
+                  <code>exn</code>
                   <br/>
                   <br/>
                   <span>
                     Field type: 
-                    <code><span><a href="https://learn.microsoft.com/dotnet/api/system.func-1">Func</a>&lt;'T&gt;</span></code>
+                    <code><a href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></code>
                   </span>
-                  <br/>
-                  Modifiers: 
-                  mutable
                   <br/>
                 </div>
               </div>
@@ -288,7 +290,7 @@
                 <span class="fsdocs-return-name">
                   Field type: 
                 </span>
-                <code><span><a href="https://learn.microsoft.com/dotnet/api/system.func-1">Func</a>&lt;'T&gt;</span></code>
+                <code><a href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -297,28 +299,25 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7333', 7333)" onmouseover="showTip(event, '7333', 7333)">
+              <code onmouseout="hideTip(event, '4291', 4291)" onmouseover="showTip(event, '4291', 4291)">
                 <p>
-                  <a id="store">
-                    <a href="#store">
-                      <code>store</code>
+                  <a id="msg">
+                    <a href="#msg">
+                      <code>msg</code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7333">
+              <div class="fsdocs-tip" id="4291">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code>store</code>
+                  <code>msg</code>
                   <br/>
                   <br/>
                   <span>
                     Field type: 
-                    <code>'T</code>
+                    <code>string</code>
                   </span>
-                  <br/>
-                  Modifiers: 
-                  mutable
                   <br/>
                 </div>
               </div>
@@ -330,7 +329,46 @@
                 <span class="fsdocs-return-name">
                   Field type: 
                 </span>
-                <code>'T</code>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '4292', 4292)" onmouseover="showTip(event, '4292', 4292)">
+                <p>
+                  <a id="range">
+                    <a href="#range">
+                      <code>range</code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="4292">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code>range</code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Field type: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Field type: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -340,144 +378,8 @@
     </table>
   </div>
   <div></div>
-  <div>
-    <h3>
-      Constructors
-    </h3>
-    <table class="table outer-list fsdocs-member-list">
-      <thead>
-        <tr>
-          <td class="fsdocs-member-list-header">
-            Constructor
-          </td>
-          <td class="fsdocs-member-list-header">
-            Description
-          </td>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '7334', 7334)" onmouseover="showTip(event, '7334', 7334)">
-                <p>
-                  <a id="``.ctor``">
-                    <a href="#``.ctor``">
-                      <code><span>InlineDelayInit<span><span>(<span>f</span>)</span></span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="7334">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>InlineDelayInit<span><span>(<span>f</span>)</span></span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        f
-                      </b>
-                      :
-                      <code><span>unit&#32;->&#32;'T</span></code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-inlinedelayinit-1.html">InlineDelayInit</a>&lt;'T&gt;</span></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  f
-                </span>
-                :
-                <code><span>unit&#32;->&#32;'T</span></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-inlinedelayinit-1.html">InlineDelayInit</a>&lt;'T&gt;</span></code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div>
-    <h3>
-      Instance members
-    </h3>
-    <table class="table outer-list fsdocs-member-list">
-      <thead>
-        <tr>
-          <td class="fsdocs-member-list-header">
-            Instance member
-          </td>
-          <td class="fsdocs-member-list-header">
-            Description
-          </td>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '7335', 7335)" onmouseover="showTip(event, '7335', 7335)">
-                <p>
-                  <a id="Value">
-                    <a href="#Value">
-                      <code><span>this.Value</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="7335">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.Value</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>'T</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code>'T</code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <div></div>
+  <div></div>
   <div></div>
 </div>
         
