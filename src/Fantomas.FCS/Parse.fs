@@ -745,6 +745,7 @@ let getSyntaxErrorMessage ctxt =
         | Parser.TOKEN_INLINE -> getErrorString "Parser.TOKEN.INLINE"
         | Parser.TOKEN_WHEN -> getErrorString "Parser.TOKEN.WHEN"
         | Parser.TOKEN_WHILE -> getErrorString "Parser.TOKEN.WHILE"
+        | Parser.TOKEN_WHILE_BANG -> getErrorString "Parser.TOKEN.WHILE.BANG"
         | Parser.TOKEN_WITH -> getErrorString "Parser.TOKEN.WITH"
         | Parser.TOKEN_IF -> getErrorString "Parser.TOKEN.IF"
         | Parser.TOKEN_DO -> getErrorString "Parser.TOKEN.DO"

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+* Update FCS to 'Bugfix for underscore dot lambda: Forbidding expressions not based on the implied _ arg', commit f42bdae84727fc251a6e570c2f1c47a3deffe215
+
 ## 6.3.0-alpha-001 - 2023-11-03
 
 ### Changed

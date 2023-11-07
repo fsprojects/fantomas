@@ -1726,7 +1726,8 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
                     | None -> unionRanges ident.idRange pat.Range
                     | Some prefix -> unionRanges prefix.Range pat.Range
 
-                PatRecordField(prefix, mkIdent ident, stn "=" eq, mkPat creationAide pat, range))
+                let eqNode = stn "=" (Option.defaultValue Range.Zero eq)
+                PatRecordField(prefix, mkIdent ident, eqNode, mkPat creationAide pat, range))
 
         PatRecordNode(stn "{" o, fields, stn "}" c, patternRange) |> Pattern.Record
     | SynPat.Const(c, r) -> mkConstant creationAide c r |> Pattern.Const

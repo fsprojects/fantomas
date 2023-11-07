@@ -257,6 +257,8 @@ pipeline "Init" {
                "src/Compiler/Utilities/TaggedCollections.fs"
                "src/Compiler/Utilities/illib.fsi"
                "src/Compiler/Utilities/illib.fs"
+               "src/Compiler/Utilities/Cancellable.fsi"
+               "src/Compiler/Utilities/Cancellable.fs"
                "src/Compiler/Utilities/FileSystem.fsi"
                "src/Compiler/Utilities/FileSystem.fs"
                "src/Compiler/Utilities/ildiag.fsi"
