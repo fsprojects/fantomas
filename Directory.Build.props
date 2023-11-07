@@ -40,7 +40,7 @@ Some common use cases include:
     
     <!-- Versions -->
     <PropertyGroup>
-        <FCSCommitHash>97a5b6584b54707e3e8541fe758e1aa22132a8fe</FCSCommitHash>
+        <FCSCommitHash>f42bdae84727fc251a6e570c2f1c47a3deffe215</FCSCommitHash>
         <StreamJsonRpcVersion>2.8.28</StreamJsonRpcVersion>
         <FSharpCoreVersion>6.0.1</FSharpCoreVersion>
     </PropertyGroup>

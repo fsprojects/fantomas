@@ -1061,6 +1061,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.While(_, ew, ed, StartRange 5 (mWhile, _)) ->
         ExprWhileNode(stn "while" mWhile, mkExpr creationAide ew, mkExpr creationAide ed, exprRange)
         |> Expr.While
+    | SynExpr.WhileBang(_, ew, ed, StartRange 6 (mWhileBang, _)) ->
+        ExprWhileNode(stn "while!" mWhileBang, mkExpr creationAide ew, mkExpr creationAide ed, exprRange)
+        |> Expr.While
     | SynExpr.For(_, _, ident, Some equalsRange, e1, isUp, e2, e3, StartRange 3 (mFor, _)) ->
         ExprForNode(
             stn "for" mFor,
@@ -1726,7 +1729,8 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
                     | None -> unionRanges ident.idRange pat.Range
                     | Some prefix -> unionRanges prefix.Range pat.Range
 
-                PatRecordField(prefix, mkIdent ident, stn "=" eq, mkPat creationAide pat, range))
+                let eqNode = stn "=" (Option.defaultValue Range.Zero eq)
+                PatRecordField(prefix, mkIdent ident, eqNode, mkPat creationAide pat, range))
 
         PatRecordNode(stn "{" o, fields, stn "}" c, patternRange) |> Pattern.Record
     | SynPat.Const(c, r) -> mkConstant creationAide c r |> Pattern.Const

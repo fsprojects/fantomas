@@ -117,6 +117,38 @@ lookForValue 10 20
 """
 
 [<Test>]
+let ``while bang`` () =
+    formatSourceString
+        false
+        """
+let goThroughFsharpTicketsAsync() = task {
+    let mutable ticketNumber = 1
+
+    while! doesTicketExistAsync ticketNumber do
+        printfn $"Found a PR or issue #{ticketNumber}."
+        ticketNumber <- ticketNumber + 1
+
+    printfn $"#{ticketNumber} is not created yet."
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let goThroughFsharpTicketsAsync () =
+    task {
+        let mutable ticketNumber = 1
+
+        while! doesTicketExistAsync ticketNumber do
+            printfn $"Found a PR or issue #{ticketNumber}."
+            ticketNumber <- ticketNumber + 1
+
+        printfn $"#{ticketNumber} is not created yet."
+    }
+"""
+
+[<Test>]
 let ``try/with block`` () =
     formatSourceString
         false

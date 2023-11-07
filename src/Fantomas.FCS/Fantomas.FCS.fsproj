@@ -64,6 +64,12 @@
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\illib.fs">
       <Link>Utilities\illib.fs</Link>
     </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\Cancellable.fsi">
+      <Link>Utilities\Cancellable.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\Cancellable.fs">
+      <Link>Utilities\Cancellable.fs</Link>
+    </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\FileSystem.fsi">
       <Link>Utilities\FileSystem.fsi</Link>
     </Compile>
