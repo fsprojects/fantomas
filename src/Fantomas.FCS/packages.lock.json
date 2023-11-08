@@ -30,11 +30,11 @@
           "FsLexYacc.Runtime": "11.2.0"
         }
       },
-      "G-Research.FSharp.Analyzers": {
+      "Ionide.Analyzers": {
         "type": "Direct",
-        "requested": "[0.1.6, )",
-        "resolved": "0.1.6",
-        "contentHash": "1WyLN4LsQVQUprNr5adpLcYA7Dbn1ohGQ3Pch4qoVflKWZRuFb81pDziFZN/KOqPHdlQUx2BLAE5LIKGD46o5g=="
+        "requested": "[0.1.1, )",
+        "resolved": "0.1.1",
+        "contentHash": "Ajzoajn198xdrRZk1/sGAfOedB4EhkPsUZ1bsDBiSxbAnrTfrRMt66JzdZBpfU9HE1MvWEat7lLvgHBeHyhUKw=="
       },
       "Ionide.KeepAChangelog.Tasks": {
         "type": "Direct",

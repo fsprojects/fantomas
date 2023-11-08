@@ -12,7 +12,7 @@
         </PropertyGroup>
         <Exec
             ContinueOnError="true"
-            Command="dotnet fsharp-analyzers --fsc-args &quot;@(FscCommandLineArgs)&quot; --analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)/analyzers/dotnet/fs&quot; --exclude-analyzer PartialAppAnalyzer --fail-on-warnings GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001 --verbose --report &quot;../../analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;">
+            Command="dotnet fsharp-analyzers --fsc-args &quot;@(FscCommandLineArgs)&quot; --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot; --exclude-analyzer PartialAppAnalyzer --fail-on-warnings GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001 --verbose --report &quot;../../analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;">
             <Output TaskParameter="ExitCode" PropertyName="LastExitCode" />
         </Exec>
         <Error Condition="'$(LastExitCode)' == '-2'" Text="Problems were found $(MSBuildProjectFile)" />
