@@ -30,9 +30,9 @@
       },
       "Ionide.Analyzers": {
         "type": "Direct",
-        "requested": "[0.1.1, )",
-        "resolved": "0.1.1",
-        "contentHash": "Ajzoajn198xdrRZk1/sGAfOedB4EhkPsUZ1bsDBiSxbAnrTfrRMt66JzdZBpfU9HE1MvWEat7lLvgHBeHyhUKw=="
+        "requested": "[0.2.0, )",
+        "resolved": "0.2.0",
+        "contentHash": "2vMCI+d7WeK0tWuXz5f6pQqOvtyHHgSYabNvirpjezkXAfkhHL2rSHlPvi94e93+AxBwbrkX5Q8kDbbvmb42Uw=="
       },
       "BenchmarkDotNet.Annotations": {
         "type": "Transitive",
