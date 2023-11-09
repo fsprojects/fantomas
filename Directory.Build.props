@@ -63,7 +63,7 @@ Some common use cases include:
 <!--            <PrivateAssets>all</PrivateAssets>-->
 <!--            <IncludeAssets>build</IncludeAssets>-->
 <!--        </PackageReference>-->
-       <PackageReference Include="Ionide.Analyzers" Version="0.1.1">
+       <PackageReference Include="Ionide.Analyzers" Version="0.2.0">
            <PrivateAssets>all</PrivateAssets>
            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
        </PackageReference>
