@@ -2747,8 +2747,8 @@ let bv =
         Foo<
             'innerContextLongLongLong,
             'bb -> 'b
-         >
-     >
+            >
+      >
         bf
 """
 
