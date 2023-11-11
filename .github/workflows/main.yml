@@ -48,3 +48,15 @@ jobs:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: dotnet fsi build.fsx -p Release
+
+  # Builds the project in a dev container
+  build-devcontainer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build and run dev container task
+        uses: devcontainers/ci@v0.3
+        with:
+          runCmd: |
+            dotnet fsi build.fsx -p Init
+            dotnet fsi build.fsx
