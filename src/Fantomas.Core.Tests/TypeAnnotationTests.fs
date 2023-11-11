@@ -135,7 +135,7 @@ type CancellableTaskResultBuilderBase with
 """
 
 [<Test>]
-let `` Aligned bracket style in anonymous record is respected, #2706`` () =
+let ``Aligned bracket style in anonymous record is respected, #2706`` () =
     formatSourceString
         false
         """
@@ -163,7 +163,7 @@ let private asJson (arm: IArmResource) =
 """
 
 [<Test>]
-let `` Aligned bracket style in anonymous record is respected for multiple types, #2706`` () =
+let ``Aligned bracket style in anonymous record is respected for multiple types, #2706`` () =
     formatSourceString
         false
         """
@@ -180,6 +180,78 @@ let private asJson (arm: IArmResource) =
 """
         { config with
             MultilineBracketStyle = Aligned }
+    |> prepend newline
+    |> should
+        equal
+        """
+let private asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<
+        {|
+            kind: string
+            properties: {| statisticsEnabled: bool |}
+        |},
+        {|
+            kind: string
+            properties: {| statisticsEnabled: bool |}
+        |}
+       >
+"""
+
+[<Test>]
+let ``Cramped bracket style in anonymous record is respected for multiple types, #2706`` () =
+    formatSourceString
+        false
+        """
+let private asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+    |},{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+    |}
+    >
+"""
+        { config with
+            MultilineBracketStyle = Cramped }
+    |> prepend newline
+    |> should
+        equal
+        """
+let private asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<
+        {|
+            kind: string
+            properties: {| statisticsEnabled: bool |}
+        |},
+        {|
+            kind: string
+            properties: {| statisticsEnabled: bool |}
+        |}
+       >
+"""
+
+[<Test>]
+let ``Stroustrup bracket style in anonymous record is respected for multiple types, #2706`` () =
+    formatSourceString
+        false
+        """
+let private asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+    |},{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+    |}
+    >
+"""
+        { config with
+            MultilineBracketStyle = Stroustrup }
     |> prepend newline
     |> should
         equal
