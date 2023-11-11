@@ -43,11 +43,9 @@ git checkout main && git clean -xdf && git fetch upstream && git rebase upstream
 
 This will update your fork with the latest from `fsprojects/fantomas` on your machine and push those updates to your remote fork.
 
-## Preview SDK
+## dotnet SDK
 
-In this repository, we wish to dog-food the latest F# compiler features. Compiler flag [--test:GraphBasedChecking](https://github.com/dotnet/fsharp/pull/14494) in particular.  
-You can download a preview SDK from [here](https://github.com/dotnet/installer#installers-and-binaries).  
-Make sure to install the `Release/7.0.4xx` SDK.
+Please download the correct [dotnet SDK](https://dotnet.microsoft.com/download), according to our `global.json` file.
 
 ## Initial build
 
