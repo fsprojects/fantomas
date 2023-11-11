@@ -57,5 +57,4 @@ jobs:
       - name: Build and run dev container task
         uses: devcontainers/ci@v0.3
         with:
-          runCmd: |
-            dotnet fsi build.fsx -p Init && dotnet fsi build.fsx
+          runCmd: dotnet fsi build.fsx
