@@ -2720,6 +2720,39 @@ module OrderProcessing =
 """
 
 [<Test>]
+let ``type application including nested multiline function type`` () =
+    formatSourceString
+        false
+        """
+let bv = unbox<Foo<'innerContextLongLongLong, 'bb -> 'b>> bf
+        """
+        { config with
+            MaxLineLength = 30
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBracketStyle = Aligned
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            NewlineBetweenTypeDefinitionAndMembers = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+let bv =
+    unbox<
+        Foo<
+            'innerContextLongLongLong,
+            'bb -> 'b
+            >
+      >
+        bf
+"""
+
+[<Test>]
 let ``generic type arguments in function invocation, 1637`` () =
     formatSourceString
         """

@@ -1192,7 +1192,7 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.TypeApp node ->
         fun ctx ->
-            let startColum = ctx.Column
+            let startColumn = ctx.Column
 
             genNode
                 node
@@ -1201,7 +1201,7 @@ let genExpr (e: Expr) =
                  +> colGenericTypeParameters node.TypeParameters
                  // we need to make sure each expression in the function application has offset at least greater than
                  // See: https://github.com/fsprojects/fantomas/issues/1611
-                 +> addFixedSpaces startColum
+                 +> addFixedSpaces startColumn
                  +> genSingleTextNode node.GreaterThan)
                 ctx
     | Expr.TryWithSingleClause node ->
