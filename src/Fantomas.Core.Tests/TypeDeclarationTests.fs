@@ -2882,8 +2882,8 @@ let bv =
                 bb
              >
          >
-    >
-    bf
+     >
+        bf
 """
         { config with MaxLineLength = 10 }
     |> prepend newline
@@ -2899,8 +2899,7 @@ let bv =
              >
          >
      >
-
-    bf
+        bf
 """
 
 [<Test>]

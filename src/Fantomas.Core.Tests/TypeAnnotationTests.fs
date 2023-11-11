@@ -159,7 +159,7 @@ let private asJson (arm: IArmResource) =
             kind: string
             properties: {| statisticsEnabled: bool |}
         |}
-        >
+       >
 """
 
 [<Test>]
@@ -195,7 +195,7 @@ let private asJson (arm: IArmResource) =
             kind: string
             properties: {| statisticsEnabled: bool |}
         |}
-        >
+       >
 """
 
 [<Test>]
@@ -227,7 +227,7 @@ let private asJson (arm: IArmResource) =
            properties: {| statisticsEnabled: bool |} |},
         {| kind: string
            properties: {| statisticsEnabled: bool |} |}
-        >
+       >
 """
 
 [<Test>]
@@ -263,5 +263,5 @@ let private asJson (arm: IArmResource) =
             kind: string
             properties: {| statisticsEnabled: bool |}
         |}
-        >
+       >
 """
