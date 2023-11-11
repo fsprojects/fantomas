@@ -58,5 +58,4 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           runCmd: |
-            dotnet fsi build.fsx -p Init
-            dotnet fsi build.fsx
+            dotnet fsi build.fsx -p Init && dotnet fsi build.fsx
