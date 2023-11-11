@@ -2747,8 +2747,8 @@ let bv =
         Foo<
             'innerContextLongLongLong,
             'bb -> 'b
-            >
-      >
+         >
+     >
         bf
 """
 
@@ -2856,7 +2856,7 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                                                                     'innerContextLongLongLong,
                                                                     'bb -> 'b
                                                                  >
-                                                            >
+                                                             >
                                                                 bf
 
                                                         this.InnerEquals af bf cont
@@ -2898,7 +2898,7 @@ let bv =
                 bb
              >
          >
-    >
+     >
 
     bf
 """

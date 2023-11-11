@@ -1192,7 +1192,7 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.TypeApp node ->
         fun ctx ->
-            let startColumn = ctx.Column
+            let startColumn = ctx.Column + 1
 
             genNode
                 node
