@@ -7,7 +7,7 @@ open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``module abbreviation`` () =
-    formatSourceString false "module ES = Microsoft.FSharp.Quotations.ExprShape" config
+    formatSourceString "module ES = Microsoft.FSharp.Quotations.ExprShape" config
     |> should
         equal
         """module ES = Microsoft.FSharp.Quotations.ExprShape
@@ -15,7 +15,7 @@ let ``module abbreviation`` () =
 
 [<Test>]
 let ``module with functions`` () =
-    formatSourceString false "module internal MyModule = let x = 42" config
+    formatSourceString "module internal MyModule = let x = 42" config
     |> prepend newline
     |> should
         equal
@@ -27,7 +27,6 @@ module internal MyModule =
 [<Test>]
 let ``open modules`` () =
     formatSourceString
-        false
         """
     // comment1
     open System.IO
@@ -47,7 +46,6 @@ open System
 [<Test>]
 let ``sort open modules doesn't mess comments up`` () =
     formatSourceString
-        false
         """
 module internal Fantomas.CodePrinter
 
@@ -95,7 +93,6 @@ let sortAndDedup by l =
 [<Test>]
 let ``nested modules`` () =
     formatSourceString
-        false
         """
 module Y =
     let x = 1
@@ -117,7 +114,6 @@ module Y =
 [<Test>]
 let ``sibling modules`` () =
     formatSourceString
-        false
         """
 module TopLevel
 
@@ -145,8 +141,7 @@ module Inner2 =
 
 [<Test>]
 let ``module signatures`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Utils
 
@@ -181,7 +176,6 @@ module Random =
 [<Test>]
 let ``namespace declaration`` () =
     formatSourceString
-        false
         """
 namespace Widgets
 
@@ -208,7 +202,6 @@ module WidgetsModule =
 [<Test>]
 let ``should retain rec in namespace`` () =
     formatSourceString
-        false
         """
 namespace rec Test
 
@@ -235,7 +228,6 @@ type Expr =
 [<Test>]
 let ``should retain rec in nested module`` () =
     formatSourceString
-        false
         """
 namespace Test
 
@@ -264,7 +256,6 @@ module rec Expression =
 [<Test>]
 let ``should preserve global keyword`` () =
     formatSourceString
-        false
         """
 namespace global
 
@@ -287,7 +278,6 @@ type SomeType() =
 [<Test>]
 let ``should escape keywords correctly`` () =
     formatSourceString
-        false
         """
 module ``member``
 
@@ -314,7 +304,6 @@ type SomeType() =
 [<Test>]
 let ``should escape base keyword correctly`` () =
     formatSourceString
-        false
         """
 open System
 open RDotNet
@@ -351,7 +340,6 @@ let main argv =
 [<Test>]
 let ``should retain rec in modules`` () =
     formatSourceString
-        false
         """
 module rec Test =
     let test = 42
@@ -368,7 +356,6 @@ module rec Test =
 [<Test>]
 let ``should retain order when access and rec present in module declaration`` () =
     formatSourceString
-        false
         """
 module private rec Test =
     let test = 42
@@ -406,7 +393,6 @@ type T() =
 [<Test>]
 let ``attribute on module after namespace`` () =
     formatSourceString
-        false
         """namespace SomeNamespace
 
 [<AutoOpen>]
@@ -428,7 +414,6 @@ module Types =
 [<Test>]
 let ``single line and multiline module decls`` () =
     formatSourceString
-        false
         """let a =  5
 let b =  8
 type Model =
@@ -478,7 +463,6 @@ type UrlModel =
 [<Test>]
 let ``single line and multiline module decls with newline trivia`` () =
     formatSourceString
-        false
         """let a =  5
 let b =  8
 
@@ -530,7 +514,6 @@ type UrlModel =
 [<Test>]
 let ``comment is first trivia in module should not add newline, 784`` () =
     formatSourceString
-        false
         """
 module foo
 
@@ -550,8 +533,7 @@ module foo
 
 [<Test>]
 let ``comment is first trivia in module in signature file should not add newline, 784`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module foo
 
@@ -572,7 +554,6 @@ module foo
 [<Test>]
 let ``comment is first trivia in namespace should not add newline, 784`` () =
     formatSourceString
-        false
         """
 namespace foo.quz
 
@@ -592,8 +573,7 @@ namespace foo.quz
 
 [<Test>]
 let ``comment is first trivia in namespace in signature file should not add newline, 784`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace foo.quz
 
@@ -614,7 +594,6 @@ namespace foo.quz
 [<Test>]
 let ``don't add extra new lines between comments and attributes, 1108`` () =
     formatSourceString
-        false
         """
 namespace Foo
 
@@ -651,7 +630,6 @@ do ()
 [<Test>]
 let ``keep correct indentation for let binding inside nested module, 1122`` () =
     formatSourceString
-        false
         """
 namespace Test
 
@@ -675,8 +653,7 @@ module App =
 
 [<Test>]
 let ``keep correct indentation for let binding inside nested module, signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Test
 
@@ -701,7 +678,6 @@ module App =
 [<Test>]
 let ``keep correct indentation for let binding after match lambda inside nested module, 2214`` () =
     formatSourceString
-        false
         """
 module Outer
 
@@ -740,7 +716,6 @@ module Inner =
 [<Test>]
 let ``nested nested module with single union DU, 1123`` () =
     formatSourceString
-        false
         """
 module Test =
   module Foo =
@@ -761,7 +736,6 @@ module Test =
 [<Test>]
 let ``always add new line between named module and first declaration, 1139`` () =
     formatSourceString
-        false
         """
 module Input
     let modules = [109024;137172;80445;80044]
@@ -779,7 +753,6 @@ let modules = [ 109024; 137172; 80445; 80044 ]
 [<Test>]
 let ``comment after equals sign in named module`` () =
     formatSourceString
-        false
         """
 module Foo =   // comment
     let bar = 9
@@ -795,8 +768,7 @@ module Foo = // comment
 
 [<Test>]
 let ``comment after equals sign in named module, signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Meh
 
@@ -817,7 +789,6 @@ module Foo = // comment
 [<Test>]
 let ``comment above named module with xml doc, 2141`` () =
     formatSourceString
-        false
         """
 // Boring copyright notice
 
@@ -842,7 +813,6 @@ module Queries
 [<Test>]
 let ``comment before declared namespace`` () =
     formatSourceString
-        false
         """
 // some comment
 namespace Blah
@@ -862,7 +832,6 @@ let a = 0
 [<Test>]
 let ``comment before global namespace`` () =
     formatSourceString
-        false
         """
 // some comment
 namespace global
@@ -881,8 +850,7 @@ let a = 0
 
 [<Test>]
 let ``comment before declared namespace in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 // some comment
 namespace Blah
@@ -901,8 +869,7 @@ val a: int
 
 [<Test>]
 let ``comment before global namespace in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 // some comment
 namespace global
@@ -921,8 +888,7 @@ val a: int
 
 [<Test>]
 let ``comment before named module in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 // some comment
 module Meh
@@ -942,7 +908,6 @@ val a: int
 [<Test>]
 let ``xml comment above module with nested module`` () =
     formatSourceString
-        false
         """
 /// this file contains patches to the F# Compiler Service that have not yet made it into
 /// published nuget packages.  We source-copy them here to have a consistent location for our to-be-removed extensions
@@ -979,7 +944,6 @@ module internal SynExprAppLocationsImpl =
 [<Test>]
 let ``xml comment above namespace with nested module`` () =
     formatSourceString
-        false
         """
 /// this file contains patches to the F# Compiler Service that have not yet made it into
 /// published nuget packages.  We source-copy them here to have a consistent location for our to-be-removed extensions
@@ -1016,7 +980,6 @@ module internal SynExprAppLocationsImpl =
 [<Test>]
 let ``global keyword in open statement, 2366`` () =
     formatSourceString
-        false
         """
 namespace Ionide.VSCode.FSharp
 
@@ -1034,8 +997,7 @@ open global.Node
 
 [<Test>]
 let ``global keyword in open statement, signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Ionide.VSCode.FSharp
@@ -1055,8 +1017,7 @@ open global.Node.ChildProcess
 
 [<Test>]
 let ``empty nested module, 2721`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Graph =
     begin end
@@ -1072,8 +1033,7 @@ module Graph =
 
 [<Test>]
 let ``module abbreviation followed by nested module, 2792`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Foo
 
@@ -1110,7 +1070,6 @@ module Bar =
 [<Test>]
 let ``namespace with ticks, 2959`` () =
     formatSourceString
-        false
         """
 namespace ``G-Research``.``FSharp X``.``Analyzers Y``
 

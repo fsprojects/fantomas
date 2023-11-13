@@ -14,7 +14,6 @@ let config =
 [<Test>]
 let ``single member record stays on one line`` () =
     formatSourceString
-        false
         """let a = { Foo = "bar" }
 """
         config
@@ -28,7 +27,6 @@ let a = { Foo = "bar" }
 [<Test>]
 let ``record instance`` () =
     formatSourceString
-        false
         """let myRecord =
     { Level = 1
       Progress = "foo"
@@ -54,7 +52,6 @@ let myRecord =
 [<Test>]
 let ``nested record`` () =
     formatSourceString
-        false
         """let myRecord =
     { Level = 1
       Progress = "foo"
@@ -86,7 +83,6 @@ let myRecord =
 [<Test>]
 let ``update record`` () =
     formatSourceString
-        false
         """let myRecord =
     { myOldRecord
         with Level = 2
@@ -109,7 +105,6 @@ let myRecord =
 [<Test>]
 let ``update record with single field`` () =
     formatSourceString
-        false
         """let myRecord =
     { myOldRecord
         with Level = 2 }
@@ -125,7 +120,6 @@ let myRecord = { myOldRecord with Level = 2 }
 [<Test>]
 let ``record instance with inherit keyword`` () =
     formatSourceString
-        false
         """let a =
         { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
           buildSettings = FSharpBuildSettings()
@@ -147,7 +141,6 @@ let a =
 [<Test>]
 let ``record instance with inherit keyword and no fields`` () =
     formatSourceString
-        false
         """let a =
         { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK) }
 """
@@ -171,7 +164,6 @@ let a =
 [<Test>]
 let ``type with record instance with inherit keyword`` () =
     formatSourceString
-        false
         """type ServerCannotBeResolvedException =
     inherit CommunicationUnsuccessfulException
 
@@ -194,7 +186,6 @@ type ServerCannotBeResolvedException =
 [<Test>]
 let ``anonymous record`` () =
     formatSourceString
-        false
         """let meh =
     {| Level = 1
        Progress = "foo"
@@ -220,7 +211,6 @@ let meh =
 [<Test>]
 let ``anonymous record with single field update`` () =
     formatSourceString
-        false
         """let a = {| foo with Level = 7 |}
 """
         config
@@ -234,7 +224,6 @@ let a = {| foo with Level = 7 |}
 [<Test>]
 let ``anonymous record with multiple field update`` () =
     formatSourceString
-        false
         """let a = {| foo with Level = 7; Square = 9 |}
 """
         { config with MaxRecordWidth = 35 }
@@ -252,7 +241,6 @@ let a =
 [<Test>]
 let ``anonymous type`` () =
     formatSourceString
-        false
         """type a = {| foo : string; bar : string |}
 """
         config
@@ -266,7 +254,6 @@ type a = {| foo : string ; bar : string |}
 [<Test>]
 let ``anonymous record with single field`` () =
     formatSourceString
-        false
         """let a = {| A = "meh" |}
 """
         config
@@ -280,7 +267,6 @@ let a = {| A = "meh" |}
 [<Test>]
 let ``anonymous record with child records`` () =
     formatSourceString
-        false
         """
 let anonRecord =
     {| A = {| A1 = "string";A2LongerIdentifier = "foo" |};
@@ -313,7 +299,6 @@ let anonRecord =
 [<Test>]
 let ``record as parameter to function`` () =
     formatSourceString
-        false
         """let configurations =
     buildConfiguration { XXXXXXXXXXXX = "XXXXXXXXXXXXX"; YYYYYYYYYYYY = "YYYYYYYYYYYYYYY" }
 """
@@ -333,7 +318,6 @@ let configurations =
 [<Test>]
 let ``records in list`` () =
     formatSourceString
-        false
         """let configurations =
     [
         { Build = true; Configuration = "RELEASE"; Defines = ["FOO"] }
@@ -369,7 +353,6 @@ let configurations =
 [<Test>]
 let ``anonymous records in list`` () =
     formatSourceString
-        false
         """let configurations =
     [
         {| Build = true; Configuration = "RELEASE"; Defines = ["FOO"] |}
@@ -399,7 +382,6 @@ let configurations =
 [<Test>]
 let ``records in array`` () =
     formatSourceString
-        false
         """let configurations =
     [|
         { Build = true; Configuration = "RELEASE"; Defines = ["FOO"] }
@@ -429,7 +411,6 @@ let configurations =
 [<Test>]
 let ``object expression`` () =
     formatSourceString
-        false
         """
 let obj1 = { new System.Object() with member x.ToString() = "F#" }
 """
@@ -447,7 +428,6 @@ let obj1 =
 [<Test>]
 let ``object expressions in list`` () =
     formatSourceString
-        false
         """
 let a =
     [
@@ -473,8 +453,7 @@ let a =
 
 [<Test>]
 let ``record type signature with bracketOnSeparateLine`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module RecordSignature
 /// Represents simple XML elements.
@@ -513,7 +492,6 @@ type Element =
 [<Test>]
 let ``record type with member definitions should align with bracket`` () =
     formatSourceString
-        false
         """
 type Range =
     { From: float
@@ -538,7 +516,6 @@ type Range =
 [<Test>]
 let ``record type with interface`` () =
     formatSourceString
-        false
         """
 type MyRecord =
     { SomeField : int
@@ -561,7 +538,6 @@ type MyRecord =
 [<Test>]
 let ``SynPat.Record in pattern match with bracketOnSeparateLine`` () =
     formatSourceString
-        false
         """match foo with
 | { Bar = bar; Level = 12; Vibes = plenty; Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " } -> "7"
 | _ -> "8"
@@ -584,7 +560,6 @@ match foo with
 [<Test>]
 let ``record declaration`` () =
     formatSourceString
-        false
         """type MyRecord =
     { Level: int
       Progress: string
@@ -609,8 +584,7 @@ type MyRecord =
 
 [<Test>]
 let ``record declaration in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace X
 type MyRecord =
     { Level: int
@@ -638,8 +612,7 @@ type MyRecord =
 
 [<Test>]
 let ``record declaration with members in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace X
 type MyRecord =
     { Level: int
@@ -671,7 +644,6 @@ type MyRecord =
 [<Test>]
 let ``no newline before first multiline member`` () =
     formatSourceString
-        false
         """
 type ShortExpressionInfo =
     { MaxWidth: int
@@ -704,7 +676,6 @@ type ShortExpressionInfo =
 [<Test>]
 let ``internal keyword before multiline record type`` () =
     formatSourceString
-        false
         """
     type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }"""
         config
@@ -722,8 +693,7 @@ type A =
 
 [<Test>]
 let ``internal keyword before multiline record type in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Bar
 
     type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }"""
@@ -744,7 +714,7 @@ type A =
 
 [<Test>]
 let ``indent update record fields far enough, 817`` () =
-    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" { config with IndentSize = 2 }
+    formatSourceString "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" { config with IndentSize = 2 }
     |> prepend newline
     |> should
         equal
@@ -758,7 +728,6 @@ let expected =
 [<Test>]
 let ``indent update anonymous record fields far enough`` () =
     formatSourceString
-        false
         "let expected = {| ThisIsAThing.Empty with TheNewValue = 1 |}"
         { config with IndentSize = 2 }
     |> prepend newline
@@ -773,7 +742,7 @@ let expected =
 
 [<Test>]
 let ``update record with standard indent`` () =
-    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" config
+    formatSourceString "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" config
     |> prepend newline
     |> should
         equal
@@ -787,7 +756,6 @@ let expected =
 [<Test>]
 let ``record type with attributes`` () =
     formatSourceString
-        false
         """
 [<Foo>]
 type Args =
@@ -822,7 +790,6 @@ module Foo =
 [<Test>]
 let ``comment before access modifier of record type declaration`` () =
     formatSourceString
-        false
         """
 type TestType =
     // Here is some comment about the type
@@ -849,7 +816,6 @@ type TestType =
 [<Test>]
 let ``defines in record assignment, 968`` () =
     formatSourceString
-        false
         """
 let config = {
     title = "Fantomas"
@@ -885,7 +851,6 @@ let config =
 [<Test>]
 let ``comment after closing brace in nested record`` () =
     formatSourceString
-        false
         """
 let person =
     { Name = "James"
@@ -906,8 +871,7 @@ let person =
 
 [<Test>]
 let ``line comments before access modifier of multiline record type`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 
@@ -939,8 +903,7 @@ type TestType =
 
 [<Test>]
 let ``line comments before access modifier of single line record type`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 
@@ -971,7 +934,6 @@ type TestType =
 [<Test>]
 let ``record inside pattern match, 1238`` () =
     formatSourceString
-        false
         """
       module Foo =
           let Bar () =
@@ -1001,7 +963,6 @@ module Foo =
 [<Test>]
 let ``record destructuring in let binding`` () =
     formatSourceString
-        false
         """
       module Foo =
           let someFunction { Firstname = fn; Lastname = ln; Age = age } =
@@ -1030,7 +991,6 @@ module Foo =
 [<Test>]
 let ``access modifier on short type record inside module`` () =
     formatSourceString
-        false
         """
 module Foo =
     type Stores =
@@ -1061,7 +1021,6 @@ module Foo =
 [<Test>]
 let ``record with an access modifier and a static member`` () =
     formatSourceString
-        false
         """
 type RequestParser<'ctx, 'a> =
     internal
@@ -1109,7 +1068,6 @@ type RequestParser<'ctx, 'a> =
 [<Test>]
 let ``formatting error with MultilineBlockBracketsOnSameColumn, 1396`` () =
     formatSourceString
-        false
         """
 namespace GeeTower.Tests.EndToEnd
 
@@ -1152,8 +1110,7 @@ module WatcherTests =
 
 [<Test>]
 let ``a record type with accessibility modifier and members, 1824`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Thing
 
@@ -1185,7 +1142,6 @@ type Foo =
 [<Test>]
 let ``record type definition with members and trivia`` () =
     formatSourceString
-        false
         """
 type X = {
     Y : int
@@ -1208,7 +1164,6 @@ type X =
 [<Test>]
 let ``anonymous records with comments on record fields`` () =
     formatSourceString
-        false
         """
 {|
     // The foo value.
@@ -1233,7 +1188,6 @@ let ``anonymous records with comments on record fields`` () =
 [<Test>]
 let ``creating anonymous record based on a function call, 1749`` () =
     formatSourceString
-        false
         """
 type Foo = static member Create a = {| Name = "Isaac" |}
 type Bar() = member _.Create (a,b) = ()
@@ -1273,7 +1227,6 @@ let x =
 [<Test>]
 let ``comment after equals in record field`` () =
     formatSourceString
-        false
         """
 { A = //comment 
       B }
@@ -1292,7 +1245,6 @@ let ``comment after equals in record field`` () =
 [<Test>]
 let ``comment after equals in anonymous record field`` () =
     formatSourceString
-        false
         """
 {| A = //comment 
       B |}
@@ -1311,7 +1263,6 @@ let ``comment after equals in anonymous record field`` () =
 [<Test>]
 let ``multiple base constructors in record`` () =
     formatSourceString
-        false
         """
 type UnhandledWebException =
     inherit Exception
@@ -1350,7 +1301,6 @@ type UnhandledWebException =
 [<Test>]
 let ``inline anonymous record type declaration`` () =
     formatSourceString
-        false
         """
 type Foo =
     {
@@ -1382,7 +1332,6 @@ type Foo =
 [<Test>]
 let ``anonymous type alias`` () =
     formatSourceString
-        false
         """
 type A = {| x: int; y: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 """
@@ -1402,7 +1351,6 @@ type A =
 [<Test>]
 let ``inline anonymous type in function parameter`` () =
     formatSourceString
-        false
         """
 let f (x: {| x: int; y:  AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
 """
@@ -1425,7 +1373,6 @@ let f
 [<Test>]
 let ``comment in bracket ranges of anonymous type, 2566`` () =
     formatSourceString
-        false
         """
 let x = {| // test1
     Y = 42
@@ -1483,7 +1430,6 @@ let a =
 [<Test>]
 let ``equality comparison with a `with` expression should format correctly with Allman alignment, 2507`` () =
     formatSourceString
-        false
         """
 let compareThings (first: Thing) (second: Thing) =
     first = { second with
@@ -1509,7 +1455,6 @@ let compareThings (first : Thing) (second : Thing) =
 [<Test>]
 let ``update record in aligned style`` () =
     formatSourceString
-        false
         """
 // standalone
 { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
@@ -1540,7 +1485,6 @@ let v =
 [<Test>]
 let ``update record in stroustrup style`` () =
     formatSourceString
-        false
         """
 // standalone
 { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
@@ -1572,7 +1516,6 @@ let v = {
 [<Test>]
 let ``anonymous struct record with trivia`` () =
     formatSourceString
-        false
         """
 struct // 1
     {| // 2
@@ -1597,7 +1540,6 @@ struct // 1
 [<Test>]
 let ``multiline field body expression where indent_size = 2`` () =
     formatSourceString
-        false
         """
 let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
     let range =

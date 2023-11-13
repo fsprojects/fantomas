@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``synbinding function with record instance `` () =
     formatSourceString
-        false
         """
 let x y : MyRecord =
     { A = longTypeName
@@ -35,7 +34,6 @@ let x y : MyRecord = {
 [<Test>]
 let ``synbinding function with update record`` () =
     formatSourceString
-        false
         """
 let x y : MyRecord =
     { astContext with IsInsideMatchClausePattern = true }
@@ -54,7 +52,6 @@ let x y : MyRecord = {
 [<Test>]
 let ``synbinding function with anonymous record instance `` () =
     formatSourceString
-        false
         """
 let x y : {| A:int; B:int; C:int |} =
     {| A = longTypeName
@@ -76,7 +73,6 @@ let x y : {| A: int; B: int; C: int |} = {|
 [<Test>]
 let ``synbinding function with list`` () =
     formatSourceString
-        false
         """
 let x y : int list =
     [ itemOne
@@ -102,7 +98,6 @@ let x y : int list = [
 [<Test>]
 let ``synbinding function with array`` () =
     formatSourceString
-        false
         """
 let x y : int array =
     [| itemOne
@@ -128,7 +123,6 @@ let x y : int array = [|
 [<Test>]
 let ``type member function with record instance`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x : MyRecord =
@@ -152,7 +146,6 @@ type Foo() =
 [<Test>]
 let ``type member function with update record`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x : MyRecord = { astContext with IsInsideMatchClausePattern = true }
@@ -172,7 +165,6 @@ type Foo() =
 [<Test>]
 let ``type member function with anonymous record instance`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x : {| A:int; B:int; C:int |} =
@@ -196,7 +188,6 @@ type Foo() =
 [<Test>]
 let ``type member function with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x : {| A:int; B:int; C:int |} =
@@ -221,7 +212,6 @@ type Foo() =
 [<Test>]
 let ``type member function with list`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x : int list =
@@ -249,7 +239,6 @@ type Foo() =
 [<Test>]
 let ``type member function with array`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x : int array =

@@ -9,7 +9,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``array indexer set`` () =
     formatSourceString
-        false
         """
 let arr = [|0|]
 (arr.[0]) <- 1
@@ -24,7 +23,6 @@ let arr = [|0|]
 [<Test>]
 let ``setter of type set`` () =
     formatSourceString
-        false
         """
 type T() =
     member val X = 0 with get, set
@@ -44,7 +42,6 @@ type T() =
 [<Test>]
 let ``mutable value set`` () =
     formatSourceString
-        false
         """
 let mutable x = 0
 (x) <- 1
@@ -59,7 +56,6 @@ let mutable x = 0
 [<Test>]
 let ``don't add additional new line after SynExpr.LongIndentSet, 1111`` () =
     formatSourceString
-        false
         """
         let options =
             jsOptions<Vis.Options> (fun o ->
@@ -131,7 +127,6 @@ let options =
 [<Test>]
 let ``multi line assign mutable setter assignment, 659`` () =
     formatSourceString
-        false
         """
 ctx.Response.Headers.[HeaderNames.ContentType] <- Constants.jsonApiMediaType
                                                   |> StringValues
@@ -162,7 +157,6 @@ ctx.Response.SomeElseThatIsMutable <-
 [<Test>]
 let ``multi line NamedIndexedPropertySet`` () =
     formatSourceString
-        false
         """
  HttpContext.Response.Body(128) <- bytes.Length
                                    |> string
@@ -183,7 +177,6 @@ HttpContext.Response.Body(128) <-
 [<Test>]
 let ``multi line DotNamedIndexedPropertySet`` () =
     formatSourceString
-        false
         """
  (HttpContextResponse).Body(128) <- bytes.Length
                                     |> string
@@ -204,7 +197,6 @@ let ``multi line DotNamedIndexedPropertySet`` () =
 [<Test>]
 let ``keep new line before SynExpr.DotIndexedSet, 1314`` () =
     formatSourceString
-        false
         """
           match x with
           | NotificationEvent.Lint (file, warnings) ->
@@ -257,7 +249,6 @@ match x with
 [<Test>]
 let ``space before uppercase invocation with TypeApp`` () =
     formatSourceString
-        false
         """
 Log.Logger <-
     LoggerConfiguration<Foo>()
@@ -281,7 +272,6 @@ Log.Logger <-
 [<Test>]
 let ``const in NamedIndexedPropertySet, 2498`` () =
     formatSourceString
-        false
         """
 let xs = [| 42 |]
 

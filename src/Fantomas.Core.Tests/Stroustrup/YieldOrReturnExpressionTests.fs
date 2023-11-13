@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``yieldOrReturn with record instance`` () =
     formatSourceString
-        false
         """
 myComp {
     yield
@@ -49,7 +48,6 @@ myComp {
 [<Test>]
 let ``yieldOrReturn with update record`` () =
     formatSourceString
-        false
         """
 myComp {
     yield
@@ -87,7 +85,6 @@ myComp {
 [<Test>]
 let ``yieldOrReturn with anonymous record instance`` () =
     formatSourceString
-        false
         """
 myComp {
     yield
@@ -123,7 +120,6 @@ myComp {
 [<Test>]
 let ``yieldOrReturn with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 myComp {
     yield
@@ -160,7 +156,6 @@ myComp {
 [<Test>]
 let ``yieldOrReturn with list`` () =
     formatSourceString
-        false
         """
 myComp {
     yield
@@ -204,7 +199,6 @@ myComp {
 [<Test>]
 let ``yieldOrReturn with array`` () =
     formatSourceString
-        false
         """
 myComp {
     yield

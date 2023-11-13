@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``multiline expression should indent`` () =
     formatSourceString
-        false
         """
 foo.Bar().[5] <- someReallyLongFunctionCall("loooooooooooooooongggStringArg",otherArg, otherReallyLongArgument)
 """
@@ -27,7 +26,6 @@ foo.Bar().[5] <-
 [<Test>]
 let ``multiline expression application call in set expression`` () =
     formatSourceString
-        false
         """
 foo.Bar("loooooooooooooooongggStringArg",otherArg, otherReallyLongArgument).[5] <- someReallyLongFunctionCall("loooooooooooooooongggStringArg",otherArg, otherReallyLongArgument)
 """

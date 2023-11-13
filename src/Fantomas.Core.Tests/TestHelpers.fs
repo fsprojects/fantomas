@@ -16,7 +16,7 @@ module String =
 let config = FormatConfig.Default
 let newline = "\n"
 
-let formatSourceString isFsiFile (s: string) config =
+let formatSourceString' isFsiFile (s: string) config =
     async {
         let! formatted = CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
         let formattedCode = formatted.Code.Replace("\r\n", "\n")
@@ -34,6 +34,9 @@ let formatSourceString isFsiFile (s: string) config =
         return formattedCode
     }
     |> Async.RunSynchronously
+
+let formatSignatureString = formatSourceString' true
+let formatSourceString = formatSourceString' false
 
 /// The `source` will first be parsed to AST.
 let formatAST isFsiFile (source: string) config =

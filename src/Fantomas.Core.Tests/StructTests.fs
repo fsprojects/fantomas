@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``struct type`` () =
     formatSourceString
-        false
         """
 type NameStruct =
     struct
@@ -44,7 +43,6 @@ let n = new NameStruct("Hippo")
 [<Test>]
 let ``struct type retains members outside struct-end`` () =
     formatSourceString
-        false
         """
 type NameStruct =
     struct
@@ -80,7 +78,6 @@ let n = new NameStruct("Hippo")
 [<Test>]
 let ``struct tuple`` () =
     formatSourceString
-        false
         """
 type S = S of struct (int * int)
 let g : struct (int*int) = struct (1,1)
@@ -104,7 +101,7 @@ match t with
 
 [<Test>]
 let ``struct tuple type abbreviation, 605`` () =
-    formatSourceString false "type TupleStruct = (struct (string * string))" config
+    formatSourceString "type TupleStruct = (struct (string * string))" config
     |> prepend newline
     |> should
         equal
@@ -114,8 +111,7 @@ type TupleStruct = (struct (string * string))
 
 [<Test>]
 let ``struct tuple type abbreviation, sigfile`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace meh
 
 type TupleStruct = (struct (string * string))"""
@@ -132,7 +128,6 @@ type TupleStruct = (struct (string * string))
 [<Test>]
 let ``struct empty type, 2592`` () =
     formatSourceString
-        false
         """
 type NameStruct = struct end
 """
@@ -147,7 +142,6 @@ type NameStruct = struct end
 [<Test>]
 let ``struct empty type with ctor`` () =
     formatSourceString
-        false
         """
 type NameStruct() =
     struct
@@ -164,7 +158,6 @@ type NameStruct() = struct end
 [<Test>]
 let ``anonymous struct record with trivia`` () =
     formatSourceString
-        false
         """
 struct // 1
     {| // 2
@@ -189,7 +182,6 @@ struct // 1
 [<Test>]
 let ``second binding does not contain accessibility, 2902`` () =
     formatSourceString
-        false
         """
 module Telplin
 
@@ -216,7 +208,6 @@ type T =
 [<Test>]
 let ``different accessibility on setter`` () =
     formatSourceString
-        false
         """
 module Telplin
 
@@ -258,7 +249,6 @@ type T =
 [<Test>]
 let ``private setter on next line`` () =
     formatSourceString
-        false
         """
 type Y =
     member this.X
@@ -279,7 +269,6 @@ type Y =
 [<Test>]
 let ``private property with identifier on next line`` () =
     formatSourceString
-        false
         """
 type Y =
     member                      private

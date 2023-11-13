@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``match expressions`` () =
     formatSourceString
-        false
         """
     let filter123 x =
         match x with
@@ -29,7 +28,6 @@ let filter123 x =
 [<Test>]
 let ``function keyword`` () =
     formatSourceString
-        false
         """
     let filterNumbers =
         function | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
@@ -50,7 +48,6 @@ let filterNumbers =
 [<Test>]
 let ``when clauses and as patterns`` () =
     formatSourceString
-        false
         """
 let rangeTest testValue mid size =
     match testValue with
@@ -76,7 +73,6 @@ printfn "%d %d %A" var1 var2 tuple1
 [<Test>]
 let ``and & or patterns`` () =
     formatSourceString
-        false
         """
 let detectZeroOR point =
     match point with
@@ -113,7 +109,6 @@ let detectZeroAND point =
 [<Test>]
 let ``paren and tuple patterns`` () =
     formatSourceString
-        false
         """
 let countValues list value =
     let rec checkList list acc =
@@ -155,7 +150,6 @@ let detectZeroTuple point =
 [<Test>]
 let ``type test and null patterns`` () =
     formatSourceString
-        false
         """
 let detect1 x =
     match x with
@@ -201,7 +195,6 @@ let ReadFromFile (reader: System.IO.StreamReader) =
 [<Test>]
 let ``record patterns`` () =
     formatSourceString
-        false
         """
 type MyRecord = { Name: string; ID: int }
 
@@ -225,7 +218,6 @@ let IsMatchByName record1 (name: string) =
 [<Test>]
 let ``desugared lambdas`` () =
     formatSourceString
-        false
         """
 try
     fst(find (fun (s, (s', ty): int * int) ->
@@ -251,7 +243,6 @@ with Failure _ ->
 [<Test>]
 let ``another case of desugared lambdas`` () =
     formatSourceString
-        false
         """
 find (fun (Ident op) x y -> Combp(Combp(Varp(op,dpty),x),y)) "term after binary operator" inp
 """
@@ -266,7 +257,6 @@ find (fun (Ident op) x y -> Combp(Combp(Varp(op, dpty), x), y)) "term after bina
 [<Test>]
 let ``yet another case of desugared lambdas`` () =
     formatSourceString
-        false
         """
 let UNIFY_ACCEPT_TAC mvs th (asl, w) =
     let insts = term_unify mvs (concl th) w
@@ -290,7 +280,6 @@ let UNIFY_ACCEPT_TAC mvs th (asl, w) =
 [<Test>]
 let ``desugared lambdas again`` () =
     formatSourceString
-        false
         """
 fun P -> T"""
         config
@@ -304,7 +293,6 @@ fun P -> T
 [<Test>]
 let ``should consume spaces before inserting comments`` () =
     formatSourceString
-        false
         """
 let f x =
   a || // other case
@@ -327,7 +315,6 @@ let f x =
 [<Test>]
 let ``should not remove parentheses in patterns`` () =
     formatSourceString
-        false
         """
 let x =
     match y with
@@ -347,7 +334,6 @@ let x =
 [<Test>]
 let ``should indent function keyword in function application`` () =
     formatSourceString
-        false
         """
 let v =
     List.tryPick (function 1 -> Some 1 | _ -> None) [1; 2; 3]"""
@@ -367,7 +353,6 @@ let v =
 [<Test>]
 let ``should put brackets around tuples in type tests`` () =
     formatSourceString
-        false
         """
 match item.Item with
 | :? FSharpToolTipText as titem -> ()
@@ -387,7 +372,6 @@ match item.Item with
 [<Test>]
 let ``should put brackets around app type tests`` () =
     formatSourceString
-        false
         """
 match item.Item with
 | :? (Instruction seq) -> ()"""
@@ -403,7 +387,6 @@ match item.Item with
 [<Test>]
 let ``should put brackets around array type tests`` () =
     formatSourceString
-        false
         """
 match item.Item with
 | :? (Instruction[]) -> ()"""
@@ -419,7 +402,6 @@ match item.Item with
 [<Test>]
 let ``should support rational powers on units of measures`` () =
     formatSourceString
-        false
         """
 [<Measure>] type X = cm^(1/2)/W"""
         config
@@ -433,7 +415,6 @@ type X = cm^(1/2) / W
 
 let ``should add each case on newline`` () =
     formatSourceString
-        false
         """
 let (|OneLine|MultiLine|) b =
     match b with
@@ -460,7 +441,6 @@ let (|OneLine|MultiLine|) b =
 [<Test>]
 let ``each pattern should be on newline`` () =
     formatSourceString
-        false
         """
 let (|OneLinerBinding|MultilineBinding|) b =
     match b with
@@ -506,9 +486,9 @@ let update msg model =
     res
 """
 
-    let afterFirstFormat = formatSourceString false original config80
+    let afterFirstFormat = formatSourceString original config80
 
-    formatSourceString false afterFirstFormat config80
+    formatSourceString afterFirstFormat config80
     |> prepend newline
     |> should
         equal
@@ -527,7 +507,6 @@ let update msg model =
 [<Test>]
 let ``updated record with function call remains be on same line, because short enough`` () =
     formatSourceString
-        false
         """
 let x =  { Value = 36 }.Times(9)
 
@@ -548,7 +527,6 @@ match b with
 [<Test>]
 let ``with clause drop-through, 465`` () =
     formatSourceString
-        false
         """
 let internal ImageLoadResilient (f: unit -> 'a) (tidy: unit -> 'a) =
     try
@@ -575,7 +553,6 @@ let internal ImageLoadResilient (f: unit -> 'a) (tidy: unit -> 'a) =
 [<Test>]
 let ``pattern match 2 space indent`` () =
     formatSourceString
-        false
         """
 match x with
 | Some y ->
@@ -598,7 +575,6 @@ match x with
 [<Test>]
 let ``should preserve a new line between single and multi-pattern cases`` () =
     formatSourceString
-        false
         """
 let f x =
     match x with
@@ -629,7 +605,6 @@ let f x =
 [<Test>]
 let ``very long match clause with many lambdas`` () =
     formatSourceString
-        false
         """
 let MethInfoIsUnseen g m ty minfo =
     let isUnseenByObsoleteAttrib () =
@@ -669,7 +644,6 @@ let MethInfoIsUnseen g m ty minfo =
 [<Test>]
 let ``very long match clause with many lambdas mixed with defines, 976`` () =
     formatSourceString
-        false
         """
 let MethInfoIsUnseen g m ty minfo =
     let isUnseenByObsoleteAttrib () =
@@ -715,7 +689,6 @@ let MethInfoIsUnseen g m ty minfo =
 [<Test>]
 let ``trivia after arrow, 1010`` () =
     formatSourceString
-        false
         """
 let f () =
     match lol with
@@ -740,7 +713,6 @@ let f () =
 [<Test>]
 let ``trivia after function keyword, 1010`` () =
     formatSourceString
-        false
         """
 let f () =
     match lol with
@@ -765,7 +737,6 @@ let f () =
 [<Test>]
 let ``don't add additional newline before match`` () =
     formatSourceString
-        false
         """
 let private userNameDecoder (get : Decode.IGetters) =
     let givenName =
@@ -796,7 +767,6 @@ let private userNameDecoder (get : Decode.IGetters) =
 [<Test>]
 let ``don't add newline before tuple return in clause`` () =
     formatSourceString
-        false
         """
 let private update onSubmit msg model =
     match msg with
@@ -851,7 +821,6 @@ let private update onSubmit msg model =
 [<Test>]
 let ``keep new line before function match, 1074`` () =
     formatSourceString
-        false
         """
     let (|AndExpr|_|) =
         let chooser =
@@ -882,7 +851,6 @@ let (|AndExpr|_|) =
 [<Test>]
 let ``comment after arrow should not be duplicated, 1082`` () =
     formatSourceString
-        false
         """
 List.tryFind(fun { Type = t; Range = r }  ->
                     match t with
@@ -916,7 +884,6 @@ List.tryFind (fun { Type = t; Range = r } ->
 [<Test>]
 let ``trivia before pipe should not be repeated for each pipe, 1083`` () =
     formatSourceString
-        false
         """
 Seq.takeWhile
                (function
@@ -952,7 +919,6 @@ Seq.takeWhile (function
 [<Test>]
 let ``or pattern in destructed record should stay in one line, 1252`` () =
     formatSourceString
-        false
         """
 let draftToken =
     match lastToken with
@@ -999,7 +965,6 @@ let draftToken =
 [<Test>]
 let ``named pat or in clauses`` () =
     formatSourceString
-        false
         """
 let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
     match mf.MemberKind with
@@ -1039,7 +1004,6 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
 [<Test>]
 let ``named pat or in function syntax`` () =
     formatSourceString
-        false
         """
 let rec (|DoExprAttributesL|_|) =
     function
@@ -1064,7 +1028,6 @@ let rec (|DoExprAttributesL|_|) =
 [<Test>]
 let ``multiline when condition, 1320`` () =
     formatSourceString
-        false
         """
 module Foo =
     module Bar =
@@ -1098,7 +1061,6 @@ module Foo =
 [<Test>]
 let ``maintain indent if when condition is multiline`` () =
     formatSourceString
-        false
         """
     match foo with
     | headToken :: rest when (isOperatorOrKeyword headToken && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia) ->
@@ -1134,7 +1096,6 @@ match foo with
 [<Test>]
 let ``multiline application call in match expression, 1352`` () =
     formatSourceString
-        false
         """
 match x (Map.tryFind somelongidentifier a + Option.defaultValue longidentifier) with
 | _ -> ()
@@ -1157,7 +1118,6 @@ with
 [<Test>]
 let ``alternative_long_member_definitions should no influence on pattern match inside member binding, 1364`` () =
     formatSourceString
-        false
         """
 type Thing =
 | Foo of msg : string
@@ -1188,7 +1148,6 @@ let ``alternative_long_member_definitions should no influence on pattern match i
     ()
     =
     formatSourceString
-        false
         """
 type Thing =
 | Foo of msg : string
@@ -1218,7 +1177,6 @@ type Thing =
 [<Test>]
 let ``nested try/with with newline before with should not be printed in with of match block, 1445`` () =
     formatSourceString
-        false
         """
 let private formatResponse<'options> () =
     async {
@@ -1276,7 +1234,6 @@ let private formatResponse<'options> () =
 [<Test>]
 let ``match inside match expression, 1400`` () =
     formatSourceString
-        false
         """
 let u = ""
 match
@@ -1306,7 +1263,6 @@ with
 [<Test>]
 let ``match bang inside match expression`` () =
     formatSourceString
-        false
         """
 let u = ""
 match
@@ -1336,7 +1292,6 @@ with
 [<Test>]
 let ``match inside match bang expression`` () =
     formatSourceString
-        false
         """
 let u = ""
 match!
@@ -1366,7 +1321,6 @@ with
 [<Test>]
 let ``match bang inside match bang expression`` () =
     formatSourceString
-        false
         """
 let u = ""
 match!
@@ -1396,7 +1350,6 @@ with
 [<Test>]
 let ``indented one step from the match/|., 1501`` () =
     formatSourceString
-        false
         """
 match x with
 | Some y ->
@@ -1419,7 +1372,6 @@ match x with
 [<Test>]
 let ``or pattern in list with when clause, 1522`` () =
     formatSourceString
-        false
         """
 let args =
     match args with
@@ -1441,7 +1393,6 @@ let args =
 [<Test>]
 let ``triple or in list, short`` () =
     formatSourceString
-        false
         """
 let args =
     match args with
@@ -1465,7 +1416,6 @@ let args =
 [<Test>]
 let ``triple or in list, long`` () =
     formatSourceString
-        false
         """
 let args =
     match args with
@@ -1491,7 +1441,6 @@ let args =
 [<Test>]
 let ``triple or in array, short`` () =
     formatSourceString
-        false
         """
 let args =
     match args with
@@ -1513,7 +1462,6 @@ let args =
 [<Test>]
 let ``triple or in array, long`` () =
     formatSourceString
-        false
         """
 let args =
     match args with
@@ -1537,7 +1485,6 @@ let args =
 [<Test>]
 let ``match followed by pipe, 1532`` () =
     formatSourceString
-        false
         """
 match x with
 | Foo f -> []
@@ -1572,7 +1519,6 @@ match x with
 [<Test>]
 let ``match followed by pipe, 4 spaces indent`` () =
     formatSourceString
-        false
         """
 match x with
 | Foo f ->
@@ -1610,7 +1556,6 @@ match x with
 [<Test>]
 let ``pattern match inside when expression, 1545`` () =
     formatSourceString
-        false
         """
 let GenApp (cenv: cenv) cgbuf eenv (f, fty, tyargs, curriedArgs, m) sequel =
   let g = cenv.g
@@ -1682,7 +1627,6 @@ let GenApp (cenv: cenv) cgbuf eenv (f, fty, tyargs, curriedArgs, m) sequel =
 [<Test>]
 let ``match clause that is short or long depending on compiler define, 1484`` () =
     formatSourceString
-        false
         """
 let a = (fun _ -> function
     | A ->
@@ -1713,7 +1657,6 @@ let a =
 [<Test>]
 let ``don't add unnecessary parenthesis around SynPat.IsInst, 1660`` () =
     formatSourceString
-        false
         """
         match other with
         | :? Queue<'T> as y ->
@@ -1746,7 +1689,6 @@ match other with
 [<Test>]
 let ``keep existing parenthesis around SynPat.IsInst`` () =
     formatSourceString
-        false
         """
 match x with
 | :? (int)   as  i -> ()
@@ -1763,7 +1705,6 @@ match x with
 [<Test>]
 let ``don't add parenthesis if last clause is single line, 1698`` () =
     formatSourceString
-        false
         """
   let select px =
     match px with
@@ -1790,7 +1731,6 @@ let select px =
 [<Test>]
 let ``match in last clause followed by pipe`` () =
     formatSourceString
-        false
         """
   let select px =
     match px with
@@ -1821,7 +1761,6 @@ let select px =
 [<Test>]
 let ``match with single line last clause followed by long custom operator`` () =
     formatSourceString
-        false
         """
 match x with
 | _ -> ()
@@ -1840,7 +1779,6 @@ match x with
 [<Test>]
 let ``match with multiline line last clause followed by long custom operator`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -1867,7 +1805,6 @@ match x with
 [<Test>]
 let ``match with single line last clause followed by line comment and infix operator, 1721 `` () =
     formatSourceString
-        false
         """
   let select p =
     match p with
@@ -1894,7 +1831,6 @@ let select p =
 [<Test>]
 let ``multiline infix expression in match, 1774`` () =
     formatSourceString
-        false
         """
 match structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsComparison tycon >> not) with
 | _ -> ()
@@ -1919,7 +1855,6 @@ with
 [<Test>]
 let ``multiline infix expression in match bang`` () =
     formatSourceString
-        false
         """
 match! structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsComparison tycon >> not) with
 | _ -> ()
@@ -1945,7 +1880,6 @@ with
 [<Test>]
 let ``match-case should indent from match, 1234`` () =
     formatSourceString
-        false
         """
 let foo x =
     match x with
@@ -1972,7 +1906,6 @@ let foo x =
 [<Test>]
 let ``comment after multi-option match, 1855`` () =
     formatSourceString
-        false
         """
 match x with
 | "a" // still here
@@ -1993,7 +1926,6 @@ match x with
 [<Test>]
 let ``comment after SynPat.Or in pattern match, 1677`` () =
     formatSourceString
-        false
         """
 match v with
 | x
@@ -2016,7 +1948,6 @@ match v with
 [<Test>]
 let ``vanity alignment used when splitting line in match block, 1901`` () =
     formatSourceString
-        false
         """
 match Caching.Instance.TryRetrieveLastCompoundBalanceLoooooooooooooooooooooooooooooooooooooooooooongFuncName address currency with
 | None -> false
@@ -2038,7 +1969,6 @@ with
 [<Test>]
 let ``vanity alignment used when splitting line in match block, match bang, 1901`` () =
     formatSourceString
-        false
         """
 match! Caching.Instance.TryRetrieveLastCompoundBalanceLoooooooooooooooooooooooooooooooooooooooooooongFuncName address currency with
 | None -> false
@@ -2060,7 +1990,6 @@ with
 [<Test>]
 let ``single line named fields in a pattern matching should have space surrounding the '=', 1877`` () =
     formatSourceString
-        false
         """
 let examineData x =
     match data with
@@ -2080,7 +2009,6 @@ let examineData x =
 [<Test>]
 let ``comment after match keyword`` () =
     formatSourceString
-        false
         """
 match // foo
         a with
@@ -2100,7 +2028,6 @@ with
 [<Test>]
 let ``comment after match bang keyword`` () =
     formatSourceString
-        false
         """
 match! // foo
         a with
@@ -2120,7 +2047,6 @@ with
 [<Test>]
 let ``comment after with keyword in match bang`` () =
     formatSourceString
-        false
         """
 match! 
         a with // foo
@@ -2138,7 +2064,6 @@ match! a with // foo
 [<Test>]
 let ``comment after match keyword, 1851`` () =
     formatSourceString
-        false
         """
 match // foo
                                 a with
@@ -2167,7 +2092,6 @@ with
 [<Test>]
 let ``use of A | B as c fails to format correctly, 2289`` () =
     formatSourceString
-        false
         """
 type T = A | B
 
@@ -2193,7 +2117,6 @@ let f a =
 [<Test>]
 let ``match statements should not be split into separate lines between parentheses, 2044`` () =
     formatSourceString
-        false
         """
 type Foo =
   | Bar of int
@@ -2222,7 +2145,6 @@ let foo =
 [<Test>]
 let ``long pattern with named argument`` () =
     formatSourceString
-        false
         """
 let addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: SynLongIdent) args =
     match functionOrMethod, args with
@@ -2243,7 +2165,6 @@ let addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: S
 [<Test>]
 let ``trivia in SynArgPats, 2541`` () =
     formatSourceString
-        false
         """
 let examineData x =
     match data with
@@ -2268,7 +2189,6 @@ let examineData x =
 [<Test>]
 let ``comma in tuple pattern should start at current column, 2584`` () =
     formatSourceString
-        false
         "
 let existingCount
     inputA
@@ -2300,7 +2220,6 @@ line3
 [<Test>]
 let ``trivia in list cons pattern, 1939`` () =
     formatSourceString
-        false
         """
 let f () =
   match lines with
@@ -2325,7 +2244,6 @@ let f () =
 [<Test>]
 let ``multiline trivia for arrow, 2888`` () =
     formatSourceString
-        false
         """
 match subcategory with
 | BuildPhaseSubcategory.Internal

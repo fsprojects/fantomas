@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``type with ticks, 2164`` () =
     formatSourceString
-        false
         """
 let foo = {| ``type`` = "hi" |}
 """
@@ -22,7 +21,6 @@ let foo = {| ``type`` = "hi" |}
 [<Test>]
 let ``include with ticks, 2167`` () =
     formatSourceString
-        false
         """
             match req.``include`` with
             | None -> tc.TestItems()
@@ -41,7 +39,6 @@ match req.``include`` with
 [<Test>]
 let ``base without ticks, 2212`` () =
     formatSourceString
-        false
         """
 type X =  
   override this.f(y) : bool =
@@ -59,7 +56,6 @@ type X =
 [<Test>]
 let ``constraint with ticks, 2116`` () =
     formatSourceString
-        false
         """
 let ``constraint`` = 1
 """
@@ -74,7 +70,6 @@ let ``constraint`` = 1
 [<Test>]
 let ``process with ticks, 2034`` () =
     formatSourceString
-        false
         """
 let ``process`` = 1
 """

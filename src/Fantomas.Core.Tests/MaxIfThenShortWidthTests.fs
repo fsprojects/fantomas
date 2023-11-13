@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``default behavior of MaxIfThenShortWidth`` () =
     formatSourceString
-        false
         """
 if a then () 
 """
@@ -23,7 +22,6 @@ if a then
 [<Test>]
 let ``keep entire expression in one line`` () =
     formatSourceString
-        false
         """
 if a then () 
 """
@@ -38,7 +36,6 @@ if a then ()
 [<Test>]
 let ``always put then on next line if the ifExpr is multiline`` () =
     formatSourceString
-        false
         """
 if // comment makes expr multiline
    a then b
@@ -58,7 +55,6 @@ then
 [<Test>]
 let ``apply same rules for nested if/then/else without else expr`` () =
     formatSourceString
-        false
         """
 if a then b
 elif c then d
@@ -80,7 +76,6 @@ elif e then
 [<Test>]
 let ``apply same rules for nested if/then/else without else expr, MaxIfThenShortWidth = 15`` () =
     formatSourceString
-        false
         """
 if a then b
 elif c then d

@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``multiple base constructors in record, 2111`` () =
     formatSourceString
-        false
         """
 type UnhandledWebException =
     inherit Exception
@@ -42,7 +41,6 @@ type UnhandledWebException =
 [<Test>]
 let ``single multiline base constructor, 2335`` () =
     formatSourceString
-        false
         """
 type FieldNotFoundException<'T>(obj:'T, field:string, specLink:string) =
     inherit SwaggerSchemaParseException(

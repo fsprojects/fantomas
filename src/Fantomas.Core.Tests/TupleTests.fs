@@ -8,7 +8,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``tuple with lambda should add parenthesis`` () =
     formatSourceString
-        false
         """
 let private carouselSample =
     FunctionComponent.Of<obj>(fun _ ->
@@ -26,7 +25,6 @@ let private carouselSample =
 [<Test>]
 let ``multiline item in tuple - paren on its line`` () =
     formatSourceString
-        false
         """(x,
  if longExpressionMakingTheIfElseMultiline && a then answerWhenTheConditionIsTrue
  else answerWhenTheConditionIsFalse)
@@ -46,7 +44,6 @@ let ``multiline item in tuple - paren on its line`` () =
 [<Test>]
 let ``multiline SynPat.Tuple should have parenthesis, 824`` () =
     formatSourceString
-        false
         """
 namespace GWallet.Backend.Tests
 
@@ -78,7 +75,6 @@ module Foo =
 [<Test>]
 let ``multiline SynPat.Tuple with existing parenthesis should not add additional parenthesis`` () =
     formatSourceString
-        false
         """
 namespace GWallet.Backend.Tests
 
@@ -111,7 +107,6 @@ module Foo =
 [<Test>]
 let ``long tuple containing match must be formatted with comma on the next line`` () =
     formatSourceString
-        false
         """
 match "Hello" with
     | "first" -> 1
@@ -132,7 +127,6 @@ match "Hello" with
 [<Test>]
 let ``long tuple containing lambda must be formatted with comma on the next line`` () =
     formatSourceString
-        false
         """
 fun x ->
     let y = x + 3
@@ -153,7 +147,6 @@ fun x ->
 [<Test>]
 let ``all lines should start with comma if tuple contains match`` () =
     formatSourceString
-        false
         """
 match "Hello" with
     | "first" -> 1
@@ -178,7 +171,6 @@ match "Hello" with
 [<Test>]
 let ``add comma at the back when match is not follow by another expression in tuple`` () =
     formatSourceString
-        false
         """
 1
 , "Hello"
@@ -203,7 +195,6 @@ match "Hello" with
 [<Test>]
 let ``infix lambda followed by constant, 966`` () =
     formatSourceString
-        false
         """
 let f =
     5
@@ -225,7 +216,6 @@ let f =
 [<Test>]
 let ``destructed tuple with comment after equals`` () =
     formatSourceString
-        false
         """
         let var1withAVeryLongLongLongLongLongLongName, var2withAVeryLongLongLongLongLongLongName = // foo
             someFunc 1, someFunc 2
@@ -243,7 +233,6 @@ let (var1withAVeryLongLongLongLongLongLongName,
 [<Test>]
 let ``tuple with if/then/else, 1319`` () =
     formatSourceString
-        false
         """
 let y =
     if String.IsNullOrWhiteSpace(args) then ""
@@ -276,7 +265,6 @@ let y =
 [<Test>]
 let ``comment on first tuple argument is preserved`` () =
     formatSourceString
-        false
         """
 let func (a, b) = a + b
 
@@ -303,7 +291,6 @@ func (
 [<Test>]
 let ``comment trivias on tuple arguments are preserved`` () =
     formatSourceString
-        false
         """
 let func (a, b) = a + b
 
@@ -334,7 +321,6 @@ func (
 [<Test>]
 let ``comma should not move and change type signature, 2381`` () =
     formatSourceString
-        false
         """
 let cts = new CancellationTokenSource()
 
@@ -367,7 +353,6 @@ let mb =
 [<Test>]
 let ``comma placement should not cause compiler warnings, 2159`` () =
     formatSourceString
-        false
         """
 let f x =
     React.useEffect (fun () ->
@@ -401,7 +386,6 @@ let f x =
 [<Test>]
 let ``comma should not break with lambda as tuple, 2771`` () =
     formatSourceString
-        false
         """
 let shiftTimes localDate (start: Utc, duration) =
     ZonedDate.create TimeZone.current localDate
@@ -424,7 +408,6 @@ let shiftTimes localDate (start: Utc, duration) =
 [<Test>]
 let ``if then expression inside object instantiation breaks when formatted, 2819`` () =
     formatSourceString
-        false
         """
 type Chapter() =
     member val Title: string option = Unchecked.defaultof<_> with get, set
@@ -456,7 +439,6 @@ let c = Chapter(Title = (if true then Some "" else None), Url = "")
 [<Test>]
 let ``object instantiation with ifthenelse in tuple`` () =
     formatSourceString
-        false
         """
 type Chapter() =
     member val Title: string option = Unchecked.defaultof<_> with get, set
@@ -487,7 +469,6 @@ let c = Chapter((if true then Some "" else None), "")
 [<Test>]
 let ``infixapp with ifthen rhs in tuple`` () =
     formatSourceString
-        false
         """
 let a = 0
 let b = true
@@ -522,7 +503,6 @@ let _ =
 [<Test>]
 let ``infixapp with lambda rhs in tuple`` () =
     formatSourceString
-        false
         """
 a |> fun b -> if b then 0 else 1
 ,

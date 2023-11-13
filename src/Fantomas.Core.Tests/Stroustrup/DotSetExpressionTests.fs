@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``dotSet with record instance`` () =
     formatSourceString
-        false
         """
 App().foo <-
     { A = longTypeName
@@ -35,7 +34,6 @@ App().foo <- {
 [<Test>]
 let ``dotSet with record instance when SpaceBeforeUppercaseInvocation = true`` () =
     formatSourceString
-        false
         """
 App().foo <-
     { A = longTypeName
@@ -58,7 +56,6 @@ App().foo <- {
 [<Test>]
 let ``dotSet with update record`` () =
     formatSourceString
-        false
         """
 App().foo <-
     { astContext with IsInsideMatchClausePattern = true }
@@ -77,7 +74,6 @@ App().foo <- {
 [<Test>]
 let ``dotSet with anonymous record instance`` () =
     formatSourceString
-        false
         """
 App().foo <-
    {| A = longTypeName
@@ -99,7 +95,6 @@ App().foo <- {|
 [<Test>]
 let ``dotSet with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 App().foo <-
    struct
@@ -122,7 +117,6 @@ App().foo <- struct {|
 [<Test>]
 let ``dotSet with list`` () =
     formatSourceString
-        false
         """
 App().foo <-
     [ itemOne
@@ -148,7 +142,6 @@ App().foo <- [
 [<Test>]
 let ``dotSet with array`` () =
     formatSourceString
-        false
         """
 App().foo <-
     [| itemOne

@@ -9,7 +9,6 @@ open Fantomas.Core
 [<Test>]
 let ``should keep the (string * string) list type signature in records`` () =
     formatSourceString
-        false
         """type MSBuildParams =
     { Targets : string list
       Properties : (string * string) list
@@ -34,7 +33,6 @@ let ``should keep the (string * string) list type signature in records`` () =
 [<Test>]
 let ``should keep the (string * string) list type signature in functions`` () =
     formatSourceString
-        false
         """
 let MSBuildWithProjectProperties outputPath (targets: string) (properties: string -> (string * string) list) projects =
     doingsomstuff
@@ -51,7 +49,6 @@ let MSBuildWithProjectProperties outputPath (targets: string) (properties: strin
 [<Test>]
 let ``should keep the string * string list type signature in functions`` () =
     formatSourceString
-        false
         """
 let MSBuildWithProjectProperties outputPath (targets: string) (properties: (string -> string) * string list) projects =
     doingsomstuff
@@ -68,7 +65,6 @@ let MSBuildWithProjectProperties outputPath (targets: string) (properties: (stri
 [<Test>]
 let ``should not add parens in signature`` () =
     formatSourceString
-        false
         """type Route =
     { Verb : string
       Path : string
@@ -91,7 +87,6 @@ let ``should not add parens in signature`` () =
 [<Test>]
 let ``should keep the string * string * string option type signature`` () =
     formatSourceString
-        false
         """type DGML =
     | Node of string
     | Link of string * string * (string option)
@@ -108,7 +103,6 @@ let ``should keep the string * string * string option type signature`` () =
 [<Test>]
 let ``should keep the (string option * Node) list type signature`` () =
     formatSourceString
-        false
         """type Node =
     { Name : string;
       NextNodes : (string option * Node) list }
@@ -125,7 +119,6 @@ let ``should keep the (string option * Node) list type signature`` () =
 [<Test>]
 let ``should keep parentheses on the left of type signatures`` () =
     formatSourceString
-        false
         """type IA =
     abstract F: (unit -> Option<'T>) -> Option<'T>
 
@@ -148,8 +141,7 @@ type A() =
 
 [<Test>]
 let ``should not add parentheses around bare tuples`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace TupleType
 type C =
@@ -172,8 +164,7 @@ type C =
 
 [<Test>]
 let ``should keep global constraints in type signature`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Tainted
 val GetHashCodeTainted : (Tainted<'T> -> int) when 'T : equality
@@ -190,8 +181,7 @@ val GetHashCodeTainted: (Tainted<'T> -> int) when 'T: equality
 
 [<Test>]
 let ``should keep mutable in type signature, 1954`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Tainted
 val mutable showParserStackOnParseError: bool
@@ -208,8 +198,7 @@ val mutable showParserStackOnParseError: bool
 
 [<Test>]
 let ``should keep access modifiers in signatures seperated`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Test
 type Test =
@@ -228,8 +217,7 @@ type Test =
 
 [<Test>]
 let ``comment should stay above type`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
@@ -248,8 +236,7 @@ type Teq<'a, 'b>
 
 [<Test>]
 let ``comment before namespace should be preserved`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 // some comment
 namespace TypeEquality
@@ -269,8 +256,7 @@ type Teq<'a, 'b>
 
 [<Test>]
 let ``generic val in nested module should keep generic type parameters`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
@@ -313,8 +299,7 @@ module Teq =
 
 [<Test>]
 let ``don't duplicate newline between type and module`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
@@ -561,8 +546,7 @@ module Teq =
 
 [<Test>]
 let ``intrinsic type extension member signature, 413`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace ExtensionParts
 
 type T =
@@ -588,8 +572,7 @@ type T with
 
 [<Test>]
 let ``comment above static member, 680`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Fantomas
 
@@ -627,8 +610,7 @@ type CodeFormatter =
 
 [<Test>]
 let ``type restrictions, 797`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Foo
 
 type internal Foo2 =
@@ -647,8 +629,7 @@ type internal Foo2 =
 
 [<Test>]
 let ``operator with constraint`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Bar
     val inline (.+.) : x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
 """
@@ -664,8 +645,7 @@ val inline (.+.) : x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b) : (static 
 
 [<Test>]
 let ``operator with named constraint`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Bar
     val inline (.+.) : x : ^a Foo -> y : ^b Foo -> z: ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
 """
@@ -681,8 +661,7 @@ val inline (.+.) : x : ^a Foo -> y : ^b Foo -> z : ^c Foo when (^a or ^b) : (sta
 
 [<Test>]
 let ``preserve abstract keyword`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Foo
 
 type internal Blah =
@@ -701,8 +680,7 @@ type internal Blah =
 
 [<Test>]
 let ``internal keyword before short record type, 830`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Bar
 type 'a Baz =
     internal {
@@ -721,8 +699,7 @@ type 'a Baz = internal { Value: 'a }
 
 [<Test>]
 let ``internal keyword before long record type`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Bar
 
     type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }"""
@@ -741,8 +718,7 @@ type A =
 
 [<Test>]
 let ``multiple constraints on function declaration, 886`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Blah
 
 module Foo =
@@ -764,8 +740,7 @@ module Foo =
 
 [<Test>]
 let ``preserve with get property, 945`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace B
 type Foo =
@@ -788,8 +763,7 @@ type Foo =
 
 [<Test>]
 let ``preserve with set property`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace B
 type Foo =
@@ -808,8 +782,7 @@ type Foo =
 
 [<Test>]
 let ``preserve with get,set`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace B
 
@@ -829,8 +802,7 @@ type Foo =
 
 [<Test>]
 let ``with set after constraint`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace B
 
@@ -850,8 +822,7 @@ type Foo =
 
 [<Test>]
 let ``preserve abstract member in type, 944`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Baz
 
@@ -875,8 +846,7 @@ type Foo =
 
 [<Test>]
 let ``comment before union case, 965`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Blah
 
 /// Comment
@@ -899,8 +869,7 @@ type Foo =
 
 [<Test>]
 let ``don't add additional newline before subsequent val, 1029`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Some_module
 
@@ -923,7 +892,6 @@ val bar: bool
 [<Test>]
 let ``don't add duplicate parentheses for TypeAbbrev, 1057`` () =
     formatSourceString
-        false
         """
 type AB = A -> B list * C -> D
 type AB = A -> (B list * C -> D)
@@ -945,8 +913,7 @@ type AB = A -> (C -> D)
 
 [<Test>]
 let ``don't add duplicate parentheses for TypeAbbrev in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 
@@ -964,8 +931,7 @@ type AB = A -> (B list * C -> D)
 
 [<Test>]
 let ``don't add extra new line between attribute and namespace, 1097`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Meh
 
@@ -987,8 +953,7 @@ type PayableFilters = | [<CompiledName "statusSelector">] Status
 
 [<Test>]
 let ``don't add extra new line between nested modules, 1105`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Example
 
@@ -1038,8 +1003,7 @@ module Foo2 =
 
 [<Test>]
 let ``don't add extra new line before attribute of type, 1116`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Test
 
@@ -1067,8 +1031,7 @@ val foo: bool
 
 [<Test>]
 let ``don't add extra new line before attribute of type, only types`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Test
 
@@ -1092,8 +1055,7 @@ type t2 = bool
 
 [<Test>]
 let ``line comments before access modifier of multiline record type`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 
@@ -1123,8 +1085,7 @@ type TestType =
 
 [<Test>]
 let ``line comments before access modifier of single line record type`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 
@@ -1152,8 +1113,7 @@ type TestType =
 
 [<Test>]
 let ``format long val return type multiline, 1181`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace TypeEquality
 
@@ -1185,8 +1145,7 @@ module Teq =
 
 [<Test>]
 let ``inline type definition member, 1399`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Baz
 
@@ -1208,8 +1167,7 @@ type Foo =
 
 [<Test>]
 let ``inline private type definition member`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Baz
 
@@ -1231,8 +1189,7 @@ type Foo =
 
 [<Test>]
 let ``surround return type annotations with white space`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 
@@ -1260,8 +1217,7 @@ type C =
 
 [<Test>]
 let ``long val signature, 1515`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Bug
 
@@ -1283,8 +1239,7 @@ val create:
 
 [<Test>]
 let ``print trivia before exception`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 // Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
@@ -1341,8 +1296,7 @@ exception LoadedSourceNotFoundIgnoring of string * range (*filename*)
 
 [<Test>]
 let ``comment above first DU case`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Baz
 
@@ -1368,8 +1322,7 @@ type 'a Bar =
 
 [<Test>]
 let ``comment between attribute and val, 1561`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Baz
 
@@ -1395,8 +1348,7 @@ module Bar =
 
 [<Test>]
 let ``comment between recursive type, 1562`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Baz
 
@@ -1421,8 +1373,7 @@ and [<RequireQualifiedAccess>] Bar<'a> = Bar of int
 
 [<Test>]
 let ``comments between multiple recursive types`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Baz
 
@@ -1452,8 +1403,7 @@ and Meh = Meh of DateTime
 
 [<Test>]
 let ``val inline internal, 1590`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module internal FSharp.Compiler.TypedTreePickle
 
@@ -1474,8 +1424,7 @@ val inline internal u_tup4:
 
 [<Test>]
 let ``comments after indents in multiline type function signature, 1287`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Test
 
@@ -1503,8 +1452,7 @@ module OrderProcessing =
 
 [<Test>]
 let ``take newline trivia between recursive types into account, 1605`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Test
 
@@ -1560,8 +1508,7 @@ and [<CustomEquality>] Bang =
 
 [<Test>]
 let ``xml comment before SynTypeDefnSimpleRepr.Union should keep bar, 1563`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Baz
 
@@ -1583,8 +1530,7 @@ type Foo =
 
 [<Test>]
 let ``long multiline prefix type name should be indented far enough, 1687`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 
@@ -1617,8 +1563,7 @@ type Bar =
 
 [<Test>]
 let ``a record type with accessibility modifier and members`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Thing
 
@@ -1647,8 +1592,7 @@ type Foo =
 
 [<Test>]
 let ``mod name in val, 1960`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module X
 
@@ -1666,8 +1610,7 @@ val ``mod``: t -> t -> t
 
 [<Test>]
 let ``literals in signatures, 1953`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 
@@ -1687,8 +1630,7 @@ val parenGet: string = ".()"
 
 [<Test>]
 let ``literals in signatures, sig member`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Meh
 
@@ -1710,8 +1652,7 @@ type FooBar =
 
 [<Test>]
 let ``trivia before exception with attributes, 1974`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module internal FSharp.Compiler.ParseHelpers
 
@@ -1739,8 +1680,7 @@ exception SyntaxError of obj * range: range
 
 [<Test>]
 let ``multiline tupled signature`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
     namespace Oslo
     type Meh =
@@ -1769,8 +1709,7 @@ type Meh =
 
 [<Test>]
 let ``add extra indent when the next parameter is a tuple`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Oslo
 
@@ -1806,8 +1745,7 @@ type Meh =
 
 [<Test>]
 let ``mixed curried and tupled arguments`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Oslo
 
@@ -1835,8 +1773,7 @@ type Meh =
 
 [<Test>]
 let ``unindent correctly after type signature`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Oslo
 
@@ -1868,8 +1805,7 @@ val x: int
 
 [<Test>]
 let ``only indent after tuple in non last position`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Oslo
 
@@ -1898,8 +1834,7 @@ type Meh =
 
 [<Test>]
 let ``tupled function signature`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace StyleGuide
 
@@ -1925,8 +1860,7 @@ val SampleTupledFunction:
 
 [<Test>]
 let ``optional parameter in static type member, 2144`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 // Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
@@ -1956,8 +1890,7 @@ type Async =
 
 [<Test>]
 let ``multi-constrained SRTP functions, 2230`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 /// Throws <c>ArgumentException</c>
 /// </example>
@@ -1984,8 +1917,7 @@ val inline average:
 
 [<Test>]
 let ``long curried value with constraints`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 [<CompiledName("Average")>]
 val inline average: array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> ^T
@@ -2017,8 +1949,7 @@ val inline average:
 
 [<Test>]
 let ``long tupled value with constraints`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 [<CompiledName("Average")>]
 val inline average: array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] -> ^T
@@ -2050,8 +1981,7 @@ val inline average:
 
 [<Test>]
 let ``long mixed curried and tuple value with constraints`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 [<CompiledName("Average")>]
 val inline average: array: ^T[] * array: ^T[] * array: ^T[] -> array: ^T[] * array: ^T[] * array: ^T[] -> array: ^T[] * array: ^T[] * array: ^T[] -> ^T
@@ -2077,8 +2007,7 @@ val inline average:
 
 [<Test>]
 let ``blank line under struct type name`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 [<Struct>]
 type ILVersionInfo =
@@ -2104,8 +2033,7 @@ type ILVersionInfo =
 
 [<Test>]
 let ``type augmentations with trivia between members`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
     type DiagnosticsLogger with
 
@@ -2147,8 +2075,7 @@ type DiagnosticsLogger with
 
 [<Test>]
 let ``trivia between xml comment and type keyword, 2143`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 /// Represents a line number when using zero-based line counting (used by Visual Studio)
 // #if CHECK_LINE0_TYPES
@@ -2172,8 +2099,7 @@ type Line0 = int
 
 [<Test>]
 let ``add empty line after module, 2502`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module A
 open System
@@ -2192,8 +2118,7 @@ val a: DateTime
 
 [<Test>]
 let ``add empty line after namespace`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace A
 exception MyFSharpError1 of string
@@ -2212,8 +2137,7 @@ exception MyFSharpError2 of string * int
 
 [<Test>]
 let ``long named parameter type in signature`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 val a: b: veryLoooooooooooooooooooooooooooooooooooooooooooooongTypeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 """
@@ -2229,8 +2153,7 @@ val a:
 
 [<Test>]
 let ``internal constructor in signature`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 /// IL Method definitions.
 [<NoComparison; NoEquality>]
@@ -2279,8 +2202,7 @@ type ILMethodDef =
 """
 
 let ``should preserve quotes around type parameters, 2875`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 val repro: '``QuotedWithIllegalChar<'T>`` -> unit
 """

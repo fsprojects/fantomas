@@ -7,7 +7,7 @@ open Fantomas.Core
 
 [<Test>]
 let ``exception declarations`` () =
-    formatSourceString false "exception Error2 of string * int" config
+    formatSourceString "exception Error2 of string * int" config
     |> should
         equal
         """exception Error2 of string * int
@@ -16,7 +16,6 @@ let ``exception declarations`` () =
 [<Test>]
 let ``exception declarations with members`` () =
     formatSourceString
-        false
         """/// An exception type to signal build errors.
 exception BuildException of string*list<string>
   with
@@ -34,7 +33,6 @@ exception BuildException of string * list<string> with
 [<Test>]
 let ``comment after with keyword in exception type`` () =
     formatSourceString
-        false
         """
 exception FooException  with  // comment
     member this.Bar ()  =  ()
@@ -50,8 +48,7 @@ exception FooException with // comment
 
 [<Test>]
 let ``comment after with keyword in exception type in signature files`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Moon
 
@@ -72,7 +69,6 @@ exception FooException with // comment
 [<Test>]
 let ``type annotations`` () =
     formatSourceString
-        false
         """
     let iterate1 (f : unit -> seq<int>) =
         for e in f() do printfn "%d" e
@@ -95,7 +91,6 @@ let iterate2 (f: unit -> #seq<int>) =
 [<Test>]
 let ``upcast and downcast`` () =
     formatSourceString
-        false
         """
     let base1 = d1 :> Base1
     let derived1 = base1 :?> Derived1"""
@@ -111,7 +106,6 @@ let derived1 = base1 :?> Derived1
 [<Test>]
 let ``optional arguments`` () =
     formatSourceString
-        false
         """
 type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
     let duplex = defaultArg duplex0 Full
@@ -145,7 +139,6 @@ type Connection(?rate0: int, ?duplex0: DuplexType, ?parity0: bool) =
 [<Test>]
 let ``method params`` () =
     formatSourceString
-        false
         """
 type Test() =
     member this.Function1<'a>(x, y) =
@@ -170,7 +163,6 @@ type Test() =
 [<Test>]
 let ``params arguments`` () =
     formatSourceString
-        false
         """
 type X() =
     member this.F([<ParamArray>] args: Object[]) =
@@ -190,7 +182,6 @@ type X() =
 [<Test>]
 let ``generic types`` () =
     formatSourceString
-        false
         """
 type public MyClass<'a> public (x, y) as this =
     static let PI = 3.14
@@ -235,7 +226,6 @@ type public MyClass<'a> public (x, y) as this =
 [<Test>]
 let ``struct declaration`` () =
     formatSourceString
-        false
         """
     type Point2D =
        struct
@@ -259,7 +249,6 @@ type Point2D =
 [<Test>]
 let ``abstract and override keywords`` () =
     formatSourceString
-        false
         """
     type MyClassBase1() =
        let mutable z = 0
@@ -290,7 +279,6 @@ type MyClassDerived1() =
 [<Test>]
 let ``intrinsic type extensions`` () =
     formatSourceString
-        false
         """
 type MyClass() =
       member this.F() = 100
@@ -313,7 +301,6 @@ type MyClass with
 [<Test>]
 let ``optional type extensions`` () =
     formatSourceString
-        false
         """
 /// Define a new member method FromString on the type Int32.
 type System.Int32 with
@@ -334,7 +321,6 @@ type System.Int32 with
 [<Test>]
 let ``auto property`` () =
     formatSourceString
-        false
         """
 type MyClass(property1 : int) =
     member val Property1 = property1
@@ -352,7 +338,6 @@ type MyClass(property1: int) =
 [<Test>]
 let ``property handling`` () =
     formatSourceString
-        false
         """
 type Derived1() =
    inherit AbstractBase()
@@ -375,7 +360,6 @@ type Derived1() =
 [<Test>]
 let ``access modifiers on properties`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member x.Get with get () = 1
@@ -413,7 +397,6 @@ type Foo() =
 [<Test>]
 let ``types with attributes`` () =
     formatSourceString
-        false
         """
 type MyType() =
     let mutable myInt1 = 10
@@ -448,7 +431,6 @@ type MyType() =
 [<Test>]
 let ``named arguments`` () =
     formatSourceString
-        false
         """
 type SpeedingTicket() =
     member this.GetMPHOver(speed: int, limit: int) = speed - limit
@@ -473,7 +455,6 @@ let CalculateFine (ticket: SpeedingTicket) =
 [<Test>]
 let ``separate-indexed-properties, 2129`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Item
@@ -498,7 +479,6 @@ type Foo() =
 [<Test>]
 let ``indexed properties`` () =
     formatSourceString
-        false
         """
 type NumberStrings() =
    let mutable ordinals = [| "one"; |]
@@ -537,7 +517,6 @@ type NumberStrings() =
 [<Test>]
 let ``complex indexed properties`` () =
     formatSourceString
-        false
         """
 open System.Collections.Generic
 type SparseMatrix() =
@@ -573,7 +552,6 @@ for i in 1..1000 do
 [<Test>]
 let ``type constraints simple`` () =
     formatSourceString
-        false
         """
 type Class1<'T when 'T :> System.Exception> =
     class end
@@ -633,7 +611,6 @@ type Class14<'T, 'U when 'T: equality and 'U: equality> = class end
 [<Test>]
 let ``then blocks after constructors`` () =
     formatSourceString
-        false
         """
 type Person(nameIn : string, idIn : int) =
     let mutable name = nameIn
@@ -671,7 +648,6 @@ type Person(nameIn: string, idIn: int) =
 [<Test>]
 let ``associativity of types`` () =
     formatSourceString
-        false
         """
 type Delegate1 = delegate of (int * int) * (int * int) -> int
 type Delegate2 = delegate of int * int -> int
@@ -694,7 +670,6 @@ type U = U of (int * int)
 [<Test>]
 let ``very long delegate type alias, 1514`` () =
     formatSourceString
-        false
         """
 type SomeWin32Callback = delegate of NastyWinApi32Type * int * int * int * NastyWinApi32Type * int * int * int * int * NastyWinApi32Type * int * int -> bool
     """
@@ -723,7 +698,6 @@ type SomeWin32Callback =
 [<Test>]
 let ``very long delegate type alias wrapped in parens, 1514`` () =
     formatSourceString
-        false
         """
 type SomeWin32Callback = delegate of (NastyWinApi32Type * int * int * int * NastyWinApi32Type * int * int * int * int * NastyWinApi32Type * int * int) -> bool
     """
@@ -752,7 +726,6 @@ type SomeWin32Callback =
 [<Test>]
 let ``should keep the ? in optional parameters`` () =
     formatSourceString
-        false
         """type Shell() =
     static member private GetParams(cmd, ?args) = doStuff
     static member Exec(cmd, ?args) =
@@ -771,7 +744,6 @@ let ``should keep the ? in optional parameters`` () =
 [<Test>]
 let ``should add space before argument on given config`` () =
     formatSourceString
-        false
         """
 let f(x: int) = x
 
@@ -792,7 +764,6 @@ type t(x : int) = class end
 [<Test>]
 let ``should keep brackets around type signatures`` () =
     formatSourceString
-        false
         """
 let user_printers = ref([] : (string * (term -> unit)) list)
 let the_interface = ref([] : (string * (string * hol_type)) list)
@@ -813,7 +784,6 @@ let the_interface =
 [<Test>]
 let ``should print named patterns on explicit constructors`` () =
     formatSourceString
-        false
         """
 type StateMachine(makeAsync) =
     new(fileName, makeAsync, initState) as secondCtor =
@@ -835,7 +805,6 @@ type StateMachine(makeAsync) =
 [<Test>]
 let ``should not misrecognize sequential expressions as a then block`` () =
     formatSourceString
-        false
         """
 type BlobHelper(Account : CloudStorageAccount) =
     new(configurationSettingName, hostedService) =
@@ -871,7 +840,6 @@ type BlobHelper(Account: CloudStorageAccount) =
 [<Test>]
 let ``^a needs spaces when used as a type parameter`` () =
     formatSourceString
-        false
         """
 let inline tryAverage(seq: seq< ^a >): ^a option =  None"""
         config
@@ -885,7 +853,6 @@ let inline tryAverage (seq: seq< ^a >) : ^a option = None
 [<Test>]
 let ``multiple hats need spaces`` () =
     formatSourceString
-        false
         """
 let inline tryAverage(map: Map< ^a,^b>): ^a option =  None"""
         config
@@ -899,7 +866,6 @@ let inline tryAverage (map: Map< ^a, ^b >) : ^a option = None
 [<Test>]
 let ``should preserve orders on field declarations`` () =
     formatSourceString
-        false
         """
 type CustomGraphControl() =
     inherit UserControl()
@@ -921,7 +887,6 @@ type CustomGraphControl() =
 [<Test>]
 let ``should preserve orders on field declarations - multiple spaces between attribute args`` () =
     formatSourceString
-        false
         """
 type CustomGraphControl() =
     inherit UserControl()
@@ -943,7 +908,6 @@ type CustomGraphControl() =
 [<Test>]
 let ``should preserve orders on field declarations - attribute without parentheses`` () =
     formatSourceString
-        false
         """
 type CustomGraphControl() =
     inherit UserControl()
@@ -967,7 +931,6 @@ let ``should preserve orders on field declarations - attribute without parenthes
     ()
     =
     formatSourceString
-        false
         """
 type CustomGraphControl() =
     inherit UserControl()
@@ -989,7 +952,6 @@ type CustomGraphControl() =
 [<Test>]
 let ``should indent properly on getters and setters`` () =
     formatSourceString
-        false
         """
 type A() =
     override this.Address with set v =
@@ -1017,7 +979,6 @@ type A() =
 [<Test>]
 let ``should go to new lines on long property bodies`` () =
     formatSourceString
-        false
         """
 type A() =
     member x.B with set v = "[<System.Runtime.InteropServices.DllImport(\"user32.dll\")>] extern int GetWindowLong(System.IntPtr hwnd, int index)"
@@ -1037,7 +998,6 @@ type A() =
 [<Test>]
 let ``should not remove identifier on getter ... except '()'`` () =
     formatSourceString
-        false
         """
 type Bar =
     member this.Item
@@ -1073,7 +1033,6 @@ type Bar =
 [<Test>]
 let ``should not add dubious new line inside call chains`` () =
     formatSourceString
-        false
         """
 let x =
     JobCollectionCreateParameters
@@ -1100,7 +1059,6 @@ let x =
 [<Test>]
 let ``should preserve attributes on member parameters`` () =
     formatSourceString
-        false
         """
 type ILogger =
     abstract DebugFormat : format:String * [<ParamArray>]args:Object[] -> unit"""
@@ -1116,7 +1074,6 @@ type ILogger =
 [<Test>]
 let ``should preserve brackets on type signatures`` () =
     formatSourceString
-        false
         """
 type A =
     abstract member M : int -> (int -> unit)
@@ -1134,7 +1091,6 @@ type A =
 [<Test>]
 let ``should preserve brackets on type signatures 2`` () =
     formatSourceString
-        false
         """
 type A =
     abstract member M : (int -> int) -> unit
@@ -1152,7 +1108,6 @@ type A =
 [<Test>]
 let ``should handle overridden auto properties`` () =
     formatSourceString
-        false
         """
 type Entity() =
     abstract Id : int with get, set
@@ -1170,7 +1125,6 @@ type Entity() =
 [<Test>]
 let ``type abbreviation augmentation`` () =
     formatSourceString
-        false
         """type T2 = T2 with
     member __.X = ()
 """
@@ -1186,7 +1140,6 @@ let ``type abbreviation augmentation`` () =
 [<Test>]
 let ``operator in words should not print to symbol, 409`` () =
     formatSourceString
-        false
         """type T() =
     static member op_LessThan(a, b) = a < b"""
         { config with
@@ -1200,7 +1153,7 @@ let ``operator in words should not print to symbol, 409`` () =
 
 [<Test>]
 let ``operator in words in let binding`` () =
-    formatSourceString false """let op_PipeRight2  = ()""" config
+    formatSourceString """let op_PipeRight2  = ()""" config
     |> should
         equal
         """let op_PipeRight2 = ()
@@ -1209,7 +1162,6 @@ let ``operator in words in let binding`` () =
 [<Test>]
 let ``operator in words in member`` () =
     formatSourceString
-        false
         """type A() =
     member this.B(op_Inequality : string) = ()"""
         { config with
@@ -1223,7 +1175,6 @@ let ``operator in words in member`` () =
 [<Test>]
 let ``attributes on extension methods should not add newlines, 473`` () =
     formatSourceString
-        false
         """
 [<Extension>]
 type TestExtensions =
@@ -1253,7 +1204,6 @@ type TestExtensions =
 [<Test>]
 let ``F# 4.7 syntax relaxation in member declaration`` () =
     formatSourceString
-        false
         """
 type C'() =
     member _.M() = ()
@@ -1270,7 +1220,6 @@ type C'() =
 [<Test>]
 let ``don't add additional newlines between recursive type declarations, 520`` () =
     formatSourceString
-        false
         """module Game
 
 type Details =
@@ -1327,7 +1276,6 @@ and Room =
 [<Test>]
 let ``don't add additional newlines between recursive type declarations with attributes, 520`` () =
     formatSourceString
-        false
         """module Game
 
 type Exit =
@@ -1373,7 +1321,6 @@ and [<Marker>] Room =
 [<Test>]
 let ``trivia newlines between letbinding of type, 709`` () =
     formatSourceString
-        false
         """
 open Xunit
 open FSharp.Core
@@ -1408,7 +1355,6 @@ type FormattingSpecs() =
 [<Test>]
 let ``line comment above single line abstract slot should not make it multiline, 757`` () =
     formatSourceString
-        false
         """[<AllowNullLiteral>]
 type Graph2dOptions =
     abstract zoomMin: float option with get, set
@@ -1432,7 +1378,6 @@ type Graph2dOptions =
 [<Test>]
 let ``long type members should have parameters on separate lines, 719`` () =
     formatSourceString
-        false
         """type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
@@ -1455,7 +1400,6 @@ type C () =
 [<Test>]
 let ``long type member with return type should have parameters on separate lines`` () =
     formatSourceString
-        false
         """type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : int =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
@@ -1478,7 +1422,6 @@ type C () =
 [<Test>]
 let ``long constructors should have parameters on separate lines`` () =
     formatSourceString
-        false
         """type C (aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) =
     member this.X = 42
 """
@@ -1500,7 +1443,6 @@ type C
 [<Test>]
 let ``preserve abstract keyword`` () =
     formatSourceString
-        false
         """namespace Foo
 
 type internal Blah =
@@ -1520,7 +1462,6 @@ type internal Blah =
 [<Test>]
 let ``keep correct indentation after multiline member definition, 845`` () =
     formatSourceString
-        false
         """type SomeType() =
     member SomeMember(looooooooooooooooooooooooooooooooooong1: A, looooooooooooooooooooooooooooooooooong2: A) =
         printfn "a"
@@ -1551,7 +1492,6 @@ type SomeType() =
 [<Test>]
 let ``keep correct indentation after multiline typed member definition`` () =
     formatSourceString
-        false
         """type SomeType() =
     member SomeMember(looooooooooooooooooooooooooooooooooong1: A, looooooooooooooooooooooooooooooooooong2: A) : string =
         printfn "a"
@@ -1582,7 +1522,6 @@ type SomeType() =
 [<Test>]
 let ``split multiple parameters over multiple lines`` () =
     formatSourceString
-        false
         """
 type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string) (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string) : string =
@@ -1606,7 +1545,6 @@ type SomeType =
 [<Test>]
 let ``split multiple parameters over multiple lines and have correct indentation afterwards`` () =
     formatSourceString
-        false
         """
 type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string) (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string) : string =
@@ -1635,7 +1573,6 @@ type SomeType =
 [<Test>]
 let ``member with one long parameter and return type, 850`` () =
     formatSourceString
-        false
         """
 type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 : string =
@@ -1658,7 +1595,6 @@ type SomeType =
 [<Test>]
 let ``member with one long parameter and no return type, 850`` () =
     formatSourceString
-        false
         """
 type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
@@ -1681,7 +1617,6 @@ type SomeType =
 [<Test>]
 let ``multiple members with one long parameter`` () =
     formatSourceString
-        false
         """
 type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
@@ -1719,7 +1654,6 @@ type SomeType =
 [<Test>]
 let ``access modifier before long constructor`` () =
     formatSourceString
-        false
         """
 type INotifications<'a,'b,'c,'d,'e> =
     class
@@ -1748,7 +1682,6 @@ type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, '
 [<Test>]
 let ``long type members should be in multiple lines, 868`` () =
     formatSourceString
-        false
         """
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: int, aSecondVeryLongType: int, aThirdVeryLongType: int) : int =
@@ -1775,7 +1708,6 @@ type C() =
 [<Test>]
 let ``long type members should be in multiple lines, no return type`` () =
     formatSourceString
-        false
         """
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: int, aSecondVeryLongType: int, aThirdVeryLongType: int) =
@@ -1802,7 +1734,6 @@ type C() =
 [<Test>]
 let ``long type constructors should be in multiple lines, 868`` () =
     formatSourceString
-        false
         """
 type VersionMismatchDuringDeserializationException(message: string, innerException: System.Exception) =
     inherit System.Exception(message, innerException)
@@ -1825,7 +1756,6 @@ type VersionMismatchDuringDeserializationException
 [<Test>]
 let ``tuple typed abbreviation`` () =
     formatSourceString
-        false
         """type A = (int * int)
 """
         config
@@ -1839,7 +1769,6 @@ type A = (int * int)
 [<Test>]
 let ``function signature type abbreviation`` () =
     formatSourceString
-        false
         """type A = (int -> int -> int)
 """
         config
@@ -1852,7 +1781,6 @@ type A = (int -> int -> int)
 
 let ``type record declaration with attributes, 910`` () =
     formatSourceString
-        false
         """type Commenter =
     { [<JsonProperty("display_name")>]
       DisplayName: string }
@@ -1878,7 +1806,6 @@ type Message =
 [<Test>]
 let ``attribute on abstract member followed by type with attribute, 933`` () =
     formatSourceString
-        false
         """
 [<AllowNullLiteral>]
 type SubGroupStackOptions =
@@ -1907,7 +1834,6 @@ type DataGroup =
 [<Test>]
 let ``attribute on abstract member followed by let binding with attribute`` () =
     formatSourceString
-        false
         """
 [<AllowNullLiteral>]
 type SubGroupStackOptions =
@@ -1934,7 +1860,6 @@ let foo bar = zero
 [<Test>]
 let ``type constraint on type definition, 887`` () =
     formatSourceString
-        false
         """
 type OuterType =
     abstract Apply<'r>
@@ -1953,7 +1878,6 @@ type OuterType =
 [<Test>]
 let ``attribute on type and abstract member followed by type, 949`` () =
     formatSourceString
-        false
         """
 [<AllowNullLiteral>]
 type TimelineOptionsGroupCallbackFunction =
@@ -1978,7 +1902,6 @@ type TimelineOptionsGroupEditableType = U2<bool, TimelineGroupEditableOption>
 [<Test>]
 let ``attribute on type and abstract member followed by let binding`` () =
     formatSourceString
-        false
         """
 [<AllowNullLiteral>]
 type TimelineOptionsGroupCallbackFunction =
@@ -2003,7 +1926,6 @@ let myBinding a = 7
 [<Test>]
 let ``comments before access modifier, 885`` () =
     formatSourceString
-        false
         """
 type TestType =
     // Here is some comment about the type
@@ -2028,7 +1950,6 @@ type TestType =
 [<Test>]
 let ``comments before access modifier and multiline record type`` () =
     formatSourceString
-        false
         """
 type OlapCube =
     // Here is some comment about the type
@@ -2057,7 +1978,6 @@ type OlapCube =
 [<Test>]
 let ``alternative long member definition`` () =
     formatSourceString
-        false
         """
 type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) =
@@ -2085,7 +2005,6 @@ type C () =
 [<Test>]
 let ``alternative long member definition with return type`` () =
     formatSourceString
-        false
         """
 type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) : int =
@@ -2116,7 +2035,6 @@ type C () =
 [<Test>]
 let ``member, tuple (non-curried), with return type:`` () =
     formatSourceString
-        false
         """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : AVeryLongReturnType =
@@ -2140,7 +2058,6 @@ type MyClass() =
 [<Test>]
 let ``member, tuple (non-curried), with no return type:`` () =
     formatSourceString
-        false
         """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
@@ -2164,7 +2081,6 @@ type MyClass() =
 [<Test>]
 let ``member, curried (non-tuple), with return type:`` () =
     formatSourceString
-        false
         """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse) (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse) (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : AVeryLongReturnType =
@@ -2187,7 +2103,6 @@ type MyClass() =
 [<Test>]
 let ``member, curried (non-tuple), with no return type:`` () =
     formatSourceString
-        false
         """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse) (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse) (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
@@ -2210,7 +2125,6 @@ type MyClass() =
 [<Test>]
 let ``alternative long class constructor`` () =
     formatSourceString
-        false
         """
 type C(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
@@ -2237,7 +2151,6 @@ type C
 [<Test>]
 let ``alternative long class constructor with access modifier`` () =
     formatSourceString
-        false
         """
 type C internal (aVeryLongType: AVeryLongTypeThatYouNeedToUse,
        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
@@ -2265,7 +2178,6 @@ type C
 [<Test>]
 let ``trivia before properties, 1009`` () =
     formatSourceString
-        false
         """
 type Box() =
     let mutable color : string = null
@@ -2308,7 +2220,6 @@ type Box() =
 [<Test>]
 let ``don't add additional newline before record instance return value`` () =
     formatSourceString
-        false
         """
 type Auth0User =
     { UserId : string
@@ -2350,7 +2261,6 @@ type Auth0User =
 [<Test>]
 let ``generic recursive types`` () =
     formatSourceString
-        false
         """
 type ViewBinding<'model,'msg> = string * Variable<'model,'msg>
 and ViewBindings<'model,'msg> = ViewBinding<'model,'msg> list
@@ -2381,7 +2291,7 @@ and Variable<'model, 'msg> =
 
 [<Test>]
 let ``union type with constraint`` () =
-    formatSourceString false """type 'a t when 'a :> IDisposable = T  of  'a option""" config
+    formatSourceString """type 'a t when 'a :> IDisposable = T  of  'a option""" config
     |> should
         equal
         """type 'a t when 'a :> IDisposable = T of 'a option
@@ -2390,7 +2300,6 @@ let ``union type with constraint`` () =
 [<Test>]
 let ``add newline and indent for multiline internal record definition, 658`` () =
     formatSourceString
-        false
         """
 type RequestParser<'ctx, 'a> = internal {
   consumedFields: Set<ConsumedFieldName>
@@ -2413,7 +2322,6 @@ type RequestParser<'ctx, 'a> =
 [<Test>]
 let ``generic nameof`` () =
     formatSourceString
-        false
         """
 #r "nuget: FSharp.SystemTextJson"
 
@@ -2482,7 +2390,6 @@ let deserialize (e: RecordedEvent) : MyEvent =
 [<Test>]
 let ``member constraint on next line should have extra indent, 1394`` () =
     formatSourceString
-        false
         """
 type Bar = | Bar of int
 and Foo<'ret> = abstract Barrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr<'a> : 'a -> 'ret when 'a : comparison
@@ -2502,7 +2409,6 @@ and Foo<'ret> =
 [<Test>]
 let ``member constraint on next line with long return type`` () =
     formatSourceString
-        false
         """
 type Foo =
     abstract Baaaaaaaaaaaaaarrrrrrr<'a> : 'a -> int -> string -> string -> bool when 'a : comparison
@@ -2521,7 +2427,6 @@ type Foo =
 [<Test>]
 let ``member with val keyword with multiline expression, 1426`` () =
     formatSourceString
-        false
         """
 type public Foo() =
 
@@ -2572,7 +2477,6 @@ type public Foo() =
 [<Test>]
 let ``blank line before with keyword should be preserved`` () =
     formatSourceString
-        false
         """
 type A =
   | B of int
@@ -2602,7 +2506,6 @@ type A =
 [<Test>]
 let ``member inside compiler define using with keyword, 1503`` () =
     formatSourceString
-        false
         """
 type A =
   | B of int
@@ -2636,7 +2539,6 @@ type A =
 [<Test>]
 let ``const keyword in StaticConstantExpr should be preserved, 1574`` () =
     formatSourceString
-        false
         """
 type T = SomeTypeProvider<const(" string literal " + REUSED_ LITERAL_STRING)>
 """
@@ -2651,7 +2553,6 @@ type T = SomeTypeProvider<const(" string literal " + REUSED_ LITERAL_STRING)>
 [<Test>]
 let ``comment above constructor, 1286`` () =
     formatSourceString
-        false
         """
 /// This is the type
 type SomeType
@@ -2678,7 +2579,6 @@ type SomeType
 [<Test>]
 let ``comment above multiline constructor`` () =
     formatSourceString
-        false
         """
 /// This is the type
 type SomeTypeWithQuiteTheLongNameThere
@@ -2712,7 +2612,6 @@ type SomeTypeWithQuiteTheLongNameThere
 [<Test>]
 let ``short or long member depending on compiler define, 1589`` () =
     formatSourceString
-        false
         """
 type X =
     /// Indicates if the entity is a generated provided type definition, i.e. not erased.
@@ -2751,7 +2650,6 @@ type X =
 [<Test>]
 let ``short or long member depending on compiler define, followed by next member`` () =
     formatSourceString
-        false
         """
 type X =
     /// Indicates if the entity is a generated provided type definition, i.e. not erased.
@@ -2796,7 +2694,6 @@ type X =
 [<Test>]
 let ``multiline type function signature`` () =
     formatSourceString
-        false
         """
 namespace Test
 
@@ -2825,7 +2722,6 @@ module OrderProcessing =
 [<Test>]
 let ``generic type arguments in function invocation, 1637`` () =
     formatSourceString
-        false
         """
 [<NoEquality ; NoComparison>]
 type Foo<'context, 'a> =
@@ -2947,7 +2843,7 @@ let ``a huge amount of type declarations`` () =
 %s
         """
 
-    let formatted = formatSourceString false sourceCode config
+    let formatted = formatSourceString sourceCode config
 
     // the result is less important here,
     // the point of this unit test is to verify if a stackoverflow problem at genModuleDeclList has been resolved.
@@ -2964,7 +2860,7 @@ let ``a huge amount of type declarations, signature file`` () =
 %s
         """
 
-    let formatted = formatSourceString true sourceCode config
+    let formatted = formatSignatureString sourceCode config
 
     formatted |> should not' (equal EmptyString)
 
@@ -2981,7 +2877,7 @@ type FooBarry =
 %s
 """
 
-    let formatted = formatSourceString false sourceCode config
+    let formatted = formatSourceString sourceCode config
 
     formatted |> should not' (equal EmptyString)
 
@@ -2998,14 +2894,13 @@ let leBarry =
 %s }
 """
 
-    let formatted = formatSourceString false sourceCode config
+    let formatted = formatSourceString sourceCode config
 
     formatted |> should not' (equal EmptyString)
 
 [<Test>]
 let ``trivia after parenthesis in syn type`` () =
     formatSourceString
-        false
         """
 type A = ( (* string *) int * int )
 """
@@ -3020,7 +2915,6 @@ type A = ( (* string *) int * int)
 [<Test>]
 let ``type abbreviation with comparison constraint, 2075`` () =
     formatSourceString
-        false
         """
 type Graph<'a> when 'a:comparison = Set<'a * 'a>
 """
@@ -3035,7 +2929,6 @@ type Graph<'a> when 'a: comparison = Set<'a * 'a>
 [<Test>]
 let ``type abbreviation with comparison constraint inside generic parameter scope`` () =
     formatSourceString
-        false
         """
 type Graph<'a when 'a:comparison> = Set<'a * 'a>
 """
@@ -3050,7 +2943,6 @@ type Graph<'a when 'a: comparison> = Set<'a * 'a>
 [<Test>]
 let ``comment after equals sign in type defn, 2001`` () =
     formatSourceString
-        false
         """
 type V = // comment
     { X: SomeFieldType
@@ -3070,8 +2962,7 @@ type V = // comment
 
 [<Test>]
 let ``trivia between xml doc and member, 2147`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 // Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
@@ -3109,8 +3000,7 @@ type MethInfo =
 
 [<Test>]
 let ``hash directive between xml doc and member`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 // Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
@@ -3149,7 +3039,6 @@ type MethInfo =
 [<Test>]
 let ``long type argument with constraints, 2266`` () =
     formatSourceString
-        false
         """
 type Event<'Delegate, 'Args when 'Delegate: delegate<'Args, unit> and 'Delegate :> System.Delegate and 'Delegate: not struct> () =
                         class end
@@ -3166,7 +3055,6 @@ type Event<'Delegate, 'Args
 [<Test>]
 let ``long type argument with constraints, short max_line_length`` () =
     formatSourceString
-        false
         """
 type Event<'Delegate, 'Args when 'Delegate: delegate<'Args, unit> and 'Delegate :> System.Delegate and 'Delegate: not struct> () =
                         class end
@@ -3185,7 +3073,6 @@ type Event<'Delegate, 'Args
 [<Test>]
 let ``unit of measure should keep idempotency after formatting, 2264`` () =
     formatSourceString
-        false
         """
 [<Measure>] type herth = / second
 """
@@ -3201,7 +3088,6 @@ type herth = / second
 [<Test>]
 let ``generic constraint placement in ML-style generic definitions with multiple type parameters, 1868`` () =
     formatSourceString
-        false
         """
 type ('key, 'value) map when 'key: comparison = Map<'key, 'value>
 """
@@ -3216,7 +3102,6 @@ type ('key, 'value) map when 'key: comparison = Map<'key, 'value>
 [<Test>]
 let ``don't add additional space before equals sign in long alternative constructor`` () =
     formatSourceString
-        false
         """
 type LdapClaimsTransformation(
                                  ldapSearcher : ILdapSearcher,
@@ -3248,7 +3133,6 @@ type LdapClaimsTransformation
 [<Test>]
 let ``multiline return type`` () =
     formatSourceString
-        false
         """
 type Meh =
     static member AsBeginEnd<'Arg, 'T>
@@ -3282,7 +3166,6 @@ type Meh =
 [<Test>]
 let ``alternativeLongMemberDefinitions breaks spacing around type Blah as this, 2598`` () =
     formatSourceString
-        false
         """
 type Server<'a>
     (
@@ -3314,7 +3197,6 @@ type Server<'a>
 [<Test>]
 let ``conditional directive around access modifier, 628`` () =
     formatSourceString
-        false
         """
 type
 #if DEBUG
@@ -3345,7 +3227,6 @@ type
 [<Test>]
 let ``block comment between type and identifier`` () =
     formatSourceString
-        false
         """
 type (* foo *)  Bar = int
 """
@@ -3360,7 +3241,6 @@ type (* foo *) Bar = int
 [<Test>]
 let ``comment between empty implicit constructor, 1872`` () =
     formatSourceString
-        false
         """
   type MyType
     (
@@ -3383,7 +3263,6 @@ type MyType
 [<Test>]
 let ``trivia before attributes in recursive type, 2361 `` () =
     formatSourceString
-        false
         """
 module Primitives =
     type BlockHeight =
@@ -3415,7 +3294,6 @@ module Primitives =
 [<Test>]
 let ``xml doc before recursive type, 2360`` () =
     formatSourceString
-        false
         """
 module Primitives =
     type BlockHeight =
@@ -3456,7 +3334,6 @@ module Primitives =
 [<Test>]
 let ``trivia before constructor parameter, 2692`` () =
     formatSourceString
-        false
         """
 type SingleAppParenLambda
     (
@@ -3489,7 +3366,6 @@ type SingleAppParenLambda
 [<Test>]
 let ``optional constructor arguments with attributes, 2718`` () =
     formatSourceString
-        false
         """
 type CsvFile
     private
@@ -3544,7 +3420,6 @@ type CsvFile
 [<Test>]
 let ``optional parameter with ticks, 2731`` () =
     formatSourceString
-        false
         """
 type [<AllowNullLiteral>] ArrayBuffer =
     abstract byteLength: int
@@ -3564,7 +3439,6 @@ type ArrayBuffer =
 [<Test>]
 let ``optional member parameter with ticks, 2954`` () =
     formatSourceString
-        false
         """
 type C() =
     static member foo(?``type``) = ``type``
@@ -3581,7 +3455,6 @@ type C() =
 [<Test>]
 let ``trivia before comma in primary constructor`` () =
     formatSourceString
-        false
         """
 type Meh
     (
@@ -3612,7 +3485,6 @@ type Meh
 [<Test>]
 let ``multi tuple setter with indexer, 2971`` () =
     formatSourceString
-        false
         """
 type MyArray3 () = 
     member _.Item

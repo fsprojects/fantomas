@@ -8,7 +8,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``should keep the pipe after infix operator`` () =
     formatSourceString
-        false
         """
 let f x =
     someveryveryveryverylongexpression
@@ -38,7 +37,6 @@ let f x =
 [<Test>]
 let ``should keep the pipe after pattern matching`` () =
     formatSourceString
-        false
         """let m =
     match x with
     | y -> ErrorMessage msg
@@ -60,7 +58,6 @@ let m =
 [<Test>]
 let ``should break new lines on piping`` () =
     formatSourceString
-        false
         """
 let runAll() =
     urlList
@@ -82,7 +79,6 @@ let runAll () =
 [<Test>]
 let ``pipe and multiline should put pipe on newline`` () =
     formatSourceString
-        false
         """
 let prefetchImages =
     [ playerOImage; playerXImage ]

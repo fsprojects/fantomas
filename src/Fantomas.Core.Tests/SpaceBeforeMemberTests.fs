@@ -9,7 +9,6 @@ let spaceBeforeConfig = { config with SpaceBeforeMember = true }
 [<Test>]
 let ``default config should not add a space before a type member`` () =
     formatSourceString
-        false
         """
 type Person() =
     member this.Walk (distance:int) = ()
@@ -33,7 +32,6 @@ type Person() =
 [<Test>]
 let ``spaceBeforeMember should add a space before a type member`` () =
     formatSourceString
-        false
         """
 type Person() =
     member this.Walk (distance:int) = ()

@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``static member in constraint`` () =
     formatSourceString
-        false
         """
 // Check that "property" and "get_ method" constraints are considered logically equivalent
 let inline f_StaticProperty<'T when 'T : (static member StaticProperty: int) >() : int = 'T.StaticProperty
@@ -48,7 +47,6 @@ let inline f_Item<'T when 'T: (member Item: int -> string with get)> (x: 'T) = x
 [<Test>]
 let ``self constrained type parameter`` () =
     formatSourceString
-        false
         """
 open System
 open Types

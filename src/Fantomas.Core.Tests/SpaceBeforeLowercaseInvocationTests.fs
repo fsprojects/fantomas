@@ -12,7 +12,7 @@ let noSpaceBefore =
 
 [<Test>]
 let ``default config should add space before unit in lowercase function call`` () =
-    formatSourceString false "let value = myFunction()" config
+    formatSourceString "let value = myFunction()" config
     |> should
         equal
         """let value = myFunction ()
@@ -20,7 +20,7 @@ let ``default config should add space before unit in lowercase function call`` (
 
 [<Test>]
 let ``spaceBeforeLowercaseInvocation = false, should not add space before unit in lowercase function call`` () =
-    formatSourceString false "let value = myFunction()" noSpaceBefore
+    formatSourceString "let value = myFunction()" noSpaceBefore
     |> should
         equal
         """let value = myFunction()
@@ -30,7 +30,7 @@ let ``spaceBeforeLowercaseInvocation = false, should not add space before unit i
 
 [<Test>]
 let ``default config should add space before parentheses in lowercase function call`` () =
-    formatSourceString false "let value = myFunction(a+b)" config
+    formatSourceString "let value = myFunction(a+b)" config
     |> should
         equal
         """let value = myFunction (a + b)
@@ -38,7 +38,7 @@ let ``default config should add space before parentheses in lowercase function c
 
 [<Test>]
 let ``spaceBeforeLowercaseInvocation = false, should not add space before parentheses in lowercase function call`` () =
-    formatSourceString false "let value = myFunction(a+b)" noSpaceBefore
+    formatSourceString "let value = myFunction(a+b)" noSpaceBefore
     |> should
         equal
         """let value = myFunction(a + b)
@@ -46,7 +46,7 @@ let ``spaceBeforeLowercaseInvocation = false, should not add space before parent
 
 [<Test>]
 let ``spaceBeforeLowercaseInvocation should not have impact when member is called after unit`` () =
-    formatSourceString false "let v1 = myFunction().Member" noSpaceBefore
+    formatSourceString "let v1 = myFunction().Member" noSpaceBefore
     |> prepend newline
     |> should
         equal
@@ -57,7 +57,6 @@ let v1 = myFunction().Member
 [<Test>]
 let ``space before lower constructor without new`` () =
     formatSourceString
-        false
         """
 let tree1 =
     binaryNode(binaryNode(binaryValue 1, binaryValue 2), binaryNode(binaryValue 3, binaryValue 4))
@@ -77,7 +76,6 @@ let tree1 =
 [<Test>]
 let ``space before lower case constructor invocation with new keyword`` () =
     formatSourceString
-        false
         """
 let person = new person("Jim", 33)
 
@@ -106,7 +104,6 @@ let otherThing =
 [<Test>]
 let ``space before lower member call`` () =
     formatSourceString
-        false
         """
 let myRegexMatch = Regex.matches(input, regex)
 
@@ -145,7 +142,6 @@ let untypedResLong =
 [<Test>]
 let ``no space before lowercase member calls and constructors`` () =
     formatSourceString
-        false
         """
 let tree1 =
     binaryNode(binaryNode(binaryValue 1, binaryValue 2), binaryNode(binaryValue 3, binaryValue 4))
@@ -211,7 +207,6 @@ let untypedResLong =
 [<Test>]
 let ``ignore setting when function call is the argument of prefix application`` () =
     formatSourceString
-        false
         """
 !-String.Empty.padLeft(braceSize + spaceAround)
 (!-System.String.Empty.padRight(delta)) ({ ctx with RecordBraceStart = rest })
@@ -230,7 +225,6 @@ let ``ignore setting when function call is the argument of prefix application`` 
 [<Test>]
 let ``setting also affects patterns`` () =
     formatSourceString
-        false
         """
 match x with
 | y() -> ()
@@ -247,7 +241,6 @@ match x with
 [<Test>]
 let ``space before lowercase patterns`` () =
     formatSourceString
-        false
         """
 match x with
 | a() -> ()
@@ -270,7 +263,6 @@ match x with
 [<Test>]
 let ``no space before lowercase patterns`` () =
     formatSourceString
-        false
         """
 match x with
 | a () -> ()

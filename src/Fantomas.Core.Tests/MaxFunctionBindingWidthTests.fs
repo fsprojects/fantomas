@@ -10,7 +10,7 @@ let config =
 
 [<Test>]
 let ``should apply to function definition`` () =
-    formatSourceString false """let a bbbbbbbbbbbbbbbbbbbbbbbbbb = bbbbbbbbbbbbbbbbbbbbbbbbbb + 1""" config
+    formatSourceString """let a bbbbbbbbbbbbbbbbbbbbbbbbbb = bbbbbbbbbbbbbbbbbbbbbbbbbb + 1""" config
     |> should
         equal
         """let a bbbbbbbbbbbbbbbbbbbbbbbbbb =
@@ -19,7 +19,7 @@ let ``should apply to function definition`` () =
 
 [<Test>]
 let ``should not apply to short function definition`` () =
-    formatSourceString false """let a b = b + 1""" config
+    formatSourceString """let a b = b + 1""" config
     |> should
         equal
         """let a b = b + 1
@@ -28,7 +28,6 @@ let ``should not apply to short function definition`` () =
 [<Test>]
 let ``should apply to member function definition`` () =
     formatSourceString
-        false
         """type T =
     let aaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbb = bbbbbbbbbbbbbbbbbbb + 1
     member this.cccccccccccccc dddddddddddddd = dddddddddddddd + 2
@@ -46,7 +45,6 @@ let ``should apply to member function definition`` () =
 [<Test>]
 let ``should apply to typed member function definition`` () =
     formatSourceString
-        false
         """type T =
     let aaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbb = bbbbbbbbbbbbbbbbbbb + 1
     member this.cccccccccccccc dddddddddddddd: int = dddddddddddddd + 2
@@ -64,7 +62,6 @@ let ``should apply to typed member function definition`` () =
 [<Test>]
 let ``should not apply to short member function definition`` () =
     formatSourceString
-        false
         """type T =
     let a b = b + 1
     member this.c d = d + 2

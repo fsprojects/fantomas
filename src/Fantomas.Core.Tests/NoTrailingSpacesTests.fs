@@ -14,7 +14,6 @@ let ``should not confuse me with an extra space at end of line v2`` () =
     |> should throw typeof<Argu.ArguParseException>"""
 
     formatSourceString
-        false
         codeSnippet
         { config with
             MaxInfixOperatorExpression = 90

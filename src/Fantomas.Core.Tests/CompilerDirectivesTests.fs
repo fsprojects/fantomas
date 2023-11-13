@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``should keep compiler directives`` () =
     formatSourceString
-        false
         """
 #if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
@@ -30,7 +29,6 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 [<Test>]
 let ``should keep compiler directives 2`` () =
     formatSourceString
-        false
         """
 #if INTERACTIVE
 #else
@@ -55,7 +53,6 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 [<Test>]
 let ``line, file and path identifiers`` () =
     formatSourceString
-        false
         """
     let printSourceLocation() =
         printfn "Line: %s" __LINE__
@@ -79,7 +76,6 @@ printSourceLocation ()
 [<Test>]
 let ``should keep #if, #else and #endif on compiler directives`` () =
     formatSourceString
-        false
         """
 let x = 1
 #if SILVERLIGHT
@@ -106,7 +102,6 @@ let y = 2
 [<Test>]
 let ``should handle nested compiler directives`` () =
     formatSourceString
-        false
         """
 let [<Literal>] private assemblyConfig =
     #if DEBUG
@@ -180,7 +175,6 @@ let private assemblyConfig =
 [<Test; Description("inactive code is not formatted correctly")>]
 let ``should break lines before compiler directives`` () =
     formatSourceString
-        false
         """
 let [<Literal>] private assemblyConfig() =
   #if TRACE
@@ -235,7 +229,6 @@ let private assemblyConfig () =
 [<Test>]
 let ``should break line after single directive`` () =
     formatSourceString
-        false
         """
 #nowarn "47"
 namespace Internal.Utilities.Text.Lexing"""
@@ -251,7 +244,6 @@ namespace Internal.Utilities.Text.Lexing
 [<Test>]
 let ``should handle endif directives with no newline`` () =
     formatSourceString
-        false
         """
 namespace Internal.Utilities.Diagnostic
 
@@ -283,7 +275,6 @@ type ExtensibleDumper =
 [<Test>]
 let ``missing inactive code if directive not defined`` () =
     formatSourceString
-        false
         """
 #if NOT_DEFINED
 let x = 1
@@ -300,7 +291,6 @@ let x = 1
 [<Test>]
 let ``don't duplicate active code if directive not defined`` () =
     formatSourceString
-        false
         """
 #if NOT_DEFINED
 #else
@@ -319,7 +309,6 @@ let x = 1
 [<Test>]
 let ``missing line break in an active directive`` () =
     formatSourceString
-        false
         """
 #if DEBUG
 let x = 1
@@ -336,7 +325,6 @@ let x = 1
 [<Test>]
 let ``should handle #if on the first line`` () =
     formatSourceString
-        false
         """
 #if INTERACTIVE
 let x = 1
@@ -353,7 +341,6 @@ let x = 1
 [<Test>]
 let ``should handle combined #if`` () =
     formatSourceString
-        false
         """
 #if INTERACTIVE || (FOO && BAR) || BUZZ
 let x = 1
@@ -389,7 +376,6 @@ let x = 1
 [<Test>]
 let ``issue 382`` () =
     formatSourceString
-        false
         """
 type Currency =
     // Temporary fix until a new Thoth.Json.Net package is released
@@ -416,7 +402,6 @@ type Currency =
 [<Test>]
 let ``indentation incorrect for code with chained fluent interface method calls`` () =
     formatSourceString
-        false
         """
 let start (args: IArgs) =
     // Serilog configuration
@@ -492,7 +477,6 @@ let start (args: IArgs) =
 [<Test>]
 let ``some spacing is still lost in and around #if blocks, 303`` () =
     formatSourceString
-        false
         """
   let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
     let assemblyName = assembly.Name
@@ -828,7 +812,6 @@ type FunctionComponent =
 [<Test>]
 let ``negated directive`` () =
     formatSourceString
-        false
         """namespace Fable.React
 
 open Fable.Core
@@ -903,7 +886,6 @@ type FunctionComponent =
 [<Test>]
 let ``module with nested directives`` () =
     formatSourceString
-        false
         """module ReactDomBindings =
     #if FABLE_REPL_LIB
     [<Global("ReactDOM")>]
@@ -998,7 +980,6 @@ let ``module with nested directives, FABLE_REPL_LIB`` () =
 [<Test>]
 let ``should handle complex #if`` () =
     formatSourceString
-        false
         """
 #if !(INTERACTIVE || !FOO || !BAR || !BUZZ)
 let x = 1
@@ -1015,7 +996,6 @@ let x = 1
 [<Test>]
 let ``inactive code with no newline at EOF #480`` () =
     formatSourceString
-        false
         """
 #if NOT_DEFINED
 let x = 1
@@ -1032,7 +1012,6 @@ let x = 1
 [<Test>]
 let ``no code for inactive define`` () =
     formatSourceString
-        false
         """#if SOMETHING
 let foo = 42
 #endif"""
@@ -1065,7 +1044,6 @@ let foo = 42
 [<Test>]
 let ``#if should not be printed twice, #482`` () =
     formatSourceString
-        false
         """
 namespace AltCover
 
@@ -1199,7 +1177,6 @@ do ()
 [<Test>]
 let ``hash directive between attributes`` () =
     formatSourceString
-        false
         """[<assembly:Foo()>]
 #if BAR
 [<assembly:Bar()>]
@@ -1324,7 +1301,6 @@ let foo =
 [<Test>]
 let ``preserve compile directive between piped functions, 512`` () =
     formatSourceString
-        false
         """let foo = [ 1 ]
             |> List.sort
 #if DEBUG
@@ -1373,7 +1349,6 @@ let foo =
 [<Test>]
 let ``async block inside directive, 576`` () =
     formatSourceString
-        false
         """#if TEST
 let f () =
     async {
@@ -1425,7 +1400,6 @@ let f () =
 [<Test>]
 let ``directive capturing attribute, 635`` () =
     formatSourceString
-        false
         """namespace AltCover.Recorder
 
 open System
@@ -1653,7 +1627,6 @@ module Dbg =
 [<Test>]
 let ``namespace global mixed with hash directives, 681`` () =
     formatSourceString
-        false
         """namespace global
 
 #if DEBUG
@@ -1715,7 +1688,6 @@ module Dbg =
 [<Test>]
 let ``defines in string should be taken into account, 761`` () =
     (formatSourceString
-        false
         "
 [<Test>]
 let ``should keep compiler directives``() =
@@ -1763,7 +1735,6 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 [<Test>]
 let ``hash directive in single quote string should not have impact`` () =
     formatSourceString
-        false
         """let a = "
 #if FOO
 "
@@ -1790,7 +1761,6 @@ let b =
 [<Test>]
 let ``hash directive in triple quote string with other quotes should not have impact`` () =
     (formatSourceString
-        false
         "
 let a = \"\"\"
 \"
@@ -1822,7 +1792,6 @@ let b =
 [<Test>]
 let ``hash directive in single quote string should not have impact - escaped quote`` () =
     formatSourceString
-        false
         """let a = "
 #if FOO
 \""
@@ -1917,7 +1886,6 @@ let config =
 [<Test>]
 let ``defines in record assignment, 968`` () =
     formatSourceString
-        false
         """
 let config = {
     title = "Fantomas"
@@ -1996,7 +1964,6 @@ let UpdateUI
 [<Test>]
 let ``compiler defines around parameter type definition, 633`` () =
     formatSourceString
-        false
         """
                let UpdateUI (theModel:
 #if NETCOREAPP2_1
@@ -2041,7 +2008,6 @@ let UpdateUI
 [<Test>]
 let ``directives under parsed hash directives`` () =
     formatSourceString
-        false
         """
 #load "../../.paket/load/netstandard2.0/Client/client.group.fsx"
 #load "../Overview/Types.fs"
@@ -2088,7 +2054,6 @@ open Shared
 [<Test>]
 let ``namespace under parsed hash directives, 2014`` () =
     formatSourceString
-        false
         """
 #load "Types.fsx"
 #load "Project.fsx"
@@ -2131,7 +2096,6 @@ let ``empty module with trivia, FAKE`` () =
 [<Test>]
 let ``empty module with trivia, 1031`` () =
     formatSourceString
-        false
         """
 // This file is automatically generated by FAKE
 // This file is needed for IDE support only
@@ -2154,7 +2118,6 @@ let ``empty module with trivia, 1031`` () =
 [<Test>]
 let ``don't indent too far after multiple hash directives, 1026`` () =
     formatSourceString
-        false
         """
 let getDefaultProxyFor =
     memoize
@@ -2233,7 +2196,6 @@ let getDefaultProxyFor =
 [<Test>]
 let ``backslashes in strings prior to hash directives should not affect token parsing of those directives, 1205`` () =
     formatSourceString
-        false
         """
 let loadFile n =
   let file =
@@ -2282,7 +2244,6 @@ let loader (projectRoot: string) (siteContent: SiteContents) =
 [<Test>]
 let ``directive above SynExpr.Do, 1333`` () =
     formatSourceString
-        false
         """
 [<AutoOpen>]
 module ReactHookExtensions =
@@ -2445,7 +2406,6 @@ let ``hash nested in multiline block comment`` () =
 [<Test>]
 let ``empty hash directive block should not make expression multiline`` () =
     formatSourceString
-        false
         """
     do
 #if FOOBAR
@@ -2475,7 +2435,6 @@ do
 [<Test>]
 let ``comment after compiler define`` () =
     formatSourceString
-        false
         """
 #if EXTENDED_EXTENSION_MEMBERS // indicates if extension members can add additional constraints to type parameters
     let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy = FreshenTyconRef m (if isExtrinsic then TyparRigidity.Flexible else rigid) tcref declaredTyconTypars
@@ -2508,7 +2467,6 @@ let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy =
 [<Test>]
 let ``content after #else and #endif, 2293`` () =
     formatSourceString
-        false
         """
 #if FOO
 #else // xxx
@@ -2527,7 +2485,6 @@ let ``content after #else and #endif, 2293`` () =
 [<Test>]
 let ``defines as trivia for SynExpr.TypeApp, 1543`` () =
     formatSourceString
-        false
         """
 let inputFileFlagsFsiBase (_tcConfigB: TcConfigBuilder) =
 #if NETSTANDARD
@@ -2558,7 +2515,6 @@ let inputFileFlagsFsiBase (_tcConfigB: TcConfigBuilder) =
 [<Test>]
 let ``define before opening bracket of array, 1597`` () =
     formatSourceString
-        false
         """
     let Environment = { new IEnvironment with
         member _.IsWindows() =
@@ -2606,7 +2562,6 @@ let Environment =
 [<Test>]
 let ``hash directive above recursive let binding inside type definition, 1776`` () =
     formatSourceString
-        false
         """
     type ObjectGraphFormatter(opts: FormatOptions, bindingFlags) =
         let rec nestedObjL depthLim prec (x:obj, ty:Type) =
@@ -2644,7 +2599,6 @@ type ObjectGraphFormatter(opts: FormatOptions, bindingFlags) =
 [<Test>]
 let ``verbatim string is ignore for hash directive scan,  1794`` () =
     formatSourceString
-        false
         """
 let ProgramFilesX86 =
     match wow64, globalArch with
@@ -2695,7 +2649,6 @@ let isUnix =
 [<Test>]
 let ``indented #if directive inside another non-indented #if directive should format correctly, 1866`` () =
     formatSourceString
-        false
         """
 #if FOO
     #if BAR
@@ -2716,7 +2669,6 @@ let ``indented #if directive inside another non-indented #if directive should fo
 [<Test>]
 let ``double try-with, inner #if directive should not throw error, 1969`` () =
     formatSourceString
-        false
         """
 try
     try
@@ -2749,7 +2701,6 @@ with _ ->
 [<Test>]
 let ``should handle #if with boolean constant`` () =
     formatSourceString
-        false
         """
 #if false
 let x = 1
@@ -2771,8 +2722,7 @@ let x = 1
 
 [<Test>]
 let ``type definition in signature file wrapped with hash directives, 1115`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace X
 
@@ -2799,8 +2749,7 @@ type ResolvedExtensionReference =
 
 [<Test>]
 let ``using a compiler directive should not copy the previous line in fsi files, 1186`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Foo
 
@@ -2829,7 +2778,6 @@ val y: int
 [<Test>]
 let ``content of #if block should not get removed, 801`` () =
     formatSourceString
-        false
         """
 #if !COMPILED
 
@@ -2967,7 +2915,6 @@ b
 [<Test>]
 let ``defines around selfIdentifier in implicit type constructor, 2733`` () =
     formatSourceString
-        false
         """
 type internal CompilerStateCache(readAllBytes: string -> byte[], projectOptions: FSharpProjectOptions)
 #if !NO_TYPEPROVIDERS
@@ -2994,7 +2941,6 @@ type internal CompilerStateCache(readAllBytes: string -> byte[], projectOptions:
 [<Test>]
 let ``duplicated trivia printing in ExprAppLongIdentAndSingleParenArgNode, 2822`` () =
     formatSourceString
-        false
         """
 fun config ->
 #if LOGGING_DEBUG || LOGGING_LOCAL
@@ -3182,7 +3128,6 @@ fun config ->
 [<Test>]
 let ``incorrect indentation of compiler-conditional accessibility modifier for module definition, 2867`` () =
     formatSourceString
-        false
         """
 module
 #if DEBUG
@@ -3262,7 +3207,6 @@ module
 [<Test>]
 let ``conditional directives around last tuple pattern, 2877`` () =
     formatSourceString
-        false
         """
 // Link all the assemblies together and produce the input typecheck accumulator
 let CombineImportedAssembliesTask

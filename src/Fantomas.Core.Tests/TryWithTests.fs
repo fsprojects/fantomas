@@ -9,7 +9,6 @@ let ``try-with expression with long when guard - when breaking line, add a doubl
     ()
     =
     formatSourceString
-        false
         """
 try
   c ()

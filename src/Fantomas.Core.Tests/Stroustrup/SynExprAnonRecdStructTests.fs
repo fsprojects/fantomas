@@ -12,7 +12,6 @@ let config =
 [<Test>]
 let ``anonymous struct record with trivia`` () =
     formatSourceString
-        false
         """
 struct // 1
     {| // 2

@@ -6,7 +6,7 @@ open Fantomas.Core.Tests.TestHelpers
 open Fantomas.Core
 
 let checkFormat config source expected =
-    formatSourceString false source config
+    formatSourceString source config
     |> prepend newline
     |> should equal expected
 

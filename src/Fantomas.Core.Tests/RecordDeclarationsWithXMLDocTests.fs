@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``each record field has xml comment`` () =
     formatSourceString
-        false
         """
 /// Represents additional information for SynExpr.TryWith
 [<NoEquality; NoComparison>]
@@ -49,8 +48,7 @@ type SynExprTryWithTrivia =
 
 [<Test>]
 let ``each record field has xml comment in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 /// Represents additional information for SynExpr.TryWith
 [<NoEquality; NoComparison>]
@@ -93,7 +91,6 @@ type SynExprTryWithTrivia =
 [<Test>]
 let ``a single record field has xml doc comment`` () =
     formatSourceString
-        false
         """
 type SynExprTryWithTrivia =
     { TryKeyword: range
@@ -119,8 +116,7 @@ type SynExprTryWithTrivia =
 
 [<Test>]
 let ``a single record field has xml doc comment in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 type SynExprTryWithTrivia =
     { TryKeyword: range
@@ -147,7 +143,6 @@ type SynExprTryWithTrivia =
 [<Test>]
 let ``no xml docs, should be cramped style`` () =
     formatSourceString
-        false
         """
 type SynExprTryWithTrivia =
     {
@@ -171,8 +166,7 @@ type SynExprTryWithTrivia =
 
 [<Test>]
 let ``no xml docs, should be cramped style in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 type SynExprTryWithTrivia =
     {

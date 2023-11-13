@@ -12,7 +12,6 @@ let config =
 [<Test>]
 let ``input without attributes`` () =
     formatSourceString
-        false
         """let i = input []
 """
         config
@@ -26,7 +25,6 @@ let i = input []
 [<Test>]
 let ``short input with single attribute`` () =
     formatSourceString
-        false
         """let i = input [ Type "text" ]
 """
         config
@@ -40,7 +38,6 @@ let i = input [ Type "text" ]
 [<Test>]
 let ``multiline input with multiple attributes`` () =
     formatSourceString
-        false
         """let i = input [ Type "text"; Required "required" ]
 """
         { config with MaxArrayOrListWidth = 20 }
@@ -58,7 +55,6 @@ let i =
 [<Test>]
 let ``div without children or attributes`` () =
     formatSourceString
-        false
         """let d = div [] []
 """
         config
@@ -72,7 +68,6 @@ let d = div [] []
 [<Test>]
 let ``div with short attributes`` () =
     formatSourceString
-        false
         """let d = div [ ClassName "mt-4" ] []
 """
         config
@@ -86,7 +81,6 @@ let d = div [ ClassName "mt-4" ] []
 [<Test>]
 let ``div with no attributes and short children`` () =
     formatSourceString
-        false
         """let d = div [] [ str "meh" ]
 """
         config
@@ -100,7 +94,6 @@ let d = div [] [ str "meh" ]
 [<Test>]
 let ``div with multiline attributes`` () =
     formatSourceString
-        false
         """let d = div [ ClassName "container"; OnClick (fun _ -> printfn "meh")  ] []
 """
         { config with MaxArrayOrListWidth = 40 }
@@ -118,7 +111,6 @@ let d =
 [<Test>]
 let ``div with not attributes and multiple elmish children`` () =
     formatSourceString
-        false
         """let d =
     div [] [
       span [] [ str "a" ]
@@ -140,7 +132,6 @@ let d =
 [<Test>]
 let ``div with single attribute and children`` () =
     formatSourceString
-        false
         """let view =
     div [ ClassName "container" ] [
         h1 [] [ str "A heading 1" ]
@@ -162,7 +153,6 @@ let view =
 [<Test>]
 let ``div with multiple attributes and children`` () =
     formatSourceString
-        false
         """
 let d =
     div [ ClassName "container"; OnClick (fun _ -> printfn "meh") ] [
@@ -188,7 +178,6 @@ let d =
 [<Test>]
 let ``short div with short p`` () =
     formatSourceString
-        false
         """let d =
     div [] [ p [] [ str "meh" ] ]
 """
@@ -203,7 +192,6 @@ let d = div [] [ p [] [ str "meh" ] ]
 [<Test>]
 let ``short div with multiple short children`` () =
     formatSourceString
-        false
         """let d =
     div [] [
       br [] ; br []
@@ -220,7 +208,6 @@ let d = div [] [ br []; br [] ]
 [<Test>]
 let ``div with long children but a long setting`` () =
     formatSourceString
-        false
         """let d =
     div [] [
         p [] [ str "fooooooooo" ]
@@ -242,7 +229,6 @@ let d = div [] [ p [] [ str "fooooooooo" ]; p [] [ str "baaaaaaaar" ] ]
 [<Test>]
 let ``short div with slightly longer p`` () =
     formatSourceString
-        false
         """let d =
     div [] [ p [] [ str "meeeeeeeeeeeeeeeeeeeeeh" ] ]
 """
@@ -260,7 +246,6 @@ let d =
 [<Test>]
 let ``div with longer p`` () =
     formatSourceString
-        false
         """let d =
     div [] [ p [] [ str "meeeeeeeeeeeeeeeeeeeeehhhh" ] ]
 """
@@ -278,7 +263,6 @@ let d =
 [<Test>]
 let counter () =
     formatSourceString
-        false
         """
 let view model dispatch =
   div [] [
@@ -309,7 +293,6 @@ let view model dispatch =
 [<Test>]
 let ``view entry`` () =
     formatSourceString
-        false
         """
 let viewEntry todo dispatch =
   li [ classList [ ("completed", todo.completed); ("editing", todo.editing) ] ]
@@ -379,7 +362,6 @@ let viewEntry todo dispatch =
 [<Test>]
 let ``multiline attributes, no children`` () =
     formatSourceString
-        false
         """let a =
                button [ ClassName "destroy"
                         OnClick(fun _-> Delete todo.id |> dispatch) ]
@@ -400,7 +382,6 @@ let a =
 [<Test>]
 let ``table and tbody`` () =
     formatSourceString
-        false
         """
 table [ ClassName "table table-striped table-hover mb-0" ]
               [ tbody []
@@ -438,7 +419,6 @@ table [
 [<Test>]
 let ``child with empty children`` () =
     formatSourceString
-        false
         """
 let commands dispatch =
     Button.button
@@ -470,7 +450,6 @@ let commands dispatch =
 [<Test>]
 let ``clock with two spaces`` () =
     formatSourceString
-        false
         """
 let view (CurrentTime time) dispatch =
     svg
@@ -542,7 +521,6 @@ let view (CurrentTime time) dispatch =
 [<Test>]
 let ``input with attribute array`` () =
     formatSourceString
-        false
         """let ia = input [| Type "hidden"; Name "code"; Required "required" |]
 """
         { config with MaxArrayOrListWidth = 50 }
@@ -561,7 +539,6 @@ let ia =
 [<Test>]
 let ``div with children array`` () =
     formatSourceString
-        false
         """let d =
     div [||] [| p [||] [| str "oh my foobar" |] |]
 """
@@ -579,7 +556,6 @@ let d =
 [<Test>]
 let ``mix lists and array`` () =
     formatSourceString
-        false
         """let view dispatch model =
     div [| Class "container" |]
         [
@@ -604,7 +580,6 @@ let view dispatch model =
 [<Test>]
 let ``short feliz element`` () =
     formatSourceString
-        false
         """let a =
     Html.h1 [ prop.text "some title" ]
 """
@@ -619,7 +594,6 @@ let a = Html.h1 [ prop.text "some title" ]
 [<Test>]
 let ``multiline feliz element`` () =
     formatSourceString
-        false
         """let a =
         Html.button [
             prop.style [ style.marginLeft 5 ]
@@ -643,7 +617,6 @@ let a =
 [<Test>]
 let ``nested feliz elements`` () =
     formatSourceString
-        false
         """let a =
     Html.div [
         Html.h1 [ prop.text "short" ]
@@ -673,7 +646,6 @@ let a =
 [<Test>]
 let ``feliz counter sample`` () =
     formatSourceString
-        false
         """module App
 
 open Feliz
@@ -737,7 +709,6 @@ ReactDOM.render (counter, document.getElementById "root")
 [<Test>]
 let ``feliz syntax`` () =
     formatSourceString
-        false
         """
 Html.h1 42
 
@@ -772,7 +743,6 @@ Html.ul [
 [<Test>]
 let ``feliz construct with a single element as child, 999`` () =
     formatSourceString
-        false
         """
 let drawer =
     Mui.drawer [
@@ -828,7 +798,6 @@ let drawer =
 [<Test>]
 let ``react hook`` () =
     formatSourceString
-        false
         """
 let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
     let id = Guid.Parse(id)
@@ -914,7 +883,6 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
 [<Test>]
 let ``keep comment after closing bracket, 1089`` () =
     formatSourceString
-        false
         """
         Gen.frequency [ 8,
                         2,
@@ -943,7 +911,6 @@ Gen.frequency [
 [<Test>]
 let ``keep comment after closing bracket, single web mode`` () =
     formatSourceString
-        false
         """
         Gen.frequency [ 8,
                         2,
@@ -972,7 +939,6 @@ Gen.frequency [
 [<Test>]
 let ``don't repeat comment in nested Elmish element, 1347`` () =
     formatSourceString
-        false
         """
 let html =
     Html.div [
@@ -1019,7 +985,6 @@ let html =
 [<Test>]
 let ``don't repeat comment in nested Elmish element, single element mode`` () =
     formatSourceString
-        false
         """
 let html =
     Html.div [
@@ -1066,7 +1031,6 @@ let html =
 [<Test>]
 let ``don't repeat comment in nested Elmish element, short block comment`` () =
     formatSourceString
-        false
         """
 let html =
     Html.div [
@@ -1107,7 +1071,6 @@ let html =
 [<Test>]
 let ``empty single list long expression, 1510`` () =
     formatSourceString
-        false
         """
 [<ReactComponent>]
 let Dashboard () =
@@ -1140,7 +1103,6 @@ let Dashboard () =
 [<Test>]
 let ``block comment in elmish expression with two lists, 1601`` () =
     formatSourceString
-        false
         """
 module CapitalGuardian.App
 
@@ -1197,7 +1159,6 @@ exportDefault App
 [<Test>]
 let ``block comment in elmish expression with two lists, two children`` () =
     formatSourceString
-        false
         """
 module CapitalGuardian.App
 
@@ -1256,7 +1217,6 @@ exportDefault App
 [<Test>]
 let ``comment inside empty elmish children, 1179`` () =
     formatSourceString
-        false
         """
 a [] [
     // def
@@ -1275,7 +1235,6 @@ a [] [
 [<Test>]
 let ``comment after opening bracket in Elmish expression without children, 2037`` () =
     formatSourceString
-        false
         """
 ReactDom.render (React.strictMode [ // comment 
                                     App() ], root)
@@ -1296,7 +1255,6 @@ ReactDom.render (
 [<Test>]
 let ``record type definition and elmish dsl are controlled separately`` () =
     formatSourceString
-        false
         """
 type Point =
     {
@@ -1363,7 +1321,6 @@ let stillCramped =
 [<Test>]
 let ``fsharp_multiline_bracket_style = stroustrup also applies for applications that ends with list arguments`` () =
     formatSourceString
-        false
         """
 type Point =
     {

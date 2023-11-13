@@ -8,7 +8,6 @@ open Fantomas.Core
 [<Test>]
 let ``if/then/else block`` () =
     formatSourceString
-        false
         """
 let rec tryFindMatch pred list =
     match list with
@@ -49,7 +48,6 @@ if age < 10 then
 [<Test>]
 let ``for loops`` () =
     formatSourceString
-        false
         """
     let function1() =
         for i = 1 to 10 do
@@ -81,7 +79,6 @@ let function2 () =
 [<Test>]
 let ``while loop`` () =
     formatSourceString
-        false
         """
 open System
 let lookForValue value maxValue =
@@ -119,7 +116,6 @@ lookForValue 10 20
 [<Test>]
 let ``while bang`` () =
     formatSourceString
-        false
         """
 let goThroughFsharpTicketsAsync() = task {
     let mutable ticketNumber = 1
@@ -151,7 +147,6 @@ let goThroughFsharpTicketsAsync () =
 [<Test>]
 let ``try/with block`` () =
     formatSourceString
-        false
         """
 let divide1 x y =
    try
@@ -179,7 +174,6 @@ let result1 = divide1 100 0
 [<Test>]
 let ``try/with and finally`` () =
     formatSourceString
-        false
         """
     let function1 x y =
        try
@@ -214,7 +208,6 @@ let function1 x y =
 [<Test>]
 let ``range expressions`` () =
     formatSourceString
-        false
         """
     let function2() =
       for i in 1 .. 2 .. 10 do
@@ -239,7 +232,6 @@ function2 ()
 [<Test>]
 let ``use binding`` () =
     formatSourceString
-        false
         """
     let writetofile filename obj =
      use file1 = File.CreateText(filename)
@@ -258,7 +250,6 @@ let writetofile filename obj =
 [<Test>]
 let ``access modifiers`` () =
     formatSourceString
-        false
         """
     let private myPrivateObj = new MyPrivateType()
     let internal myInternalObj = new MyInternalType()"""
@@ -274,7 +265,6 @@ let internal myInternalObj = new MyInternalType()
 [<Test>]
 let ``keyworded expressions`` () =
     formatSourceString
-        false
         """
     assert (3 > 2)
     let result = lazy (x + 10)
@@ -293,7 +283,6 @@ do printfn "Hello world"
 [<Test>]
 let ``should break lines on multiline if conditions`` () =
     formatSourceString
-        false
         """
 let x =
     if try
@@ -323,7 +312,6 @@ let x =
 [<Test>]
 let ``try finally in if expression`` () =
     formatSourceString
-        false
         """
 let y =
     if  try true
@@ -353,7 +341,6 @@ let y =
 [<Test>]
 let ``should not escape some specific keywords`` () =
     formatSourceString
-        false
         """
 base.Initializer()
 global.Test()
@@ -370,7 +357,6 @@ global.Test()
 [<Test>]
 let ``should handle delimiters before comments`` () =
     formatSourceString
-        false
         """
 let handle =
     if n<weakThreshhold then
@@ -395,7 +381,6 @@ let handle =
 [<Test>]
 let ``should handle infix operators in pattern matching`` () =
     formatSourceString
-        false
         """
 let url =
   match x with
@@ -418,7 +403,6 @@ let url =
 [<Test>]
 let ``if/elif without else`` () =
     formatSourceString
-        false
         """
 if true then ()
 elif true then ()
@@ -435,7 +419,6 @@ elif true then ()
 [<Test>]
 let ``multiline if in tuple`` () =
     formatSourceString
-        false
         """
 (if true then 1 else 2
  ,3)
@@ -452,7 +435,6 @@ let ``multiline if in tuple`` () =
 [<Test>]
 let ``else branch should be on newline in case if branch is long`` () =
     formatSourceString
-        false
         """
 if cond then
     match foo with
@@ -476,7 +458,6 @@ else
 [<Test>]
 let ``if branch should be on newline in case else branch is long`` () =
     formatSourceString
-        false
         """
 if not cond then
     ()
@@ -501,7 +482,6 @@ else
 [<Test>]
 let ``elif branch should on newline if else branch is long`` () =
     formatSourceString
-        false
         """
 if not cond then
     ()
@@ -529,7 +509,6 @@ else
 [<Test>]
 let ``multiline elif branch should result in newline for if and else`` () =
     formatSourceString
-        false
         """
 if foo then ()
 elif bar then
@@ -556,7 +535,6 @@ else
 [<Test>]
 let ``else keyword should be on separate line, #483`` () =
     formatSourceString
-        false
         """  if i.OpCode = OpCodes.Switch then
     AccumulateSwitchTargets i targets
     c
@@ -580,7 +558,6 @@ else
 [<Test>]
 let ``relaxation in for loops`` () =
     formatSourceString
-        false
         """
 for _ in 1..10 do ()
 """
@@ -596,7 +573,6 @@ for _ in 1..10 do
 [<Test>]
 let ``if elif if with trivia doesn't glitch elif conditional`` () =
     formatSourceString
-        false
         """
 let a ex =
     if null = ex then
@@ -627,7 +603,6 @@ let a ex =
 [<Test>]
 let ``print trivia for SynExpr.Assert, 1071`` () =
     formatSourceString
-        false
         """
 let genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
     match b1, b2 with
@@ -692,7 +667,6 @@ let genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
 [<Test>]
 let ``preserve new line before while loop, 1072`` () =
     formatSourceString
-        false
         """
 let internal coli f' (c: seq<'T>) f (ctx: Context) =
     let mutable tryPick = true
@@ -730,7 +704,6 @@ let internal coli f' (c: seq<'T>) f (ctx: Context) =
 [<Test>]
 let ``keep new line before for loop, 1317`` () =
     formatSourceString
-        false
         """
   /// Fold over the array passing the index and element at that index to a folding function
   let foldi (folder: 'State -> int -> 'T -> 'State) (state: 'State) (array: 'T[]) =
@@ -777,7 +750,6 @@ let foldi (folder: 'State -> int -> 'T -> 'State) (state: 'State) (array: 'T[]) 
 [<Test>]
 let ``try/with with multiple type checks, 1395`` () =
     formatSourceString
-        false
         """
 things
 |> Seq.map (fun a ->
@@ -806,7 +778,6 @@ things
 [<Test>]
 let ``try/with with named or pattern`` () =
     formatSourceString
-        false
         """
 things
 |> Seq.map (fun a ->
@@ -835,7 +806,6 @@ things
 [<Test>]
 let ``comment above pipe of try/with`` () =
     formatSourceString
-        false
         """
 try
     let defaultTime = (DateTime.FromFileTimeUtc 0L).ToLocalTime ()
@@ -861,7 +831,6 @@ with
 [<Test>]
 let ``comment above pipe of try/with named clause, 1686`` () =
     formatSourceString
-        false
         """
 namespace Foo
 
@@ -896,7 +865,6 @@ module Foo =
 [<Test>]
 let ``respect IndentOnTryWith setting when there is trivia before SynMatchClause_Clause, 1647`` () =
     formatSourceString
-        false
         """
 module Foo =
     let blah () =
@@ -967,7 +935,6 @@ module Foo =
 [<Test>]
 let ``short catch clause in try/with should not have pipe, 1571`` () =
     formatSourceString
-        false
         """
 try
     ()
@@ -989,7 +956,6 @@ with exc ->
 [<Test>]
 let ``try/with in infix expression should be indented, 1746`` () =
     formatSourceString
-        false
         """
     let isAbstractNonVirtualMember (m: FSharpMemberOrFunctionOrValue) =
       // is an abstract member
@@ -1020,7 +986,6 @@ let isAbstractNonVirtualMember (m: FSharpMemberOrFunctionOrValue) =
 [<Test>]
 let ``try/with with a single clause, 1881`` () =
     formatSourceString
-        false
         """
 // OK
 try

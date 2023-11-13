@@ -8,7 +8,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``should keep the = on the same line in record def`` () =
     formatSourceString
-        false
         """type UnionTypeConverter() =
     inherit JsonConverter()
     let doRead(reader : JsonReader) = reader.Read() |> ignore
@@ -36,7 +35,6 @@ let ``should keep the = on the same line in record def`` () =
 [<Test>]
 let ``should keep the = on the same line`` () =
     formatSourceString
-        false
         """trimSpecialChars(controller.ServerName.ToUpper()) = trimSpecialChars(serverFilter.ToUpper())
     """
         config

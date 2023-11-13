@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``open type in implementation`` () =
     formatSourceString
-        false
         """
 open type System.Math
 
@@ -48,8 +47,7 @@ printfn "%A" A
 
 [<Test>]
 let ``open type in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace MySigFile
 
@@ -68,7 +66,6 @@ open type System.Math
 [<Test>]
 let ``trivia before open type inside open list, 2704`` () =
     formatSourceString
-        false
         """
 namespace CounterApp
 

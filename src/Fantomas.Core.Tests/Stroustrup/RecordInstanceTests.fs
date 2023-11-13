@@ -12,7 +12,6 @@ let config =
 [<Test>]
 let ``multiline field body expression where indent_size = 2`` () =
     formatSourceString
-        false
         """
 let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
     let range =

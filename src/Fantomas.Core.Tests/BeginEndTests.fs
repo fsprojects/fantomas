@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``detect begin end from SynExpr.Paren, 2368`` () =
     formatSourceString
-        false
         """
 do
     begin 1 end
@@ -23,7 +22,6 @@ do begin 1 end
 [<Test>]
 let ``multiline begin end in expression`` () =
     formatSourceString
-        false
         """
 do
     let a = 1

@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``single DU without fields`` () =
     formatSourceString
-        false
         """
 type A = | A
 """
@@ -28,7 +27,6 @@ type A = | A
 [<Test>]
 let ``single DU with fields`` () =
     formatSourceString
-        false
         """
 type A = | A of int
 """
@@ -43,7 +41,6 @@ type A = | A of int
 [<Test>]
 let ``single DU with access modifier`` () =
     formatSourceString
-        false
         """
 type Foo =  private | Foo of int
 """
@@ -58,7 +55,6 @@ type Foo = private | Foo of int
 [<Test>]
 let ``multiline DU case`` () =
     formatSourceString
-        false
         """
 [<NoEquality; NoComparison>]
 type SynBinding =
@@ -100,8 +96,7 @@ type SynBinding =
 
 [<Test>]
 let ``in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace meh
 
 type Foo = | Bar of int
@@ -117,7 +112,6 @@ type Foo = | Bar of int
 [<Test>]
 let ``exception type does not have bar`` () =
     formatSourceString
-        false
         """
 exception LoadedSourceNotFoundIgnoring of string * range (*filename*)
 """
@@ -132,7 +126,6 @@ exception LoadedSourceNotFoundIgnoring of string * range (*filename*)
 [<Test>]
 let ``attribute before single case`` () =
     formatSourceString
-        false
         """
 type Foo =   | [<SomeAttributeHere>] Foo of int
 """

@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``embedded IL`` () =
     formatSourceString
-        false
         """
 let inline private retype<'T, 'U> (x : 'T) : 'U = (# "" x : 'U #)"""
         config
@@ -21,7 +20,6 @@ let inline private retype<'T, 'U> (x: 'T) : 'U = (# "" x : 'U #)
 [<Test>]
 let ``don't add whitespace in chained accessors, 566`` () =
     formatSourceString
-        false
         """
 type F =
   abstract G : int list -> Map<int, int>

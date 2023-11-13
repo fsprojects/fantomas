@@ -19,7 +19,6 @@ let config =
 [<Test>]
 let ``synMatchClause in match expression with record instance `` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -44,7 +43,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with update record`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -66,7 +64,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with anonymous record instance`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -91,7 +88,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -117,7 +113,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with computation expression`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -142,7 +137,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with list`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -171,7 +165,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with array`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->

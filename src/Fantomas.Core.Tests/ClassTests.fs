@@ -7,8 +7,7 @@ open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``class signatures`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module Heap
 
@@ -46,7 +45,6 @@ type Heap<'T when 'T: comparison> =
 [<Test>]
 let ``type constraints complex`` () =
     formatSourceString
-        false
         """
 type Class4<'T when 'T : (static member staticMethod1 : unit -> 'T) > =
     class end
@@ -78,7 +76,6 @@ type Class7<'T when 'T: (new: unit -> 'T)>() =
 [<Test>]
 let ``abstract classes`` () =
     formatSourceString
-        false
         """
 [<AbstractClass>]
 type Shape2D(x0 : float, y0 : float) =
@@ -133,7 +130,6 @@ type Shape2D(x0: float, y0: float) =
 [<Test>]
 let ``abstract member declaration`` () =
     formatSourceString
-        false
         """
 type A =
     abstract B: ?p1:(float * int) -> unit
@@ -162,7 +158,6 @@ type A =
 [<Test>]
 let ``class declaration`` () =
     formatSourceString
-        false
         """
 type BaseClass = class
     val string1 : string
@@ -197,7 +192,6 @@ type DerivedClass =
 [<Test>]
 let ``classes and implicit constructors`` () =
     formatSourceString
-        false
         """
     type MyClass2(dataIn) as self =
        let data = dataIn
@@ -219,7 +213,6 @@ type MyClass2(dataIn) as self =
 [<Test>]
 let ``classes and private implicit constructors`` () =
     formatSourceString
-        false
         """
     type MyClass2 private (dataIn) as self =
        let data = dataIn
@@ -241,7 +234,6 @@ type MyClass2 private (dataIn) as self =
 [<Test>]
 let ``recursive classes`` () =
     formatSourceString
-        false
         """
 type Folder(pathIn: string) =
   let path = pathIn
@@ -270,7 +262,6 @@ and File(filename: string, containingFolder: Folder) =
 [<Test>]
 let ``classes and inheritance`` () =
     formatSourceString
-        false
         """
 type MyClassBase2(x: int) =
    let mutable z = x * x
@@ -302,7 +293,6 @@ type MyClassDerived2(y: int) =
 [<Test>]
 let ``should keep parens in class definition in the right place`` () =
     formatSourceString
-        false
         """type DGMLClass() = class
     let mutable currentState = System.String.Empty
     end
@@ -319,7 +309,6 @@ let ``should keep parens in class definition in the right place`` () =
 [<Test>]
 let ``should keep parens in class inheritance in the right place`` () =
     formatSourceString
-        false
         """type StateMachine(makeAsync) as this = class
     inherit DGMLClass()
 
@@ -340,7 +329,6 @@ let ``should keep parens in class inheritance in the right place`` () =
 [<Test>]
 let ``should keep type annotations on auto properties`` () =
     formatSourceString
-        false
         """type Document(id : string, library : string, name : string option) =
     member val ID = id
     member val Library = library
@@ -360,7 +348,6 @@ let ``should keep type annotations on auto properties`` () =
 [<Test>]
 let ``should work on static auto properties`` () =
     formatSourceString
-        false
         """type A() =
     static member val LastSchema = "" with get, set
 """
@@ -374,7 +361,6 @@ let ``should work on static auto properties`` () =
 [<Test>]
 let ``member properties with type annotation`` () =
     formatSourceString
-        false
         """type A() =
     member this.X with get():int = 1
     member this.Y with get():int = 1 and set (_:int):unit = ()
@@ -398,7 +384,6 @@ let ``member properties with type annotation`` () =
 [<Test>]
 let ``class augmentation`` () =
     formatSourceString
-        false
         """
 type A () =
     let foo = () with
@@ -419,7 +404,6 @@ type A() =
 [<Test>]
 let ``class inherit and augmentation`` () =
     formatSourceString
-        false
         """
 type A () =
     inherit B() with
@@ -440,7 +424,6 @@ type A() =
 [<Test>]
 let ``property long line`` () =
     formatSourceString
-        false
         """type T() =
     member __.Property = "hello"
 let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x:T) = x
@@ -475,7 +458,6 @@ System.String.Concat(
 [<Test>]
 let ``indexed get long line`` () =
     formatSourceString
-        false
         """open System
 type Exception with
     member inline __.FirstLine =
@@ -495,7 +477,6 @@ type Exception with
 [<Test>]
 let ``no extra new lines between interface members, 569`` () =
     formatSourceString
-        false
         """
 namespace Quartz.Fsharp
 
@@ -572,7 +553,6 @@ module Logging =
 [<Test>]
 let ``no extra new lines between type members, 569`` () =
     formatSourceString
-        false
         """
 type A() =
 
@@ -599,7 +579,6 @@ type A() =
 [<Test>]
 let ``no extra new line before nested module with attribute, 586`` () =
     formatSourceString
-        false
         """
 module A =
     let x = 0
@@ -624,7 +603,6 @@ module A =
 [<Test>]
 let ``no extra new line before abstract member with attribute, 586`` () =
     formatSourceString
-        false
         """
 type A =
 
@@ -649,7 +627,6 @@ type A =
 [<Test>]
 let ``no extra new line between abstract members with attribute, 586`` () =
     formatSourceString
-        false
         """
 type A =
 
@@ -676,7 +653,6 @@ type A =
 [<Test>]
 let ``string parameter to inherited class, 720`` () =
     formatSourceString
-        false
         """type Child() =
   inherit Parent ""
 """
@@ -692,7 +668,6 @@ type Child() =
 [<Test>]
 let ``float parameter to inherited class`` () =
     formatSourceString
-        false
         """type Child() =
   inherit Parent 7.9
 """
@@ -708,7 +683,6 @@ type Child() =
 [<Test>]
 let ``unit parameter to inherited class`` () =
     formatSourceString
-        false
         """type Child() =
   inherit Parent ()
 """
@@ -724,7 +698,6 @@ type Child() =
 [<Test>]
 let ``multiline string inside constructor, 1055`` () =
     formatSourceString
-        false
         "
 module Fantomas.Tests.ConfigTests
 
@@ -805,7 +778,6 @@ indent_size=2
 [<Test>]
 let ``keep abstract member keywords, 1106`` () =
     formatSourceString
-        false
         """
 module Example
 
@@ -826,7 +798,6 @@ type Foo =
 [<Test>]
 let ``multiline constructor in class, 1359`` () =
     formatSourceString
-        false
         """
 type SomeVeryLongTypeNameWithConstructor
     (
@@ -854,7 +825,6 @@ type SomeVeryLongTypeNameWithConstructor
 [<Test>]
 let ``long type generic type constraints with unit constructors, 1494`` () =
     formatSourceString
-        false
         """
 type ISingleExpressionValue<'p, 'o, 'v when 'p :> IProperty and 'o :> IOperator and 'p: equality and 'o: equality and 'v: equality> () =
     abstract Property: 'p
@@ -876,7 +846,6 @@ type ISingleExpressionValue<'p, 'o, 'v
 [<Test>]
 let ``comment before multiline class member`` () =
     formatSourceString
-        false
         """
 type MaybeBuilder () =
     member inline __.Bind
@@ -902,7 +871,6 @@ type MaybeBuilder() =
 [<Test>]
 let ``define hashes around member binding, 1753`` () =
     formatSourceString
-        false
         """
 [<Sealed>]
 type MaybeBuilder () =
@@ -938,7 +906,6 @@ type MaybeBuilder() =
 [<Test>]
 let ``avoid vanity alignment when calling base constructor, 1442`` () =
     formatSourceString
-        false
         """
 type public DerivedExceptionWithLongNaaaaaaaaameException (message: string,
                                                            code: int,
@@ -969,7 +936,6 @@ type public DerivedExceptionWithLongNaaaaaaaaameException
 [<Test>]
 let ``correct indentation when calling base constructor, 1942`` () =
     formatSourceString
-        false
         """
 type public DerivedExceptionWithLongNaaaaaaaaameException (message: string,
                                                            code: int,
@@ -1010,7 +976,6 @@ type public DerivedExceptionWithLongNaaaaaaaaameException
 [<Test>]
 let ``explicit class/end/with, 1940`` () =
     formatSourceString
-        false
         """
 type C() =
   class
@@ -1036,7 +1001,6 @@ type C() =
 [<Test>]
 let ``static member with get unit should be formatted the same as without, 1913`` () =
     formatSourceString
-        false
         """
 type Subject<'a> private () =
 
@@ -1073,7 +1037,6 @@ type Subject<'a> private () =
 [<Test>]
 let ``comments after equals sign in read/write property`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.MyReadWriteProperty
@@ -1098,7 +1061,6 @@ type Foo() =
 [<Test>]
 let ``preserve override keyword in read property, 2221`` () =
     formatSourceString
-        false
         """
 type StreamHelper() =
     inherit Stream()
@@ -1172,7 +1134,6 @@ type StreamHelper() =
 [<Test>]
 let ``trivia before and keyword in SynMemberDefn.GetSet, 2372`` () =
     formatSourceString
-        false
         """
 { new TaskDefinition with
     member this.Item
@@ -1207,7 +1168,6 @@ let ``trivia before and keyword in SynMemberDefn.GetSet, 2372`` () =
 [<Test>]
 let ``interface member with anonymous record as generic type, 2396`` () =
     formatSourceString
-        false
         """
 // ts2fable 0.8.0
 module rec Xterm
@@ -1236,7 +1196,6 @@ type Terminal =
 [<Test>]
 let ``trivia between xml document and abstract slot, 2433`` () =
     formatSourceString
-        false
         """
 type Foo =
     /// Bar
@@ -1257,7 +1216,6 @@ type Foo =
 [<Test>]
 let ``attribute on ExplicitCtor is lost, 2638`` () =
     formatSourceString
-        false
         """
 open System
 
@@ -1289,7 +1247,6 @@ type MyClass(a: int, b: int) =
 [<Test>]
 let ``access modifier on get unit property gets simplified, 2906`` () =
     formatSourceString
-        false
         """
 type X() =
     member private this.Y with get() = "meh"
@@ -1308,7 +1265,6 @@ type X() =
 [<Test>]
 let ``access modifier on set property, 2906`` () =
     formatSourceString
-        false
         """
 type X() =
     member private this.Y with set _ = ()
@@ -1326,7 +1282,6 @@ type X() =
 [<Test>]
 let ``inline keyword on property, 2908`` () =
     formatSourceString
-        false
         """
 module Meh
 
@@ -1351,7 +1306,6 @@ type Foo =
 [<Test>]
 let ``trivia above with get/set in autoproperty, 2948`` () =
     formatSourceString
-        false
         """
 module A
 

@@ -9,7 +9,10 @@ module String =
 
 val config: FormatConfig
 val newline: string
-val formatSourceString: isFsiFile: bool -> s: string -> config: FormatConfig -> string
+
+val formatSignatureString: (string -> FormatConfig -> string)
+val formatSourceString: (string -> FormatConfig -> string)
+
 /// The `source` will first be parsed to AST.
 val formatAST: isFsiFile: bool -> source: string -> config: FormatConfig -> string
 val formatSourceStringWithDefines: defines: string list -> s: string -> config: FormatConfig -> string

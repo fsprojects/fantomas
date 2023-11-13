@@ -8,7 +8,6 @@ open Fantomas.Core
 [<Test>]
 let ``two short let binding should not have extra newline`` () =
     formatSourceString
-        false
         """
 let a = 2
 let b =  3
@@ -25,7 +24,6 @@ let b = 3
 [<Test>]
 let ``three short let binding should not have extra newline`` () =
     formatSourceString
-        false
         """
 let a = 2
 let b =  3
@@ -44,7 +42,6 @@ let c = 4
 [<Test>]
 let ``two short expressions inside let binding`` () =
     formatSourceString
-        false
         """
 let b () =
     printfn "meh"
@@ -63,7 +60,6 @@ let b () =
 [<Test>]
 let ``short let binding followed by long let binding`` () =
     formatSourceString
-        false
         """
 let a =   9
 let b () =
@@ -85,7 +81,6 @@ let b () =
 [<Test>]
 let ``long let binding followed by short let binding`` () =
     formatSourceString
-        false
         """
 let b () =
     printfn "meh"
@@ -107,7 +102,6 @@ let a = 9
 [<Test>]
 let ``three long let bindings`` () =
     formatSourceString
-        false
         """
 let a =
     // some comment
@@ -143,7 +137,6 @@ let c () =
 [<Test>]
 let ``two short let bindings with existing newlines between`` () =
     formatSourceString
-        false
         """
 let a = 9
 
@@ -164,7 +157,6 @@ let x = 70
 [<Test>]
 let ``one let binding, newline, long let binding, newline, short let binding`` () =
     formatSourceString
-        false
         """
 let a =  0
 
@@ -191,7 +183,6 @@ let c = "a string for a change"
 [<Test>]
 let ``short let binding, two comments, short let binding`` () =
     formatSourceString
-        false
         """
 let a =  7.0
 // some comment
@@ -212,7 +203,6 @@ let b = 0.0908
 [<Test>]
 let ``multiline expression, newline, short expression, short expression`` () =
     formatSourceString
-        false
         """
 asyncResult {
       let job =
@@ -245,7 +235,6 @@ asyncResult {
 [<Test>]
 let ``inner comment should make item multiline`` () =
     formatSourceString
-        false
         """
     let a =
         // foo
@@ -267,7 +256,6 @@ return a
 [<Test>]
 let ``leading comment should not make item multiline`` () =
     formatSourceString
-        false
         """
 // You can also implement it via an object expression
 let md' =
@@ -287,7 +275,6 @@ printfn "DIM from C# but via Object Expression: %d" md'.Z
 [<Test>]
 let ``leading newline and comment should not make item multiline`` () =
     formatSourceString
-        false
         """
 printfn "DIM from C#: %d" md.Z
 
@@ -310,7 +297,6 @@ printfn "DIM from C# but via Object Expression: %d" md'.Z
 [<Test>]
 let ``multiple leading comments should keep short item short`` () =
     formatSourceString
-        false
         """
 // #if INTERACTIVE
 // #else
@@ -331,7 +317,6 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 [<Test>]
 let ``comment after let binding does not make it multiline`` () =
     formatSourceString
-        false
         """
 let a = 7
 let b = 8
@@ -350,7 +335,6 @@ let b = 8
 [<Test>]
 let ``existing blank line between multiline expressions`` () =
     formatSourceString
-        false
         """
 open Barry
 printFn ()
@@ -373,7 +357,6 @@ open Bar
 [<Test>]
 let ``items should be collected from nested let-or-use in sequentials`` () =
     formatSourceString
-        false
         """
 let blah<'a> config : Type =
 //#if DEBUG
@@ -409,7 +392,6 @@ let blah<'a> config : Type =
 [<Test>]
 let ``leading newline because of trivia does not item multiline, 1709`` () =
     formatSourceString
-        false
         """
 [<Fact>]
 let ``first lamba`` () =
@@ -444,7 +426,6 @@ let ``first lamba`` () =
 [<Test>]
 let ``leading multiline block comment followed by newline should not make item multiline, 1718`` () =
     formatSourceString
-        false
         """
 (*
     My personal favorite: Discriminated Unions!
@@ -475,7 +456,6 @@ type Money = Money of double
 [<Test>]
 let ``leading comment followed by newlines should not make item multiline`` () =
     formatSourceString
-        false
         """
 //
 
@@ -500,7 +480,6 @@ let b = p
 [<Test>]
 let ``define surrounded by newlines should not make item multiline`` () =
     formatSourceString
-        false
         """
 let a = p
 
@@ -529,7 +508,6 @@ let y = p
 [<Test>]
 let ``two short application followed by trailing block comment, 1538`` () =
     formatSourceString
-        false
         """
 printfn "%s" @"c:\def\ghi\jkl"
 printfn "%s" "c:\\def\\ghi\\jkl"

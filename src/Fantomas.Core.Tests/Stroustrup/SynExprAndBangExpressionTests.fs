@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``andBang with record instance`` () =
     formatSourceString
-        false
         """
 opt {
     let! abc = def ()
@@ -46,7 +45,6 @@ opt {
 [<Test>]
 let ``andBang with update record`` () =
     formatSourceString
-        false
         """
 opt {
     let! abc = def ()
@@ -80,7 +78,6 @@ opt {
 [<Test>]
 let ``andBang with anonymous record instance`` () =
     formatSourceString
-        false
         """
 opt {
     let! abc = def ()
@@ -113,7 +110,6 @@ opt {
 [<Test>]
 let ``andBang with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 opt {
     let! abc = def ()
@@ -146,7 +142,6 @@ opt {
 [<Test>]
 let ``andBang with list`` () =
     formatSourceString
-        false
         """
 collect {
     let! abc = def ()
@@ -182,7 +177,6 @@ collect {
 [<Test>]
 let ``andBang with array`` () =
     formatSourceString
-        false
         """
 collect {
     let! abc = def ()

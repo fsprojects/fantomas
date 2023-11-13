@@ -12,7 +12,6 @@ let beforeConfig =
 [<Test>]
 let ``space before attributelist`` () =
     formatSourceString
-        false
         """[<Foo;Bar;Meh>]
 let f a : int = 7"""
         beforeConfig
@@ -27,7 +26,6 @@ let f a : int = 7
 [<Test>]
 let ``space before array/list`` () =
     formatSourceString
-        false
         """let a = [ 1;2;3]
 let b = [|4;5;6|]
 """
@@ -43,7 +41,6 @@ let b = [| 4 ;5 ;6 |]
 [<Test>]
 let ``space before inherit expression`` () =
     formatSourceString
-        false
         """type MyExc =
     inherit Exception
     new(msg) = { inherit Exception(msg); X = 1; }
@@ -60,7 +57,7 @@ type MyExc =
 
 [<Test>]
 let ``space before member in anonymous record type alias`` () =
-    formatSourceString false "type Foo = {| Bar:int; Meh:string |}" beforeConfig
+    formatSourceString "type Foo = {| Bar:int; Meh:string |}" beforeConfig
     |> should
         equal
         "type Foo = {| Bar: int ;Meh: string |}
@@ -69,7 +66,6 @@ let ``space before member in anonymous record type alias`` () =
 [<Test>]
 let ``space before fields in destructured record`` () =
     formatSourceString
-        false
         """let IsMatchByName record1 (name: string) =
     match record1 with
     | { MyRecord.Name = nameFound; ID = _ } when nameFound = name -> true
@@ -93,7 +89,6 @@ let beforeAndAfterConfig =
 [<Test>]
 let ``space before and after attributelist`` () =
     formatSourceString
-        false
         """[<Foo;Bar;Meh>]
 let f a : int = 7"""
         beforeAndAfterConfig
@@ -108,7 +103,6 @@ let f a : int = 7
 [<Test>]
 let ``space before and after array/list`` () =
     formatSourceString
-        false
         """let a = [ 1;2;3]
 let b = [|4;5;6|]
 """
@@ -124,7 +118,6 @@ let b = [| 4 ; 5 ; 6 |]
 [<Test>]
 let ``space before and after inherit expression`` () =
     formatSourceString
-        false
         """type MyExc =
     inherit Exception
     new(msg) = { inherit Exception(msg); X = 1; }
@@ -141,7 +134,7 @@ type MyExc =
 
 [<Test>]
 let ``space before and after member in anonymous record type alias`` () =
-    formatSourceString false "type Foo = {| Bar:int; Meh:string |}" beforeAndAfterConfig
+    formatSourceString "type Foo = {| Bar:int; Meh:string |}" beforeAndAfterConfig
     |> should
         equal
         "type Foo = {| Bar: int ; Meh: string |}
@@ -150,7 +143,6 @@ let ``space before and after member in anonymous record type alias`` () =
 [<Test>]
 let ``space before and after fields in destructured record`` () =
     formatSourceString
-        false
         """let IsMatchByName record1 (name: string) =
     match record1 with
     | { MyRecord.Name = nameFound; ID = _ } when nameFound = name -> true

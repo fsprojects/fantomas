@@ -11,7 +11,6 @@ let config =
 [<Test>]
 let ``respect insert_final_newline = false`` () =
     formatSourceString
-        false
         """
 let a =    0
 """
@@ -21,7 +20,6 @@ let a =    0
 [<Test>]
 let ``respect insert_final_newline = false when last line contains trivia`` () =
     formatSourceString
-        false
         """
 let mode =
     #if DEBUG

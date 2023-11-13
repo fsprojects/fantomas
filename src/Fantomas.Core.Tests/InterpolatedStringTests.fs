@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``basic string interpolation`` () =
     formatSourceString
-        false
         """
 let text = "foo"
 let s = $"%s{text} bar"
@@ -24,7 +23,6 @@ let s = $"%s{text} bar"
 [<Test>]
 let ``modifiers before interpolation`` () =
     formatSourceString
-        false
         """
 let x = 1
 let pi = 3.1414
@@ -47,7 +45,6 @@ let s = $"I say {x} is one and %0.2f{pi} is pi and %10s{text} are dogs"
 [<Test>]
 let ``triple quote string interpolation`` () =
     formatSourceString
-        false
         "
 let text = \"foo\"
 let s = $\"\"\"%s{text} bar\"\"\"
@@ -96,7 +93,6 @@ $"%s{text} %i{bar} %f{meh}"
 [<Test>]
 let ``multiline expression in multiline string`` () =
     formatSourceString
-        false
         "
 let str =
     $\"\"\"
@@ -124,7 +120,6 @@ let str =
 [<Test>]
 let ``keep indentation in interpolation`` () =
     formatSourceString
-        false
         """
     $"abc {let x = 3
            x + x} def {let x = 4
@@ -143,7 +138,6 @@ $"abc {let x = 3
 [<Test>]
 let ``backslash in interpolation, issue 1344`` () =
     formatSourceString
-        false
         """
 $"\"{bar}\" {1} {2}"
 """
@@ -158,7 +152,6 @@ $"\"{bar}\" {1} {2}"
 [<Test>]
 let ``multiline string literal, issue 1451`` () =
     formatSourceString
-        false
         "
 $\"\"\"one: {1}<
 >two: {2}\"\"\"
@@ -175,7 +168,6 @@ $\"\"\"one: {1}<
 [<Test>]
 let ``prefix application, 1414`` () =
     formatSourceString
-        false
         """
 !- $".{s}"
 """
@@ -190,7 +182,6 @@ let ``prefix application, 1414`` () =
 [<Test>]
 let ``format in FillExpr, 1549`` () =
     formatSourceString
-        false
         """
 let percent =0.1548486
 
@@ -209,7 +200,6 @@ Console.WriteLine($"Formatted: {percent:p2}")
 [<Test>]
 let ``extra newlines in interpolated string, 1613`` () =
     formatSourceString
-        false
         "
 $\"\"\"
 {1}
@@ -248,7 +238,6 @@ $\"\"\"
 [<Test>]
 let ``verbatim interpolated strings, 1645 `` () =
     formatSourceString
-        false
         "
 let main _ =
     let oldId = 1
@@ -271,7 +260,6 @@ let main _ =
 [<Test>]
 let ``multiline expression should not receive any extra indentation, 1511`` () =
     formatSourceString
-        false
         """
 let storageConnection = $"DefaultEndpointsProtocol=https;AccountName=%s{storageAccount.Name};AccountKey=%s{storageAccountKey.Value}"
 
@@ -292,7 +280,6 @@ let serviceStorageConnection =
 [<Test>]
 let ``indentation inside try with is correct`` () =
     formatSourceString
-        false
         """
 $"
                     {
@@ -324,7 +311,6 @@ $"
 [<Test>]
 let ``construct url with Fable`` () =
     formatSourceString
-        false
         """
    let newUrl =
             $"{window.location.protocol}//{window.location.host}{ window.location.pathname}{newHash}?{``params``.ToString()}"
@@ -341,7 +327,6 @@ let newUrl =
 [<Test>]
 let ``multiline function application inside interpolated expression is printed as multiline`` () =
     formatSourceString
-        false
         """
 let foo = $"
 longLeadingStringPaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaart{bar.ToString(window.location.protocol,window.location.host,window.location.pathname,newHash,``params``)}
@@ -371,7 +356,7 @@ let ``very long triple-quoted strings do not cause the interpolated string activ
             1000
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n"
 
-    formatSourceString false $"let value = \"\"\"{loremIpsum}\"\"\"" config
+    formatSourceString $"let value = \"\"\"{loremIpsum}\"\"\"" config
     |> should
         equal
         $"let value =

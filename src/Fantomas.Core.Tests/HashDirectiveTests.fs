@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``should use verbatim strings on some hash directives`` () =
     formatSourceString
-        false
         """
     #r @"C:\foo\bar.dll"
     """
@@ -22,7 +21,6 @@ let ``should use verbatim strings on some hash directives`` () =
 [<Test>]
 let ``hash directives`` () =
     formatSourceString
-        false
         """
     #r "Fantomas.Tests.dll"
     #load "CodeFormatterTests.fs"
@@ -39,7 +37,6 @@ let ``hash directives`` () =
 [<Test>]
 let ``should support load directive multiple arguments`` () =
     formatSourceString
-        false
         """
     #load "A.fs" "B.fs"
     #load "C.fs"
@@ -58,7 +55,6 @@ let ``should support load directive multiple arguments`` () =
 [<Test>]
 let ``don't add extra new line before hash directive`` () =
     formatSourceString
-        false
         """
 module FantomasTools.Client.ASTViewer.Decoders
 
@@ -89,7 +85,6 @@ let decodeKeyValue: Decoder<obj> = fun _key jsonValue -> Ok jsonValue
 [<Test>]
 let ``#r "nuget:..." syntax`` () =
     formatSourceString
-        false
         """
 #r "nuget: Newtonsoft.Json"
 // Optionally, specify a version explicitly
@@ -120,7 +115,6 @@ printfn "%s" (JsonConvert.SerializeObject o)
 [<Test>]
 let ``don't print trivia of other hash directive, 1464`` () =
     formatSourceString
-        false
         """
 #r @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\5.0.2\Microsoft.Extensions.Hosting.dll"
 #r @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\5.0.2\Microsoft.Extensions.ObjectPool.dll"
@@ -142,8 +136,7 @@ let ``don't print trivia of other hash directive, 1464`` () =
 
 [<Test>]
 let ``trivia before hash directive in signature file, 2258`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 // Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 

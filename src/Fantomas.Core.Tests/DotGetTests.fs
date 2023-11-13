@@ -8,7 +8,6 @@ open Fantomas.Core
 [<Test>]
 let ``a TypeApp inside a DotGet should stay on the same line, 994`` () =
     formatSourceString
-        false
         """
 Microsoft.FSharp.Reflection.FSharpType.GetUnionCases(typeof<option<option<unit>>>.GetGenericTypeDefinition().MakeGenericType(t)).Assembly
 """
@@ -30,7 +29,6 @@ Microsoft.FSharp.Reflection.FSharpType
 [<Test>]
 let ``a DotGetApp inside a DotGet should stay on the same line, 1051`` () =
     formatSourceString
-        false
         """
 System.Diagnostics.FileVersionInfo.GetVersionInfo(
                System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion
@@ -54,7 +52,6 @@ System.Diagnostics.FileVersionInfo
 [<Test>]
 let ``split chained method call expression, 246`` () =
     formatSourceString
-        false
         """
         root.SetAttribute
           ("driverVersion",
@@ -85,7 +82,6 @@ root.SetAttribute(
 [<Test>]
 let ``keep parenthesis on same line as SynExpr.TypeApp`` () =
     formatSourceString
-        false
         """
 Equinox.EventStore.Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy).Resolve
 """
@@ -102,7 +98,6 @@ Equinox.EventStore
 [<Test>]
 let ``don't break line for generic function call, 1134`` () =
     formatSourceString
-        false
         """
 module Services =
     /// Builds a Stream Resolve function appropriate to the store being used
@@ -161,7 +156,6 @@ module Services =
 [<Test>]
 let ``long chained expression should be multiline, 501`` () =
     formatSourceString
-        false
         """
 module Program
 
@@ -216,7 +210,6 @@ let main args =
 [<Test>]
 let ``nested TypeApp inside DotGet`` () =
     formatSourceString
-        false
         """
 let job =
     JobBuilder
@@ -241,7 +234,6 @@ let job =
 [<Test>]
 let ``TypeApp at end of nested DotGet`` () =
     formatSourceString
-        false
         """
 let c =
       builder
@@ -264,7 +256,6 @@ let c =
 [<Test>]
 let ``inner SynExpr.LongIdent should also be split`` () =
     formatSourceString
-        false
         """
 let firstName =
     define
@@ -288,7 +279,6 @@ let firstName =
 [<Test>]
 let ``long ident with dots inside app inside dotget`` () =
     formatSourceString
-        false
         """
 Equinox.MemoryStore.Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
                     .Resolve
@@ -306,7 +296,6 @@ Equinox.MemoryStore
 [<Test>]
 let ``long ident with dots inside type app inside dotget`` () =
     formatSourceString
-        false
         """
                 Equinox.EventStore.Resolver<'event, 'state, _>(gateway,
                                                                codec,
@@ -329,7 +318,6 @@ Equinox.EventStore
 [<Test>]
 let ``lambda should have extra indent inside dotget`` () =
     formatSourceString
-        false
         """
 let getColl =
   define
@@ -355,7 +343,6 @@ let getColl =
 [<Test>]
 let ``dotget app lambda`` () =
     formatSourceString
-        false
         """
 let getColl =
     GetCollection(fun _ parser ->
@@ -414,7 +401,6 @@ let getColl4 =
 [<Test>]
 let ``comment between chained call`` () =
     formatSourceString
-        false
         """
 Log
     .Foo()
@@ -435,7 +421,6 @@ Log
 [<Test>]
 let ``short DotGetApp with unit`` () =
     formatSourceString
-        false
         """
 Foo().Bar()
 """
@@ -450,7 +435,6 @@ Foo().Bar()
 [<Test>]
 let ``short DotGetApp with lowercase function name and unit`` () =
     formatSourceString
-        false
         """
 Foo().bar()
 """
@@ -465,7 +449,6 @@ Foo().bar ()
 [<Test>]
 let ``short DotGetApp with constant`` () =
     formatSourceString
-        false
         """
 Foo().Bar "meh"
 """
@@ -480,7 +463,6 @@ Foo().Bar "meh"
 [<Test>]
 let ``short DotGetApp with property`` () =
     formatSourceString
-        false
         """
 Foo().Bar().Length
 """
@@ -495,7 +477,6 @@ Foo().Bar().Length
 [<Test>]
 let ``short DotGetApp with multiline idents and constant`` () =
     formatSourceString
-        false
         """
 MyModule.Foo().Bar()
 """
@@ -510,7 +491,6 @@ MyModule.Foo().Bar()
 [<Test>]
 let ``short DotGet TypedApp`` () =
     formatSourceString
-        false
         """
 typeof<System.Collections.IEnumerable>.FullName
 """
@@ -525,7 +505,6 @@ typeof<System.Collections.IEnumerable>.FullName
 [<Test>]
 let ``short DotGet with lambda`` () =
     formatSourceString
-        false
         """
 Foo(fun x -> x).Bar()
 """
@@ -540,7 +519,6 @@ Foo(fun x -> x).Bar()
 [<Test>]
 let ``named argument inside DotGet application`` () =
     formatSourceString
-        false
         """
 SomeFunction(name = SearchForName(
     "foooooooooooooooooooooooooooooooooooooooooooooooooo",
@@ -565,7 +543,6 @@ SomeFunction(
 [<Test>]
 let ``named argument inside DotGet application, SpaceBeforeUppercaseInvocation`` () =
     formatSourceString
-        false
         """
 SomeFunction(name = SearchForName(
     "foooooooooooooooooooooooooooooooooooooooooooooooooo",
@@ -591,7 +568,6 @@ SomeFunction(
 [<Test>]
 let ``space before uppercase invocation should only be respected at end of chain, 1438`` () =
     formatSourceString
-        false
         """
 namespace AspNetSerilog
 
@@ -648,7 +624,6 @@ type IWebHostBuilderExtensions() =
 [<Test>]
 let ``space before uppercase invocation only on last lid of chain, 1437`` () =
     formatSourceString
-        false
         """
 Log.Logger <-
     LoggerConfiguration()
@@ -672,7 +647,6 @@ Log.Logger <-
 [<Test>]
 let ``space before uppercase invocation only on last lid of chain, tupled arg`` () =
     formatSourceString
-        false
         """
 Log.Logger <-
     LoggerConfiguration(1,2)
@@ -696,7 +670,6 @@ Log.Logger <-
 [<Test>]
 let ``don't add space when function call is followed by lambda, 1440`` () =
     formatSourceString
-        false
         """
 let blah =
     Mock().Returns(fun _ ->
@@ -733,7 +706,6 @@ let blah =
 [<Test>]
 let ``don't add space when function call is followed by lambda, const expr`` () =
     formatSourceString
-        false
         """
 let blah =
     Mock("foo").Returns(fun _ ->
@@ -770,7 +742,6 @@ let blah =
 [<Test>]
 let ``typedApp should not have space with chained DotGet, 1447`` () =
     formatSourceString
-        false
         """
 let x =
                         LoggerConfiguration<Foo>("host", Environment.MachineName)
@@ -793,7 +764,6 @@ let x =
 [<Test>]
 let ``typedApp should not have space with chained DotGet, unit arg`` () =
     formatSourceString
-        false
         """
 let x =
                         LoggerConfiguration<Foo>()
@@ -816,7 +786,6 @@ let x =
 [<Test>]
 let ``typeApp followed by chained lambda, 1448`` () =
     formatSourceString
-        false
         """
 let blah =
     Mock<Foo>()
@@ -841,7 +810,6 @@ let blah =
 [<Test>]
 let ``avoid name-sensitive alignments, 1422`` () =
     formatSourceString
-        false
         """
 let retrySql<'a> =
   Policy
@@ -881,7 +849,6 @@ let retrySql<'a> =
 [<Test>]
 let ``dotget in multiline infix expression, 1521`` () =
     formatSourceString
-        false
         """
 let PublishValueDefn cenv env declKind (vspec: Val) =
     if (declKind = ModuleOrMemberBinding) &&
@@ -923,7 +890,6 @@ let PublishValueDefn cenv env declKind (vspec: Val) =
 [<Test>]
 let ``DotGetApp inside multiline infix expression should indent, 1529`` () =
     formatSourceString
-        false
         """
 type Foobar =
     member tcConfig.IsSystemAssembly (filename: string) =
@@ -957,7 +923,6 @@ type Foobar =
 [<Test>]
 let ``lambda dotget with TypeApp in chain, 1550`` () =
     formatSourceString
-        false
         """
 services
     .AddIdentityCore<web.ApplicationUser>(fun options ->
@@ -980,7 +945,6 @@ services
 [<Test>]
 let ``lambda dotget with TypeApp in chain in single line`` () =
     formatSourceString
-        false
         """
 services
     .AddIdentityCore(fun options -> ())
@@ -998,7 +962,6 @@ services.AddIdentityCore(fun options -> ()).AddUserManager<UserManager<web.Appli
 [<Test>]
 let ``parenthesis argument expression inside DotGetApp chain, 1651`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar () =
@@ -1037,7 +1000,6 @@ module Foo =
 [<Test>]
 let ``parenthesis argument expression inside DotGetApp chain, max line 80`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar () =
@@ -1079,7 +1041,6 @@ module Foo =
 [<Test>]
 let ``single line dotget lambda, followed by application`` () =
     formatSourceString
-        false
         """
 Foo(fun x ->  x).Bar().Meh
 """
@@ -1094,7 +1055,6 @@ Foo(fun x -> x).Bar().Meh
 [<Test>]
 let ``multiline dotget lambda, followed by application, 1662`` () =
     formatSourceString
-        false
         """
 type Class() =
     member this.``kk``() =
@@ -1128,7 +1088,6 @@ type Class() =
 [<Test>]
 let ``multiline dotget lambda, followed by multiple applications`` () =
     formatSourceString
-        false
         """
 mock
                 .Setup(fun m ->
@@ -1161,7 +1120,6 @@ mock
 [<Test>]
 let ``dotget function application should add space before argument, short`` () =
     formatSourceString
-        false
         """
 m.Property(fun p -> p.Name).HasMaxLength 64
 """
@@ -1176,7 +1134,6 @@ m.Property(fun p -> p.Name).HasMaxLength 64
 [<Test>]
 let ``dotget function application should add space before argument, long`` () =
     formatSourceString
-        false
         """
 m.Property(fun p -> p.Name).IsRequired().HasColumnName("ModelName").HasMaxLength 64
 """
@@ -1197,7 +1154,6 @@ m
 [<Test>]
 let ``dotget lambda multiline application`` () =
     formatSourceString
-        false
         """
 m.Property(fun p -> p.Name).IsRequired().HasColumnName("ModelName").HasMaxLength
 """
@@ -1217,7 +1173,6 @@ m
 [<Test>]
 let ``dotget chain with a lambda and ending in multiline function application, 1804`` () =
     formatSourceString
-        false
         """
 db.Schema.Users.Query
     .Where(fun x -> x.Role)
@@ -1251,7 +1206,6 @@ db.Schema.Users.Query
 [<Test>]
 let ``trivia between LongIdentWithDots in DotGet, 2098`` () =
     formatSourceString
-        false
         """
 namespace PmaBolero.Client
 
@@ -1309,7 +1263,6 @@ module Program =
 [<Test>]
 let ``dotget inside a quotation, 2154`` () =
     formatSourceString
-        false
         """
 (fun (Singleton arg) -> <@@ ((%%arg: Indicators) :> IIndicators).AsyncGetIndicator(indicatorIdVal) @@>)
 """
@@ -1329,7 +1282,6 @@ let ``dotget inside a quotation, 2154`` () =
 [<Test>]
 let ``argument in short type app as function name, 2683`` () =
     formatSourceString
-        false
         """
 Assembly.GetExecutingAssembly().GetCustomAttribute<MyCustomAttribute>().SomeProperty
 """

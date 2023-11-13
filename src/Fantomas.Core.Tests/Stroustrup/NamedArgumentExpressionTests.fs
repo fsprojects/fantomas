@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``synExprApp with named argument with record instance`` () =
     formatSourceString
-        false
         """
 let v =
     SomeConstructor(
@@ -41,7 +40,6 @@ let v =
 [<Test>]
 let ``synExprApp with named argument with update record`` () =
     formatSourceString
-        false
         """
 let v =
     SomeConstructor(
@@ -72,7 +70,6 @@ let v =
 [<Test>]
 let ``synExprApp with named argument with anonymous record instance`` () =
     formatSourceString
-        false
         """
 let v =
     SomeConstructor(
@@ -100,7 +97,6 @@ let v =
 [<Test>]
 let ``synExprApp with named argument with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 let v =
     SomeConstructor(
@@ -128,7 +124,6 @@ let v =
 [<Test>]
 let ``synExprApp with named argument with list`` () =
     formatSourceString
-        false
         """
 let v =
     SomeConstructor(
@@ -160,7 +155,6 @@ let v =
 [<Test>]
 let ``synExprApp with named argument with array`` () =
     formatSourceString
-        false
         """
 let v =
     SomeConstructor(
@@ -192,7 +186,6 @@ let v =
 [<Test>]
 let ``synExprApp with multiple named arguments`` () =
     formatSourceString
-        false
         """
 let v =
     SomeConstructor(
@@ -239,7 +232,6 @@ let v =
 [<Test>]
 let ``synExprNew with named argument with record instance`` () =
     formatSourceString
-        false
         """
 let v =
     new FooBar(
@@ -267,7 +259,6 @@ let v =
 [<Test>]
 let ``synExprNew with named argument with update record`` () =
     formatSourceString
-        false
         """
 let v =
     new FooBar(
@@ -298,7 +289,6 @@ let v =
 [<Test>]
 let ``synExprNew with named argument with anonymous record instance`` () =
     formatSourceString
-        false
         """
 let v =
     new FooBar(
@@ -326,7 +316,6 @@ let v =
 [<Test>]
 let ``synExprNew with named argument with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 let v =
     new FooBar(
@@ -354,7 +343,6 @@ let v =
 [<Test>]
 let ``synExprNew with named argument with list`` () =
     formatSourceString
-        false
         """
 let v =
     new FooBar(
@@ -386,7 +374,6 @@ let v =
 [<Test>]
 let ``synExprNew with named argument with array`` () =
     formatSourceString
-        false
         """
 let v =
     new FooBar(
@@ -418,7 +405,6 @@ let v =
 [<Test>]
 let ``synExprNew with multiple named arguments`` () =
     formatSourceString
-        false
         """
 let v =
     new FooBar(

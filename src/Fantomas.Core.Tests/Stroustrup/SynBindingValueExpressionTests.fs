@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``synbinding value with record instance `` () =
     formatSourceString
-        false
         """
 let x =
     { A = longTypeName
@@ -35,7 +34,6 @@ let x = {
 [<Test>]
 let ``synbinding value with update record`` () =
     formatSourceString
-        false
         """
 let astCtx =
     { astContext with IsInsideMatchClausePattern = true; OtherThing = "YOLO" }
@@ -56,7 +54,6 @@ let astCtx = {
 [<Test>]
 let ``synbinding value with update anonymous record`` () =
     formatSourceString
-        false
         """
 let astCtx =
     {| astContext with IsInsideMatchClausePattern = true; OtherThing = "YOLO" |}
@@ -77,7 +74,6 @@ let astCtx = {|
 [<Test>]
 let ``synbinding value with anonymous record instance`` () =
     formatSourceString
-        false
         """
 let x =
    {| A = longTypeName
@@ -99,7 +95,6 @@ let x = {|
 [<Test>]
 let ``synbinding value with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 let x =
    struct
@@ -122,7 +117,6 @@ let x = struct {|
 [<Test>]
 let ``synbinding value with list`` () =
     formatSourceString
-        false
         """
 let t =
     [ itemOne
@@ -148,7 +142,6 @@ let t = [
 [<Test>]
 let ``synbinding value with array`` () =
     formatSourceString
-        false
         """
 let t =
     [| itemOne
@@ -174,7 +167,6 @@ let t = [|
 [<Test>]
 let ``nested synbinding value with record`` () =
     formatSourceString
-        false
         """
 let outer =
     let inner =
@@ -201,7 +193,6 @@ let outer =
 [<Test>]
 let ``type member value with record instance`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar =
@@ -225,7 +216,6 @@ type Foo() =
 [<Test>]
 let ``type member value with update record`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar = { astContext with IsInsideMatchClausePattern = true }
@@ -245,7 +235,6 @@ type Foo() =
 [<Test>]
 let ``type member value with anonymous record instance`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar =
@@ -269,7 +258,6 @@ type Foo() =
 [<Test>]
 let ``type member value with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar =
@@ -294,7 +282,6 @@ type Foo() =
 [<Test>]
 let ``type member value with list`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar =
@@ -322,7 +309,6 @@ type Foo() =
 [<Test>]
 let ``type member value with array`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar =
@@ -350,7 +336,6 @@ type Foo() =
 [<Test>]
 let ``let binding for anonymous record with copy expression, 2508`` () =
     formatSourceString
-        false
         """
 let fooDto =
     {| otherDto with
@@ -379,7 +364,6 @@ let fooDto = {|
 [<Test>]
 let ``let binding with nested anonymous records, 2413`` () =
     formatSourceString
-        false
         """
 let foo =
     {| Data =
@@ -406,7 +390,6 @@ let foo = {|
 [<Test>]
 let ``list expression inside anonymous record, 2413`` () =
     formatSourceString
-        false
         """
 let foo = {|
     Data =
@@ -471,7 +454,6 @@ let foo = {|
 [<Test>]
 let ``list expression inside regular record, 2413`` () =
     formatSourceString
-        false
         """
 let foo = {
     Data =
@@ -536,7 +518,6 @@ let foo = {
 [<Test>]
 let ``nested records, 2587`` () =
     formatSourceString
-        false
         """
 let myRecord = {
     Property1 = {
@@ -573,7 +554,6 @@ let myRecord = {
 [<Test>]
 let ``app node with single record member`` () =
     formatSourceString
-        false
         """
 let newState = {
     Foo =
@@ -602,7 +582,6 @@ let newState = {
 [<Test>]
 let ``app node with single anonymous record member`` () =
     formatSourceString
-        false
         """
 let newState = {|
     Foo =
@@ -631,7 +610,6 @@ let newState = {|
 [<Test>]
 let ``app node with single record arg`` () =
     formatSourceString
-        false
         """
 let newState = 
     Some
@@ -656,7 +634,6 @@ let newState =
 [<Test>]
 let ``lowercase app node with single record arg`` () =
     formatSourceString
-        false
         """
 let newState = 
     someFunc
@@ -681,7 +658,6 @@ let newState =
 [<Test>]
 let ``lowercase app node with multiple args ending in a single record arg`` () =
     formatSourceString
-        false
         """
 let newState = 
     myFn a b c { D = d; E = e }
@@ -702,7 +678,6 @@ let newState =
 [<Test>]
 let ``lowercase app node with multiple args ending in a single anonymous record arg`` () =
     formatSourceString
-        false
         """
 let newState = 
     myFn a b c {| D = d; E = e |}
@@ -723,7 +698,6 @@ let newState =
 [<Test>]
 let ``don't apply stroustrup when the token has trivia after it`` () =
     formatSourceString
-        false
         """
 let b = // Build an inbound for the specified subnet.
     {

@@ -7,7 +7,7 @@ open Fantomas.Core
 
 [<Test>]
 let ``should keep sticky-to-the-left comments after nowarn directives`` () =
-    formatSourceString false """#nowarn "51" // address-of operator can occur in the code""" config
+    formatSourceString """#nowarn "51" // address-of operator can occur in the code""" config
     |> should
         equal
         """#nowarn "51" // address-of operator can occur in the code
@@ -23,7 +23,7 @@ module FSharpx.TypeProviders.VectorTypeProvider
 
 let x = 1"""
 
-    formatSourceString false source config
+    formatSourceString source config
     |> should
         equal
         """// The original idea for this typeprovider is from Ivan Towlson
@@ -36,7 +36,6 @@ let x = 1
 [<Test>]
 let ``comments on local let bindings`` () =
     formatSourceString
-        false
         """
 let print_30_permut() =
 
@@ -63,7 +62,6 @@ let print_30_permut () =
 [<Test>]
 let ``comments on local let bindings with desugared lambda`` () =
     formatSourceString
-        false
         """
 let print_30_permut() =
 
@@ -90,7 +88,6 @@ let print_30_permut () =
 [<Test>]
 let ``comments on let bindings with return type, 2043`` () =
     formatSourceString
-        false
         """
 let count: int[] // foo
     = [2]
@@ -108,7 +105,6 @@ let count: int[] // foo
 [<Test>]
 let ``comments after SynType_Array in record type, 2043`` () =
     formatSourceString
-        false
         """
 type Model =
     { Flags: bool[] // foo
@@ -129,7 +125,6 @@ type Model =
 [<Test>]
 let ``xml documentation`` () =
     formatSourceString
-        false
         """
 /// <summary>
 /// Kill Weight Mud
@@ -162,7 +157,6 @@ let kwm sidpp tvd omw = 1.0
 [<Test>]
 let ``should preserve comment-only source code`` () =
     formatSourceString
-        false
         """(*
   line1
   line2
@@ -180,7 +174,6 @@ let ``should preserve comment-only source code`` () =
 [<Test>]
 let ``should keep sticky-to-the-right comments`` () =
     formatSourceString
-        false
         """
 let f() =
     // COMMENT
@@ -199,7 +192,6 @@ let f () =
 [<Test>]
 let ``should keep sticky-to-the-left comments`` () =
     formatSourceString
-        false
         """
 let f() =
   let x = 1 // COMMENT
@@ -218,7 +210,6 @@ let f () =
 [<Test>]
 let ``should keep well-aligned comments`` () =
     formatSourceString
-        false
         """
 /// XML COMMENT
 // Other comment
@@ -248,7 +239,6 @@ let f () =
 [<Test>]
 let ``should align mis-aligned comments`` () =
     formatSourceString
-        false
         """
    /// XML COMMENT A
      // Other comment
@@ -280,7 +270,6 @@ let f () =
 [<Test>]
 let ``should indent comments properly`` () =
     formatSourceString
-        false
         """
 /// Non-local information related to internals of code generation within an assembly
 type IlxGenIntraAssemblyInfo =
@@ -312,7 +301,6 @@ type IlxGenIntraAssemblyInfo =
 [<Test>]
 let ``should add comment after { as part of property assignment`` () =
     formatSourceString
-        false
         """
 let a =
     { // foo
@@ -333,7 +321,6 @@ let a =
 [<Test>]
 let ``comment alignment above record field`` () =
     formatSourceString
-        false
         """
 let a =
     { c = 4
@@ -356,7 +343,6 @@ let a =
 [<Test>]
 let ``comment alignment above record field, fsharp_space_around_delimiter = false`` () =
     formatSourceString
-        false
         """
 let a =
     { c = 4
@@ -380,7 +366,6 @@ let a =
 [<Test>]
 let ``shouldn't break on one-line comment`` () =
     formatSourceString
-        false
         """
 1 + (* Comment *) 1"""
         config
@@ -394,7 +379,6 @@ let ``shouldn't break on one-line comment`` () =
 [<Test>]
 let ``should keep comments on DU cases`` () =
     formatSourceString
-        false
         """
 /// XML comment
 type X =
@@ -419,7 +403,6 @@ type X =
 [<Test>]
 let ``should keep comments before attributes`` () =
     formatSourceString
-        false
         """
 [<NoEquality; NoComparison>]
 type IlxGenOptions =
@@ -479,7 +462,6 @@ type IlxGenOptions =
 [<Test>]
 let ``should keep comments on else if`` () =
     formatSourceString
-        false
         """
 if a then ()
 else
@@ -508,7 +490,6 @@ else
 [<Test>]
 let ``should keep comments on almost-equal identifiers`` () =
     formatSourceString
-        false
         """
 let zp = p1 ``lxor`` p2
 // Comment 1
@@ -531,7 +512,6 @@ let p = p1 ``land`` (b - 1)
 [<Test>]
 let ``should not write sticky-to-the-left comments in a new line`` () =
     formatSourceString
-        false
         """
 let moveFrom source =
   getAllFiles source
@@ -552,7 +532,6 @@ let moveFrom source =
 [<Test>]
 let ``should handle comments at the end of file`` () =
     formatSourceString
-        false
         """
 let hello() = "hello world"
 
@@ -571,7 +550,6 @@ let hello () = "hello world"
 [<Test>]
 let ``should handle block comments at the end of file, 810`` () =
     formatSourceString
-        false
         """
 printfn "hello world"
 (* This is a comment. *)
@@ -588,7 +566,6 @@ printfn "hello world"
 [<Test>]
 let ``preserve block comment after record, 516`` () =
     formatSourceString
-        false
         """
 module TriviaModule =
 
@@ -626,7 +603,6 @@ module TriviaModule =
 [<Test>]
 let ``should keep comments inside unit`` () =
     formatSourceString
-        false
         """
 let x =
     ((*comment*))
@@ -660,7 +636,7 @@ type T() =
 //    override private x.ToString() = ""
 """
 
-    formatSourceString false source config
+    formatSourceString source config
     |> prepend newline
     |> should
         equal
@@ -673,7 +649,6 @@ type T() =
 [<Test>]
 let ``comment after function in type definition should be applied to member bindings`` () =
     formatSourceString
-        false
         """
 type C () =
     let rec g x = h x
@@ -700,7 +675,7 @@ let foo = 7
 //
 """
 
-    formatSourceString false source config
+    formatSourceString source config
     |> should
         equal
         """let foo = 7
@@ -710,7 +685,6 @@ let foo = 7
 [<Test>]
 let ``block comment on top of namespace`` () =
     formatSourceString
-        false
         """
 (*
 
@@ -760,7 +734,6 @@ namespace ExtCore
 [<Test>]
 let ``block comment on top of file`` () =
     formatSourceString
-        false
         """
 (*
 
@@ -947,7 +920,6 @@ type substring =
 [<Test>]
 let ``single block comment in namespace, 1951`` () =
     formatSourceString
-        false
         """
 namespace ASTViewer.Server
 (* open Microsoft.Azure.Functions.Worker.Http
@@ -968,7 +940,6 @@ open Microsoft.Extensions.Logging *)
 [<Test>]
 let ``line comment after "then"`` () =
     formatSourceString
-        false
         """
 if true then //comment
     1
@@ -987,7 +958,6 @@ else
 [<Test>]
 let ``line comment after "if"`` () =
     formatSourceString
-        false
         """
 if //comment
     true then 1
@@ -1008,7 +978,6 @@ else
 [<Test>]
 let ``line comment after "else"`` () =
     formatSourceString
-        false
         """
 if true then 1
 else //comment
@@ -1027,7 +996,6 @@ else //comment
 [<Test>]
 let ``comments for enum cases, 572`` () =
     formatSourceString
-        false
         """type A =
     /// Doc for CaseA
     | CaseA = 0
@@ -1048,7 +1016,6 @@ let ``comments for enum cases, 572`` () =
 """
 
     formatSourceString
-        false
         """type A =
     // Comment for CaseA
     | CaseA = 0
@@ -1071,7 +1038,6 @@ let ``comments for enum cases, 572`` () =
 [<Test>]
 let ``comments in multi-pattern case matching should not be removed, 813`` () =
     formatSourceString
-        false
         """
 let f x =
     match x with
@@ -1095,7 +1061,6 @@ let f x =
 [<Test>]
 let ``block comments in multi-pattern case matching should not be removed`` () =
     formatSourceString
-        false
         """
 let f x =
     match x with
@@ -1121,7 +1086,6 @@ let f x =
 [<Test>]
 let ``multiple line comments form a single trivia`` () =
     formatSourceString
-        false
         """
 /// Represents a long identifier with possible '.' at end.
 ///
@@ -1151,7 +1115,6 @@ type LongIdentWithDots = LongIdentWithDots of id: LongIdent * dotms: range list
 [<Test>]
 let ``newline between comments should lead to individual comments, 920`` () =
     formatSourceString
-        false
         """
 [<AllowNullLiteral>]
 type IExports =
@@ -1198,7 +1161,6 @@ type IExports =
 [<Test>]
 let ``comment newline comment`` () =
     formatSourceString
-        false
         """
 // foo
 
@@ -1219,7 +1181,6 @@ let x = 8
 [<Test>]
 let ``comments before no warn should not be removed, 1220`` () =
     formatSourceString
-        false
         """
 // sample comment before no warn
 #nowarn "44"
@@ -1247,7 +1208,6 @@ module Bar =
 [<Test>]
 let ``comment above do keyword, 1343`` () =
     formatSourceString
-        false
         """
 if stateSub.Value |> State.hasChanges then
     // Push changes
@@ -1278,7 +1238,6 @@ if stateSub.Value |> State.hasChanges then
 [<Test>]
 let ``very long comment on single line`` () =
     formatSourceString
-        false
         """
 // Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ipsum nulla, pellentesque eget maximus et, facilisis eu nibh. Suspendisse convallis scelerisque urna, id fringilla dolor mollis id. Etiam dictum pellentesque nisl, vel ullamcorper neque accumsan eget. Pellentesque at mattis magna. Cras varius nisl nisi, sed iaculis tortor auctor quis. Sed luctus eget ante in dapibus. Cras ac leo nibh. Sed commodo, ex vel interdum egestas, risus lorem volutpat sapien, at pellentesque lectus ipsum non libero. Pellentesque malesuada scelerisque augue at blandit. Fusce in nisl sapien. In hac habitasse platea dictumst. Aenean tristique nibh ac tortor laoreet, rutrum aliquam elit rutrum. In vitae dignissim neque.
 // Dollar
@@ -1297,7 +1256,6 @@ let meh = 7
 [<Test>]
 let ``comment after semi colon in record definition, 1643`` () =
     formatSourceString
-        false
         """
 type T =
   { id : int
@@ -1332,7 +1290,6 @@ type T =
 [<Test>]
 let ``comment after semicolon`` () =
     formatSourceString
-        false
         """
 let a = 8 ; // foobar
 """
@@ -1347,7 +1304,6 @@ let a = 8 // foobar
 [<Test>]
 let ``comment after semicolon on next line`` () =
     formatSourceString
-        false
         """
 let a = 8
 ; // foobar
@@ -1364,7 +1320,6 @@ let a = 8
 [<Test>]
 let ``file end with newline followed by comment, 1649`` () =
     formatSourceString
-        false
         """
 #load "Hi.fsx"
 open Something
@@ -1405,7 +1360,6 @@ open Something
 [<Test>]
 let ``block comment above let binding`` () =
     formatSourceString
-        false
         """(* meh *)
 let a =  b
 """
@@ -1421,7 +1375,6 @@ let a = b
 [<Test>]
 let ``comment right after first token`` () =
     formatSourceString
-        false
         """
 1//
 // next line
@@ -1439,7 +1392,6 @@ let ``comment right after first token`` () =
 [<Ignore("line comment after block comment currently not supported")>]
 let ``block comment followed by line comment`` () =
     formatSourceString
-        false
         """
 (* foo *)// bar
 let a = 0
@@ -1456,7 +1408,6 @@ let a = 0
 [<Test>]
 let ``line comment after source code`` () =
     formatSourceString
-        false
         """
 __SOURCE_DIRECTORY__ // comment
 """
@@ -1471,7 +1422,6 @@ __SOURCE_DIRECTORY__ // comment
 [<Test>]
 let ``line comment after hash define`` () =
     formatSourceString
-        false
         """
 #if FOO // MEH
 #endif
@@ -1488,7 +1438,6 @@ let ``line comment after hash define`` () =
 [<Test>]
 let ``line comment after interpolated string`` () =
     formatSourceString
-        false
         """
 $"{meh}.." // foo
 """
@@ -1503,7 +1452,6 @@ $"{meh}.." // foo
 [<Test>]
 let ``line comment after negative constant`` () =
     formatSourceString
-        false
         """
 -1.0 // foo
 """
@@ -1518,7 +1466,6 @@ let ``line comment after negative constant`` () =
 [<Test>]
 let ``line comment after trivia number`` () =
     formatSourceString
-        false
         """
 1. // bar
 """
@@ -1533,7 +1480,6 @@ let ``line comment after trivia number`` () =
 [<Test>]
 let ``line comment after infix operator in full words`` () =
     formatSourceString
-        false
         """
 op_LessThan // meh
 """
@@ -1548,7 +1494,6 @@ op_LessThan // meh
 [<Test>]
 let ``line comment after ident between ticks`` () =
     formatSourceString
-        false
         """
 ``foo oo`` // bar
 """
@@ -1563,7 +1508,6 @@ let ``line comment after ident between ticks`` () =
 [<Test>]
 let ``line comment after special char`` () =
     formatSourceString
-        false
         """
 '\u0000' // foo
 """
@@ -1578,7 +1522,6 @@ let ``line comment after special char`` () =
 [<Test>]
 let ``line comment after embedded il`` () =
     formatSourceString
-        false
         """
 (# "" x : 'U #) // bar
 """
@@ -1593,7 +1536,6 @@ let ``line comment after embedded il`` () =
 [<Test>]
 let ``line comment before SynExpr.AddressOf`` () =
     formatSourceString
-        false
         """
 open FSharp.NativeInterop
 
@@ -1618,7 +1560,6 @@ let Main () =
 [<Test>]
 let ``line comment after SynExpr.Null, 1676`` () =
     formatSourceString
-        false
         """
 let v = f null // comment
 """
@@ -1633,7 +1574,6 @@ let v = f null // comment
 [<Test>]
 let ``newline followed by line comment at end of file, 1468`` () =
     formatSourceString
-        false
         """
 Host
     .CreateDefaultBuilder()
@@ -1669,7 +1609,6 @@ Host
 [<Test>]
 let ``comment after bracket in record should not be duplicated in computation expression, 1912`` () =
     formatSourceString
-        false
         """
 type TorDirectory =
     private
@@ -1710,7 +1649,6 @@ type TorDirectory =
 [<Test>]
 let ``double try-with, comment before inner 'with' not duplicated, 1969`` () =
     formatSourceString
-        false
         """
 try
     try
@@ -1739,7 +1677,6 @@ with _ ->
 [<Test>]
 let ``comment should not be lost`` () =
     formatSourceString
-        false
         """
 try
     a
@@ -1767,7 +1704,6 @@ with
 [<Test>]
 let ``nested try/with with comment on with`` () =
     formatSourceString
-        false
         """
 try
     a
@@ -1796,7 +1732,6 @@ with b ->
 [<Test>]
 let ``trailing spaces in comments should be removed`` () =
     formatSourceString
-        false
         """
 // foo       
 // bar          
@@ -1815,7 +1750,6 @@ let a = 9
 [<Test>]
 let ``comment after SynTypar, 2052`` () =
     formatSourceString
-        false
         """
 let Foo<'T (* TODO *)> () = ()
 """
@@ -1830,7 +1764,6 @@ let Foo<'T (* TODO *) > () = ()
 [<Test>]
 let ``comment after SynTypeApp idents, 1899`` () =
     formatSourceString
-        false
         """
 [<RequireQualifiedAccess>]
 module Example =
@@ -1855,7 +1788,6 @@ module Example =
 [<Test>]
 let ``correctly collect a double slash comment before a xml doc comment, 2152`` () =
     formatSourceString
-        false
         """
 // Maybe computation expression builder, copied from ExtCore library
 /// https://github.com/jack-pappas/ExtCore/blob/master/ExtCore/Control.fs
@@ -1876,7 +1808,6 @@ type MaybeBuilder() = class end
 [<Test>]
 let ``restore triple slash comment at invalid location`` () =
     formatSourceString
-        false
         """
 /// Valid xml doc
 let x =
@@ -1905,7 +1836,6 @@ let x =
 [<Test>]
 let ``xml comment above double slash comment, 2186`` () =
     formatSourceString
-        false
         """
 /// <summary>
 /// Some comment
@@ -1926,7 +1856,6 @@ let ``xml comment above double slash comment, 2186`` () =
 [<Test>]
 let ``block comment should be attached to else expr`` () =
     formatSourceString
-        false
         """
 let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
     let s =
@@ -1956,7 +1885,6 @@ let compilerOptionUsage (CompilerOption(s, tag, spec, _, _)) =
 [<Test>]
 let ``block comment should be attached to last argument of application`` () =
     formatSourceString
-        false
         """
 match meh with
 | OptionGeneral _ ->
@@ -1982,7 +1910,6 @@ match meh with
 [<Test>]
 let ``block comment after let decl`` () =
     formatSourceString
-        false
         """
 let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
     let s =
@@ -2048,7 +1975,6 @@ let compilerOptionUsage (CompilerOption(s, tag, spec, _, _)) =
 [<Test>]
 let ``comment after long parameter signature`` () =
     formatSourceString
-        false
         """
 type CreateFSharpManifestResourceName public () =
     inherit CreateCSharpManifestResourceName()
@@ -2089,7 +2015,6 @@ type CreateFSharpManifestResourceName public () =
 [<Test>]
 let ``comment after type in tuple`` () =
     formatSourceString
-        false
         """
 [<RequireQualifiedAccess; StructuralEquality; StructuralComparison>]
 type ILNativeType =
@@ -2118,7 +2043,6 @@ type ILNativeType =
 [<Test>]
 let ``comment after entire member`` () =
     formatSourceString
-        false
         """
 type Meh () =
     member x.IsComInterop =
@@ -2138,8 +2062,7 @@ type Meh() =
 
 [<Test>]
 let ``comment after val in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 /// Not all custom attribute data can be decoded without binding types.  In particular
 /// enums must be bound in order to discover the size of the underlying integer.
@@ -2182,7 +2105,6 @@ val pdbReaderGetMethodFromDocumentPosition: PdbReader -> PdbDocument -> int (* l
 [<Test>]
 let ``comment after nested module`` () =
     formatSourceString
-        false
         """
 module TableNames =
     let MethodSpec = TableName 43
@@ -2213,7 +2135,6 @@ module NextModule =
 [<Test>]
 let ``comment after lambda`` () =
     formatSourceString
-        false
         """
 let ilvs =
     lvs
@@ -2237,8 +2158,7 @@ let ilvs =
 
 [<Test>]
 let ``comment after union type`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 type IlxUnionHasHelpers =
     | NoHelpers
@@ -2296,8 +2216,7 @@ type IlxUnionSpec =
 
 [<Test>]
 let ``comment above type in function signature`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 /// Compile a pattern into a decision tree and a set of targets.
 val internal CompilePattern:
@@ -2330,7 +2249,6 @@ val internal CompilePattern:
 [<Test>]
 let ``comment after LetOrUseBang`` () =
     formatSourceString
-        false
         """
 node {
     let! cachedResults =
@@ -2375,7 +2293,6 @@ node {
 [<Test>]
 let ``comment after parameters and before equals sign`` () =
     formatSourceString
-        false
         """
 let GetValueInfo bindingFlags (x: 'a, ty: Type) (* x could be null *)  =
     let obj = (box x)
@@ -2393,8 +2310,7 @@ let GetValueInfo bindingFlags (x: 'a, ty: Type) (* x could be null *) =
 
 [<Test>]
 let ``comment between fun types`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 /// A set of function parameters (visitor) for folding over expressions
 type ExprFolder<'State> =
@@ -2433,8 +2349,7 @@ type ExprFolder<'State> =
 
 [<Test>]
 let ``block comments in type definition, 1975`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module M
 
@@ -2456,7 +2371,6 @@ module A =
 [<Test>]
 let ``keep trailing spaces inside block comments, 2450`` () =
     formatSourceString
-        false
         """
 (**
 ## Auxiliary settings
@@ -2490,8 +2404,7 @@ Default = 4.
 
 [<Test>]
 let ``trivia above tuple parameter in function type, 2149`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 
@@ -2525,7 +2438,6 @@ type X =
 [<Test>]
 let ``comments in anonymous records, 2538`` () =
     formatSourceString
-        false
         """
 let Anonymous =
     {| FontFamily = 700 // font-weight
@@ -2544,7 +2456,6 @@ let Anonymous =
 [<Test>]
 let ``comments on param with attribute, 2585`` () =
     formatSourceString
-        false
         """
 type MyType =
     member _.MyMethod
@@ -2584,7 +2495,6 @@ type MyType2 =
 [<Test>]
 let ``block comment before unit in binding, 2660`` () =
     formatSourceString
-        false
         """
 let run (log: ILogger) =
     (* foo *)  ()
@@ -2600,7 +2510,6 @@ let run (log: ILogger) = (* foo *) ()
 [<Test>]
 let ``block comment between let and value name, 2490`` () =
     formatSourceString
-        false
         """
 let (* this comment disappears after formatting *) a = []
 """
@@ -2615,7 +2524,6 @@ let (* this comment disappears after formatting *) a = []
 [<Test>]
 let ``trivia after infix operator is not restored correctly, 2887`` () =
     formatSourceString
-        false
         """
 let EnableHeapTerminationOnCorruption() =
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&  Environment.OSVersion.Version.Major >= 6 && // If OS is Vista or higher

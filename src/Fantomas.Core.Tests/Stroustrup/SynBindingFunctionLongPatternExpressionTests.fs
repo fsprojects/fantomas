@@ -16,7 +16,6 @@ let config =
 [<Test>]
 let ``synbinding function with record`` () =
     formatSourceString
-        false
         """
 let private addTaskToScheduler
     (scheduler: IScheduler)
@@ -53,7 +52,6 @@ let private addTaskToScheduler
 [<Test>]
 let ``synbinding function with update record`` () =
     formatSourceString
-        false
         """
 let private addTaskToScheduler
     (scheduler: IScheduler)
@@ -87,7 +85,6 @@ let private addTaskToScheduler
 [<Test>]
 let ``synbinding function with anonymous record`` () =
     formatSourceString
-        false
         """
 let private addTaskToScheduler
     (scheduler: IScheduler)
@@ -124,7 +121,6 @@ let private addTaskToScheduler
 [<Test>]
 let ``synbinding function with computation expression`` () =
     formatSourceString
-        false
         """
 let private addTaskToScheduler
     (scheduler: IScheduler)
@@ -161,7 +157,6 @@ let private addTaskToScheduler
 [<Test>]
 let ``synbinding function with list`` () =
     formatSourceString
-        false
         """
 let private addTaskToScheduler
     (scheduler: IScheduler)
@@ -202,7 +197,6 @@ let private addTaskToScheduler
 [<Test>]
 let ``synbinding function with array`` () =
     formatSourceString
-        false
         """
 let private addTaskToScheduler
     (scheduler: IScheduler)
@@ -243,7 +237,6 @@ let private addTaskToScheduler
 [<Test>]
 let ``type member function with record instance`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.addTaskToScheduler
@@ -282,7 +275,6 @@ type Foo() =
 [<Test>]
 let ``type member function with update record`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.addTaskToScheduler
@@ -317,7 +309,6 @@ type Foo() =
 [<Test>]
 let ``type member function with anonymous record instance`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.addTaskToScheduler
@@ -356,7 +347,6 @@ type Foo() =
 [<Test>]
 let ``type member function with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.addTaskToScheduler
@@ -396,7 +386,6 @@ type Foo() =
 [<Test>]
 let ``type member function with computation expression`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.addTaskToScheduler
@@ -435,7 +424,6 @@ type Foo() =
 [<Test>]
 let ``type member function with list`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.addTaskToScheduler
@@ -478,7 +466,6 @@ type Foo() =
 [<Test>]
 let ``type member function with array`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.addTaskToScheduler

@@ -15,7 +15,7 @@ open System
 printfn "the best thing we've ever done"
 """
 
-    formatSourceString false codeSnippet config
+    formatSourceString codeSnippet config
     |> should
         equal
         """#!/usr/bin/env -S dotnet fsi

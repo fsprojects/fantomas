@@ -7,7 +7,7 @@ open Fantomas.Core
 
 [<Test>]
 let ``record declaration`` () =
-    formatSourceString false "type AParameters = { a : int }" config
+    formatSourceString "type AParameters = { a : int }" config
     |> prepend newline
     |> should
         equal
@@ -17,7 +17,7 @@ type AParameters = { a: int }
 
 [<Test>]
 let ``record declaration with implementation visibility attribute`` () =
-    formatSourceString false "type AParameters = private { a : int; b: float }" config
+    formatSourceString "type AParameters = private { a : int; b: float }" config
     |> prepend newline
     |> should
         equal
@@ -27,8 +27,7 @@ type AParameters = private { a: int; b: float }
 
 [<Test>]
 let ``record signatures`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module RecordSignature
 /// Represents simple XML elements.
@@ -113,7 +112,6 @@ type Element =
 [<Test>]
 let ``records with update`` () =
     formatSourceString
-        false
         """
 type Car = {
     Make : string
@@ -139,7 +137,6 @@ let myRecord3 = { myRecord2 with Y = 100; Z = 2 }
 [<Test>]
 let ``should not break inside of if statements in records`` () =
     formatSourceString
-        false
         """let XpkgDefaults() =
     {
         ToolPath = "./tools/xpkg/xpkg.exe"
@@ -187,7 +184,6 @@ let ``should not break inside of if statements in records`` () =
 [<Test>]
 let ``should not add redundant newlines when using a record in a DU`` () =
     formatSourceString
-        false
         """
 let rec make item depth =
     if depth > 0 then
@@ -213,7 +209,6 @@ let rec make item depth =
 [<Test>]
 let ``record inside DU constructor`` () =
     formatSourceString
-        false
         """let a = Tree({ Left = make (2 * item - 1) (depth - 1); Right = make (2 * item) (depth - 1) }, item)
 """
         config
@@ -232,7 +227,6 @@ let a =
 [<Test>]
 let ``should keep unit of measures in record and DU declaration`` () =
     formatSourceString
-        false
         """
 type rate = {Rate:float<GBP*SGD/USD>}
 type rate2 = Rate of float<GBP/SGD*USD>
@@ -249,7 +243,6 @@ type rate2 = Rate of float<GBP / SGD * USD>
 [<Test>]
 let ``should keep comments on records`` () =
     formatSourceString
-        false
         """
 let newDocument = //somecomment
     { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
@@ -273,7 +266,6 @@ let newDocument = //somecomment
 [<Test>]
 let ``|> should be on the next line if preceding expression is multiline`` () =
     formatSourceString
-        false
         """
 let newDocument = //somecomment
     { program = "Loooooooooooooooooooooooooong"
@@ -296,7 +288,6 @@ let newDocument = //somecomment
 [<Test>]
 let ``should preserve inherit parts in records`` () =
     formatSourceString
-        false
         """
 type MyExc =
     inherit Exception
@@ -315,7 +306,6 @@ type MyExc =
 [<Test>]
 let ``should preserve inherit parts in records with field`` () =
     formatSourceString
-        false
         """
 type MyExc =
     inherit Exception
@@ -335,7 +325,6 @@ type MyExc =
 [<Test>]
 let ``should preserve inherit parts in records multiline`` () =
     formatSourceString
-        false
         """
 type MyExc =
     inherit Exception
@@ -360,7 +349,6 @@ type MyExc =
 [<Test>]
 let ``anon record`` () =
     formatSourceString
-        false
         """let r: {| Foo: int; Bar: string |} =
     {| Foo = 123
        Bar = "" |}
@@ -380,7 +368,6 @@ let r
 [<Test>]
 let ``anon record - struct`` () =
     formatSourceString
-        false
         """let r: struct {| Foo: int; Bar: string |} =
     struct {| Foo = 123
               Bar = "" |}
@@ -400,7 +387,6 @@ let r
 [<Test>]
 let ``anon record with multiline assignments`` () =
     formatSourceString
-        false
         "
 let r =
     {|
@@ -432,7 +418,6 @@ Fooey
 [<Test>]
 let ``meaningful space should be preserved, 353`` () =
     formatSourceString
-        false
         """to'.WithCommon(fun o' ->
         { dotnetOptions o' with WorkingDirectory =
                                   Path.getFullName "RegressionTesting/issue29"
@@ -453,7 +438,6 @@ to'
 [<Test>]
 let ``record with long string inside array`` () =
     formatSourceString
-        false
         "
 type Database =
 
@@ -624,7 +608,6 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
 [<Test>]
 let ``multiline string before closing brace`` () =
     formatSourceString
-        false
         "
 let person =
     let y =
@@ -659,7 +642,6 @@ let person =
 [<Test>]
 let ``multiline string before closing brace with anonymous record`` () =
     formatSourceString
-        false
         "
 let person =
     let y =
@@ -694,7 +676,6 @@ let person =
 [<Test>]
 let ``issue 457`` () =
     formatSourceString
-        false
         """
 let x = Foo("").Goo()
 
@@ -719,7 +700,6 @@ let r =
 [<Test>]
 let ``class member attributes should not introduce newline, 471`` () =
     formatSourceString
-        false
         """type Test =
     | String of string
 
@@ -745,7 +725,6 @@ type Test =
 [<Test>]
 let ``multiline record should be on new line after DU constructor, 462`` () =
     formatSourceString
-        false
         """
 let expect =
     Result<Schema, SetError>.Ok { opts =
@@ -788,7 +767,6 @@ let expect =
 [<Test>]
 let ``short record should remain on the same line after DU constructor`` () =
     formatSourceString
-        false
         """
 let expect = Result<int,string>.Ok   7"""
         config
@@ -802,7 +780,6 @@ let expect = Result<int, string>.Ok 7
 [<Test>]
 let ``multiline list after DU should be on new line after DU constructor`` () =
     formatSourceString
-        false
         """
 let expect =
     Result<int,string>.Ok [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
@@ -824,7 +801,6 @@ let expect =
 [<Test>]
 let ``record with long string, 472`` () =
     formatSourceString
-        false
         "
 namespace web_core
 
@@ -857,8 +833,7 @@ This is a very long line in a multi-line string, so long in fact that it is long
 
 [<Test>]
 let ``record type signature with line comment, 517`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 module RecordSignature
 /// Represents simple XML elements.
@@ -896,7 +871,6 @@ type Element =
 [<Test>]
 let ``don't duplicate newlines in object expression, 601`` () =
     formatSourceString
-        false
         """namespace Blah
 
 open System
@@ -946,7 +920,6 @@ module Test =
 [<Test>]
 let ``short record should be a oneliner`` () =
     formatSourceString
-        false
         """let a = { B = 7 ; C = 9 }
 """
         config
@@ -961,7 +934,6 @@ let a = { B = 7; C = 9 }
 [<Test>]
 let ``short record and let binding`` () =
     formatSourceString
-        false
         """
 let a = { B = 7 ; C = 9 }
 let sumOfMember = a.B + a.C
@@ -978,7 +950,6 @@ let sumOfMember = a.B + a.C
 [<Test>]
 let ``long record should be multiline`` () =
     formatSourceString
-        false
         """let myInstance = { FirstLongMemberName = "string value" ; SecondLongMemberName = "other value" }
 """
         config
@@ -994,7 +965,6 @@ let myInstance =
 [<Test>]
 let ``multiline in record field should short circuit short expression check`` () =
     formatSourceString
-        false
         """
 let a =
     { B =
@@ -1013,7 +983,7 @@ let a =
 
 [<Test>]
 let ``short record type should remain single line`` () =
-    formatSourceString false "type Foo = { A: int; B:   string }" config
+    formatSourceString "type Foo = { A: int; B:   string }" config
     |> prepend newline
     |> should
         equal
@@ -1024,7 +994,6 @@ type Foo = { A: int; B: string }
 [<Test>]
 let ``short record type with comment should go to multiline`` () =
     formatSourceString
-        false
         """type Foo = { A: int;
                     // comment
                     B:   string }
@@ -1043,7 +1012,6 @@ type Foo =
 [<Test>]
 let ``short record type with comment after opening brace should go to multiline`` () =
     formatSourceString
-        false
         """type Foo = { // comment
                     A: int;
                     B:   string }
@@ -1062,7 +1030,6 @@ type Foo =
 [<Test>]
 let ``short record type with member definitions should be multi line`` () =
     formatSourceString
-        false
         "type Foo = { A: int; B:   string } with member this.Foo () = ()"
         { config with
             NewlineBetweenTypeDefinitionAndMembers = false }
@@ -1079,7 +1046,6 @@ type Foo =
 [<Test>]
 let ``record type definition with members and trivia`` () =
     formatSourceString
-        false
         """
 type X = {
     Y: int
@@ -1100,7 +1066,6 @@ type X =
 [<Test>]
 let ``short anonymous record with two members`` () =
     formatSourceString
-        false
         """let foo =
     {| A = 7
        B = 8 |}
@@ -1116,7 +1081,6 @@ let foo = {| A = 7; B = 8 |}
 [<Test>]
 let ``short anonymous record with copy expression`` () =
     formatSourceString
-        false
         """let foo =
     {| bar with A = 7 |}
 """
@@ -1131,7 +1095,6 @@ let foo = {| bar with A = 7 |}
 [<Test>]
 let ``longer anonymous record with copy expression`` () =
     formatSourceString
-        false
         """let foo =
     {| bar with AMemberWithALongName = aValueWithAlsoALongName |}
 """
@@ -1148,7 +1111,6 @@ let foo =
 [<Test>]
 let ``short anonymous record type alias`` () =
     formatSourceString
-        false
         """
 let useAddEntry() =
     fun (input: {| name: string; amount: Amount |}) ->
@@ -1169,7 +1131,6 @@ let useAddEntry () =
 [<Test>]
 let ``long anonymous record type alias`` () =
     formatSourceString
-        false
         """
 let useAddEntry() =
     fun (input: {| name: string; amount: Amount; isIncome: bool; created: string |}) ->
@@ -1195,7 +1156,6 @@ let useAddEntry () =
 [<Test>]
 let ``line comment after { should make record multiline`` () =
     formatSourceString
-        false
         """let meh = { // this comment right
     Name = "FOO"; Level = 78 }
 """
@@ -1213,7 +1173,6 @@ let meh =
 [<Test>]
 let ``line comment after short syntax record type, 774`` () =
     formatSourceString
-        false
         """type FormatConfig = {
     PageWidth: int
     Indent: int } // The number of spaces
@@ -1227,7 +1186,6 @@ let ``line comment after short syntax record type, 774`` () =
 [<Test>]
 let ``line comment after short record instance syntax`` () =
     formatSourceString
-        false
         """let formatConfig = {
     PageWidth = 70
     Indent = 8 } // The number of spaces
@@ -1241,7 +1199,6 @@ let ``line comment after short record instance syntax`` () =
 [<Test>]
 let ``line comment after short anonymous record instance syntax`` () =
     formatSourceString
-        false
         """let formatConfig = {|
     PageWidth = 70
     Indent = 8 |} // The number of spaces
@@ -1255,7 +1212,6 @@ let ``line comment after short anonymous record instance syntax`` () =
 [<Test>]
 let ``no newline before first multiline member`` () =
     formatSourceString
-        false
         """
 type ShortExpressionInfo =
     { MaxWidth: int
@@ -1286,7 +1242,6 @@ type ShortExpressionInfo =
 [<Test>]
 let ``record with static member, 1059`` () =
     formatSourceString
-        false
         """
 type XX =
   {a:int
@@ -1308,7 +1263,6 @@ type XX =
 [<Test>]
 let ``record with typed static member`` () =
     formatSourceString
-        false
         """
 type XX =
   {a:int
@@ -1330,7 +1284,6 @@ type XX =
 [<Test>]
 let ``record with private static member`` () =
     formatSourceString
-        false
         """
 type XX =
     { a: int
@@ -1353,7 +1306,6 @@ type XX =
 [<Test>]
 let ``keep comments after closing brace of single line records, 1096`` () =
     formatSourceString
-        false
         """
 let formatConfig = { PageWidth = 70; Indent = 8 } // The number of spaces
 type FormatConfig = { PageWidth: int; Indent: int } // The number of spaces
@@ -1372,7 +1324,6 @@ type FormatConfig = { PageWidth: int; Indent: int } // The number of spaces
 [<Test>]
 let ``comment after closing brace in nested record`` () =
     formatSourceString
-        false
         """
 let person =
     { Name = "James"
@@ -1393,7 +1344,6 @@ let person =
 [<Test>]
 let ``comment after closing brace of multi-line record type, 1124`` () =
     formatSourceString
-        false
         """
 module Test =
     type t =
@@ -1414,7 +1364,6 @@ module Test =
 [<Test>]
 let ``multiline SynPat.Record in match clause, 1173`` () =
     formatSourceString
-        false
         """
 match foo with
 | { Bar = bar
@@ -1441,7 +1390,6 @@ match foo with
 [<Test>]
 let ``multiline SynPat.Record in let binding destructuring`` () =
     formatSourceString
-        false
         """
 let internal sepSemi (ctx: Context) =
     let { Config = { SpaceBeforeSemicolon = before; SpaceAfterSemicolon = after } } = ctx
@@ -1474,7 +1422,6 @@ let internal sepSemi (ctx: Context) =
 [<Test>]
 let ``record with an access modifier and a static member, 1300, 657`` () =
     formatSourceString
-        false
         """
 type RequestParser<'ctx, 'a> =
     internal
@@ -1515,7 +1462,6 @@ type RequestParser<'ctx, 'a> =
 [<Test>]
 let ``access modifier on short type record inside module, 1404`` () =
     formatSourceString
-        false
         """
 module Foo =
     type Stores =
@@ -1544,7 +1490,6 @@ module Foo =
 [<Test>]
 let ``add space before parenthesis when function identifier is SynExpr.Const, 1476`` () =
     formatSourceString
-        false
         """
 let x =
       { actual = 6
@@ -1567,7 +1512,6 @@ let y = { actual = 6; y = x }
 [<Test>]
 let ``multiline records in pattern list should not have semicolon by default, 1793`` () =
     formatSourceString
-        false
         """
 match entities with
 | [ { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1"
@@ -1596,7 +1540,6 @@ match entities with
 [<Test>]
 let ``multiline records in pattern list`` () =
     formatSourceString
-        false
         """
 match entities with
 | [ { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1"
@@ -1625,7 +1568,6 @@ match entities with
 [<Test>]
 let ``multiline records in pattern array should not have semicolon by default`` () =
     formatSourceString
-        false
         """
 match entities with
 | [| { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1"
@@ -1654,7 +1596,6 @@ match entities with
 [<Test>]
 let ``update record should indent from curly brace, 1876`` () =
     formatSourceString
-        false
         """
 let rainbow2 =
     { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
@@ -1673,7 +1614,6 @@ let rainbow2 =
 [<Test>]
 let ``update record should indent from curly brace, indent size 2`` () =
     formatSourceString
-        false
         """
 let rainbow2 =
   { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
@@ -1692,7 +1632,6 @@ let rainbow2 =
 [<Test>]
 let ``update record should indent from curly brace, indent size 3`` () =
     formatSourceString
-        false
         """
 let rainbow2 =
    { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
@@ -1711,7 +1650,6 @@ let rainbow2 =
 [<Test>]
 let ``record with comments above field`` () =
     formatSourceString
-        false
         """
 { Foo =
     // bar
@@ -1730,7 +1668,6 @@ let ``record with comments above field`` () =
 [<Test>]
 let ``record with comments above field, indent 2`` () =
     formatSourceString
-        false
         """
 { Foo =
     // bar
@@ -1749,7 +1686,6 @@ let ``record with comments above field, indent 2`` () =
 [<Test>]
 let ``record with comments above field, indent 3`` () =
     formatSourceString
-        false
         """
 { Foo =
     // bar
@@ -1768,7 +1704,6 @@ let ``record with comments above field, indent 3`` () =
 [<Test>]
 let ``anonymous record with multiline field`` () =
     formatSourceString
-        false
         """
 {| Foo =
               //  meh
@@ -1787,7 +1722,6 @@ let ``anonymous record with multiline field`` () =
 [<Test>]
 let ``anonymous record with multiline field, indent 2`` () =
     formatSourceString
-        false
         """
 {| Foo =
               //  meh
@@ -1806,7 +1740,6 @@ let ``anonymous record with multiline field, indent 2`` () =
 [<Test>]
 let ``anonymous record with multiline field, indent 3`` () =
     formatSourceString
-        false
         """
 {| Foo =
               //  meh
@@ -1825,7 +1758,6 @@ let ``anonymous record with multiline field, indent 3`` () =
 [<Test>]
 let ``anonymous record with multiline field, indent 5`` () =
     formatSourceString
-        false
         """
 {| Foo =
               //  meh
@@ -1844,7 +1776,6 @@ let ``anonymous record with multiline field, indent 5`` () =
 [<Test>]
 let ``a foo`` () =
     formatSourceString
-        false
         """
 {| Foo =
               someValue
@@ -1865,7 +1796,6 @@ let ``a foo`` () =
 [<Test>]
 let ``long record field assigment`` () =
     formatSourceString
-        false
         """
 { A =
     // one indent starting from {
@@ -1894,7 +1824,6 @@ let ``long record field assigment`` () =
 [<Test>]
 let ``anonymous update record, indent_size 3`` () =
     formatSourceString
-        false
         """
 {| f with Foo =
                         //  meh
@@ -1914,7 +1843,6 @@ let ``anonymous update record, indent_size 3`` () =
 [<Test>]
 let ``restore correct indent after update record expression`` () =
     formatSourceString
-        false
         """
 let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { FileName = fileName; Source = source } =
     let allDefineOptions, defineHashTokens = TokenParser.getDefines source
@@ -1986,7 +1914,6 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
 [<Test>]
 let ``anonymous records with comments on record fields, 2067`` () =
     formatSourceString
-        false
         """
 {|
     // The foo value.
@@ -2010,7 +1937,6 @@ let ``anonymous records with comments on record fields, 2067`` () =
 [<Test>]
 let ``keep copyInfo for record fixed at starting column, 2109`` () =
     formatSourceString
-        false
         """
 let defaultTestOptions fwk common (o: DotNet.TestOptions) =
     { o.WithCommon(
@@ -2044,7 +1970,6 @@ let defaultTestOptions fwk common (o: DotNet.TestOptions) =
 [<Test>]
 let ``comment after equals in record field`` () =
     formatSourceString
-        false
         """
 { A = //comment 
       B }
@@ -2061,7 +1986,6 @@ let ``comment after equals in record field`` () =
 [<Test>]
 let ``comment after equals in anonymous record field`` () =
     formatSourceString
-        false
         """
 {| A = //comment 
       B |}
@@ -2078,7 +2002,6 @@ let ``comment after equals in anonymous record field`` () =
 [<Test>]
 let ``comment after equals sign in record type definition`` () =
     formatSourceString
-        false
         """
 type Foo =   // comment
     { Bar: int }
@@ -2095,7 +2018,6 @@ type Foo = // comment
 [<Test>]
 let ``comment after equals sign in anonymous record field, 1921`` () =
     formatSourceString
-        false
         """
 let a =
     {| Foo = //
@@ -2114,7 +2036,6 @@ let a =
 [<Test>]
 let ``update record in infix operation, 2355`` () =
     formatSourceString
-        false
         """
 let rec meh () = ()
 and seekReadParamExtras (retRes, paramsRes) (idx:int) =
@@ -2161,7 +2082,6 @@ and seekReadParamExtras (retRes, paramsRes) (idx: int) =
 [<Test>]
 let ``equality comparison with a `with` expression should format correctly with default alignment, 2507`` () =
     formatSourceString
-        false
         """
 let compareThings (first: Thing) (second: Thing) =
     first = { second with
@@ -2183,7 +2103,6 @@ let compareThings (first: Thing) (second: Thing) =
 [<Test>]
 let ``multiline record field type annotation`` () =
     formatSourceString
-        false
         """
 type ExprFolder<'State> =
     { exprIntercept: ('State -> Expr -> 'State) -> ('State -> Expr -> 'State) -> 'State -> Exp -> 'State }
@@ -2205,7 +2124,6 @@ type ExprFolder<'State> =
 [<Test>]
 let ``multiline anonymous record field type annotation`` () =
     formatSourceString
-        false
         """
 type ExprFolder<'State> =
     {| exprIntercept: ('State -> Expr -> 'State) -> ('State -> Expr -> 'State) -> 'State -> Exp -> 'State |}
@@ -2227,7 +2145,6 @@ type ExprFolder<'State> =
 [<Test>]
 let ``comment in bracket ranges of anonymous type`` () =
     formatSourceString
-        false
         """
 let x = {| // test1
     Y = 42
@@ -2284,7 +2201,6 @@ let a =
 [<Test>]
 let ``multiline field body expression where indent_size = 2, 2801`` () =
     formatSourceString
-        false
         """
 let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
     let range =
@@ -2317,7 +2233,6 @@ let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: Format
 [<Test>]
 let ``multiline field body expression where indent_size = 2, anonymous record`` () =
     formatSourceString
-        false
         """
 let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
     let range =
@@ -2350,7 +2265,6 @@ let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: Format
 [<Test>]
 let ``multiline field body expression where indent_size = 2, update record`` () =
     formatSourceString
-        false
         """
 let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
     let range =
@@ -2384,7 +2298,6 @@ let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: Format
 
 let ``multiline field body expression where indent_size = 2, inherit record`` () =
     formatSourceString
-        false
         """
 let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
   let range =
@@ -2418,7 +2331,6 @@ let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: Format
 [<Test>]
 let ``trivia after opening brace in inherit expression, 2803`` () =
     formatSourceString
-        false
         """
 let range =
     { // foo

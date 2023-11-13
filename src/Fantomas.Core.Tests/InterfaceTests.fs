@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``interfaces and inheritance`` () =
     formatSourceString
-        false
         """
 type IPrintable =
    abstract member Print : unit -> unit
@@ -41,7 +40,6 @@ type Interface3 =
 [<Test>]
 let ``should not add with to interface definitions with no members`` () =
     formatSourceString
-        false
         """type Text(text : string) =
     interface IDocument
 
@@ -63,7 +61,7 @@ let ``should not add with to interface definitions with no members`` () =
 
 [<Test>]
 let ``object expressions`` () =
-    formatSourceString false """let obj1 = { new System.Object() with member x.ToString() = "F#" }""" config
+    formatSourceString """let obj1 = { new System.Object() with member x.ToString() = "F#" }""" config
     |> prepend newline
     |> should
         equal
@@ -76,7 +74,6 @@ let obj1 =
 [<Test>]
 let ``object expressions and interfaces`` () =
     formatSourceString
-        false
         """
     let implementer() =
         { new ISecond with
@@ -102,7 +99,6 @@ let implementer () =
 [<Test>]
 let ``should not add with to interfaces with no members in object expressions`` () =
     formatSourceString
-        false
         """
 let f () =
     { new obj() with
@@ -127,7 +123,6 @@ let f () =
 [<Test>]
 let ``should keep named arguments on abstract members`` () =
     formatSourceString
-        false
         """type IThing =
     abstract Foo : name:string * age:int -> bool
 """
@@ -141,7 +136,6 @@ let ``should keep named arguments on abstract members`` () =
 [<Test>]
 let ``should not skip 'with get()' in indexers`` () =
     formatSourceString
-        false
         """type Interface =
     abstract Item : int -> char with get
 """
@@ -155,7 +149,6 @@ let ``should not skip 'with get()' in indexers`` () =
 [<Test>]
 let ``override keyword should be preserved`` () =
     formatSourceString
-        false
         """open System
 
 type T() =
@@ -176,7 +169,6 @@ type T() =
 [<Test>]
 let ``combination of override and member`` () =
     formatSourceString
-        false
         """type LogInterface =
     abstract member Print: string -> unit
     abstract member GetLogFile: string -> string
@@ -221,7 +213,6 @@ type MyLogInteface() =
 [<Test>]
 let ``interface with comment after equal`` () =
     formatSourceString
-        false
         """
 /// Interface that must be implemented by all Argu template types
 type IArgParserTemplate =
@@ -240,13 +231,12 @@ type IArgParserTemplate =
 [<Test>]
 let ``generic interface member should have space after name`` () =
     formatSourceString
-        false
         """
 type IFunc<'R> =
     abstract Invoke<'T> : unit -> 'R // without this space the code is invalid
 """
         config
-    |> fun formatted -> formatSourceString false formatted config
+    |> fun formatted -> formatSourceString formatted config
     |> should
         equal
         """type IFunc<'R> =
@@ -256,7 +246,6 @@ type IFunc<'R> =
 [<Test>]
 let ``long abstract member definition, 435`` () =
     formatSourceString
-        false
         """
 type Test =
     abstract RunJobs: folder:string * ?jobs:string * ?ctm:string * ?createDuplicate:bool * ?hold:bool * ?ignoreCriteria:bool * ?independentFlow:bool * ?orderDate:string * ?orderIntoFolder:string * ?variables:Dictionary<string, string>[] * ?waitForOrderDate:bool
@@ -307,7 +296,6 @@ type Test =
 [<Test>]
 let ``interface with get/set members`` () =
     formatSourceString
-        false
         """
 type IMyInterface =
     abstract MyProp : bool with get, set
@@ -326,7 +314,6 @@ type IMyInterface =
 [<Test>]
 let ``default interface member consumption`` () =
     formatSourceString
-        false
         """
 open CSharp
 
@@ -367,7 +354,6 @@ printfn "DIM from C# but via Object Expression: %d" md'.Z
 [<Test>]
 let ``long member in type declaration, 1362`` () =
     formatSourceString
-        false
         """
 type IFoo =
     abstract Blah : foo : string -> bar : string -> baz : string -> int
@@ -390,7 +376,6 @@ type IFoo =
 [<Test>]
 let ``long member in type declaration, not named`` () =
     formatSourceString
-        false
         """
 type IFoo =
     abstract Blah : string -> string -> string -> int -> string -> string
@@ -415,7 +400,6 @@ type IFoo =
 [<Test>]
 let ``long member with tuple in type declaration`` () =
     formatSourceString
-        false
         """
 type IFoo =
     abstract Bar : [<Path "bar">] bar : string  * [<Path "baz">] baz : string ->  Task<Foo>
@@ -437,7 +421,6 @@ type IFoo =
 [<Test>]
 let ``long member with mixed type declaration`` () =
     formatSourceString
-        false
         """
 type IFoo =
     abstract Bar : i : int -> a : string * foo : int -> string
@@ -459,7 +442,6 @@ type IFoo =
 [<Test>]
 let ``long member with mixed type declaration with a long name`` () =
     formatSourceString
-        false
         """
 type IFoo =
     abstract Bar : i : int -> a : string * foo : int * someReallyLongNameThatMakesTheTupleMultiLine : string -> string
@@ -484,7 +466,6 @@ type IFoo =
 [<Test>]
 let ``print trivia before object expression, 1388`` () =
     formatSourceString
-        false
         """
 let test () =
     let something = "something"
@@ -507,7 +488,6 @@ let test () =
 [<Test>]
 let ``attribute before interface member, 1668`` () =
     formatSourceString
-        false
         """
 type internal WorkingShard =
     | Started of ReactoKinesixShardProcessor
@@ -563,7 +543,6 @@ and ReactoKinesixApp
 [<Test>]
 let ``recursive type where second type has interface with attributes on the members`` () =
     formatSourceString
-        false
         """
 type Foo = | Foo of string
 
@@ -599,7 +578,6 @@ and Bar =
 [<Test>]
 let ``explicit interface with SpaceBeforeClassConstructor, 2226`` () =
     formatSourceString
-        false
         """
 type IInterface =
     interface
@@ -633,7 +611,6 @@ type IInterface3 =
 [<Test>]
 let ``interface in obj expression, 2604`` () =
     formatSourceString
-        false
         """
 {   new IDisposable
     interface Meh with
@@ -653,7 +630,6 @@ let ``interface in obj expression, 2604`` () =
 [<Test>]
 let ``multiple interfaces in obj expression, 2914`` () =
     formatSourceString
-        false
         """
 let create () =
     { new Object() with

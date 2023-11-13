@@ -14,7 +14,6 @@ let config =
 [<Test>]
 let ``array values`` () =
     formatSourceString
-        false
         """
 let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
   (3, 2, 6); (3, 3, 9)|]
@@ -41,7 +40,6 @@ let arr =
 [<Test>]
 let ``list values`` () =
     formatSourceString
-        false
         """
 let arr = [(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
   (3, 2, 6); (3, 3, 9)]
@@ -67,7 +65,7 @@ let arr =
 
 [<Test>]
 let ``short list remains on one line`` () =
-    formatSourceString false """let defines = ["FOO";"BAR"]""" config
+    formatSourceString """let defines = ["FOO";"BAR"]""" config
     |> prepend newline
     |> should
         equal
@@ -78,7 +76,6 @@ let defines = [ "FOO" ; "BAR" ]
 [<Test>]
 let ``array patterns`` () =
     formatSourceString
-        false
         """
 let vectorLength vec =
     match vec with
@@ -102,7 +99,6 @@ let vectorLength vec =
 [<Test>]
 let ``array comprehensions`` () =
     formatSourceString
-        false
         """
 let a1 = [| 0 .. 99 |]
 let a2 = [| for n in 1 .. 100 do if isPrime n then yield n |]"""
@@ -123,7 +119,6 @@ let a2 =
 [<Test>]
 let ``line comment after opening bracket list`` () =
     formatSourceString
-        false
         """let a = [ // some line comment
     (1,2,3); (4,5,6); (7,8,9) ]
 """
@@ -143,7 +138,6 @@ let a =
 [<Test>]
 let ``line comment after opening bracket in short list`` () =
     formatSourceString
-        false
         """let a = [ // some line comment
     a;b ]
 let bb = b
@@ -165,7 +159,6 @@ let bb = b
 [<Test>]
 let ``line comment after opening bracket array`` () =
     formatSourceString
-        false
         """let a = [| // some line comment
     (1,2,3); (4,5,6); (7,8,9) |]
 """
@@ -185,7 +178,6 @@ let a =
 [<Test>]
 let ``line comment before closing bracket list`` () =
     formatSourceString
-        false
         """let a = [
     (1,2,3); (4,5,6); (7,8,9)
     // some line comment
@@ -208,7 +200,6 @@ let a =
 [<Test>]
 let ``line comment before closing bracket array`` () =
     formatSourceString
-        false
         """let a = [|
     (1,2,3); (4,5,6); (7,8,9)
     // some line comment
@@ -231,7 +222,6 @@ let a =
 [<Test>]
 let ``multiline function application inside array`` () =
     formatSourceString
-        false
         """
 [| Abc(
     deffffffffffffffffffffff,
@@ -260,7 +250,6 @@ let ``multiline function application inside array`` () =
 [<Test>]
 let ``multiline function application inside list`` () =
     formatSourceString
-        false
         """
 [ myFunction(
     deffffffffffffffffffffff,
@@ -289,7 +278,6 @@ let ``multiline function application inside list`` () =
 [<Test>]
 let ``list with only lambda expressions should be multiline, 1405`` () =
     formatSourceString
-        false
         """
 let foo =
     [
@@ -312,7 +300,6 @@ let foo =
 [<Test>]
 let ``array with only lambda expressions should be multiline`` () =
     formatSourceString
-        false
         """
 let foo =
     [|
@@ -335,7 +322,6 @@ let foo =
 [<Test>]
 let ``comments before closing bracket`` () =
     formatSourceString
-        false
         """
 let fns =
     [ { x = "long enough to not go to one line"
@@ -365,7 +351,6 @@ let fns =
 [<Test>]
 let ``comments before closing bracket, array`` () =
     formatSourceString
-        false
         """
 let fns =
     [| { x = "long enough to not go to one line"
@@ -395,7 +380,6 @@ let fns =
 [<Test>]
 let ``long list in for loop, 1650`` () =
     formatSourceString
-        false
         """
 module Foo =
 

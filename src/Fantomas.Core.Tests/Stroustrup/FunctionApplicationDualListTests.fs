@@ -12,7 +12,6 @@ let config =
 [<Test>]
 let ``two short lists`` () =
     formatSourceString
-        false
         """
 fn [ a1; a2 ]    [ b1 ; b2 ]
 """
@@ -27,7 +26,6 @@ fn [ a1; a2 ] [ b1; b2 ]
 [<Test>]
 let ``first list short, second multiline`` () =
     formatSourceString
-        false
         """
 fn [ a1
      a2 ] [
@@ -49,7 +47,6 @@ fn [ a1; a2 ] [
 [<Test>]
 let ``first list multiline, second multiline`` () =
     formatSourceString
-        false
         """
 fn [ a1 // hey
      a2 ] [
@@ -74,7 +71,6 @@ fn [
 [<Test>]
 let ``first list multiline, second multiline and other long arguments`` () =
     formatSourceString
-        false
         """
 fn a b (try somethingDangerous with ex -> printfn "meh" ) c [ a1 // hey
                                                               a2 ] [
@@ -106,7 +102,6 @@ fn
 [<Test>]
 let ``two long lists as parameters, 2681`` () =
     formatSourceString
-        false
         """
 Layout.twoColumnLayoutWithStyles
     styles

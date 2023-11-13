@@ -12,7 +12,6 @@ let config =
 [<Test>]
 let ``record type definition`` () =
     formatSourceString
-        false
         """
 type V =
     { X: SomeFieldType
@@ -34,7 +33,6 @@ type V = {
 [<Test>]
 let ``anonymous record type alias`` () =
     formatSourceString
-        false
         """
 type V =
     {| X: SomeFieldType
@@ -57,7 +55,6 @@ type V = {|
 [<Ignore("See https://github.com/fsprojects/fantomas/issues/2001, this will be easier to fix in future FCS version")>]
 let ``record type definition with comment after equals`` () =
     formatSourceString
-        false
         """
 type V = // comment
     { X: SomeFieldType
@@ -80,7 +77,6 @@ type V = // comment
 [<Test>]
 let ``record type definition with members`` () =
     formatSourceString
-        false
         """
 type V =
     { X: SomeFieldType
@@ -105,7 +101,6 @@ type V = {
 [<Test>]
 let ``record type definition with members and trivia`` () =
     formatSourceString
-        false
         """
 type X = {
     Y: int
@@ -127,7 +122,6 @@ type X = {
 [<Test>]
 let ``record definition with private accessibility modifier, 2481`` () =
     formatSourceString
-        false
         """
 type Person = private {
     FirstName: string
@@ -148,7 +142,6 @@ type Person = private {
 [<Test>]
 let ``record definition with internal accessibility modifier, 2481`` () =
     formatSourceString
-        false
         """
 type Person = internal {
     FirstName: string
@@ -169,7 +162,6 @@ type Person = internal {
 [<Test>]
 let ``record definition with accessibility modifier with incorrect format, 2481`` () =
     formatSourceString
-        false
         """
 type Person = 
     private {
@@ -191,7 +183,6 @@ type Person = private {
 [<Test>]
 let ``record definition with accessibility modifier with incorrect format, 2511`` () =
     formatSourceString
-        false
         """
 type NonEmptyList<'T> =
     private
@@ -218,7 +209,6 @@ type NonEmptyList<'T> = private {
 [<Test>]
 let ``record definition with accessibility modifier without members`` () =
     formatSourceString
-        false
         """
 type NonEmptyList<'T> =
     private
@@ -239,7 +229,6 @@ type NonEmptyList<'T> = private {
 [<Test>]
 let ``outdenting problem when specifying record with accessibility modifier, 2597`` () =
     formatSourceString
-        false
         """
 module OutdentingProblem =
     type Configuration = private { Setting1: int; Setting2: bool }
@@ -269,7 +258,6 @@ module OutdentingProblem =
 [<Test>]
 let ``nested anonymous record in type definition, 2413`` () =
     formatSourceString
-        false
         """
 type MangaDexAtHomeResponse = {
     baseUrl: string
@@ -298,7 +286,6 @@ type MangaDexAtHomeResponse = {
 [<Test>]
 let ``record interface declarations can break with Stroustrup enabled, 2787`` () =
     formatSourceString
-        false
         """
 type IEvent = interface end
 
@@ -329,7 +316,6 @@ type UpdatedName = { PreviousName: string }
 [<Test>]
 let ``record member declarations can break with Stroustrup enabled, 2787`` () =
     formatSourceString
-        false
         """
 type SomeEvent =
     { Id: string
@@ -356,7 +342,6 @@ type UpdatedName = { PreviousName: string }
 [<Test>]
 let ``comment above record bracket breaks formatting when Stroustrup enabled, 2871`` () =
     formatSourceString
-        false
         """
 type Event =
     // TODO: Add LulaSafe conclusion and scores per assessment
