@@ -8839,3 +8839,73 @@ body {
 .copy-icon {
   cursor: pointer;
 }
+
+#search-btn {
+  cursor: pointer;
+}
+#search-btn:hover {
+  color: #338CBB;
+}
+
+::backdrop {
+  background-color: #222222;
+  opacity: 0.5;
+}
+
+dialog {
+  background-color: #f6f7f7;
+  margin: 4rem auto;
+  padding: 0.25rem;
+  border: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease-in-out;
+  border-radius: 6px;
+  width: 500px;
+}
+dialog[open] {
+  opacity: 1;
+  visibility: visible;
+}
+dialog input[type=search] {
+  margin: 0;
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  outline: 1px solid #338CBB;
+  border-radius: 6px;
+  border: none;
+}
+dialog input[type=search]::placeholder {
+  font-size: 1.25rem;
+}
+dialog .empty {
+  color: #adb5bd;
+  text-align: center;
+  font-size: 0.8rem;
+  margin: 0.75rem;
+}
+dialog ul {
+  overflow-y: auto;
+  max-height: 50vh;
+  list-style: none;
+  padding: 0;
+}
+dialog ul li {
+  margin: 0;
+  border-bottom: 1px solid #e9ecef;
+}
+dialog ul li:hover a, dialog ul li:hover a iconify-icon {
+  background-color: #2FBADC;
+  color: #FFF;
+}
+dialog ul li a {
+  display: flex;
+  padding: 0.75rem;
+  overflow-x: hidden;
+}
+dialog ul li a iconify-icon {
+  color: #222222;
+  width: 24px;
+  margin-right: 0.5rem;
+}
