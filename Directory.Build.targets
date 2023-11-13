@@ -9,10 +9,11 @@
         <PropertyGroup>
             <DOTNET_ROLL_FORWARD_TO_PRERELEASE>1</DOTNET_ROLL_FORWARD_TO_PRERELEASE>
             <DOTNET_ROLL_FORWARD>LatestMajor</DOTNET_ROLL_FORWARD>
+            <TreatAsWarningCodes>GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001 IONIDE-001 IONIDE-002 IONIDE-003 IONIDE-004 IONIDE-005</TreatAsWarningCodes>
         </PropertyGroup>
         <Exec
             ContinueOnError="true"
-            Command="dotnet fsharp-analyzers --fsc-args &quot;@(FscCommandLineArgs)&quot; --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot; --exclude-analyzer PartialAppAnalyzer --treat-as-error GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001 IONIDE-001 IONIDE-002 IONIDE-003 IONIDE-004 --verbose --report &quot;../../analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;">
+            Command="C:\Users\nojaf\Projects\FSharp.Analyzers.SDK\src\FSharp.Analyzers.Cli\bin\Debug\net6.0\FSharp.Analyzers.Cli.exe --fsc-args &quot;@(FscCommandLineArgs)&quot; --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot; --exclude-analyzer PartialAppAnalyzer --treat-as-warning $(TreatAsWarningCodes) --verbose --report &quot;../../analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;">
             <Output TaskParameter="ExitCode" PropertyName="LastExitCode" />
         </Exec>
         <Error Condition="'$(LastExitCode)' == '-2'" Text="Problems were found $(MSBuildProjectFile)" />
