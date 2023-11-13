@@ -234,7 +234,8 @@ let main argv =
             else
                 InputPath.NotFound input
         | Some inputs ->
-            let isFolder (path: string) = Path.GetExtension(path) = ""
+            let isFolder (path: string) =
+                String.IsNullOrWhiteSpace(Path.GetExtension(path))
 
             let rec loop
                 (files: string list)

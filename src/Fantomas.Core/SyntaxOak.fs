@@ -6,7 +6,7 @@ open Fantomas.FCS.Text
 type TriviaContent =
     | CommentOnSingleLine of string
     | LineCommentAfterSourceCode of comment: string
-    | BlockComment of string * newlineBefore: bool * newlineAfter: bool
+    | BlockComment of comment: string * newlineBefore: bool * newlineAfter: bool
     | Newline
     | Directive of string
     | Cursor
