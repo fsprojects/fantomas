@@ -59,7 +59,7 @@ Some common use cases include:
         <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1" PrivateAssets="all" />
     </ItemGroup>
    <ItemGroup>
-        <PackageReference Include="G-Research.FSharp.Analyzers" Version="0.1.6">
+        <PackageReference Include="G-Research.FSharp.Analyzers" Version="0.2.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>build</IncludeAssets>
         </PackageReference>

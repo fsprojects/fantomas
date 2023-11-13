@@ -9,7 +9,7 @@
         <MSBuild
                 Projects="@(ProjectsToAnalyze)"
                 Targets="AnalyzeProject"
-                Properties="DesignTimeBuild=True;Configuration=Release;ProvideCommandLineArgs=True;SkipCompilerExecution=True;WorkingDir=$(SolutionDir)" />
+                Properties="DesignTimeBuild=True;Configuration=Release;ProvideCommandLineArgs=True;SkipCompilerExecution=True;CodeRoot=$(SolutionDir)" />
     </Target>
 
 </Project>
