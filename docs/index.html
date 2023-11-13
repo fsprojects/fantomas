@@ -133,49 +133,43 @@
         <p>The easiest way to get started is to install Fantomas as a local .NET tool.<br/>
             Check out our <a href="./docs" class="text-black-50">documentation</a> for more details.</p>
     </section>
-    <!--    <section class="bg-primary">-->
-    <!--        <div class="container text-white text-center">-->
-    <!--            <h2 id="what-people-say-about-fantomas">What people say about Fantomas</h2>-->
-    <!--            <div id="testimonialsCarousel" class="carousel slide mt-4" data-bs-ride="carousel">-->
-    <!--                <div class="carousel-indicators">-->
-    <!--                    <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="0" class="active"-->
-    <!--                            aria-current="true" aria-label="Slide 1"></button>-->
-    <!--                    <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="1"-->
-    <!--                            aria-label="Slide 2"></button>-->
-    <!--                    <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="2"-->
-    <!--                            aria-label="Slide 3"></button>-->
-    <!--                </div>-->
-    <!--                <div class="carousel-inner">-->
-    <!--                    <div class="carousel-item active">-->
-    <!--                        <q class="fs-3 d-block my-2">It's like playing jazz</q>-->
-    <!--                        <div class="carousel-caption d-none d-md-block">-->
-    <!--                            <h5><i class="bi bi-dash-lg"></i> Don Syme</h5>-->
-    <!--                            <p>Language designer for F#</p>-->
-    <!--                        </div>-->
-    <!--                    </div>-->
-    <!--                    <div class="carousel-item">-->
-    <!--                        <q class="fs-3 d-block my-2">As a maintainer, Fantomas makes it <em>easy</em>&nbsp; to-->
-    <!--                            contribute to my projects - I no longer have to care about spacing or style, Fantomas-->
-    <!--                            handles it for me!</q>-->
-    <!--                        <div class="carousel-caption d-none d-md-block">-->
-    <!--                            <h5><i class="bi bi-dash-lg"></i> Chet Husk</h5>-->
-    <!--                            <p>F# community hero</p>-->
-    <!--                        </div>-->
-    <!--                    </div>-->
-    <!--                    <div class="carousel-item">-->
-    <!--                        <q class="fs-3 d-block my-2">Fantomas is the next big thing in the F# ecosystem. Not only does-->
-    <!--                            it eliminate the duty for code formatting during typing, but it also integrates into the CI-->
-    <!--                            pipeline and automatically check the formatting for you.</q>-->
-    <!--                        <div class="carousel-caption d-none d-md-block">-->
-    <!--                            <h5><i class="bi bi-dash-lg"></i> Sergey Tihon</h5>-->
-    <!--                            <p>editor of the <a class="text-white" href="https://sergeytihon.com/fsharp-weekly/">F#-->
-    <!--                                weekly newsletter</a></p>-->
-    <!--                        </div>-->
-    <!--                    </div>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--    </section>-->
+    <section id="testimonials">
+        <div class="container">
+            <h2 id="what-people-say-about-fantomas">What people say about Fantomas</h2>
+            <div class="carousel-item active">
+                <q>It's like playing jazz</q>
+                <div class="carousel-caption">
+                    <h5><iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon> Don Syme</h5>
+                    <p>Language designer for F#</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <q>As a maintainer, Fantomas makes it <em>easy</em>&nbsp; to
+                    contribute to my projects - I no longer have to care about spacing or style, Fantomas
+                    handles it for me!</q>
+                <div class="carousel-caption">
+                    <h5><iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon> Chet Husk</h5>
+                    <p>F# community hero</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <q>Fantomas is the next big thing in the F# ecosystem. Not only does
+                    it eliminate the duty for code formatting during typing, but it also integrates into the CI
+                    pipeline and automatically check the formatting for you.</q>
+                <div class="carousel-caption">
+                    <h5><iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon> Sergey Tihon</h5>
+                    <p>editor of the <a class="text-white" href="https://sergeytihon.com/fsharp-weekly/">F#
+                        weekly newsletter</a></p>
+                </div>
+            </div>
+            <div class="carousel-indicators">
+                <button type="button" class="active"
+                        aria-current="true" aria-label="Slide 1"></button>
+                <button type="button"></button>
+                <button type="button"></button>
+            </div>
+        </div>
+    </section>
     <!--    <section id="users">-->
     <!--        <div >-->
     <!--            <h2 class="mb-4 text-primary" id="who-uses-fantomas">Who uses Fantomas?</h2>-->
@@ -429,16 +423,14 @@
     <!--            </div>-->
     <!--        </div>-->
     <!--    </section>-->
-    <!--    <section class="bg-dark py-2">-->
-    <!--        <footer class="container text-light">-->
-    <!--            <ul class="list-unstyled m-0 d-flex justify-content-evenly">-->
-    <!--                <li>&copy; Fantomas <span id="year"></span></li>-->
-    <!--                <li><a href="mailto:info@fantomas.com"-->
-    <!--                       class="text-light text-decoration-none d-flex align-items-center">-->
-    <!--                    <i class="bi bi-envelope me-1"></i>email us</a></li>-->
-    <!--            </ul>-->
-    <!--        </footer>-->
-    <!--    </section>-->
+            <footer>
+                <ul>
+                    <li>&copy; Fantomas <span id="year"></span></li>
+                    <li><a href="mailto:info@fantomas.com"
+                           class="text-light text-decoration-none d-flex align-items-center">
+                        <iconify-icon icon="ic:outline-email" width="24" height="24"></iconify-icon> email us</a></li>
+                </ul>
+            </footer>
 </main>
 <div class="discord">
     <strong>Join us on Discord</strong>
@@ -466,11 +458,19 @@
     });
 
     addEventListener("load", () => {
-        const video = document.querySelector("video")
-        if (window.innerWidth > 768) {
-            video.setAttribute("autoplay", "");
-            video.play();
+        const video = document.querySelector("video");
+        function playVideoIfWideScreen() {
+            if (window.innerWidth > 768) {
+                video.setAttribute("autoplay", "");
+                video.play();
+            }
+            else {
+                video.pause();
+            }
         }
+
+        playVideoIfWideScreen();
+        addEventListener("resize", playVideoIfWideScreen);
 
         // [document.querySelector("header a.btn"), document.querySelector("#your-logo-here")]
         //     .forEach(a => {
@@ -482,6 +482,28 @@
         //         }
         //     )
 
+        const carouselIndicators = [...document.querySelectorAll(".carousel-indicators button")];
+        const slides = [...document.querySelectorAll(".carousel-item")];
+        function toggleSlide(activeIndex) {
+            carouselIndicators.forEach(btn => btn.classList.remove("active"));
+            carouselIndicators[activeIndex].classList.add("active");
+            slides.forEach(btn => btn.classList.remove("active"));
+            slides[activeIndex].classList.add("active");
+        }
+
+        carouselIndicators.forEach((button, idx) => {
+            button.addEventListener("click", () => { toggleSlide(idx)});
+        })
+        
+        setInterval(() => {
+            const activeSlide = document.querySelector(".carousel-item.active");
+            if (activeSlide) {
+                const activeIndex = slides.indexOf(activeSlide);
+                const nextIndex = (activeIndex + 1) % slides.length;
+                toggleSlide(nextIndex);
+            }
+        }, 5000);
+        
         const getStartedButton = document.querySelector("#get-started-copy-button");
         getStartedButton.addEventListener("click", () => {
             const code = document.querySelector("#get-started code span").textContent.trim();
@@ -492,9 +514,9 @@
             setTimeout(() => {
                 getStartedButton.setAttribute("icon", "ph:copy-duotone");
             }, 1000)
-        })
+        });
 
-        // document.querySelector("#year").textContent = "" + new Date().getFullYear();
+        document.querySelector("#year").textContent = "" + new Date().getFullYear();
     })
 </script>
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
