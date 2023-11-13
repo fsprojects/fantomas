@@ -2903,6 +2903,29 @@ let bv =
 """
 
 [<Test>]
+let ``Trivia inside multiline generic type parameters`` () =
+    formatSourceString
+        false
+        """
+type X =
+    Teq< //
+        int
+     //
+     >
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    Teq< //
+        int
+     //
+    >
+"""
+
+[<Test>]
 let ``a huge amount of type declarations`` () =
     let sourceCode =
         List.init 1000 (sprintf "type FooBar%i = class end")
