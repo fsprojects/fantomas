@@ -347,6 +347,12 @@ section {
         font-size: var(--font-600);
         margin-top: var(--spacing-200);
     }
+}
+
+#intro {
+    & h2 {
+        color: var(--fantomas-400);
+    }
 
     & div {
         margin: var(--spacing-500) 0;
@@ -370,10 +376,6 @@ section {
             margin-bottom: 0;
         }
     }
-}
-
-#intro h2 {
-    color: var(--fantomas-400);
 }
 
 @media screen and (min-width: 768px) {
@@ -527,7 +529,13 @@ section {
 #users {
     color: var(--fantomas-500);
 
+    & h2 {
+        margin-bottom: var(--spacing-300);
+    }
+
     & div {
+        max-width: var(--container-md);
+
         & a {
             display: inline-block;
             height: var(--spacing-800);
@@ -540,11 +548,72 @@ section {
                 width: 100%;
                 height: 100%;
             }
-            
+
             &:last-child {
                 vertical-align: top;
                 line-height: var(--spacing-800);
                 white-space: nowrap;
+            }
+        }
+    }
+}
+
+#sponsors {
+    background-color: #f8f9fa;
+    color: var(--fantomas-800);
+
+    & h2 {
+        font-size: var(--font-800);
+        text-transform: uppercase;
+    }
+
+    & h3 {
+        text-align: left;
+        margin: var(--spacing-400) auto;
+        font-size: var(--font-500);
+        max-width: var(--container-md);
+    }
+
+    #enterprise {
+        display: flex;
+        max-width: var(--container-md);
+        margin: 0 auto;
+
+        & a {
+            flex: 1;
+
+            & img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+        }
+    }
+
+    & ul {
+        list-style: none;
+        margin: 0 auto;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        gap: var(--spacing-300);
+        max-width: var(--container-md);
+
+        & li {
+            width: 250px;
+
+            & a {
+                display: flex;
+                align-items: center;
+                padding: var(--spacing-100);
+
+                & img {
+                    width: var(--spacing-600);
+                    height: var(--spacing-600);
+                    margin-right: var(--spacing-100);
+                    border-radius: 50%;
+                }
             }
         }
     }
