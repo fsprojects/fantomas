@@ -5,9 +5,7 @@ open FsUnit
 open Fantomas.Tests.TestHelpers
 
 [<Literal>]
-let FormattedCode =
-    """let a = 9
-"""
+let FormattedCode = "let a = 9\n"
 
 [<Literal>]
 let UnformattedCode = "let a =   9"
@@ -18,6 +16,14 @@ let Verbosity = "--verbosity d"
 [<Test>]
 let ``correctly formatted file should not be written, 1984`` () =
     let fileName = "A"
+
+    use configFixture =
+        new ConfigurationFile(
+            """
+[*]
+end_of_line=lf
+"""
+        )
 
     use inputFixture = new TemporaryFileCodeSample(FormattedCode, fileName = fileName)
     let args = sprintf "%s %s" Verbosity inputFixture.Filename

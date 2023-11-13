@@ -15,25 +15,17 @@ addEventListener('load', (event) => {
             });
         })
 
-
     // Opening/collapsing menu items of sidebar depending on the current page section
-    const currentPathName = window.location.pathname;
-    const currentSectionFull = currentPathName.substring(0, currentPathName.lastIndexOf('/'));
-    const currenSection = currentSectionFull.substring(currentSectionFull.lastIndexOf('/') + 1);
-
-    const openMenu = (fsdocsSection) => {
-        document.getElementById(fsdocsSection).classList.add('show');
-        document.getElementById(fsdocsSection + '-button').classList.remove('collapsed');
-    }
-    switch (currenSection) {
-        case 'docs':
-            openMenu('end-users');
-            break;
-        case 'reference':
-            openMenu('api_reference');
-            break;
-        default:
-            openMenu(currenSection);
-            break;
+    const activeMenuSection = location.pathname.startsWith("/reference") ? document.querySelector("#api_reference-wrapper") : document.querySelector(".accordion-item.active");
+    
+    if (activeMenuSection) {
+        const accordion = activeMenuSection.querySelector(".accordion-collapse");
+        if (accordion) {
+            accordion.classList.add('show');
+        }
+        const button = activeMenuSection.querySelector("button");
+        if (button) {
+            button.classList.remove('collapsed');
+        }
     }
 });

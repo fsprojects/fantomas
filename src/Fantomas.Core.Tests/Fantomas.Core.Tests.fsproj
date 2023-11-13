@@ -4,6 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <IsPackable>false</IsPackable>
+    <RollForward>Major</RollForward>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="TestHelpers.fsi" />

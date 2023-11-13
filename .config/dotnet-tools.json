@@ -15,7 +15,7 @@
       ]
     },
     "fsdocs-tool": {
-      "version": "19.1.1",
+      "version": "20.0.0-alpha-009",
       "commands": [
         "fsdocs"
       ]

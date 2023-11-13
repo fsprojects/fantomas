@@ -158,3 +158,77 @@ body
 
 .copy-icon
   cursor: pointer
+
+// Search
+#search-btn
+  cursor: pointer
+  &:hover
+    color: $primary
+
+::backdrop 
+    background-color: $black
+    opacity: 0.5
+
+dialog 
+    background-color: $pearl
+    margin: 4rem auto
+    padding: 0.25rem
+    border: none
+    opacity: 0
+    visibility: hidden
+    transition: all 0.2s ease-in-out
+    border-radius: 6px
+    width: 500px
+
+    &[open] 
+        opacity: 1
+        visibility: visible
+    
+
+    & input[type=search] 
+        margin: 0
+        display: block
+        width: 100%
+        padding: 0.75rem
+        outline: 1px solid $primary
+        border-radius: 6px
+        border: none
+
+        &::placeholder 
+            font-size: 1.25rem
+
+    .empty 
+        color: $gray-500
+        text-align: center
+        font-size: 0.80rem
+        margin: 0.75rem
+    
+
+    & ul 
+        overflow-y: auto
+        max-height: 50vh
+        list-style: none
+        padding: 0
+
+        & li 
+            margin: 0
+            border-bottom: 1px solid $gray-200
+            
+            &:hover 
+                & a, & a iconify-icon 
+                    background-color: $secondary
+                    color: $white
+                
+            & a 
+                display: flex
+                padding: 0.75rem
+                overflow-x: hidden
+
+                & iconify-icon 
+                    color: $black
+                    width: 24px
+                    margin-right: 0.5rem
+                
+            
+        
+    

@@ -24,6 +24,7 @@ let ``config file in working directory should not require relative prefix, 821``
             """
 [*.fs]
 indent_size=2
+end_of_line=lf
 """
         )
 
@@ -33,12 +34,7 @@ indent_size=2
     output |> should contain (sprintf "Processing %s" fileFixture.Filename)
     let result = System.IO.File.ReadAllText(fileFixture.Filename)
 
-    result
-    |> should
-        equal
-        """let a = // foo
-  9
-"""
+    result |> should equal "let a = // foo\n  9\n"
 
 [<Test>]
 let ``end_of_line=cr should throw an exception`` () =

@@ -5,6 +5,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
+    <RollForward>Major</RollForward>
   </PropertyGroup>
 
   <ItemGroup>

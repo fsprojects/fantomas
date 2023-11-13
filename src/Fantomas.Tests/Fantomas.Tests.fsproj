@@ -8,6 +8,7 @@
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <IsPackable>false</IsPackable>
     <RootNamespace>Fantomas.CoreGlobalTool.Tests</RootNamespace>
+    <RollForward>Major</RollForward>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
