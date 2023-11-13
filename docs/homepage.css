@@ -88,6 +88,12 @@ p, h1, h2, h3, h4, h5, h6 {
     font-weight: 400;
 }
 
+@media screen and (min-width: 1024px) {
+    h2 {
+        font-size: var(--font-700);
+    }
+}
+
 a {
     color: var(--fantomas-700);
 }
@@ -379,7 +385,7 @@ section {
 }
 
 @media screen and (min-width: 768px) {
-    section {
+    #intro {
         & div {
             display: inline-block;
             margin: var(--spacing-600) var(--spacing-200);
@@ -394,7 +400,6 @@ section {
     & h2 {
         color: var(--white);
         margin-bottom: var(--spacing-400);
-        font-size: var(--font-600);
     }
 
     & code {
@@ -444,11 +449,15 @@ section {
     background-color: var(--fantomas-600);
     color: var(--white);
 
+    & h2 {
+        margin-bottom: var(--spacing-400);
+    }
+
     .container {
         position: relative;
         width: 100%;
-        height: 350px;
-        margin: 0;
+        height: 400px;
+        margin: 0 auto;
     }
 
     .carousel-item {
@@ -486,9 +495,10 @@ section {
 
     .carousel-indicators {
         position: absolute;
-        bottom: var(--spacing-50);
+        bottom: calc(-1 * var(--spacing-400));
         left: 50%;
         transform: translateX(-50%);
+        white-space: nowrap;
 
         & button {
             border: none;
@@ -509,6 +519,10 @@ section {
 
 @media screen and (min-width: 600px) {
     #testimonials {
+        & h2 {
+            margin-bottom: var(--spacing-600);
+        }
+
         .container {
             height: 400px;
             max-width: var(--container-sm);
@@ -521,6 +535,10 @@ section {
 
             & h5 {
                 font-size: var(--font-400);
+            }
+
+            .carousel-caption {
+                margin-top: var(--spacing-100);
             }
         }
     }
@@ -535,6 +553,7 @@ section {
 
     & div {
         max-width: var(--container-md);
+        margin: 0 auto;
 
         & a {
             display: inline-block;
@@ -618,6 +637,123 @@ section {
         }
     }
 }
+
+#media {
+    background-color: var(--fantomas-900);
+    color: var(--white);
+
+    & h2 {
+        text-align: left;
+    }
+
+    .container {
+        margin: 0 auto;
+        max-width: var(--container-lg);
+
+        #talk {
+            width: 100%;
+            max-width: var(--container-md);
+            aspect-ratio: 16/9;
+            margin: var(--spacing-600) auto;
+
+            & iframe {
+                width: 100%;
+                height: 100%;
+                border: 5px solid var(--white);
+            }
+        }
+
+        #posts {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-auto-rows: minmax(100px, auto);
+            gap: 20px;
+
+            .card, .tweet {
+                box-shadow: 0 1px 1px var(--shadow-color);
+            }
+
+            .card {
+                background-color: var(--white);
+                color: var(--black);
+                border-radius: 9px;
+                padding: var(--spacing-300);
+                text-align: left;
+                margin-top: 10px;
+                position: relative;
+
+                & h5 {
+                    color: var(--fantomas-500);
+                    font-size: var(--font-400);
+                    display: flex;
+                    align-items: center;
+
+                    & iconify-icon {
+                        margin-right: var(--spacing-50);
+                    }
+                }
+
+                & p {
+                    margin: var(--spacing-300) 0;
+                }
+
+                .ratio-16x9 {
+                    aspect-ratio: 16/9;
+
+                    & iframe {
+                        width: 100%;
+                        height: 100%;
+                        border: none;
+                        margin: var(--spacing-100) 0;
+                    }
+
+                    margin-bottom: calc(var(--spacing-500) + var(--spacing-100));
+                }
+
+                .btn {
+                    color: var(--white);
+                    background-color: var(--fantomas-500);
+                    border-radius: var(--radius);
+                    padding: var(--spacing-100);
+                    text-decoration: none;
+                    display: inline-block;
+                    box-shadow: 0 1px 1px var(--shadow-color);
+                    transition: all 200ms;
+                    position: absolute;
+                    right: var(--spacing-300);
+                    bottom: var(--spacing-300);
+
+                    &:hover {
+                        background-color: var(--fantomas-600);
+                        transform: translateY(-1px);
+                    }
+
+                    &:focus {
+                        background-color: var(--fantomas-800);
+                    }
+                }
+            }
+
+            .tweet {
+                max-width: 100%;
+                overflow-x: auto;
+            }
+        }
+    }
+}
+
+@media screen and (min-width: 768px) {
+    #media .container #posts {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    #media .container #posts {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
 
 footer {
     background-color: var(--black);
