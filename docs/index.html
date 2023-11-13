@@ -127,8 +127,10 @@
             <span>
                 dotnet tool install fantomas    
                 </span>
-            <iconify-icon id="get-started-copy-button" icon="ph:copy-duotone" width="32" height="32"
-                          title="Copy command"></iconify-icon>
+            <div class="tooltip">
+                <iconify-icon id="get-started-copy-button" icon="ph:copy-duotone" width="32" height="32"></iconify-icon>
+                <p class="tooltiptext">Copy to clipboard</p>
+            </div>
         </code>
         <p>The easiest way to get started is to install Fantomas as a local .NET tool.<br/>
             Check out our <a href="./docs" class="text-black-50">documentation</a> for more details.</p>
@@ -139,7 +141,10 @@
             <div class="carousel-item active">
                 <q>It's like playing jazz</q>
                 <div class="carousel-caption">
-                    <h5><iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon> Don Syme</h5>
+                    <h5>
+                        <iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon>
+                        Don Syme
+                    </h5>
                     <p>Language designer for F#</p>
                 </div>
             </div>
@@ -148,7 +153,10 @@
                     contribute to my projects - I no longer have to care about spacing or style, Fantomas
                     handles it for me!</q>
                 <div class="carousel-caption">
-                    <h5><iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon> Chet Husk</h5>
+                    <h5>
+                        <iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon>
+                        Chet Husk
+                    </h5>
                     <p>F# community hero</p>
                 </div>
             </div>
@@ -157,7 +165,10 @@
                     it eliminate the duty for code formatting during typing, but it also integrates into the CI
                     pipeline and automatically check the formatting for you.</q>
                 <div class="carousel-caption">
-                    <h5><iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon> Sergey Tihon</h5>
+                    <h5>
+                        <iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon>
+                        Sergey Tihon
+                    </h5>
                     <p>editor of the <a class="text-white" href="https://sergeytihon.com/fsharp-weekly/">F#
                         weekly newsletter</a></p>
                 </div>
@@ -423,14 +434,15 @@
     <!--            </div>-->
     <!--        </div>-->
     <!--    </section>-->
-            <footer>
-                <ul>
-                    <li>&copy; Fantomas <span id="year"></span></li>
-                    <li><a href="mailto:info@fantomas.com"
-                           class="text-light text-decoration-none d-flex align-items-center">
-                        <iconify-icon icon="ic:outline-email" width="24" height="24"></iconify-icon> email us</a></li>
-                </ul>
-            </footer>
+    <footer>
+        <ul>
+            <li>&copy; Fantomas <span id="year"></span></li>
+            <li><a href="mailto:info@fantomas.com"
+                   class="text-light text-decoration-none d-flex align-items-center">
+                <iconify-icon icon="ic:outline-email" width="24" height="24"></iconify-icon>
+                email us</a></li>
+        </ul>
+    </footer>
 </main>
 <div class="discord">
     <strong>Join us on Discord</strong>
@@ -459,12 +471,12 @@
 
     addEventListener("load", () => {
         const video = document.querySelector("video");
+
         function playVideoIfWideScreen() {
             if (window.innerWidth > 768) {
                 video.setAttribute("autoplay", "");
                 video.play();
-            }
-            else {
+            } else {
                 video.pause();
             }
         }
@@ -484,6 +496,7 @@
 
         const carouselIndicators = [...document.querySelectorAll(".carousel-indicators button")];
         const slides = [...document.querySelectorAll(".carousel-item")];
+
         function toggleSlide(activeIndex) {
             carouselIndicators.forEach(btn => btn.classList.remove("active"));
             carouselIndicators[activeIndex].classList.add("active");
@@ -492,9 +505,11 @@
         }
 
         carouselIndicators.forEach((button, idx) => {
-            button.addEventListener("click", () => { toggleSlide(idx)});
+            button.addEventListener("click", () => {
+                toggleSlide(idx)
+            });
         })
-        
+
         setInterval(() => {
             const activeSlide = document.querySelector(".carousel-item.active");
             if (activeSlide) {
@@ -503,16 +518,18 @@
                 toggleSlide(nextIndex);
             }
         }, 5000);
-        
+
         const getStartedButton = document.querySelector("#get-started-copy-button");
         getStartedButton.addEventListener("click", () => {
             const code = document.querySelector("#get-started code span").textContent.trim();
             copyTextToClipboard(code);
             getStartedButton.setAttribute("icon", "ri:check-line");
+            getStartedButton.nextElementSibling.textContent = "Copied!";
 
             // Reset
             setTimeout(() => {
                 getStartedButton.setAttribute("icon", "ph:copy-duotone");
+                getStartedButton.nextElementSibling.textContent = "Copy to clipboard";
             }, 1000)
         });
 
