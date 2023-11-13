@@ -27,10 +27,10 @@ jobs:
     - name: "trigger fantomas-tools action"
       if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'
       run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
-#    - name: "Run analyzers"
-#      run: dotnet msbuild /t:AnalyzeSolution
-#      continue-on-error: true
-#      if: matrix.os == 'ubuntu-latest'
+    - name: "Run analyzers"
+      run: dotnet msbuild /t:AnalyzeSolution
+      continue-on-error: true
+      if: matrix.os == 'ubuntu-latest'
     - name: Upload SARIF file
       uses: github/codeql-action/upload-sarif@v2
       if: matrix.os == 'ubuntu-latest'
@@ -48,13 +48,3 @@ jobs:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: dotnet fsi build.fsx -p Release
-
-  # Builds the project in a dev container
-  build-devcontainer:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build and run dev container task
-        uses: devcontainers/ci@v0.3
-        with:
-          runCmd: dotnet fsi build.fsx
