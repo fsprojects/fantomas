@@ -52,6 +52,9 @@
     --pearl: #f6f7f7;
     --black: #222222;
     --shadow-color: hsla(0, 0%, 0%, .1);
+    --scrollbar-track-background: #424242;
+    --scrollbar-track-border: #4A4A4A;
+    --scrollbar-thumb-background: #686868;
 }
 
 /* CSS Reset, source: https://www.joshwcomeau.com/css/custom-css-reset/ */
@@ -68,6 +71,34 @@ body {
     -webkit-font-smoothing: antialiased;
     font-family: var(--font-family-sans-serif);
     font-weight: 400;
+}
+
+/* Custom scrollbar styling */
+body {
+    overflow-x: hidden;
+
+    &::-webkit-scrollbar {
+        height: var(--spacing-100);
+        width: var(--spacing-100);
+    }
+
+    &::-webkit-scrollbar-track {
+        background-color: var(--scrollbar-track-background);
+        border: 1px solid var(--scrollbar-track-border);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--scrollbar-thumb-background);
+    }
+}
+
+body {
+    @media screen and (min-width: 600px) {
+        &::-webkit-scrollbar {
+            height: var(--spacing-200);
+            width: var(--spacing-300);
+        }
+    }
 }
 
 html {
@@ -652,7 +683,7 @@ section {
 
         #talk {
             width: 100%;
-            max-width: var(--container-md);
+            max-width: var(--container-lg);
             aspect-ratio: 16/9;
             margin: var(--spacing-600) auto;
 
@@ -753,7 +784,6 @@ section {
         grid-template-columns: repeat(3, 1fr);
     }
 }
-
 
 footer {
     background-color: var(--black);
