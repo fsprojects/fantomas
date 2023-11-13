@@ -13,7 +13,8 @@
         </PropertyGroup>
         <Exec
             ContinueOnError="true"
-            Command="C:\Users\nojaf\Projects\FSharp.Analyzers.SDK\src\FSharp.Analyzers.Cli\bin\Debug\net6.0\FSharp.Analyzers.Cli.exe --fsc-args &quot;@(FscCommandLineArgs)&quot; --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot; --exclude-analyzer PartialAppAnalyzer --treat-as-warning $(TreatAsWarningCodes) --verbose --report &quot;../../analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;">
+            WorkingDirectory="$(WorkingDir)"
+            Command="dotnet fsharp-analyzers --fsc-args &quot;@(FscCommandLineArgs)&quot; --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot; --exclude-analyzer PartialAppAnalyzer --treat-as-warning $(TreatAsWarningCodes) --verbose --report &quot;../../analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;">
             <Output TaskParameter="ExitCode" PropertyName="LastExitCode" />
         </Exec>
         <Error Condition="'$(LastExitCode)' == '-2'" Text="Problems were found $(MSBuildProjectFile)" />
