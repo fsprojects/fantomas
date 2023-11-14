@@ -115,7 +115,7 @@ module private DefineCombinationSolver =
 
         cnf |> List.forall evalTerm
 
-    let trySolveSAT maxSteps cnf =
+    let trySolveSAT (maxSteps: int) (cnf: Set<Literal> list) : SATSolveResult =
         let allLiterals = cnf |> Seq.collect id |> Seq.toList
 
         let groupedLiterals ls =

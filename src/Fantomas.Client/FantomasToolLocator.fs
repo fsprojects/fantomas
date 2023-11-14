@@ -129,7 +129,7 @@ let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion
         match Option.ofObj (Environment.GetEnvironmentVariable("PATH")) with
         | Some s -> s.Split([| if isWindows then ';' else ':' |], StringSplitOptions.RemoveEmptyEntries)
         | None -> Array.empty
-        |> Seq.choose (fun folder ->
+        |> Array.choose (fun folder ->
             if isWindows then
                 let fantomasExe = Path.Combine(folder, "fantomas.exe")
 
@@ -145,7 +145,7 @@ let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion
                 if File.Exists fantomas then Some fantomas
                 elif File.Exists fantomasTool then Some fantomasTool
                 else None)
-        |> Seq.tryHead
+        |> Array.tryHead
 
     fantomasExecutableOnPathOpt
     |> Option.bind (fun fantomasExecutablePath ->

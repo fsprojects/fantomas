@@ -34,7 +34,7 @@ type Arguments =
             | Input _ ->
                 sprintf
                     "Input paths: can be multiple folders or files with %s extension."
-                    (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
+                    (Set.map (fun s -> "*" + s) extensions |> String.concat ",")
             | Verbosity _ -> "Set the verbosity level. Allowed values are n[ormal] and d[etailed]."
 
 [<RequireQualifiedAccess>]
@@ -70,7 +70,7 @@ let findAllFilesRecursively path =
     let searchOption = SearchOption.AllDirectories
 
     Directory.GetFiles(path, "*.*", searchOption)
-    |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
+    |> Array.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
 
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
@@ -158,11 +158,11 @@ let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
 let private reportCheckResults (checkResult: CheckResult) =
     checkResult.Errors
     |> List.map (fun (filename, exn) -> $"error: Failed to format %s{filename}: %s{exn.ToString()}")
-    |> Seq.iter elog
+    |> List.iter elog
 
     checkResult.Formatted
     |> List.map (fun filename -> $"%s{filename} needs formatting")
-    |> Seq.iter stdlog
+    |> List.iter stdlog
 
 let runCheckCommand (inputPath: InputPath) : int =
     let check files =
