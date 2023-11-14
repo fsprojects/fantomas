@@ -5,11 +5,12 @@
     </ItemGroup>
 
     <Target Name="AnalyzeSolution">
+        <PropertyGroup>
+            <CodeRoot>$(SolutionDir)</CodeRoot>
+            <SarifOutput>$(SolutionDir)reports/</SarifOutput>
+        </PropertyGroup>
         <Exec Command="dotnet build -c Release $(SolutionFileName)" />
-        <MSBuild
-                Projects="@(ProjectsToAnalyze)"
-                Targets="AnalyzeProject"
-                Properties="DesignTimeBuild=True;Configuration=Release;ProvideCommandLineArgs=True;SkipCompilerExecution=True;CodeRoot=$(SolutionDir)" />
+        <MSBuild Projects="@(ProjectsToAnalyze)" Targets="AnalyzeFSharpProjectUsingFscArgs" Properties="CodeRoot=$(CodeRoot);SarifOutput=$(SarifOutput)" ContinueOnError="true" />
     </Target>
 
 </Project>
