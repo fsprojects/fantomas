@@ -170,8 +170,9 @@ module WriterEvents =
             // Trustworthy multiline string in the original AST can contain \r
             // Internally we process everything with \n and at the end we respect the .editorconfig end_of_line setting.
             s.Replace("\r", "").Split('\n')
-            |> Array.map (fun x -> [ Write x ])
-            |> Array.reduce (fun x y -> x @ [ writeLine ] @ y)
+            |> Seq.map (fun x -> [ Write x ])
+            |> Seq.reduce (fun x y -> x @ [ writeLine ] @ y)
+            |> Seq.toList
         | _ -> [ ev ]
 
     let isMultiline evs =
@@ -257,7 +258,7 @@ let writerEvent (e: WriterEvent) (ctx: Context) : Context =
             WriterEvents = Queue.append ctx.WriterEvents evs
             WriterModel =
                 (ctx.WriterModel, evs)
-                ||> List.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m) }
+                ||> Seq.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m) }
 
     ctx'
 
@@ -429,7 +430,7 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
     let y = ctx x
 
     match y.WriterModel.Mode with
-    | ShortExpression infos when infos |> List.exists (fun x -> x.ConfirmedMultiline) -> y
+    | ShortExpression infos when infos |> Seq.exists (fun x -> x.ConfirmedMultiline) -> y
     | _ -> f y
 
 let (!-) (str: string) = writerEvent (Write str)

@@ -25,14 +25,14 @@ module Reflection =
     let inline getRecordFields x =
         let names =
             FSharpType.GetRecordFields(x.GetType())
-            |> Array.map (fun x ->
+            |> Seq.map (fun x ->
                 { PropertyName = x.Name
                   Category = getCustomAttribute<CategoryAttribute, string> (fun a -> a.Category) x
                   DisplayName = getCustomAttribute<DisplayNameAttribute, string> (fun a -> a.DisplayName) x
                   Description = getCustomAttribute<DescriptionAttribute, string> (fun a -> a.Description) x })
 
         let values = FSharpValue.GetRecordFields x
-        Array.zip names values
+        Seq.zip names values |> Seq.toArray
 
 let supportedProperties =
     [ "max_line_length"; "indent_size"; "end_of_line"; "insert_final_newline" ]

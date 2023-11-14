@@ -1,3 +1,3 @@
 module Program
 
-val main: argv: string array -> int
+val main: argv: string[] -> int

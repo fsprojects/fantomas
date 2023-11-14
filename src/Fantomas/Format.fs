@@ -160,14 +160,14 @@ module Format =
                 | FormatResult.Error(f, _)
                 | FormatResult.InvalidCode(f, _) -> Some f
 
-            let changes = formatted |> Array.choose getChangedFile |> Array.toList
+            let changes = formatted |> Seq.choose getChangedFile |> Seq.toList
 
             let getErrors =
                 function
                 | FormatResult.Error(f, e) -> Some(f, e)
                 | _ -> None
 
-            let errors = formatted |> Array.choose getErrors |> Array.toList
+            let errors = formatted |> Seq.choose getErrors |> Seq.toList
 
             return { Errors = errors; Formatted = changes }
         }

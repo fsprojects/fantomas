@@ -49,5 +49,5 @@ let isValidFSharpCode (isSignature: bool) (source: string) : Async<bool> =
                     let _, diagnostics = parseFile isSignature sourceText defineCombination.Value
                     noWarningOrErrorDiagnostics diagnostics)
 
-            return List.forall id isValidForCombinations
+            return Seq.forall id isValidForCombinations
     }
