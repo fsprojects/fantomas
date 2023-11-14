@@ -10,7 +10,7 @@ module Reflection =
           DisplayName: string option
           Description: string option }
 
-    val inline getRecordFields: x: 'a -> (FSharpRecordField * obj)[]
+    val inline getRecordFields: x: 'a -> (FSharpRecordField * obj) array
 
 val toEditorConfigName: value: seq<char> -> string
 
