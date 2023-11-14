@@ -1,16 +1,17 @@
 <Project>
 
     <ItemGroup>
-        <ProjectsToAnalyze Include="src\**\*.fsproj" Exclude="src\Fantomas.FCS\Fantomas.FCS.fsproj"/>
+        <ProjectsToAnalyze Include="src/**/*.fsproj" Exclude="src/Fantomas.FCS/Fantomas.FCS.fsproj"/>
     </ItemGroup>
 
     <Target Name="AnalyzeSolution">
         <PropertyGroup>
             <CodeRoot>$(SolutionDir)</CodeRoot>
-            <SarifOutput>$(SolutionDir)reports/</SarifOutput>
         </PropertyGroup>
-        <Exec Command="dotnet build -c Release $(SolutionFileName)" />
-        <MSBuild Projects="@(ProjectsToAnalyze)" Targets="AnalyzeFSharpProjectUsingFscArgs" Properties="CodeRoot=$(CodeRoot);SarifOutput=$(SarifOutput)" ContinueOnError="true" />
+        <RemoveDir Directories="$(SolutionDir)/analysisreports" />
+        <MSBuild Projects="@(ProjectsToAnalyze)" 
+                 Targets="AnalyzeFSharpProject"
+                 Properties="CodeRoot=$(CodeRoot)" ContinueOnError="true" />
     </Target>
 
 </Project>
