@@ -2680,11 +2680,28 @@ type Constant =
         | Unit n -> n
         | Measure n -> n
 
-type TyparDeclNode(attributes: MultipleAttributeListNode option, typar: SingleTextNode, range) =
+type TyparDeclNode
+    (
+        attributes: MultipleAttributeListNode option,
+        typar: SingleTextNode,
+        intersectionConstraints: Choice<Type, SingleTextNode> list,
+        range
+    ) =
     inherit NodeBase(range)
-    override val Children: Node array = [| yield! noa attributes; yield typar |]
+
+    override val Children: Node array =
+        [| yield! noa attributes
+           yield typar
+           yield!
+               List.map
+                   (function
+                   | Choice1Of2 t -> Type.Node t
+                   | Choice2Of2 amp -> amp :> Node)
+                   intersectionConstraints |]
+
     member val Attributes = attributes
     member val TypeParameter = typar
+    member val IntersectionConstraints = intersectionConstraints
 
 type TyparDeclsPostfixListNode
     (

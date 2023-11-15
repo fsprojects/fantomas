@@ -1997,13 +1997,24 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
         |> ModuleDecl.NestedModule
     | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
 
-let mkSynTyparDecl (creationAide: CreationAide) (SynTyparDecl(attributes = attrs; typar = typar)) =
+let mkSynTyparDecl
+    (creationAide: CreationAide)
+    (SynTyparDecl(attributes = attrs; typar = typar; intersectionConstraints = intersectionConstraints; trivia = trivia))
+    =
     let m =
         match List.tryHead attrs with
         | None -> typar.Range
         | Some a -> unionRanges a.Range typar.Range
 
-    TyparDeclNode(mkAttributes creationAide attrs, mkSynTypar typar, m)
+    let intersectionConstraintNodes =
+        if intersectionConstraints.Length <> trivia.AmpersandRanges.Length then
+            failwith "Unexpected mismatch in SynTyparDecl between intersectionConstraints and AmpersandRanges"
+        else
+            (trivia.AmpersandRanges, intersectionConstraints)
+            ||> List.zip
+            |> List.collect (fun (amp, t) -> [ Choice2Of2(stn "&" amp); Choice1Of2(mkType creationAide t) ])
+
+    TyparDeclNode(mkAttributes creationAide attrs, mkSynTypar typar, intersectionConstraintNodes, m)
 
 let mkSynTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls =
     match tds with
