@@ -1,15 +1,7 @@
-<div id="{{fsdocs-menu-header-id}}-wrapper" class="accordion-item {{fsdocs-menu-header-active-class}}">
-    <li class="docs-menu">
-        <button id="{{fsdocs-menu-header-id}}-button"
-            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
-            data-bs-toggle="collapse" data-bs-target="#{{fsdocs-menu-header-id}}" aria-expanded="false"
-            aria-control="{{fsdocs-menu-header-id}}" type="button">
-            {{fsdocs-menu-header-content}}
-        </button>
-        <div id="{{fsdocs-menu-header-id}}" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
-            <ul class="list-unstyled fw-normal mb-0">
-                {{fsdocs-menu-items}}
-            </ul>
-        </div>
-    </li>
+<li class="nav-header {{fsdocs-menu-header-active-class}}" id="{{fsdocs-menu-header-id}}">
+    {{fsdocs-menu-header-content}}
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    {{fsdocs-menu-items}}
 </div>

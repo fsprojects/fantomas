@@ -17,18 +17,10 @@ export class ThemeToggle extends LitElement {
     }
 
     static styles = css`
-      div {
-        height: 30px;
-        width: 30px;
+      :host {
         cursor: pointer;
-      }
-
-      .light {
-        background: url('https://api.iconify.design/basil/moon-solid.svg') no-repeat center center / contain;
-      }
-
-      .dark {
-        background: url('https://api.iconify.design/basil/sun-solid.svg?color=white') no-repeat center center / contain;
+        box-sizing: border-box;
+        transform: translateY(3px);
       }
     `;
 
@@ -39,8 +31,11 @@ export class ThemeToggle extends LitElement {
     }
 
     render() {
+        const icon = this._theme === 'light' ? 'basil:moon-solid' : 'basil:sun-solid';
+        const color = this._theme === 'light' ? '--fsdocs-theme-toggle-light-color' : '--fsdocs-theme-toggle-dark-color';
+        
         return html`
-            <div class="${this._theme}" @click=${this.changeTheme}></div>
+            <iconify-icon width="30" height="30" icon="${icon}" style="color:var(${color})" @click=${this.changeTheme}></iconify-icon>
         `;
     }
 }

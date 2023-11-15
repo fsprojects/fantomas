@@ -21,10 +21,10 @@ function debounce(mainFunction, delay) {
             mainFunction(...args);
         }, delay);
     };
-};
+}
 
 const root = document.documentElement.getAttribute("data-root");
-if (root) {
+if (root && searchBtn) {
     let fuse = null;
     const searchIndexUrl = `${root}/index.json`;
     fetch(searchIndexUrl, {})
@@ -114,7 +114,7 @@ if (root) {
 
     window.addEventListener('keyup', ev => {
         if (ev.key === 'Escape' && searchDialog.open) {
-            searchDialog.closeModal();
+            searchDialog.close();
         }
 
         if (ev.key === '/' && !searchDialog.open) {

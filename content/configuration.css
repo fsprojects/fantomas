@@ -1,0 +1,33 @@
+h3 {
+    display: inline-block;
+    padding-inline: var(--spacing-100);
+    font-size: var(--font-300);
+    max-width: calc(100% - var(--configuration-icon-size) - var(--configuration-icon-size) - var(--spacing-100) - var(--spacing-100));
+}
+
+p > fantomas-setting, p > copy-to-clipboard {
+    margin-right: var(--spacing-100);
+    transform: translateY(var(--spacing-100));
+}
+
+#content > fantomas-setting, #content > copy-to-clipboard {
+    transform: translateY(var(--spacing-100));
+}
+
+@media screen and (min-width: 1000px) {
+    #content > fantomas-setting, #content > copy-to-clipboard {
+        transform: translateY(var(--spacing-50));
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    h3 {
+        font-size: var(--font-300);
+    }
+}
+
+@media screen and (min-width: 1400px) {
+    h3 {
+        font-size: var(--font-500);
+    }
+}

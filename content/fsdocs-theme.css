@@ -1,1 +1,148 @@
-﻿/* Override any variables here */
+:root {
+    --white: #FFF;
+    --pearl: #f6f7f7;
+    --black: #222222;
+
+    --fantomas-50: #f3f8fc;
+    --fantomas-100: #e5f0f9;
+    --fantomas-200: #c6e0f1;
+    --fantomas-300: #94c8e5;
+    --fantomas-400: #5aacd6;
+    --fantomas-500: #338cbb;
+    --fantomas-600: #2575a4;
+    --fantomas-700: #1f5d85;
+    --fantomas-800: #1d4f6f;
+    --fantomas-900: #1d435d;
+    --fantomas-950: #142c3d;
+
+    --header-background: var(--white);
+    --primary: var(--fantomas-500);
+    --aside-background: var(--primary);
+    --menu-color: var(--white);
+    --link-hover: #2FBADC;
+    --page-menu-width: 400px;
+    --configuration-icon-size: 24px;
+    --mobile-menu-background: var(--fantomas-400);
+    --fsdocs-theme-toggle-light-color: var(--fantomas-600);
+    --header-link-color: var(--fantomas-600);
+    --fsdocs-theme-toggle-dark-color: var(--fantomas-300);
+
+    --system-font: 'Poppins', sans-serif;
+}
+
+h1,h2,h3,h4,h5,h6 {
+    font-weight: 400;
+}
+
+#fsdocs-main-menu {
+    padding: 0;
+}
+
+#fsdocs-main-menu, header {
+    .menu {
+        .nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: var(--spacing-50) var(--spacing-100);
+            margin-top: var(--spacing-400);
+
+            & iconify-icon {
+                margin-right: var(--spacing-50);
+            }
+
+            &.active {
+                background-color: var(--fantomas-700);
+                transition: all 200ms;
+
+                & iconify-icon {
+                    transform: rotate(-180deg);
+                }
+            }
+        }
+
+        .nav-header + .menu-items {
+            visibility: hidden;
+            height: 0;
+            overflow-y: hidden;
+            opacity: 0;
+            transition: all 200ms;
+            padding-left: var(--spacing-50);
+        }
+        
+        .nav-header.active {
+            background-color: var(--fantomas-700);
+        }
+
+        .nav-header.active + .menu-items {
+            visibility: visible;
+            height: initial;
+            opacity: 1;
+            overflow-y: initial;
+        }
+        
+        .nav-item{
+            border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.4);
+
+            .nav-link {
+                font-weight: 400;
+                &:hover {
+                    background-color: var(--fantomas-300);
+                }
+                
+                &:focus {
+                    background-color: var(--fantomas-600);
+                }
+            }
+
+            &.active {
+                border-left: var(--spacing-100) solid var(--fantomas-300);
+                background-color: var(--fantomas-600);
+            }
+        }
+    }
+}
+
+#fsdocs-page-menu {
+    & a {
+        color: var(--fantomas-600);
+    }
+    
+    .level-2 {
+        margin-top: var(--spacing-100);
+    }
+    
+    .level-3 a {
+        color: var(--fantomas-700);
+    }    
+}
+
+.mermaid {
+    margin: var(--spacing-100) auto;
+    & svg {
+        margin: auto;
+    }
+}
+
+[data-theme="dark"] {
+    --header-background: var(--fantomas-700);
+    --mobile-menu-background: var(--fantomas-700);
+    --background: var(--fantomas-900);
+    --header-link-color: var(--fantomas-200);
+    --fsdocs-theme-toggle-dark-color:  var(--fantomas-200);
+    --heading-color: var(--white);
+    --text-color: var(--white);
+    --aside-background: var(--fantomas-700);
+
+    #fsdocs-page-menu {
+        & a {
+            color: var(--fantomas-100);
+        }
+        
+        .level-3 a {
+            color: var(--fantomas-300);
+        }
+    }
+}

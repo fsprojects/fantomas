@@ -1,47 +1,8 @@
-import {html} from 'https://esm.sh/lit';
+import {LitElement, html, css} from 'https://esm.sh/lit';
 import {component, virtual} from 'https://esm.sh/haunted';
 import copy from 'https://esm.sh/copy-to-clipboard@3.3.3';
 
-function FantomasSettingIconCore(type) {
-    let settingType
-    switch (type) {
-        case 'green':
-            settingType = {
-                icon: "bi-check-circle-fill",
-                color: "green-recommendation",
-                tooltip: "It is ok to change the value of this setting."
-            }
-            break;
-        case 'orange':
-            settingType = {
-                icon: "bi-exclamation-circle-fill",
-                color: "orange-recommendation",
-                tooltip: "Changing the default of this setting is not recommended."
-            }
-            break;
-        case 'red':
-            settingType = {
-                icon: "bi-x-circle-fill", color: "red-recommendation", tooltip: "You shouldn't use this setting."
-            }
-            break;
-        case 'gr':
-            const root = document.documentElement.dataset.root
-            const tooltip = "If you use one of these you should use all G-Research settings for consistency reasons";
-
-            return html`<img class="gresearch-recommendation me-2"
-                             data-bs-toggle="tooltip"
-                             data-bs-custom-class="gresearch-tooltip"
-                             data-bs-title="${tooltip}"
-                             src="${root}/images/gresearch.svg" alt="G-Research logo"/>`;
-        default:
-            throw "The \"type\" can only be \"green\", \"orange\", \"red\" or \"gr\"";
-    }
-    return html`<i class="bi ${settingType.icon} ${settingType.color} me-2"
-                   data-bs-toggle="tooltip" data-bs-custom-class="${type}-tooltip"
-                   data-bs-title="${settingType.tooltip}"></i>`;
-}
-
-function Navigation({next, previous}) {
+function Navigation_Old({next, previous}) {
     return previous ? html`
         <div class="d-flex justify-content-between my-4">
             <a href="${previous}">Previous</a>
@@ -52,57 +13,283 @@ function Navigation({next, previous}) {
         </div>`;
 }
 
-const CopyToClipboard = virtual((clip) => {
-    const tooltipText = `Copy '${clip}'`;
-    const copyText = ev => {
-        ev.preventDefault();
-        const target = ev.target;
-        target.classList.toggle("bi-clipboard");
-        target.classList.toggle("bi-clipboard-check");
-        copy(clip);
-        setTimeout(() => {
-            target.classList.toggle("bi-clipboard");
-            target.classList.toggle("bi-clipboard-check");
-        }, 400);
+class Navigation extends LitElement {
+    static properties = {
+        next: {type: String, reflect: true},
+        previous: {type: String, reflect: true}
+    }
+
+    constructor(props) {
+        super(props);
     }
     
-    return html`<i class="bi bi-clipboard ms-2 copy-icon"
-                   data-bs-toggle="tooltip"
-                   data-bs-title="${tooltipText}"
-                   @click="${copyText}" />`
-});
-
-function FantomasSetting({name, clip, green, orange, red, gr}) {
-    return html`
-        <div class="d-flex align-items-center my-2">
-            ${green && FantomasSettingIconCore('green')}
-            ${orange && FantomasSettingIconCore('orange')}
-            ${red && FantomasSettingIconCore('red')}
-            ${gr && FantomasSettingIconCore('gr')}
-            <h4 id="${name}" class="m-0">
-                <a href="#${name}">${name}</a>
-            </h4>
-            ${clip && CopyToClipboard(`${name} = ${clip}`)}
-        </div>`
+    static styles = css`
+      :host {
+        display: flex;
+        justify-content: space-between;
+      }
+      
+      a {
+        margin-top: var(--spacing-200);
+        color: var(--link-color);
+        display: inline-block;
+      }
+      
+      a:only-child {
+        text-align: center;
+        flex: 1;
+      }
+    `;
+    
+    render() {
+        return html`
+            ${this.previous ? html`<a href="${this.previous}">Previous</a>` : null}
+            ${this.next ? html`<a href="${this.next}">Next</a>` : null}
+        `;
+    }
 }
 
-function FantomasSettingIcon({green, orange, red, gr}) {
-    return html`
-            ${green && FantomasSettingIconCore('green')}
-            ${orange && FantomasSettingIconCore('orange')}
-            ${red && FantomasSettingIconCore('red')}
-            ${gr && FantomasSettingIconCore('gr')}
-            `
+class CopyToClipboard extends LitElement {
+    static properties = {
+        text: {type: String, reflect: true}
+    }
+
+    constructor() {
+        super();
+    }
+
+    static styles = css`
+      :host {
+        display: inline-block;
+      }
+
+      div {
+        position: relative;
+      }
+
+      iconify-icon {
+        cursor: pointer;
+
+        &:hover + .tooltip {
+          visibility: visible;
+          opacity: 1;
+        }
+      }
+
+      iconify-icon:hover + .tooltip {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .tooltip {
+        visibility: hidden;
+        opacity: 0;
+        white-space: nowrap;
+        background-color: rgba(0, 0, 0, .95);
+        color: #FFF;
+        text-align: center;
+        border-radius: var(--radius);
+        padding: var(--spacing-100);
+        margin: 0;
+        transition: all 200ms;
+        position: absolute;
+        z-index: 1;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 100%;
+
+        &::after {
+          content: " ";
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border-width: var(--radius);
+          border-style: solid;
+          border-color: rgba(0, 0, 0, .95) transparent transparent transparent;
+        }
+      }
+    `;
+
+    render() {
+        const copyText = ev => {
+            ev.preventDefault();
+            copy(this.text);
+
+            const target = ev.target;
+            target.setAttribute("icon", "ri:check-line");
+
+            const originalText = this.text;
+            this.text = "Copied!";
+            setTimeout(() => {
+                target.setAttribute("icon", "ph:copy-thin");
+                this.text = originalText;
+            }, 400);
+        }
+
+        return html`
+            <div>
+                <iconify-icon icon="ph:copy-thin" width="24" height="24" @click="${copyText}"></iconify-icon>
+                ${this.text ? html`
+                    <div class="tooltip">${this.text === "Copied!" ? "Copied!" : `Copy '${this.text}'`}</div>` : null}
+            </div>
+        `;
+    }
 }
 
-customElements.define('fantomas-setting-icon', component(FantomasSettingIcon, {
-    useShadowDOM: false, observedAttributes: ['green', 'orange', 'red', 'gr']
-}));
+class FantomasSetting extends LitElement {
+    static properties = {
+        green: {type: Boolean, reflect: true},
+        orange: {type: Boolean, reflect: true},
+        red: {type: Boolean, reflect: true},
+        gr: {type: Boolean, reflect: true}
+    }
 
-customElements.define('fantomas-setting', component(FantomasSetting, {
-    useShadowDOM: false, observedAttributes: ['name', 'clip', 'green', 'orange', 'red', 'gr']
-}));
+    static styles = css`
+      :host {
+        display: inline-block;
+      }
 
-customElements.define('fantomas-nav', component(Navigation, {
-    useShadowDOM: false, observedAttributes: ['next', 'previous']
-}))
+      :host([green]) iconify-icon {
+        color: #92DC84;
+      }
+
+      :host([green]) .tooltip {
+        background-color: #92DC84;
+      }
+
+      :host([green]) .tooltip::after {
+        border-color: #92DC84 transparent transparent transparent;
+      }
+
+      :host([orange]) iconify-icon {
+        color: #F5BF4F;
+      }
+
+      :host([orange]) .tooltip {
+        background-color: #F5BF4F;
+      }
+
+      :host([orange]) .tooltip::after {
+        border-color: #F5BF4F transparent transparent transparent;
+      }
+
+      :host([red]) iconify-icon {
+        color: #EA7268;
+      }
+
+      :host([red]) .tooltip {
+        background-color: #EA7268;
+      }
+
+      :host([red]) .tooltip::after {
+        border-color: #EA7268 transparent transparent transparent;
+      }
+
+      :host([gr]) iconify-icon {
+        color: #00A8E2;
+      }
+
+      :host([gr]) .tooltip {
+        background-color: #00A8E2;
+      }
+
+      :host([gr]) .tooltip::after {
+        border-color: #00A8E2 transparent transparent transparent;
+      }
+
+      div {
+        height: var(--configuration-icon-size);
+        position: relative;
+      }
+
+      img {
+        box-sizing: border-box;
+        padding: 4px;
+        background-color: #00A8E2;
+        height: var(--configuration-icon-size);
+        width: var(--configuration-icon-size);
+        border-radius: 12px;
+        display: inline-block;
+      }
+
+      img, iconify-icon {
+        position: relative;
+        cursor: pointer;
+
+        &:hover + .tooltip {
+          visibility: visible;
+          opacity: 1;
+        }
+      }
+
+      .tooltip {
+        visibility: hidden;
+        opacity: 0;
+        white-space: nowrap;
+        font-size: 14px;
+        line-height: 1.5;
+        background-color: rgba(0, 0, 0, .95);
+        color: #FFF;
+        text-align: center;
+        border-radius: var(--radius);
+        padding: var(--spacing-100);
+        margin: 0;
+        transition: all 200ms;
+        position: absolute;
+        z-index: 1;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 100%;
+
+        &::after {
+          content: " ";
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border-width: var(--radius);
+          border-style: solid;
+          border-color: rgba(0, 0, 0, .95) transparent transparent transparent;
+        }
+      }
+    `;
+
+    constructor(props) {
+        super(props);
+        this.green = false;
+        this.orange = false;
+        this.red = false;
+        this.gr = false;
+    }
+
+    render() {
+        const root = document.documentElement.dataset.root
+        let icon;
+        let iconTooltip = "If you use one of these you should use all G-Research settings for consistency reasons";
+        if (this.green && !this.gr) {
+            icon = "lets-icons:check-fill";
+            iconTooltip = "It is ok to change the value of this setting.";
+        } else if (this.orange) {
+            icon = 'material-symbols:warning';
+            iconTooltip = "Changing the default of this setting is not recommended.";
+        } else if (this.red) {
+            icon = 'solar:danger-circle-bold-duotone'
+            iconTooltip = "You shouldn't use this setting.";
+        } else {
+            icon = "ph:question-duotone";
+        }
+
+        return html`
+            <div>
+                ${!this.gr ? html`
+                    <iconify-icon icon="${icon}" width="24" height="24"></iconify-icon>` : null}
+                ${this.gr ? html`<img src="${root}/images/gresearch.svg" alt="G-Research logo"/>` : null}
+                <div class="tooltip">${iconTooltip}</div>
+            </div>`
+    }
+}
+
+customElements.define('fantomas-setting', FantomasSetting);
+customElements.define('copy-to-clipboard', CopyToClipboard);
+customElements.define('fantomas-nav', Navigation);
