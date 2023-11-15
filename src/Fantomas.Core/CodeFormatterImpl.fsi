@@ -9,7 +9,7 @@ val getSourceText: source: string -> ISourceText
 val formatAST:
     ast: ParsedInput -> sourceText: ISourceText option -> config: FormatConfig -> cursor: pos option -> FormatResult
 
-val parse: isSignature: bool -> source: ISourceText -> Async<(ParsedInput * DefineCombination)[]>
+val parse: isSignature: bool -> source: ISourceText -> Async<(ParsedInput * DefineCombination) array>
 
 val formatDocument:
     config: FormatConfig -> isSignature: bool -> source: ISourceText -> cursor: pos option -> Async<FormatResult>
