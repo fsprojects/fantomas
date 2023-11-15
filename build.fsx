@@ -112,7 +112,6 @@ pipeline "Build" {
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
     stage "Docs" {
         whenNot { platformOSX }
-        run "dotnet fsi ./docs/.style/style.fsx"
         envVars
             [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
                "DOTNET_ROLL_FORWARD", "LatestMajor" |]
@@ -205,11 +204,9 @@ pipeline "Docs" {
         run "dotnet build -c Release src/Fantomas/Fantomas.fsproj"
     }
     stage "Watch" {
-        paralle
         envVars
             [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
                "DOTNET_ROLL_FORWARD", "LatestMajor" |]
-        run "dotnet fsi ./docs/.style/style.fsx --watch"
         run
             $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --nonpublic"
     }
