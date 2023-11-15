@@ -26,7 +26,7 @@ type GetDaemonError =
     | CompatibleVersionIsKnownButNoDaemonIsRunning of version: FantomasVersion
 
 type Msg =
-    | GetDaemon of Folder * AsyncReplyChannel<Result<JsonRpc, GetDaemonError>>
+    | GetDaemon of folder: Folder * replyChannel: AsyncReplyChannel<Result<JsonRpc, GetDaemonError>>
     | Reset of AsyncReplyChannel<unit>
 
 let private createAgent (ct: CancellationToken) =

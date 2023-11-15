@@ -28,6 +28,11 @@ let (|CommentOrDefineEvent|_|) we =
     | Write w when (String.startsWithOrdinal "(*" w) -> Some we
     | _ -> None
 
+let (|EmptyWrite|_|) (we: WriterEvent) =
+    match we with
+    | Write v -> if String.IsNullOrWhiteSpace v then Some() else None
+    | _ -> None
+
 type ShortExpressionInfo =
     { MaxWidth: int
       StartColumn: int
@@ -324,7 +329,7 @@ let lastWriteEventIsNewline ctx =
         | RestoreIndent _
         | RestoreAtColumn _
         | UnIndentBy _
-        | Write "" -> true
+        | EmptyWrite -> true
         | _ -> false)
     |> Seq.tryHead
     |> Option.map (function
@@ -345,7 +350,7 @@ let (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
             Array.forall
                 (function
                 | WriteLineInsideStringConst
-                | Write "" -> true
+                | EmptyWrite -> true
                 | _ -> false)
                 events.[1 .. (events.Length - 2)]
 
@@ -357,7 +362,7 @@ let newlineBetweenLastWriteEvent ctx =
     ctx.WriterEvents
     |> Queue.rev
     |> Seq.takeWhile (function
-        | Write ""
+        | EmptyWrite
         | WriteLine
         | IndentBy _
         | UnIndentBy _
@@ -680,7 +685,7 @@ let leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: 
                 match e with
                 | [| CommentOrDefineEvent _ |]
                 | [| WriteLine |]
-                | [| Write "" |]
+                | [| EmptyWrite |]
                 | EmptyHashDefineBlock _ -> true
                 | _ -> false)
 

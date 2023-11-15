@@ -1,25 +1,7 @@
 #!/bin/bash
 
 alias ni="touch"
-# alias dtr="dotnet tool restore"
-function dtr () {
-    # Extract lines that contain tool names and versions
-    tools=$(grep -oP '"\K[^"]+(?=": {)' .config/dotnet-tools.json | grep -v '^tools$')
-    versions=$(grep -oP 'version": "\K[^"]+' .config/dotnet-tools.json)
-
-    # Convert strings to arrays
-    readarray -t tools_array <<<"$tools"
-    readarray -t versions_array <<<"$versions"
-
-    # Loop through the arrays
-    for i in "${!tools_array[@]}"; do
-        tool_name=${tools_array[$i]}
-        tool_version=${versions_array[$i]}
-
-        # Install the tool
-        dotnet tool install "$tool_name" --version "$tool_version"
-    done
-}
+alias dtr="dotnet tool restore"
 
 function format-changed() {
     # Get the root of the current git repository

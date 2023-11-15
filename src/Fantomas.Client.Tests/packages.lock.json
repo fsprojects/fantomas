@@ -8,6 +8,15 @@
         "resolved": "3.6.0",
         "contentHash": "AY6LvRZOEYuAiuaWPLnIDddJUnpiPpiSvfoPwweEXI1orRNnsAwf6sOv9Tt0J4GFrlwejFF/INuR57iEKIh7bw=="
       },
+      "FSharp.Analyzers.Build": {
+        "type": "Direct",
+        "requested": "[0.2.0, )",
+        "resolved": "0.2.0",
+        "contentHash": "kF931CJ2QLMGDYNLnfi2uLlwotF72MXAYmFE5/0TVmYDUFJ9lZpQhQ1GlmgvVGZjvjWdnfmWAZjqkXlF7+dSHw==",
+        "dependencies": {
+          "NETStandard.Library": "1.6.1"
+        }
+      },
       "FSharp.Core": {
         "type": "Direct",
         "requested": "[6.0.1, )",
@@ -16,9 +25,15 @@
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
-        "requested": "[0.1.6, )",
-        "resolved": "0.1.6",
-        "contentHash": "1WyLN4LsQVQUprNr5adpLcYA7Dbn1ohGQ3Pch4qoVflKWZRuFb81pDziFZN/KOqPHdlQUx2BLAE5LIKGD46o5g=="
+        "requested": "[0.3.1, )",
+        "resolved": "0.3.1",
+        "contentHash": "XDA1uHaPBVM65YASFSnrX/cfgMLfDm6rXZotv4TAIDh52vKt9lPIwxQxbX9JlsmIZ1LfVvq0/+4J+EKo2vl0Ig=="
+      },
+      "Ionide.Analyzers": {
+        "type": "Direct",
+        "requested": "[0.4.0, )",
+        "resolved": "0.4.0",
+        "contentHash": "8ZwHwSRU7wkYFDCeFJ7Lp54bp0eccjcvmsS3jS/HKJc9kw5qMvZh+5XvfIC9IynHGSIhV6wv5R0R+9a51mjt3g=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",

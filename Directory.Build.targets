@@ -1,22 +1,12 @@
 <Project>
-
-    <Target
-        Name="AnalyzeProject" 
-        DependsOnTargets="Restore;ResolveAssemblyReferencesDesignTime;ResolveProjectReferencesDesignTime;ResolvePackageDependenciesDesignTime;FindReferenceAssembliesForReferences;_GenerateCompileDependencyCache;_ComputeNonExistentFileProperty;BeforeBuild;BeforeCompile;CoreCompile">
-        
-        <Message Importance="normal" Text="fsc arguments: @(FscCommandLineArgs)" />
-        <Message Importance="High" Text="Analyzing $(MSBuildProjectFile)"/>
-        <PropertyGroup>
-            <DOTNET_ROLL_FORWARD_TO_PRERELEASE>1</DOTNET_ROLL_FORWARD_TO_PRERELEASE>
-            <DOTNET_ROLL_FORWARD>LatestMajor</DOTNET_ROLL_FORWARD>
-        </PropertyGroup>
-        <Exec
-            ContinueOnError="true"
-            Command="dotnet fsharp-analyzers --fsc-args &quot;@(FscCommandLineArgs)&quot; --analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)/analyzers/dotnet/fs&quot; --exclude-analyzer PartialAppAnalyzer --fail-on-warnings GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001 --verbose --report &quot;../../analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;">
-            <Output TaskParameter="ExitCode" PropertyName="LastExitCode" />
-        </Exec>
-        <Error Condition="'$(LastExitCode)' == '-2'" Text="Problems were found $(MSBuildProjectFile)" />
-
-    </Target>
-
+    <PropertyGroup>
+        <CodeRoot Condition="$(CodeRoot) == ''">.</CodeRoot>
+        <FSharpAnalyzersOtherFlags>--analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
+        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
+        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --exclude-analyzer PartialAppAnalyzer</FSharpAnalyzersOtherFlags>
+        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --treat-as-warning GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001 IONIDE-001 IONIDE-002 IONIDE-003 IONIDE-004 IONIDE-005</FSharpAnalyzersOtherFlags>
+        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --verbose</FSharpAnalyzersOtherFlags>
+        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --code-root $(CodeRoot)</FSharpAnalyzersOtherFlags>
+        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --report &quot;$(CodeRoot)/analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;</FSharpAnalyzersOtherFlags>
+    </PropertyGroup>
 </Project>

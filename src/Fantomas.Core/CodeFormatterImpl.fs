@@ -8,7 +8,7 @@ open MultipleDefineCombinations
 
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
 
-let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * DefineCombination)[]> =
+let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * DefineCombination) array> =
     // First get the syntax tree without any defines
     let baseUntypedTree, baseDiagnostics =
         Fantomas.FCS.Parse.parseFile isSignature source []
