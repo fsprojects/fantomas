@@ -2538,6 +2538,9 @@ let genTyparDecl (isFirstTypeParam: bool) (td: TyparDeclNode) =
     genOnelinerAttributes td.Attributes
     +> onlyIf (isFirstTypeParam && String.startsWithOrdinal "^" td.TypeParameter.Text) sepSpace
     +> genSingleTextNode td.TypeParameter
+    +> colPre sepSpace sepSpace td.IntersectionConstraints (function
+        | Choice1Of2 t -> genType t
+        | Choice2Of2 amp -> genSingleTextNode amp)
     |> genNode td
 
 let genTyparDecls (td: TyparDecls) =

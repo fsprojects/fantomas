@@ -3631,3 +3631,33 @@ type MyArray3() =
         with get (x: int, y: int, z: int) = ()
         and set (x: int, y: int, z: int) v = ()
 """
+
+[<Test>]
+let ``intersection constraint, 2984`` () =
+    formatSourceString
+        false
+        """
+let typographyLabel<'msg, 'marker & #IFabLabel>() = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let typographyLabel<'msg, 'marker & #IFabLabel> () = ()
+"""
+
+[<Test>]
+let ``multiple intersection constraint, 2984`` () =
+    formatSourceString
+        false
+        """
+let typographyLabel<'msg, 'marker & #IFabLabel & #IFoo & #Bar>() = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let typographyLabel<'msg, 'marker & #IFabLabel & #IFoo & #Bar> () = ()
+"""
