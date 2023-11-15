@@ -13,9 +13,9 @@
       },
       "FSharp.Analyzers.Build": {
         "type": "Direct",
-        "requested": "[0.1.0, )",
-        "resolved": "0.1.0",
-        "contentHash": "McQvJXMMLh3z4EzCX7QsITLiQGtbRF3KCFjwPI9ECOJ5p4jQEQbVjpV5lwOf2Bh5IYFxPjGfFbKVcJ4vTzVYNw==",
+        "requested": "[0.2.0, )",
+        "resolved": "0.2.0",
+        "contentHash": "kF931CJ2QLMGDYNLnfi2uLlwotF72MXAYmFE5/0TVmYDUFJ9lZpQhQ1GlmgvVGZjvjWdnfmWAZjqkXlF7+dSHw==",
         "dependencies": {
           "NETStandard.Library": "1.6.1"
         }
