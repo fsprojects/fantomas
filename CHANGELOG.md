@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.0-alpha-003 - 2023-11-15
+
+### Fixed
+* Reformatting code with flexible type syntax remove hash symbol. [#2984](https://github.com/fsprojects/fantomas/issues/2984)
+
 ## 6.3.0-alpha-002 - 2023-11-07
 
 ### Changed
