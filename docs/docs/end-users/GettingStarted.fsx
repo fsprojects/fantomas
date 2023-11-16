@@ -34,7 +34,7 @@ For the overview how to use the tool, you can type the command
 open System.Diagnostics
 
 let fantomasDll =
-    System.IO.Path.Combine(__SOURCE_DIRECTORY__, "../../../src/Fantomas/bin/Release/net6.0/fantomas.dll")
+    System.IO.Path.Combine(__SOURCE_DIRECTORY__, "../../../artifacts/bin/fantomas/release/fantomas.dll")
 
 let output =
     let psi = ProcessStartInfo("dotnet", $"{fantomasDll} --help")
