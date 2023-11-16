@@ -28,12 +28,7 @@ let cleanFolders (input: string seq) =
     }
 
 let benchmarkAssembly =
-    "src"
-    </> "Fantomas.Benchmarks"
-    </> "bin"
-    </> "Release"
-    </> "net7.0"
-    </> "Fantomas.Benchmarks.dll"
+    "artifacts/bin/Fantomas.Benchmarks/release/Fantomas.Benchmarks.dll"
 
 let semanticVersioning =
     __SOURCE_DIRECTORY__
@@ -79,7 +74,7 @@ pipeline "Build" {
 
 pipeline "Benchmark" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Prepare" { run "dotnet build -c Release src/Fantomas.Benchmarks" }
+    stage "Prepare" { run "dotnet build -c Release src/Fantomas.Benchmarks --tl" }
     stage "Benchmark" { run $"dotnet {benchmarkAssembly}" }
     runIfOnlySpecified true
 }
