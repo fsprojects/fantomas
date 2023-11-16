@@ -645,7 +645,7 @@ formatCode
 <copy-to-clipboard text="fsharp_max_function_binding_width = 40"></copy-to-clipboard>
 
 Control the maximum width for which function and member bindings should be in one line.  
-In contrast to `fsharp_max_value_binding_width`, only the right-hand side expression of the binding is measucolor="red".
+In contrast to `fsharp_max_value_binding_width`, only the right-hand side expression of the binding is measured.
 *)
 
 (*** hide ***)
