@@ -63,9 +63,9 @@ pipeline "Build" {
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" { run (cleanFolders [| analysisReportsDir; "artifacts" |]) }
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
-    stage "Build" { run "dotnet build -c Release" }
-    stage "UnitTests" { run "dotnet test -c Release" }
-    stage "Pack" { run "dotnet pack --no-restore -c Release" }
+    stage "Build" { run "dotnet build -c Release --tl" }
+    stage "UnitTests" { run "dotnet test -c Release --tl" }
+    stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
     stage "Docs" {
         whenNot { platformOSX }
         envVars
