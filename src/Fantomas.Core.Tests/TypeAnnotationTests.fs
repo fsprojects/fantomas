@@ -265,3 +265,116 @@ let private asJson (arm: IArmResource) =
         |}
        >
 """
+
+[<Test>]
+let ``type application including nested multiline function type`` () =
+    formatSourceString
+        false
+        """
+let bv = unbox<Foo<'innerContextLongLongLong, 'bb -> 'b>> bf
+        """
+        { config with
+            MaxLineLength = 30
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBracketStyle = Aligned
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            NewlineBetweenTypeDefinitionAndMembers = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+let bv =
+    unbox<
+        Foo<
+            'innerContextLongLongLong,
+            'bb -> 'b
+         >
+     >
+        bf
+"""
+
+
+[<Test>]
+let ``test for AppLongIdentAndSingleParenArg`` () =
+    formatSourceString false 
+        """
+let private asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+    |}>
+"""     
+        config
+    |> prepend newline
+    |> should 
+        equal 
+        """
+        """
+        
+[<Test>]
+let ``test for AppSingleParenArg`` () =
+    formatSourceString false 
+        """
+"""     
+        config
+    |> prepend newline
+    |> should 
+        equal 
+        """
+        """
+        
+[<Test>]
+let ``test for AppWithLambda`` () =
+    formatSourceString false 
+        """
+"""     
+        config
+    |> prepend newline
+    |> should 
+        equal 
+        """
+        """
+        
+[<Test>]
+let ``test for NestedIndexWithoutDot`` () =
+    formatSourceString false 
+        """
+"""     
+        config
+    |> prepend newline
+    |> should 
+        equal 
+        """
+        """
+        
+[<Test>]
+let ``test for EndsWithDualListApp`` () =
+    formatSourceString false 
+        """
+"""     
+        config
+    |> prepend newline
+    |> should 
+        equal 
+        """
+        """
+        
+[<Test>]
+let ``test for EndsWithSingleListApp`` () =
+    formatSourceString false 
+        """
+"""     
+        config
+    |> prepend newline
+    |> should 
+        equal 
+        """
+        """
+        
