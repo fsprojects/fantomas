@@ -727,9 +727,7 @@ let expected =
 
 [<Test>]
 let ``indent update anonymous record fields far enough`` () =
-    formatSourceString
-        "let expected = {| ThisIsAThing.Empty with TheNewValue = 1 |}"
-        { config with IndentSize = 2 }
+    formatSourceString "let expected = {| ThisIsAThing.Empty with TheNewValue = 1 |}" { config with IndentSize = 2 }
     |> prepend newline
     |> should
         equal
