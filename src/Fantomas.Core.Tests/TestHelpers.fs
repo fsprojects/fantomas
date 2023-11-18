@@ -23,13 +23,13 @@ let formatFSharpString isFsiFile (s: string) config =
         let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formattedCode)
 
         if not isValid then
-            failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formattedCode}"
+            failwith $"The formatted result is not valid F# code or contains warnings\n%s{formattedCode}"
 
         let! secondFormat = CodeFormatter.FormatDocumentAsync(isFsiFile, formattedCode, config)
         let secondFormattedCode = secondFormat.Code.Replace("\r\n", "\n")
 
         if formattedCode <> secondFormattedCode then
-            failwithf $"The formatted result was not idempotent.\n%s{formattedCode}"
+            failwith $"The formatted result was not idempotent.\n%s{formattedCode}\n%s{secondFormattedCode}"
 
         return formattedCode
     }
