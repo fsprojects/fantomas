@@ -3507,7 +3507,6 @@ type MyArray3() =
 [<Test>]
 let ``intersection constraint, 2984`` () =
     formatSourceString
-        false
         """
 let typographyLabel<'msg, 'marker & #IFabLabel>() = ()
 """
@@ -3522,7 +3521,6 @@ let typographyLabel<'msg, 'marker & #IFabLabel> () = ()
 [<Test>]
 let ``multiple intersection constraint, 2984`` () =
     formatSourceString
-        false
         """
 let typographyLabel<'msg, 'marker & #IFabLabel & #IFoo & #Bar>() = ()
 """
