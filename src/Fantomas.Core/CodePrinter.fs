@@ -752,11 +752,6 @@ let genExpr (e: Expr) =
         | Expr.Constant _
         | Expr.InterpolatedStringExpr _ when not (String.startsWithOrdinal "%" node.Operator.Text) ->
             genSingleTextNode node.Operator +> sepSpace +> genExpr node.Expr
-        | Expr.AppSingleParenArg appNode ->
-            genSingleTextNode node.Operator
-            +> sepSpace
-            +> genExpr appNode.FunctionExpr
-            +> genExpr appNode.ArgExpr
         | Expr.AppLongIdentAndSingleParenArg appNode ->
             let mOptVarNode = appNode.FunctionName.Range
 
@@ -765,13 +760,15 @@ let genExpr (e: Expr) =
             +> genExpr (Expr.OptVar(ExprOptVarNode(false, appNode.FunctionName, mOptVarNode)))
             +> genExpr appNode.ArgExpr
         | Expr.App appNode ->
-            match appNode.Arguments with
-            | [ Expr.Constant(Constant.Unit _) as argExpr ] ->
-                genSingleTextNode node.Operator
-                +> sepSpace
-                +> genExpr appNode.FunctionExpr
-                +> genExpr argExpr
-            | _ -> fallback
+            fun ctx ->
+                match mapAppNode ctx.Config appNode with
+                | AppNode.SingleParenArgument(appNode, px) ->
+                    (genSingleTextNode node.Operator
+                     +> sepSpace
+                     +> genExpr appNode.FunctionExpr
+                     +> genExpr px)
+                        ctx
+                | _ -> fallback ctx
         | _ -> fallback
         |> genNode node
     | Expr.SameInfixApps node ->
@@ -854,7 +851,12 @@ let genExpr (e: Expr) =
         let genIdentifierExpr =
             match node.Identifier with
             | Expr.AppLongIdentAndSingleParenArg appNode -> genAppLongIdentAndSingleParenArgExpr sepNone appNode
-            | Expr.AppSingleParenArg appNode -> genAppSingleParenArgExpr sepNone appNode
+            | Expr.App appNode ->
+                fun ctx ->
+                    match mapAppNode ctx.Config appNode with
+                    | AppNode.SingleParenArgument(appNode, px) ->
+                        genNode appNode (genAppSingleParenArgExpr sepNone appNode px) ctx
+                    | _ -> genExpr node.Identifier ctx
             | _ -> genExpr node.Identifier
 
         let genIndexExpr = genExpr node.Index
@@ -1023,10 +1025,6 @@ let genExpr (e: Expr) =
                 node.ArgExpr
 
         genAppLongIdentAndSingleParenArgExpr addSpace node
-    // fn (a, b, c)
-    | Expr.AppSingleParenArg node ->
-        let addSpace = sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
-        genAppSingleParenArgExpr addSpace node
 
     // functionName arg1 arg2 (fun x y z -> ...)
     | Expr.AppWithLambda node ->
@@ -1055,10 +1053,10 @@ let genExpr (e: Expr) =
 
     | Expr.App node ->
         fun ctx ->
-            match node with
-            | EndsWithDualListApp ctx.Config (sequentialArgs: Expr list,
-                                              firstList: ExprArrayOrListNode,
-                                              lastList: ExprArrayOrListNode) ->
+            match mapAppNode ctx.Config node with
+            | AppNode.EndsWithDualList(sequentialArgs: Expr list,
+                                       firstList: ExprArrayOrListNode,
+                                       lastList: ExprArrayOrListNode) ->
                 let genArrayOrList = genArrayOrList false
 
                 // check if everything else beside the last array/list fits on one line
@@ -1107,7 +1105,7 @@ let genExpr (e: Expr) =
                 else
                     short ctx
 
-            | EndsWithSingleListApp ctx.Config (sequentialArgs: Expr list, arrayOrList: ExprArrayOrListNode) ->
+            | AppNode.EndsWithSingleList(sequentialArgs: Expr list, arrayOrList: ExprArrayOrListNode) ->
                 let genArrayOrList = genArrayOrList false
 
                 // check if everything else beside the last array/list fits on one line
@@ -1135,7 +1133,7 @@ let genExpr (e: Expr) =
                 else
                     short ctx
 
-            | EndsWithSingleRecordApp ctx.Config (sequentialArgs: Expr list, recordOrAnonRecord) ->
+            | AppNode.EndsWithSingleRecord(sequentialArgs: Expr list, recordOrAnonRecord) ->
                 // check if everything else beside the last array/list fits on one line
                 let singleLineTestExpr =
                     genExpr node.FunctionExpr +> sepSpace +> col sepSpace sequentialArgs genExpr
@@ -1160,7 +1158,12 @@ let genExpr (e: Expr) =
                     long ctx
                 else
                     short ctx
-            | _ ->
+
+            | AppNode.SingleParenArgument(appNode, px) ->
+                let addSpace = sepSpaceBeforeParenInFuncInvocation node.FunctionExpr px
+                genAppSingleParenArgExpr addSpace appNode px ctx
+
+            | AppNode.Regular node ->
                 let shortExpression =
                     let sep ctx =
                         match node.Arguments with
@@ -1420,19 +1423,19 @@ let genExpr (e: Expr) =
             let idx = !- "." +> sepOpenLFixed +> genExpr node.IndexExpr +> sepCloseLFixed
             expressionFitsOnRestOfLine (short +> idx) (long +> idx)
 
-        match node.ObjectExpr with
-        | Expr.App appNode ->
-            match appNode.Arguments with
-            | [ Expr.Constant(Constant.Unit _) as ux ] ->
-                genDotIndexedGetWithApp (genExpr appNode.FunctionExpr) ux appNode
-            | _ -> genDotIndexedGet
-        | Expr.AppSingleParenArg appNode ->
-            genDotIndexedGetWithApp (genExpr appNode.FunctionExpr) appNode.ArgExpr appNode
+        fun ctx ->
+            let genObjectExpr =
+                match node.ObjectExpr with
+                | Expr.App appNode ->
+                    match mapAppNode ctx.Config appNode with
+                    | AppNode.SingleParenArgument(appNode, px) ->
+                        genDotIndexedGetWithApp (genExpr appNode.FunctionExpr) px appNode
+                    | _ -> genDotIndexedGet
+                | Expr.AppLongIdentAndSingleParenArg appNode ->
+                    genDotIndexedGetWithApp (genIdentListNode appNode.FunctionName) appNode.ArgExpr appNode
+                | _ -> genDotIndexedGet
 
-        | Expr.AppLongIdentAndSingleParenArg appNode ->
-            genDotIndexedGetWithApp (genIdentListNode appNode.FunctionName) appNode.ArgExpr appNode
-        | _ -> genDotIndexedGet
-        |> genNode node
+            genNode node genObjectExpr ctx
     | Expr.DotIndexedSet node ->
         let genDotIndexedSet =
             addParenIfAutoNln node.ObjectExpr genExpr
@@ -1456,21 +1459,19 @@ let genExpr (e: Expr) =
                  +> idx
                  +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value)
 
-        match node.ObjectExpr with
-        | Expr.App appNode ->
-            match appNode.Arguments with
-            | [ Expr.Constant(Constant.Unit _) as ux ] ->
-                genDotIndexedSetWithApp (genExpr appNode.FunctionExpr) ux appNode
-            | _ -> genDotIndexedSet
+        fun ctx ->
+            let genObjectExpr =
+                match node.ObjectExpr with
+                | Expr.App appNode ->
+                    match mapAppNode ctx.Config appNode with
+                    | AppNode.SingleParenArgument(appNode, px) ->
+                        genDotIndexedSetWithApp (genExpr appNode.FunctionExpr) px appNode
+                    | _ -> genDotIndexedSet
+                | Expr.AppLongIdentAndSingleParenArg appNode ->
+                    genDotIndexedSetWithApp (genIdentListNode appNode.FunctionName) appNode.ArgExpr appNode
+                | _ -> genDotIndexedSet
 
-        | Expr.AppSingleParenArg appNode ->
-            genDotIndexedSetWithApp (genExpr appNode.FunctionExpr) appNode.ArgExpr appNode
-
-        | Expr.AppLongIdentAndSingleParenArg appNode ->
-            genDotIndexedSetWithApp (genIdentListNode appNode.FunctionName) appNode.ArgExpr appNode
-
-        | _ -> genDotIndexedSet
-        |> genNode node
+            genNode node genObjectExpr ctx
     | Expr.NamedIndexedPropertySet node ->
         match node.Index with
         | Expr.ArrayOrList arrayNode when arrayNode.Elements.Length = 1 ->
@@ -2017,16 +2018,17 @@ let genAppLongIdentAndSingleParenArgExpr (addSpace: Context -> Context) (node: E
 
     expressionFitsOnRestOfLine short long |> genNode node
 
-let genAppSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppSingleParenArgNode) =
-    let short = genExpr node.FunctionExpr +> addSpace +> genExpr node.ArgExpr
+/// <remarks>Does not invoke `genNode`, caller is expected to deal with this.</remarks>
+let genAppSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppNode) (argExpr: Expr) : Context -> Context =
+    let short = genExpr node.FunctionExpr +> addSpace +> genExpr argExpr
 
     let long ctx =
         let genDefaultLong =
             genExpr node.FunctionExpr
             +> addSpace
-            +> genMultilineFunctionApplicationArguments node.ArgExpr
+            +> genMultilineFunctionApplicationArguments argExpr
 
-        match node.ArgExpr with
+        match argExpr with
         | Expr.Paren parenNode when parenNode.HasContentBefore ->
             // We make a copy of the parenthesis argument (without the trivia being copied).
             // Then we check if that is multiline or not.
@@ -2036,14 +2038,14 @@ let genAppSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppSingle
             let isSingleLineWithoutTriviaBefore = futureNlnCheck (genExpr parenNode') ctx
 
             if not isSingleLineWithoutTriviaBefore then
-                (genExpr node.FunctionExpr +> indentSepNlnUnindent (genExpr node.ArgExpr)) ctx
+                (genExpr node.FunctionExpr +> indentSepNlnUnindent (genExpr argExpr)) ctx
             else
                 (genExpr node.FunctionExpr
-                 +> indentSepNlnUnindent (genMultilineFunctionApplicationArguments node.ArgExpr))
+                 +> indentSepNlnUnindent (genMultilineFunctionApplicationArguments argExpr))
                     ctx
         | _ -> genDefaultLong ctx
 
-    expressionFitsOnRestOfLine short long |> genNode node
+    expressionFitsOnRestOfLine short long
 
 let genClauses (clauses: MatchClauseNode list) =
     let lastIndex = clauses.Length - 1
@@ -2309,48 +2311,39 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
         )
     | _ -> sepNone
 
-let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
+[<RequireQualifiedAccess>]
+type AppNode =
+    | EndsWithDualList of otherArguments: Expr list * firstList: ExprArrayOrListNode * lastList: ExprArrayOrListNode
+    | EndsWithSingleList of otherArguments: Expr list * list: ExprArrayOrListNode
+    | EndsWithSingleRecord of otherArguments: Expr list * record: Expr
+    | SingleParenArgument of appNode: ExprAppNode * px: Expr
+    | Regular of appNode: ExprAppNode
+
+// TODO: memoize function based on the range of appNode
+let mapAppNode (config: FormatConfig) (appNode: ExprAppNode) : AppNode =
+    let mkApp (appNode: ExprAppNode) =
+        match appNode.Arguments with
+        | [ Expr.Constant(Constant.Unit _) as px ] -> AppNode.SingleParenArgument(appNode, px)
+        | [ Expr.Paren parenExpr as px ] ->
+            match parenExpr.Expr with
+            | Expr.Lambda _
+            | Expr.MatchLambda _ -> AppNode.Regular appNode
+            | _ -> AppNode.SingleParenArgument(appNode, px)
+        | _ -> AppNode.Regular appNode
+
     if not (config.ExperimentalElmish || config.IsStroustrupStyle) then
-        None
+        mkApp appNode
     else
         let mutable otherArgs = ListCollector<Expr>()
 
         let rec visit (args: Expr list) =
             match args with
-            | [] -> None
-            | [ Expr.ArrayOrList firstList; Expr.ArrayOrList lastList ] -> Some(otherArgs.Close(), firstList, lastList)
-            | arg :: args ->
-                otherArgs.Add(arg)
-                visit args
-
-        visit appNode.Arguments
-
-let (|EndsWithSingleListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
-    if not (config.ExperimentalElmish || config.IsStroustrupStyle) then
-        None
-    else
-        let mutable otherArgs = ListCollector<Expr>()
-
-        let rec visit (args: Expr list) =
-            match args with
-            | [] -> None
-            | [ Expr.ArrayOrList singleList ] -> Some(otherArgs.Close(), singleList)
-            | arg :: args ->
-                otherArgs.Add(arg)
-                visit args
-
-        visit appNode.Arguments
-
-let (|EndsWithSingleRecordApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
-    if not config.IsStroustrupStyle then
-        None
-    else
-        let mutable otherArgs = ListCollector<Expr>()
-
-        let rec visit (args: Expr list) =
-            match args with
-            | [] -> None
-            | [ Expr.Record _ | Expr.AnonStructRecord _ as singleRecord ] -> Some(otherArgs.Close(), singleRecord)
+            | [] -> mkApp appNode
+            | [ Expr.ArrayOrList firstList; Expr.ArrayOrList lastList ] ->
+                AppNode.EndsWithDualList(otherArgs.Close(), firstList, lastList)
+            | [ Expr.ArrayOrList singleList ] -> AppNode.EndsWithSingleList(otherArgs.Close(), singleList)
+            | [ Expr.Record _ | Expr.AnonStructRecord _ as singleRecord ] ->
+                AppNode.EndsWithSingleRecord(otherArgs.Close(), singleRecord)
             | arg :: args ->
                 otherArgs.Add(arg)
                 visit args

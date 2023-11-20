@@ -1237,9 +1237,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | AppSingleParenArg(SynExpr.LongIdent(longDotId = longDotId), px) ->
         ExprAppLongIdentAndSingleParenArgNode(mkSynLongIdent longDotId, mkExpr creationAide px, exprRange)
         |> Expr.AppLongIdentAndSingleParenArg
-    | AppSingleParenArg(e, px) ->
-        ExprAppSingleParenArgNode(mkExpr creationAide e, mkExpr creationAide px, exprRange)
-        |> Expr.AppSingleParenArg
 
     | SynExpr.App(funcExpr = App(fe, args); argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr)) ->
         let lambdaNode = mkLambda creationAide pats mArrow body mLambda

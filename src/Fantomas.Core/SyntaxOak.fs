@@ -1214,12 +1214,6 @@ type ExprAppLongIdentAndSingleParenArgNode(functionName: IdentListNode, argExpr:
     member val FunctionName = functionName
     member val ArgExpr = argExpr
 
-type ExprAppSingleParenArgNode(functionExpr: Expr, argExpr: Expr, range) =
-    inherit NodeBase(range)
-    override val Children: Node array = [| yield Expr.Node functionExpr; yield Expr.Node argExpr |]
-    member val FunctionExpr = functionExpr
-    member val ArgExpr = argExpr
-
 type ExprAppWithLambdaNode
     (
         functionName: Expr,
@@ -1669,7 +1663,6 @@ type Expr =
     | InfixApp of ExprInfixAppNode
     | IndexWithoutDot of ExprIndexWithoutDotNode
     | AppLongIdentAndSingleParenArg of ExprAppLongIdentAndSingleParenArgNode
-    | AppSingleParenArg of ExprAppSingleParenArgNode
     | AppWithLambda of ExprAppWithLambdaNode
     | NestedIndexWithoutDot of ExprNestedIndexWithoutDotNode
     | App of ExprAppNode
@@ -1736,7 +1729,6 @@ type Expr =
         | InfixApp n -> n
         | IndexWithoutDot n -> n
         | AppLongIdentAndSingleParenArg n -> n
-        | AppSingleParenArg n -> n
         | AppWithLambda n -> n
         | NestedIndexWithoutDot n -> n
         | App n -> n
