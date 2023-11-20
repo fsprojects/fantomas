@@ -1207,13 +1207,6 @@ type ExprChain(links: ChainLink list, range) =
     override val Children: Node array = List.map ChainLink.Node links |> List.toArray
     member val Links = links
 
-type ExprAppLongIdentAndSingleParenArgNode(functionName: IdentListNode, argExpr: Expr, range) =
-    inherit NodeBase(range)
-
-    override val Children: Node array = [| yield functionName; yield Expr.Node argExpr |]
-    member val FunctionName = functionName
-    member val ArgExpr = argExpr
-
 type ExprAppWithLambdaNode
     (
         functionName: Expr,
@@ -1662,7 +1655,6 @@ type Expr =
     | SameInfixApps of ExprSameInfixAppsNode
     | InfixApp of ExprInfixAppNode
     | IndexWithoutDot of ExprIndexWithoutDotNode
-    | AppLongIdentAndSingleParenArg of ExprAppLongIdentAndSingleParenArgNode
     | AppWithLambda of ExprAppWithLambdaNode
     | NestedIndexWithoutDot of ExprNestedIndexWithoutDotNode
     | App of ExprAppNode
@@ -1728,7 +1720,6 @@ type Expr =
         | SameInfixApps n -> n
         | InfixApp n -> n
         | IndexWithoutDot n -> n
-        | AppLongIdentAndSingleParenArg n -> n
         | AppWithLambda n -> n
         | NestedIndexWithoutDot n -> n
         | App n -> n

@@ -1918,3 +1918,21 @@ let answerToUniverse =
         TransformersModule.tryTransformToAnswerToUniverse value
         |> Option.defaultValue 42
 """
+
+[<Test>]
+let ``smooth criminal`` () =
+    formatSourceString
+        false
+        """
+let initialAbs =
+    initialFeeWithAMinimumGasPriceInWeiDictatedByAvailablePublicFullNodes
+        .CalculateAbsoluteValue()
+"""
+        { config with MaxLineLength = 50 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let initialAbs =
+    initialFeeWithAMinimumGasPriceInWeiDictatedByAvailablePublicFullNodes.CalculateAbsoluteValue()
+"""

@@ -752,13 +752,6 @@ let genExpr (e: Expr) =
         | Expr.Constant _
         | Expr.InterpolatedStringExpr _ when not (String.startsWithOrdinal "%" node.Operator.Text) ->
             genSingleTextNode node.Operator +> sepSpace +> genExpr node.Expr
-        | Expr.AppLongIdentAndSingleParenArg appNode ->
-            let mOptVarNode = appNode.FunctionName.Range
-
-            genSingleTextNode node.Operator
-            +> sepSpace
-            +> genExpr (Expr.OptVar(ExprOptVarNode(false, appNode.FunctionName, mOptVarNode)))
-            +> genExpr appNode.ArgExpr
         | Expr.App appNode ->
             fun ctx ->
                 match mapAppNode ctx.Config appNode with
@@ -767,6 +760,12 @@ let genExpr (e: Expr) =
                      +> sepSpace
                      +> genExpr appNode.FunctionExpr
                      +> genExpr px)
+                        ctx
+                | AppNode.LongIdentAndSingleParenArgument(exprOptVarNode, parenthesesArgument) ->
+                    (genSingleTextNode node.Operator
+                     +> sepSpace
+                     +> genExpr (Expr.OptVar exprOptVarNode)
+                     +> genExpr parenthesesArgument)
                         ctx
                 | _ -> fallback ctx
         | _ -> fallback
@@ -850,12 +849,16 @@ let genExpr (e: Expr) =
     | Expr.IndexWithoutDot node ->
         let genIdentifierExpr =
             match node.Identifier with
-            | Expr.AppLongIdentAndSingleParenArg appNode -> genAppLongIdentAndSingleParenArgExpr sepNone appNode
             | Expr.App appNode ->
                 fun ctx ->
                     match mapAppNode ctx.Config appNode with
                     | AppNode.SingleParenArgument(appNode, px) ->
                         genNode appNode (genAppSingleParenArgExpr sepNone appNode px) ctx
+                    | AppNode.LongIdentAndSingleParenArgument(exprOptVarNode, parenthesesArgument) ->
+                        genNode
+                            appNode
+                            (genAppLongIdentAndSingleParenArgExpr sepNone exprOptVarNode parenthesesArgument)
+                            ctx
                     | _ -> genExpr node.Identifier ctx
             | _ -> genExpr node.Identifier
 
@@ -1017,15 +1020,6 @@ let genExpr (e: Expr) =
         (fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx)
         |> genNode node
 
-    // path.Replace("../../../", "....")
-    | Expr.AppLongIdentAndSingleParenArg node ->
-        let addSpace =
-            sepSpaceBeforeParenInFuncInvocation
-                (Expr.OptVar(ExprOptVarNode(false, node.FunctionName, node.FunctionName.Range)))
-                node.ArgExpr
-
-        genAppLongIdentAndSingleParenArgExpr addSpace node
-
     // functionName arg1 arg2 (fun x y z -> ...)
     | Expr.AppWithLambda node ->
         let sepSpaceAfterFunctionName =
@@ -1163,6 +1157,11 @@ let genExpr (e: Expr) =
                 let addSpace = sepSpaceBeforeParenInFuncInvocation node.FunctionExpr px
                 genAppSingleParenArgExpr addSpace appNode px ctx
 
+            | AppNode.LongIdentAndSingleParenArgument(exprOptVarNode, parenthesesArgument) ->
+                let addSpace =
+                    sepSpaceBeforeParenInFuncInvocation (Expr.OptVar exprOptVarNode) parenthesesArgument
+
+                genAppLongIdentAndSingleParenArgExpr addSpace exprOptVarNode parenthesesArgument ctx
             | AppNode.Regular node ->
                 let shortExpression =
                     let sep ctx =
@@ -1430,9 +1429,9 @@ let genExpr (e: Expr) =
                     match mapAppNode ctx.Config appNode with
                     | AppNode.SingleParenArgument(appNode, px) ->
                         genDotIndexedGetWithApp (genExpr appNode.FunctionExpr) px appNode
+                    | AppNode.LongIdentAndSingleParenArgument(exprOptVarNode, parenthesesArgument) ->
+                        genDotIndexedGetWithApp (genIdentListNode exprOptVarNode.Identifier) parenthesesArgument appNode
                     | _ -> genDotIndexedGet
-                | Expr.AppLongIdentAndSingleParenArg appNode ->
-                    genDotIndexedGetWithApp (genIdentListNode appNode.FunctionName) appNode.ArgExpr appNode
                 | _ -> genDotIndexedGet
 
             genNode node genObjectExpr ctx
@@ -1466,9 +1465,9 @@ let genExpr (e: Expr) =
                     match mapAppNode ctx.Config appNode with
                     | AppNode.SingleParenArgument(appNode, px) ->
                         genDotIndexedSetWithApp (genExpr appNode.FunctionExpr) px appNode
+                    | AppNode.LongIdentAndSingleParenArgument(exprOptVarNode, parenthesesArgument) ->
+                        genDotIndexedSetWithApp (genIdentListNode exprOptVarNode.Identifier) parenthesesArgument appNode
                     | _ -> genDotIndexedSet
-                | Expr.AppLongIdentAndSingleParenArg appNode ->
-                    genDotIndexedSetWithApp (genIdentListNode appNode.FunctionName) appNode.ArgExpr appNode
                 | _ -> genDotIndexedSet
 
             genNode node genObjectExpr ctx
@@ -2002,21 +2001,25 @@ let genLambdaAux (includeClosingParen: bool) (node: ExprLambdaNode) =
 let genLambda = genLambdaAux false
 let genLambdaWithParen = genLambdaAux true
 
-let genAppLongIdentAndSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppLongIdentAndSingleParenArgNode) =
-    let shortLids = genIdentListNode node.FunctionName
-    let short = shortLids +> addSpace +> genExpr node.ArgExpr
+/// <remarks>Does not invoke `genNode`, caller is expected to deal with this.</remarks>
+let genAppLongIdentAndSingleParenArgExpr
+    (addSpace: Context -> Context)
+    (lid: ExprOptVarNode)
+    (parenthesesArgument: Expr)
+    =
+    let shortLids = genIdentListNode lid.Identifier
+    let short = shortLids +> addSpace +> genExpr parenthesesArgument
 
     let long =
         let args =
             addSpace
-            +> expressionFitsOnRestOfLine (genExpr node.ArgExpr) (genMultilineFunctionApplicationArguments node.ArgExpr)
+            +> expressionFitsOnRestOfLine
+                (genExpr parenthesesArgument)
+                (genMultilineFunctionApplicationArguments parenthesesArgument)
 
-        ifElseCtx
-            (futureNlnCheck shortLids)
-            (genFunctionNameWithMultilineLids args node.FunctionName)
-            (shortLids +> args)
+        ifElseCtx (futureNlnCheck shortLids) (genFunctionNameWithMultilineLids args lid.Identifier) (shortLids +> args)
 
-    expressionFitsOnRestOfLine short long |> genNode node
+    expressionFitsOnRestOfLine short long
 
 /// <remarks>Does not invoke `genNode`, caller is expected to deal with this.</remarks>
 let genAppSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppNode) (argExpr: Expr) : Context -> Context =
@@ -2313,22 +2316,35 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
 
 [<RequireQualifiedAccess>]
 type AppNode =
+    /// Example: div [ ClassName "container" ] [ str "meh" ]
     | EndsWithDualList of otherArguments: Expr list * firstList: ExprArrayOrListNode * lastList: ExprArrayOrListNode
+    /// Example: input [ Type "text" ]
     | EndsWithSingleList of otherArguments: Expr list * list: ExprArrayOrListNode
+    /// Example: a {| X = y |}
     | EndsWithSingleRecord of otherArguments: Expr list * record: Expr
-    | SingleParenArgument of appNode: ExprAppNode * px: Expr
+    /// Example: Foo(a,b)
+    | SingleParenArgument of appNode: ExprAppNode * parenthesesArgument: Expr
+    /// Example: path.Replace("../../../", "....")
+    | LongIdentAndSingleParenArgument of longIdent: ExprOptVarNode * parenthesesArgument: Expr
+    /// Example: myFunc a b c
     | Regular of appNode: ExprAppNode
 
 // TODO: memoize function based on the range of appNode
 let mapAppNode (config: FormatConfig) (appNode: ExprAppNode) : AppNode =
     let mkApp (appNode: ExprAppNode) =
         match appNode.Arguments with
-        | [ Expr.Constant(Constant.Unit _) as px ] -> AppNode.SingleParenArgument(appNode, px)
+        | [ Expr.Constant(Constant.Unit _) as px ] ->
+            match appNode.FunctionExpr with
+            | Expr.OptVar optVarNode -> AppNode.LongIdentAndSingleParenArgument(optVarNode, px)
+            | _ -> AppNode.SingleParenArgument(appNode, px)
         | [ Expr.Paren parenExpr as px ] ->
             match parenExpr.Expr with
             | Expr.Lambda _
             | Expr.MatchLambda _ -> AppNode.Regular appNode
-            | _ -> AppNode.SingleParenArgument(appNode, px)
+            | _ ->
+                match appNode.FunctionExpr with
+                | Expr.OptVar optVarNode -> AppNode.LongIdentAndSingleParenArgument(optVarNode, px)
+                | _ -> AppNode.SingleParenArgument(appNode, px)
         | _ -> AppNode.Regular appNode
 
     if not (config.ExperimentalElmish || config.IsStroustrupStyle) then

@@ -235,9 +235,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprChain as node ->
         let expr = Expr.Chain node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprAppLongIdentAndSingleParenArgNode as node ->
-        let expr = Expr.AppLongIdentAndSingleParenArg node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppWithLambdaNode as node ->
         let expr = Expr.AppWithLambda node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)

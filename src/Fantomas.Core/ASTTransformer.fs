@@ -871,17 +871,6 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
         Some(visit e id)
     | _ -> None
 
-let (|AppSingleParenArg|_|) =
-    function
-    | App(SynExpr.DotGet _, [ (SynExpr.Paren(expr = SynExpr.Tuple _)) ]) -> None
-    | App(e, [ UnitExpr _ as px ]) -> Some(e, px)
-    | App(e, [ SynExpr.Paren(expr = singleExpr) as px ]) ->
-        match singleExpr with
-        | SynExpr.Lambda _
-        | SynExpr.MatchLambda _ -> None
-        | _ -> Some(e, px)
-    | _ -> None
-
 let mkParenExpr creationAide lpr e rpr m =
     ExprParenNode(stn "(" lpr, mkExpr creationAide e, stn ")" rpr, m)
 
@@ -1233,10 +1222,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                 | link -> failwithf "cannot map %A" link)
 
         ExprChain(chainLinks, exprRange) |> Expr.Chain
-
-    | AppSingleParenArg(SynExpr.LongIdent(longDotId = longDotId), px) ->
-        ExprAppLongIdentAndSingleParenArgNode(mkSynLongIdent longDotId, mkExpr creationAide px, exprRange)
-        |> Expr.AppLongIdentAndSingleParenArg
 
     | SynExpr.App(funcExpr = App(fe, args); argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr)) ->
         let lambdaNode = mkLambda creationAide pats mArrow body mLambda
