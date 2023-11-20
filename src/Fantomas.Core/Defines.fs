@@ -129,7 +129,7 @@ module private DefineCombinationSolver =
         let enforcedLit =
             cnf |> List.filter (fun t -> Set.count t = 1) |> List.collect Set.toList
 
-        if groupedLiterals enforcedLit |> Seq.exists (fun (_, g) -> List.length g > 1) then
+        if groupedLiterals enforcedLit |> List.exists (fun (_, g) -> List.length g > 1) then
             Unsatisfiable
         else
             let singletons, toSolve =
