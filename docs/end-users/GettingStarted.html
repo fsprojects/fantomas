@@ -272,20 +272,17 @@ It is recommended to install it as a local tool and stick to a certain version p
 <h2><a name="Installation" class="anchor" href="#Installation">Installation</a></h2>
 <p>Create a <a href="https://docs.microsoft.com/en-us/dotnet/core/tools/local-tools-how-to-use">.NET tool manifest</a> to install tools locally.
 You can skip this step if you wish to install Fantomas globally.</p>
-<blockquote>
-<p>dotnet new tool-manifest</p>
-</blockquote>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="k">new</span> <span class="id">tool</span><span class="o">-</span><span class="id">manifest</span>
+</code></pre>
 <p>Install the command line tool with:</p>
-<blockquote>
-<p>dotnet tool install fantomas</p>
-</blockquote>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">tool</span> <span class="id">install</span> <span class="id">fantomas</span>
+</code></pre>
 <p>or install the tool globally with</p>
-<blockquote>
-<p>dotnet tool install -g fantomas</p>
-</blockquote>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">tool</span> <span class="id">install</span> <span class="o">-</span><span class="id">g</span> <span class="id">fantomas</span>
+</code></pre>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>For the overview how to use the tool, you can type the command</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">--</span><span class="id">help</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="o">--</span><span class="id">help</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>USAGE: dotnet fantomas [--help] [--force] [--profile] [--out &lt;string&gt;] [--check]
                        [--daemon] [--version] [--verbosity &lt;string&gt;]
@@ -317,17 +314,16 @@ OPTIONS:
     --help                display this list of options.</code></pre></td></tr></table>
 <p>You have to specify an input path and optionally an output path.
 The output path is prompted by <code>--out</code> e.g.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">.</span><span class="o">/</span><span class="id">input</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs21', 31)" onmouseover="showTip(event, 'fs21', 31)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> <span class="pn">--</span><span class="id">out</span> <span class="pn">.</span><span class="o">/</span><span class="id">output</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs21', 32)" onmouseover="showTip(event, 'fs21', 32)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> 
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">.</span><span class="o">/</span><span class="id">input</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs21', 31)" onmouseover="showTip(event, 'fs21', 31)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> <span class="o">--</span><span class="id">out</span> <span class="pn">.</span><span class="o">/</span><span class="id">output</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs21', 32)" onmouseover="showTip(event, 'fs21', 32)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> 
 </code></pre>
 <p>Both paths have to be files or folders at the same time.
 If they are folders, the structure of input folder will be reflected in the output one.
-The tool will explore the input folder recursively if you set <code>--recurse</code> option.
+The tool will explore the input folder recursively.
 If you omit the output path, Fantomas will overwrite the input files unless the content did not change.</p>
 <h3><a name="Multiple-paths" class="anchor" href="#Multiple-paths">Multiple paths</a></h3>
 <p><em>starting version 4.5</em></p>
 <p>Multiple paths can be passed as last argument, these can be both files and folders.<br />
-This cannot be combined with the <code>--out</code> flag.<br />
-When combined with the <code>--recurse</code> flag, all passed folders will be processed recursively.</p>
+This cannot be combined with the <code>--out</code> flag.</p>
 <p>One interesting use-case of passing down multiple paths is that you can easily control the selection and filtering of paths from the current shell.</p>
 <p>Consider the following PowerShell script:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="powershell"># Filter all added and modified files in git
