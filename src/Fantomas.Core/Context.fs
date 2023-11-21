@@ -258,7 +258,7 @@ let writerEvent (e: WriterEvent) (ctx: Context) : Context =
             WriterEvents = Queue.append ctx.WriterEvents evs
             WriterModel =
                 (ctx.WriterModel, evs)
-                ||> Seq.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m) }
+                ||> List.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m) }
 
     ctx'
 
@@ -430,7 +430,7 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
     let y = ctx x
 
     match y.WriterModel.Mode with
-    | ShortExpression infos when infos |> Seq.exists (fun x -> x.ConfirmedMultiline) -> y
+    | ShortExpression infos when infos |> List.exists (fun x -> x.ConfirmedMultiline) -> y
     | _ -> f y
 
 let (!-) (str: string) = writerEvent (Write str)
