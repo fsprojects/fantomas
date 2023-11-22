@@ -14,14 +14,15 @@ It is recommended to install it as a local tool and stick to a certain version p
 Create a [.NET tool manifest](https://docs.microsoft.com/en-us/dotnet/core/tools/local-tools-how-to-use) to install tools locally.
 You can skip this step if you wish to install Fantomas globally.
 
-> dotnet new tool-manifest
+	dotnet new tool-manifest
 
 Install the command line tool with:
 
-> dotnet tool install fantomas
+	dotnet tool install fantomas
 
 or install the tool globally with
-> dotnet tool install -g fantomas
+
+	dotnet tool install -g fantomas
 
 ## Usage
 
@@ -56,7 +57,7 @@ The output path is prompted by `--out` e.g.
 
 Both paths have to be files or folders at the same time. 
 If they are folders, the structure of input folder will be reflected in the output one. 
-The tool will explore the input folder recursively if you set `--recurse` option.
+The tool will explore the input folder recursively.
 If you omit the output path, Fantomas will overwrite the input files unless the content did not change.
 
 
@@ -66,7 +67,6 @@ If you omit the output path, Fantomas will overwrite the input files unless the 
 
 Multiple paths can be passed as last argument, these can be both files and folders.  
 This cannot be combined with the `--out` flag.  
-When combined with the `--recurse` flag, all passed folders will be processed recursively.
 
 One interesting use-case of passing down multiple paths is that you can easily control the selection and filtering of paths from the current shell.
 
