@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``constraint intersection in type annotation`` () =
     formatSourceString
-        false
         """
 let y (f: #I & #Task<int> & #seq<string>) = ()
 """
@@ -22,7 +21,6 @@ let y (f: #I & #Task<int> & #seq<string>) = ()
 [<Test>]
 let ``constraint intersection with leading typar`` () =
     formatSourceString
-        false
         """
 let y (f: 't & #I & #IDisposable & #seq<int> & #I2) = ()
 """
@@ -37,7 +35,6 @@ let y (f: 't & #I & #IDisposable & #seq<int> & #I2) = ()
 [<Test>]
 let ``usage in member`` () =
     formatSourceString
-        false
         """
 type I =
     abstract h: #IDisposable & #seq<int> & #I -> unit

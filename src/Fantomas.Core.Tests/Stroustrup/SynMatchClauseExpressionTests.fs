@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``synMatchClause in match expression with record instance `` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -37,7 +36,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with update record`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -58,7 +56,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with anonymous record instance`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -82,7 +79,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -107,7 +103,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with list`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -135,7 +130,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with array`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -166,7 +160,6 @@ match x with
 [<Test>]
 let ``synMatchClause in match expression with long when expression with record instance `` () =
     formatSourceString
-        false
         """
 match x with
 | _ when (try
@@ -201,7 +194,6 @@ match x with
 [<Test>]
 let ``synMatchClause in try/with expression with record instance `` () =
     formatSourceString
-        false
         """
 try
     foo()
@@ -227,7 +219,6 @@ with ex -> {
 [<Test>]
 let ``synMatchClause in try/with expression with update record`` () =
     formatSourceString
-        false
         """
 try
     foo()
@@ -250,7 +241,6 @@ with ex -> {
 [<Test>]
 let ``synMatchClause in try/with expression with anonymous record instance`` () =
     formatSourceString
-        false
         """
 try
     foo()
@@ -276,7 +266,6 @@ with ex -> {|
 [<Test>]
 let ``synMatchClause in try/with expression with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 try
     foo()
@@ -303,7 +292,6 @@ with ex -> struct {|
 [<Test>]
 let ``synMatchClause in try/with expression with list`` () =
     formatSourceString
-        false
         """
 try
     foo ()
@@ -334,7 +322,6 @@ with ex -> [
 [<Test>]
 let ``synMatchClause in try/with expression with array`` () =
     formatSourceString
-        false
         """
 try
     foo ()
@@ -365,7 +352,6 @@ with ex -> [|
 [<Test>]
 let ``multiple clauses with lists`` () =
     formatSourceString
-        false
         """
 match x with
 | SynMemberDefn.ImplicitCtor (_, attrs, ctorArgs, _, _xmlDoc, range) ->
@@ -398,7 +384,6 @@ match x with
 [<Test>]
 let ``async indentation when inside of a match, 2501`` () =
     formatSourceString
-        false
         """
 let x =
     match packageRegistrationUrl with
@@ -437,7 +422,6 @@ let x =
 [<Test>]
 let ``clause indentation when combining clauses with OR and returning a short list, 2586`` () =
     formatSourceString
-        false
         """
 let y x =
     match x with
@@ -460,7 +444,6 @@ let y x =
 [<Test>]
 let ``don't apply stroustrup when the token has trivia after it, 2806`` () =
     formatSourceString
-        false
         """
 match this.InboundSubnetName with
 | None -> ()

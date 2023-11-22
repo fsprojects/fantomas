@@ -8,7 +8,6 @@ open Fantomas.Core
 [<Test>]
 let ``async workflows`` () =
     formatSourceString
-        false
         """
 let fetchAsync(name, url:string) =
     async {
@@ -43,7 +42,6 @@ let fetchAsync (name, url: string) =
 [<Test>]
 let ``computation expressions`` () =
     formatSourceString
-        false
         """
 let comp =
     eventually { for x in 1 .. 2 do
@@ -66,7 +64,6 @@ let comp =
 [<Test>]
 let ``sequence expressions`` () =
     formatSourceString
-        false
         """
 let s1 = seq { for i in 1 .. 10 -> i * i }
 let s2 = seq { 0 .. 10 .. 100 }
@@ -102,7 +99,6 @@ let rec inorder tree =
 [<Test>]
 let ``range expressions`` () =
     formatSourceString
-        false
         """
 let factors number =
     {2L .. number / 2L}
@@ -120,7 +116,6 @@ let factors number = { 2L .. number / 2L } |> Seq.filter (fun x -> number % x = 
 [<Test>]
 let ``match bang`` () =
     formatSourceString
-        false
         """
 async {
     match! myAsyncFunction() with
@@ -142,7 +137,6 @@ async {
 [<Test>]
 let ``sequence expression inside computation expression, 553`` () =
     formatSourceString
-        false
         """let x = {3..7}
 let y = async {
     return { 0.. 1 }
@@ -160,7 +154,6 @@ let y = async { return { 0..1 } }
 [<Test>]
 let ``and! is supported`` () =
     formatSourceString
-        false
         """
 async {
     let! x = Async.Sleep 1.
@@ -183,7 +176,6 @@ async {
 [<Test>]
 let ``multiple and! is supported`` () =
     formatSourceString
-        false
         """
 // Reads the values of x, y and z concurrently, then applies f to them
 ``parallel`` {
@@ -210,7 +202,6 @@ let ``multiple and! is supported`` () =
 [<Test>]
 let ``and! sample number 3`` () =
     formatSourceString
-        false
         """
 observable {
     let! a = foo
@@ -233,7 +224,6 @@ observable {
 [<Test>]
 let ``let bang should be formatted as regular let, 615`` () =
     formatSourceString
-        false
         """
 let f =
   async {
@@ -285,7 +275,6 @@ let f2 =
 [<Test>]
 let ``let bang, and bang should be formatted as regular let`` () =
     formatSourceString
-        false
         """
 let f2 =
   async {
@@ -322,7 +311,6 @@ let f2 =
 [<Test>]
 let ``computation expression with app identifier, 806`` () =
     formatSourceString
-        false
         """
 [<Tests>]
 let tests =
@@ -345,7 +333,6 @@ let tests = testList "tests" [ test "test" { Expect.equal true true "unexpected"
 [<Test>]
 let ``multiline computation expression with SynExpr.App identifier, 835`` () =
     formatSourceString
-        false
         """let meh =
     create [] {
         // foo
@@ -368,7 +355,6 @@ let meh =
 [<Test>]
 let ``multiline computation expression with SynExpr.App identifier and multiple expressions`` () =
     formatSourceString
-        false
         """
 let private validateLocation =
     createValidatorFor<LocationAdded> () {
@@ -403,7 +389,6 @@ let private validateLocation =
 [<Test>]
 let ``new line after multiline let bang, 819`` () =
     formatSourceString
-        false
         """
 let x data =
     async {
@@ -478,7 +463,6 @@ let z =
 [<Test>]
 let ``normal let bindings before and after let bang`` () =
     formatSourceString
-        false
         """
 let fetchAsync(name, url:string) =
     async {
@@ -507,7 +491,6 @@ let fetchAsync (name, url: string) =
 [<Test>]
 let ``short expression with intertwined with newlines`` () =
     formatSourceString
-        false
         """
 async {
     let! a = aa
@@ -538,7 +521,6 @@ async {
 [<Test>]
 let ``add new line between one-liner and multiline expression, 838`` () =
     formatSourceString
-        false
         """
 let AddEvents (req: HttpRequest, log: ILogger) =
     task {
@@ -605,7 +587,6 @@ let AddEventsX (req: HttpRequest, log: ILogger) =
 [<Test>]
 let ``mix of let and let! single line expressions`` () =
     formatSourceString
-        false
         """let foo () =
     async {
         let! a = callA()
@@ -634,7 +615,6 @@ let foo () =
 [<Test>]
 let ``return from computation expression`` () =
     formatSourceString
-        false
         """async { return 42 }
 """
         config
@@ -648,7 +628,6 @@ async { return 42 }
 [<Test>]
 let ``return from multiline computation expression`` () =
     formatSourceString
-        false
         """async {
     // foo
     return 42 }
@@ -667,7 +646,6 @@ async {
 [<Test>]
 let ``let + return from ce`` () =
     formatSourceString
-        false
         """async {
     let a = getA()
     return a
@@ -687,7 +665,6 @@ async {
 [<Test>]
 let ``let rec + return from ce`` () =
     formatSourceString
-        false
         """async {
     let rec a = getA()
     return a
@@ -707,7 +684,6 @@ async {
 [<Test>]
 let ``two let + return from ce`` () =
     formatSourceString
-        false
         """async {
     let a = getA()
     let b = getB ()
@@ -729,7 +705,6 @@ async {
 [<Test>]
 let ``let + let rec + let + return from ce`` () =
     formatSourceString
-        false
         """async {
     let a = getA ()
     let rec b = getB ()
@@ -753,7 +728,6 @@ async {
 [<Test>]
 let ``multiline let + return from ce`` () =
     formatSourceString
-        false
         """async {
     let a =
         // foo
@@ -778,7 +752,6 @@ async {
 [<Test>]
 let ``do + return from ce`` () =
     formatSourceString
-        false
         """async {
     do foo
     return bar
@@ -798,7 +771,6 @@ async {
 [<Test>]
 let ``do! + return from ce`` () =
     formatSourceString
-        false
         """async {
     do! foo
     return bar
@@ -818,7 +790,6 @@ async {
 [<Test>]
 let ``do! + let + return from ce`` () =
     formatSourceString
-        false
         """async {
     do! foo
     let bar = getBar ()
@@ -840,7 +811,6 @@ async {
 [<Test>]
 let ``let bang + newline + return`` () =
     formatSourceString
-        false
         """async {
     let! bar = getBar ()
 
@@ -862,7 +832,6 @@ async {
 [<Test>]
 let ``let bang + and bang + newline + return`` () =
     formatSourceString
-        false
         """async {
     let! bar = getBar ()
 
@@ -888,7 +857,6 @@ async {
 [<Test>]
 let ``custom method names`` () =
     formatSourceString
-        false
         """let indexMachine =
     freyaMachine {
         methods [GET; HEAD; OPTIONS]
@@ -909,7 +877,6 @@ let indexMachine =
 [<Test>]
 let ``let bang + multiline match in ce`` () =
     formatSourceString
-        false
         """
 let rec runPendingJobs () =
     task {
@@ -942,7 +909,6 @@ let rec runPendingJobs () =
 [<Test>]
 let ``let + let + let bang + if/then/else in ce`` () =
     formatSourceString
-        false
         """let rec private appendToAzureTableStorage (cosmoEvents: EventWrite<JsonValue> seq) =
     task {
         let moreThanBatchLimit = Seq.length cosmoEvents > BatchLimit
@@ -987,7 +953,6 @@ let rec private appendToAzureTableStorage (cosmoEvents: EventWrite<JsonValue> se
 [<Test>]
 let ``short do bang in ce`` () =
     formatSourceString
-        false
         """let appendEvents userId (events: Event list) =
     let cosmoEvents = List.map (createEvent userId) events
     task { do! appendToAzureTableStorage cosmoEvents }
@@ -1005,7 +970,6 @@ let appendEvents userId (events: Event list) =
 [<Test>]
 let ``let bang + let + return in ce`` () =
     formatSourceString
-        false
         """let getEvents() =
     task {
         let! cosmoEvents = eventStore.GetEvents EventStream AllEvents
@@ -1029,7 +993,6 @@ let getEvents () =
 [<Test>]
 let ``let bang + do expression + let + return in ce`` () =
     formatSourceString
-        false
         """
     task {
         let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
@@ -1059,7 +1022,6 @@ task {
 [<Test>]
 let ``do bang + return in ce`` () =
     formatSourceString
-        false
         """    let ((userId, _), events) = request
     task {
         do! EventStore.appendEvents userId events
@@ -1082,7 +1044,6 @@ task {
 [<Test>]
 let ``yield bang + yield bang in ce`` () =
     formatSourceString
-        false
         """
 let squares =
     seq {
@@ -1119,7 +1080,6 @@ let squaresAndCubes =
 [<Test>]
 let ``let bang + yield bang in ce`` () =
     formatSourceString
-        false
         """let myCollection = seq {
     let! squares = getSquares()
     yield! (squares * level) }
@@ -1139,7 +1099,6 @@ let myCollection =
 [<Test>]
 let ``return bang in ce`` () =
     formatSourceString
-        false
         """let req = // 'req' is of type is 'Async<data>'
     async {
         return! fetch url
@@ -1158,7 +1117,6 @@ let req = // 'req' is of type is 'Async<data>'
 [<Test>]
 let ``saturn router`` () =
     formatSourceString
-        false
         """
 module Router
 
@@ -1237,7 +1195,6 @@ let appRouter =
 [<Test>]
 let ``freya api file`` () =
     formatSourceString
-        false
         """module Api
 
 open Freya.Core
@@ -1311,7 +1268,6 @@ let root = freyaRouter { resource "/hello{/name}" helloMachine }
 [<Test>]
 let ``use bang`` () =
     formatSourceString
-        false
         """
 let resource = promise {
     return new DisposableAction(fun () -> isDisposed := true)
@@ -1338,7 +1294,6 @@ promise {
 [<Test>]
 let ``multiline let bang + return in ce`` () =
     formatSourceString
-        false
         """
    let divideByWorkflow x y w z =
         maybe
@@ -1366,7 +1321,6 @@ let divideByWorkflow x y w z =
 [<Test>]
 let ``giraffe handler example`` () =
     formatSourceString
-        false
         """
 let loginHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
@@ -1413,7 +1367,6 @@ let loginHandler =
 [<Test>]
 let ``all keywords`` () =
     formatSourceString
-        false
         """
 let valueOne =
     myCe {
@@ -1464,7 +1417,6 @@ let valueTwo =
 [<Test>]
 let ``use and let bang, 876`` () =
     formatSourceString
-        false
         """let private getAST log (req: HttpRequest) =
         async {
             use stream = new StreamReader(req.Body)
@@ -1541,7 +1493,6 @@ let private getAST log (req: HttpRequest) =
 [<Test>]
 let ``let rec + let bang`` () =
     formatSourceString
-        false
         """let a =
     async {
         let rec foo a = foo a
@@ -1565,7 +1516,6 @@ let a =
 [<Test>]
 let ``new line between let and let bang, 879`` () =
     formatSourceString
-        false
         """let rec loop () =
         async {
           let! msg = inbox.Receive()
@@ -1629,7 +1579,6 @@ let rec loop () =
 [<Test>]
 let ``trivia before closing brace, 977`` () =
     formatSourceString
-        false
         """
     let initDb() =
         if not (File.Exists(dbFileName)) then
@@ -1683,7 +1632,6 @@ let initDb () =
 [<Test>]
 let ``keep newline before do bang`` () =
     formatSourceString
-        false
         """
 let private removeSubscription (log : ILogger) (req : HttpRequest) =
     log.LogInformation("Start remove-subscription")
@@ -1723,7 +1671,6 @@ let private removeSubscription (log : ILogger) (req : HttpRequest) =
 [<Test>]
 let ``don't add extra newline before do bang`` () =
     formatSourceString
-        false
         """
             let sendPushNotifications =
                 allSubscriptions
@@ -1783,7 +1730,6 @@ let sendPushNotifications =
 [<Test>]
 let ``multi line return expression should be indented, 1062`` () =
     formatSourceString
-        false
         """
 let f () =
   async {
@@ -1813,7 +1759,6 @@ let f () =
 [<Test>]
 let ``multi line return bang expression should be indented`` () =
     formatSourceString
-        false
         """
 let f () =
   async {
@@ -1843,7 +1788,6 @@ let f () =
 [<Test>]
 let ``add new line before multiline for loop, 1092`` () =
     formatSourceString
-        false
         """
 async {
     let! (msg: Msg) = inbox.Receive()
@@ -1888,7 +1832,6 @@ async {
 [<Test>]
 let ``don't repeat new line trivia before closing brace, 1137`` () =
     formatSourceString
-        false
         """
 let create: Highlighter =
     fun searchTerm ->
@@ -1955,7 +1898,6 @@ let create: Highlighter =
 [<Test>]
 let ``applicative computation expression`` () =
     formatSourceString
-        false
         """
 // First, define a 'zip' function
 module Result =
@@ -2040,7 +1982,6 @@ let printApplicatives () =
 [<Test>]
 let ``overloads of custom keywords in computation expressions`` () =
     formatSourceString
-        false
         """
 open System
 
@@ -2165,7 +2106,6 @@ let password =
 [<Test>]
 let ``multiline do bang`` () =
     formatSourceString
-        false
         """
 type ProjectController(checker: FSharpChecker) =
   member x.LoadWorkspace (files: string list) (tfmForScripts: FSIRefs.TFM) onProjectLoaded (generateBinlog: bool) =
@@ -2208,7 +2148,6 @@ type ProjectController(checker: FSharpChecker) =
 [<Test>]
 let ``multiline do`` () =
     formatSourceString
-        false
         """
 type ProjectController(checker: FSharpChecker) =
   member x.LoadWorkspace (files: string list) (tfmForScripts: FSIRefs.TFM) onProjectLoaded (generateBinlog: bool) =
@@ -2248,7 +2187,6 @@ type ProjectController(checker: FSharpChecker) =
 [<Test>]
 let ``multiline do bang with parenthesis`` () =
     formatSourceString
-        false
         """
 let setup =
   meh {
@@ -2277,7 +2215,6 @@ let setup =
 [<Test>]
 let ``keep new line before match bang, 1313`` () =
     formatSourceString
-        false
         """
   /// a codefix that generates union cases for an incomplete match expression
   let generateUnionCases =
@@ -2330,7 +2267,6 @@ let generateUnionCases =
 [<Test>]
 let ``keep newline before multiline SynExpr.JoinIn, 1463`` () =
     formatSourceString
-        false
         """
 aggregateResult {
     apply id in someFunction
@@ -2406,7 +2342,6 @@ aggregateResult {
 [<Test>]
 let ``line comment above SynExpr.LetOrUseBang`` () =
     formatSourceString
-        false
         """
 let x =
     async {
@@ -2431,7 +2366,6 @@ let x =
 [<Test>]
 let ``let bang + sequential, 1882`` () =
     formatSourceString
-        false
         """
                async {
                  logger.Debug "some message"
@@ -2455,7 +2389,6 @@ async {
 [<Test>]
 let ``named ce with generic parameter, 2285`` () =
     formatSourceString
-        false
         """
 odata<Person> {
     count
@@ -2478,7 +2411,6 @@ odata<Person> {
 [<Test>]
 let ``trivia after computation expression, 2466`` () =
     formatSourceString
-        false
         """
                 let errs =
                     (*[omit:(copying of errors omitted)]*)
@@ -2513,7 +2445,6 @@ let errs =
 [<Test>]
 let ``trivia after short computation expression`` () =
     formatSourceString
-        false
         """
 let zero =
     async { () } // foo

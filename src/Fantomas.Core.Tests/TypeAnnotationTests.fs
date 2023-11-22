@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``multiline type annotation`` () =
     formatSourceString
-        false
         """
 let f
     (x:
@@ -34,7 +33,6 @@ let f
 [<Test>]
 let ``multiline tuple type`` () =
     formatSourceString
-        false
         """
 type Meh
     (
@@ -62,7 +60,6 @@ type Meh
 [<Test>]
 let ``long multiline type application`` () =
     formatSourceString
-        false
         """
 type X =
     Teq<int, list int, System.DateTime array,
@@ -83,7 +80,6 @@ type X =
 [<Test>]
 let ``multiline app type`` () =
     formatSourceString
-        false
         """
 type CancellableTaskResultBuilderBase with
 

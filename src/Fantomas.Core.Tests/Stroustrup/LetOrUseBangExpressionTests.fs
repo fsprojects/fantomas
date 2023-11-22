@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``letOrUseBang with record instance`` () =
     formatSourceString
-        false
         """
 opt {
     let! foo =
@@ -43,7 +42,6 @@ opt {
 [<Test>]
 let ``letOrUseBang with update record`` () =
     formatSourceString
-        false
         """
 opt {
     let! foo =
@@ -74,7 +72,6 @@ opt {
 [<Test>]
 let ``letOrUseBang with anonymous record instance`` () =
     formatSourceString
-        false
         """
 opt {
     let! foo =
@@ -104,7 +101,6 @@ opt {
 [<Test>]
 let ``letOrUseBang with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 opt {
     let! foo =
@@ -134,7 +130,6 @@ opt {
 [<Test>]
 let ``letOrUseBang with list`` () =
     formatSourceString
-        false
         """
 collect {
     let! items =
@@ -167,7 +162,6 @@ collect {
 [<Test>]
 let ``letOrUseBang with array`` () =
     formatSourceString
-        false
         """
 collect {
     let! items =

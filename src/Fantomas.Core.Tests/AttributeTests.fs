@@ -8,7 +8,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``should keep the attribute on top of the function`` () =
     formatSourceString
-        false
         """[<Extension>]
 type Funcs =
     [<Extension>]
@@ -28,7 +27,6 @@ type Funcs =
 [<Test>]
 let ``attributes on expressions`` () =
     formatSourceString
-        false
         """
     [<Dependency("FSharp.Compiler", LoadHint.Always)>]
     do ()"""
@@ -44,7 +42,6 @@ do ()
 [<Test>]
 let ``attributes with multiple spaces between args on expressions`` () =
     formatSourceString
-        false
         """
     [<Dependency         ("FSharp.Compiler", LoadHint.Always)>]
     do ()"""
@@ -60,7 +57,6 @@ do ()
 [<Test>]
 let ``attributes without parentheses on expressions`` () =
     formatSourceString
-        false
         """
     [<MyValue 55>]
     do ()"""
@@ -76,7 +72,6 @@ do ()
 [<Test>]
 let ``attributes without parentheses and multiples spaces between args on expressions`` () =
     formatSourceString
-        false
         """
     [<MyValue       55>]
     do ()"""
@@ -92,7 +87,6 @@ do ()
 [<Test>]
 let ``units of measures declaration`` () =
     formatSourceString
-        false
         """
     [<Measure>] type m
     [<Measure>] type kg
@@ -123,7 +117,6 @@ type Pa = N * m^2
 [<Test>]
 let ``type params`` () =
     formatSourceString
-        false
         """
 let genericSumUnits ( x : float<'u>) (y: float<'u>) = x + y
 type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}"""
@@ -143,7 +136,6 @@ type vector3D<[<Measure>] 'u> =
 [<Test>]
 let ``attributes on recursive functions`` () =
     formatSourceString
-        false
         """
 let rec [<Test>] a () = 10
 and [<Test>] b () = 10"""
@@ -161,7 +153,6 @@ and [<Test>] b () = 10
 [<Test>]
 let ``attributes on implicit constructors`` () =
     formatSourceString
-        false
         """
 [<Export>]
 type Sample [<ImportingConstructor>] (dependency: IDependency) = class end
@@ -182,7 +173,6 @@ type Sample [<ImportingConstructor>] internal () = class end
 [<Test>]
 let ``should handle targets on attributes`` () =
     formatSourceString
-        false
         """
 [<DataContract>]
 type Foo =
@@ -224,7 +214,7 @@ let e2e value =
     Props.Data("e2e", value)
 """
 
-    formatSourceString false source config
+    formatSourceString source config
     |> should
         equal
         """module MyApp
@@ -249,7 +239,6 @@ let e2e value = Props.Data("e2e", value)
 [<Test>]
 let ``comments before attributes should be added correctly, issue 422`` () =
     formatSourceString
-        false
         """module RecordTypes =
 
     /// Records can also be represented as structs via the 'Struct' attribute.
@@ -281,7 +270,6 @@ module RecordTypes =
 [<Test>]
 let ``different attributes according to defines`` () =
     formatSourceString
-        false
         """    [<
 #if NETCOREAPP2_1
       Builder.Object;
@@ -360,7 +348,6 @@ let foo = ()
 [<Test>]
 let ``keep single newline between attribute and let binding, 611`` () =
     formatSourceString
-        false
         """
 open System
 open Library
@@ -397,7 +384,6 @@ let main argv =
 [<Test>]
 let ``multiple assembly attributes, 796`` () =
     formatSourceString
-        false
         """namespace Foo.AssemblyInfo
 
 open System.Reflection
@@ -429,7 +415,7 @@ do ()
 
 [<Test>]
 let ``should preserve single return type attribute`` () =
-    formatSourceString false """let f x : [<return: Attribute>] int = x""" config
+    formatSourceString """let f x : [<return: Attribute>] int = x""" config
     |> should
         equal
         """let f x : [<return: Attribute>] int = x
@@ -437,7 +423,7 @@ let ``should preserve single return type attribute`` () =
 
 [<Test>]
 let ``should preserve multiple return type attributes`` () =
-    formatSourceString false """let f x : [<return: AttributeOne;AttributeTwo;AttributeThree("foo")>] int = x""" config
+    formatSourceString """let f x : [<return: AttributeOne;AttributeTwo;AttributeThree("foo")>] int = x""" config
     |> should
         equal
         """let f x : [<return: AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
@@ -446,7 +432,6 @@ let ``should preserve multiple return type attributes`` () =
 [<Test>]
 let ``attribute, new line, let binding`` () =
     formatSourceString
-        false
         """
     [<Foo>]
 
@@ -465,7 +450,6 @@ let bar = 7
 [<Test>]
 let ``attribute, new line, type declaration`` () =
     formatSourceString
-        false
         """
 [<Foo>]
 
@@ -484,7 +468,6 @@ type Bar = Bar of string
 [<Test>]
 let ``attribute, new line, attribute, newline, let binding`` () =
     formatSourceString
-        false
         """
 [<Foo>]
 
@@ -507,7 +490,6 @@ let bar = 7
 [<Test>]
 let ``attribute, new line, attribute, line comment, type declaration`` () =
     formatSourceString
-        false
         """
 [<Foo>]
 
@@ -530,7 +512,6 @@ type Text = string
 [<Test>]
 let ``attribute, hash directive, attribute, hash directive, type declaration`` () =
     formatSourceString
-        false
         """
 [<Foo>]
 #if FOO
@@ -553,7 +534,6 @@ type Text = string
 [<Test>]
 let ``attribute, line comment, attribute, new line, record definition field`` () =
     formatSourceString
-        false
         """
 type Commenter =
     { [<JsonProperty("display_name")>]
@@ -578,7 +558,6 @@ type Commenter =
 [<Test>]
 let ``assembly attributes remain on own line, 629`` () =
     formatSourceString
-        false
         """
 namespace AltCover.Visualizer
 
@@ -615,7 +594,6 @@ open System.Runtime.InteropServices
 [<Test>]
 let ``line comment between attributes and do expression`` () =
     formatSourceString
-        false
         """
 [<Foo>]
 [<Bar>]
@@ -636,7 +614,6 @@ printfn "meh"
 [<Test>]
 let ``multiple attributes inside SynAttributes that exceeds max line length, 629`` () =
     formatSourceString
-        false
         """
 //[<ApiExplorerSettings(IgnoreApi = true)>]
 [<Route("api/v1/admin/import")>]
@@ -735,7 +712,6 @@ type RoleAdminImportController(akkaService: AkkaService) =
 [<Test>]
 let ``compiler defines around SynAttribute nodes, 631`` () =
     formatSourceString
-        false
         """
 type internal Handler() =
   class
@@ -771,7 +747,6 @@ type internal Handler() =
 [<Test>]
 let ``attribute on member of recursive type, 1918`` () =
     formatSourceString
-        false
         """
 type X = A
 and Y = B
@@ -796,7 +771,6 @@ and Y = B
 [<Test>]
 let ``attribute on second member defn, 1898`` () =
     formatSourceString
-        false
         """
 type Test1() =
   member x.Test() = ()
@@ -827,7 +801,6 @@ and Test2() =
 [<Test>]
 let ``attributes on recursive discriminated union types, 1874`` () =
     formatSourceString
-        false
         """
 module test
 open System.Diagnostics
@@ -893,7 +866,6 @@ and Wrong =
 [<Test>]
 let ``attribute on member of recursive record type, 1962`` () =
     formatSourceString
-        false
         """
 module Foo =
 
@@ -936,7 +908,6 @@ module Foo =
 [<Test>]
 let ``comment after attribute before let binding with return type`` () =
     formatSourceString
-        false
         """
 [<Foo>]
 // bar
@@ -955,7 +926,6 @@ let add (a: int) (b: int) : int = a + b
 [<Test>]
 let ``comment after attribute before value binding with return type`` () =
     formatSourceString
-        false
         """
 [<Foo>]
 // bar
@@ -978,7 +948,6 @@ let x: int = 99
 [<Test>]
 let ``comment between attribute and nested module, 2016`` () =
     formatSourceString
-        false
         """
 [<AutoOpen>]
 // Having members as extensions gives them lower priority in
@@ -1005,8 +974,7 @@ module AsyncOptionCEExtensions =
 
 [<Test>]
 let ``comment between attribute and nested module, signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 [<AutoOpen>]
 // Having members as extensions gives them lower priority in
@@ -1035,7 +1003,6 @@ module AsyncOptionCEExtensions =
 [<Test>]
 let ``comment between attribute and member, 2130`` () =
     formatSourceString
-        false
         """
 type StreamReaderExtensions = 
   [<Extension>]
@@ -1063,7 +1030,6 @@ type StreamReaderExtensions =
 [<Test>]
 let ``trivia in nested multiline tuple expression in attribute, 2525`` () =
     formatSourceString
-        false
         """
 [<assembly: SuppressMessage("Gendarme.Rules.Performance",
                             "AvoidRepetitiveCallsToPropertiesRule",

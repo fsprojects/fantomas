@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``comment after do keyword, 1875`` () =
     formatSourceString
-        false
         """
 do  // Comment DO
         let x = 1
@@ -26,7 +25,6 @@ do // Comment DO
 [<Test>]
 let ``comment after do bang keyword`` () =
     formatSourceString
-        false
         """
 async {
     do!  // Comment DO BANG
@@ -48,7 +46,6 @@ async {
 [<Test>]
 let ``comment after return bang keyword`` () =
     formatSourceString
-        false
         """
 async {
     return!  // Comment RETURN BANG
@@ -69,7 +66,6 @@ async {
 [<Test>]
 let ``comment after yield bang keyword`` () =
     formatSourceString
-        false
         """
 seq {
     yield!  // Comment YIELD BANG
@@ -90,7 +86,6 @@ seq {
 [<Test>]
 let ``comment after return keyword`` () =
     formatSourceString
-        false
         """
 async {
     return  // Comment RETURN
@@ -111,7 +106,6 @@ async {
 [<Test>]
 let ``comment after yield keyword`` () =
     formatSourceString
-        false
         """
 seq {
     yield  // Comment YIELD
@@ -132,7 +126,6 @@ seq {
 [<Test>]
 let ``comment after assert keyword`` () =
     formatSourceString
-        false
         """
 assert // comment
     foobar
@@ -149,7 +142,6 @@ assert // comment
 [<Test>]
 let ``comment after downcast keyword`` () =
     formatSourceString
-        false
         """
 downcast // comment
     foobar
@@ -166,7 +158,6 @@ downcast // comment
 [<Test>]
 let ``comment after upcast keyword`` () =
     formatSourceString
-        false
         """
 upcast // comment
     foobar
@@ -183,7 +174,6 @@ upcast // comment
 [<Test>]
 let ``comment after address of token`` () =
     formatSourceString
-        false
         """
 & // comment
     foobar
@@ -200,7 +190,6 @@ let ``comment after address of token`` () =
 [<Test>]
 let ``comment after address of tokens`` () =
     formatSourceString
-        false
         """
 && // comment
     foobar
@@ -216,7 +205,7 @@ let ``comment after address of tokens`` () =
 
 [<Test>]
 let ``parse `fixed` in SingleExpr, 2112`` () =
-    formatSourceString false """let x = fixed expr""" config
+    formatSourceString """let x = fixed expr""" config
     |> prepend newline
     |> should
         equal
@@ -227,7 +216,6 @@ let x = fixed expr
 [<Test>]
 let ``handle comment after `fixed` in SingleExpr, 2112`` () =
     formatSourceString
-        false
         """
 let a = fixed // comment
                  b

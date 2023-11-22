@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``dotIndexedSet with record instance `` () =
     formatSourceString
-        false
         """
 myMutable.[x] <-
     { A = longTypeName
@@ -35,7 +34,6 @@ myMutable.[x] <- {
 [<Test>]
 let ``dotIndexedSet with update record`` () =
     formatSourceString
-        false
         """
 myMutable.[x] <-
     { astContext with IsInsideMatchClausePattern = true }
@@ -54,7 +52,6 @@ myMutable.[x] <- {
 [<Test>]
 let ``dotIndexedSet with anonymous record instance`` () =
     formatSourceString
-        false
         """
 myMutable.[x] <-
    {| A = longTypeName
@@ -76,7 +73,6 @@ myMutable.[x] <- {|
 [<Test>]
 let ``dotIndexedSet with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 myMutable.[x] <-
    struct
@@ -99,7 +95,6 @@ myMutable.[x] <- struct {|
 [<Test>]
 let ``dotIndexedSet with list`` () =
     formatSourceString
-        false
         """
 myMutable.[x] <-
     [ itemOne
@@ -125,7 +120,6 @@ myMutable.[x] <- [
 [<Test>]
 let ``dotIndexedSet with array`` () =
     formatSourceString
-        false
         """
 myMutable.[x] <-
     [| itemOne
@@ -151,7 +145,6 @@ myMutable.[x] <- [|
 [<Test>]
 let ``application unit dotIndexedSet with record instance `` () =
     formatSourceString
-        false
         """
 app().[x] <-
     { A = longTypeName
@@ -173,7 +166,6 @@ app().[x] <- {
 [<Test>]
 let ``application unit dotIndexedSet with update record`` () =
     formatSourceString
-        false
         """
 app().[x] <-
     { astContext with IsInsideMatchClausePattern = true }
@@ -192,7 +184,6 @@ app().[x] <- {
 [<Test>]
 let ``application unit dotIndexedSet with anonymous record instance`` () =
     formatSourceString
-        false
         """
 app().[x] <-
    {| A = longTypeName
@@ -214,7 +205,6 @@ app().[x] <- {|
 [<Test>]
 let ``application unit dotIndexedSet with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 app().[x] <-
    struct
@@ -237,7 +227,6 @@ app().[x] <- struct {|
 [<Test>]
 let ``application unit dotIndexedSet with list`` () =
     formatSourceString
-        false
         """
 app().[x] <-
     [ itemOne
@@ -263,7 +252,6 @@ app().[x] <- [
 [<Test>]
 let ``application unit dotIndexedSet with array`` () =
     formatSourceString
-        false
         """
 app().[x] <-
     [| itemOne
@@ -291,7 +279,6 @@ app().[x] <- [|
 [<Test>]
 let ``application parenthesis expr dotIndexedSet with record instance `` () =
     formatSourceString
-        false
         """
 app(meh).[x] <-
     { A = longTypeName
@@ -315,7 +302,6 @@ app(
 [<Test>]
 let ``application parenthesis expr dotIndexedSet with update record`` () =
     formatSourceString
-        false
         """
 app(meh).[x] <-
     { astContext with IsInsideMatchClausePattern = true }
@@ -336,7 +322,6 @@ app(
 [<Test>]
 let ``application parenthesis expr dotIndexedSet with anonymous record instance`` () =
     formatSourceString
-        false
         """
 app(meh).[x] <-
    {| A = longTypeName
@@ -360,7 +345,6 @@ app(
 [<Test>]
 let ``application parenthesis expr dotIndexedSet with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 app(meh).[x] <-
    struct
@@ -385,7 +369,6 @@ app(
 [<Test>]
 let ``application parenthesis expr dotIndexedSet with list`` () =
     formatSourceString
-        false
         """
 app(meh).[x] <-
     [ itemOne
@@ -413,7 +396,6 @@ app(
 [<Test>]
 let ``application parenthesis expr dotIndexedSet with array`` () =
     formatSourceString
-        false
         """
 app(meh).[x] <-
     [| itemOne

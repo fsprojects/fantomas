@@ -16,24 +16,27 @@ module String =
 let config = FormatConfig.Default
 let newline = "\n"
 
-let formatSourceString isFsiFile (s: string) config =
+let formatFSharpString isFsiFile (s: string) config =
     async {
         let! formatted = CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
         let formattedCode = formatted.Code.Replace("\r\n", "\n")
         let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formattedCode)
 
         if not isValid then
-            failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formattedCode}"
+            failwith $"The formatted result is not valid F# code or contains warnings\n%s{formattedCode}"
 
         let! secondFormat = CodeFormatter.FormatDocumentAsync(isFsiFile, formattedCode, config)
         let secondFormattedCode = secondFormat.Code.Replace("\r\n", "\n")
 
         if formattedCode <> secondFormattedCode then
-            failwithf $"The formatted result was not idempotent.\n%s{formattedCode}"
+            failwith $"The formatted result was not idempotent.\n%s{formattedCode}\n%s{secondFormattedCode}"
 
         return formattedCode
     }
     |> Async.RunSynchronously
+
+let formatSignatureString = formatFSharpString true
+let formatSourceString = formatFSharpString false
 
 /// The `source` will first be parsed to AST.
 let formatAST isFsiFile (source: string) config =

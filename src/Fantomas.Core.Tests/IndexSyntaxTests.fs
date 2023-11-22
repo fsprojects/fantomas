@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``don't convert index syntax without dot to application`` () =
     formatSourceString
-        false
         """
 expr1[expr2]
 """
@@ -22,7 +21,6 @@ expr1[expr2]
 [<Test>]
 let ``slicing examples`` () =
     formatSourceString
-        false
         """
 let arr = [| 1;2;3 |]
 arr[0] <- 2
@@ -47,7 +45,6 @@ arr[0..]
 [<Test>]
 let ``higher-dimensional arrays`` () =
     formatSourceString
-        false
         """
 let arr = Array4D.create 3 4 5 6 0
 arr[0,2,3,4] <- 2
@@ -66,7 +63,6 @@ arr[0, 2, 3, 4]
 [<Test>]
 let ``index syntax without dot on array of arrays, 2151`` () =
     formatSourceString
-        false
         """
 let a = Array.create 10 -1
 let b = Array.create 10 a
@@ -87,7 +83,6 @@ printfn "%d -> %d" a[0] (b[0][0])
 [<Test>]
 let ``only add spaces when expressions are atomic`` () =
     formatSourceString
-        false
         """
 let a = [ 2 .. 7 ] // integers
 let b = [ one .. two ] // identifiers
@@ -124,7 +119,6 @@ let s = seq { 0..10..100 }
 [<Test>]
 let ``index syntax on raw list, 1929`` () =
     formatSourceString
-        false
         """
 let y = [ 0; 2; 4 ][ 1 ]
 """
@@ -139,7 +133,6 @@ let y = [ 0; 2; 4 ][1]
 [<Test>]
 let ``index syntax on dotget, 1985`` () =
     formatSourceString
-        false
         """
 let segment = System.Uri(ctx.Request.Path.Value).Segments[1]
 """
@@ -154,7 +147,6 @@ let segment = System.Uri(ctx.Request.Path.Value).Segments[1]
 [<Test>]
 let ``ident and negative number should keep space, 2071`` () =
     formatSourceString
-        false
         """
   do
     for i in [ maxIndex .. -1 .. startIndex ] do
@@ -173,7 +165,6 @@ do
 [<Test>]
 let ``float range with trailing zero omitted, 2171`` () =
     formatSourceString
-        false
         """
 let a = [1. .. 0.1 .. 2.]
 let b = [1.0 .. 2. .. 10.]
@@ -192,7 +183,6 @@ let c = [ 1.0..2.0..10.0 ]
 [<Test>]
 let ``indexed item invocation, 2106`` () =
     formatSourceString
-        false
         """
 array1[0]()
 """
@@ -207,7 +197,6 @@ array1[0]()
 [<Test>]
 let ``nested indexed item`` () =
     formatSourceString
-        false
         """
 let x = array1[0][0]
 let y = callData["key"]["subKey"]
@@ -224,7 +213,6 @@ let y = callData["key"]["subKey"]
 [<Test>]
 let ``triple nested indexed item`` () =
     formatSourceString
-        false
         """
 let meh = myList[0][1][2]
 """
@@ -239,7 +227,6 @@ let meh = myList[0][1][2]
 [<Test>]
 let ``prefixed index syntax, 2494`` () =
     formatSourceString
-        false
         """
 b[c] <- d
 a.b[c] <- d
@@ -256,7 +243,6 @@ a.b[c] <- d
 [<Test>]
 let ``comment is removed when using array index access syntax, 2611`` () =
     formatSourceString
-        false
         """
 open System.Collections.Generic
 

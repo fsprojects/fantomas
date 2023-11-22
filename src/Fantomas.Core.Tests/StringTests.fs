@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``triple-quoted strings`` () =
     formatSourceString
-        false
         "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\""
         { config with
             MaxValueBindingWidth = 80 }
@@ -19,7 +18,6 @@ let ``triple-quoted strings`` () =
 [<Test>]
 let ``string literals`` () =
     formatSourceString
-        false
         """
 let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
 let str1 = "abc"
@@ -39,7 +37,6 @@ let str1 = "abc"
 [<Test>]
 let ``multiline strings`` () =
     formatSourceString
-        false
         """
 let alu =
         "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
@@ -68,7 +65,6 @@ let alu =
 [<Test>]
 let ``multiline string piped`` () =
     formatSourceString
-        false
         """
 let f a b =
     a "
@@ -89,7 +85,6 @@ let f a b =
 [<Test>]
 let ``preserve uncommon literals`` () =
     formatSourceString
-        false
         """
 let a = 0xFFy
 let c = 0b0111101us
@@ -139,7 +134,6 @@ let g = '\n'
 [<Test>]
 let ``should preserve triple-quote strings`` () =
     formatSourceString
-        false
         "
     type GetList() =
         let switchvox_users_voicemail_getList_response = \"\"\"
@@ -170,7 +164,6 @@ type GetList() =
 [<Test>]
 let ``should keep triple-quote strings`` () =
     formatSourceString
-        false
         "
 [<EntryPoint>]
 let main argv =
@@ -211,7 +204,7 @@ let main argv =
 
 [<Test>]
 let ``chars should be properly escaped`` () =
-    formatSourceString false """let private peskyChars = [| '"' ; '\t' ; ' ' ; '\\' |]""" config
+    formatSourceString """let private peskyChars = [| '"' ; '\t' ; ' ' ; '\\' |]""" config
     |> should
         equal
         """let private peskyChars = [| '"'; '\t'; ' '; '\\' |]
@@ -235,7 +228,6 @@ let ``quotes should be escaped in strict mode`` () =
 [<Test>]
 let ``empty lines in multi-line string should be preserved, 577`` () =
     formatSourceString
-        false
         "
 let x = \"\"\"some
 
@@ -259,7 +251,6 @@ with empty lines\"\"\"
 [<Test>]
 let ``string with newline inside union case, 1056`` () =
     formatSourceString
-        false
         """
 [<Test>]
 let ``newline in string`` () =
@@ -298,7 +289,6 @@ let ``newline in string`` () =
 [<Test>]
 let ``double backslash in triple quote string`` () =
     formatSourceString
-        false
         "
 let a = \"\"\"\\\\\"\"\"
 "
@@ -313,7 +303,6 @@ let a = \"\"\"\\\\\"\"\"
 [<Test>]
 let ``single string with compiler define`` () =
     formatSourceString
-        false
         """
 "#if FOO"
 """
@@ -328,7 +317,6 @@ let ``single string with compiler define`` () =
 [<Test>]
 let ``trailing spaces in string should be preserved, 1941`` () =
     formatSourceString
-        false
         "
 let s = \"\"\"aaaa   
 bbb\"\"\"
@@ -345,5 +333,5 @@ bbb\"\"\"
 
 [<Test>]
 let ``unicode null character should be recognized as a trivia item, 2050`` () =
-    formatSourceString false "let s = \"\\000\"" config
+    formatSourceString "let s = \"\\000\"" config
     |> should equal "let s = \"\\000\"\n"

@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``longIdentSet with record instance `` () =
     formatSourceString
-        false
         """
 myMutable <-
     { A = longTypeName
@@ -35,7 +34,6 @@ myMutable <- {
 [<Test>]
 let ``longIdentSet with update record`` () =
     formatSourceString
-        false
         """
 myMutable <-
     { astContext with IsInsideMatchClausePattern = true }
@@ -54,7 +52,6 @@ myMutable <- {
 [<Test>]
 let ``longIdentSet with anonymous record instance`` () =
     formatSourceString
-        false
         """
 myMutable <-
    {| A = longTypeName
@@ -76,7 +73,6 @@ myMutable <- {|
 [<Test>]
 let ``longIdentSet with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 myMutable <-
    struct
@@ -99,7 +95,6 @@ myMutable <- struct {|
 [<Test>]
 let ``longIdentSet with list`` () =
     formatSourceString
-        false
         """
 myMutable <-
     [ itemOne
@@ -125,7 +120,6 @@ myMutable <- [
 [<Test>]
 let ``longIdentSet with array`` () =
     formatSourceString
-        false
         """
 myMutable <-
     [| itemOne

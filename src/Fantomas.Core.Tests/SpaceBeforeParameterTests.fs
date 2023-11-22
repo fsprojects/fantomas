@@ -12,7 +12,7 @@ let noSpaceBefore =
 
 [<Test>]
 let ``default config should add space before unit in uppercase function definition`` () =
-    formatSourceString false "let Value () = x" config
+    formatSourceString "let Value () = x" config
     |> should
         equal
         """let Value () = x
@@ -20,7 +20,7 @@ let ``default config should add space before unit in uppercase function definiti
 
 [<Test>]
 let ``noSpaceBefore = false, should not add space before unit in uppercase function definition`` () =
-    formatSourceString false "let Value() = x" noSpaceBefore
+    formatSourceString "let Value() = x" noSpaceBefore
     |> should
         equal
         """let Value() = x
@@ -30,7 +30,7 @@ let ``noSpaceBefore = false, should not add space before unit in uppercase funct
 
 [<Test>]
 let ``default config should add space before unit in lowercase function definition`` () =
-    formatSourceString false "let value () = x" config
+    formatSourceString "let value () = x" config
     |> should
         equal
         """let value () = x
@@ -38,7 +38,7 @@ let ``default config should add space before unit in lowercase function definiti
 
 [<Test>]
 let ``spaceBeforeParameter = false, should not add space before unit in lowercase function definition`` () =
-    formatSourceString false "let value() = x" noSpaceBefore
+    formatSourceString "let value() = x" noSpaceBefore
     |> should
         equal
         """let value() = x
@@ -48,7 +48,7 @@ let ``spaceBeforeParameter = false, should not add space before unit in lowercas
 
 [<Test>]
 let ``default config should add space before parentheses in uppercase function definition`` () =
-    formatSourceString false "let Value (a:int) = x" config
+    formatSourceString "let Value (a:int) = x" config
     |> should
         equal
         """let Value (a: int) = x
@@ -56,7 +56,7 @@ let ``default config should add space before parentheses in uppercase function d
 
 [<Test>]
 let ``spaceBeforeParameter = false, should not add space before parentheses in uppercase function definition`` () =
-    formatSourceString false "let Value(a:int) = x" noSpaceBefore
+    formatSourceString "let Value(a:int) = x" noSpaceBefore
     |> should
         equal
         """let Value(a: int) = x
@@ -65,7 +65,6 @@ let ``spaceBeforeParameter = false, should not add space before parentheses in u
 [<Test>]
 let ``default config should not add space after discriminated union member`` () =
     formatSourceString
-        false
         """
 match x with
 | Zero() -> ()
@@ -87,7 +86,7 @@ match x with
 
 [<Test>]
 let ``default config should add space before parentheses in lowercase function definition`` () =
-    formatSourceString false "let value(a:int) = x" config
+    formatSourceString "let value(a:int) = x" config
     |> should
         equal
         """let value (a: int) = x
@@ -95,7 +94,7 @@ let ``default config should add space before parentheses in lowercase function d
 
 [<Test>]
 let ``spaceBeforeParameter = false, should not add space before parentheses in lowercase function definition`` () =
-    formatSourceString false "let value (a:int) = x" noSpaceBefore
+    formatSourceString "let value (a:int) = x" noSpaceBefore
     |> should
         equal
         """let value(a: int) = x

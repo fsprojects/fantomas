@@ -11,8 +11,7 @@ let config =
 
 [<Test>]
 let ``record type definition`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 
@@ -38,8 +37,7 @@ type V = {
 [<Test>]
 [<Ignore("See https://github.com/fsprojects/fantomas/issues/2001, this will be easier to fix in future FCS version")>]
 let ``record type definition with comment after equals`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 
@@ -65,8 +63,7 @@ type V = // comment
 
 [<Test>]
 let ``record type definition with members`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foo
 

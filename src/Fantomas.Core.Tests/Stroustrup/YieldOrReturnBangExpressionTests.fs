@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``yieldOrReturnBang with record instance`` () =
     formatSourceString
-        false
         """
 myComp {
     yield!
@@ -49,7 +48,6 @@ myComp {
 [<Test>]
 let ``yieldOrReturnBang with update record`` () =
     formatSourceString
-        false
         """
 myComp {
     yield!
@@ -87,7 +85,6 @@ myComp {
 [<Test>]
 let ``yieldOrReturnBang with anonymous record instance`` () =
     formatSourceString
-        false
         """
 myComp {
     yield!
@@ -123,7 +120,6 @@ myComp {
 [<Test>]
 let ``yieldOrReturnBang with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 myComp {
     yield!
@@ -160,7 +156,6 @@ myComp {
 [<Test>]
 let ``yieldOrReturnBang with list`` () =
     formatSourceString
-        false
         """
 myComp {
     yield!
@@ -204,7 +199,6 @@ myComp {
 [<Test>]
 let ``yieldOrReturnBang with array`` () =
     formatSourceString
-        false
         """
 myComp {
     yield!

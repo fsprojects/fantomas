@@ -8,7 +8,6 @@ open Fantomas.Core
 [<Test>]
 let ``number of items sized lists are formatted properly`` () =
     formatSourceString
-        false
         """
 let xs = [ a; b; c ]
 let ys = [ AReallyLongExpressionThatIsMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerThan100Characters ]
@@ -44,7 +43,6 @@ List.map
 [<Test>]
 let ``number of items sized arrays are formatted properly`` () =
     formatSourceString
-        false
         """
 let xs = [| a; b; c |]
 let ys = [| AReallyLongExpressionThatIsMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerThan100Characters |]
@@ -80,7 +78,6 @@ List.map
 [<Test>]
 let ``number of items sized Elmish lists are formatted properly`` () =
     formatSourceString
-        false
         """
 f [ a; b; c ] [ x; y; z ]
 g [ longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
@@ -114,7 +111,6 @@ h [
 [<Test>]
 let ``number of items sized lists with block brackets on same column are formatted properly`` () =
     formatSourceString
-        false
         """
 let xs = [ a; b; c ]
 let ys = [ AReallyLongExpressionThatIsMuchLongerThan50Characters ]
@@ -156,7 +152,6 @@ List.map
 [<Test>]
 let ``number of items sized arrays with block brackets on same column are formatted properly`` () =
     formatSourceString
-        false
         """
 let xs = [| a; b; c |]
 let ys = [| AReallyLongExpressionThatIsMuchLongerThan50Characters |]
@@ -198,7 +193,6 @@ List.map
 [<Test>]
 let ``number of items sized Elmish lists with block brackets on same column are formatted properly`` () =
     formatSourceString
-        false
         """
 f [ a; b; c ] [ x; y; z ]
 g [ longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
@@ -232,7 +226,6 @@ h [
 [<Test>]
 let ``number of items sized Elmish lists with single argument web mode are formatted properly`` () =
     formatSourceString
-        false
         """
 f [ a; b; c ]
 g [ longValueThatIsALotOfCharactersSoooooLong ]
@@ -264,7 +257,6 @@ let ``number of items sized Elmish lists with single argument web mode and multi
     ()
     =
     formatSourceString
-        false
         """
 f [ a; b; c ]
 g [ longValueThatIsALotOfCharactersSoooooLong ]
@@ -294,7 +286,6 @@ h [
 [<Test>]
 let ``long expressions with number of items set to 3 will get split due to max line length`` () =
     formatSourceString
-        false
         """
 [ longValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ]
     """
@@ -312,7 +303,6 @@ let ``long expressions with number of items set to 3 will get split due to max l
 [<Test>]
 let ``character width with explicit width sized lists are formatted properly`` () =
     formatSourceString
-        false
         """
 let x = [ a; b; c ]
 let y = [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ]

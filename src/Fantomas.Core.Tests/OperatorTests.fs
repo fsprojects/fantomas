@@ -8,7 +8,6 @@ open Fantomas.Core
 [<Test>]
 let ``should format prefix operators`` () =
     formatSourceString
-        false
         """let x = -y
 let z = !!x
     """
@@ -22,7 +21,6 @@ let z = !!x
 [<Test>]
 let ``should keep triple ~~~ operator`` () =
     formatSourceString
-        false
         """x ~~~FileAttributes.ReadOnly
     """
         config
@@ -34,7 +32,6 @@ let ``should keep triple ~~~ operator`` () =
 [<Test>]
 let ``should keep single triple ~~~ operator`` () =
     formatSourceString
-        false
         """~~~FileAttributes.ReadOnly
     """
         config
@@ -46,7 +43,6 @@ let ``should keep single triple ~~~ operator`` () =
 [<Test>]
 let ``should keep parens around ? operator definition`` () =
     formatSourceString
-        false
         """let (?) f s = f s
     """
         config
@@ -58,7 +54,6 @@ let ``should keep parens around ? operator definition`` () =
 [<Test>]
 let ``should keep parens around ?<- operator definition`` () =
     formatSourceString
-        false
         """let (?<-) f s = f s
     """
         config
@@ -70,7 +65,6 @@ let ``should keep parens around ?<- operator definition`` () =
 [<Test>]
 let ``should keep parens around !+ prefix operator definition`` () =
     formatSourceString
-        false
         """let (!+) x = Include x
     """
         config
@@ -82,7 +76,6 @@ let ``should keep parens around !+ prefix operator definition`` () =
 [<Test>]
 let ``should keep parens around ++ infix operator definition`` () =
     formatSourceString
-        false
         """let (++) x y = { x with Includes = y :: x.Includes }
     """
         config
@@ -94,7 +87,6 @@ let ``should keep parens around ++ infix operator definition`` () =
 [<Test>]
 let ``should keep parens around inlined ==> operator definition`` () =
     formatSourceString
-        false
         """let inline (==>) x y = f x y
     """
         config
@@ -106,7 +98,6 @@ let ``should keep parens around inlined ==> operator definition`` () =
 [<Test>]
 let ``should keep parens around inlined operator definition`` () =
     formatSourceString
-        false
         """let inline (@@) path1 path2 = Path.Combine(path1, path2)
     """
         config
@@ -118,7 +109,6 @@ let ``should keep parens around inlined operator definition`` () =
 [<Test>]
 let ``should pattern match on quotation expression`` () =
     formatSourceString
-        false
         """let rec print expr =
     match expr with
     | SpecificCall <@@ (+) @@> (_, _, exprList) ->
@@ -141,7 +131,6 @@ let ``should pattern match on quotation expression`` () =
 [<Test>]
 let ``should break on . operator`` () =
     formatSourceString
-        false
         """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^").Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
 
     """
@@ -165,7 +154,6 @@ pattern
 [<Test>]
 let ``should break on . operator and keep indentation`` () =
     formatSourceString
-        false
         """let pattern =
     (x + y)
       .Replace(seperator + "**" + seperator, replacementSeparator + "(.|?" + replacementSeparator + ")?" )
@@ -188,7 +176,6 @@ let ``should break on . operator and keep indentation`` () =
 [<Test>]
 let ``should keep space between ( and * in *** operator definition`` () =
     formatSourceString
-        false
         """let inline ( ***) l1 l2 = pair l2 l1
     """
         config
@@ -200,7 +187,6 @@ let ``should keep space between ( and * in *** operator definition`` () =
 [<Test>]
 let ``should keep space between ( and * in *= operator definition`` () =
     formatSourceString
-        false
         """let inline ( *=) l v = update (( *) v) l
     """
         config
@@ -211,7 +197,7 @@ let ``should keep space between ( and * in *= operator definition`` () =
 
 [<Test>]
 let ``should not add space around ? operator`` () =
-    formatSourceString false """let x = y?z.d?c.[2]?d.xpto()""" config
+    formatSourceString """let x = y?z.d?c.[2]?d.xpto()""" config
     |> should
         equal
         """let x = y?z.d?c.[2]?d.xpto ()
@@ -220,7 +206,6 @@ let ``should not add space around ? operator`` () =
 [<Test>]
 let ``should understand ? as an infix operator`` () =
     formatSourceString
-        false
         """try
     item.MethodInfo.Method.Invoke(null, ipa)
     |> (fun x -> x?Invoke (true))
@@ -241,7 +226,7 @@ with _ ->
 
 [<Test>]
 let ``should not mess up ?<- operator`` () =
-    formatSourceString false """x?v <- 2""" config
+    formatSourceString """x?v <- 2""" config
     |> should
         equal
         """x?v <- 2
@@ -250,7 +235,6 @@ let ``should not mess up ?<- operator`` () =
 [<Test>]
 let ``should pipeline monadic bind`` () =
     formatSourceString
-        false
         """strToInt "1"
 >>= strAddLong "A long argument that is ignored" "2"
 >>= strAddLong "A long argument that is ignored" "2"
@@ -274,7 +258,6 @@ let ``should pipeline monadic bind`` () =
 [<Test>]
 let ``should keep >>.~ operator`` () =
     formatSourceString
-        false
         """let (>>.~) (g : int) (h : int) : int = g + h
 let output = 2 >>.~ 3
     """
@@ -288,7 +271,6 @@ let output = 2 >>.~ 3
 [<Test>]
 let ``should not add newline before = operator after |>`` () =
     formatSourceString
-        false
         """1 |> max 0 = 1"""
         { config with
             MaxInfixOperatorExpression = 15 }
@@ -299,7 +281,7 @@ let ``should not add newline before = operator after |>`` () =
 
 [<Test>]
 let ``should not add space around .. operator`` () =
-    formatSourceString false """[1..10]""" config
+    formatSourceString """[1..10]""" config
     |> should
         equal
         """[ 1..10 ]
@@ -307,7 +289,7 @@ let ``should not add space around .. operator`` () =
 
 [<Test>]
 let ``should not add space around .. .. operators`` () =
-    formatSourceString false """[10 .. -1 .. 1]""" config
+    formatSourceString """[10 .. -1 .. 1]""" config
     |> should
         equal
         """[ 10..-1..1 ]
@@ -316,7 +298,6 @@ let ``should not add space around .. .. operators`` () =
 [<Test>]
 let ``line comment after infix function with parenthesis, 559`` () =
     formatSourceString
-        false
         """let watchFiles =
         async {
             printfn "after start"
@@ -357,7 +338,6 @@ let watchFiles =
 [<Test>]
 let ``line comment after infix function with string constant, 559`` () =
     formatSourceString
-        false
         """let watchFiles =
         async {
             printfn "after start"
@@ -395,7 +375,7 @@ let watchFiles =
 
 [<Test>]
 let ``short expression before and after pipe`` () =
-    formatSourceString false "let a = b |> c" config
+    formatSourceString "let a = b |> c" config
     |> prepend newline
     |> should
         equal
@@ -406,7 +386,6 @@ let a = b |> c
 [<Test>]
 let ``long expression with pipe should be multiline`` () =
     formatSourceString
-        false
         "let a = List.init 40 (fun i -> generateThing i a) |> List.map mapThingToOtherThing"
         { config with
             MaxInfixOperatorExpression = 50 }
@@ -422,7 +401,6 @@ let a =
 [<Test>]
 let ``giraffe sample`` () =
     formatSourceString
-        false
         """
 let WebApp = route "/ping" >=> authorized >=> text "pong"
 """
@@ -441,7 +419,6 @@ let WebApp =
 [<Test>]
 let ``multiple short pipes`` () =
     formatSourceString
-        false
         """let result = a && b |>  f |>  g |>   h
 """
         config
@@ -455,7 +432,6 @@ let result = a && b |> f |> g |> h
 [<Test>]
 let ``pipe boolean expression`` () =
     formatSourceString
-        false
         """b && c |> someLongExpressionThatShouldMoveThePipeToTheNextLine
 """
         { config with
@@ -472,7 +448,6 @@ b
 [<Test>]
 let ``two long boolean expressions`` () =
     formatSourceString
-        false
         """aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa || bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 """
         config
@@ -487,7 +462,6 @@ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 [<Test>]
 let ``equal sign operator should not move to next line`` () =
     formatSourceString
-        false
         """let result =
             (typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null)
 """
@@ -503,7 +477,6 @@ let result =
 [<Test>]
 let ``operator before verbatim string add extra space, 736`` () =
     formatSourceString
-        false
         """Target M.Tools (fun _ -> !! @"Tools\Tools.sln" |> rebuild)
 """
         config
@@ -517,7 +490,6 @@ Target M.Tools (fun _ -> !! @"Tools\Tools.sln" |> rebuild)
 [<Test>]
 let ``function call before pipe operator, 754`` () =
     formatSourceString
-        false
         "
 [<Test>]
 let ``attribute on module after namespace`` () =
@@ -567,7 +539,6 @@ module Types =
 [<Test>]
 let ``modulo operator on same line, 780`` () =
     formatSourceString
-        false
         """let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
 """
         { config with
@@ -584,7 +555,6 @@ let hasUnEvenAmount regex line =
 [<Test>]
 let ``parameter after multiline string, 783`` () =
     formatSourceString
-        false
         "
 let ``match bang`` () =
     formatSourceString false \"\"\"
@@ -632,7 +602,6 @@ async {
 [<Test>]
 let ``addition via function`` () =
     formatSourceString
-        false
         """let a = (+) 7 8
 """
         config
@@ -646,7 +615,6 @@ let a = (+) 7 8
 [<Test>]
 let ``lambda piped to lambda should be multiline, 942`` () =
     formatSourceString
-        false
         """
 let r (f : 'a -> 'b) (a : 'a) : 'b =
     fun () ->
@@ -666,7 +634,6 @@ let r (f: 'a -> 'b) (a: 'a) : 'b =
 [<Test>]
 let ``combining lines breaks function precedence 488`` () =
     formatSourceString
-        false
         """fun () -> ()
 |> Some
 """
@@ -682,7 +649,6 @@ fun () -> ()
 [<Test>]
 let ``function with LPAREN_STAR_RPAREN`` () =
     formatSourceString
-        false
         """
 let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
     if latA = latB && lngA = lngB then
@@ -730,7 +696,6 @@ let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
 [<Test>]
 let ``keep comment after or operator, 1095`` () =
     formatSourceString
-        false
         """
 let f x =
     a
@@ -755,7 +720,6 @@ let f x =
 [<Test>]
 let ``keep comment after and operator`` () =
     formatSourceString
-        false
         "
 let r =
     {| Foo =
@@ -785,7 +749,6 @@ Fooey
 [<Test>]
 let ``simple math`` () =
     formatSourceString
-        false
         """let myValue = a + b * c
 """
         { config with
@@ -802,7 +765,6 @@ let myValue =
 [<Test>]
 let ``simple math in one line`` () =
     formatSourceString
-        false
         """let myValue = a + b * c
 """
         { config with
@@ -817,7 +779,6 @@ let myValue = a + b * c
 [<Test>]
 let ``simple math reversed`` () =
     formatSourceString
-        false
         """let myValue = a * b + c
 """
         { config with
@@ -834,7 +795,6 @@ let myValue =
 [<Test>]
 let ``multiple sum operators`` () =
     formatSourceString
-        false
         """let myValue = a + b * c + d
 """
         { config with
@@ -852,7 +812,6 @@ let myValue =
 [<Test>]
 let ``nested math sample`` () =
     formatSourceString
-        false
         """
         let dist =
             aaaaaaaaaaaaaaaaaaaaaaaa
@@ -878,7 +837,6 @@ let dist =
 [<Test>]
 let ``split infix operators according to nested structure in AST, 988`` () =
     formatSourceString
-        false
         """
 let shouldIncludeRelationship relName =
     req.Includes |> List.exists (fun path ->
@@ -901,7 +859,6 @@ let shouldIncludeRelationship relName =
 [<Test>]
 let ``add in keyword when let binding is part of same operator infix expression, 1461`` () =
     formatSourceString
-        false
         """
     let isUnseenByHidingAttribute () =
         not (isObjTy g ty) &&
@@ -929,7 +886,6 @@ let isUnseenByHidingAttribute () =
 [<Test>]
 let ``add in keyword when let binding is part of single infix expression`` () =
     formatSourceString
-        false
         """
     // Check for the [<ProjectionParameter>] attribute on an argument position
     let isCustomOperationProjectionParameter i (nm: Ident) =
@@ -981,7 +937,6 @@ let isCustomOperationProjectionParameter i (nm: Ident) =
 [<Test>]
 let ``operator with QMARK_QMARK token, 1533`` () =
     formatSourceString
-        false
         """
 // Minimal code that displays the root of the issue:
 let inline (>??) x = x > x
@@ -998,7 +953,6 @@ let inline (>??) x = x > x
 [<Test>]
 let ``multiple let bindings in infix expression, 1548`` () =
     formatSourceString
-        false
         """
 /// Used to hide/filter members from base classes based on signature
 let MethInfosEquivByNameAndSig erasureFlag ignoreFinal g amap m minfo minfo2 =
@@ -1033,7 +987,6 @@ let MethInfosEquivByNameAndSig erasureFlag ignoreFinal g amap m minfo minfo2 =
 [<Test>]
 let ``match lambda in infix expression should indent, 1559`` () =
     formatSourceString
-        false
         """
 let foo () =
     blah
@@ -1054,7 +1007,6 @@ let foo () =
 [<Test>]
 let ``match lambda in multi pipe infix expression, 614`` () =
     formatSourceString
-        false
         """
 let expected =
     b
@@ -1079,7 +1031,6 @@ let expected =
 [<Test>]
 let ``dollar in custom operator, 1598`` () =
     formatSourceString
-        false
         """
 /// Destructure and apply a tuple to an arbitrary value.
 /// E.g. `myFn $ (arg1, arg2)` in JS becomes `myFn(arg1, arg2)`
@@ -1098,7 +1049,6 @@ let ($) (callee: obj) (args: obj) : 'a = jsNative
 [<Test>]
 let ``if/then/else in infix should always be multiline, 1609`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar () =
@@ -1158,7 +1108,6 @@ module Foo =
 [<Test>]
 let ``combining two empty list with at`` () =
     formatSourceString
-        false
         """
 [] @ []
 """
@@ -1173,7 +1122,6 @@ let ``combining two empty list with at`` () =
 [<Test>]
 let ``appending two lists with at, 1719`` () =
     formatSourceString
-        false
         """
 [ 2.; 4. ] @ [ 2.; 4. ]
 """
@@ -1188,7 +1136,6 @@ let ``appending two lists with at, 1719`` () =
 [<Test>]
 let ``list concat chain using operators, 1188`` () =
     formatSourceString
-        false
         """
 [1 .. 86] @ [89 .. 699] @ [901 .. 912] @ [988]
 """
@@ -1203,7 +1150,6 @@ let ``list concat chain using operators, 1188`` () =
 [<Test>]
 let ``comment above piped match expression, 1711`` () =
     formatSourceString
-        false
         """
 module Foo =
 
@@ -1257,7 +1203,6 @@ let operator_application_literal_values =
 [<TestCaseSource("operator_application_literal_values")>]
 let ``operators maintain spacing from literal values`` (literalValue: string) =
     formatSourceString
-        false
         $"""
 let subtractTwo = + {literalValue}
 """
@@ -1272,7 +1217,6 @@ let subtractTwo = + {literalValue}
 [<Test>]
 let ``qualified name to active pattern, 1937`` () =
     formatSourceString
-        false
         """
 StringPosition.(|TrimStart|)
 (|TrimStart|)
@@ -1301,7 +1245,6 @@ let f (|A|B|) = (|A|B|)
 [<Test>]
 let ``custom range operator definition, 1842`` () =
     formatSourceString
-        false
         """
 [<AutoOpen>] //making auto open allows us not to have to fully qualify module properties
 module DecompilationTests
@@ -1350,7 +1293,6 @@ module TopLevelOpIsolation3 =
 [<Test>]
 let ``add space around binary operators in units of measure, 2207`` () =
     formatSourceString
-        false
         """
 type Test =
     { WorkHoursPerWeek: uint<hr*(staff weeks)> }
@@ -1371,7 +1313,6 @@ type Test =
 [<Test>]
 let ``custom operator starting with *, 2434`` () =
     formatSourceString
-        false
         """
 let ( */) = (+)
 """
@@ -1386,7 +1327,6 @@ let ( */ ) = (+)
 [<Test>]
 let ``piped lambda on a single line`` () =
     formatSourceString
-        false
         """
 let a : (unit -> int) list =
     fun () -> failwith "" : int
@@ -1404,7 +1344,6 @@ let a: (unit -> int) list = (fun () -> failwith "": int) |> List.singleton |> id
 [<Test>]
 let ``piped tuple on a single line`` () =
     formatSourceString
-        false
         """
 fun i -> sprintf "%i" i, fun () -> i
 |> List.init foo
@@ -1421,7 +1360,6 @@ fun i -> sprintf "%i" i, fun () -> i
 [<Test>]
 let ``lambda piped into non newlineInfixApp`` () =
     formatSourceString
-        false
         """
 fun sum count -> sum / float count
 <*| sum xs
@@ -1438,7 +1376,6 @@ fun sum count -> sum / float count
 [<Test>]
 let ``single star operator, 2452`` () =
     formatSourceString
-        false
         """
 let (*) x y = x + y
 """
@@ -1453,7 +1390,6 @@ let (*) x y = x + y
 [<Test>]
 let ``trivia after match lambda in infix operation, 2454`` () =
     formatSourceString
-        false
         """
 id
 >> function
@@ -1476,7 +1412,6 @@ id
 [<Test>]
 let ``multiple list concat operators, 2472`` () =
     formatSourceString
-        false
         """
 let allDecls = inheritsL @ iimplsLs @ ctorLs @ instanceValLs @ methLs @ ilFieldsL @ propLs @ eventLs @ staticValLs @ nestedTypeLs
 """
@@ -1502,7 +1437,6 @@ let allDecls =
 [<Test>]
 let ``multiple cons operators`` () =
     formatSourceString
-        false
         """
 let allDecls = inheritsL :: iimplsLs :: ctorLs :: foo ::blah
 """
@@ -1523,7 +1457,6 @@ let allDecls =
 [<Test>]
 let ``right placed operators`` () =
     formatSourceString
-        false
         """
   // right: @, ::, **, ^, := or starts with combinations
   let allDecls = inheritsL @ iimplsLs @ ctorLs 
@@ -1586,7 +1519,6 @@ let allDecls =
 [<Test>]
 let ``adding space after prefix operator breaks code, 2796`` () =
     formatSourceString
-        false
         """
 let inline (~%%) id = int id
 

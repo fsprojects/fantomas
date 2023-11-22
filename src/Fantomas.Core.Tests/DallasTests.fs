@@ -8,7 +8,6 @@ open Fantomas.Core
 [<Test>]
 let ``proof of concept`` () =
     formatSourceString
-        false
         """
 let a =   1
 """
@@ -23,7 +22,6 @@ let a = 1
 [<Test>]
 let ``named module with let binding`` () =
     formatSourceString
-        false
         """
 module A.B
 let a =   1
@@ -41,7 +39,6 @@ let a = 1
 [<Test>]
 let ``basic comment above let binding`` () =
     formatSourceString
-        false
         """
 let a =  0
 
@@ -62,7 +59,6 @@ let b = 1
 [<Test>]
 let ``single open`` () =
     formatSourceString
-        false
         """
 open  Foo
 """
@@ -77,7 +73,6 @@ open Foo
 [<Test>]
 let ``two opens`` () =
     formatSourceString
-        false
         """
 open  Foo
 open  Bar
@@ -98,7 +93,6 @@ let a = 0
 [<Test>]
 let ``type alias`` () =
     formatSourceString
-        false
         """
 type A =   int
 """
@@ -113,7 +107,6 @@ type A = int
 [<Test>]
 let ``function with parameters`` () =
     formatSourceString
-        false
         """
 let x y z  = 0
 """
@@ -128,7 +121,6 @@ let x y z = 0
 [<Test>]
 let ``ident expr with backticks`` () =
     formatSourceString
-        false
         """
 let x =  ``y``
 """
@@ -143,7 +135,6 @@ let x = ``y``
 [<Test>]
 let ``horsing around`` () =
     formatSourceString
-        false
         """
 null
 <@@  x @@>
@@ -208,7 +199,6 @@ let { A = a; B.B = b } = 0
 [<Test>]
 let ``some types`` () =
     formatSourceString
-        false
         """
 let a (b: (int)) = 0
 let x (y : int[,,]) = 0
@@ -249,7 +239,6 @@ let p: Prefix.Task<int> = 0
 [<Test>]
 let ``attributes`` () =
     formatSourceString
-        false
         """
 [<Foo>]
 [<Bar1;Bar2>]
@@ -268,7 +257,6 @@ do ()
 [<Test>]
 let ``some expressions`` () =
     formatSourceString
-        false
         """
 let a = [| 2;3 |]
 let l = [ 4 ; 5 ;6 ]
@@ -285,7 +273,6 @@ let l = [ 4; 5; 6 ]
 [<Test>]
 let ``some type definitions`` () =
     formatSourceString
-        false
         """
 type A = | B = 1 | C = 2
 type D = | D of int * e:string
@@ -309,7 +296,6 @@ type Y = { a: int; b: int }
 [<Test>]
 let ``explicit test`` () =
     formatSourceString
-        false
         """
 type Foo 
     /// Foo
@@ -338,7 +324,6 @@ type Foo
 [<Test>]
 let ``long implicit ctor`` () =
     formatSourceString
-        false
         """
 type Foo 
     /// Foo
@@ -375,7 +360,6 @@ type Foo
 [<Test>]
 let ``long implicit ctor, alternative`` () =
     formatSourceString
-        false
         """
 type Foo 
     /// Foo
@@ -414,7 +398,6 @@ type Foo
 [<Test>]
 let ``trivia inside implicit constructor`` () =
     formatSourceString
-        false
         """
   type MyType
     (
@@ -436,7 +419,6 @@ type MyType
 [<Test>]
 let ``inherit record`` () =
     formatSourceString
-        false
         """
 { inherit   X  }
 """
@@ -451,7 +433,6 @@ let ``inherit record`` () =
 [<Test>]
 let ``moar records`` () =
     formatSourceString
-        false
         """
 { X = y; Z = 1 }
 { x with Y = 0 }
@@ -468,7 +449,6 @@ let ``moar records`` () =
 [<Test>]
 let ``augmentation type`` () =
     formatSourceString
-        false
         """
 type Foo with
     member x.Bar = ()
@@ -485,7 +465,6 @@ type Foo with
 [<Test>]
 let ``long delegate stuff`` () =
     formatSourceString
-        false
         """
 type X =
     delegate of
@@ -518,7 +497,6 @@ type A = int
 [<Test>]
 let ``unspecified type with`` () =
     formatSourceString
-        false
         """
 type A() =
     member x.B () = ()
@@ -538,7 +516,6 @@ type A() =
 [<Test>]
 let ``xx dfe`` () =
     formatSourceString
-        false
         """
 type A() =
     class
@@ -559,7 +536,6 @@ type A() =
 [<Test>]
 let ``implicit inherit member`` () =
     formatSourceString
-        false
         """
 type A() =
     inherit B(
@@ -578,7 +554,6 @@ type A() =
 [<Test>]
 let ``val field`` () =
     formatSourceString
-        false
         """
 type A =
     val X: int
@@ -595,7 +570,6 @@ type A =
 [<Test>]
 let ``do expr in member`` () =
     formatSourceString
-        false
         """
 type A =
     do
@@ -616,7 +590,6 @@ type A =
 [<Test>]
 let ``let bindings in type`` () =
     formatSourceString
-        false
         """
 type A =
     let rec b x = 0
@@ -635,7 +608,6 @@ type A =
 [<Test>]
 let ``second ctor`` () =
     formatSourceString
-        false
         """
 type StateMachine() =
     new() as secondCtor =
@@ -657,7 +629,6 @@ type StateMachine() =
 [<Test>]
 let ``long prop get`` () =
     formatSourceString
-        false
         """
 type StateMachine() =
     member x.X with get() = y
@@ -674,7 +645,6 @@ type StateMachine() =
 [<Test>]
 let ``interface member`` () =
     formatSourceString
-        false
         """
 type Y =
     interface Z with
@@ -693,7 +663,6 @@ type Y =
 [<Test>]
 let ``auto property`` () =
     formatSourceString
-        false
         """
 type X =
     member val Y: int = 0
@@ -710,7 +679,6 @@ type X =
 [<Test>]
 let ``auto property get/set`` () =
     formatSourceString
-        false
         """
 type X(y) =
     member val Y = y with get,set 
@@ -727,7 +695,6 @@ type X(y) =
 [<Test>]
 let ``abstract slot`` () =
     formatSourceString
-        false
         """
 type X =
     abstract Y : int
@@ -746,7 +713,6 @@ type X =
 [<Test>]
 let ``get / set`` () =
     formatSourceString
-        false
         """
 type X =
     member this.Y 
@@ -767,7 +733,6 @@ type X =
 [<Test>]
 let ``set with two parameters`` () =
     formatSourceString
-        false
         """
 type X =
     member this.Item
@@ -788,7 +753,6 @@ type X =
 [<Test>]
 let ``tuple`` () =
     formatSourceString
-        false
         """
 x,y,z
 a, //
@@ -809,7 +773,6 @@ c
 [<Test>]
 let ``struct tuple`` () =
     formatSourceString
-        false
         """
 struct (x,y,z)
 """
@@ -824,7 +787,6 @@ struct (x, y, z)
 [<Test>]
 let ``anon record expr`` () =
     formatSourceString
-        false
         """
 {| 
     x = y
@@ -845,7 +807,6 @@ let ``anon record expr`` () =
 [<Test>]
 let ``obj expr`` () =
     formatSourceString
-        false
         """
 {   new IDisposable
     interface Meh with
@@ -865,7 +826,6 @@ let ``obj expr`` () =
 [<Test>]
 let ``while expr`` () =
     formatSourceString
-        false
         """
 while a do b
 """
@@ -881,7 +841,6 @@ while a do
 [<Test>]
 let ``for expr`` () =
     formatSourceString
-        false
         """
 for i = 0 to 10 do 
     y
@@ -898,7 +857,6 @@ for i = 0 to 10 do
 [<Test>]
 let ``foreach expr`` () =
     formatSourceString
-        false
         """
 for x in y do 
     ()
@@ -915,7 +873,6 @@ for x in y do
 [<Test>]
 let ``named computation expr`` () =
     formatSourceString
-        false
         """
 async { x  } 
 """
@@ -930,7 +887,6 @@ async { x }
 [<Test>]
 let ``let bang in comp expr`` () =
     formatSourceString
-        false
         """
 async {
     let! x = 0
@@ -953,7 +909,6 @@ async {
 [<Test>]
 let ``nested let or use`` () =
     formatSourceString
-        false
         """
 do
     let x = 1
@@ -974,7 +929,6 @@ do
 [<Test>]
 let ``join in`` () =
     formatSourceString
-        false
         """
 seq { x    
             in //    
@@ -993,7 +947,6 @@ seq {
 [<Test>]
 let ``paren lambda`` () =
     formatSourceString
-        false
         """
 (fun _ -> //
                      a)
@@ -1010,7 +963,6 @@ let ``paren lambda`` () =
 [<Test>]
 let ``paren with closing lambda`` () =
     formatSourceString
-        false
         """
 (fun _ -> //
                      a)
@@ -1029,7 +981,6 @@ let ``paren with closing lambda`` () =
 [<Test>]
 let ``paren lambda, long list of parameters`` () =
     formatSourceString
-        false
         """
 (fun a b c d e f 
         // comment
@@ -1063,7 +1014,6 @@ let ``paren lambda, long list of parameters`` () =
 [<Test>]
 let ``single lambda`` () =
     formatSourceString
-        false
         """
 fun a b c -> d
 """
@@ -1078,7 +1028,6 @@ fun a b c -> d
 [<Test>]
 let ``match lambda`` () =
     formatSourceString
-        false
         """
 function 
 | X -> X
@@ -1097,7 +1046,6 @@ function
 [<Test>]
 let ``nested or pattern in clause`` () =
     formatSourceString
-        false
         """
 function 
 | X
@@ -1118,7 +1066,6 @@ function
 [<Test>]
 let ``nested or in alias pattern`` () =
     formatSourceString
-        false
         """
 function 
 | X _
@@ -1139,7 +1086,6 @@ function
 [<Test>]
 let ``when expr in clause`` () =
     formatSourceString
-        false
         """
 function 
 | X _ when someBoolThing ->
@@ -1160,7 +1106,6 @@ function
 [<Test>]
 let ``match expr`` () =
     formatSourceString
-        false
         """
 match x with
 | Y x -> ()
@@ -1177,7 +1122,6 @@ match x with
 [<Test>]
 let ``short infix operator`` () =
     formatSourceString
-        false
         """
 1 +  1
 """
@@ -1192,7 +1136,6 @@ let ``short infix operator`` () =
 [<Test>]
 let ``multiline same infix operator`` () =
     formatSourceString
-        false
         """
 x +>
     y +>
@@ -1214,7 +1157,6 @@ x
 [<Test>]
 let ``index without dot`` () =
     formatSourceString
-        false
         """
 a[ b ]
 """
@@ -1229,7 +1171,6 @@ a[b]
 [<Test>]
 let ``if then`` () =
     formatSourceString
-        false
         """
 if a then  b
 """
@@ -1245,7 +1186,6 @@ if a then
 [<Test>]
 let ``long ident expr`` () =
     formatSourceString
-        false
         """
 (++)
 ?a.b
@@ -1264,7 +1204,6 @@ let ``long ident expr`` () =
 [<Test>]
 let ``dotNamedIndexedPropertySet`` () =
     formatSourceString
-        false
         """
 (a).b() <- c
 """
@@ -1279,7 +1218,6 @@ let ``dotNamedIndexedPropertySet`` () =
 [<Test>]
 let ``interpolated string`` () =
     formatSourceString
-        false
         """
 $"{x}y{z}"
 """
@@ -1294,7 +1232,6 @@ $"{x}y{z}"
 [<Test>]
 let ``triple zero`` () =
     formatSourceString
-        false
         """
 [ 0.   ..   0. ..  0. ]
 """
@@ -1309,7 +1246,6 @@ let ``triple zero`` () =
 [<Test>]
 let ``AppDotGetTypeApp`` () =
     formatSourceString
-        false
         """
 Result<int, string>.Ok 42
 """
@@ -1324,7 +1260,6 @@ Result<int, string>.Ok 42
 [<Test>]
 let ``temp`` () =
     formatSourceString
-        false
         """
 A.B<string>
 """
@@ -1339,7 +1274,6 @@ A.B<string>
 [<Test>]
 let ``DotGetAppDotGetAppParenLambda`` () =
     formatSourceString
-        false
         """
 Foo(fun x -> x).Bar().Meh
 """
@@ -1354,7 +1288,6 @@ Foo(fun x -> x).Bar().Meh
 [<Test>]
 let ``DotGetAppDotGetAppParenLambda, type app`` () =
     formatSourceString
-        false
         """
 Hej.Barry.Foo<a,b>(fun x -> x).Bar().Meh
 """
@@ -1369,7 +1302,6 @@ Hej.Barry.Foo<a, b>(fun x -> x).Bar().Meh
 [<Test>]
 let ``DotGetAppParen`` () =
     formatSourceString
-        false
         """
 Foo().Bar
 """
@@ -1384,7 +1316,6 @@ Foo().Bar
 [<Test>]
 let ``app tests`` () =
     formatSourceString
-        false
         """
 fn a b
 UpperFn(x)
@@ -1402,8 +1333,7 @@ lowerFn (y)
 
 [<Test>]
 let ``union type in signature`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace X
 
@@ -1432,7 +1362,6 @@ module Y =
 [<Test>]
 let ``app single paren arg`` () =
     formatSourceString
-        false
         """
 a(
     //
@@ -1463,7 +1392,6 @@ fn (fun x ->
 [<Test>]
 let ``app single paren arg + fsharp_multi_line_lambda_closing_newline `` () =
     formatSourceString
-        false
         """
 fn (fun x ->
     // foo
@@ -1484,7 +1412,6 @@ fn (fun x ->
 [<Test>]
 let ``generic arg in function`` () =
     formatSourceString
-        false
         """
 let a<'t> b c = ()
 let x<'t when 't :> null> b c = ()
@@ -1501,7 +1428,6 @@ let x<'t when 't :> null> b c = ()
 [<Test>]
 let ``ExprDotGetAppWithParenLambdaNode tests`` () =
     formatSourceString
-        false
         """
 A.B(fun x -> x).x<s>()
 Foo(fun x -> x).Bar()
@@ -1518,7 +1444,6 @@ Foo(fun x -> x).Bar()
 [<Test>]
 let ``DotGetApp test`` () =
     formatSourceString
-        false
         """
  Foo().Bar().Meh()
 """
@@ -1533,7 +1458,6 @@ Foo().Bar().Meh()
 [<Test>]
 let ``two let bindings followed by a lambda`` () =
     formatSourceString
-        false
         """
 let shortExpr = genExpr e +> genSynLongIdent true sli
 let longExpr = genExpr e +> indentSepNlnUnindent (genSynLongIdentMultiline true sli)
@@ -1559,7 +1483,6 @@ fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longE
 [<Test>]
 let ``multiple always break infix operators`` () =
     formatSourceString
-        false
         """
 (sli.Dots, tail)
 ||> List.zip
@@ -1582,7 +1505,6 @@ let ``multiple always break infix operators`` () =
 [<Test>]
 let ``value binding with multiline type annotation`` () =
     formatSourceString
-        false
         """
 let autoCompleteItems: cmap<DeclName, DeclarationListItem * Position * string<LocalPath> * (Position -> option<string>) * FSharp.Compiler.Syntax.ParsedInput> =
     cmap ()
@@ -1604,7 +1526,6 @@ let autoCompleteItems
 [<Test>]
 let ``recursive type with implicit constructor and attributes`` () =
     formatSourceString
-        false
         """
 type x
 and [<Sealed>] MapDebugView<'Key, 'Value when 'Key: comparison>(v: Map<'Key, 'Value>) =
@@ -1630,7 +1551,6 @@ and [<Sealed>] MapDebugView<'Key, 'Value when 'Key: comparison>(v: Map<'Key, 'Va
 [<Test>]
 let ``long ident app type`` () =
     formatSourceString
-        false
         """
 let create size : ImmutableArray<'T>.Builder = ImmutableArray.CreateBuilder(size)
 """
@@ -1645,7 +1565,6 @@ let create size : ImmutableArray<'T>.Builder = ImmutableArray.CreateBuilder(size
 [<Test>]
 let ``type with implicit constructor and generic type constraints`` () =
     formatSourceString
-        false
         """
 [<System.Diagnostics.DebuggerDisplay "Count = {Count}">]
 [<Sealed>]
@@ -1670,7 +1589,6 @@ type internal Set<'T, 'ComparerTag> when 'ComparerTag :> IComparer<'T>(comparer:
 [<Test>]
 let ``comment before inherit member definition`` () =
     formatSourceString
-        false
         """
 type ILModuleReader =
     abstract ILModuleDef: ILModuleDef
@@ -1695,7 +1613,6 @@ type ILModuleReader =
 [<Test>]
 let ``multiline infix operator with three let in bindings`` () =
     formatSourceString
-        false
         """
 Ok
 <| let a = 1 in
@@ -1718,7 +1635,6 @@ Ok
 [<Test>]
 let ``type alias with trivia`` () =
     formatSourceString
-        false
         """
 (* 1 *) type (* 2 *) A (* 3 *) = (* 4 *) int (* 5 *)
 """
@@ -1733,7 +1649,6 @@ let ``type alias with trivia`` () =
 [<Test>]
 let ``trivia before equals in multiline implicit constructor`` () =
     formatSourceString
-        false
         """
 type TypeDefnUnionNode
     (
@@ -1762,7 +1677,6 @@ type TypeDefnUnionNode
 [<Test>]
 let ``comment above single parameter application, 2594`` () =
     formatSourceString
-        false
         """
 let test1 param =
     doSomething
@@ -1783,7 +1697,6 @@ let test1 param =
 [<Test>]
 let ``comment above multiline single parentheses application`` () =
     formatSourceString
-        false
         """
 myFunction
     // my comment
@@ -1810,7 +1723,6 @@ myFunction
 [<Test>]
 let ``block comment after pattern constant`` () =
     formatSourceString
-        false
         """
 match tag with
             | 0 (* None *)  -> getInstancePropertyInfos (typ, [||], bindingFlags)
@@ -1831,7 +1743,6 @@ match tag with
 [<Test>]
 let ``mutable private value, 2646`` () =
     formatSourceString
-        false
         """
 let mutable private myMutable = 5
 """
@@ -1846,7 +1757,6 @@ let mutable private myMutable = 5
 [<Test>]
 let ``named computation expression with an argument and stroustrup, 2648`` () =
     formatSourceString
-        false
         """
 let someTest input1 input2 =
     test "This can contain a quite long description of what the test exactly does and why it exists" {
@@ -1868,7 +1778,6 @@ let someTest input1 input2 =
 [<Test>]
 let ``comments after chained dotgetapp, 2649`` () =
     formatSourceString
-        false
         """
 app
     .UseX("X") // Comment.
@@ -1899,7 +1808,6 @@ app
 [<Test>]
 let ``lambda as right-hand-side of infix application, 2650`` () =
     formatSourceString
-        false
         """
 let answerToUniverse =
     question

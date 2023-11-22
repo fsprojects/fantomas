@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``lambda with record instance `` () =
     formatSourceString
-        false
         """
 fun x ->
     { A = longTypeName
@@ -35,7 +34,6 @@ fun x -> {
 [<Test>]
 let ``lambda with update record`` () =
     formatSourceString
-        false
         """
 fun x ->
     { astContext with IsInsideMatchClausePattern = true }
@@ -54,7 +52,6 @@ fun x -> {
 [<Test>]
 let ``lambda with anonymous record instance`` () =
     formatSourceString
-        false
         """
 fun x ->
    {| A = longTypeName
@@ -76,7 +73,6 @@ fun x -> {|
 [<Test>]
 let ``lambda with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 fun x ->
    struct
@@ -99,7 +95,6 @@ fun x -> struct {|
 [<Test>]
 let ``lambda with list`` () =
     formatSourceString
-        false
         """
 fun x ->
     [ itemOne
@@ -125,7 +120,6 @@ fun x -> [
 [<Test>]
 let ``lambda with array`` () =
     formatSourceString
-        false
         """
 fun x ->
     [| itemOne
@@ -151,7 +145,6 @@ fun x -> [|
 [<Test>]
 let ``paren lambda with record instance `` () =
     formatSourceString
-        false
         """
 (fun x ->
     { A = longTypeName
@@ -173,7 +166,6 @@ let ``paren lambda with record instance `` () =
 [<Test>]
 let ``paren lambda with update record`` () =
     formatSourceString
-        false
         """
 (fun x ->
     { astContext with IsInsideMatchClausePattern = true })
@@ -192,7 +184,6 @@ let ``paren lambda with update record`` () =
 [<Test>]
 let ``paren lambda with anonymous record instance`` () =
     formatSourceString
-        false
         """
 (fun x ->
    {| A = longTypeName
@@ -214,7 +205,6 @@ let ``paren lambda with anonymous record instance`` () =
 [<Test>]
 let ``paren lambda with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 (fun x ->
    struct
@@ -237,7 +227,6 @@ let ``paren lambda with anonymous record instance struct`` () =
 [<Test>]
 let ``paren lambda with list`` () =
     formatSourceString
-        false
         """
 (fun x ->
     [ itemOne
@@ -263,7 +252,6 @@ let ``paren lambda with list`` () =
 [<Test>]
 let ``paren lambda with array`` () =
     formatSourceString
-        false
         """
 (fun x ->
     [| itemOne
@@ -289,7 +277,6 @@ let ``paren lambda with array`` () =
 [<Test>]
 let ``app paren lambda with record instance `` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
     { A = longTypeName
@@ -311,7 +298,6 @@ List.map (fun x -> {
 [<Test>]
 let ``app paren lambda with update record`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
     { astContext with IsInsideMatchClausePattern = true })
@@ -330,7 +316,6 @@ List.map (fun x -> {
 [<Test>]
 let ``app paren lambda with anonymous record instance`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
    {| A = longTypeName
@@ -352,7 +337,6 @@ List.map (fun x -> {|
 [<Test>]
 let ``app paren lambda with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
    struct
@@ -375,7 +359,6 @@ List.map (fun x -> struct {|
 [<Test>]
 let ``app paren lambda with list`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
     [ itemOne
@@ -401,7 +384,6 @@ List.map (fun x -> [
 [<Test>]
 let ``app paren lambda with array`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
     [| itemOne
@@ -427,7 +409,6 @@ List.map (fun x -> [|
 [<Test>]
 let ``app paren lambda with record instance and other args`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
     { A = longTypeName
@@ -452,7 +433,6 @@ List.map
 [<Test>]
 let ``app paren lambda with update record and other args`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
     { astContext with IsInsideMatchClausePattern = true }) b c
@@ -474,7 +454,6 @@ List.map
 [<Test>]
 let ``app paren lambda with anonymous record instance and other args`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
    {| A = longTypeName
@@ -499,7 +478,6 @@ List.map
 [<Test>]
 let ``app paren lambda with anonymous record instance struct and other args`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
    struct
@@ -525,7 +503,6 @@ List.map
 [<Test>]
 let ``app paren lambda with list and other args`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
     [ itemOne
@@ -554,7 +531,6 @@ List.map
 [<Test>]
 let ``app paren lambda with array and other args`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
     [| itemOne
@@ -583,7 +559,6 @@ List.map
 [<Test>]
 let ``dotGetApp with lambda with record instance`` () =
     formatSourceString
-        false
         """
 Bar.Foo(fun x -> {  A = longTypeName
                     B = someOtherVariable
@@ -608,7 +583,6 @@ Bar
 [<Test>]
 let ``dotGetApp with lambda with update record`` () =
     formatSourceString
-        false
         """
 Bar.Foo(fun x -> {  other with
                                 A = longTypeName
@@ -635,7 +609,6 @@ Bar
 [<Test>]
 let ``dotGetApp with lambda with anonymous record instance`` () =
     formatSourceString
-        false
         """
 Bar.Foo(fun x ->
                    {| A = longTypeName
@@ -659,7 +632,6 @@ Bar
 [<Test>]
 let ``dotGetApp with lambda with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 Bar
     .Foo(fun x ->
@@ -685,7 +657,6 @@ Bar
 [<Test>]
 let ``dotGetApp with lambda with list`` () =
     formatSourceString
-        false
         """
 Bar
     .Foo(fun x ->
@@ -714,7 +685,6 @@ Bar
 [<Test>]
 let ``dotGetApp with lambda with array`` () =
     formatSourceString
-        false
         """
 Bar
     .Foo(fun x ->

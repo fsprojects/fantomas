@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``appUnit dot identifier`` () =
     formatSourceString
-        false
         """
 X().Y
 """
@@ -22,7 +21,6 @@ X().Y
 [<Test>]
 let ``appUnit DotSet identifier`` () =
     formatSourceString
-        false
         """
 X().Y <- true
 """
@@ -38,7 +36,6 @@ X().Y <- true
 [<Test>]
 let ``appParen dot identifier`` () =
     formatSourceString
-        false
         """
 X(a).Y
 """
@@ -53,7 +50,6 @@ X(a).Y
 [<Test>]
 let ``appUnit dot appUnit`` () =
     formatSourceString
-        false
         """
 X().Y()
 """
@@ -68,7 +64,6 @@ X().Y()
 [<Test>]
 let ``typed appUnit dot identifier`` () =
     formatSourceString
-        false
         """
 X<a>().Y
 X<a>().Y<b>()
@@ -85,7 +80,6 @@ X<a>().Y<b>()
 [<Test>]
 let ``appParenLambda dot identifier`` () =
     formatSourceString
-        false
         """
 X(fun x -> x).Y
 """
@@ -100,7 +94,6 @@ X(fun x -> x).Y
 [<Test>]
 let ``identifier dot appUnit dot identifier`` () =
     formatSourceString
-        false
         """
 X.Y().Z
 """
@@ -115,7 +108,6 @@ X.Y().Z
 [<Test>]
 let ``identifier dot indexed expr dot identifier`` () =
     formatSourceString
-        false
         """
 A.[0].B
 """
@@ -130,7 +122,6 @@ A.[0].B
 [<Test>]
 let ``identifier dot indexed expr dot appParenExpr`` () =
     formatSourceString
-        false
         """
 A.[0].B(1)
 """
@@ -145,7 +136,6 @@ A.[0].B(1)
 [<Test>]
 let ``identifier dot typed appUnit dot identifier`` () =
     formatSourceString
-        false
         """
 X.Y<a>().Z
 """
@@ -160,7 +150,6 @@ X.Y<a>().Z
 [<Test>]
 let ``identifier dot typed identifier dot identifier`` () =
     formatSourceString
-        false
         """
 X.Y<a>.Z
 """
@@ -175,7 +164,6 @@ X.Y<a>.Z
 [<Test>]
 let ``appUnit dot appParen`` () =
     formatSourceString
-        false
         """
 A().B(fun b -> b)
 """
@@ -190,7 +178,6 @@ A().B(fun b -> b)
 [<Test>]
 let ``identifier dot appUnit dot typed appUnit `` () =
     formatSourceString
-        false
         """
 A.B().C<'d>()
 """
@@ -208,7 +195,6 @@ A
 [<Test>]
 let ``identifier dot appUnit dot typed identifier `` () =
     formatSourceString
-        false
         """
 A.B().C<'d>
 """
@@ -226,7 +212,6 @@ A
 [<Test>]
 let ``identifier dot identifier dot appExpr dot appUnit dot index expr`` () =
     formatSourceString
-        false
         """
 A.B.C(D).E().[0]
 """
@@ -245,7 +230,6 @@ A.B
 [<Test>]
 let ``identifier dot identifier dot appExpr dot identifier dot index expr`` () =
     formatSourceString
-        false
         """
 A.B.C(D).E.[0]
 """
@@ -263,7 +247,6 @@ A.B
 [<Test>]
 let ``trivia inside chain, 2686`` () =
     formatSourceString
-        false
         """
 builder.
     FirstThing<X>(fun lambda ->
@@ -300,7 +283,6 @@ builder
 [<Test>]
 let ``leading type app with two identifiers, 2705`` () =
     formatSourceString
-        false
         """
 Map
     .empty<_, obj>
@@ -319,7 +301,6 @@ Map.empty<_, obj>
 [<Test>]
 let ``all simple links should be on the same line, 2712`` () =
     formatSourceString
-        false
         """
 type Duck() =
     member this.Duck  = Duck ()
@@ -351,7 +332,6 @@ d.Duck.Duck.Duck
 [<Test>]
 let ``very long chain with a some index expressions`` () =
     formatSourceString
-        false
         """
 Universe.Galaxy.SolarSystem.Planet.[3].Countries.[9].People.Count
 """
@@ -369,7 +349,6 @@ Universe.Galaxy.SolarSystem.Planet.[3].Countries
 [<Test>]
 let ``even longer chain with only simple links`` () =
     formatSourceString
-        false
         """
 Fooooooooooo.Baaaaaaaaaaaaaaaaar.Foooooooooooooooooo.Baaaaaaaar.Basssss.Baazzzzzzzzzzzzzzzzzz.[0].Meeeeeeeeeeeeeeeeeh
     .Moooooooooooooooo.Booooooooooooooooooooh.Yooooooooooooooou.Meeeeeeh.Meh2
@@ -391,7 +370,6 @@ Fooooooooooo.Baaaaaaaaaaaaaaaaar
 [<Test>]
 let ``dot get with index without dot expression , 2761`` () =
     formatSourceString
-        false
         """
 x().y[0].zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
 """
@@ -406,7 +384,6 @@ x().y[0].zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
 [<Test>]
 let ``don't add extra space in index without dot expression, 2760`` () =
     formatSourceString
-        false
         """
 x().y[0].z // spaces inserted around index
 x().y.[0].z // no spaces inserted
@@ -427,7 +404,6 @@ x.y[0].z // no spaces inserted
 [<Test>]
 let ``multiple idents in dotget with index without dot`` () =
     formatSourceString
-        false
         """
 v().w.x.y.z['a'].b
 """

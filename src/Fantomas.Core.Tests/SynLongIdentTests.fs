@@ -12,7 +12,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``fluent api should not remain on the same lines`` () =
     formatSourceString
-        false
         """
 Log.Logger <-
   LoggerConfiguration()
@@ -35,7 +34,6 @@ Log.Logger <-
 [<Test>]
 let ``fluent api with comments should remain on same lines`` () =
     formatSourceString
-        false
         """
 Log.Logger <-
   LoggerConfiguration()
@@ -67,7 +65,6 @@ Log.Logger <-
 [<Test>]
 let ``force newline by adding comments`` () =
     formatSourceString
-        false
         """let config = //
     Builder()//
         .UseCaching()//
@@ -87,7 +84,6 @@ let ``force newline by adding comments`` () =
 [<Test>]
 let ``method call on multiple lines`` () =
     formatSourceString
-        false
         """module Program
 
 [<EntryPoint>]
@@ -165,7 +161,6 @@ let main _ =
 [<Test>]
 let ``chained lambda should start on same line as dot, 871`` () =
     formatSourceString
-        false
         """namespace LoginWithBulmaTutorial
 
 open System
@@ -251,7 +246,6 @@ module Client =
 [<Test>]
 let ``don't repeat parenthesis for DotGet Paren, 989`` () =
     formatSourceString
-        false
         """(something_really_long
   + another_thing_thats_really_long).A
 """
@@ -269,7 +263,6 @@ let ``don't repeat parenthesis for DotGet Paren, 989`` () =
 [<Test>]
 let ``infix expression inside DotGet, 921`` () =
     formatSourceString
-        false
         """let variable =
                 (DataAccess.getById moduleName.readData
                          { Id = createObject.Id }
@@ -289,7 +282,6 @@ let variable =
 [<Test>]
 let ``preserve comment before SynExpr.LongIdent, 1080`` () =
     formatSourceString
-        false
         """
 let shrinkInput input =
     match toSynExprs input with
@@ -312,7 +304,6 @@ let shrinkInput input =
 [<Test>]
 let ``comment in LongIdent application, 2062`` () =
     formatSourceString
-        false
         """
 Rollbar
   .RollbarLocator
@@ -335,7 +326,6 @@ Rollbar
 [<Test>]
 let ``comment inside LongIdentWithDots preserved, 2027`` () =
     formatSourceString
-        false
         """
 let path =
     match normalizedPath with

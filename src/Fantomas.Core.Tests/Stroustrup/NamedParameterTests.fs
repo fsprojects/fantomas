@@ -12,7 +12,6 @@ let config =
 [<Test>]
 let ``long named arguments should go on newline`` () =
     formatSourceString
-        false
         """let view (model: Model) dispatch =
     View.ContentPage(
         appearing=(fun () -> dispatch PageAppearing),
@@ -40,7 +39,6 @@ let view (model: Model) dispatch =
 [<Test>]
 let ``single view entry`` () =
     formatSourceString
-        false
         """
 let a =
     View.Entry(
@@ -64,7 +62,6 @@ let a =
 [<Test>]
 let ``fabulous view`` () =
     formatSourceString
-        false
         """
     let loginPage =
         View.ContentPage(

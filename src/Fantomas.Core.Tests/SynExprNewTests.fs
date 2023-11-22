@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``combination of named and non named arguments, 1158`` () =
     formatSourceString
-        false
         """
     let private sendTooLargeError () =
         new HttpResponseMessage(HttpStatusCode.RequestEntityTooLarge,
@@ -31,7 +30,6 @@ let private sendTooLargeError () =
 [<Test>]
 let ``single multi line named argument instance`` () =
     formatSourceString
-        false
         """
 let myInstance =
         new EvilBadRequest(Content = new StringContent("File was too way too large, as in waaaaaaaaaaaaaaaaaaaay tooooooooo long",
@@ -57,7 +55,6 @@ let myInstance =
 [<Test>]
 let ``single string argument, 1363`` () =
     formatSourceString
-        false
         """
 open System.IO
 let f = new StringReader ""

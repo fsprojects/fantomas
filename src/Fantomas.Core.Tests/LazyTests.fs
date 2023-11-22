@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``lazy should wrap with ()`` () =
     formatSourceString
-        false
         """
 let v = // <- Lazy "1"
     lazy
@@ -24,7 +23,6 @@ let v = // <- Lazy "1"
 [<Test>]
 let ``lazy should not wrap with () for multiline`` () =
     formatSourceString
-        false
         """
 let v = // <- Lazy "1"
     lazy
@@ -46,7 +44,7 @@ let v = // <- Lazy "1"
 
 [<Test>]
 let ``short lazy with parens and infix should keep parens`` () =
-    formatSourceString false """let result = lazy (x + 10)""" config
+    formatSourceString """let result = lazy (x + 10)""" config
     |> prepend newline
     |> should
         equal
@@ -57,7 +55,6 @@ let result = lazy (x + 10)
 [<Test>]
 let ``multiline lazy with parenthesis and letOrUse expression, 1271`` () =
     formatSourceString
-        false
         """
 let setup =
   lazy
@@ -81,7 +78,6 @@ let setup =
 [<Test>]
 let ``comment after lazy keyword`` () =
     formatSourceString
-        false
         """
 lazy // comment
     foobar
@@ -98,7 +94,6 @@ lazy // comment
 [<Test>]
 let ``lazy with long indent expr should not get any additional parenthesis`` () =
     formatSourceString
-        false
         """
 let theme = lazy Application.Current.RequestedTheme
 """

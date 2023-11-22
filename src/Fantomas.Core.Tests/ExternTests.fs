@@ -26,7 +26,6 @@ module C =
 [<Test>]
 let ``& in extern function declaration, 1567`` () =
     formatSourceString
-        false
         """
 module Foo =
     module Bar =
@@ -52,7 +51,6 @@ module Foo =
 [<Test>]
 let ``should handle external functions`` () =
     formatSourceString
-        false
         """[<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
 extern ReturnCode  GetParent (System.IntPtr inRef, byref outParentRef)"""
         config
@@ -67,7 +65,6 @@ extern ReturnCode GetParent(System.IntPtr inRef, byref outParentRef)
 [<Test>]
 let ``should handle simple external functions`` () =
     formatSourceString
-        false
         """module InteropWithNative =
         [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
         extern IntPtr setCallbridgeSupportTarget(IntPtr newTarget)"""
@@ -84,7 +81,6 @@ module InteropWithNative =
 [<Test>]
 let ``should handle external functions with void return type`` () =
     formatSourceString
-        false
         """module InteropWithNative =
         [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
         extern void setCallbridgeSupportTarget(IntPtr newTarget)"""
@@ -101,7 +97,6 @@ module InteropWithNative =
 [<Test>]
 let ``should handle external functions with fully-qualified attributes`` () =
     formatSourceString
-        false
         """[<System.Runtime.InteropServices.DllImport("user32.dll")>]
 extern int GetWindowLong(System.IntPtr hwnd, int index)"""
         config
@@ -116,7 +111,6 @@ extern int GetWindowLong(System.IntPtr hwnd, int index)
 [<Test>]
 let ``should handle external functions with special types`` () =
     formatSourceString
-        false
         """open System
 open System.Runtime.InteropServices
 open Accessibility
@@ -150,7 +144,6 @@ extern int AccessibleChildren(
 [<Test>]
 let ``DllImport and Marshall return type, 574`` () =
     formatSourceString
-        false
         """
 [<DllImport("userenv.dll", SetLastError = true)>]
 [<MarshalAs(UnmanagedType.Bool)>]
@@ -169,7 +162,6 @@ extern bool DestroyEnvironmentBlock(IntPtr lpEnvironment)
 [<Test>]
 let ``should keep access modifiers in extern declaration, 1213`` () =
     formatSourceString
-        false
         """
 [<DllImport("kernel32.dll")>]
 extern UIntPtr private GetProcessHeap()
@@ -186,7 +178,6 @@ extern UIntPtr private GetProcessHeap()
 [<Test>]
 let ``extern C-like parameters, 1216`` () =
     formatSourceString
-        false
         """
 extern int M1(int)
 
@@ -229,7 +220,6 @@ extern int M6(void* i1, void* i2)
 [<Test>]
 let ``extern with void return type, 1215`` () =
     formatSourceString
-        false
         """
 extern void GetProcessHeap()
 extern [<A>] void GetProcessHeap2()
@@ -246,7 +236,6 @@ extern [<A>] void GetProcessHeap2()
 [<Test>]
 let ``extern declaration inside type declaration, 1214`` () =
     formatSourceString
-        false
         """
 type T() =
   [<DllImport("kernel32.dll")>]

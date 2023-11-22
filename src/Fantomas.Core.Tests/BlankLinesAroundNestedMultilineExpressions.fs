@@ -11,7 +11,6 @@ let config =
 [<Test>]
 let ``basic behavior`` () =
     formatSourceString
-        false
         """
 let topLevelFunction () =
     let innerValue = 23
@@ -36,7 +35,6 @@ let topLevelFunction () =
 [<Test>]
 let ``existing newlines are preserved`` () =
     formatSourceString
-        false
         """
 let topLevelFunction () =
     let innerValue = 23
@@ -63,7 +61,6 @@ let topLevelFunction () =
 [<Test>]
 let ``with sequential expressions`` () =
     formatSourceString
-        false
         """
 let topLevelFunction () =
     printfn "Something to print"
@@ -91,7 +88,6 @@ let topLevelFunction () =
 [<Test>]
 let ``disable blank lines around multiline expressions inside let binding, 1370`` () =
     formatSourceString
-        false
         """
 let emit nodes =
     let an = AssemblyName("a")
@@ -121,7 +117,6 @@ let emit nodes =
 [<Test>]
 let ``disable blank lines inside type constructor`` () =
     formatSourceString
-        false
         """
 type MNIST(path:string, ?urls:seq<string>, ?train:bool, ?transform:Tensor->Tensor, ?targetTransform:Tensor->Tensor) =
     inherit Dataset()
@@ -225,7 +220,6 @@ type MNIST
 [<Test>]
 let ``computation expressions`` () =
     formatSourceString
-        false
         """
 let comp =
     eventually { for x in 1 .. 2 do
@@ -247,7 +241,6 @@ let comp =
 [<Test>]
 let ``recursive types`` () =
     formatSourceString
-        false
         """
 type Cmd<'msg> = Cmd'<'msg> list
 and private Cmd'<'msg> = Send<'msg> -> unit
@@ -264,7 +257,6 @@ and private Cmd'<'msg> = Send<'msg> -> unit
 [<Test>]
 let ``multiline recursive types`` () =
     formatSourceString
-        false
         """
 type ViewBinding<'model,'msg> = string * Variable<'model,'msg>
 and ViewBindings<'model,'msg> = ViewBinding<'model,'msg> list
@@ -294,8 +286,7 @@ and Variable<'model, 'msg> =
 
 [<Test>]
 let ``recursive types in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace Foobar
 

@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``trivia around inline keyword, 2017`` () =
     formatSourceString
-        false
         """
     let 
 #if !DEBUG
@@ -34,7 +33,6 @@ let
 [<Test>]
 let ``inline in plain member`` () =
     formatSourceString
-        false
         """
 type X =
     member inline x.Y () = ()
@@ -51,7 +49,6 @@ type X =
 [<Test>]
 let ``inline in get/set member`` () =
     formatSourceString
-        false
         """
 type X =
     member inline x.Y 
@@ -71,8 +68,7 @@ type X =
 
 [<Test>]
 let ``inline in val`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 val inline meh: int -> int
 """
@@ -87,7 +83,6 @@ val inline meh: int -> int
 [<Test>]
 let ``trivia around inline keyword with access modifier, 640`` () =
     formatSourceString
-        false
         """
   let
 #if DEBUG

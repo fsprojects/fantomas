@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``inside match expression, 1403`` () =
     formatSourceString
-        false
         """
 let foo () =
     match b.TryGetValue (longlonglonglonglong, b) with
@@ -33,7 +32,6 @@ let foo () =
 [<Test>]
 let ``inside match expression, single argument in parenthesis`` () =
     formatSourceString
-        false
         """
 let foo () =
     match b.TryGetValue (longlonglonglonglong) with
@@ -58,7 +56,6 @@ let foo () =
 [<Test>]
 let ``inside when clause of try/with, 1406`` () =
     formatSourceString
-        false
         """
 module ElectrumClient =
 
@@ -109,7 +106,6 @@ module ElectrumClient =
 [<Test>]
 let ``inside infix expression of if expression, 1402`` () =
     formatSourceString
-        false
         """
 let c =
     if bar |> Seq.exists ((|KeyValue|) >> snd >> (=) (Some i)) then false else true
@@ -138,7 +134,6 @@ let c =
 [<Test>]
 let ``single parenthesis arg inside if expression`` () =
     formatSourceString
-        false
         """
 if MyGrandFunctionThatTakesASingleArgument ( myEvenGranderArgumentNameThatGoesOnForEverAndEver ) then
     ()
@@ -159,7 +154,6 @@ then
 [<Test>]
 let ``inside match bang expression, single argument in parenthesis`` () =
     formatSourceString
-        false
         """
 let foo () =
     async {
@@ -188,7 +182,6 @@ let foo () =
 [<Test>]
 let ``inside match bang expression, tupled argument in parenthesis`` () =
     formatSourceString
-        false
         """
 let foo () =
     async {
@@ -218,7 +211,6 @@ let foo () =
 [<Test>]
 let ``multiple infix operator application inside if expression, 1390`` () =
     formatSourceString
-        false
         """
 module Web3ServerSeedList =
     let MaybeRethrow (ex: Exception): unit =
@@ -268,7 +260,6 @@ module Web3ServerSeedList =
 [<Test>]
 let ``inside infix expression of elif expression`` () =
     formatSourceString
-        false
         """
 let c =
     if blah then

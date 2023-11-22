@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``trivia after opening parenthesis, 2847`` () =
     formatSourceString
-        false
         """
 let canConvertMemorised =
     Memoized.memoize

@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``newline between record type and members`` () =
     formatSourceString
-        false
         """type Range =
     { From : float
       To : float
@@ -31,7 +30,6 @@ type Range =
 [<Test>]
 let ``existing newline between record type and members should not be duplicate`` () =
     formatSourceString
-        false
         """type Range =
     { From : float
       To : float
@@ -56,7 +54,6 @@ type Range =
 [<Test>]
 let ``no extra newline after record type with no members`` () =
     formatSourceString
-        false
         """type Range =
     { From : float
       To : float
@@ -76,7 +73,6 @@ type Range =
 [<Test>]
 let ``union type with members`` () =
     formatSourceString
-        false
         """type Color =
     | Red
     | Green
@@ -99,7 +95,6 @@ type Color =
 [<Test>]
 let ``enum type with members`` () =
     formatSourceString
-        false
         """type Color =
     | Red = 0
     | Green = 1
@@ -122,7 +117,6 @@ type Color =
 [<Test>]
 let ``type augmentation with members should not add newline`` () =
     formatSourceString
-        false
         """
 type HttpContext with
     member this.QueryString () = "?"
@@ -138,8 +132,7 @@ type HttpContext with
 
 [<Test>]
 let ``newline between record type signature and members`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Signature
 
 type Range =
@@ -165,8 +158,7 @@ type Range =
 
 [<Test>]
 let ``union signature type with members`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Signature
 type Color =
     | Red
@@ -191,8 +183,7 @@ type Color =
 
 [<Test>]
 let ``enum signature type with members`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Signature
 type Color =
     | Red = 0
@@ -217,8 +208,7 @@ type Color =
 
 [<Test>]
 let ``simple type in signature file with members`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Signature
 type HttpContext with
     member QueryString : unit -> string
@@ -236,8 +226,7 @@ type HttpContext with
 
 [<Test>]
 let ``existing new line between type and members in signature file, 1094`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace X
 
@@ -298,7 +287,6 @@ type Color =
 [<Test>]
 let ``newline before interface, 1346`` () =
     formatSourceString
-        false
         """
 type andSeq<'t> =
     | AndSeq of 't seq
@@ -326,7 +314,6 @@ type andSeq<'t> =
 [<Test>]
 let ``blank line before with keyword should be preserved`` () =
     formatSourceString
-        false
         """
 type A =
   | B of int
@@ -356,7 +343,6 @@ type A =
 [<Test>]
 let ``blank line before and after with keyword should be preserved`` () =
     formatSourceString
-        false
         """
 type A =
   | B of int
@@ -388,7 +374,6 @@ type A =
 [<Test>]
 let ``multiline abstract member without constraints, 2175`` () =
     formatSourceString
-        false
         """
     type FuseSortFunctionItem =
         abstract Item: key: string -> U2<{| ``$``: string |}, ResizeArray<{| ``$``: string; idx: float |}>> with get, set

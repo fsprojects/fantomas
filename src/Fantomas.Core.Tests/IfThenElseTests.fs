@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``single line if without else`` () =
     formatSourceString
-        false
         "if foo then bar"
         { config with
             InsertFinalNewline = false
@@ -17,7 +16,6 @@ let ``single line if without else`` () =
 [<Test>]
 let ``if without else, if is longer`` () =
     formatSourceString
-        false
         """
 if foooooooooooooooooooooooooooooooooooooooooooo
 then bar
@@ -34,7 +32,6 @@ if foooooooooooooooooooooooooooooooooooooooooooo then
 [<Test>]
 let ``if without else, then is longer`` () =
     formatSourceString
-        false
         """
 if foo then baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar
 """
@@ -50,7 +47,6 @@ if foo then
 [<Test>]
 let ``short if then without else`` () =
     formatSourceString
-        false
         """
 if a then b
 """
@@ -65,7 +61,6 @@ if a then b
 [<Test>]
 let ``multiline if without else`` () =
     formatSourceString
-        false
         """
 if foo && bar && meh then aha
 """
@@ -85,7 +80,7 @@ then
 
 [<Test>]
 let ``single line if/then/else`` () =
-    formatSourceString false "if a then b else c" config
+    formatSourceString "if a then b else c" config
     |> prepend newline
     |> should
         equal
@@ -95,7 +90,7 @@ if a then b else c
 
 [<Test>]
 let ``single line if/then/elif/then/else`` () =
-    formatSourceString false "if a then b elif c then d else e" config
+    formatSourceString "if a then b elif c then d else e" config
     |> prepend newline
     |> should
         equal
@@ -107,7 +102,7 @@ else e
 
 [<Test>]
 let ``single line if/then/else if/then/else`` () =
-    formatSourceString false "if a then b else if c then d else e" config
+    formatSourceString "if a then b else if c then d else e" config
     |> prepend newline
     |> should
         equal
@@ -119,7 +114,7 @@ else e
 
 [<Test>]
 let ``single line if/then/else if/elif/then/else`` () =
-    formatSourceString false "if a then b else if c then d elif e then f else g" config
+    formatSourceString "if a then b else if c then d elif e then f else g" config
     |> prepend newline
     |> should
         equal
@@ -133,7 +128,6 @@ else g
 [<Test>]
 let ``longer condition, not multi-line`` () =
     formatSourceString
-        false
         """if aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg then 1 else 0
 """
         { config with MaxLineLength = 80 }
@@ -150,7 +144,6 @@ else
 [<Test>]
 let ``longer ifBranch, not multi-line`` () =
     formatSourceString
-        false
         """if x then aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg else 0
 """
         { config with MaxLineLength = 80 }
@@ -167,7 +160,6 @@ else
 [<Test>]
 let ``longer else branch, not multi-line`` () =
     formatSourceString
-        false
         """if x then 1 else aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
 """
         { config with MaxLineLength = 80 }
@@ -184,7 +176,6 @@ else
 [<Test>]
 let ``longer if else branch, not multi-line`` () =
     formatSourceString
-        false
         """if aaaaaaaaaaaa then bbbbbbbbbbbb else if cccccccccccc then ddddddddddd else eeeeeee
 """
         { config with MaxLineLength = 80 }
@@ -200,7 +191,6 @@ else eeeeeee
 [<Test>]
 let ``longer if else branch, longer elif branch, not multi-line`` () =
     formatSourceString
-        false
         """if aaaaaa then bbbbbb else if ccccccc then ddddddd elif eeeee then ffffff else gggggg
 """
         { config with MaxLineLength = 80 }
@@ -217,7 +207,6 @@ else gggggg
 [<Test>]
 let ``multiline condition`` () =
     formatSourceString
-        false
         """if (aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa && bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb) then
     x else y
 """
@@ -238,7 +227,6 @@ else
 [<Test>]
 let ``multiline if branch`` () =
     formatSourceString
-        false
         """if a then
     let x = 2
     x + 2
@@ -259,7 +247,6 @@ else
 [<Test>]
 let ``multiline else branch`` () =
     formatSourceString
-        false
         """if a then
     x
 else
@@ -281,7 +268,6 @@ else
 [<Test>]
 let ``multiline else if branch`` () =
     formatSourceString
-        false
         """if a then
     x else if b then
                 let y = 7;
@@ -306,7 +292,6 @@ else
 [<Test>]
 let ``multiline else if branch, multiline elif branch`` () =
     formatSourceString
-        false
         """if a then
     x else if b then
                 let y = 7;
@@ -337,7 +322,6 @@ else
 [<Test>]
 let ``comment after if`` () =
     formatSourceString
-        false
         """if // meh
     x then 0 else 1
 """
@@ -357,7 +341,6 @@ else
 [<Test>]
 let ``comment after if branch`` () =
     formatSourceString
-        false
         """if  x // meh
     then 0 else 1
 """
@@ -377,7 +360,6 @@ else
 [<Test>]
 let ``comment after if branch then keyword`` () =
     formatSourceString
-        false
         """if  x then // meh
     0 else 1
 """
@@ -395,7 +377,6 @@ else
 [<Test>]
 let ``comment after if branch expression`` () =
     formatSourceString
-        false
         """if  x then
     0  // meh
     else 1
@@ -414,7 +395,6 @@ else
 [<Test>]
 let ``comment after else keyword`` () =
     formatSourceString
-        false
         """if  x then 0 else // meh
     1
 """
@@ -432,7 +412,6 @@ else // meh
 [<Test>]
 let ``comment after else branch expression`` () =
     formatSourceString
-        false
         """if  x then 0 else 1 // meh
 """
         config
@@ -446,7 +425,6 @@ if x then 0 else 1 // meh
 [<Test>]
 let ``comment after else keyword before if keyword`` () =
     formatSourceString
-        false
         """if  a then b else // meh
     if c then d else e
 """
@@ -468,7 +446,6 @@ else
 [<Test>]
 let ``comment after else if keyword`` () =
     formatSourceString
-        false
         """if  a then b else if // meh
     c then d else e
 """
@@ -490,7 +467,6 @@ else
 [<Test>]
 let ``comment after elif keyword`` () =
     formatSourceString
-        false
         """if  a then b elif // meh
     c then d else e
 """
@@ -512,7 +488,6 @@ else
 [<Test>]
 let ``comment after else if boolean expression`` () =
     formatSourceString
-        false
         """if  a then b else if
     c // meh
     then d else e
@@ -535,7 +510,6 @@ else
 [<Test>]
 let ``comment after elif boolean expression`` () =
     formatSourceString
-        false
         """if  a then b elif
     c // meh
     then d else e
@@ -558,7 +532,6 @@ else
 [<Test>]
 let ``comment after else if then keyword`` () =
     formatSourceString
-        false
         """if  a then b else if
     c  then // meh
     d else e
@@ -576,7 +549,6 @@ else e
 [<Test>]
 let ``comment after elif then keyword`` () =
     formatSourceString
-        false
         """if  a then b elif
     c  then // meh
     d else e
@@ -594,7 +566,6 @@ else e
 [<Test>]
 let ``comment after else if branch expression`` () =
     formatSourceString
-        false
         """if  a then b else if
     c  then
     d // meh
@@ -613,7 +584,6 @@ else e
 [<Test>]
 let ``comment after multi line else  branch expression`` () =
     formatSourceString
-        false
         """
 if  a then b
 else if c  then d
@@ -638,7 +608,6 @@ else
 [<Test>]
 let ``comment after multi line elif  branch expression`` () =
     formatSourceString
-        false
         """
 if  a then b
 elif c  then
@@ -664,7 +633,6 @@ else
 [<Test>]
 let ``comment after multi line else if  branch expression`` () =
     formatSourceString
-        false
         """
 if  a then b
 else if c  then
@@ -690,7 +658,6 @@ else
 [<Test>]
 let ``comment after else & if keyword`` () =
     formatSourceString
-        false
         """
 if  a then b
 else // foo
@@ -716,7 +683,6 @@ else
 [<Test>]
 let ``block comment if keyword`` () =
     formatSourceString
-        false
         """
 if (* meh *) a then b
 else c
@@ -732,7 +698,6 @@ if (* meh *) a then b else c
 [<Test>]
 let ``block comment if bool expr`` () =
     formatSourceString
-        false
         """
 if  a  (* meh *)   then b
 else c
@@ -748,7 +713,6 @@ if a (* meh *) then b else c
 [<Test>]
 let ``block comment then keyword`` () =
     formatSourceString
-        false
         """
 if  a   then (* meh *)   b
 else c
@@ -764,7 +728,6 @@ if a then (* meh *) b else c
 [<Test>]
 let ``block comment if branch expr`` () =
     formatSourceString
-        false
         """
 if  a   then    b (* meh *)
 else c
@@ -780,7 +743,6 @@ if a then b (* meh *) else c
 [<Test>]
 let ``block comment else keyword`` () =
     formatSourceString
-        false
         """
 if  a   then    b
 else  (* meh *)   c
@@ -796,7 +758,6 @@ if a then b else (* meh *) c
 [<Test>]
 let ``block comment else branch expr`` () =
     formatSourceString
-        false
         """
 if  a   then    b
 else     c  (* meh *)
@@ -812,7 +773,6 @@ if a then b else c (* meh *)
 [<Test>]
 let ``block comment between else and if keyword`` () =
     formatSourceString
-        false
         """
 if  a   then    b
 else (* meh *) if c then d
@@ -831,7 +791,6 @@ else e
 [<Test>]
 let ``block comment after else if keyword`` () =
     formatSourceString
-        false
         """
 if  a   then    b
 else  if (* meh *)   c then d
@@ -850,7 +809,6 @@ else e
 [<Test>]
 let ``block comment after elif keyword`` () =
     formatSourceString
-        false
         """
 if  a   then    b
 elif (* meh *)   c then d
@@ -869,7 +827,6 @@ else e
 [<Test>]
 let ``block comment after elif branch expr`` () =
     formatSourceString
-        false
         """
 if  a   then    b
 elif c  (* meh *)  then d
@@ -888,7 +845,6 @@ else e
 [<Test>]
 let ``block comment after else if branch expr`` () =
     formatSourceString
-        false
         """
 if  a   then    b
 else if c  (* meh *)  then d
@@ -907,7 +863,6 @@ else e
 [<Test>]
 let ``line comment after all fragments of IfThenElse expr`` () =
     formatSourceString
-        false
         """
 if // c1
   a // c2
@@ -942,7 +897,6 @@ else // c10
 [<Test>]
 let ``newlines before comment on elif`` () =
     formatSourceString
-        false
         """
 if strA.Length = 0 && strB.Length = 0 then 0
 
@@ -975,7 +929,6 @@ else
 [<Test>]
 let ``simple if/else with long identifiers`` () =
     formatSourceString
-        false
         """
 if someveryveryveryverylongexpression then
             someveryveryveryveryveryverylongexpression
@@ -995,7 +948,6 @@ else
 [<Test>]
 let ``longer if branch, nothing multiline`` () =
     formatSourceString
-        false
         """
    if m.Success then Some (List.tail [ for x in m.Groups -> x.Value ]) else None
 """
@@ -1013,7 +965,6 @@ else
 [<Test>]
 let ``almost longer if branch where the whole if/else is indented by letbinding`` () =
     formatSourceString
-        false
         """
 let (|Integer|_|) (str: string) =
    let mutable intvalue = 0
@@ -1034,7 +985,6 @@ let (|Integer|_|) (str: string) =
 [<Test>]
 let ``longer elif condition`` () =
     formatSourceString
-        false
         """if a then b elif somethingABitLongerToForceDifferentStyle then c else d
 """
         { config with
@@ -1053,7 +1003,6 @@ let ``impact of MaxIfThenElseShortWidth setting, longer bool expression`` () =
     let source = """if (tare + netWeight) = 10000 then a else b"""
 
     formatSourceString
-        false
         source
         { config with
             MaxIfThenElseShortWidth = 10 }
@@ -1067,7 +1016,7 @@ else
     b
 """
 
-    formatSourceString false source config
+    formatSourceString source config
     |> prepend newline
     |> should
         equal
@@ -1079,7 +1028,7 @@ if (tare + netWeight) = 10000 then a else b
 let ``impact of MaxIfThenElseShortWidth setting, longer if branch`` () =
     let source = """if a then (tare + netWeight) + 10000 else 0"""
 
-    formatSourceString false source config
+    formatSourceString source config
     |> prepend newline
     |> should
         equal
@@ -1088,7 +1037,6 @@ if a then (tare + netWeight) + 10000 else 0
 """
 
     formatSourceString
-        false
         source
         { config with
             MaxIfThenElseShortWidth = 40 }
@@ -1106,7 +1054,7 @@ else
 let ``impact of MaxIfThenElseShortWidth setting, longer else branch`` () =
     let source = """if a then 0 else (tare + netWeight) + 10"""
 
-    formatSourceString false source config
+    formatSourceString source config
     |> prepend newline
     |> should
         equal
@@ -1115,7 +1063,6 @@ if a then 0 else (tare + netWeight) + 10
 """
 
     formatSourceString
-        false
         source
         { config with
             MaxIfThenElseShortWidth = 20 }
@@ -1132,7 +1079,6 @@ else
 [<Test>]
 let ``else if with newline in between, 675`` () =
     formatSourceString
-        false
         """namespace Fantomas
 
 module String =
@@ -1163,7 +1109,6 @@ module String =
 [<Test>]
 let ``second else if where else and if are on separate lines, 713`` () =
     formatSourceString
-        false
         """if v1 < v2 then
     -1
 elif v1 > v2 then
@@ -1191,7 +1136,6 @@ else 0
 [<Test>]
 let ``newline between else if,  prior by elif`` () =
     formatSourceString
-        false
         """
 module String =
     let merge a b =
@@ -1221,7 +1165,6 @@ module String =
 [<Test>]
 let ``newline between else if, followed by else if`` () =
     formatSourceString
-        false
         """
 module String =
     let merge a b =
@@ -1250,7 +1193,6 @@ module String =
 [<Test>]
 let ``comment after then in if/then, 730`` () =
     formatSourceString
-        false
         """if true then // comment
     ()
 """
@@ -1266,7 +1208,6 @@ if true then // comment
 [<Test>]
 let ``don't add additional new line before nested if/then, 1035`` () =
     formatSourceString
-        false
         """
             if ast.ParseHadErrors then
                 let errors =
@@ -1308,7 +1249,6 @@ else
 [<Test>]
 let ``comment after if expression, 1019`` () =
     formatSourceString
-        false
         """
 let foo result total =
     if result = 0 // there's a comment here
@@ -1332,7 +1272,6 @@ let foo result total =
 [<Test>]
 let ``if/then/elif without else, 1211`` () =
     formatSourceString
-        false
         """
 let a =
         // check if the current # char is part of an define expression
@@ -1381,7 +1320,6 @@ let a =
 [<Test>]
 let ``multiline if/then/elif without else, 1187`` () =
     formatSourceString
-        false
         """
 let fn () =
     if true then
@@ -1411,7 +1349,6 @@ let nextfunc () = printf "Hi"
 [<Test>]
 let ``nested if/then/else in short mode, 1243`` () =
     formatSourceString
-        false
         """
             let funcs =
                 fse.MembersFunctionsAndValues
@@ -1468,7 +1405,6 @@ let funcs =
 [<Test>]
 let ``multiline then clause`` () =
     formatSourceString
-        false
         """
 [<EntryPoint>]
 let main argv =
@@ -1514,7 +1450,6 @@ let main argv =
 [<Test>]
 let ``multiline function application condition with 2 space indent, 1267`` () =
     formatSourceString
-        false
         "
 let code =
     if System.Text.RegularExpressions.Regex.IsMatch(
@@ -1550,7 +1485,6 @@ let code =
 [<Test>]
 let ``cond, e1 and e2 are short`` () =
     formatSourceString
-        false
         """
 if cond then e1 else e2
 """
@@ -1565,7 +1499,6 @@ if cond then e1 else e2
 [<Test>]
 let ``e1 is if/then/else`` () =
     formatSourceString
-        false
         """
 if cond then
     if a then b else c
@@ -1586,7 +1519,6 @@ else
 [<Test>]
 let ``e2 is if/then/else`` () =
     formatSourceString
-        false
         """
 if cond then
     e1
@@ -1606,7 +1538,6 @@ else c
 [<Test>]
 let ``multiple elifs where one condition is longer than configuration value`` () =
     formatSourceString
-        false
         """
 if a then
     b
@@ -1630,7 +1561,6 @@ else
 [<Test>]
 let ``multiline if/then/else piped to function, 1324`` () =
     formatSourceString
-        false
         """
         let tryDecompile (ty: FSharpEntity) = async {
             match ty.TryFullName with
@@ -1668,7 +1598,6 @@ let tryDecompile (ty: FSharpEntity) =
 [<Test>]
 let ``if then else followed by pipe, 1327`` () =
     formatSourceString
-        false
         """
 module X =
   let getValSignature displayContext (v: FSharpMemberOrFunctionOrValue) =
@@ -1700,7 +1629,6 @@ module X =
 [<Test>]
 let ``if expression with SynExpr.DotGet inside, 1329`` () =
     formatSourceString
-        false
         """
 let private tryGetUrlWithExactMatch (pathPattern: string<SourcelinkPattern>) (urlPattern: string<Url>) (document: Document) =
     if (UMX.untag pathPattern).Equals(UMX.untag document.Name, System.StringComparison.Ordinal)
@@ -1752,7 +1680,6 @@ let private tryGetUrlWithExactMatch
 [<Test>]
 let ``infix equals expression in if condition expression, 1241`` () =
     formatSourceString
-        false
         """
 namespace SomeNamespace
 
@@ -1789,7 +1716,6 @@ module SomeModule =
 [<Test>]
 let ``multiline function application inside parenthesis in if expression, 1374`` () =
     formatSourceString
-        false
         """
 module UtxoCoinAccount =
     let internal SendPayment
@@ -1827,7 +1753,6 @@ module UtxoCoinAccount =
 [<Test>]
 let ``multiline function application inside parenthesis in if expression must remain idempotent, 1349`` () =
     formatSourceString
-        false
         """
 // Original input:
 let x =
@@ -1876,7 +1801,6 @@ let x =
 [<Test>]
 let ``multiline pattern match inside if expression, 1481`` () =
     formatSourceString
-        false
         """
 namespace AltCover
 
@@ -1955,7 +1879,6 @@ module Configuration =
 [<Test>]
 let ``multiline pattern match inside if expression, match bang`` () =
     formatSourceString
-        false
         """
 namespace AltCover
 
@@ -2034,7 +1957,6 @@ module Configuration =
 [<Test>]
 let ``multiline yield bang in then expression, 1185`` () =
     formatSourceString
-        false
         """
 let lessonsForm (f:ValidatedForm<Request.CreateLessons>) dispatch =
 
@@ -2072,7 +1994,6 @@ let lessonsForm (f: ValidatedForm<Request.CreateLessons>) dispatch =
 [<Test>]
 let ``infix operation with long function call, 1564`` () =
     formatSourceString
-        false
         """
 if Uri.Compare(foo, bar, UriComponents.Host ||| UriComponents.Path, UriFormat.UriEscaped, StringComparison.CurrentCulture) = 0 then
     ()
@@ -2100,7 +2021,6 @@ else
 [<Test>]
 let ``multiline infix expression in if expression, 1584`` () =
     formatSourceString
-        false
         """
         if sourceCode.EndsWith("\n")
                && not
@@ -2139,7 +2059,6 @@ else
 [<Ignore "Tracked in https://github.com/fsprojects/fantomas/issues/1588">]
 let ``line comment before multiline if expression, 1588`` () =
     formatSourceString
-        false
         """
             if
               // Don't support implicit [<ReflectedDefinition>] on generated members, except the implicit members
@@ -2187,7 +2106,6 @@ then
 [<Test>]
 let ``comment after then of else if, 1606`` () =
     formatSourceString
-        false
         """
 type internal Foo private () =
     static member Bar : int option =
@@ -2243,7 +2161,6 @@ type internal Foo2 private () =
 [<Test>]
 let ``multiline else if expression with nested if/then/else in body`` () =
     formatSourceString
-        false
         """
 if result.LaunchSuccess && result.ExitCode = 0 then
     Ok r
@@ -2304,7 +2221,6 @@ else
 [<Test>]
 let ``multiline elif expression with nested if/then/else in body`` () =
     formatSourceString
-        false
         """
 if result.LaunchSuccess && result.ExitCode = 0 then
     Ok r
@@ -2365,7 +2281,6 @@ else
 [<Test>]
 let ``multiple multiline elifs`` () =
     formatSourceString
-        false
         """
         if startWithMember sel then
             (String.Join(String.Empty, "type T = ", Environment.NewLine, String(' ', startCol), sel), TypeMember)
@@ -2407,7 +2322,6 @@ else
 [<Test>]
 let ``multiline but not that special if expression`` () =
     formatSourceString
-        false
         """
 if
     List.exists
@@ -2440,7 +2354,6 @@ else
 [<Test>]
 let ``multiline dotget chain in if expression, 1712`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar =
@@ -2469,7 +2382,6 @@ module Foo =
 [<Test>]
 let ``multiline if/then/else followed by infix, 1757`` () =
     formatSourceString
-        false
         """
            let name =
                 if typ.GenericParameter.IsSolveAtCompileTime then "^" else "'"
@@ -2491,7 +2403,6 @@ let name =
 [<Test>]
 let ``multiline if/then/else followed by infix, no parenthesis needed`` () =
     formatSourceString
-        false
         """
            let name =
                 if typ.GenericParameter.IsSolveAtCompileTime then "^" else "'"
@@ -2512,7 +2423,6 @@ let name =
 [<Test>]
 let ``short function application in infix expression, 1795`` () =
     formatSourceString
-        false
         """
 if
         FOOQueryUserToken (uint32 activeSessionId, &token) <> 0u
@@ -2539,7 +2449,6 @@ else
 [<Test>]
 let ``short function application in infix expression, reversed`` () =
     formatSourceString
-        false
         """
 if
       0u   <> FOOQueryUserToken (uint32 activeSessionId, &token)
@@ -2566,7 +2475,6 @@ else
 [<Test>]
 let ``multiline if expression with multiline infix operations, 1775`` () =
     formatSourceString
-        false
         """
 if hasClassAttr && not (match k with SynTypeDefnKind.Class -> true | _ -> false) || 
     hasMeasureAttr && not (match k with SynTypeDefnKind.Class | SynTypeDefnKind.Abbrev | SynTypeDefnKind.Opaque -> true | _ -> false) || 
@@ -2618,7 +2526,6 @@ k
 [<Test>]
 let ``trivia after else in else if in multiline condition, 2449 `` () =
     formatSourceString
-        false
         """
 if true then
     printfn "a"
@@ -2652,7 +2559,6 @@ printfn "d"
 [<Test>]
 let ``duplicate newline after shifting trivia between else if, 2752`` () =
     formatSourceString
-        false
         """
 // check for match
 if nargTs <> haveArgTs.Length then

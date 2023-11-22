@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``multiline downcast expression, `` () =
     formatSourceString
-        false
         """
 longMethodName
     longArgument
@@ -34,7 +33,6 @@ longMethodName
 [<Test>]
 let ``multiline upcast expression, `` () =
     formatSourceString
-        false
         """
 longMethodName
     longArgument
@@ -61,7 +59,6 @@ longMethodName
 [<Test>]
 let ``trivia newline before upcast, 1227`` () =
     formatSourceString
-        false
         """
 module S3v2
 
@@ -102,7 +99,6 @@ let waitAndUpcast (x: Task<'t>) =
 [<Test>]
 let ``trivia newline before downcast`` () =
     formatSourceString
-        false
         """
 module S3v2
 
@@ -134,7 +130,6 @@ let waitAndUpcast (x: Task<'t>) =
 [<Test>]
 let ``trivia newline before inferred upcast, 1685`` () =
     formatSourceString
-        false
         """
 namespace Blah
 
@@ -170,7 +165,6 @@ module Foo =
 [<Test>]
 let ``trivia newline before inferred downcast`` () =
     formatSourceString
-        false
         """
 namespace Blah
 

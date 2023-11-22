@@ -9,7 +9,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``right-pad value and function argument type annotations`` () =
     formatSourceString
-        false
         """
 // OK
 let complexFunction (a: int) (b: int) c = a + b + c
@@ -46,7 +45,6 @@ let expensiveToComputeBad2: int = 2
 [<Test>]
 let ``when defining arguments with type annotations, use white space before and after the : symbol:`` () =
     formatSourceString
-        false
         """
 // OK
 let complexFunction (a : int) (b : int) c = a + b + c
@@ -85,7 +83,6 @@ let myFunBad (a : decimal) b c : decimal = a + b + c
 [<Test>]
 let ``fsharp_space_before_colon not honored for return type info of explicit get, set, 2825`` () =
     formatSourceString
-        false
         """
 type SomeType() =
 

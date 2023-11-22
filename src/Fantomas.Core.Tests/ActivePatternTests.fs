@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``should keep parens around active patterns`` () =
     formatSourceString
-        false
         """let (|Boolean|_|) = Boolean.parse
     """
         config
@@ -19,7 +18,6 @@ let ``should keep parens around active patterns`` () =
 [<Test>]
 let ``should keep parens around active patterns in module`` () =
     formatSourceString
-        false
         """module Interpreted =
     let (|Match|_|) = (|Match|_|) RegexOptions.None
     """
@@ -35,7 +33,6 @@ module Interpreted =
 [<Test>]
 let ``should keep parens around active patterns in inlined functions`` () =
     formatSourceString
-        false
         """let inline (|Match|_|) x = tryMatchWithOptions x
     """
         config
@@ -47,7 +44,6 @@ let ``should keep parens around active patterns in inlined functions`` () =
 [<Test>]
 let ``active patterns`` () =
     formatSourceString
-        false
         """
 let (|Even|Odd|) input = if input % 2 = 0 then Even else Odd
 
@@ -88,7 +84,6 @@ let (|ParseRegex|_|) regex str =
 [<Test>]
 let ``ensure spacing around power operator, 1945`` () =
     formatSourceString
-        false
         """
 match expr with
 | SpecificCall <@@ ( ** ) @@> (_, _, [ s1; s2 ]) -> ()"""

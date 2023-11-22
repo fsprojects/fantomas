@@ -8,7 +8,6 @@ open Fantomas.Core
 [<Test>]
 let ``keep comment after arrow`` () =
     formatSourceString
-        false
         """_Target "FSharpTypesDotNet" (fun _ -> // obsolete
  ())
 """
@@ -25,7 +24,6 @@ _Target "FSharpTypesDotNet" (fun _ -> // obsolete
 
 let ``indent multiline lambda in parenthesis, 523`` () =
     formatSourceString
-        false
         """let square = (fun b ->
     b*b
     prinftn "%i" b*b
@@ -45,7 +43,6 @@ let square =
 [<Test>]
 let ``lambda inside tupled argument`` () =
     formatSourceString
-        false
         """#load "../../.paket/load/netstandard2.0/main.group.fsx"
 #load "../../src/Common.fs"
 #load "../../src/Badge.fs"
@@ -99,7 +96,6 @@ exportDefault badgeSample
 [<Test>]
 let ``long identifier inside lambda`` () =
     formatSourceString
-        false
         """
 let a =
     b
@@ -121,7 +117,6 @@ let a =
 [<Test>]
 let ``FAKE target`` () =
     formatSourceString
-        false
         """
 Target.create "Clean" (fun _ ->
     [ "bin"
@@ -149,7 +144,6 @@ Target.create "Clean" (fun _ ->
 [<Test>]
 let ``destructed argument lamba`` () =
     formatSourceString
-        false
         """
 List.filter (fun ({ ContentBefore = contentBefore }) ->
                                                     // some comment
@@ -172,7 +166,6 @@ List.filter (fun ({ ContentBefore = contentBefore }) ->
 [<Test>]
 let ``destructed argument lamba in let binding`` () =
     formatSourceString
-        false
         """
 let a =
     (fun ({ ContentBefore = contentBefore }) ->
@@ -197,7 +190,6 @@ let a =
 [<Test>]
 let ``indent when identifier is smaller than ident size`` () =
     formatSourceString
-        false
         """
 foo (fun a ->
                 let b = 8
@@ -216,7 +208,6 @@ foo (fun a ->
 [<Test>]
 let ``short ident in nested let binding`` () =
     formatSourceString
-        false
         """let a =
     foo (fun a ->
                 let b = 8
@@ -236,7 +227,6 @@ let a =
 [<Test>]
 let ``longer ident in nested let binding`` () =
     formatSourceString
-        false
         """let a =
     foobar (fun a ->
                 let b = 8
@@ -256,7 +246,6 @@ let a =
 [<Test>]
 let ``multiple braces should add indent`` () =
     formatSourceString
-        false
         """((((fun () ->
     printfn "meh"
     ()))))
@@ -273,7 +262,7 @@ let ``multiple braces should add indent`` () =
 
 [<Test>]
 let ``add space after chained ident, 676`` () =
-    formatSourceString false """let foo = Foo(fun () -> Foo.Create x).Value""" config
+    formatSourceString """let foo = Foo(fun () -> Foo.Create x).Value""" config
     |> prepend newline
     |> should
         equal
@@ -284,7 +273,6 @@ let foo = Foo(fun () -> Foo.Create x).Value
 [<Test>]
 let ``line comment after lambda should not necessary make it multiline`` () =
     formatSourceString
-        false
         """let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
 """
         { config with
@@ -299,7 +287,6 @@ let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use
 [<Test>]
 let ``multiline let binding in lambda`` () =
     formatSourceString
-        false
         """
 CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
             let connectionString =
@@ -328,7 +315,6 @@ CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettin
 [<Test>]
 let ``line comment after arrow should not introduce additional newline, 772`` () =
     formatSourceString
-        false
         """let genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingAndRhs: range) =
     fun ctx ->
         match mf with
@@ -376,7 +362,6 @@ let genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingA
 [<Test>]
 let ``line comment after arrow should not introduce extra newline`` () =
     formatSourceString
-        false
         """
 List.tryFind (fun { Type = t; Range = r } -> // foo
                     let a = 8
@@ -395,7 +380,6 @@ List.tryFind (fun { Type = t; Range = r } -> // foo
 [<Test>]
 let ``lambda body should be indented far enough, 870`` () =
     formatSourceString
-        false
         """
 let projectIntoMap projection =
     fun state eventEnvelope ->
@@ -458,7 +442,6 @@ let projectIntoMap projection =
 [<Test>]
 let ``lambda body should not get an additional indent when the indent_size is large enough`` () =
     formatSourceString
-        false
         """
 let projectIntoMap projection =
   fun state eventEnvelope ->
@@ -491,7 +474,6 @@ let projectIntoMap projection =
 [<Test>]
 let ``don't duplicate new line before LongIdentSet`` () =
     formatSourceString
-        false
         """
         let options =
             jsOptions<Vis.Options> (fun o ->
@@ -524,7 +506,6 @@ let options =
 [<Test>]
 let ``don't print unrelated trivia after closing parenthesis of lambda, 1084`` () =
     formatSourceString
-        false
         """
 let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
   allLines
@@ -561,7 +542,6 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
 [<Test>]
 let ``trivia before closing parenthesis of desugared lambda, 1146`` () =
     formatSourceString
-        false
         """
 Target.create "Install" (fun _ ->
     Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
@@ -581,7 +561,6 @@ Target.create "Install" (fun _ -> Yarn.install (fun o -> { o with WorkingDirecto
 [<Test>]
 let ``trivia before closing parenthesis of lambda`` () =
     formatSourceString
-        false
         """
 Target.create "Install" (fun x ->
     Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
@@ -601,7 +580,6 @@ Target.create "Install" (fun x -> Yarn.install (fun o -> { o with WorkingDirecto
 [<Test>]
 let ``function call with two lambda arguments, 1164`` () =
     formatSourceString
-        false
         """
 let init =
   addDateTimeConverter
@@ -623,7 +601,6 @@ let init =
 [<Test>]
 let ``function call with two lambdas and three other arguments`` () =
     formatSourceString
-        false
         """
 SettingControls.toggleButton (fun _ ->
     UpdateOption(key, MultilineFormatterTypeOption(o, key, "character_width"))
@@ -652,7 +629,6 @@ SettingControls.toggleButton
 [<Test>]
 let ``lambda should be on the next line, 1201`` () =
     formatSourceString
-        false
         """
 let printListWithOffset a list1 =
     List.iter
@@ -687,7 +663,6 @@ let printListWithOffset a list1 =
 [<Test>]
 let ``Thoth.Json decoder, 685`` () =
     formatSourceString
-        false
         """
 Decode.map3 (fun aggregateId event commitPayload ->
     match commitPayload with
@@ -720,7 +695,6 @@ Decode.map3
 [<Test>]
 let ``add extra indent in fluent api, 970`` () =
     formatSourceString
-        false
         """
   services.AddAuthentication(fun options ->
           options.DefaultScheme <- "Cookies"
@@ -753,7 +727,6 @@ services
 [<Test>]
 let ``correctly indent nested lambda inside fluent api`` () =
     formatSourceString
-        false
         """
 services.AddHttpsRedirection(Action<HttpsRedirectionOptions>(fun options ->
     // meh
@@ -776,7 +749,6 @@ services.AddHttpsRedirection(
 [<Test>]
 let ``comment between opening parenthesis and lambda, 1190`` () =
     formatSourceString
-        false
         """
 (
     (* comment before gets swallowed *)
@@ -811,7 +783,6 @@ fun x -> x * 42)
 [<Test>]
 let ``desugared union case, 1631`` () =
     formatSourceString
-        false
         """
       col
                         (fun (ArgInfo (ats, so, isOpt), t) -> sepNone)
@@ -827,7 +798,6 @@ col (fun (ArgInfo(ats, so, isOpt), t) -> sepNone)
 [<Test>]
 let ``two wild args`` () =
     formatSourceString
-        false
         """
 fun _ _ -> ()
 """
@@ -842,7 +812,6 @@ fun _ _ -> ()
 [<Test>]
 let ``lambda argument in multiline function application, 1028`` () =
     formatSourceString
-        false
         """
 module Lifecycle =
 
@@ -888,7 +857,6 @@ module Lifecycle =
 [<Test>]
 let ``return lambda from lambda, 1782`` () =
     formatSourceString
-        false
         """
 let x =
     fun _ ->
@@ -905,7 +873,6 @@ let x = fun _ -> fun _ -> "hello"
 [<Test>]
 let ``wild card parameters in lambda, 1789`` () =
     formatSourceString
-        false
         """
 let elifs =
     es
@@ -925,7 +892,6 @@ let elifs =
 [<Test>]
 let ``leading and trailing wild card parameters in lambda`` () =
     formatSourceString
-        false
         """
 List.map (fun (_, _, _, _, body, _) -> visit body) andBangs
 """
@@ -940,7 +906,6 @@ List.map (fun (_, _, _, _, body, _) -> visit body) andBangs
 [<Test>]
 let ``multiple parameters with wild cards, 1806`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar () =
@@ -966,7 +931,6 @@ module Foo =
 [<Test>]
 let ``multiline SynExpr.MatchLambda`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar =
@@ -990,7 +954,6 @@ module Foo =
 [<Test>]
 let ``long function application ending in with lambda argument`` () =
     formatSourceString
-        false
         """
 let foobar =
     someFunctionName aFirstLongArgument aSecondLongArgument aThirdLongArgument aFourthLongArgument (fun finallyThatLambdaArgument ->
@@ -1021,7 +984,6 @@ let somethingElse = ()
 [<Test>]
 let ``multiline non lambda argument`` () =
     formatSourceString
-        false
         """
 let argExpr =
     col sepNln es (fun e ->
@@ -1075,7 +1037,6 @@ let argExpr =
 [<Test>]
 let ``multiline non lambda argument, match lambda`` () =
     formatSourceString
-        false
         """
 leadingExpressionIsMultiline (sepOpenTFor lpr -- "fun "
                                 +> pats
@@ -1100,7 +1061,6 @@ leadingExpressionIsMultiline
 [<Test>]
 let ``multiline lambda argument, 1922`` () =
     formatSourceString
-        false
         """
 let g =
     Array.groupBy
@@ -1124,7 +1084,6 @@ let g =
 [<Test>]
 let ``comment after arrow is preserved, 1870`` () =
     formatSourceString
-        false
         """
 fun a ->   // foo
     a
@@ -1141,7 +1100,6 @@ fun a -> // foo
 [<Test>]
 let ``parenthesis function call with lambda argument, 2015`` () =
     formatSourceString
-        false
         """
 (if true then foo else goo) (fun _ -> 42)
 """
@@ -1156,7 +1114,6 @@ let ``parenthesis function call with lambda argument, 2015`` () =
 [<Test>]
 let ``parenthesis function call with long lambda argument`` () =
     formatSourceString
-        false
         """
 (if true then foo else goo) (fun _ ->
                                                         // comment
@@ -1175,7 +1132,6 @@ let ``parenthesis function call with long lambda argument`` () =
 [<Test>]
 let ``function expression and argument expression with parenthesis, 1998`` () =
     formatSourceString
-        false
         """
 (SomeModule.doSomething << SomeModule.doSomethingElse) (fun x -> x)
 """
@@ -1193,7 +1149,6 @@ let ``function expression and argument expression with parenthesis, 1998`` () =
 [<Test>]
 let ``piped lambda with if-then-else, 2196`` () =
     formatSourceString
-        false
         """
 let dayOfWeekToNum (d: DayOfWeek) =
     int d
@@ -1215,7 +1170,6 @@ let dayOfWeekToNum (d: DayOfWeek) =
 [<Test>]
 let ``piped lambda with if-then-else, short, 2196`` () =
     formatSourceString
-        false
         """
 let foo () =
     f()
@@ -1234,7 +1188,6 @@ let foo () =
 [<Test>]
 let ``don't add space before paren lambda argument, 2041`` () =
     formatSourceString
-        false
         """
 Task.Run<CommandResult>(fun () ->
     // long
@@ -1264,7 +1217,6 @@ Task.Run<CommandResult>(task)
 [<Test>]
 let ``lambda with long list of arguments`` () =
     formatSourceString
-        false
         """
 fun (a0: int) (a1: int) (a2: int) (a3: int) (a4: int) (a5: int) (a6: int) (a7: int) (a8: int) (a9: int) (a10: int) (a11: int) (a12: int) (a13: int) (a14: int) (a15: int) (a16: int) (a17: int) (a18: int) (a19: int) (a20: int) (a21: int) (a22: int) (a23: int) (a24: int) (a25: int) (a26: int) (a27: int) (a28: int) (a29: int) (a30: int) (a31: int) (a32: int) (a33: int) (a34: int) (a35: int) (a36: int) (a37: int) (a38: int) (a39: int) (a40: int) (a41: int) (a42: int) (a43: int) (a44: int) (a45: int) (a46: int) (a47: int) (a48: int) (a49: int) (a50: int) (a51: int) (a52: int) (a53: int) (a54: int) (a55: int) (a56: int) (a57: int) (a58: int) (a59: int) (a60: int) (a61: int) (a62: int) (a63: int) (a64: int) (a65: int) (a66: int) (a67: int) (a68: int) (a69: int) (a70: int) (a71: int) (a72: int) (a73: int) (a74: int) (a75: int) (a76: int) (a77: int) (a78: int) (a79: int) (a80: int) (a81: int) (a82: int) (a83: int) (a84: int) (a85: int) (a86: int) (a87: int) (a88: int) (a89: int) (a90: int) (a91: int) (a92: int) (a93: int) (a94: int) (a95: int) (a96: int) (a97: int) (a98: int) (a99: int) -> ()
 """
@@ -1379,7 +1331,6 @@ fun
 [<Test>]
 let ``lambda with long list of arguments, wrapped in parentheses`` () =
     formatSourceString
-        false
         """
 (fun (a0: int) (a1: int) (a2: int) (a3: int) (a4: int) (a5: int) (a6: int) (a7: int) (a8: int) (a9: int) (a10: int) (a11: int) (a12: int) (a13: int) (a14: int) (a15: int) (a16: int) (a17: int) (a18: int) (a19: int) (a20: int) -> ())
 """
@@ -1415,7 +1366,6 @@ let ``lambda with long list of arguments, wrapped in parentheses`` () =
 [<Test>]
 let ``indent closing parenthesis far enough in lambda application, 1299`` () =
     formatSourceString
-        false
         "
 let _ =
     [] |> List.map (fun _ -> @\"a
@@ -1438,7 +1388,6 @@ b\"  )
 [<Test>]
 let ``indent closing parenthesis far enough in multiline lambda application`` () =
     formatSourceString
-        false
         "
 let _ =
     List.maaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaap (fun _ -> @\"a
@@ -1461,7 +1410,6 @@ b\"      )
 [<Test>]
 let ``lambda with generic argument in function identifier, 2699`` () =
     formatSourceString
-        false
         """
 MailboxProcessor<string>.Start
     (fun inbox ->

@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``function call`` () =
     formatSourceString
-        false
         """
 let x = "a" |> _.ToString()
 """
@@ -22,7 +21,6 @@ let x = "a" |> _.ToString()
 [<Test>]
 let ``property call`` () =
     formatSourceString
-        false
         """
 let x = "a" |> _.Length
 """
@@ -37,7 +35,6 @@ let x = "a" |> _.Length
 [<Test>]
 let ``property of method invocation`` () =
     formatSourceString
-        false
         """
 let c = _.ToString().Length
 """
@@ -52,7 +49,6 @@ let c = _.ToString().Length
 [<Test>]
 let ``property of function invocation`` () =
     formatSourceString
-        false
         """
 let c = _.foo().Length
 """

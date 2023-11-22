@@ -12,7 +12,7 @@ let spaceBeforeConfig =
 
 [<Test>]
 let ``default config should not add space before unit in uppercase function call`` () =
-    formatSourceString false "let value = MyFunction()" config
+    formatSourceString "let value = MyFunction()" config
     |> should
         equal
         """let value = MyFunction()
@@ -20,7 +20,7 @@ let ``default config should not add space before unit in uppercase function call
 
 [<Test>]
 let ``spaceBeforeUppercaseInvocation should add space before unit in uppercase function call`` () =
-    formatSourceString false "let value = MyFunction()" spaceBeforeConfig
+    formatSourceString "let value = MyFunction()" spaceBeforeConfig
     |> should
         equal
         """let value = MyFunction ()
@@ -28,7 +28,7 @@ let ``spaceBeforeUppercaseInvocation should add space before unit in uppercase f
 
 [<Test>]
 let ``spaceBeforeUppercaseInvocation should add space before unit in chained uppercase function call`` () =
-    formatSourceString false "let value = person.ToString()" spaceBeforeConfig
+    formatSourceString "let value = person.ToString()" spaceBeforeConfig
     |> should
         equal
         """let value = person.ToString ()
@@ -38,7 +38,7 @@ let ``spaceBeforeUppercaseInvocation should add space before unit in chained upp
 
 [<Test>]
 let ``spaceBeforeUppercaseInvocation should not have impact when member is called after unit`` () =
-    formatSourceString false "let v2 = OtherFunction().Member" spaceBeforeConfig
+    formatSourceString "let v2 = OtherFunction().Member" spaceBeforeConfig
     |> prepend newline
     |> should
         equal
@@ -51,7 +51,6 @@ let ``spaceBeforeUppercaseInvocation should not have impact when member is calle
     ()
     =
     formatSourceString
-        false
         """
 let x = DateTimeOffset(2017,6,1,10,3,14,TimeSpan(1,30,0)).LocalDateTime
 """
@@ -70,7 +69,7 @@ let x =
 
 [<Test>]
 let ``default config should not add space before parentheses in uppercase function call`` () =
-    formatSourceString false "let value = MyFunction(a+b)" config
+    formatSourceString "let value = MyFunction(a+b)" config
     |> should
         equal
         """let value = MyFunction(a + b)
@@ -78,7 +77,7 @@ let ``default config should not add space before parentheses in uppercase functi
 
 [<Test>]
 let ``spaceBeforeUppercaseInvocation should add space before parentheses in uppercase function call`` () =
-    formatSourceString false "let value = MyFunction(a+b)" spaceBeforeConfig
+    formatSourceString "let value = MyFunction(a+b)" spaceBeforeConfig
     |> should
         equal
         """let value = MyFunction (a + b)
@@ -87,7 +86,6 @@ let ``spaceBeforeUppercaseInvocation should add space before parentheses in uppe
 [<Test>]
 let ``space before uppercase function application cannot apply with dot-chaining, 943`` () =
     formatSourceString
-        false
         """foo.Bar().[5]
 """
         { config with
@@ -102,7 +100,6 @@ foo.Bar().[5]
 [<Test>]
 let ``space before uppercase DotIndexedSet`` () =
     formatSourceString
-        false
         """foo.Bar().[5] <- 5
 """
         { config with
@@ -117,7 +114,6 @@ foo.Bar().[5] <- 5
 [<Test>]
 let ``setting SpaceBeforeUppercaseInvocation is not applied in the middle of a invocation chain, 853`` () =
     formatSourceString
-        false
         """
 module SomeModule =
     let DoSomething (a:SomeType) =
@@ -139,7 +135,6 @@ module SomeModule =
 [<Test>]
 let ``space before uppercase constructor without new`` () =
     formatSourceString
-        false
         """
 let tree1 =
     BinaryNode(BinaryNode(BinaryValue 1, BinaryValue 2), BinaryNode(BinaryValue 3, BinaryValue 4))
@@ -160,7 +155,6 @@ let tree1 =
 [<Test>]
 let ``space before upper case constructor invocation with new keyword`` () =
     formatSourceString
-        false
         """
 let person = new Person("Jim", 33)
 
@@ -190,7 +184,6 @@ let otherThing =
 [<Test>]
 let ``space before uppercase member call`` () =
     formatSourceString
-        false
         """
 let myRegexMatch = Regex.Match(input, regex)
 
@@ -230,7 +223,6 @@ let untypedResLong =
 [<Test>]
 let ``function application inside parenthesis followed by .DotIndexedGet, 1226`` () =
     formatSourceString
-        false
         """
 module Foo =
     let Bar () =
@@ -249,7 +241,6 @@ module Foo =
 [<Test>]
 let ``ignore setting when function call is the argument of prefix application, 1488`` () =
     formatSourceString
-        false
         """
 !-String.Empty.PadLeft(braceSize + spaceAround)
 (!-System.String.Empty.PadRight(delta)) ({ ctx with RecordBraceStart = rest })
@@ -268,7 +259,6 @@ let ``ignore setting when function call is the argument of prefix application, 1
 [<Test>]
 let ``no space before uppercase patterns`` () =
     formatSourceString
-        false
         """
 match x with
 | A () -> ()
@@ -291,7 +281,6 @@ match x with
 [<Test>]
 let ``space before uppercase patterns`` () =
     formatSourceString
-        false
         """
 match x with
 | A() -> ()
@@ -314,7 +303,6 @@ match x with
 [<Test>]
 let ``never add a space before paren lambda in chain, 2685`` () =
     formatSourceString
-        false
         """
 module A =
     let foo =
@@ -346,7 +334,6 @@ module A =
 [<Test>]
 let ``typeApp with dotGet and paren expr, 2700`` () =
     formatSourceString
-        false
         """
 let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt (mapping)
 """
@@ -361,7 +348,6 @@ let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(mapping)
 [<Test>]
 let ``space should not be added when expression is indexed, 2965`` () =
     formatSourceString
-        false
         """
 fooo.Bar()[key]
 """
@@ -376,7 +362,6 @@ fooo.Bar()[key]
 [<Test>]
 let ``space should not be added when expression is indexed, single ident application`` () =
     formatSourceString
-        false
         """
 Bar()[key]
 """
@@ -391,7 +376,6 @@ Bar()[key]
 [<Test>]
 let ``space should not be added when expression is indexed, parentheses argument`` () =
     formatSourceString
-        false
         """
 fooo.Bar(1)[key]
 """
@@ -406,7 +390,6 @@ fooo.Bar(1)[key]
 [<Test>]
 let ``space should not be added when expression is indexed, single ident application with parentheses argument`` () =
     formatSourceString
-        false
         """
 Bar(1)[key]
 """

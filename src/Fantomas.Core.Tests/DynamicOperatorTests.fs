@@ -6,7 +6,7 @@ open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``keep () when dynamic operator is used`` () =
-    formatSourceString false "let memoEquals x = x?(k + 1)" config
+    formatSourceString "let memoEquals x = x?(k + 1)" config
     |> should
         equal
         """let memoEquals x = x?(k + 1)
@@ -14,7 +14,7 @@ let ``keep () when dynamic operator is used`` () =
 
 [<Test>]
 let ``remove () when dynamic operator is string`` () =
-    formatSourceString false "let memoEquals x = x?k" config
+    formatSourceString "let memoEquals x = x?k" config
     |> should
         equal
         """let memoEquals x = x?k
@@ -23,7 +23,6 @@ let ``remove () when dynamic operator is string`` () =
 [<Test>]
 let ``keep () when dynamic operator inside boolean expr, #476`` () =
     formatSourceString
-        false
         """let fieldColor (fieldNameX: string) =
     if f.errors?(fieldNameY) && f.touched?(fieldNameZ) then
         IsDanger
@@ -48,7 +47,6 @@ let fieldColor (fieldNameX: string) =
 [<Test>]
 let ``keep () when dynamic operator inside boolean expr, 2 spaces indent`` () =
     formatSourceString
-        false
         """let fieldColor (fieldNameX: string) =
     if f.errors?(fieldNameY) && f.touched?(fieldNameZ) then
         IsDanger
@@ -71,7 +69,7 @@ let fieldColor (fieldNameX: string) =
 
 [<Test>]
 let ``preserve back ticks from checked keyword, 937`` () =
-    formatSourceString false "let toggle = unbox<bool> (e.target?``checked``)" config
+    formatSourceString "let toggle = unbox<bool> (e.target?``checked``)" config
     |> prepend newline
     |> should
         equal

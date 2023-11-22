@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``prefer computation expression name on same line`` () =
     formatSourceString
-        false
         """
 let t =
     task {
@@ -35,7 +34,6 @@ let t = task {
 [<Test>]
 let ``prefer computation expression name on same line handling short expression`` () =
     formatSourceString
-        false
         """
 let t =
     task {
@@ -53,7 +51,6 @@ let t = task { return () }
 [<Test>]
 let ``application parenthesis expr dotIndexedSet with computation expression`` () =
     formatSourceString
-        false
         """
 app(meh).[x] <-
     task {
@@ -77,7 +74,6 @@ app(
 [<Test>]
 let ``application unit dotIndexedSet with computation expression`` () =
     formatSourceString
-        false
         """
 app().[x] <-
     task {
@@ -99,7 +95,6 @@ app().[x] <- task {
 [<Test>]
 let ``dotIndexedSet with computation expression`` () =
     formatSourceString
-        false
         """
 myMutable.[x] <-
     task {
@@ -121,7 +116,6 @@ myMutable.[x] <- task {
 [<Test>]
 let ``dotSet with computation expression`` () =
     formatSourceString
-        false
         """
 App().foo <-
     task {
@@ -143,7 +137,6 @@ App().foo <- task {
 [<Test>]
 let ``app paren lambda with computation expression`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
     task {
@@ -165,7 +158,6 @@ List.map (fun x -> task {
 [<Test>]
 let ``app paren lambda with computation expression and other args`` () =
     formatSourceString
-        false
         """
 List.map (fun x ->
     task {
@@ -190,7 +182,6 @@ List.map
 [<Test>]
 let ``dotGetApp with lambda with computation expression`` () =
     formatSourceString
-        false
         """
 Bar
     .Foo(fun x ->
@@ -215,7 +206,6 @@ Bar
 [<Test>]
 let ``lambda with computation expression`` () =
     formatSourceString
-        false
         """
 fun x ->
     task {
@@ -237,7 +227,6 @@ fun x -> task {
 [<Test>]
 let ``letOrUseBang with computation expression`` () =
     formatSourceString
-        false
         """
 task {
     let! meh =
@@ -266,7 +255,6 @@ task {
 [<Test>]
 let ``longIdentSet with computation expression`` () =
     formatSourceString
-        false
         """
 myMutable <-
     task {
@@ -288,7 +276,6 @@ myMutable <- task {
 [<Test>]
 let ``paren lambda with computation expression`` () =
     formatSourceString
-        false
         """
 (fun x ->
     task {
@@ -310,7 +297,6 @@ let ``paren lambda with computation expression`` () =
 [<Test>]
 let ``synExprApp with named argument with computation expression`` () =
     formatSourceString
-        false
         """
 let v =
     SomeConstructor(
@@ -338,7 +324,6 @@ let v =
 [<Test>]
 let ``synExprNew with named argument with computation expression`` () =
     formatSourceString
-        false
         """
 let v =
     new FooBar(
@@ -366,7 +351,6 @@ let v =
 [<Test>]
 let ``set with computation expression`` () =
     formatSourceString
-        false
         """
 myMutable[x] <-
     task {
@@ -388,7 +372,6 @@ myMutable[x] <- task {
 [<Test>]
 let ``synbinding function with computation expression`` () =
     formatSourceString
-        false
         """
 let x y =
     task {
@@ -410,7 +393,6 @@ let x y = task {
 [<Test>]
 let ``synbinding function with computation expression with return type`` () =
     formatSourceString
-        false
         """
 let x y: Task<unit> =
     task {
@@ -432,7 +414,6 @@ let x y : Task<unit> = task {
 [<Test>]
 let ``type member function with computation expression`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x =
@@ -456,7 +437,6 @@ type Foo() =
 [<Test>]
 let ``type member function with computation expression with return type`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x : Task<unit> =
@@ -480,7 +460,6 @@ type Foo() =
 [<Test>]
 let ``synbinding value with computation expression`` () =
     formatSourceString
-        false
         """
 let t =
     task {
@@ -502,7 +481,6 @@ let t = task {
 [<Test>]
 let ``type member value with computation expression`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar =
@@ -526,7 +504,6 @@ type Foo() =
 [<Test>]
 let ``andBang with computation expression`` () =
     formatSourceString
-        false
         """
 task {
     let! abc = def ()
@@ -558,7 +535,6 @@ task {
 [<Test>]
 let ``synMatchClause in match expression with computation expression`` () =
     formatSourceString
-        false
         """
 match x with
 | _ ->
@@ -582,7 +558,6 @@ match x with
 [<Test>]
 let ``synMatchClause in try/with expression with computation expression`` () =
     formatSourceString
-        false
         """
 try
     foo()
@@ -609,7 +584,6 @@ with ex -> task {
 [<Test>]
 let ``yieldOrReturnBang with computation expression`` () =
     formatSourceString
-        false
         """
 myComp {
     yield!
@@ -645,7 +619,6 @@ myComp {
 [<Test>]
 let ``yieldOrReturn with computation expression`` () =
     formatSourceString
-        false
         """
 myComp {
     yield
@@ -681,7 +654,6 @@ myComp {
 [<Test>]
 let ``prefer computation expression name on same line, with trivia`` () =
     formatSourceString
-        false
         """
 let t =
     //
@@ -706,7 +678,6 @@ let t =
 [<Test>]
 let ``fsharp_multiline_bracket_style = stroustrup has not influence`` () =
     formatSourceString
-        false
         """
 fun _ -> task { // foo
                 () }

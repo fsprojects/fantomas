@@ -8,7 +8,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``no nln before lambda, #503`` () =
     formatSourceString
-        false
         """
 let a =
     b
@@ -34,7 +33,6 @@ let a =
 [<Test>]
 let ``require to ident at least +1 after function name #545`` () =
     formatSourceString
-        false
         @"
 let a s =
     if s <> """" then
@@ -69,7 +67,6 @@ let a s =
 [<Test>]
 let ``require to ident at least +1 after function name #545 (long expression and short line settings)`` () =
     formatSourceString
-        false
         @"
 let a s =
     if s <> """" then
@@ -103,7 +100,6 @@ let a s =
 [<Test>]
 let ``should split parameters over multiple lines when they exceed page width`` () =
     formatSourceString
-        false
         """module Caching =
     type MainCache() =
         member __.RetrieveLastCompoundBalance (address: PublicAddress)
@@ -148,7 +144,6 @@ module Caching =
 [<Test>]
 let ``should split single parameter over multiple lines when it exceeds page width`` () =
     formatSourceString
-        false
         """module Caching =
     type MainCache() =
         member __.RetrieveLastCompoundBalance (address: PublicAddress)
@@ -189,7 +184,6 @@ module Caching =
 [<Test>]
 let ``should not split parameters over multiple lines when they do not exceed page width`` () =
     formatSourceString
-        false
         """module Caching =
     type MainCache() =
         member __.RetrieveLastCompoundBalance (address: PublicAddress)
@@ -226,7 +220,6 @@ module Caching =
 [<Test>]
 let ``should not split single parameter over multiple lines when it does not exceed page width`` () =
     formatSourceString
-        false
         """module Caching =
     type MainCache() =
         member __.RetrieveLastCompoundBalance (address: PublicAddress)
@@ -263,7 +256,6 @@ module Caching =
 [<Test>]
 let ``single line constructor without new keyword`` () =
     formatSourceString
-        false
         """
 let smallTree = BinaryNode(BinaryValue 3, BinaryValue 4)
 """
@@ -278,7 +270,6 @@ let smallTree = BinaryNode(BinaryValue 3, BinaryValue 4)
 [<Test>]
 let ``multiline constructor without new keyword`` () =
     formatSourceString
-        false
         """
 let tree1 =
     BinaryNode(BinaryNode(BinaryValue 1, BinaryValue 2), BinaryNode(BinaryValue 3, BinaryValue 4))
@@ -299,7 +290,6 @@ let tree1 =
 [<Test>]
 let ``short constructor with new keyword`` () =
     formatSourceString
-        false
         """
 let person = new Person("Jim", 33)
 """
@@ -314,7 +304,6 @@ let person = new Person("Jim", 33)
 [<Test>]
 let ``multiline constructor with new keyword`` () =
     formatSourceString
-        false
         """
 let otherThing =
     new Foobar(longname1, longname2, longname3, longname4, longname5, longname6, longname7)
@@ -339,7 +328,6 @@ let otherThing =
 [<Test>]
 let ``short static member call`` () =
     formatSourceString
-        false
         """
 let myRegexMatch = Regex.Match(input, regex)
 """
@@ -354,7 +342,6 @@ let myRegexMatch = Regex.Match(input, regex)
 [<Test>]
 let ``multiline static member call`` () =
     formatSourceString
-        false
         """
 let myRegexMatch =
     Regex.Match("my longer input string with some interesting content in it","myRegexPattern")
@@ -374,7 +361,6 @@ let myRegexMatch =
 [<Test>]
 let ``short instance member call`` () =
     formatSourceString
-        false
         """
 let untypedRes = checker.ParseFile(file, source, opts)
 """
@@ -389,7 +375,6 @@ let untypedRes = checker.ParseFile(file, source, opts)
 [<Test>]
 let ``multiline instance member call`` () =
     formatSourceString
-        false
         """
 let untypedRes =
     checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines, somethingElseWithARatherLongVariableName)
@@ -411,7 +396,6 @@ let untypedRes =
 [<Test>]
 let ``multiline string in function application, 1259`` () =
     formatSourceString
-        false
         "
 [<Test>]
 let ``classes and private implicit constructors`` () =
@@ -444,7 +428,6 @@ let ``classes and private implicit constructors`` () =
 [<Test>]
 let ``space between function and argument in DotIndexedGet, 1261`` () =
     formatSourceString
-        false
         """
 type Queue<'T>(data: list<'T[]>, length: int) =
 
@@ -470,7 +453,6 @@ type Queue<'T>(data: list<'T[]>, length: int) =
 [<Test>]
 let ``parenthesis around composed function expression, 1341`` () =
     formatSourceString
-        false
         """
 (f >> g) (bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb, c)
 """
@@ -488,7 +470,6 @@ let ``parenthesis around composed function expression, 1341`` () =
 [<Test>]
 let ``parenthesis around short composed function expression, tuple, 1700`` () =
     formatSourceString
-        false
         "((=) (ownerName, username))"
         { config with
             InsertFinalNewline = false }
@@ -497,7 +478,6 @@ let ``parenthesis around short composed function expression, tuple, 1700`` () =
 [<Test>]
 let ``parenthesis around short composed function expression, tuple in if, 1700`` () =
     formatSourceString
-        false
         "if ((=) (ownerName, username)) then 6"
         { config with
             MaxIfThenShortWidth = 40
@@ -507,7 +487,6 @@ let ``parenthesis around short composed function expression, tuple in if, 1700``
 [<Test>]
 let ``parenthesis around short composed function expression, no tuple, 1700`` () =
     formatSourceString
-        false
         """((=) ownerName)"""
         { config with
             InsertFinalNewline = false }
@@ -516,7 +495,6 @@ let ``parenthesis around short composed function expression, no tuple, 1700`` ()
 [<Test>]
 let ``parenthesis around short composed function expression, no tuple in if, 1700, part 2`` () =
     formatSourceString
-        false
         "if ((=) ownerName) then 6"
         { config with
             MaxIfThenShortWidth = 25
@@ -526,7 +504,6 @@ let ``parenthesis around short composed function expression, no tuple in if, 170
 [<Test>]
 let ``parenthesis around simple function expression`` () =
     formatSourceString
-        false
         """
 (ignore) ("Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone", 42)
 """
@@ -544,7 +521,6 @@ let ``parenthesis around simple function expression`` () =
 [<Test>]
 let ``parenthesis around simple function expression with single parenthesis argument`` () =
     formatSourceString
-        false
         """
 (ignore) ("Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone")
 """
@@ -561,7 +537,6 @@ let ``parenthesis around simple function expression with single parenthesis argu
 [<Test>]
 let ``parenthesis around simple function expression with single multiline parenthesis argument`` () =
     formatSourceString
-        false
         "
 (ignore) (\"\"\"Tuuuuuuuuuuuuurn
 tooooooooooooooooooooooo
@@ -582,7 +557,6 @@ stooooooooooooooooooooooooone\"\"\"
 [<Test>]
 let ``multiline function application with single unit argument, 1469`` () =
     formatSourceString
-        false
         """
 namespace SomeNs
 
@@ -612,7 +586,6 @@ module SomeModule =
 [<Test>]
 let ``comment after app with single tuple arg, 1276`` () =
     formatSourceString
-        false
         """
 SomeFunction(arg1,
     arg2,
@@ -631,7 +604,6 @@ SomeOtherFunction(arg1, arg2) // does another thing
 [<Test>]
 let ``comment after app with single tuple arg, multiline format`` () =
     formatSourceString
-        false
         """
 SomeFunction(arg1,
     arg2,
@@ -658,7 +630,6 @@ SomeOtherFunction(
 [<Test>]
 let ``string interpolation should not affect multiline function applications, 1771`` () =
     formatSourceString
-        false
         """
    let tryDataOperation  =
 
@@ -705,7 +676,6 @@ let tryDataOperation =
 [<Test>]
 let ``comment after lambda inside parenthesis argument, 1822`` () =
     formatSourceString
-        false
         """
 module Foo =
 
@@ -743,7 +713,6 @@ module Foo =
 [<Test>]
 let ``comment after typeApp greater sign, 1861`` () =
     formatSourceString
-        false
         """
 x |> f<y> // some comment
 """
@@ -758,7 +727,6 @@ x |> f<y> // some comment
 [<Test>]
 let ``single named arguments should have space surrounding the '=', 1877`` () =
     formatSourceString
-        false
         """
 let makeStreamReader x = new System.IO.StreamReader(path=x)"""
         config
@@ -772,7 +740,6 @@ let makeStreamReader x = new System.IO.StreamReader(path = x)
 [<Test>]
 let ``multiple named arguments should have space surrounding the '=', 1877`` () =
     formatSourceString
-        false
         """
 let makeStreamReader x y = new StreamReader(arg1=x, arg2=y)"""
         config
@@ -786,7 +753,6 @@ let makeStreamReader x y = new StreamReader(arg1 = x, arg2 = y)
 [<Test>]
 let ``print comments before named argument application`` () =
     formatSourceString
-        false
         """
 let Ok (content: string) =
 // #if API_GATEWAY || MADAPI
@@ -835,7 +801,6 @@ let Ok (content: string) =
 [<Test>]
 let ``print trivia before named argument application, 2068`` () =
     formatSourceString
-        false
         """
 let Ok (content: string) =
 #if API_GATEWAY || MADAPI
@@ -884,7 +849,6 @@ let Ok (content: string) =
 [<Test>]
 let ``should not add newline before "let!", 1932`` () =
     formatSourceString
-        false
         """
 promise {
     setItems [||]
@@ -1040,7 +1004,6 @@ let Ok (content: string) =
 [<Test>]
 let ``function invocation with multiple curried parameters, 2087`` () =
     formatSourceString
-        false
         """
 module Foo =
     let Bar (baz1: int) (baz2: string) (baz3: string) (baz4: string) (baz5: string) =
@@ -1059,7 +1022,6 @@ module Foo =
 [<Test>]
 let ``block comment between arguments`` () =
     formatSourceString
-        false
         """
 printf "%-40s %s" "" (*<--flags*) word
 """
@@ -1074,7 +1036,6 @@ printf "%-40s %s" "" (*<--flags*) word
 [<Test>]
 let ``broken comma in match expression in parameter invocation, 1869`` () =
     formatSourceString
-        false
         """
 module Utils
 
@@ -1127,7 +1088,6 @@ let f () =
 [<Test>]
 let ``function invocation wrapped in parentheses, 2382`` () =
     formatSourceString
-        false
         """
 (ignore)
     (
@@ -1149,7 +1109,6 @@ let ``function invocation wrapped in parentheses, 2382`` () =
 [<Test>]
 let ``extra indent in multiline application`` () =
     formatSourceString
-        false
         """
 ((aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa b c))
 """
@@ -1168,7 +1127,6 @@ let ``extra indent in multiline application`` () =
 [<Test>]
 let ``multiline application wrapped in parentheses that equal the indent_size, 2943`` () =
     formatSourceString
-        false
         """
 ((Combo { e1 = "Making this long so it goes on a new line new line new line new line making it long so it goes on a new line new line" }))
 """
@@ -1185,7 +1143,6 @@ let ``multiline application wrapped in parentheses that equal the indent_size, 2
 [<Test>]
 let ``atCurrentColumn multiline application does not need addition indent`` () =
     formatSourceString
-        false
         """
 foo {
     bar in ((((aaaaaaaaaaaa b c))))
@@ -1206,7 +1163,6 @@ foo {
 [<Test>]
 let ``don't indent function application arguments when function name is further indented`` () =
     formatSourceString
-        false
         """
 ((((((((((((((((((((((
     f a b c

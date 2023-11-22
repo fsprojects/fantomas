@@ -13,7 +13,6 @@ let config =
 [<Test>]
 let ``synbinding function with record instance `` () =
     formatSourceString
-        false
         """
 let x y =
     { A = longTypeName
@@ -35,7 +34,6 @@ let x y = {
 [<Test>]
 let ``synbinding function with update record`` () =
     formatSourceString
-        false
         """
 let x y =
     { astContext with IsInsideMatchClausePattern = true }
@@ -54,7 +52,6 @@ let x y = {
 [<Test>]
 let ``synbinding function with anonymous record instance `` () =
     formatSourceString
-        false
         """
 let x y =
     {| A = longTypeName
@@ -76,7 +73,6 @@ let x y = {|
 [<Test>]
 let ``synbinding function with list`` () =
     formatSourceString
-        false
         """
 let x y =
     [ itemOne
@@ -102,7 +98,6 @@ let x y = [
 [<Test>]
 let ``synbinding function with array`` () =
     formatSourceString
-        false
         """
 let x y =
     [| itemOne
@@ -128,7 +123,6 @@ let x y = [|
 [<Test>]
 let ``type member function with record instance`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x =
@@ -152,7 +146,6 @@ type Foo() =
 [<Test>]
 let ``type member function with update record`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x = { astContext with IsInsideMatchClausePattern = true }
@@ -172,7 +165,6 @@ type Foo() =
 [<Test>]
 let ``type member function with anonymous record instance`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x =
@@ -196,7 +188,6 @@ type Foo() =
 [<Test>]
 let ``type member function with anonymous record instance struct`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x =
@@ -221,7 +212,6 @@ type Foo() =
 [<Test>]
 let ``type member function with list`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x =
@@ -249,7 +239,6 @@ type Foo() =
 [<Test>]
 let ``type member function with array`` () =
     formatSourceString
-        false
         """
 type Foo() =
     member this.Bar x =
@@ -277,7 +266,6 @@ type Foo() =
 [<Test>]
 let ``doesn't trigger stroustrup styling when an expression has trivia before it`` () =
     formatSourceString
-        false
         """
 let inline skipNoFail count (source: seq<_>) =
 //if FABLE_COMPILER
@@ -298,7 +286,6 @@ let inline skipNoFail count (source: seq<_>) =
 [<Test>]
 let ``conditional directives before expression, 2517`` () =
     formatSourceString
-        false
         """
     let inline skipNoFail count (source: seq<_>) =
 #if FABLE_COMPILER

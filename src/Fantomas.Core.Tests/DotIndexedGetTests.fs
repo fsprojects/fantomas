@@ -8,7 +8,6 @@ open Fantomas.Core
 [<Test>]
 let ``multiline function application inside DotIndexedGet`` () =
     formatSourceString
-        false
         """
 foo.Bar(
             ziggy,
@@ -31,7 +30,6 @@ foo.Bar(
 [<Test>]
 let ``multiline function application after indexer`` () =
     formatSourceString
-        false
         """
 myList.[7].SomeFunctionCallOnSeven("looooooooooooooooooooooooooooooooonnggggStringArgument", otherArg1, otherArg2, otherArg3, otherArgument4)
 """
@@ -53,7 +51,6 @@ myList.[7]
 [<Test>]
 let ``multiline lowercased function application after indexer`` () =
     formatSourceString
-        false
         """
 myList.[7].lowerSomeFunctionCallOnSeven("looooooooooooooooooooooooooooooooonnggggStringArgument", otherArg1, otherArg2, otherArg3, otherArgument4)
 """
@@ -75,7 +72,6 @@ myList.[7]
 [<Test>]
 let ``should not merge tokens inside parentheses, 1407`` () =
     formatSourceString
-        false
         """
 let inline (=??) x = (=!) x
 let mySampleMethod() =
@@ -108,7 +104,6 @@ let mySampleMethod () =
 [<Test>]
 let ``multiple indexed application with unit`` () =
     formatSourceString
-        false
         """
 a.Some.Thing(
     "aaa",
@@ -133,7 +128,6 @@ a.Some
 [<Test>]
 let ``multiline parentheses objectExpression in indexer expression, 2176`` () =
     formatSourceString
-        false
         """
 namespace FSX.Infrastructure
 

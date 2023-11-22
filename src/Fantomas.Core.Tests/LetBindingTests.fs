@@ -7,7 +7,7 @@ open Fantomas.Core
 
 [<Test>]
 let ``let in should be preserved`` () =
-    formatSourceString false "let x = 1 in ()" config
+    formatSourceString "let x = 1 in ()" config
     |> should
         equal
         """let x = 1 in ()
@@ -23,7 +23,7 @@ let f () =
       x + y
 """
 
-    formatSourceString false codeSnippet config
+    formatSourceString codeSnippet config
     |> should
         equal
         """let f () =
@@ -43,7 +43,6 @@ let f () =
 """
 
     formatSourceString
-        false
         codeSnippet
         { config with
             MaxValueBindingWidth = 50 }
@@ -65,7 +64,7 @@ let f () =
                else x
 """
 
-    formatSourceString false codeSnippet config
+    formatSourceString codeSnippet config
     |> prepend newline
     |> should
         equal
@@ -88,7 +87,7 @@ let f () =
                 x)
 """
 
-    formatSourceString false codeSnippet config
+    formatSourceString codeSnippet config
     |> prepend newline
     |> should
         equal
@@ -105,7 +104,6 @@ let f () =
 [<Test>]
 let ``DotGet on newline should be indented far enough`` () =
     formatSourceString
-        false
         """
 let tomorrow =
     DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
@@ -126,7 +124,6 @@ let tomorrow =
 [<Test>]
 let ``DotGet on newline after empty string should be indented far enough`` () =
     formatSourceString
-        false
         """
 let x =
     [| 1..2 |]
@@ -151,7 +148,6 @@ let x =
 [<Test>]
 let ``newlines between let bindings should preserved`` () =
     formatSourceString
-        false
         """
 let a = 42
 
@@ -171,7 +167,7 @@ let b = "meh"
 
 [<Test>]
 let ``raw method names with `/` `` () =
-    formatSourceString false "let ``/ operator combines paths`` = x" config
+    formatSourceString "let ``/ operator combines paths`` = x" config
     |> should
         equal
         """let ``/ operator combines paths`` = x
@@ -180,7 +176,6 @@ let ``raw method names with `/` `` () =
 [<Test>]
 let ``newline before let inside let should not be duplicated`` () =
     formatSourceString
-        false
         """namespace ReactStrap
 
 open Fable.Core
@@ -257,7 +252,6 @@ module Card =
 [<Test>]
 let ``newlines inside let binding should be not duplicated`` () =
     formatSourceString
-        false
         """let foo =
     let next _ =
         if not animating then activeIndex.update ((activeIndex.current + 1) % itemLength)
@@ -286,7 +280,6 @@ let ``newlines inside let binding should be not duplicated`` () =
 [<Test>]
 let ``inner let binding should not add additional newline, #475`` () =
     formatSourceString
-        false
         "module Test =
     let testFunc() =
         let someObject =
@@ -324,7 +317,6 @@ module Test =
 [<Test>]
 let ``don't add significant spacing after let binding, #478`` () =
     formatSourceString
-        false
         """let someFun someReallyLoooooooooooooooongValue =
     let someValue = someReallyLoooooooooooooooongValue
 
@@ -347,8 +339,8 @@ let someFun someReallyLoooooooooooooooongValue =
 
 [<Test>]
 let ``should keep space before :`` () =
-    formatSourceString false "let refl<'a> : Teq<'a, 'a> = Teq(id,   id)" { config with SpaceBeforeColon = true }
-    |> fun formatted -> formatSourceString false formatted { config with SpaceBeforeColon = true }
+    formatSourceString "let refl<'a> : Teq<'a, 'a> = Teq(id,   id)" { config with SpaceBeforeColon = true }
+    |> fun formatted -> formatSourceString formatted { config with SpaceBeforeColon = true }
     |> should
         equal
         "let refl<'a> : Teq<'a, 'a> = Teq(id, id)
@@ -359,7 +351,6 @@ let ``newline trivia before simple sequence doesn't force remaining to get offse
     ()
     =
     formatSourceString
-        false
         """let a() =
     let q = 1
 
@@ -383,7 +374,6 @@ let ``comment trivia before simple sequence doesn't force remaining to get offse
     ()
     =
     formatSourceString
-        false
         """let a() =
     let q = 1
     // comment
@@ -403,7 +393,6 @@ let ``comment trivia before simple sequence doesn't force remaining to get offse
 [<Test>]
 let ``no extra newline should be added between IfThenElse within Sequential, 588`` () =
     formatSourceString
-        false
         """
 let x =
     if true then printfn "a"
@@ -426,7 +415,6 @@ let x =
 [<Test>]
 let ``line comment before return type info should indent before colon, 565`` () =
     formatSourceString
-        false
         """module Bar =
   let f a
     // foo
@@ -453,7 +441,6 @@ module Bar =
 [<Test>]
 let ``line comment before return type with AlignFunctionSignatureToIndentation`` () =
     formatSourceString
-        false
         """
   let functionName a b c
     // foo
@@ -480,7 +467,6 @@ let functionName
 [<Test>]
 let ``has symbol in signature requires paren, 564`` () =
     formatSourceString
-        false
         """module Bar =
   let foo (_ : #(int seq)) = 1
   let meh (_: #seq<int>) = 2
@@ -503,7 +489,7 @@ module Bar =
 
 [<Test>]
 let ``only add one space between idents in app`` () =
-    formatSourceString false "let validatorResult = validator input" config
+    formatSourceString "let validatorResult = validator input" config
     |> should
         equal
         "let validatorResult = validator input
@@ -512,7 +498,6 @@ let ``only add one space between idents in app`` () =
 [<Test>]
 let ``multiline let binding, should be multiline based on expression, not AST composition`` () =
     formatSourceString
-        false
         """
 let foo a =
     let b = a +   7
@@ -531,7 +516,6 @@ let foo a =
 [<Test>]
 let ``multiline let binding with type signature should be multiline based on expression, not AST composition`` () =
     formatSourceString
-        false
         """
 let foo (a: int ) (b:  string):string =
     let c = a.ToString() + b
@@ -550,7 +534,6 @@ let foo (a: int) (b: string) : string =
 [<Test>]
 let ``multiline inner let binding in nested module`` () =
     formatSourceString
-        false
         """let SetQuartzLoggingFunction f =
         let loggerFunction level (func: Func<string>) exc parameters =
             let wrappedFunction =
@@ -579,7 +562,6 @@ let SetQuartzLoggingFunction f =
 [<Test>]
 let ``determine lower or uppercase in paren, 753`` () =
     formatSourceString
-        false
         """let genSigModuleDeclList astContext node =
     match node with
     | [x] -> genSigModuleDecl astContext x
@@ -631,7 +613,6 @@ let genSigModuleDeclList astContext node =
 [<Test>]
 let ``determine lower or uppercase in DotGet, 729`` () =
     formatSourceString
-        false
         """namespace Foo
 
 open System.Linq
@@ -665,7 +646,6 @@ module Bar =
 [<Test>]
 let ``handle hash directives before equals, 728`` () =
     formatSourceString
-        false
         """let Baz (firstParam: string)
 #if DEBUG
             (_         : int)
@@ -724,7 +704,6 @@ let Baz
 [<Test>]
 let ``multiple empty lines between equals and expression`` () =
     formatSourceString
-        false
         """let Baz (firstParam: string)
 #if DEBUG
             (_         : int)
@@ -758,7 +737,6 @@ let Baz
 [<Test>]
 let ``don't add newline before paren tuple return value`` () =
     formatSourceString
-        false
         """
 /// Returns a  list of income and expense of the current month
 let useEntries month year =
@@ -836,7 +814,6 @@ let useEntries month year =
 [<Test>]
 let ``keep newline before try with`` () =
     formatSourceString
-        false
         """
 let private authenticateRequest (logger: ILogger) header =
     let token =
@@ -924,7 +901,6 @@ let private authenticateRequest (logger: ILogger) header =
 [<Test>]
 let ``don't add additional newline before anonymous record`` () =
     formatSourceString
-        false
         """
 let useOverviewPerMonth () =
     let { Events = events } = useModel ()
@@ -998,7 +974,6 @@ let useOverviewPerMonth () =
 [<Test>]
 let ``don't add newline before array, 1033`` () =
     formatSourceString
-        false
         """
     let private additionalRefs =
         let refs =
@@ -1029,7 +1004,6 @@ let private additionalRefs =
 [<Test>]
 let ``preserve new line new instance of class, 1034`` () =
     formatSourceString
-        false
         """
     let notFound () =
         let json = Encode.string "Not found" |> Encode.toString 4
@@ -1057,7 +1031,6 @@ let notFound () =
 [<Test>]
 let ``don't add additional newline before SynExpr.New, 1049`` () =
     formatSourceString
-        false
         """
     let getVersion () =
         let version =
@@ -1092,7 +1065,6 @@ let getVersion () =
 [<Test>]
 let ``sequential after local let bindings should respect indentation, 1054`` () =
     formatSourceString
-        false
         "
 let merge a b =
     let aChunks = splitWhenHash a
@@ -1149,7 +1121,6 @@ There is a problem with merging all the code back togheter. Please raise an issu
 [<Test>]
 let ``multiline expressions within sequential should be separated with new lines`` () =
     formatSourceString
-        false
         """
 let x =
     if someCondition then
@@ -1184,7 +1155,6 @@ let x =
 [<Test>]
 let ``preserve in keyword via trivia, 340`` () =
     formatSourceString
-        false
         """
 let x = List.singleton <|
         let item = "text" in
@@ -1201,7 +1171,6 @@ let x = List.singleton <| let item = "text" in item
 [<Test>]
 let ``in keyword in boolean expression, 1114`` () =
     formatSourceString
-        false
         """
 let x =
     not (isObjTy g ty)
@@ -1258,7 +1227,6 @@ let x =
 [<Test>]
 let ``blank line between let binding and expression should be preserved in SynExpr.LetOrUse`` () =
     formatSourceString
-        false
         """
 let x =
     not (isObjTy g ty)
@@ -1320,7 +1288,6 @@ let x =
 [<Test>]
 let ``app tuple inside dotget expression`` () =
     formatSourceString
-        false
         """
                    (st :> IProvidedCustomAttributeProvider)
                        .GetHasTypeProviderEditorHideMethodsAttribute(
@@ -1347,7 +1314,6 @@ let ``app tuple inside dotget expression`` () =
 [<Test>]
 let ``in keyword in short boolean expression, 1032`` () =
     formatSourceString
-        false
         """
 let internal sepSpace =
     // ignore multiple spaces, space on start of file, after newline
@@ -1382,7 +1348,6 @@ let internal sepSpace =
 [<Test>]
 let ``in keyword in LetOrUse with and keyword, 1176`` () =
     formatSourceString
-        false
         """
 do
     let rec f = ()
@@ -1403,7 +1368,6 @@ do
 [<Test>]
 let nameof () =
     formatSourceString
-        false
         """
 let months =
     [
@@ -1455,7 +1419,6 @@ printfn "%s" (lookupMonth 13) // Throws an exception!
 [<Test>]
 let ``print inline before private, 1250`` () =
     formatSourceString
-        false
         """
     let inline private isIdentifier t = t.CharClass = FSharpTokenCharKind.Identifier
     let inline private isOperator t = t.CharClass = FSharpTokenCharKind.Operator
@@ -1483,7 +1446,6 @@ let inline private isPunctuation t =
 [<Test>]
 let ``comment after equal sign of value binding, 1248`` () =
     formatSourceString
-        false
         """
 let value = // TODO: some comment
     let v = 2 + 3
@@ -1506,7 +1468,6 @@ let k = -1
 [<Test>]
 let ``comment after equal sign of function binding`` () =
     formatSourceString
-        false
         """
 let value a = // TODO: some comment
     let v = 2 + a
@@ -1529,7 +1490,6 @@ let k = -1
 [<Test>]
 let ``comment after equal sign of function binding, AlignFunctionSignatureToIndentation`` () =
     formatSourceString
-        false
         """
 let longFunctionNameThatWillTriggerAlternativeSignatureSyntax a = // TODO: some comment
     let v = 2 + a
@@ -1556,7 +1516,6 @@ let k = -1
 [<Test>]
 let ``comment after equal sign of function binding with return type`` () =
     formatSourceString
-        false
         """
 let value a : int = // TODO: some comment
     let v x : int = 2 + a
@@ -1579,7 +1538,6 @@ let k = -1
 [<Test>]
 let ``comment after equal sign of function binding with return type, AlignFunctionSignatureToIndentation`` () =
     formatSourceString
-        false
         """
 let longFunctionNameThatWillTriggerAlternativeSignatureSyntax a : int = // TODO: some comment
     let v = 2 + a
@@ -1607,7 +1565,6 @@ let k = -1
 [<Test>]
 let ``surround return type annotations with white space, 1420`` () =
     formatSourceString
-        false
         """
 let expensiveToCompute : int = 0
 let myFun (a: decimal) b c : decimal = a + b + c
@@ -1624,7 +1581,6 @@ let myFun (a: decimal) b c : decimal = a + b + c
 [<Test>]
 let ``comments after short value binding, 1604`` () =
     formatSourceString
-        false
         """
 let foo = bar // bar
 //// hi!
@@ -1641,7 +1597,6 @@ let foo = bar // bar
 [<Test>]
 let ``let in should not add newline when it is short, 1608`` () =
     formatSourceString
-        false
         """
 stepLog.LogInformation ("Thing thing thing {Foo} thing", (let (DuCase a) = ThingThingThing.go options |> BlahBlah foo in a))
 
@@ -1682,7 +1637,6 @@ stepLog.LogInformation (
 [<Test>]
 let ``in keyword in let binding should stay in one line, 1610`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar () =
@@ -1742,7 +1696,6 @@ module Foo =
 [<Test>]
 let ``multiline return type followed by type declaration, 1624`` () =
     formatSourceString
-        false
         """
 let useGeolocation : unit ->
     {| latitude: float
@@ -1782,7 +1735,6 @@ type Viewport =
 [<Test>]
 let ``recursive let bindings in sequential expression, 1628`` () =
     formatSourceString
-        false
         """
 let foobar () =
     Console.WriteLine("Hello")
@@ -1821,7 +1773,6 @@ let foobar () =
 [<Test>]
 let ``multiline type parameters in argument, 1611`` () =
     formatSourceString
-        false
         """
 module PoorlyIndented =
 
@@ -1858,7 +1809,6 @@ module PoorlyIndented =
 [<Test>]
 let ``short let in`` () =
     formatSourceString
-        false
         """
 let a = x in foo x
 """
@@ -1873,7 +1823,6 @@ let a = x in foo x
 [<Test>]
 let ``let binding as part of sequential inside parenthesis, 1805`` () =
     formatSourceString
-        false
         """
 module Foo =
     let foo =
@@ -1912,7 +1861,6 @@ module Foo =
 [<Test>]
 let ``sequential inside parenthesis, 1777`` () =
     formatSourceString
-        false
         """
 if kind = shiftFlag then (
                     if errorSuppressionCountDown > 0 then
@@ -1977,14 +1925,13 @@ let v =
 %s
 """
 
-    let formatted = formatSourceString false sourceCode config
+    let formatted = formatSourceString sourceCode config
 
     formatted |> should not' (equal EmptyString)
 
 [<Test>]
 let ``in keyword in SynExpr.LetOrUse, 1182`` () =
     formatSourceString
-        false
         """
 do
     let _ = ()
@@ -2025,7 +1972,6 @@ let escapeEarth myVelocity mySpeed =
 [<Test>]
 let ``long value with constraints, 2267`` () =
     formatSourceString
-        false
         """
 let inline NonStructural<'TInput when 'TInput: (static member (<): 'TInput * 'TInput -> bool) and 'TInput: (static member (>): 'TInput * 'TInput -> bool)> : IComparer<'TInput> = ()
 """
@@ -2043,7 +1989,6 @@ let inline NonStructural<'TInput
 [<Test>]
 let ``long function with constraints, 2267`` () =
     formatSourceString
-        false
         """
 let inline NonStructural<'TInput when 'TInput: (static member (<): 'TInput * 'TInput -> bool) and 'TInput: (static member (>): 'TInput * 'TInput -> bool)>  (a:'TInput) (b:'TInput) : IComparer<'TInput> = ()
 """
@@ -2064,7 +2009,6 @@ let inline NonStructural<'TInput
 [<Test>]
 let ``don't  consider typed expression as return type of binding`` () =
     formatSourceString
-        false
         """
 let a =
     0 : int
@@ -2080,7 +2024,6 @@ let a = 0: int
 [<Test>]
 let ``typed expression with lambda should always have the type on the next line, 2295`` () =
     formatSourceString
-        false
         """
 let f x y : int ->  int = 
     fun _ -> x + y
@@ -2099,7 +2042,6 @@ let f x y : int -> int =
 [<Test>]
 let ``trivia around SynExpr.Typed`` () =
     formatSourceString
-        false
         """
 let a =
     (
@@ -2128,7 +2070,6 @@ let a =
 [<Test>]
 let ``or in TraitCall expr`` () =
     formatSourceString
-        false
         """
 let inline (!!) (x: ^a) : ^b = ((^a or ^b): (static member op_Implicit: ^a -> ^b) x)
 """
@@ -2144,7 +2085,6 @@ let inline (!!) (x: ^a) : ^b =
 [<Test>]
 let ``avoid additional whitespace after comma, 2589`` () =
     formatSourceString
-        false
         """
 let x
     (
@@ -2169,7 +2109,6 @@ let x
 [<Test>]
 let ``cons pattern in let binding, 1996`` () =
     formatSourceString
-        false
         """
 let x::y = []
 """

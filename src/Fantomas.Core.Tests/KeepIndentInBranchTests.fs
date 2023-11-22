@@ -12,7 +12,6 @@ let config =
 [<Test>]
 let ``single expression in if branch, multiple expressions in else branch`` () =
     formatSourceString
-        false
         """
 let foo () =
     if someCondition then
@@ -43,7 +42,6 @@ let foo () =
 [<Test>]
 let ``sequential in if branch, let or use in else branch`` () =
     formatSourceString
-        false
         """
 open Library
 
@@ -93,7 +91,6 @@ let main argv =
 [<Test>]
 let ``sequential in first clause, let or use in last clause`` () =
     formatSourceString
-        false
         """
 open Library
 
@@ -145,7 +142,6 @@ let main argv =
 [<Test>]
 let ``always add newline before un-indented last clause`` () =
     formatSourceString
-        false
         """
 open Library
 
@@ -198,7 +194,6 @@ let main argv =
 [<Test>]
 let ``sequential in first clause, let or use in last clause, match bang`` () =
     formatSourceString
-        false
         """
 open Library
 
@@ -250,7 +245,6 @@ let main argv =
 [<Test>]
 let ``match is return value of SynBinding`` () =
     formatSourceString
-        false
         """
 module Foo =
     let make () =
@@ -306,7 +300,6 @@ module Foo =
 [<Test>]
 let ``match is return value of SynBinding with return type`` () =
     formatSourceString
-        false
         """
 module Foo =
     let make () =
@@ -362,7 +355,6 @@ module Foo =
 [<Test>]
 let ``match is return value of let binding`` () =
     formatSourceString
-        false
         """
 let sum a b =
     match a, b with
@@ -393,7 +385,6 @@ let sum a b =
 [<Test>]
 let ``nested match expression should not indent in both cases`` () =
     formatSourceString
-        false
         """
 let sum a b =
     match a with
@@ -428,7 +419,6 @@ let sum a b =
 [<Test>]
 let ``nested ifThenElse should not indent in both cases`` () =
     formatSourceString
-        false
         """
 let sum a b =
     if a < 0 then
@@ -466,7 +456,6 @@ let sum a b =
 [<Test>]
 let ``match followed by if should not indent in both cases`` () =
     formatSourceString
-        false
         """
 let sum a b =
     if a < 0 then
@@ -504,7 +493,6 @@ let sum a b =
 [<Test>]
 let ``default config should indent`` () =
     formatSourceString
-        false
         """
 /// Find out the end token
 let rec getEndCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
@@ -541,7 +529,6 @@ let rec getEndCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
 [<Test>]
 let ``keep indent in SynModuleDecl.Do expression,  1569`` () =
     formatSourceString
-        false
         """
 if blah then
     printfn "Aborting."
@@ -579,7 +566,6 @@ else
 [<Test>]
 let ``inside lambda expression`` () =
     formatSourceString
-        false
         """
 let foo =
     bar
@@ -611,7 +597,6 @@ let foo =
 [<Test>]
 let ``inside desugared lambda expression`` () =
     formatSourceString
-        false
         """
 let foo =
     bar
@@ -643,7 +628,6 @@ let foo =
 [<Test>]
 let ``match expression inside lambda expression`` () =
     formatSourceString
-        false
         """
 lock lockingObj (fun () ->
     if not thing then
@@ -703,7 +687,6 @@ lock lockingObj (fun () ->
 [<Test>]
 let ``try with in else branch`` () =
     formatSourceString
-        false
         """
 type Foo () =
     interface IDisposable with
@@ -745,7 +728,6 @@ type Foo() =
 [<Test>]
 let ``let or uses with sequential that has match `` () =
     formatSourceString
-        false
         """
 module Foo =
 
@@ -804,7 +786,6 @@ module Foo =
 [<Test>]
 let ``let or uses with sequential that has if/then/else `` () =
     formatSourceString
-        false
         """
 module Foo =
 
@@ -861,7 +842,6 @@ module Foo =
 [<Test>]
 let ``in combination with NewlinesAroundInnerMultilineExpressions`` () =
     formatSourceString
-        false
         """
 module Foo =
     let main (args: _) =
@@ -909,7 +889,6 @@ module Foo =
 [<Test>]
 let ``sequential, let bindings, keep indent match,  1621`` () =
     formatSourceString
-        false
         """
 let main (args : Options) =
     log.LogDebug ("Command line options: {Options}", args.ToString())
@@ -986,7 +965,6 @@ let main (args : Options) =
 [<Test>]
 let ``sequential, let bindings, keep indent if`` () =
     formatSourceString
-        false
         """
 let main (args : Options) =
     log.LogDebug ("Command line options: {Options}", args.ToString())
@@ -1061,7 +1039,6 @@ let main (args : Options) =
 [<Test>]
 let ``single pattern match should keep indent, 1638`` () =
     formatSourceString
-        false
         """
 [<NoEquality ; NoComparison>]
 type Foo<'context, 'a> =
@@ -1177,7 +1154,6 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
 [<Test>]
 let ``ifdef trivia should not influence outcome, 1646`` () =
     formatSourceString
-        false
         """
 module Foo =
     [<Foo>]
@@ -1244,7 +1220,6 @@ module Foo =
 [<Test>]
 let ``multiple nested Sequential expressions, 1714`` () =
     formatSourceString
-        false
         """
 namespace Foo
 
@@ -1311,7 +1286,6 @@ module Bar =
 [<Test>]
 let ``multiple nested LetOrUse expressions, 1717`` () =
     formatSourceString
-        false
         """
 module Foo =
     let main (args : _) =
@@ -1420,7 +1394,6 @@ module Foo =
 [<Test>]
 let ``multiline if condition is indented, 1729`` () =
     formatSourceString
-        false
         """
 let x y =
             if not (
@@ -1467,7 +1440,6 @@ let x y =
 [<Test>]
 let ``value binding, 1728`` () =
     formatSourceString
-        false
         """
 let x =
             if not (
@@ -1514,7 +1486,6 @@ let x =
 [<Test>]
 let ``combination with MultiLineLambdaClosingNewline, 1715`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar () =
@@ -1564,7 +1535,6 @@ module Foo =
 [<Test>]
 let ``combination with MultiLineLambdaClosingNewline, multiple params`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar () =
@@ -1616,7 +1586,6 @@ module Foo =
 [<Test>]
 let ``comment after arrow, 1759`` () =
     formatSourceString
-        false
         """
 let mapOperationToWebPart (operation: OpenApiOperationDescription) : SynExpr =
     let verb = mkIdentExpr (operation.Method.ToUpper())
@@ -1655,7 +1624,6 @@ let mapOperationToWebPart (operation: OpenApiOperationDescription) : SynExpr =
 [<Test>]
 let ``multiline infix application, 1768`` () =
     formatSourceString
-        false
         """
 let updateModuleInImpl (ast: ParsedInput) (mdl: SynModuleOrNamespace) : ParsedInput =
     match ast with
@@ -1697,7 +1665,6 @@ let updateModuleInImpl (ast: ParsedInput) (mdl: SynModuleOrNamespace) : ParsedIn
 [<Test>]
 let ``short function application in if branch`` () =
     formatSourceString
-        false
         """
 let private parseModel (modelSrc: string) : Result<MyReturnType, string list> =
   if not (File.Exists(modelSrc)) then
@@ -1755,7 +1722,6 @@ let private parseModel (modelSrc: string) : Result<MyReturnType, string list> =
 [<Test>]
 let ``tuple is consider as short branch, 1800`` () =
     formatSourceString
-        false
         """
   let nextModel, objectsRemoved =
     List.fold
@@ -1800,7 +1766,6 @@ let nextModel, objectsRemoved =
 [<Test>]
 let ``parenthesis tuple is consider as short branch`` () =
     formatSourceString
-        false
         """
   let nextModel, objectsRemoved =
     List.fold
@@ -1845,7 +1810,6 @@ let nextModel, objectsRemoved =
 [<Test>]
 let ``long multiline if expression, 1812`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar =
@@ -1903,7 +1867,6 @@ module Foo =
 [<Test>]
 let ``long multiline match expression`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar =
@@ -1962,7 +1925,6 @@ module Foo =
 [<Test>]
 let ``add space after long identifier in if expression, 1816`` () =
     formatSourceString
-        false
         """
 module Foo =
     let assertConsistent () : unit =
@@ -2005,7 +1967,6 @@ module Foo =
 [<Test>]
 let ``pipe operator application with lambda is considered long, 2003`` () =
     formatSourceString
-        false
         """
 namespace FicroKanSharp.Test
 
@@ -2042,7 +2003,6 @@ module TestThing =
 [<Test>]
 let ``else if should be preserved, 1818`` () =
     formatSourceString
-        false
         """
 module Foo =
     let assertConsistent () : unit =
@@ -2085,7 +2045,6 @@ module Foo =
 [<Test>]
 let ``comment after match keyword`` () =
     formatSourceString
-        false
         """
 match  // comment
     Stream.peel rest with
@@ -2114,7 +2073,6 @@ longName
 [<Test>]
 let ``comment after match bang keyword`` () =
     formatSourceString
-        false
         """
 match!  // comment
     Stream.peel rest with
@@ -2143,7 +2101,6 @@ longName
 [<Test>]
 let ``nested match inside let bindings, 1825`` () =
     formatSourceString
-        false
         """
 module Foo =
 
@@ -2187,7 +2144,6 @@ module Foo =
 [<Test>]
 let ``if keyword and elseBranch align, 2973`` () =
     formatSourceString
-        false
         """
 module Program =
     let main _ =
@@ -2213,7 +2169,6 @@ module Program =
 [<Test>]
 let ``elif keyword and elseBranch align`` () =
     formatSourceString
-        false
         """
 if false then
     1
@@ -2239,7 +2194,6 @@ printfn "hi!"
 [<Test>]
 let ``elseBranch aligns with if keyword in computation expression`` () =
     formatSourceString
-        false
         """
 async {
     if not (proc.Start ()) then return Error "failed to start" else

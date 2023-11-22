@@ -8,7 +8,6 @@ open Fantomas.Core
 [<Test>]
 let ``enums declaration`` () =
     formatSourceString
-        false
         """
     type FontVariant =
     | [<Description("small-caps")>] SmallCaps = 0"""
@@ -23,7 +22,7 @@ type FontVariant =
 
 [<Test>]
 let ``discriminated unions declaration`` () =
-    formatSourceString false "type X = private | A of AParameters | B" config
+    formatSourceString "type X = private | A of AParameters | B" config
     |> prepend newline
     |> should
         equal
@@ -37,7 +36,6 @@ type X =
 [<Test>]
 let ``enums conversion`` () =
     formatSourceString
-        false
         """
 type uColor =
     | Red = 0u
@@ -62,7 +60,6 @@ let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(
 [<Test>]
 let ``discriminated unions with members`` () =
     formatSourceString
-        false
         """
 type Type
     = TyLam of Type * Type
@@ -93,7 +90,6 @@ type Type =
 [<Test>]
 let ``newline between discriminated unions and members`` () =
     formatSourceString
-        false
         """
 type Type
     = TyLam of Type * Type
@@ -124,7 +120,6 @@ type Type =
 [<Test>]
 let ``should keep attributes on union cases`` () =
     formatSourceString
-        false
         """
 type Argument =
   | [<MandatoryAttribute>] Action of string
@@ -146,7 +141,6 @@ type Argument =
 [<Test>]
 let ``should be able to define named unions`` () =
     formatSourceString
-        false
         """
 type Thing =
 | Human of Name:string * Age:int
@@ -176,7 +170,6 @@ type Strategy =
 [<Test>]
 let ``should be able to pattern match on unions`` () =
     formatSourceString
-        false
         """
 type TestUnion = Test of A : int * B : int
 [<EntryPoint>]
@@ -227,7 +220,6 @@ let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(
 [<Test>]
 let ``single case DUs on same line`` () =
     formatSourceString
-        false
         """
 type CustomerId =
     | CustomerId of int
@@ -243,7 +235,6 @@ type CustomerId = CustomerId of int
 [<Test>]
 let ``single case DU with private access modifier`` () =
     formatSourceString
-        false
         """
 type CustomerId =
    private
@@ -260,7 +251,6 @@ type CustomerId = private CustomerId of int
 [<Test>]
 let ``single case DU with member should be on a newline`` () =
     formatSourceString
-        false
         """
 type CustomerId =
     | CustomerId of int
@@ -282,7 +272,6 @@ type CustomerId =
 [<Test>]
 let ``generic type style should be respected`` () =
     formatSourceString
-        false
         """
 type 'a Foo = Foo of 'a
     """
@@ -297,7 +286,6 @@ type 'a Foo = Foo of 'a
 [<Test>]
 let ``generic multiple param type style should be respected`` () =
     formatSourceString
-        false
         """
 type ('a, 'b) Foo = Foo of 'a
     """
@@ -311,7 +299,7 @@ type ('a, 'b) Foo = Foo of 'a
 
 [<Test>]
 let ``preserve pipe after access modified, 561`` () =
-    formatSourceString false """type Foo = private | Bar""" config
+    formatSourceString """type Foo = private | Bar""" config
     |> should
         equal
         """type Foo = private | Bar
@@ -319,8 +307,7 @@ let ``preserve pipe after access modified, 561`` () =
 
 [<Test>]
 let ``preserve pipe after access modified in sig file, 561`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace meh
 
 type internal Foo = private | Bar
@@ -336,7 +323,6 @@ type internal Foo = private | Bar
 [<Test>]
 let ``preserve pipe when single choice contains attribute, 596`` () =
     formatSourceString
-        false
         """type [<StringEnum>] [<RequireQualifiedAccess>] PayableFilters =
     | [<CompiledName "statusSelector">] Status
 """
@@ -352,8 +338,7 @@ type PayableFilters = | [<CompiledName "statusSelector">] Status
 
 [<Test>]
 let ``preserve pipe when single choice contains attribute, sig file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace Meh
 
 type [<StringEnum>] [<RequireQualifiedAccess>] PayableFilters = | [<CompiledName "statusSelector">] Status
@@ -373,7 +358,6 @@ type PayableFilters = | [<CompiledName "statusSelector">] Status
 [<Test>]
 let ``single case DU with comment above clause, 567`` () =
     formatSourceString
-        false
         """type 'a MyGenericType =
   ///
   | Foo
@@ -391,7 +375,6 @@ type 'a MyGenericType =
 [<Test>]
 let ``single case DU should keep a pipe after formatting, 641`` () =
     formatSourceString
-        false
         """type Record = { Name: string }
 type DU = | Record
 """
@@ -406,7 +389,7 @@ type DU = | Record
 
 [<Test>]
 let ``single case DU with fields should not have a pipe after formatting`` () =
-    formatSourceString false """type DU = Record of string""" config
+    formatSourceString """type DU = Record of string""" config
     |> prepend newline
     |> should
         equal
@@ -416,7 +399,7 @@ type DU = Record of string
 
 [<Test>]
 let ``single case DU with private fields should not have a pipe after formatting`` () =
-    formatSourceString false """type String50 = private String50 of string""" config
+    formatSourceString """type String50 = private String50 of string""" config
     |> prepend newline
     |> should
         equal
@@ -426,8 +409,7 @@ type String50 = private String50 of string
 
 [<Test>]
 let ``single case DU, no UnionCaseFields in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace meh
 
 type DU = | Record
@@ -445,7 +427,6 @@ type DU = | Record
 [<Test>]
 let ``enum with back ticks, 626`` () =
     formatSourceString
-        false
         """type MyEnum =
   | ``test-one`` = 0
 """
@@ -460,8 +441,7 @@ type MyEnum =
 
 [<Test>]
 let ``enum with back ticks in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace foo
 
 type MyEnum =
@@ -481,7 +461,6 @@ type MyEnum =
 [<Test>]
 let ``discriminated union with back ticks`` () =
     formatSourceString
-        false
         """type MyEnum =
   | ``test-one`` of int
   | ``test-two`` of string
@@ -498,8 +477,7 @@ type MyEnum =
 
 [<Test>]
 let ``discriminated union with back ticks in signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """namespace foo
 type MyEnum =
   | ``test-one`` of int
@@ -520,7 +498,6 @@ type MyEnum =
 [<Test>]
 let ``hexadecimal numbers in enums, 1006`` () =
     formatSourceString
-        false
         """
 type Foo =
     | One =  0x00000001
@@ -539,7 +516,6 @@ type Foo =
 [<Test>]
 let ``comment after union case, 1043`` () =
     formatSourceString
-        false
         """
 module FantomasTools.Client.FantomasOnline.Model
 
@@ -570,7 +546,6 @@ type FantomasMode =
 [<Test>]
 let ``long union case should be split over multiple lines, 972`` () =
     formatSourceString
-        false
         """
 [<NoEquality; NoComparison; RequireQualifiedAccess>]
 type SynType =
@@ -613,8 +588,7 @@ type SynType =
 
 [<Test>]
 let ``multiline single union case field`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace X
 
@@ -637,7 +611,6 @@ type ResolvedExtensionReference =
 [<Test>]
 let ``multiline single union case field, implementation file`` () =
     formatSourceString
-        false
         """
 namespace X
 
@@ -660,7 +633,6 @@ type ResolvedExtensionReference =
 [<Test>]
 let ``comment after union fields wrapped in parenthesis, 1128`` () =
     formatSourceString
-        false
         """
 module Test
 
@@ -683,7 +655,6 @@ type t =
 [<Test>]
 let ``union type with static member, 1154`` () =
     formatSourceString
-        false
         """
 type CardValue =
     | Basic of int
@@ -728,7 +699,6 @@ type CardValue =
 [<Test>]
 let ``comment after enum field, 1247`` () =
     formatSourceString
-        false
         """
 type Foo =
     | Bar = 3 // Foo
@@ -747,7 +717,6 @@ type Foo =
 [<Test>]
 let ``union type with one of two cases depending on compiler define, 1483`` () =
     formatSourceString
-        false
         """
 type A =
     | B
@@ -770,7 +739,6 @@ type A =
 [<Test>]
 let ``multiline DU case`` () =
     formatSourceString
-        false
         """
 [<NoEquality; NoComparison>]
 type SynBinding =
@@ -812,8 +780,7 @@ type SynBinding =
 
 [<Test>]
 let ``comment above union case in signature file, 973`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace foo
 
@@ -840,7 +807,6 @@ type SynTypeConstraint =
 [<Test>]
 let ``long union case with attributes without fields, 1796`` () =
     formatSourceString
-        false
         """
 type TransactionType =
     | [<CompiledName "External Credit Balance Refund">] ExternalCreditBalanceRefund
@@ -858,8 +824,7 @@ type TransactionType =
 
 [<Test>]
 let ``long union case with attributes without fields, signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 namespace X
 
@@ -882,7 +847,6 @@ type TransactionType =
 [<Test>]
 let ``comment after equals in enum`` () =
     formatSourceString
-        false
         """
 type Foo =   // comment
     | Bar = // other comment
@@ -901,7 +865,6 @@ type Foo = // comment
 [<Test>]
 let ``trivia not restored after long identifier in SynField, 2103`` () =
     formatSourceString
-        false
         """
 type X = 
   | A of int // This comment survives
@@ -920,7 +883,6 @@ type X =
 [<Test>]
 let ``comment after equals in union`` () =
     formatSourceString
-        false
         """
 type Foo =   // comment
     | Bar of string * int64
@@ -937,7 +899,6 @@ type Foo = // comment
 [<Test>]
 let ``newline trivia before enum case with xml doc, 2155`` () =
     formatSourceString
-        false
         """
 /// Specifies the formatting behaviour of JSON values
 [<RequireQualifiedAccess>]
@@ -968,7 +929,6 @@ type JsonSaveOptions =
 [<Test>]
 let ``enum with multiple cases with xml comments, 2188`` () =
     formatSourceString
-        false
         """
 /// Represents reasons why a text document is saved.
 type TextDocumentSaveReason =
@@ -1003,7 +963,6 @@ type TextDocumentSaveReason =
 [<Test>]
 let ``union with multiple cases with xml comments, 2188`` () =
     formatSourceString
-        false
         """
 /// Represents reasons why a text document is saved.
 type Meh =
@@ -1038,7 +997,6 @@ type Meh =
 [<Test>]
 let ``comment after bar of single case DU, 2182`` () =
     formatSourceString
-        false
         """
 type LongIdentWithDots =
     | //[<Experimental("This construct is subject to change in future versions of FSharp.Compiler.Service and should only be used if no adequate alternative is available.")>]
@@ -1065,7 +1023,6 @@ type LongIdentWithDots =
 [<Test>]
 let ``access modifier and xml comment in union, 2401`` () =
     formatSourceString
-        false
         """
 type Foo =
     private
@@ -1088,7 +1045,6 @@ type Foo =
 [<Test>]
 let ``access modifier and xml comment in union, multiple cases`` () =
     formatSourceString
-        false
         """
 type Foo =
     private
@@ -1114,8 +1070,7 @@ type Foo =
 
 [<Test>]
 let ``access modifier and xml comment in union, signature file`` () =
-    formatSourceString
-        true
+    formatSignatureString
         """
 type Foo =
     private
@@ -1138,7 +1093,6 @@ type Foo =
 [<Test>]
 let ``anonymous types in a DU formats correctly, 2621`` () =
     formatSourceString
-        false
         """
 type A =
     | A of int

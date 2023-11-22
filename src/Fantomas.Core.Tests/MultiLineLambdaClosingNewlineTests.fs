@@ -14,7 +14,6 @@ let config =
 [<Test>]
 let ``function with single multiline lambda`` () =
     formatSourceString
-        false
         """
 List.collect (fun (a, element) ->
     let path' =
@@ -50,7 +49,6 @@ List.collect (fun (a, element) ->
 [<Test>]
 let ``parameter before multiline lambda`` () =
     formatSourceString
-        false
         """
 let mySuperFunction a =
     someOtherFunction a (fun b ->
@@ -75,7 +73,6 @@ let mySuperFunction a =
 [<Test>]
 let ``parameter after multiline lambda`` () =
     formatSourceString
-        false
         """
 let mySuperFunction a =
     someOtherFunction (fun b ->
@@ -100,7 +97,6 @@ let mySuperFunction a =
 [<Test>]
 let ``lambda without fun keyword`` () =
     formatSourceString
-        false
         """
 let printListWithOffset a list1 =
     List.iter (
@@ -124,7 +120,6 @@ let printListWithOffset a list1 =
 [<Test>]
 let ``desugared lambda`` () =
     formatSourceString
-        false
         """
 let printListWithOffset a list1 =
     List.iter(fun { ItemOne = a } ->
@@ -149,7 +144,6 @@ let printListWithOffset a list1 =
 [<Test>]
 let ``multiple multiline lambdas`` () =
     formatSourceString
-        false
         """
 let mySuperFunction v =
     someOtherFunction (fun  a  ->
@@ -181,7 +175,6 @@ let mySuperFunction v =
 [<Test>]
 let ``multiple multiline desugared lambdas`` () =
     formatSourceString
-        false
         """
 let myTopLevelFunction v =
     someOtherFunction (fun { A = a }  ->
@@ -213,7 +206,6 @@ let myTopLevelFunction v =
 [<Test>]
 let ``lambda after pipe operator`` () =
     formatSourceString
-        false
         """
 let printListWithOffset a list1 =
     list1
@@ -253,7 +245,6 @@ let printListWithOffset a list1 =
 [<Test>]
 let ``custom infix operator with multiline lambda`` () =
     formatSourceString
-        false
         """
 let expr =
     genExpr astContext e
@@ -285,7 +276,6 @@ let expr =
 [<Test>]
 let ``multiline infix operator samples`` () =
     formatSourceString
-        false
         """
 let printListWithOffset a list1 =
     list1
@@ -329,7 +319,6 @@ let foldList a list1 =
 [<Test>]
 let ``no space before uppercase invocations`` () =
     formatSourceString
-        false
         """
 Foobar(fun x ->
     // going multiline
@@ -359,7 +348,6 @@ myValue.UppercaseMemberCall(fun x ->
 [<Test>]
 let ``space before uppercase invocations`` () =
     formatSourceString
-        false
         """
 Foobar(fun x ->
     // going multiline
@@ -389,7 +377,6 @@ myValue.UppercaseMemberCall (fun x ->
 [<Test>]
 let ``no space before lowercase invocations`` () =
     formatSourceString
-        false
         """
 foobar(fun x ->
     // going multiline
@@ -419,7 +406,6 @@ myValue.lowercaseMemberCall(fun x ->
 [<Test>]
 let ``space before lowercase invocations`` () =
     formatSourceString
-        false
         """
 foobar(fun x ->
     // going multiline
@@ -449,7 +435,6 @@ myValue.lowercaseMemberCall (fun x ->
 [<Test>]
 let ``comments after desugared lambda arrows`` () =
     formatSourceString
-        false
         """
 []
 |> List.map (fun { Foo = foo } -> // I use the name foo a lot
@@ -478,7 +463,6 @@ List.map
 [<Test>]
 let ``comments after lambda arrows`` () =
     formatSourceString
-        false
         """
 []
 |> List.map (fun foo -> // I use the name foo a lot
@@ -507,7 +491,6 @@ List.map
 [<Test>]
 let ``multiple lambda parameters, 1427`` () =
     formatSourceString
-        false
         """
 let choose chooser source =
     source
@@ -538,7 +521,6 @@ let choose chooser source =
 [<Test>]
 let ``single line lambda, 1474`` () =
     formatSourceString
-        false
         """
 module Caching =
     type MainCache() =
@@ -565,7 +547,6 @@ module Caching =
 [<Test>]
 let ``comment before paren function arg, 1607`` () =
     formatSourceString
-        false
         """
 namespace Bar
 
@@ -612,7 +593,6 @@ module Foo =
 [<Test>]
 let ``multiline infix application with piped match expression`` () =
     formatSourceString
-        false
         """
 module Foo =
 
@@ -645,7 +625,6 @@ module Foo =
 [<Test>]
 let ``inner let binding inside lambda, 1741`` () =
     formatSourceString
-        false
         """
 module Foo =
 
@@ -706,7 +685,6 @@ module Foo =
 [<Test>]
 let ``inner let binding inside lambda, multiple arguments`` () =
     formatSourceString
-        false
         """
 module Foo =
 
@@ -769,7 +747,6 @@ module Foo =
 [<Test>]
 let ``SynExpr.MatchLambda inside parenthesis as argument, 1823`` () =
     formatSourceString
-        false
         """
 module Foo =
     let bar =
@@ -796,7 +773,6 @@ module Foo =
 [<Test>]
 let ``comment after single lambda in parenthesis argument`` () =
     formatSourceString
-        false
         """
 module Foo =
 
@@ -835,7 +811,6 @@ module Foo =
 [<Test>]
 let ``lambda inside parenthesis without application, 1835`` () =
     formatSourceString
-        false
         """
 module Foo =
     let blah =
@@ -863,7 +838,6 @@ module Foo =
 [<Test>]
 let ``lambda inside parenthesis without application, trivia`` () =
     formatSourceString
-        false
         """
 module Foo =
     let blah =
@@ -894,7 +868,6 @@ module Foo =
 [<Test>]
 let ``short lambda inside parenthesis`` () =
     formatSourceString
-        false
         """
 (fun x -> x)
 """
@@ -909,7 +882,6 @@ let ``short lambda inside parenthesis`` () =
 [<Test>]
 let ``lambda at end of dot get`` () =
     formatSourceString
-        false
         """
 configuration
     .MinimumLevel
@@ -943,7 +915,6 @@ configuration.MinimumLevel
 [<Test>]
 let ``lambda at end of dot get, short lambda`` () =
     formatSourceString
-        false
         """
 configuration
     .MinimumLevel
@@ -965,7 +936,6 @@ configuration.MinimumLevel
 [<Test>]
 let ``match lambda with other arguments`` () =
     formatSourceString
-        false
         """
 let a =
     Something.foo
@@ -991,7 +961,6 @@ let a =
 [<Test>]
 let ``lambda with long list of arguments at end of dotget`` () =
     formatSourceString
-        false
         """
 configuration
     .MinimumLevel
@@ -1030,7 +999,6 @@ configuration.MinimumLevel
 [<Test>]
 let ``parameter after multiline lambda with long list of arguments`` () =
     formatSourceString
-        false
         """
 let mySuperFunction a =
     someOtherFunction (fun (a0: int) (a1: int) (a2: int) (a3: int) (a4: int) (a5: int) (a6: int) (a7: int) (a8: int) (a9: int) (a10: int) (a11: int) ->
@@ -1067,7 +1035,6 @@ let mySuperFunction a =
 [<Test>]
 let ``app with lambda single line check should include closing parenthesis ,2642`` () =
     formatSourceString
-        false
         """
 module Foo =
     let part1 (lines : string seq) : int =
@@ -1096,7 +1063,6 @@ module Foo =
 [<Test>]
 let ``double pipe with application with two lambdas, 2682`` () =
     formatSourceString
-        false
         """
 (someLongItemOne, someLongItemTwo)
 ||> Prefix.fnName

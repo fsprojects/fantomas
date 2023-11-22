@@ -7,7 +7,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``typed quotations`` () =
     formatSourceString
-        false
         """
     <@
         let f x = x + 10
@@ -26,7 +25,7 @@ let ``typed quotations`` () =
 
 [<Test>]
 let ``untyped quotations`` () =
-    formatSourceString false "<@@ 2 + 3 @@>" config
+    formatSourceString "<@@ 2 + 3 @@>" config
     |> should
         equal
         """<@@ 2 + 3 @@>
@@ -35,7 +34,6 @@ let ``untyped quotations`` () =
 [<Test>]
 let ``should preserve unit literal`` () =
     formatSourceString
-        false
         """
 let logger =
     Mock<ILogger>()
@@ -59,7 +57,6 @@ let logger =
 [<Test>]
 let ``should format multiline quotation expressions idempotent, 2203`` () =
     formatSourceString
-        false
         """
 let action =
     <@
@@ -96,7 +93,6 @@ let action =
 [<Test>]
 let ``should preserve comments in quotation, 2535`` () =
     formatSourceString
-        false
         """
 test
     <@
@@ -137,7 +133,6 @@ test
 [<Test>]
 let ``overly aggressive de-indentation, 2110`` () =
     formatSourceString
-        false
         """
       let result =
         Instrument.I.instrumentationVisitor state' visited

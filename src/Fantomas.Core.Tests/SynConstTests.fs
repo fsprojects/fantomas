@@ -8,7 +8,6 @@ open Fantomas.Core.Tests.TestHelpers
 [<Test>]
 let ``all known SynConst with trivia`` () =
     formatSourceString
-        false
         """
 let a = true
 let b = 13uy
@@ -81,7 +80,6 @@ let c2 = 1G
 [<Test>]
 let ``unicode in characters`` () =
     formatSourceString
-        false
         """
 namespace SomeNamespace
 
@@ -104,7 +102,6 @@ module SomeModule =
 [<Test>]
 let ``escape unicode null, 632`` () =
     formatSourceString
-        false
         """let nulchar = '\u0000'
 let nullstr = "\u0000"
 """
@@ -120,7 +117,6 @@ let nullstr = "\u0000"
 [<Test>]
 let ``line comment after custom measure type, 598`` () =
     formatSourceString
-        false
         """namespace Krach
 
 module Runner =
@@ -150,7 +146,6 @@ module Runner =
 [<Test>]
 let ``formats negate of RationalConst without leading space in front of the const, 2265`` () =
     formatSourceString
-        false
         """
 type becquerel = second^-1
 """
@@ -164,7 +159,7 @@ type becquerel = second^-1
 
 [<Test>]
 let ``array literals of BigInteger, 682`` () =
-    formatSourceString false "let input = [| 1I;0I;-1I |]" config
+    formatSourceString "let input = [| 1I;0I;-1I |]" config
     |> should
         equal
         "let input = [| 1I; 0I; -1I |]
@@ -172,7 +167,7 @@ let ``array literals of BigInteger, 682`` () =
 
 [<Test>]
 let ``negative single floating-point number, 785`` () =
-    formatSourceString false "let num = -3.213f" config
+    formatSourceString "let num = -3.213f" config
     |> should
         equal
         "let num = -3.213f
@@ -181,7 +176,6 @@ let ``negative single floating-point number, 785`` () =
 [<Test>]
 let ``string content ends at string token, 646`` () =
     formatSourceString
-        false
         """"Yarn" ==> "Format"
 
 "Yarn" ==> "CheckCodeFormat"
@@ -203,7 +197,6 @@ Target.runOrDefault "CheckCodeFormat"
 [<Test>]
 let ``hexadecimal numbers in match clause should be preserved, 995`` () =
     formatSourceString
-        false
         """
 let f (a: int) =
     match a, b with
@@ -223,7 +216,7 @@ let f (a: int) =
 
 [<Test>]
 let ``preserve underscore in int64, 1120`` () =
-    formatSourceString false "let x = 60_000L" config
+    formatSourceString "let x = 60_000L" config
     |> should
         equal
         "let x = 60_000L
@@ -232,7 +225,6 @@ let ``preserve underscore in int64, 1120`` () =
 [<Test>]
 let ``spaces before hash define inside string, 1290`` () =
     formatSourceString
-        false
         "
 [<Test>]
 let ``defines inside string, escaped quote`` () =
@@ -270,7 +262,6 @@ let a = \\\"\\\\\\\"
 [<Test>]
 let ``escaped single quote`` () =
     formatSourceString
-        false
         """
 let x = !-(sprintf "\'%s\'" escapedChar)
 """
@@ -285,7 +276,6 @@ let x = !-(sprintf "\'%s\'" escapedChar)
 [<Test>]
 let ``character literal patterns should be preserved, 1372`` () =
     formatSourceString
-        false
         """
 let f (c: char) =
     match c with
@@ -312,7 +302,6 @@ let f (c: char) =
 [<Test>]
 let ``hex escape in string literal should be preserved, 1508`` () =
     formatSourceString
-        false
         """let hexEscape = "\x00"
 """
         config
@@ -324,7 +313,6 @@ let ``hex escape in string literal should be preserved, 1508`` () =
 [<Test>]
 let ``trivia after SynConst.Boolean, 1518`` () =
     formatSourceString
-        false
         """
     match ast with
     | ParsedInput.SigFile _input ->
@@ -373,7 +361,6 @@ let x = 9
 [<Test>]
 let ``trivia after SynConst.Char`` () =
     formatSourceString
-        false
         """
 let c = 'r' // meh
 let x = 1
@@ -390,7 +377,6 @@ let x = 1
 [<Test>]
 let ``trivia after SynConst.Bytes`` () =
     formatSourceString
-        false
         """
 let bytes = "meh"B // meh
 let x = 1
@@ -407,7 +393,6 @@ let x = 1
 [<Test>]
 let ``bytes string with escaped character`` () =
     formatSourceString
-        false
         """
 let bytes = "meh\n"B
 """
@@ -422,7 +407,6 @@ let bytes = "meh\n"B
 [<Test>]
 let ``trivia after SynConst.String, 1518`` () =
     formatSourceString
-        false
         "
     let source = \"\"\"printfn foo
 
@@ -446,7 +430,6 @@ let x = 9
 [<Test>]
 let ``multiline string in let value binding, 1556`` () =
     formatSourceString
-        false
         "
 let foo = \"\"\"moo,
 long
@@ -468,7 +451,6 @@ triple quotes string thing
 [<Test>]
 let ``multiline string in let value binding, return type`` () =
     formatSourceString
-        false
         "
 let foo: string = \"\"\"moo,
 long
@@ -490,7 +472,6 @@ triple quotes string thing
 [<Test>]
 let ``multiline string in let function binding, no return type`` () =
     formatSourceString
-        false
         "
 let foo () = \"\"\"moo,
 long
@@ -512,7 +493,6 @@ triple quotes string thing
 [<Test>]
 let ``multiline string in let function binding, return type`` () =
     formatSourceString
-        false
         "
 let foo () : string = \"\"\"moo,
 long
@@ -534,7 +514,6 @@ triple quotes string thing
 [<Test>]
 let ``collect keyword string as separate trivia`` () =
     formatSourceString
-        false
         """
 __SOURCE_DIRECTORY__
 """
@@ -549,7 +528,6 @@ __SOURCE_DIRECTORY__
 [<Test>]
 let ``escape sequences in strings are preserved`` () =
     formatSourceString
-        false
         """let alert = "Hello\aWorld"
 let backspace = "Hello\bWorld"
 let formFeed = "Hello\fWorld"
@@ -573,7 +551,6 @@ let verticalTab = "Hello\vWorld"
 [<Test>]
 let ``concatenation of multi-line triple quote strings, 639`` () =
     formatSourceString
-        false
         "
   let PrepareReadMe packingCopyright =
     let readme = Path.getFullName \"README.md\"
@@ -719,7 +696,6 @@ let s = @"\"
 [<Test>]
 let ``single digit constant`` () =
     formatSourceString
-        false
         "1"
         { config with
             InsertFinalNewline = false }
@@ -728,7 +704,6 @@ let ``single digit constant`` () =
 [<Test>]
 let ``left out lhs in SynMeasure.Divide should not be restored as SynMeasure.One, 2926`` () =
     formatSourceString
-        false
         """
 234</kg>
 """
@@ -743,7 +718,6 @@ let ``left out lhs in SynMeasure.Divide should not be restored as SynMeasure.One
 [<Test>]
 let ``explicit SynMeasure.One in SynMeasure.Divide should be preserved`` () =
     formatSourceString
-        false
         """
 234<1/kg>
 """
@@ -758,7 +732,6 @@ let ``explicit SynMeasure.One in SynMeasure.Divide should be preserved`` () =
 [<Test>]
 let ``block comments in measure are lost or restored twice and in wrong place, 2927`` () =
     formatSourceString
-        false
         """
 234<(* foo *)kg(* bar *)>
 """
@@ -773,7 +746,6 @@ let ``block comments in measure are lost or restored twice and in wrong place, 2
 [<Test>]
 let ``block comment in Rational between numerator and / is lost, 2931`` () =
     formatSourceString
-        false
         """
 234<kg^(2(* foo *)/3)>
 """
@@ -788,7 +760,6 @@ let ``block comment in Rational between numerator and / is lost, 2931`` () =
 [<Test>]
 let ``block comment between ^- and exponent in SynMeasure.Power is lost, 2937`` () =
     formatSourceString
-        false
         """
 234<m^-(* bar *)2>
 """
@@ -803,7 +774,6 @@ let ``block comment between ^- and exponent in SynMeasure.Power is lost, 2937`` 
 [<Test>]
 let ``block comment between measure1 and / is moved between / and measure2 in SynMeasure.Divide, 2934`` () =
     formatSourceString
-        false
         """
 234<m (* foo *) / s>
 """
@@ -818,7 +788,6 @@ let ``block comment between measure1 and / is moved between / and measure2 in Sy
 [<Test>]
 let ``block comment between measure1 and * is moved between * and measure2 in SynMeasure.Product, 2935`` () =
     formatSourceString
-        false
         """
 234<m(* foo *)*s>
 """
@@ -833,7 +802,6 @@ let ``block comment between measure1 and * is moved between * and measure2 in Sy
 [<Test>]
 let ``block comment between ^ and exponent in SynMeasure.Power is lost, 2936`` () =
     formatSourceString
-        false
         """
 234<m^(* foo *)2>
 """
@@ -848,7 +816,6 @@ let ``block comment between ^ and exponent in SynMeasure.Power is lost, 2936`` (
 [<Test>]
 let ``block comment in Rational between lparen and numerator is moved before lparen, 2930`` () =
     formatSourceString
-        false
         """
 234<kg^((* foo *)2/3)>
 """
@@ -863,7 +830,6 @@ let ``block comment in Rational between lparen and numerator is moved before lpa
 [<Test>]
 let ``block comment in Rational between / and denominator is moved before /, 2932`` () =
     formatSourceString
-        false
         """
 234<kg^(2/(* foo *)3)>
 """
@@ -878,7 +844,6 @@ let ``block comment in Rational between / and denominator is moved before /, 293
 [<Test>]
 let ``block comment in Rational between denominator and rparen is moved behind rparen, 2933`` () =
     formatSourceString
-        false
         """
 234<kg^(2/3(* foo *))>
 """
