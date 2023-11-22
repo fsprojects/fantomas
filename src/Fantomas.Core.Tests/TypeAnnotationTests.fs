@@ -137,7 +137,6 @@ type CancellableTaskResultBuilderBase with
 [<Test>]
 let ``Aligned bracket style in anonymous record is respected, #2706`` () =
     formatSourceString
-        false
         """
 let private asJson (arm: IArmResource) =
     arm.JsonModel
@@ -165,7 +164,6 @@ let private asJson (arm: IArmResource) =
 [<Test>]
 let ``Aligned bracket style in anonymous record is respected for multiple types, #2706`` () =
     formatSourceString
-        false
         """
 let private asJson (arm: IArmResource) =
     arm.JsonModel
@@ -201,7 +199,6 @@ let private asJson (arm: IArmResource) =
 [<Test>]
 let ``Cramped bracket style in anonymous record is respected for multiple types, #2706`` () =
     formatSourceString
-        false
         """
 let private asJson (arm: IArmResource) =
     arm.JsonModel
@@ -233,7 +230,6 @@ let private asJson (arm: IArmResource) =
 [<Test>]
 let ``Stroustrup bracket style in anonymous record is respected for multiple types, #2706`` () =
     formatSourceString
-        false
         """
 let private asJson (arm: IArmResource) =
     arm.JsonModel
@@ -266,25 +262,27 @@ let private asJson (arm: IArmResource) =
        >
 """
 
+let forcedLongDefnConfig =
+    { config with
+        MaxLineLength = 30
+        SpaceBeforeUppercaseInvocation = true
+        SpaceBeforeClassConstructor = true
+        SpaceBeforeMember = true
+        SpaceBeforeColon = true
+        SpaceBeforeSemicolon = true
+        MultilineBracketStyle = Aligned
+        AlignFunctionSignatureToIndentation = true
+        // AlternativeLongMemberDefinitions = true
+        MultiLineLambdaClosingNewline = true
+        NewlineBetweenTypeDefinitionAndMembers = false }
+
 [<Test>]
 let ``type application including nested multiline function type`` () =
-    formatSourceString
-        false
+    forcedLongDefnConfig
+    |> formatSourceString
         """
 let bv = unbox<Foo<'innerContextLongLongLong, 'bb -> 'b>> bf
         """
-        { config with
-            MaxLineLength = 30
-            SpaceBeforeUppercaseInvocation = true
-            SpaceBeforeClassConstructor = true
-            SpaceBeforeMember = true
-            SpaceBeforeColon = true
-            SpaceBeforeSemicolon = true
-            MultilineBracketStyle = Aligned
-            AlignFunctionSignatureToIndentation = true
-            AlternativeLongMemberDefinitions = true
-            MultiLineLambdaClosingNewline = true
-            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -299,82 +297,211 @@ let bv =
         bf
 """
 
+[<Test>]
+let ``Multiline type argument with AppLongIdentAndSingleParenArg`` () =
+
+    { config with
+        MaxLineLength = 30
+        SpaceBeforeUppercaseInvocation = true
+        SpaceBeforeClassConstructor = true
+        SpaceBeforeMember = true
+        SpaceBeforeColon = true
+        SpaceBeforeSemicolon = true
+        MultilineBracketStyle = Aligned
+        AlignFunctionSignatureToIndentation = true
+        AlternativeLongMemberDefinitions = true
+        MultiLineLambdaClosingNewline = true
+        NewlineBetweenTypeDefinitionAndMembers = false }
+    |> formatSourceString
+        """
+path.Replace<
+        Foo<
+            'innerContextLongLongLong,
+            'bb -> 'b
+         >
+     >("../../../", "....")
+"""
+    |> prepend newline
+    |> should
+        equal
+        """
+        
+        """
 
 [<Test>]
-let ``test for AppLongIdentAndSingleParenArg`` () =
-    formatSourceString false 
+let ``Multiline type argument with AppLongIdentAndSingleParenArg 2`` () =
+
+    { config with
+        MaxLineLength = 30
+        SpaceBeforeClassConstructor = true
+        MultilineBracketStyle = Aligned }
+    |> formatSourceString
         """
-let private asJson (arm: IArmResource) =
-    arm.JsonModel
-    |> convertTo<{|
-        kind: string
-        properties: {| statisticsEnabled: bool |}
-    |}>
-"""     
-        config
+path.Replace<
+        Foo<
+            'innerContextLongLongLong,
+            'bb -> 'b
+         >
+     >("../../../", "....")
+"""
     |> prepend newline
-    |> should 
-        equal 
+    |> should
+        equal
         """
-        """
-        
+path.Replace<
+    Foo<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+  > (
+      "../../../",
+      "...."
+  )
+"""
+
 [<Test>]
-let ``test for AppSingleParenArg`` () =
-    formatSourceString false 
+let ``Multiline type argument with AppLongIdentAndSingleParenArg 3`` () =
+    { config with
+        MaxLineLength = 30
+        SpaceBeforeClassConstructor = false
+        MultilineBracketStyle = Aligned }
+    |> formatSourceString
         """
-"""     
-        config
+path.Replace<
+        Foo<
+            'innerContextLongLongLong,
+            'bb -> 'b
+         >
+     >("../../../", "....")
+"""
     |> prepend newline
-    |> should 
-        equal 
+    |> should
+        equal
         """
+path.Replace<
+    Foo<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+  >(
+      "../../../",
+      "...."
+  )
         """
-        
+
 [<Test>]
-let ``test for AppWithLambda`` () =
-    formatSourceString false 
+let ``Multiline type argument with AppSingleParenArg`` () =
+    forcedLongDefnConfig
+    |> formatSourceString
         """
-"""     
-        config
+someFunc<
+        Foo<
+            'innerContextLongLongLong,
+            'bb -> 'b
+         >
+     >(a,b)
+"""
     |> prepend newline
-    |> should 
-        equal 
+    |> should
+        equal
         """
-        """
-        
+someFunc<
+        Foo<
+            'innerContextLongLongLong,
+            'bb -> 'b
+         >
+     >(a,b)
+"""
+
 [<Test>]
-let ``test for NestedIndexWithoutDot`` () =
-    formatSourceString false 
+let ``Multiline type argument with AppWithLambda`` () =
+    forcedLongDefnConfig
+    |> formatSourceString
         """
-"""     
-        config
+someFunc<
+    Bar<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+ > (fun x -> x)
+"""
     |> prepend newline
-    |> should 
-        equal 
+    |> should
+        equal
         """
         """
-        
+
 [<Test>]
-let ``test for EndsWithDualListApp`` () =
-    formatSourceString false 
+let ``Multiline type argument with NestedIndexWithoutDot`` () =
+    forcedLongDefnConfig
+    |> formatSourceString
         """
-"""     
-        config
+something<
+        Foo<
+            'innerContextLongLongLong,
+            'bb -> 'b
+         >
+     >["thing"][8](a,b)
+"""
     |> prepend newline
-    |> should 
-        equal 
+    |> should
+        equal
         """
-        """
-        
+something<
+    Foo<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+ >["thing"][8](a,b)
+"""
+
 [<Test>]
-let ``test for EndsWithSingleListApp`` () =
-    formatSourceString false 
+let ``Multiline type argument with EndsWithDualListApp`` () =
+    forcedLongDefnConfig
+    |> formatSourceString
         """
-"""     
-        config
+div<
+    Bar<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+ > [ ClassName "container" ] [ str "meh" ]
+"""
     |> prepend newline
-    |> should 
-        equal 
+    |> should
+        equal
         """
+div<
+    Bar<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+ >
+    [ ClassName "container" ]
+    [ str "meh" ]
+"""
+
+[<Test>]
+let ``Multiline type argument with EndsWithSingleListApp`` () =
+    forcedLongDefnConfig
+    |> formatSourceString
         """
-        
+input<
+    Bar<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+ > [ Type "text" ]
+"""
+    |> prepend newline
+    |> should
+        equal
+        """
+input<
+    Bar<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+ >
+    [ Type "text" ]
+"""

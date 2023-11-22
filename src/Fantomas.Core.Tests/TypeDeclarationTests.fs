@@ -2839,7 +2839,6 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
 [<Test>]
 let ``multiple nested generic types`` () =
     formatSourceString
-        false
         """
 let bv =
     unbox<
@@ -2872,7 +2871,6 @@ let bv =
 [<Test>]
 let ``Trivia inside multiline generic type parameters`` () =
     formatSourceString
-        false
         """
 type X =
     Teq< //

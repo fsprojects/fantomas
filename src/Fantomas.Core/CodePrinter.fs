@@ -3150,6 +3150,7 @@ let genType (t: Type) =
         +> leadingExpressionIsMultiline (colGenericTypeParameters node.Arguments) (fun isMultiline ->
             onlyIf isMultiline (!- " "))
         +> addExtraSpace
+        // TODO: I think we need to add a space here
         +> genSingleTextNode node.GreaterThan
         |> genNode node
     | Type.StructTuple node ->
