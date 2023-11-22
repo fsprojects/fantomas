@@ -10,7 +10,11 @@ module String =
 val config: FormatConfig
 val newline: string
 
+/// Format code for a signature (.fsi) file.
 val formatSignatureString: (string -> FormatConfig -> string)
+
+/// Format code for an implementation (.fs or .fsx) file.
+/// Use formstSignatureString if to format code for a .fsi file.
 val formatSourceString: (string -> FormatConfig -> string)
 
 /// The `source` will first be parsed to AST.
