@@ -350,7 +350,7 @@ let main argv =
     let check = results.Contains <@ Arguments.Check @>
     let isDaemon = results.Contains <@ Arguments.Daemon @>
 
-    let partitionResults (results: #seq<FormatResult>) =
+    let partitionResults (results: #(FormatResult seq)) =
         (([], [], [], []), results)
         ||> Seq.fold (fun (oks, ignores, unchanged, errors) next ->
             match next with
@@ -362,7 +362,7 @@ let main argv =
                 let ex = invalidResultException file
                 (oks, ignores, unchanged, (file, ex) :: errors))
 
-    let reportFormatResults (results: #seq<FormatResult>) =
+    let reportFormatResults (results: #(FormatResult seq)) =
         let reportError (file, exn: Exception) =
             let message =
                 match verbosity with
@@ -390,7 +390,7 @@ let main argv =
                 |> List.sortBy fst
                 |> List.fold
                     (fun (t: Table) (f, p) ->
-                        t.AddRow([| f; string p.LineCount; p.TimeTaken.ToString("mm\:ss\.fff") |]))
+                        t.AddRow([| f; string<int> p.LineCount; p.TimeTaken.ToString("mm\:ss\.fff") |]))
                     table
                 |> AnsiConsole.Write
 
@@ -426,13 +426,13 @@ let main argv =
             Table()
                 .AddColumns(
                     [| "[green]Formatted[/]"
-                       string oks.Length
+                       string<int> oks.Length
                        "Ignored"
-                       string ignored.Length
+                       string<int> ignored.Length
                        "[blue]Unchanged[/]"
-                       string unchanged.Length
+                       string<int> unchanged.Length
                        "[red]Errored[/]"
-                       string errored.Length |]
+                       string<int> errored.Length |]
                     |> Array.map centeredColumn
                 )
                 .SetBorder(TableBorder.MinimalDoubleHead)

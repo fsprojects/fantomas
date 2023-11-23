@@ -25,15 +25,15 @@
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
-        "requested": "[0.3.1, )",
-        "resolved": "0.3.1",
-        "contentHash": "XDA1uHaPBVM65YASFSnrX/cfgMLfDm6rXZotv4TAIDh52vKt9lPIwxQxbX9JlsmIZ1LfVvq0/+4J+EKo2vl0Ig=="
+        "requested": "[0.4.0, )",
+        "resolved": "0.4.0",
+        "contentHash": "+eZ7Xmq6W9X31X/vYfMi93Zxg6t8oFnZhrsVOWOS6NfQsFYyk3kF+YEq8JqO5DEFPwf9YlvJpjcf+3hOx99yKw=="
       },
       "Ionide.Analyzers": {
         "type": "Direct",
-        "requested": "[0.4.0, )",
-        "resolved": "0.4.0",
-        "contentHash": "8ZwHwSRU7wkYFDCeFJ7Lp54bp0eccjcvmsS3jS/HKJc9kw5qMvZh+5XvfIC9IynHGSIhV6wv5R0R+9a51mjt3g=="
+        "requested": "[0.5.0, )",
+        "resolved": "0.5.0",
+        "contentHash": "dAjYoWOMhAYM10Q4bfSLbrDokuMtH0XjLFgKTp7N9qEy7goZIx/LPe2Wo9Qrpnulj50JgYtbO5V4KEUw8C/T1A=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",

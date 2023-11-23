@@ -124,7 +124,7 @@ let ``traversing collections`` () =
     // It is easy to compose a function when everything is fixed, but what to do when the AST has a list of items?
     let items = [ 2; 3; 4 ]
     // The `col` function will traverse the collection and apply the first function between elements and the last function for each individual element.
-    let f (items: seq<int>) : Context -> Context =
+    let f (items: int seq) : Context -> Context =
         col (!- " + ") items (fun (item: int) -> !- $"{item}")
 
     // Note that there are some variants of `col` that can be used to process a collection in a different way.

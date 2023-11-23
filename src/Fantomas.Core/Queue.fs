@@ -2,7 +2,7 @@ namespace Fantomas.Core
 
 /// append only collection optimized for quick append of block of data and query operations
 /// data - list of blocks in reverse order
-type Queue<'T>(data: list<'T array>, length: int) =
+type Queue<'T>(data: 'T array list, length: int) =
     let mutable hashCode = None
 
     override x.GetHashCode() =
@@ -118,12 +118,12 @@ module Queue =
     let ofList xs =
         Queue<'T>([ List.toArray xs ], List.length xs)
 
-    let ofSeq (xs: seq<_>) =
+    let ofSeq (xs: _ seq) =
         Queue<'T>([ Seq.toArray xs ], Seq.length xs)
 
     let inline rev (q: Queue<'T>) = q.Rev()
 
-    let inline toSeq (q: Queue<'T>) = q :> seq<'T>
+    let inline toSeq (q: Queue<'T>) = q :> 'T seq
 
     let inline append (q: Queue<'T>) xs = q.Append xs
 

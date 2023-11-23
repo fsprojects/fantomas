@@ -436,7 +436,7 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
 let (!-) (str: string) = writerEvent (Write str)
 
 /// Similar to col, and supply index as well
-let coli f' (c: seq<'T>) f (ctx: Context) =
+let coli f' (c: 'T seq) f (ctx: Context) =
     let mutable tryPick = true
     let mutable st = ctx
     let mutable i = 0
@@ -453,7 +453,7 @@ let coli f' (c: seq<'T>) f (ctx: Context) =
 /// Process collection - keeps context through the whole processing
 /// calls f for every element in sequence and f' between every two elements
 /// as a separator. This is a variant that works on typed collections.
-let col f' (c: seq<'T>) f (ctx: Context) =
+let col f' (c: 'T seq) f (ctx: Context) =
     let mutable tryPick = true
     let mutable st = ctx
     let e = c.GetEnumerator()
@@ -465,7 +465,7 @@ let col f' (c: seq<'T>) f (ctx: Context) =
     st
 
 // Similar to col but pass the item of 'T to f' as well
-let colEx f' (c: seq<'T>) f (ctx: Context) =
+let colEx f' (c: 'T seq) f (ctx: Context) =
     let mutable tryPick = true
     let mutable st = ctx
     let e = c.GetEnumerator()
@@ -477,11 +477,11 @@ let colEx f' (c: seq<'T>) f (ctx: Context) =
     st
 
 /// Similar to col, apply one more function f2 at the end if the input sequence is not empty
-let colPost f2 f1 (c: seq<'T>) f (ctx: Context) =
+let colPost f2 f1 (c: 'T seq) f (ctx: Context) =
     if Seq.isEmpty c then ctx else f2 (col f1 c f ctx)
 
 /// Similar to col, apply one more function f2 at the beginning if the input sequence is not empty
-let colPre f2 f1 (c: seq<'T>) f (ctx: Context) =
+let colPre f2 f1 (c: 'T seq) f (ctx: Context) =
     if Seq.isEmpty c then ctx else col f1 c f (f2 ctx)
 
 /// If there is a value, apply f and f' accordingly, otherwise do nothing
@@ -837,7 +837,7 @@ let exceedsWidth maxWidth f (ctx: Context) =
     || currentColumn > ctx.Config.MaxLineLength
 
 /// Similar to col, skip auto newline for index 0
-let colAutoNlnSkip0i f' (c: seq<'T>) f (ctx: Context) =
+let colAutoNlnSkip0i f' (c: 'T seq) f (ctx: Context) =
     coli
         f'
         c

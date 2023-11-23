@@ -67,7 +67,7 @@ let noa<'n when 'n :> Node> (n: 'n option) =
     | None -> Array.empty
     | Some n -> [| n :> Node |]
 
-let nodes<'n when 'n :> Node> (ns: seq<'n>) = Seq.cast<Node> ns
+let nodes<'n when 'n :> Node> (ns: 'n seq) = Seq.cast<Node> ns
 
 let nodeRange (n: Node) = n.Range
 

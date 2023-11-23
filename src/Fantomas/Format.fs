@@ -144,7 +144,7 @@ module Format =
     /// Returns:
     ///
     /// A record with the file names that were formatted and the files that encounter problems while formatting.
-    let checkCode (filenames: seq<string>) =
+    let checkCode (filenames: string seq) =
         async {
             let! formatted =
                 filenames

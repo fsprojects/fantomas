@@ -392,43 +392,43 @@ let formatSelection
             |> Option.bind (findNode selection)
             |> Option.map mkTreeWithSingleNode
 
-        if treeWithSelection.IsNone then
-            raise (FormatException("No suitable AST node was found for the given selection."))
+        match treeWithSelection with
+        | None -> return raise (FormatException("No suitable AST node was found for the given selection."))
+        | Some tree ->
+            let maxLineLength = config.MaxLineLength - selection.StartColumn
 
-        let tree = treeWithSelection.Value
-        let maxLineLength = config.MaxLineLength - selection.StartColumn
+            let selectionConfig =
+                { config with
+                    InsertFinalNewline = false
+                    MaxLineLength = maxLineLength }
 
-        let selectionConfig =
-            { config with
-                InsertFinalNewline = false
-                MaxLineLength = maxLineLength }
+            let formattedSelection =
+                let context = Context.Context.Create selectionConfig
 
-        let formattedSelection =
-            let context = Context.Context.Create selectionConfig
+                match tree with
+                | TreeForSelection.Unsupported ->
+                    raise (FormatException("The current selection is not supported right now."))
+                | TreeForSelection.Standalone tree ->
+                    let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
 
-            match tree with
-            | TreeForSelection.Unsupported ->
-                raise (FormatException("The current selection is not supported right now."))
-            | TreeForSelection.Standalone tree ->
-                let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
+                    CodePrinter.genFile enrichedTree context
+                    |> Context.dump true
+                    |> fun result -> result.Code
+                | TreeForSelection.RequiresExtraction(tree, t) ->
+                    let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
 
-                CodePrinter.genFile enrichedTree context
-                |> Context.dump true
-                |> fun result -> result.Code
-            | TreeForSelection.RequiresExtraction(tree, t) ->
-                let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
+                    let { Code = formattedCode } =
+                        CodePrinter.genFile enrichedTree context |> Context.dump true
 
-                let { Code = formattedCode } =
-                    CodePrinter.genFile enrichedTree context |> Context.dump true
+                    let source = SourceText.ofString formattedCode
+                    let formattedAST, _ = Fantomas.FCS.Parse.parseFile isSignature source []
+                    let formattedTree = ASTTransformer.mkOak (Some source) formattedAST
+                    let rangeOfSelection = findRangeOf t formattedTree
 
-                let source = SourceText.ofString formattedCode
-                let formattedAST, _ = Fantomas.FCS.Parse.parseFile isSignature source []
-                let formattedTree = ASTTransformer.mkOak (Some source) formattedAST
-                let rangeOfSelection = findRangeOf t formattedTree
+                    match rangeOfSelection with
+                    | None ->
+                        raise (FormatException("No suitable AST node could be extracted from formatted selection."))
+                    | Some m -> source.GetContentAt m
 
-                match rangeOfSelection with
-                | None -> raise (FormatException("No suitable AST node could be extracted from formatted selection."))
-                | Some m -> source.GetContentAt m
-
-        return formattedSelection.TrimEnd([| '\r'; '\n' |]), selection
+            return formattedSelection.TrimEnd([| '\r'; '\n' |]), selection
     }

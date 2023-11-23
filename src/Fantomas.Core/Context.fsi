@@ -103,19 +103,19 @@ val (+>): ctx: (Context -> Context) -> f: (Context -> Context) -> x: Context -> 
 val (!-): str: string -> (Context -> Context)
 
 /// Similar to col, and supply index as well
-val coli: f': (Context -> Context) -> c: seq<'T> -> f: (int -> 'T -> Context -> Context) -> ctx: Context -> Context
+val coli: f': (Context -> Context) -> c: 'T seq -> f: (int -> 'T -> Context -> Context) -> ctx: Context -> Context
 
 /// Process collection - keeps context through the whole processing
 /// calls f for every element in sequence and f' between every two elements
 /// as a separator. This is a variant that works on typed collections.
-val col: f': (Context -> Context) -> c: seq<'T> -> f: ('T -> Context -> Context) -> ctx: Context -> Context
-val colEx: f': ('T -> Context -> Context) -> c: seq<'T> -> f: ('T -> Context -> Context) -> ctx: Context -> Context
+val col: f': (Context -> Context) -> c: 'T seq -> f: ('T -> Context -> Context) -> ctx: Context -> Context
+val colEx: f': ('T -> Context -> Context) -> c: 'T seq -> f: ('T -> Context -> Context) -> ctx: Context -> Context
 
 /// Similar to col, apply one more function f2 at the end if the input sequence is not empty
 val colPost:
     f2: (Context -> Context) ->
     f1: (Context -> Context) ->
-    c: seq<'T> ->
+    c: 'T seq ->
     f: ('T -> Context -> Context) ->
     ctx: Context ->
         Context
@@ -124,7 +124,7 @@ val colPost:
 val colPre:
     f2: (Context -> Context) ->
     f1: (Context -> Context) ->
-    c: seq<'T> ->
+    c: 'T seq ->
     f: ('T -> Context -> Context) ->
     ctx: Context ->
         Context
@@ -243,7 +243,7 @@ val futureNlnCheck: f: (Context -> Context) -> ctx: Context -> bool
 val exceedsWidth: maxWidth: int -> f: (Context -> Context) -> ctx: Context -> bool
 
 /// Similar to col, skip auto newline for index 0
-val colAutoNlnSkip0: f': (Context -> Context) -> c: seq<'a> -> f: ('a -> Context -> Context) -> (Context -> Context)
+val colAutoNlnSkip0: f': (Context -> Context) -> c: 'a seq -> f: ('a -> Context -> Context) -> (Context -> Context)
 val sepSpaceBeforeClassConstructor: ctx: Context -> Context
 val sepColon: ctx: Context -> Context
 val sepColonFixed: (Context -> Context)

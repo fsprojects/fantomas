@@ -45,4 +45,4 @@ module Format =
     /// Returns:
     ///
     /// A record with the file names that were formatted and the files that encounter problems while formatting.
-    val checkCode: filenames: seq<string> -> Async<CheckResult>
+    val checkCode: filenames: string seq -> Async<CheckResult>
