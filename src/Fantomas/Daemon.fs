@@ -150,7 +150,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                         Some(
                             Encode.object
                                 [ yield "type", Encode.string "number"
-                                  yield "defaultValue", Encode.string (string i)
+                                  yield "defaultValue", Encode.string (string<int> i)
                                   yield! meta ]
                         )
                     | :? MultilineFormatterType as m ->

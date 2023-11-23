@@ -12,7 +12,7 @@ module Reflection =
 
     val inline getRecordFields: x: 'a -> (FSharpRecordField * obj) array
 
-val toEditorConfigName: value: seq<char> -> string
+val toEditorConfigName: value: char seq -> string
 
 val parseOptionsFromEditorConfig:
     fallbackConfig: FormatConfig ->
