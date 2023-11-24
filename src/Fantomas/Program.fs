@@ -29,7 +29,7 @@ type Arguments =
             | Profile -> "Print performance profiling information."
             | Check ->
                 "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
-            | Daemon -> "Daemon mode, launches an LSP-like server to can be used by editor tooling."
+            | Daemon -> "Daemon mode, launches an LSP-like server that can be used by editor tooling."
             | Version -> "Displays the version of Fantomas"
             | Input _ ->
                 sprintf
