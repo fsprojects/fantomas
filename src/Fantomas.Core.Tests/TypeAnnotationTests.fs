@@ -262,23 +262,11 @@ let private asJson (arm: IArmResource) =
        >
 """
 
-let forcedLongDefnConfig =
-    { config with
-        MaxLineLength = 30
-        SpaceBeforeUppercaseInvocation = true
-        SpaceBeforeClassConstructor = true
-        SpaceBeforeMember = true
-        SpaceBeforeColon = true
-        SpaceBeforeSemicolon = true
-        MultilineBracketStyle = Aligned
-        AlignFunctionSignatureToIndentation = true
-        // AlternativeLongMemberDefinitions = true
-        MultiLineLambdaClosingNewline = true
-        NewlineBetweenTypeDefinitionAndMembers = false }
-
 [<Test>]
 let ``type application including nested multiline function type`` () =
-    forcedLongDefnConfig
+    { config with
+        MaxLineLength = 30
+        MultilineBracketStyle = Aligned }
     |> formatSourceString
         """
 let bv = unbox<Foo<'innerContextLongLongLong, 'bb -> 'b>> bf
@@ -391,7 +379,9 @@ path.Replace<
 
 [<Test>]
 let ``Multiline type argument with AppSingleParenArg`` () =
-    forcedLongDefnConfig
+    { config with
+        MaxLineLength = 30
+        MultilineBracketStyle = Aligned }
     |> formatSourceString
         """
 someFunc<
@@ -415,7 +405,9 @@ someFunc<
 
 [<Test>]
 let ``Multiline type argument with AppWithLambda`` () =
-    forcedLongDefnConfig
+    { config with
+        MaxLineLength = 30
+        MultilineBracketStyle = Aligned }
     |> formatSourceString
         """
 someFunc<
@@ -433,7 +425,9 @@ someFunc<
 
 [<Test>]
 let ``Multiline type argument with NestedIndexWithoutDot`` () =
-    forcedLongDefnConfig
+    { config with
+        MaxLineLength = 30
+        MultilineBracketStyle = Aligned }
     |> formatSourceString
         """
 something<
@@ -457,7 +451,9 @@ something<
 
 [<Test>]
 let ``Multiline type argument with EndsWithDualListApp`` () =
-    forcedLongDefnConfig
+    { config with
+        MaxLineLength = 30
+        MultilineBracketStyle = Aligned }
     |> formatSourceString
         """
 div<
@@ -483,7 +479,9 @@ div<
 
 [<Test>]
 let ``Multiline type argument with EndsWithSingleListApp`` () =
-    forcedLongDefnConfig
+    { config with
+        MaxLineLength = 30
+        MultilineBracketStyle = Aligned }
     |> formatSourceString
         """
 input<
