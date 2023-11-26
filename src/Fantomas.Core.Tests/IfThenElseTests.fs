@@ -2599,3 +2599,23 @@ else
     let res = typesEqual (resT :: argTs) (haveResT :: haveArgTs)
     res
 """
+
+[<Test>]
+let ``always force list items to be on separate lines in if/then/else, 2972`` () =
+    formatSourceString
+        """
+[
+    if 1 = 1 then 1 else 2
+    3
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    if 1 = 1 then 1 else 2
+    3
+]
+"""

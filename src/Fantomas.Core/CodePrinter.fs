@@ -1803,29 +1803,13 @@ let genArrayOrList (preferMultilineCramped: bool) (node: ExprArrayOrListNode) =
 
         fun ctx ->
             let alwaysMultiline =
-                let isIfThenElseWithYieldReturn e =
-                    let (|YieldLikeExpr|_|) e =
-                        match e with
-                        | Expr.Single singleNode ->
-                            if String.startsWithOrdinal "yield" singleNode.Leading.Text then
-                                Some e
-                            else
-                                None
-                        | _ -> None
-
-                    match e with
-                    | Expr.IfThen ifThenNode ->
-                        match ifThenNode.ThenExpr with
-                        | YieldLikeExpr _ -> true
-                        | _ -> false
-                    | Expr.IfThenElse ifThenElseNode ->
-                        match ifThenElseNode.IfExpr, ifThenElseNode.ElseExpr with
-                        | YieldLikeExpr _, _
-                        | _, YieldLikeExpr _ -> true
-                        | _ -> false
+                let isIfThenElse =
+                    function
+                    | Expr.IfThen _
+                    | Expr.IfThenElse _ -> true
                     | _ -> false
 
-                List.exists isIfThenElseWithYieldReturn node.Elements
+                List.exists isIfThenElse node.Elements
                 || List.forall isLambdaOrIfThenElse node.Elements
 
             if alwaysMultiline then
