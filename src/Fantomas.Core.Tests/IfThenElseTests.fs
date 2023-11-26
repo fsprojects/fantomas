@@ -1,5 +1,6 @@
 module Fantomas.Core.Tests.IfThenElseTests
 
+open Fantomas.Core
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelpers
@@ -2609,7 +2610,8 @@ let ``always force list items to be on separate lines in if/then/else, 2972`` ()
     3
 ]
 """
-        config
+        { config with
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal
