@@ -5,24 +5,24 @@ open Fantomas.FCS.Text
 open Fantomas.FCS.Syntax
 open Fantomas.FCS.Parse
 
-let private safeToIgnoreWarnings =
-    set
-        [ "This construct is deprecated: it is only for use in the F# library"
-          "Identifiers containing '@' are reserved for use in F# code generation" ]
+let safeToIgnoreWarnings =
+    function
+    | "This construct is deprecated: it is only for use in the F# library"
+    | "Identifiers containing '@' are reserved for use in F# code generation"
+    | String.IsMatch "The identifier '\w+' is reserved for future use by F#" -> true
+    | _ -> false
 
 // Exception of type 'Fantomas.FCS.DiagnosticsLogger+LibraryUseOnly' was thrown.
 
 let noWarningOrErrorDiagnostics diagnostics =
-    let errors =
-        diagnostics
-        |> List.filter (fun e ->
-            match e.Severity with
-            | FSharpDiagnosticSeverity.Error -> true
-            | FSharpDiagnosticSeverity.Hidden
-            | FSharpDiagnosticSeverity.Info -> false
-            | FSharpDiagnosticSeverity.Warning -> not (safeToIgnoreWarnings.Contains(e.Message)))
-
-    List.isEmpty errors
+    diagnostics
+    |> List.filter (fun e ->
+        match e.Severity with
+        | FSharpDiagnosticSeverity.Error -> true
+        | FSharpDiagnosticSeverity.Hidden
+        | FSharpDiagnosticSeverity.Info -> false
+        | FSharpDiagnosticSeverity.Warning -> not (safeToIgnoreWarnings e.Message))
+    |> List.isEmpty
 
 /// Check whether an input string is invalid in F# by looking for errors and warnings in the diagnostics.
 let isValidFSharpCode (isSignature: bool) (source: string) : Async<bool> =

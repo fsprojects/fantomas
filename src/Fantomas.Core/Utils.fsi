@@ -7,6 +7,7 @@ module String =
     val empty: string
     val isNotNullOrEmpty: (string -> bool)
     val isNotNullOrWhitespace: (string -> bool)
+    val (|IsMatch|_|): pattern: string -> input: string -> unit option
 
 module List =
     val chooseState: f: ('a -> 'b -> 'a * 'c option) -> state: 'a -> l: 'b list -> 'c list

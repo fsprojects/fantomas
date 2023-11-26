@@ -5,6 +5,8 @@ open Microsoft.FSharp.Core.CompilerServices
 
 [<RequireQualifiedAccess>]
 module String =
+    open System.Text.RegularExpressions
+
     let startsWithOrdinal (prefix: string) (str: string) =
         str.StartsWith(prefix, StringComparison.Ordinal)
 
@@ -14,6 +16,9 @@ module String =
     let empty = String.Empty
     let isNotNullOrEmpty = String.IsNullOrEmpty >> not
     let isNotNullOrWhitespace = String.IsNullOrWhiteSpace >> not
+
+    let (|IsMatch|_|) pattern input =
+        if Regex.IsMatch(input, pattern) then Some() else None
 
 module List =
     let chooseState f state l =
