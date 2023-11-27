@@ -229,10 +229,10 @@ val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth: expr: (Context -> Contex
 val sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
 
 val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup:
-    f: (Expr -> Context -> Context) -> expr: Expr -> (Context -> Context)
+    f: (Expr -> Context -> Context) -> expr: Expr -> ctx: Context -> Context
 
 val sepSpaceOrIndentAndNlnIfTypeExceedsPageWidthUnlessStroustrup:
-    f: (Type -> Context -> Context) -> t: Type -> (Context -> Context)
+    f: (Type -> Context -> Context) -> t: Type -> ctx: Context -> Context
 
 val isStroustrupStyleExpr: config: FormatConfig -> e: Expr -> bool
 
