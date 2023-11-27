@@ -1049,12 +1049,15 @@ let parseFile
     let diagnostics =
         List.map
             (fun (p, severity) ->
+                // See https://github.com/dotnet/fsharp/blob/2a25184293e39a635217670652b00680de04472a/src/Compiler/Driver/CompilerDiagnostics.fs#L214
+                // for the error codes
                 let range, message, errorNumber =
                     match p.Exception with
                     | :? IndentationProblem as ip -> Some ip.Data1, ip.Data0, Some 58
                     | :? SyntaxError as se -> Some se.range, (getSyntaxErrorMessage se.Data0), Some 10
                     | :? LibraryUseOnly as luo -> Some luo.range, LibraryUseOnlyE().Format, Some 42
                     | :? DiagnosticWithText as dwt -> Some dwt.range, dwt.message, Some dwt.number
+                    | :? ReservedKeyword as rkw -> Some rkw.Data1, rkw.Data0, Some 46
                     | _ -> None, p.Exception.Message, None
 
                 { Severity = severity

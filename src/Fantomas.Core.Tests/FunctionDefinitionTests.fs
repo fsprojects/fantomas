@@ -111,43 +111,31 @@ let ``should keep identifiers with + in double backticks`` () =
 """
 
 [<Test>]
-let ``double backticks with non-alphanum character, 776`` () =
+[<TestCase "let ``!foo hoo`` () = ()">]
+[<TestCase "let ``@foo hoo`` () = ()">]
+[<TestCase "let ``$foo hoo`` () = ()">]
+[<TestCase "let ``%foo hoo`` () = ()">]
+[<TestCase "let ``^foo hoo`` () = ()">]
+[<TestCase "let ``&foo hoo`` () = ()">]
+[<TestCase "let ``*foo hoo`` () = ()">]
+[<TestCase "let ``<foo hoo`` () = ()">]
+[<TestCase "let ``>foo hoo`` () = ()">]
+[<TestCase "let ``=foo hoo`` () = ()">]
+[<TestCase "let ``-foo hoo`` () = ()">]
+[<TestCase "let ``!foo hoo`` () : unit = ()">]
+[<TestCase "let ``@foo hoo`` = ()">]
+[<TestCase "let ``$foo hoo``: unit = ()">]
+let ``double backticks with non-alphanum character, 776`` (input) =
     formatSourceString
-        """
-let ``!foo hoo`` () = ()
-let ``@foo hoo`` () = ()
-let ``$foo hoo`` () = ()
-let ``%foo hoo`` () = ()
-let ``^foo hoo`` () = ()
-let ``&foo hoo`` () = ()
-let ``*foo hoo`` () = ()
-let ``<foo hoo`` () = ()
-let ``>foo hoo`` () = ()
-let ``=foo hoo`` () = ()
-let ``-foo hoo`` () = ()
-let ``!foo hoo`` () : unit = ()
-let ``@foo hoo`` = ()
-let ``$foo hoo`` : unit = ()
+        $"""
+%s{input}
     """
         config
     |> prepend newline
     |> should
         equal
-        """
-let ``!foo hoo`` () = ()
-let ``@foo hoo`` () = ()
-let ``$foo hoo`` () = ()
-let ``%foo hoo`` () = ()
-let ``^foo hoo`` () = ()
-let ``&foo hoo`` () = ()
-let ``*foo hoo`` () = ()
-let ``<foo hoo`` () = ()
-let ``>foo hoo`` () = ()
-let ``=foo hoo`` () = ()
-let ``-foo hoo`` () = ()
-let ``!foo hoo`` () : unit = ()
-let ``@foo hoo`` = ()
-let ``$foo hoo``: unit = ()
+        $"""
+%s{input}
 """
 
 [<Test>]
