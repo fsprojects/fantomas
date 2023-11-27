@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+Always yield list items on separate lines if a conditional is present. [#3002](https://github.com/fsprojects/fantomas/pull/3002)
+
 ## 6.3.0-alpha-003 - 2023-11-15
 
 ### Fixed
