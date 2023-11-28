@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+## Fixed
+- Process is reserved keyword. [#2996](https://github.com/fsprojects/fantomas/issues/2996)
+
 ## 6.3.0-alpha-003 - 2023-11-15
 
 ### Fixed
