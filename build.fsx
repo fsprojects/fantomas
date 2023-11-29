@@ -167,7 +167,7 @@ pipeline "FormatChanged" {
                                     || line.EndsWith(".fsx", StringComparison.Ordinal)
                                     || line.EndsWith(".fsi", StringComparison.Ordinal))
                             then
-                                Some(line.Replace("AM ", "").Replace("M ", ""))
+                                Some(line.Replace("AM ", "").Replace("MM ", "").Replace("M ", ""))
                             else
                                 None)
                         |> String.concat " "
