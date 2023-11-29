@@ -1,5 +1,6 @@
 module Fantomas.Core.Tests.IfThenElseTests
 
+open Fantomas.Core
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelpers
@@ -2598,4 +2599,25 @@ else
 
     let res = typesEqual (resT :: argTs) (haveResT :: haveArgTs)
     res
+"""
+
+[<Test>]
+let ``always force list items to be on separate lines in if/then/else, 2972`` () =
+    formatSourceString
+        """
+[
+    if 1 = 1 then 1 else 2
+    3
+]
+"""
+        { config with
+            MultilineBracketStyle = Aligned }
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    if 1 = 1 then 1 else 2
+    3
+]
 """
