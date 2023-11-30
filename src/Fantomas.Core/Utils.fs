@@ -5,6 +5,7 @@ open Microsoft.FSharp.Core.CompilerServices
 
 [<RequireQualifiedAccess>]
 module String =
+
     let startsWithOrdinal (prefix: string) (str: string) =
         str.StartsWith(prefix, StringComparison.Ordinal)
 

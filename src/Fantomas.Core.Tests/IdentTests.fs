@@ -80,3 +80,17 @@ let ``process`` = 1
         """
 let ``process`` = 1
 """
+
+[<Test>]
+let ``allows processing when encountering reserved words`` () =
+    formatSourceString
+        """
+let process: IProcess = importAll "process"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let process: IProcess = importAll "process"
+"""

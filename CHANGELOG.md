@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+* Process is reserved keyword. [#2996](https://github.com/fsprojects/fantomas/issues/2996)
 * Always yield list items on separate lines if a conditional is present. [#2972](https://github.com/fsprojects/fantomas/issues/2972)
 
 ## 6.3.0-alpha-003 - 2023-11-15

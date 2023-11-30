@@ -5,24 +5,28 @@ open Fantomas.FCS.Text
 open Fantomas.FCS.Syntax
 open Fantomas.FCS.Parse
 
-let private safeToIgnoreWarnings =
+// See https://github.com/dotnet/fsharp/blob/2a25184293e39a635217670652b00680de04472a/src/Compiler/Driver/CompilerDiagnostics.fs#L214
+// and https://github.com/dotnet/fsharp/blob/b7e747921515ae7939c7cb6885513eb80ec7ca2f/src/Compiler/FSComp.txt
+// for error codes
+let safeToIgnoreWarnings =
     set
-        [ "This construct is deprecated: it is only for use in the F# library"
-          "Identifiers containing '@' are reserved for use in F# code generation" ]
-
-// Exception of type 'Fantomas.FCS.DiagnosticsLogger+LibraryUseOnly' was thrown.
+        [ 35 // Deprecated
+          42 // LibraryUseOnly
+          46 // ReservedKeyword
+          1104 ] // lexhlpIdentifiersContainingAtSymbolReserved
 
 let noWarningOrErrorDiagnostics diagnostics =
-    let errors =
-        diagnostics
-        |> List.filter (fun e ->
-            match e.Severity with
-            | FSharpDiagnosticSeverity.Error -> true
-            | FSharpDiagnosticSeverity.Hidden
-            | FSharpDiagnosticSeverity.Info -> false
-            | FSharpDiagnosticSeverity.Warning -> not (safeToIgnoreWarnings.Contains(e.Message)))
-
-    List.isEmpty errors
+    diagnostics
+    |> List.filter (fun e ->
+        match e.Severity with
+        | FSharpDiagnosticSeverity.Error -> true
+        | FSharpDiagnosticSeverity.Hidden
+        | FSharpDiagnosticSeverity.Info -> false
+        | FSharpDiagnosticSeverity.Warning ->
+            match e.ErrorNumber with
+            | None -> true
+            | Some errorNumber -> not (safeToIgnoreWarnings.Contains(errorNumber)))
+    |> List.isEmpty
 
 /// Check whether an input string is invalid in F# by looking for errors and warnings in the diagnostics.
 let isValidFSharpCode (isSignature: bool) (source: string) : Async<bool> =
