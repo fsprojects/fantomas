@@ -3611,17 +3611,20 @@ let genTypeInSignature (t: Type) =
     | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
 
 let genField (node: FieldNode) =
+    let genAccessAndFieldContent =
+        genAccessOpt node.Accessibility
+        +> (match node.Name with
+            | None -> genType node.Type
+            | Some name ->
+                genSingleTextNode name
+                +> sepColon
+                +> autoIndentAndNlnTypeUnlessStroustrup genType node.Type)
+
     genXml node.XmlDoc
     +> genAttributes node.Attributes
     +> optSingle (fun lk -> genMultipleTextsNode lk +> sepSpace) node.LeadingKeyword
-    +> optSingle (fun mk -> genSingleTextNode mk +> sepSpace) node.MutableKeyword
-    +> genAccessOpt node.Accessibility
-    +> (match node.Name with
-        | None -> genType node.Type
-        | Some name ->
-            genSingleTextNode name
-            +> sepColon
-            +> autoIndentAndNlnTypeUnlessStroustrup genType node.Type)
+    +> optSingle (fun mk -> genSingleTextNode mk +> onlyIfNot mk.HasContentAfter sepSpace) node.MutableKeyword
+    +> ifElseCtx hasWriteBeforeNewlineContent (indentSepNlnUnindent genAccessAndFieldContent) genAccessAndFieldContent
     |> genNode node
 
 let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
