@@ -2046,7 +2046,7 @@ type FieldNode
         xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode option,
         leadingKeyword: MultipleTextsNode option,
-        isMutable: bool,
+        mutableKeyword: SingleTextNode option,
         accessibility: SingleTextNode option,
         name: SingleTextNode option,
         t: Type,
@@ -2058,6 +2058,7 @@ type FieldNode
         [| yield! noa xmlDoc
            yield! noa attributes
            yield! noa leadingKeyword
+           yield! noa mutableKeyword
            yield! noa accessibility
            yield! noa name
            yield Type.Node t |]
@@ -2065,7 +2066,7 @@ type FieldNode
     member val XmlDoc = xmlDoc
     member val Attributes = attributes
     member val LeadingKeyword = leadingKeyword
-    member val IsMutable = isMutable
+    member val MutableKeyword = mutableKeyword
     member val Accessibility = accessibility
     member val Name = name
     member val Type = t

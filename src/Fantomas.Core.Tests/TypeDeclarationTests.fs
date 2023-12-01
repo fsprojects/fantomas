@@ -3531,3 +3531,27 @@ let typographyLabel<'msg, 'marker & #IFabLabel & #IFoo & #Bar>() = ()
         """
 let typographyLabel<'msg, 'marker & #IFabLabel & #IFoo & #Bar> () = ()
 """
+
+[<Test>]
+let ``trivia after mutable keyword, 3005`` () =
+    formatSourceString
+        """
+type R =
+    {
+        F1: int
+        mutable // voobar
+            F2: int
+        F3: int
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type R =
+    { F1: int
+      mutable // voobar
+          F2: int
+      F3: int }
+"""

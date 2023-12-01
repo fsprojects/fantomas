@@ -5,6 +5,10 @@
 ### Fixed
 * Process is reserved keyword. [#2996](https://github.com/fsprojects/fantomas/issues/2996)
 * Always yield list items on separate lines if a conditional is present. [#2972](https://github.com/fsprojects/fantomas/issues/2972)
+* Trivia after mutable keyword is missing. [#3005](https://github.com/fsprojects/fantomas/issues/3005)
+
+### Changed
+* Update FCS to 'Parser: recover on unfinished record decls, fix field ranges ', commit ee4a810ffe9e984e2ec8c55a9cb6d1c6631dd0b3 [#3006](https://github.com/fsprojects/fantomas/pull/3006)
 
 ## 6.3.0-alpha-003 - 2023-11-15
 
