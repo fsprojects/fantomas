@@ -5,7 +5,7 @@
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
-    <title>InheritConstructorParenNode (fantomas) | fantomas</title>
+    <title>InterruptibleLazy<'T> (fantomas) | fantomas</title>
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
@@ -266,31 +266,21 @@
     <div id="content">
         <div>
   <h2>
-    InheritConstructorParenNode Type
+    InterruptibleLazy<'T> Type
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
       Namespace: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core.html">
-        Fantomas.Core
+      <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library.html">
+        Internal.Utilities.Library
       </a>
     </dt>
     <dt>
-      Assembly: Fantomas.Core.dll
-    </dt>
-    <dt>
-      Parent Module: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak.html">
-        SyntaxOak
-      </a>
+      Assembly: Fantomas.FCS.dll
     </dt>
     <dt>
       Base Type: 
-      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-nodebase.html">NodeBase</a></code>
-    </dt>
-    <dt>
-      All Interfaces: 
-      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-node.html">Node</a></code>
+      <code>obj</code>
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
@@ -325,60 +315,36 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '3638', 3638)" onmouseover="showTip(event, '3638', 3638)">
+              <code onmouseout="hideTip(event, '7368', 7368)" onmouseover="showTip(event, '7368', 7368)">
                 <p>
                   <a id="``.ctor``">
                     <a href="#``.ctor``">
-                      <code><span>InheritConstructorParenNode<span><span>(<span>inheritKeyword,&#32;t,&#32;expr,&#32;range</span>)</span></span></span></code>
+                      <code><span>InterruptibleLazy<span><span>(<span>valueFactory</span>)</span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="3638">
+              <div class="fsdocs-tip" id="7368">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>InheritConstructorParenNode<span><span>(<span>inheritKeyword,&#32;t,&#32;expr,&#32;range</span>)</span></span></span></code>
+                  <code><span>InterruptibleLazy<span><span>(<span>valueFactory</span>)</span></span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        inheritKeyword
+                        valueFactory
                       </b>
                       :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        t
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-type.html">Type</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        expr
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        range
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+                      <code><span>unit&#32;->&#32;'T</span></code>
                     </span>
                     <br/>
                   </ul>
                   <br/>
                   <span>
                     Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-inheritconstructorparennode.html">InheritConstructorParenNode</a></code>
+                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-interruptiblelazy-1.html">InterruptibleLazy</a>&lt;'T&gt;</span></code>
                   </span>
                   <br/>
                 </div>
@@ -389,34 +355,10 @@
             <dl class="fsdocs-params">
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
-                  inheritKeyword
+                  valueFactory
                 </span>
                 :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  t
-                </span>
-                :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-type.html">Type</a></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  expr
-                </span>
-                :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  range
-                </span>
-                :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+                <code><span>unit&#32;->&#32;'T</span></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
             </dl>
@@ -425,7 +367,7 @@
                 <span class="fsdocs-return-name">
                   Returns: 
                 </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-inheritconstructorparennode.html">InheritConstructorParenNode</a></code>
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-interruptiblelazy-1.html">InterruptibleLazy</a>&lt;'T&gt;</span></code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -453,24 +395,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '3639', 3639)" onmouseover="showTip(event, '3639', 3639)">
+              <code onmouseout="hideTip(event, '7369', 7369)" onmouseover="showTip(event, '7369', 7369)">
                 <p>
-                  <a id="Expr">
-                    <a href="#Expr">
-                      <code><span>this.Expr</span></code>
+                  <a id="Force">
+                    <a href="#Force">
+                      <code><span>this.Force</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="3639">
+              <div class="fsdocs-tip" id="7369">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.Expr</span></code>
+                  <code><span>this.Force</span></code>
                   <br/>
                   <br/>
                   <span>
                     Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                    <code>'T</code>
                   </span>
                   <br/>
                 </div>
@@ -483,7 +425,7 @@
                 <span class="fsdocs-return-name">
                   Returns: 
                 </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                <code>'T</code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -492,24 +434,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '3640', 3640)" onmouseover="showTip(event, '3640', 3640)">
+              <code onmouseout="hideTip(event, '7370', 7370)" onmouseover="showTip(event, '7370', 7370)">
                 <p>
-                  <a id="InheritKeyword">
-                    <a href="#InheritKeyword">
-                      <code><span>this.InheritKeyword</span></code>
+                  <a id="IsValueCreated">
+                    <a href="#IsValueCreated">
+                      <code><span>this.IsValueCreated</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="3640">
+              <div class="fsdocs-tip" id="7370">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.InheritKeyword</span></code>
+                  <code><span>this.IsValueCreated</span></code>
                   <br/>
                   <br/>
                   <span>
                     Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                    <code>bool</code>
                   </span>
                   <br/>
                 </div>
@@ -522,7 +464,7 @@
                 <span class="fsdocs-return-name">
                   Returns: 
                 </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                <code>bool</code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -531,24 +473,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '3641', 3641)" onmouseover="showTip(event, '3641', 3641)">
+              <code onmouseout="hideTip(event, '7371', 7371)" onmouseover="showTip(event, '7371', 7371)">
                 <p>
-                  <a id="Type">
-                    <a href="#Type">
-                      <code><span>this.Type</span></code>
+                  <a id="Value">
+                    <a href="#Value">
+                      <code><span>this.Value</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="3641">
+              <div class="fsdocs-tip" id="7371">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.Type</span></code>
+                  <code><span>this.Value</span></code>
                   <br/>
                   <br/>
                   <span>
                     Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-type.html">Type</a></code>
+                    <code>'T</code>
                   </span>
                   <br/>
                 </div>
@@ -561,7 +503,7 @@
                 <span class="fsdocs-return-name">
                   Returns: 
                 </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-type.html">Type</a></code>
+                <code>'T</code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -570,7 +512,86 @@
       </tbody>
     </table>
   </div>
-  <div></div>
+  <div>
+    <h3>
+      Static members
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Static member
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7372', 7372)" onmouseover="showTip(event, '7372', 7372)">
+                <p>
+                  <a id="FromValue">
+                    <a href="#FromValue">
+                      <code><span>InterruptibleLazy.FromValue<span><span>(<span>value</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7372">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>InterruptibleLazy.FromValue<span><span>(<span>value</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        value
+                      </b>
+                      :
+                      <code>'T</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-interruptiblelazy-1.html">InterruptibleLazy</a>&lt;'T&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  value
+                </span>
+                :
+                <code>'T</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-interruptiblelazy-1.html">InterruptibleLazy</a>&lt;'T&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
         
     </div>

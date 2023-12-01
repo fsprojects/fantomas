@@ -5,7 +5,7 @@
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
-    <title>Cancellable (fantomas) | fantomas</title>
+    <title>InterruptibleLazy (fantomas) | fantomas</title>
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
@@ -266,13 +266,13 @@
     <div id="content">
         <div>
   <h2>
-    Cancellable Module
+    InterruptibleLazy Module
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
       Namespace: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs.html">
-        Fantomas.FCS
+      <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library.html">
+        Internal.Utilities.Library
       </a>
     </dt>
     <dt>
@@ -286,16 +286,15 @@
       </p>
     </div>
   </div>
-  <div></div>
   <div>
     <h3>
-      Type extensions
+      Functions and values
     </h3>
     <table class="table outer-list fsdocs-member-list">
       <thead>
         <tr>
           <td class="fsdocs-member-list-header">
-            Type extension
+            Function or value
           </td>
           <td class="fsdocs-member-list-header">
             Description
@@ -306,36 +305,36 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '144', 144)" onmouseover="showTip(event, '144', 144)">
+              <code onmouseout="hideTip(event, '1215', 1215)" onmouseover="showTip(event, '1215', 1215)">
                 <p>
-                  <a id="IsOperationCancelled">
-                    <a href="#IsOperationCancelled">
-                      <code><span>this.IsOperationCancelled</span></code>
+                  <a id="force">
+                    <a href="#force">
+                      <code><span>force&#32;<span>arg1</span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="144">
+              <div class="fsdocs-tip" id="1215">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.IsOperationCancelled</span></code>
+                  <code><span>force&#32;<span>arg1</span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        ()
+                        arg0
                       </b>
                       :
-                      <code>unit</code>
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-interruptiblelazy-1.html">InterruptibleLazy</a>&lt;'T&gt;</span></code>
                     </span>
                     <br/>
                   </ul>
                   <br/>
                   <span>
                     Returns: 
-                    <code>bool</code>
+                    <code>'T</code>
                   </span>
                   <br/>
                 </div>
@@ -343,17 +342,13 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <p>
-              Extended Type: 
-              <code><a href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></code>
-            </p>
             <dl class="fsdocs-params">
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
-                  ()
+                  arg0
                 </span>
                 :
-                <code>unit</code>
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-interruptiblelazy-1.html">InterruptibleLazy</a>&lt;'T&gt;</span></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
             </dl>
@@ -362,50 +357,7 @@
                 <span class="fsdocs-return-name">
                   Returns: 
                 </span>
-                <code>bool</code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '145', 145)" onmouseover="showTip(event, '145', 145)">
-                <p>
-                  <a id="IsOperationCancelled">
-                    <a href="#IsOperationCancelled">
-                      <code><span>this.IsOperationCancelled</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="145">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.IsOperationCancelled</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>bool</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <p>
-              Extended Type: 
-              <code><a href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></code>
-            </p>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code>bool</code>
+                <code>'T</code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -414,6 +366,7 @@
       </tbody>
     </table>
   </div>
+  <div></div>
   <div></div>
   <div></div>
   <div></div>
