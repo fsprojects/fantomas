@@ -3614,7 +3614,7 @@ let genField (node: FieldNode) =
     genXml node.XmlDoc
     +> genAttributes node.Attributes
     +> optSingle (fun lk -> genMultipleTextsNode lk +> sepSpace) node.LeadingKeyword
-    +> onlyIf node.IsMutable (!- "mutable ")
+    +> optSingle (fun mk -> genSingleTextNode mk +> sepSpace) node.MutableKeyword
     +> genAccessOpt node.Accessibility
     +> (match node.Name with
         | None -> genType node.Type

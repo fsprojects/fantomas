@@ -2337,22 +2337,26 @@ let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
 
 let mkSynField
     (creationAide: CreationAide)
-    (SynField(ats, _isStatic, ido, t, isMutable, px, ao, range, { LeadingKeyword = lk }))
+    (SynField(ats,
+              _isStatic,
+              ido,
+              t,
+              _,
+              px,
+              ao,
+              range,
+              { LeadingKeyword = lk
+                MutableKeyword = mk }))
     =
-    let m =
-        match ats with
-        | [] -> range
-        | head :: _ -> unionRanges head.Range range
-
     FieldNode(
         mkXmlDoc px,
         mkAttributes creationAide ats,
         Option.map mkSynLeadingKeyword lk,
-        isMutable,
+        Option.map (stn "mutable") mk,
         mkSynAccess ao,
         Option.map mkIdent ido,
         mkType creationAide t,
-        m
+        range
     )
 
 let mkSynUnionCase
@@ -2757,7 +2761,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         memberDefn = SynBinding(
             attributes = ats
             xmlDoc = px
-            valData = SynValData(Some { MemberKind = SynMemberKind.Constructor }, _, ido, _)
+            valData = SynValData(memberFlags = Some { MemberKind = SynMemberKind.Constructor }; thisIdOpt = ido)
             headPat = SynPat.LongIdent(
                 longDotId = SynLongIdent(id = [ newIdent ])
                 argPats = SynArgPats.Pats [ SynPat.Paren _ as pat ]
