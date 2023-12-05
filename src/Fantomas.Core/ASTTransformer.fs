@@ -373,11 +373,16 @@ let mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) :
         | None -> range
         | Some barRange -> unionRanges barRange range
 
+    let arrowRange =
+        match trivia.ArrowRange with
+        | Some r -> r
+        | None -> failwith $"unable to get the arrow range from trivia in {nameof mkSynMatchClause}"
+
     MatchClauseNode(
         Option.map (stn "|") trivia.BarRange,
         mkPat creationAide p,
         Option.map (mkExpr creationAide) eo,
-        stn "->" trivia.ArrowRange.Value,
+        stn "->" arrowRange,
         mkExpr creationAide e,
         fullRange
     )
@@ -555,12 +560,12 @@ let rec (|ElIf|_|) =
 
 let (|ConstNumberExpr|_|) =
     function
-    | SynExpr.Const(SynConst.Double v, m) -> Some(string v, m)
-    | SynExpr.Const(SynConst.Decimal v, m) -> Some(string v, m)
-    | SynExpr.Const(SynConst.Single v, m) -> Some(string v, m)
-    | SynExpr.Const(SynConst.Int16 v, m) -> Some(string v, m)
-    | SynExpr.Const(SynConst.Int32 v, m) -> Some(string v, m)
-    | SynExpr.Const(SynConst.Int64 v, m) -> Some(string v, m)
+    | SynExpr.Const(SynConst.Double v, m) -> Some(string<double> v, m)
+    | SynExpr.Const(SynConst.Decimal v, m) -> Some(string<decimal> v, m)
+    | SynExpr.Const(SynConst.Single v, m) -> Some(string<single> v, m)
+    | SynExpr.Const(SynConst.Int16 v, m) -> Some(string<int16> v, m)
+    | SynExpr.Const(SynConst.Int32 v, m) -> Some(string<int> v, m)
+    | SynExpr.Const(SynConst.Int64 v, m) -> Some(string<int64> v, m)
     | _ -> None
 
 let (|App|_|) e =
@@ -1792,7 +1797,13 @@ let mkBinding
             ao, Choice1Of2(IdentListNode([ name ], m)), None, []
         | _ -> None, Choice2Of2(mkPat creationAide pat), None, []
 
-    let equals = stn "=" trivia.EqualsRange.Value
+    let equals =
+        let equalsRange =
+            match trivia.EqualsRange with
+            | Some r -> r
+            | None -> failwith $"failed to get equals range in {nameof mkBinding}"
+
+        stn "=" equalsRange
 
     let e = parseExpressionInSynBinding returnInfo expr
 
@@ -2040,7 +2051,7 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
     let rec visit rc =
         match rc with
         | SynRationalConst.Integer(i, range) ->
-            stn (creationAide.TextFromSource (fun () -> string i) range) range
+            stn (creationAide.TextFromSource (fun () -> string<int> i) range) range
             |> RationalConstNode.Integer
 
         | SynRationalConst.Paren(SynRationalConst.Rational(numerator,
@@ -2057,12 +2068,12 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
                 stn "(" r
 
             let n =
-                stn (creationAide.TextFromSource (fun () -> string numerator) numeratorRange) numeratorRange
+                stn (creationAide.TextFromSource (fun () -> string<int> numerator) numeratorRange) numeratorRange
 
             let div = stn "/" divRange
 
             let d =
-                stn (creationAide.TextFromSource (fun () -> string denominator) denominatorRange) denominatorRange
+                stn (creationAide.TextFromSource (fun () -> string<int> denominator) denominatorRange) denominatorRange
 
             let closingParen =
                 let r =
