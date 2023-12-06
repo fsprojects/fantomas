@@ -73,7 +73,7 @@ type FSharpReformatCode(textControlManager: ITextControlManager) =
     |> assertCursor (7, 15)
 
 [<Test>]
-let ``cursor is be consider as content before, 3007`` () =
+let ``cursor should not be considered as content before, 3007`` () =
     let result =
         formatWithCursor
             """pipeline "init" {
