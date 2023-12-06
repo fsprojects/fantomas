@@ -98,7 +98,12 @@ let ``IgnoreFile.find preferentially finds the fantomasignore next to the source
     |> makeFileHierarchy fs
 
     let loadIgnoreList, getLoads = oneShotLoader (fun _ -> failwith "never called")
-    let ignoreFile = IgnoreFile.find fs loadIgnoreList source |> Option.get
+
+    let ignoreFile =
+        match IgnoreFile.find fs loadIgnoreList source with
+        | Some f -> f
+        | None -> failwith $"calling {nameof IgnoreFile.find} failed"
+
     ignoreFile.Location.FullName |> shouldEqual target
     getLoads () |> shouldEqual (Set.ofList [ target ])
 
@@ -117,7 +122,12 @@ let ``IgnoreFile.find can find the fantomasignore one layer up from the source f
     |> makeFileHierarchy fs
 
     let loadIgnoreList, getLoads = oneShotLoader (fun _ -> failwith "never called")
-    let ignoreFile = IgnoreFile.find fs loadIgnoreList source |> Option.get
+
+    let ignoreFile =
+        match IgnoreFile.find fs loadIgnoreList source with
+        | Some f -> f
+        | None -> failwith $"calling {nameof IgnoreFile.find} failed"
+
     ignoreFile.Location.FullName |> shouldEqual target
     getLoads () |> shouldEqual (Set.ofList [ target ])
 
@@ -139,7 +149,11 @@ let ``IgnoreFile.current' does not load more than once`` () =
     getLoads () |> shouldBeEmpty
 
     for _ in 1..2 do
-        let forced = ignoreFile.Force() |> Option.get
+        let forced =
+            match ignoreFile.Force() with
+            | Some f -> f
+            | None -> failwith $"calling {nameof ignoreFile.Force} failed"
+
         forced.Location.FullName |> shouldEqual target
         // The second invocation would throw if we were somehow getting the
         // singleton wrong and re-invoking the find-and-load.

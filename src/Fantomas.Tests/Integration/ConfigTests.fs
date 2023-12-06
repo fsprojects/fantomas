@@ -57,7 +57,10 @@ let valid_eol_settings = [ "lf"; "crlf" ]
 
 [<TestCaseSource("valid_eol_settings")>]
 let ``uses end_of_line setting to write user newlines`` setting =
-    let newline = (EndOfLineStyle.OfConfigString setting).Value.NewLineString
+    let newline =
+        match EndOfLineStyle.OfConfigString setting with
+        | Some nl -> nl.NewLineString
+        | None -> failwith $"unable to get {nameof EndOfLineStyle.OfConfigString}"
 
     let sampleCode nln =
         sprintf "let a = 9%s%slet b = 7%s" nln nln nln

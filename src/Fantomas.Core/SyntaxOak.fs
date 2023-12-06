@@ -2817,8 +2817,9 @@ type MeasureDivideNode(lhs: Measure option, operator: SingleTextNode, rhs: Measu
     inherit NodeBase(range)
 
     override val Children: Node array =
-        [| if Option.isSome lhs then
-               yield Measure.Node lhs.Value
+        [| match lhs with
+           | Some n -> yield Measure.Node n
+           | None -> ()
            yield operator
            yield Measure.Node rhs |]
 

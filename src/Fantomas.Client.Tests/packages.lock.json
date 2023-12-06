@@ -25,9 +25,9 @@
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
-        "requested": "[0.4.0, )",
-        "resolved": "0.4.0",
-        "contentHash": "+eZ7Xmq6W9X31X/vYfMi93Zxg6t8oFnZhrsVOWOS6NfQsFYyk3kF+YEq8JqO5DEFPwf9YlvJpjcf+3hOx99yKw=="
+        "requested": "[0.5.0, )",
+        "resolved": "0.5.0",
+        "contentHash": "jJyrSyzOHxe3nLP6cncJ9LMMqgebh3YgIMn4bGtKu4Paz5HJTrQf2/Od/LGmEwbY27Bs5zNuqBKJcdd0dhUV4Q=="
       },
       "Ionide.Analyzers": {
         "type": "Direct",
