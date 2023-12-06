@@ -71,3 +71,18 @@ type FSharpReformatCode(textControlManager: ITextControlManager) =
 """
         (8, 19)
     |> assertCursor (7, 15)
+
+[<Test>]
+let ``cursor is be consider as content before, 3007`` () =
+    let result =
+        formatWithCursor
+            """pipeline "init" {
+    stage "restore-sln" {
+        parallel
+        run "dotnet tool restore"
+    }
+}
+"""
+            (4, 0)
+
+    result |> assertCursor (4, 0)
