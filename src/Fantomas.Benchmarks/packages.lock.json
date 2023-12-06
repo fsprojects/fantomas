@@ -39,15 +39,15 @@
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
-        "requested": "[0.5.0, )",
-        "resolved": "0.5.0",
-        "contentHash": "jJyrSyzOHxe3nLP6cncJ9LMMqgebh3YgIMn4bGtKu4Paz5HJTrQf2/Od/LGmEwbY27Bs5zNuqBKJcdd0dhUV4Q=="
+        "requested": "[0.5.1, )",
+        "resolved": "0.5.1",
+        "contentHash": "UJ/a2gDgfh4rzf90038yPDz0AgUmRGcVooupRNTcAEuZ/AuD97Lg2Wv7inZybiChoEpNgumCv/k8EhVRAGcCyg=="
       },
       "Ionide.Analyzers": {
         "type": "Direct",
-        "requested": "[0.5.0, )",
-        "resolved": "0.5.0",
-        "contentHash": "dAjYoWOMhAYM10Q4bfSLbrDokuMtH0XjLFgKTp7N9qEy7goZIx/LPe2Wo9Qrpnulj50JgYtbO5V4KEUw8C/T1A=="
+        "requested": "[0.5.1, )",
+        "resolved": "0.5.1",
+        "contentHash": "6YJFUyXVU7plkuhWd/CV8/RX6uANveBTWSLyHisWRg9AKnpVOnr9KLIHOr53vX/9A7/0JITPvUzGbDWDeeOd5g=="
       },
       "BenchmarkDotNet.Annotations": {
         "type": "Transitive",
