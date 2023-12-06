@@ -35,9 +35,27 @@ type NodeBase(range: range) =
     let nodesAfter = Queue<TriviaNode>(0)
 
     member _.ContentBefore: TriviaNode seq = nodesBefore
-    member _.HasContentBefore = not (Seq.isEmpty nodesBefore)
+
+    member _.HasContentBefore =
+        nodesBefore
+        |> Seq.filter (fun tn ->
+            match tn.Content with
+            | Cursor -> false
+            | _ -> true)
+        |> Seq.isEmpty
+        |> not
+
     member _.ContentAfter: TriviaNode seq = nodesAfter
-    member _.HasContentAfter = not (Seq.isEmpty nodesAfter)
+
+    member _.HasContentAfter =
+        nodesAfter
+        |> Seq.filter (fun tn ->
+            match tn.Content with
+            | Cursor -> false
+            | _ -> true)
+        |> Seq.isEmpty
+        |> not
+
     member _.Range = range
     member _.AddBefore triviaNode = nodesBefore.Enqueue triviaNode
     member _.AddAfter triviaNode = nodesAfter.Enqueue triviaNode

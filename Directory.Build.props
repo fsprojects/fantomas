@@ -35,7 +35,7 @@ Some common use cases include:
         <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <LangVersion>preview</LangVersion>
-        <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen</OtherFlags>
+        <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen --strict-indentation+</OtherFlags>
     </PropertyGroup>
     
     <!-- Versions -->
