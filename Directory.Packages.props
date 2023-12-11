@@ -1,0 +1,40 @@
+<Project>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageVersion Include="FSharp.Core" Version="6.0.1"/>
+        <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
+        <PackageVersion Include="System.Memory" Version="4.5.5" />
+        <PackageVersion Include="System.Runtime" Version="4.3.1" />
+        <PackageVersion Include="FsLexYacc" Version="11.2.0" />
+        
+        <PackageVersion Include="Ionide.KeepAChangelog.Tasks" Version="0.1.8"/>
+        <PackageVersion Include="DotNet.ReproducibleBuilds" Version="1.1.1"/>
+        
+        <PackageVersion Include="G-Research.FSharp.Analyzers" Version="0.5.1" />
+        <PackageVersion Include="Ionide.Analyzers" Version="0.5.1" />
+        <PackageVersion Include="FSharp.Analyzers.Build" Version="0.2.0" />
+        
+        <PackageVersion Include="StreamJsonRpc" Version="2.8.28" />
+        <PackageVersion Include="SemanticVersioning" Version="2.0.2" />
+        <PackageVersion Include="Serilog" Version="3.1.1"/>
+        <PackageVersion Include="Serilog.Sinks.Console" Version="5.0.1" />
+        <PackageVersion Include="SerilogTraceListener" Version="3.2.1-dev-00011" />
+        <PackageVersion Include="Argu" Version="6.1.1" />
+        <PackageVersion Include="Thoth.Json.Net" Version="8.0.0" />
+        <PackageVersion Include="editorconfig" Version="0.15.0" />
+        <PackageVersion Include="Ignore" Version="0.1.50" />
+        <PackageVersion Include="System.IO.Abstractions" Version="20.0.4" />
+        <PackageVersion Include="Spectre.Console" Version="0.48.0" />
+        <PackageVersion Include="BenchmarkDotNet" Version="0.13.11" />
+        
+        <PackageVersion Include="CliWrap" Version="3.6.4" />
+        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0"/>
+        <PackageVersion Include="NUnit" Version="3.13.3"/>
+        <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0"/>
+        <PackageVersion Include="System.IO.Abstractions.TestingHelpers" Version="20.0.4" />
+        <PackageVersion Include="FsCheck" Version="2.16.5" />
+        <PackageVersion Include="FsUnit" Version="4.2.0" />
+    </ItemGroup>
+</Project>

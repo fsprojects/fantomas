@@ -302,11 +302,11 @@
     <Compile Include="Parse.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FSharp.Core" Version="$(FSharpCoreVersion)" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="System.Runtime" Version="4.3.1" />
-    <PackageReference Include="FsLexYacc" Version="11.2.0" PrivateAssets="all" />
+    <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource"  />
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="System.Runtime" />
+    <PackageReference Include="FsLexYacc" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="AcquireCompilerFiles" Condition="!Exists('../../.deps/$(FCSCommitHash)')" BeforeTargets="CollectPackageReferences">

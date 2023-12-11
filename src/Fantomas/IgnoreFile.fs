@@ -39,8 +39,7 @@ module IgnoreFile =
                 None
             else
                 let potentialFile =
-                    fs.Path.Combine(currentDirectory.FullName, IgnoreFileName)
-                    |> fs.FileInfo.FromFileName
+                    fs.Path.Combine(currentDirectory.FullName, IgnoreFileName) |> fs.FileInfo.New
 
                 if potentialFile.Exists then
                     { Location = potentialFile
@@ -49,7 +48,7 @@ module IgnoreFile =
                 else
                     walkUp currentDirectory.Parent
 
-        walkUp (fs.FileInfo.FromFileName(filePath).Directory)
+        walkUp (fs.FileInfo.New(filePath).Directory)
 
     let loadIgnoreList (fs: IFileSystem) (ignoreFilePath: string) : IsPathIgnored =
         let lines = fs.File.ReadAllLines(ignoreFilePath)
