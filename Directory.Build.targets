@@ -1,4 +1,10 @@
 <Project>
+    <ItemGroup Condition="'$(IsPackable)' == 'true'">
+        <None Include="$(MSBuildThisFileDirectory)fantomas_logo.png" Visible="false" Pack="true" PackagePath="" />
+        <None Include="$(MSBuildThisFileDirectory)README.md" Visible="false" Pack="true" PackagePath="" />
+        <PackageReference Include="Ionide.KeepAChangelog.Tasks" PrivateAssets="all" />
+        <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all" />
+    </ItemGroup>
     <PropertyGroup>
         <CodeRoot Condition="$(CodeRoot) == ''">.</CodeRoot>
         <FSharpAnalyzersOtherFlags>--analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
