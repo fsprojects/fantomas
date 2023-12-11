@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+* Turn on strict indentation in the lexer in Fantomas.FCS. [#3014](https://github.com/fsprojects/fantomas/pull/3014)
+
 ## 6.3.0-alpha-004 - 2023-12-06
 
 ### Fixed
