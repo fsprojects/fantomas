@@ -28,4 +28,4 @@ let ``locate fantomas tool`` () =
     let response =
         toucheFileAndFormat @"C:\Users\nojaf\Projects\fantomas\src\Fantomas.Core\FormatConfig.fs" service
 
-    Assert.AreEqual(int FantomasResponseCode.Formatted, response.Code)
+    Assert.That(response.Code, Is.EqualTo(int FantomasResponseCode.Formatted))

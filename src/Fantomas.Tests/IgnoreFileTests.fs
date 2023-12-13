@@ -9,7 +9,7 @@ open System.IO.Abstractions.TestingHelpers
 
 let private makeFileHierarchy (fs: IFileSystem) (filePaths: string list) : unit =
     for path in filePaths do
-        let fileInfo = fs.FileInfo.FromFileName path
+        let fileInfo = fs.FileInfo.New path
         fileInfo.Directory.Create()
         fs.File.WriteAllText(fileInfo.FullName, "some text")
 

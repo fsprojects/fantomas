@@ -20,11 +20,11 @@ let ``!- add a single WriterEvent.Write`` () =
         !- "one new event" context
 
     let contextBefore: Context = Context.Default
-    Assert.IsTrue(contextBefore.WriterEvents.Length = 0)
+    Assert.That(contextBefore.WriterEvents, Is.Empty)
 
     // Calling function `f` with an empty context will add a single event to the context.
     let contextAfter: Context = f contextBefore
-    Assert.IsTrue(contextAfter.WriterEvents.Length = 1)
+    Assert.That(1, Is.EqualTo contextAfter.WriterEvents.Length)
     // The events are stored in a custom collection type called `Queue`.
     // Checkout `Queue.fs` to learn more about this collection type.
     let events = Queue.toSeq contextAfter.WriterEvents |> Seq.toList
@@ -45,12 +45,12 @@ let ``+> will compose two functions`` () =
         (f +> g) context
 
     let contextBefore: Context = Context.Default
-    Assert.IsTrue(contextBefore.WriterEvents.Length = 0)
+    Assert.That(contextBefore.WriterEvents, Is.Empty)
 
     let contextAfter: Context = h contextBefore
     // We expect two events to be added to the context.
     // "f - long" and "g - long"
-    Assert.IsTrue(contextAfter.WriterEvents.Length = 2)
+    Assert.That(contextAfter.WriterEvents.Length, Is.EqualTo 2)
     let code = dump contextAfter
     Assert.AreEqual("f and g", code)
 
@@ -69,7 +69,7 @@ let ``partially application when composing function`` () =
     let contextBefore: Context = Context.Default
     let contextAfter: Context = h contextBefore
 
-    Assert.IsTrue(contextAfter.WriterEvents.Length = 2)
+    Assert.That(2, Is.EqualTo contextAfter.WriterEvents.Length)
     let code = dump contextAfter
     Assert.AreEqual("f and g", code)
 

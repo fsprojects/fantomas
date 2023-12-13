@@ -81,7 +81,7 @@ type EndToEndTests() =
         withVersion version (fun fsharpFile ->
             backgroundTask {
                 let! version = service.VersionAsync(fsharpFile)
-                Assert.AreEqual(int FantomasResponseCode.Version, version.Code)
+                Assert.That(version.Code, Is.EqualTo(int FantomasResponseCode.Version))
             })
 
     [<TestCase("5.0.6")>]
@@ -98,7 +98,7 @@ type EndToEndTests() =
                       Cursor = None }
 
                 let! formatResponse = service.FormatDocumentAsync(request)
-                Assert.AreEqual(int FantomasResponseCode.Formatted, formatResponse.Code)
+                Assert.That(formatResponse.Code, Is.EqualTo(int FantomasResponseCode.Formatted))
             })
 
     [<TestCase("6.0.0-alpha-004")>]
@@ -112,5 +112,5 @@ type EndToEndTests() =
                       Cursor = Some(FormatCursorPosition(1, 12)) }
 
                 let! formatResponse = service.FormatDocumentAsync(request)
-                Assert.AreEqual(int FantomasResponseCode.Formatted, formatResponse.Code)
+                Assert.That(formatResponse.Code, Is.EqualTo(int FantomasResponseCode.Formatted))
             })

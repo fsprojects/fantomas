@@ -6,7 +6,9 @@ open Fantomas
 open NUnit.Framework
 open System.IO
 
-let private (==) actual expected = Assert.AreEqual(expected, actual)
+let private (==) (actual: 'T) (expected: 'T) =
+    Assert.That(actual, Is.EqualTo expected)
+
 let private defaultConfig = FormatConfig.Default
 let tempName () = Guid.NewGuid().ToString("N")
 
@@ -388,7 +390,7 @@ fsharp_multi_line_lambda_closing_newline = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsTrue config.MultiLineLambdaClosingNewline
+    Assert.That(config.MultiLineLambdaClosingNewline, Is.True)
 
 [<Test>]
 let fsharp_experimental_keep_indent_in_branch () =
@@ -407,7 +409,7 @@ fsharp_experimental_keep_indent_in_branch = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsTrue config.ExperimentalKeepIndentInBranch
+    Assert.That(config.ExperimentalKeepIndentInBranch, Is.True)
 
 [<Test>]
 let fsharp_bar_before_discriminated_union_declaration () =
@@ -426,7 +428,7 @@ fsharp_bar_before_discriminated_union_declaration = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsTrue config.BarBeforeDiscriminatedUnionDeclaration
+    Assert.That(config.BarBeforeDiscriminatedUnionDeclaration, Is.True)
 
 [<Test>]
 let insert_final_newline () =
@@ -445,7 +447,7 @@ insert_final_newline = false
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsFalse config.InsertFinalNewline
+    Assert.That(config.InsertFinalNewline, Is.False)
 
 [<Test>]
 let ``fsharp_multiline_bracket_style = stroustrup`` () =
@@ -464,7 +466,7 @@ fsharp_multiline_bracket_style = stroustrup
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.AreEqual(Stroustrup, config.MultilineBracketStyle)
+    Assert.That(config.MultilineBracketStyle, Is.EqualTo Stroustrup)
 
 [<Test>]
 let ``fsharp_multiline_bracket_style = aligned`` () =
@@ -483,7 +485,7 @@ fsharp_multiline_bracket_style = aligned
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.AreEqual(Aligned, config.MultilineBracketStyle)
+    Assert.That(config.MultilineBracketStyle, Is.EqualTo Aligned)
 
 [<Test>]
 let ``fsharp_multiline_bracket_style = cramped`` () =
@@ -502,7 +504,7 @@ fsharp_multiline_bracket_style = cramped
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.AreEqual(Cramped, config.MultilineBracketStyle)
+    Assert.That(config.MultilineBracketStyle, Is.EqualTo Cramped)
 
 [<Test>]
 let fsharp_prefer_computation_expression_name_on_same_line () =
@@ -521,7 +523,7 @@ fsharp_newline_before_multiline_computation_expression = false
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsFalse config.NewlineBeforeMultilineComputationExpression
+    Assert.That(config.NewlineBeforeMultilineComputationExpression, Is.False)
 
 [<Test>]
 let fsharp_stroustrup_final_list_arguments () =
@@ -540,4 +542,4 @@ fsharp_experimental_elmish = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsTrue config.ExperimentalElmish
+    Assert.That(config.ExperimentalElmish, Is.True)
