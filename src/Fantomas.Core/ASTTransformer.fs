@@ -12,6 +12,7 @@ open Fantomas.Core.RangePatterns
 open Fantomas.Core.SyntaxOak
 open Microsoft.FSharp.Core
 
+[<NoComparison>]
 type CreationAide =
     { SourceText: ISourceText option }
 
@@ -595,7 +596,7 @@ let (|ParenMatchLambda|_|) e =
 let mkMatchLambda creationAide mFunction cs m =
     ExprMatchLambdaNode(stn "function" mFunction, List.map (mkSynMatchClause creationAide) cs, m)
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; NoEquality; NoComparison>]
 type LinkExpr =
     | Identifier of
         // Could be SynExpr.LongIdent or SynExpr.TypeApp(LongIdent)

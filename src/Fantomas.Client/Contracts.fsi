@@ -18,6 +18,7 @@ module Methods =
     [<Literal>]
     val Configuration: string = "fantomas/configuration"
 
+[<NoComparison>]
 type FormatDocumentRequest =
     {
         SourceCode: string
@@ -43,6 +44,7 @@ and FormatCursorPosition =
         val Column: int
     end
 
+[<NoComparison>]
 type FormatSelectionRequest =
     {
         SourceCode: string
@@ -69,6 +71,7 @@ and FormatSelectionRange =
         val EndColumn: int
     end
 
+[<NoComparison>]
 type FantomasResponse =
     {
         Code: int

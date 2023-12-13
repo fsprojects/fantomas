@@ -1,7 +1,6 @@
 ﻿module internal Fantomas.Core.MultipleDefineCombinations
 
 open System
-open System.Linq
 open System.Text
 open System.Text.RegularExpressions
 open Microsoft.FSharp.Core.CompilerServices
@@ -107,12 +106,14 @@ type CodeFragment =
             // You should never enter the case where you need to compare a hash line with something other than a hash line.
             | x, other -> failwith $"Cannot compare %A{x} with %A{other}"
 
+[<NoComparison>]
 type FormatResultForDefines =
     { Result: FormatResult
       Defines: DefineCombination
       Fragments: CodeFragment list }
 
 /// Accumulator type used when building up the fragments.
+[<NoComparison>]
 type SplitHashState =
     { CurrentBuilder: StringBuilder
       LinesCollected: int
@@ -129,6 +130,7 @@ and [<RequireQualifiedAccess>] LastLineInfo =
     | Content
 
 /// Accumulator type used when folding over the selected CodeFragments.
+[<NoComparison>]
 type FragmentWeaverState =
     { LastLine: int
       Cursors: Map<DefineCombination, pos>

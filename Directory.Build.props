@@ -26,7 +26,12 @@ Some common use cases include:
         <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
         <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
         <WarningsAsErrors>FS0025;FS1182</WarningsAsErrors>
-        <WarnOn>1182;3390;$(WarnOn)</WarnOn>
+        <!--
+        FS0025: Incomplete pattern matches on this expression.
+        FS1182	Unused variables
+        FS1178 does not support structural equality
+        -->
+        <WarnOn>1182;3390;1178;$(WarnOn)</WarnOn>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <RestoreLockedMode>true</RestoreLockedMode>
         <NoWarn>NU1603</NoWarn>

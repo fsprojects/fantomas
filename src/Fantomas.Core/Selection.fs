@@ -71,7 +71,7 @@ let findNode (selection: range) (node: Node) : Node option =
 
     if isExactSelection then Some node else None
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; NoComparison>]
 type TreeForSelection =
     /// Format this tree and return the entire result.
     | Standalone of Oak

@@ -95,7 +95,7 @@ let combineRanges (ranges: range seq) =
     else
         Seq.reduce Range.unionRanges ranges
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; NoComparison>]
 type IdentifierOrDot =
     | Ident of SingleTextNode
     | KnownDot of SingleTextNode
@@ -1199,7 +1199,7 @@ type LinkSingleAppUnit(functionName: Expr, unit: UnitNode, range) =
     member val FunctionName = functionName
     member val Unit = unit
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; NoComparison; NoEquality>]
 type ChainLink =
     | Identifier of Expr
     | Dot of SingleTextNode
@@ -1417,7 +1417,7 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
         member _.AddCursor _ = ()
         member _.TryGetCursor = None
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; NoComparison>]
 type IfKeywordNode =
     | SingleWord of SingleTextNode
     | ElseIf of ElseIfNode
@@ -1553,6 +1553,7 @@ type StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode(typar: SingleText
     member val TypeParameter = typar
     member val Type = t
 
+[<NoComparison>]
 type StaticOptimizationConstraint =
     | WhenTyparTyconEqualsTycon of StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode
     | WhenTyparIsStruct of SingleTextNode
