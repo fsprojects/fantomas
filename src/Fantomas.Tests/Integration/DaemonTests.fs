@@ -46,7 +46,7 @@ let ``config request`` () =
             |> Fantomas.EditorConfig.configToEditorConfig
             |> fun s -> s.Split('\n')
             |> Seq.map (fun line -> line.Split('=').[0])
-            |> Seq.iter (fun setting -> Assert.True(config.Contains(setting)))
+            |> Seq.iter (fun setting -> Assert.That(config.Contains(setting), Is.True))
         })
 
 [<Test>]

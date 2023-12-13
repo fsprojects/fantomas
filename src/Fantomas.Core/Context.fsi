@@ -51,7 +51,7 @@ type WriterModel =
 
     member IsDummy: bool
 
-[<System.Diagnostics.DebuggerDisplay("\"{Dump()}\"")>]
+[<System.Diagnostics.DebuggerDisplay("\"{Dump()}\""); NoComparison>]
 type Context =
     { Config: FormatConfig
       WriterModel: WriterModel
@@ -264,6 +264,7 @@ val autoIndentAndNlnTypeUnlessStroustrup: f: (Type -> Context -> Context) -> t: 
 val autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup:
     f: (Expr -> Context -> Context) -> e: Expr -> ctx: Context -> Context
 
+[<NoComparison; NoEqualityAttribute>]
 type ColMultilineItem = ColMultilineItem of expr: (Context -> Context) * sepNln: (Context -> Context)
 
 /// This helper function takes a list of expressions and ranges.

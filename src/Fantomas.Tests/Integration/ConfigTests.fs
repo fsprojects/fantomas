@@ -51,7 +51,7 @@ end_of_line=cr
     let args = sprintf "%s %s" DetailedVerbosity fileFixture.Filename
     let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 1
-    StringAssert.Contains("Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'", output)
+    Assert.That(output, Does.Contain "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'")
 
 let valid_eol_settings = [ "lf"; "crlf" ]
 

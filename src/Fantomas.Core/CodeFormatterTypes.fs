@@ -2,6 +2,7 @@
 
 open Fantomas.FCS.Text
 
+[<NoComparison>]
 type FormatResult =
     {
         /// Formatted code

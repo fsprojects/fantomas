@@ -15,14 +15,14 @@ type FantomasResponseCode =
     | CancellationWasRequested = 10
     | DaemonCreationFailed = 11
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; NoComparison>]
 type FormatSelectionResponse =
     | Formatted of filename: string * formattedContent: string * formattedRange: FormatSelectionRange
     | Error of filename: string * formattingError: string
 
     member AsFormatResponse: unit -> FantomasResponse
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; NoComparison>]
 type FormatDocumentResponse =
     | Formatted of filename: string * formattedContent: string * cursor: FormatCursorPosition option
     | Unchanged of filename: string
@@ -41,6 +41,7 @@ type FantomasToolStartInfo =
     | GlobalTool
     | ToolOnPath of executableFile: FantomasExecutableFile
 
+[<NoComparison>]
 type RunningFantomasTool =
     { Process: System.Diagnostics.Process
       RpcClient: StreamJsonRpc.JsonRpc

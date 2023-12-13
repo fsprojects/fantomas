@@ -48,7 +48,7 @@ let ``trivia is transformed to Oak`` () =
         |> Array.head
         |> fst
 
-    Assert.True(oak.ModulesOrNamespaces.[0].HasContentAfter)
+    Assert.That(oak.ModulesOrNamespaces.[0].HasContentAfter, Is.True)
 
 [<Test>]
 let ``parsed oak can be formatted back to source`` () =
@@ -68,7 +68,7 @@ let ``parsed oak can be formatted back to source`` () =
         )
         |> Async.RunSynchronously
 
-    Assert.AreEqual(source, formatted)
+    Assert.That(formatted, Is.EqualTo source)
 
 [<Test>]
 let ``transform parsedInput to Oak`` () =
@@ -125,5 +125,5 @@ let b = 0
     let oak = CodeFormatter.TransformAST(ast, source)
 
     match oak.ModulesOrNamespaces.[0].Declarations.[0] with
-    | ModuleDecl.TopLevelBinding node -> Assert.True node.HasContentBefore
+    | ModuleDecl.TopLevelBinding node -> Assert.That(node.HasContentBefore, Is.True)
     | _ -> Assert.Fail()

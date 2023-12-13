@@ -13,6 +13,7 @@ type AbsoluteFilePath =
 /// of the ignore-file.
 type IsPathIgnored = AbsoluteFilePath -> bool
 
+[<NoComparison; NoEquality>]
 type IgnoreFile =
     { Location: IFileInfo
       IsIgnored: IsPathIgnored }

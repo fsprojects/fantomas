@@ -10,6 +10,7 @@ open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Client.FantomasToolLocator
 
+[<NoComparison>]
 type ServiceState =
     { Daemons: Map<FantomasVersion, RunningFantomasTool>
       FolderToVersion: Map<Folder, FantomasVersion> }
@@ -25,6 +26,7 @@ type GetDaemonError =
     | InCompatibleVersionFound
     | CompatibleVersionIsKnownButNoDaemonIsRunning of version: FantomasVersion
 
+[<NoComparison>]
 type Msg =
     | GetDaemon of folder: Folder * replyChannel: AsyncReplyChannel<Result<JsonRpc, GetDaemonError>>
     | Reset of AsyncReplyChannel<unit>

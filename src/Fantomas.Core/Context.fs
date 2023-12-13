@@ -183,7 +183,7 @@ module WriterEvents =
             | WriteLineBecauseOfTrivia -> true
             | _ -> false)
 
-[<System.Diagnostics.DebuggerDisplay("\"{Dump()}\"")>]
+[<System.Diagnostics.DebuggerDisplay("\"{Dump()}\""); NoComparison>]
 type Context =
     { Config: FormatConfig
       WriterModel: WriterModel
@@ -961,6 +961,7 @@ let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup f (e: Expr) (ct
     else
         autoIndentAndNlnIfExpressionExceedsPageWidth (f e) ctx
 
+[<NoComparison; NoEquality>]
 type ColMultilineItem =
     | ColMultilineItem of
         // current expression
@@ -968,6 +969,7 @@ type ColMultilineItem =
         // sepNln of current item
         sepNln: (Context -> Context)
 
+[<NoComparison>]
 type ColMultilineItemsState =
     { LastBlockMultiline: bool
       Context: Context }

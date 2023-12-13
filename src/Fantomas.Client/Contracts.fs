@@ -19,6 +19,7 @@ module Methods =
     [<Literal>]
     let Configuration = "fantomas/configuration"
 
+[<NoComparison>]
 type FormatDocumentRequest =
     { SourceCode: string
       FilePath: string
@@ -35,6 +36,7 @@ and FormatCursorPosition =
         new(line: int, column: int) = { Line = line; Column = column }
     end
 
+[<NoComparison>]
 type FormatSelectionRequest =
     {
         SourceCode: string
@@ -63,6 +65,7 @@ and FormatSelectionRange =
               EndColumn = endColumn }
     end
 
+[<NoComparison>]
 type FantomasResponse =
     { Code: int
       FilePath: string

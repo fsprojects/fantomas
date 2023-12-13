@@ -6,7 +6,7 @@ open Fantomas.Core
 
 type ProfileInfo = { LineCount: int; TimeTaken: TimeSpan }
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; NoComparison>]
 type FormatResult =
     | Formatted of filename: string * formattedContent: string * profileInfo: ProfileInfo option
     | Unchanged of filename: string * profileInfo: ProfileInfo option
@@ -32,6 +32,7 @@ type FormatParams =
           Profile = profile
           File = file }
 
+[<NoComparison>]
 type CheckResult =
     { Errors: (string * exn) list
       Formatted: string list }
