@@ -674,6 +674,46 @@ let person =
 "
 
 [<Test>]
+let ``multiline string before closing brace with update record, 3017`` () =
+    formatSourceString
+        "
+let FableSampleExpected :Changelogs = {
+    Unreleased = Some {
+        ChangelogData.Default with
+            Fixed =
+                normalizeNewline
+                    \"\"\"#### Python
+\"\"\"
+    }
+    Releases = [
+        Some {
+            ChangelogData.Default with
+                Changed =
+                    normalizeNewline \"\"
+        }
+    ]
+}
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let FableSampleExpected: Changelogs =
+    { Unreleased =
+        Some
+            { ChangelogData.Default with
+                Fixed =
+                    normalizeNewline
+                        \"\"\"#### Python
+\"\"\"         }
+      Releases =
+        [ Some
+              { ChangelogData.Default with
+                  Changed = normalizeNewline \"\" } ] }
+"
+
+[<Test>]
 let ``issue 457`` () =
     formatSourceString
         """
@@ -828,7 +868,7 @@ module Maintoc =
                 [ Doc.Verbatim
                       \"\"\"
 This is a very long line in a multi-line string, so long in fact that it is longer than that page width to which I am trying to constrain everything, and so it goes bang.
-\"\"\" ] }
+\"\"\" ]   }
 "
 
 [<Test>]

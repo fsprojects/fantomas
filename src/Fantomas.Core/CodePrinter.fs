@@ -1739,26 +1739,27 @@ let genMultilineRecord (node: ExprRecordNode) (ctx: Context) =
                             +> genRecordFieldNameCramped false e)
                         ctx
 
+        // Edge case scenario to make sure that the closing brace is not before the opening one
+        // See unit test "multiline string before closing brace"
+        let genClosingBrace ctx =
+            let genClosingBrace =
+                addFixedSpaces expressionStartColumn +> genSingleTextNode node.ClosingBrace
+
+            ifElseCtx lastWriteEventIsNewline genClosingBrace (addSpaceIfSpaceAroundDelimiter +> genClosingBrace) ctx
+
         match node.CopyInfo with
         | Some _ ->
             genSingleTextNode node.OpeningBrace
             +> sepNlnWhenWriteBeforeNewlineNotEmptyOr addSpaceIfSpaceAroundDelimiter // comment after curly brace
             +> genFields
-            +> addSpaceIfSpaceAroundDelimiter
-            +> genSingleTextNode node.ClosingBrace
+            +> genClosingBrace
         | None ->
             atCurrentColumn (
                 genSingleTextNodeSuffixDelimiter node.OpeningBrace
                 +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
                 +> genFields
                 +> sepNlnWhenWriteBeforeNewlineNotEmpty
-                +> (fun ctx ->
-                    // Edge case scenario to make sure that the closing brace is not before the opening one
-                    // See unit test "multiline string before closing brace"
-                    let brace =
-                        addFixedSpaces expressionStartColumn +> genSingleTextNode node.ClosingBrace
-
-                    ifElseCtx lastWriteEventIsNewline brace (addSpaceIfSpaceAroundDelimiter +> brace) ctx)
+                +> genClosingBrace
             )
 
     ifAlignOrStroustrupBrackets genMultilineAlignBrackets genMultilineCramped ctx

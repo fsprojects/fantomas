@@ -5,6 +5,9 @@
 ### Changed
 * Turn on strict indentation in the lexer in Fantomas.FCS. [#3014](https://github.com/fsprojects/fantomas/pull/3014)
 
+### Fixed
+* Unmatched '{' error when formatting the code. [#3017](https://github.com/fsprojects/fantomas/issues/3017)
+
 ## 6.3.0-alpha-004 - 2023-12-06
 
 ### Fixed
