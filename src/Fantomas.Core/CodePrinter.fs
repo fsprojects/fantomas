@@ -2594,6 +2594,7 @@ let genPat (p: Pattern) =
             +> genSingleTextNode node.Equals
             +> sepSpace
             +> genPat node.Pattern
+            |> genNode node
 
         let pats =
             expressionFitsOnRestOfLine
