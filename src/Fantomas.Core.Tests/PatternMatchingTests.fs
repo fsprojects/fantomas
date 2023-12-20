@@ -2262,3 +2262,27 @@ match subcategory with
 // Just treat as an unknown-to-LanguageService error.
  -> false
 """
+
+[<Test>]
+let ``comment lost after named pat pair, 2953`` () =
+    formatSourceString
+        """
+match synExpr with
+| SynExpr.App(
+    argExpr = SynExpr.Match _ // CCC
+    )
+     ->
+Some ident.idRange
+| _ -> defaultTraverse synExpr
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match synExpr with
+| SynExpr.App(
+    argExpr = SynExpr.Match _ // CCC
+    ) -> Some ident.idRange
+| _ -> defaultTraverse synExpr
+"""
