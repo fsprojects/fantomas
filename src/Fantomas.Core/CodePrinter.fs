@@ -2605,7 +2605,11 @@ let genPat (p: Pattern) =
         +> optSingle genTyparDecls node.TyparDecls
         +> addSpaceBeforeParenInPattern node.Identifier
         +> genSingleTextNode node.OpeningParen
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (sepNlnWhenWriteBeforeNewlineNotEmpty +> pats)
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (
+            sepNlnWhenWriteBeforeNewlineNotEmpty
+            +> pats
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty
+        )
         +> genSingleTextNode node.ClosingParen
         |> genNode node
 
