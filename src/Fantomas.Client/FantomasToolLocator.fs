@@ -244,7 +244,7 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
             let error =
                 if daemonProcess.HasExited then
                     let stdErr = daemonProcess.StandardError.ReadToEnd()
-                    $"Daemon std error: {stdErr}.\nJsonRpc exception:{ex.Message}"
+                    $"Daemon std error: %s{stdErr}.\nJsonRpc exception:%s{ex.Message}"
                 else
                     ex.Message
 

@@ -145,7 +145,7 @@ let genSingleTextNodeWithSpaceSuffix (addSpace: Context -> Context) (node: Singl
 let genSingleTextNodeSuffixDelimiter (node: SingleTextNode) =
     genSingleTextNodeWithSpaceSuffix addSpaceIfSpaceAroundDelimiter node
 
-let genSingleTextNodeWithLeadingDot (node: SingleTextNode) = !- $".{node.Text}" |> genNode node
+let genSingleTextNodeWithLeadingDot (node: SingleTextNode) = !- $".%s{node.Text}" |> genNode node
 
 let genMultipleTextsNode (node: MultipleTextsNode) =
     col sepSpace node.Content genSingleTextNode |> genNode node
@@ -2074,7 +2074,7 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
                             // In the weird case where the arrow has content before it and there is no multiline whenExpr,
                             // we need to ensure a space was written before the arrow to avoid offset errors.
                             // See https://github.com/fsprojects/fantomas/issues/2888
-                            !- $" {node.Arrow.Text} " |> genNode node.Arrow
+                            !- $" %s{node.Arrow.Text} " |> genNode node.Arrow
 
                     (sepArrow
                      +> ifElse
@@ -3052,7 +3052,7 @@ let genTypeConstraint (tc: TypeConstraint) =
     | TypeConstraint.EnumOrDelegate node ->
         genSingleTextNode node.Typar
         +> sepColon
-        +> !- $"{node.Verb}<"
+        +> !- $"%s{node.Verb}<"
         +> col sepComma node.Types genType
         +> !- ">"
         |> genNode node

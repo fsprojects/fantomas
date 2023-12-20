@@ -31,7 +31,7 @@ let ``!- add a single WriterEvent.Write`` () =
 
     match events with
     | [ Write "one new event" ] -> Assert.Pass()
-    | events -> Assert.Fail $"Expected one event, got: ${events}"
+    | events -> Assert.Fail $"Expected one event, got: %A{events}"
 
 [<Test>]
 let ``+> will compose two functions`` () =
@@ -125,7 +125,7 @@ let ``traversing collections`` () =
     let items = [ 2; 3; 4 ]
     // The `col` function will traverse the collection and apply the first function between elements and the last function for each individual element.
     let f (items: int seq) : Context -> Context =
-        col (!- " + ") items (fun (item: int) -> !- $"{item}")
+        col (!- " + ") items (fun (item: int) -> !- $"%i{item}")
 
     // Note that there are some variants of `col` that can be used to process a collection in a different way.
     // coli, colEx, ...
@@ -170,7 +170,7 @@ let ``newlines and indentation`` () =
 
     match events with
     | [ Write "first line"; IndentBy 4; WriteLine; Write "second line"; UnIndentBy 4 ] -> Assert.Pass()
-    | events -> Assert.Fail $"Expected one event, got: ${events}"
+    | events -> Assert.Fail $"Expected one event, got: %A{events}"
 
 [<Test>]
 let ``trying multiple code paths`` () =
@@ -493,7 +493,7 @@ let ``locking the indentation at a fixed column`` () =
         WriterEvent.RestoreAtColumn 0
         WriterEvent.RestoreIndent 0
         WriterEvent.Write ")" ] -> Assert.Pass()
-    | events -> Assert.Fail $"Expected one event, got: ${events}"
+    | events -> Assert.Fail $"Expected one event, got: %A{events}"
 
 // There is also a variation of `atCurrentColumn`: `atCurrentColumnIndent`
 // This locks the column and also applies indentation from that column.

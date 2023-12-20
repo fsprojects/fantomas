@@ -356,9 +356,9 @@ let ``very long triple-quoted strings do not cause the interpolated string activ
             1000
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n"
 
-    formatSourceString $"let value = \"\"\"{loremIpsum}\"\"\"" config
+    formatSourceString $"let value = \"\"\"%s{loremIpsum}\"\"\"" config
     |> should
         equal
         $"let value =
-    \"\"\"{loremIpsum}\"\"\"
+    \"\"\"%s{loremIpsum}\"\"\"
 "

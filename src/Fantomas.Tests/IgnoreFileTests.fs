@@ -102,7 +102,7 @@ let ``IgnoreFile.find preferentially finds the fantomasignore next to the source
     let ignoreFile =
         match IgnoreFile.find fs loadIgnoreList source with
         | Some f -> f
-        | None -> failwith $"calling {nameof IgnoreFile.find} failed"
+        | None -> failwith $"calling %s{nameof IgnoreFile.find} failed"
 
     ignoreFile.Location.FullName |> shouldEqual target
     getLoads () |> shouldEqual (Set.ofList [ target ])
@@ -126,7 +126,7 @@ let ``IgnoreFile.find can find the fantomasignore one layer up from the source f
     let ignoreFile =
         match IgnoreFile.find fs loadIgnoreList source with
         | Some f -> f
-        | None -> failwith $"calling {nameof IgnoreFile.find} failed"
+        | None -> failwith $"calling %s{nameof IgnoreFile.find} failed"
 
     ignoreFile.Location.FullName |> shouldEqual target
     getLoads () |> shouldEqual (Set.ofList [ target ])
@@ -152,7 +152,7 @@ let ``IgnoreFile.current' does not load more than once`` () =
         let forced =
             match ignoreFile.Force() with
             | Some f -> f
-            | None -> failwith $"calling {nameof ignoreFile.Force} failed"
+            | None -> failwith $"calling %s{nameof ignoreFile.Force} failed"
 
         forced.Location.FullName |> shouldEqual target
         // The second invocation would throw if we were somehow getting the

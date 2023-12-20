@@ -212,7 +212,7 @@ let mergeMultipleFormatResults config (results: (DefineCombination * FormatResul
             FormatException(
                 $"""Fantomas is trying to format the input multiple times due to the detection of multiple defines.
 There is a problem with merging all the code back together.
-{chunkReport}
+%s{chunkReport}
 Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/preview."""
             )
         )

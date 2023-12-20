@@ -20,7 +20,7 @@ let ``code that was invalid should be still be written`` () =
     use outputFixture = new OutputFile()
 
     let { ExitCode = exitCode; Output = output } =
-        runFantomasTool $"{Verbosity} --force --out {outputFixture.Filename} {sourceFile}"
+        runFantomasTool $"%s{Verbosity} --force --out %s{outputFixture.Filename} %s{sourceFile}"
 
     exitCode |> should equal 0
     output |> should contain "was not valid after formatting"
