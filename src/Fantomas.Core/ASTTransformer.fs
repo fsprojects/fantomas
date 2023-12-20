@@ -29,7 +29,7 @@ let mkIdent (ident: Ident) =
     let text =
         if ident.idText.Length + 4 = width then
             // add backticks
-            $"``{ident.idText}``"
+            $"``%s{ident.idText}``"
         else
             ident.idText
 
@@ -39,8 +39,8 @@ let mkSynIdent (SynIdent(ident, trivia)) =
     match trivia with
     | None -> mkIdent ident
     | Some(IdentTrivia.OriginalNotation text) -> stn text ident.idRange
-    | Some(IdentTrivia.OriginalNotationWithParen(_, text, _)) -> stn $"({text})" ident.idRange
-    | Some(IdentTrivia.HasParenthesis _) -> stn $"({ident.idText})" ident.idRange
+    | Some(IdentTrivia.OriginalNotationWithParen(_, text, _)) -> stn $"(%s{text})" ident.idRange
+    | Some(IdentTrivia.HasParenthesis _) -> stn $"(%s{ident.idText})" ident.idRange
 
 let mkSynLongIdent (sli: SynLongIdent) =
     match sli.IdentsWithTrivia with
@@ -148,7 +148,7 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
             let content =
                 System.String(Array.map (fun (byte: byte) -> System.Convert.ToChar(byte)) bytes)
 
-            $"\"{content}\"B"
+            $"\"%s{content}\"B"
 
         stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
     | SynConst.Measure(c, numberRange, measure, trivia) ->
@@ -377,7 +377,7 @@ let mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) :
     let arrowRange =
         match trivia.ArrowRange with
         | Some r -> r
-        | None -> failwith $"unable to get the arrow range from trivia in {nameof mkSynMatchClause}"
+        | None -> failwith $"unable to get the arrow range from trivia in %s{nameof mkSynMatchClause}"
 
     MatchClauseNode(
         Option.map (stn "|") trivia.BarRange,
@@ -1512,7 +1512,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                                 elif idx = lastIndex && not (String.endsWithOrdinal "\"" v) then
                                     $"}}%s{v}\""
                                 else
-                                    $"}}{v}{{")
+                                    $"}}%s{v}{{")
                             r)
                         r
                     |> Choice1Of2
@@ -1642,7 +1642,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     match p with
     | SynPat.OptionalVal(ident, _) ->
         let identNode = mkIdent ident
-        SingleTextNode($"?{identNode.Text}", patternRange) |> Pattern.OptionalVal
+        SingleTextNode($"?%s{identNode.Text}", patternRange) |> Pattern.OptionalVal
     | PatParameter(ats, pat, t) ->
         PatParameterNode(
             mkAttributes creationAide ats,
@@ -1745,7 +1745,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         |> Pattern.IsInst
     | SynPat.QuoteExpr(SynExpr.Quote(_, isRaw, e, _, _), _) ->
         mkExprQuote creationAide isRaw e patternRange |> Pattern.QuoteExpr
-    | pat -> failwith $"unexpected pattern: {pat}"
+    | pat -> failwith $"unexpected pattern: %A{pat}"
 
 let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
     Option.bind
@@ -1759,7 +1759,7 @@ let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
 let (|OperatorWithStar|_|) (si: SynIdent) =
     match si with
     | SynIdent(ident, Some(ParenStarSynIdent(_, text, _))) ->
-        Some(IdentifierOrDot.Ident(stn $"( {text} )" ident.idRange))
+        Some(IdentifierOrDot.Ident(stn $"( %s{text} )" ident.idRange))
     | _ -> None
 
 let mkBinding
@@ -1802,7 +1802,7 @@ let mkBinding
         let equalsRange =
             match trivia.EqualsRange with
             | Some r -> r
-            | None -> failwith $"failed to get equals range in {nameof mkBinding}"
+            | None -> failwith $"failed to get equals range in %s{nameof mkBinding}"
 
         stn "=" equalsRange
 
@@ -1910,7 +1910,7 @@ let mkExternBinding
                 |> List.mapWithLast id (function
                     | IdentifierOrDot.KnownDot dot -> IdentifierOrDot.KnownDot dot
                     | IdentifierOrDot.UnknownDot -> IdentifierOrDot.UnknownDot
-                    | IdentifierOrDot.Ident ident -> IdentifierOrDot.Ident(stn $"{ident.Text}{suffix}" ident.Range))
+                    | IdentifierOrDot.Ident ident -> IdentifierOrDot.Ident(stn $"%s{ident.Text}%s{suffix}" ident.Range))
 
             Type.LongIdent(IdentListNode(lidPieces, t.Range))
         | SynType.App(typeName = typeName; isPostfix = true; typeArgs = [ argType ]) ->
@@ -2101,13 +2101,13 @@ let mkSynTypar (SynTypar(ident, req, _)) =
         let width = ident.idRange.EndColumn - ident.idRange.StartColumn
         // 5 because of ^ or ' and `` on each side
         if ident.idText.Length + 5 = width then
-            $"``{ident.idText}``"
+            $"``%s{ident.idText}``"
         else
             ident.idText
 
     match req with
-    | TyparStaticReq.None -> stn $"'{identText}" range
-    | TyparStaticReq.HeadType -> stn $"^{identText}" range
+    | TyparStaticReq.None -> stn $"'%s{identText}" range
+    | TyparStaticReq.HeadType -> stn $"^%s{identText}" range
 
 let mkSynTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : TypeConstraint =
     match tc with
@@ -2259,7 +2259,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
                 if not isOptional then
                     identNode
                 else
-                    SingleTextNode($"?{identNode.Text}", ident.idRange))
+                    SingleTextNode($"?%s{identNode.Text}", ident.idRange))
 
         TypeSignatureParameterNode(mkAttributes creationAide attrs, identNode, mkType creationAide t, typeRange)
         |> Type.SignatureParameter
@@ -2286,7 +2286,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
                   yield Choice1Of2(mkType creationAide t) ]
 
         TypeIntersectionNode(typesAndSeparators, m) |> Type.Intersection
-    | t -> failwith $"unexpected type: {t}"
+    | t -> failwith $"unexpected type: %A{t}"
 
 let rec (|OpenL|_|) =
     function

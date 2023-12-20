@@ -60,7 +60,7 @@ let ``uses end_of_line setting to write user newlines`` setting =
     let newline =
         match EndOfLineStyle.OfConfigString setting with
         | Some nl -> nl.NewLineString
-        | None -> failwith $"unable to get {nameof EndOfLineStyle.OfConfigString}"
+        | None -> failwith $"unable to get %s{nameof EndOfLineStyle.OfConfigString}"
 
     let sampleCode nln =
         sprintf "let a = 9%s%slet b = 7%s" nln nln nln

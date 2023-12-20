@@ -1204,14 +1204,14 @@ let operator_application_literal_values =
 let ``operators maintain spacing from literal values`` (literalValue: string) =
     formatSourceString
         $"""
-let subtractTwo = + {literalValue}
+let subtractTwo = + %s{literalValue}
 """
         config
     |> prepend newline
     |> should
         equal
         $"""
-let subtractTwo = + {literalValue}
+let subtractTwo = + %s{literalValue}
 """
 
 [<Test>]

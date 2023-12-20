@@ -54,7 +54,7 @@ type EndToEndTests() =
 
                 do!
                     dotnet
-                        $"tool install fantomas -v d --version {version} --add-source https://api.nuget.org/v3/index.json"
+                        $"tool install fantomas -v d --version %s{version} --add-source https://api.nuget.org/v3/index.json"
 
                 let fsharpFile = Path.Combine(subDirectory.FullName, "File.fs")
                 File.Create(fsharpFile).Dispose()

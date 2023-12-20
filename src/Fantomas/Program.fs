@@ -88,8 +88,8 @@ let private hasByteOrderMark file =
             return false
     }
 
-let private invalidResultException file =
-    FormatException($"Formatting {file} leads to invalid F# code")
+let private invalidResultException (file: string) =
+    FormatException($"Formatting %s{file} leads to invalid F# code")
 
 /// Format a source string using given config and write to a text writer
 let processSourceString (force: bool) (profile: bool) s (fileName: string) config =
@@ -363,7 +363,7 @@ let main argv =
                 (oks, ignores, unchanged, (file, ex) :: errors))
 
     let reportFormatResults (results: #(FormatResult seq)) =
-        let reportError (file, exn: Exception) =
+        let reportError (file: string, exn: Exception) =
             let message =
                 match verbosity with
                 | VerbosityLevel.Normal ->
@@ -377,9 +377,9 @@ let main argv =
                 if String.IsNullOrEmpty message then
                     message
                 else
-                    $" : {message}"
+                    $" : %s{message}"
 
-            elog $"Failed to format file: {file}{message}"
+            elog $"Failed to format file: %s{file}%s{message}"
 
         let reportProfileInfos (results: (string * ProfileInfo option) list) =
             if profile && not (List.isEmpty results) then
@@ -400,16 +400,16 @@ let main argv =
 
             let reportProfileInfo (f, p: ProfileInfo option) =
                 match profile, p with
-                | true, Some pI -> stdlog $"%s{f} Line count: %d{pI.LineCount} Time taken {pI.TimeTaken}"
+                | true, Some pI -> stdlog $"%s{f} Line count: %d{pI.LineCount} Time taken %A{pI.TimeTaken}"
                 | _ -> ()
 
             match singleResult with
             | FormatResult.Formatted(f, _, p) ->
-                stdlog $"{fileName f} was formatted."
+                stdlog $"%s{fileName f} was formatted."
                 reportProfileInfo (f, p)
-            | FormatResult.IgnoredFile f -> stdlog $"{fileName f} was ignored."
+            | FormatResult.IgnoredFile f -> stdlog $"%s{fileName f} was ignored."
             | FormatResult.Unchanged(f, p) ->
-                stdlog $"{fileName f} was unchanged."
+                stdlog $"%s{fileName f} was unchanged."
                 reportProfileInfo (f, p)
             | FormatResult.Error(f, e) ->
                 reportError (fileName f, e)

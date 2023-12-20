@@ -193,7 +193,7 @@ let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<Fanto
                                                                                        workingDirectory,
                                                                                        pathEnvironmentVariable,
                                                                                        error)) ->
-            $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` inside working directory \"{workingDirectory}\" but could not find \"%s{executableFile}\" on the PATH (%s{pathEnvironmentVariable}). Error: %s{error}",
+            $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` inside working directory \"%s{workingDirectory}\" but could not find \"%s{executableFile}\" on the PATH (%s{pathEnvironmentVariable}). Error: %s{error}",
             FantomasResponseCode.DaemonCreationFailed
         | GetDaemonError.DotNetToolListError(DotNetToolListError.ProcessStartError(ProcessStartError.UnExpectedException(executableFile,
                                                                                                                          arguments,
@@ -205,7 +205,7 @@ let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<Fanto
                                                                                  arguments,
                                                                                  exitCode,
                                                                                  error)) ->
-            $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` but exited with code {exitCode} {error}",
+            $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` but exited with code %i{exitCode} %s{error}",
             FantomasResponseCode.DaemonCreationFailed
         | GetDaemonError.InCompatibleVersionFound ->
             "Fantomas.Client did not found a compatible dotnet tool version to launch as daemon process",
