@@ -1,5 +1,6 @@
 module Fantomas.Tests.Integration.WriteTests
 
+open System.IO
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelpers
@@ -51,12 +52,12 @@ let ``file should be written to out folder when input folder has trailing slash`
     use outputFolder = new OutputFolder()
 
     let arguments =
-        sprintf @"%s subsrc%c --out %s" Verbosity System.IO.Path.DirectorySeparatorChar outputFolder.Foldername
+        sprintf @"%s subsrc%c --out %s" Verbosity Path.DirectorySeparatorChar outputFolder.Foldername
 
     let { ExitCode = exitCode; Output = output } = runFantomasTool arguments
 
     exitCode |> should equal 0
-    let outputFilePath = System.IO.Path.Combine(outputFolder.Foldername, "A.fs")
+    let outputFilePath = Path.Combine(outputFolder.Foldername, "A.fs")
     output |> should contain outputFilePath
 
 [<Test>]
@@ -71,5 +72,5 @@ let ``file should be written to out folder when input folder has no trailing sla
     let { ExitCode = exitCode; Output = output } = runFantomasTool arguments
 
     exitCode |> should equal 0
-    let outputFilePath = System.IO.Path.Combine(outputFolder.Foldername, "A.fs")
+    let outputFilePath = Path.Combine(outputFolder.Foldername, "A.fs")
     output |> should contain outputFilePath
