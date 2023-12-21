@@ -221,7 +221,11 @@ let main argv =
         | None -> OutputPath.NotKnown
 
     let inputPath =
-        let maybeInput = results.TryGetResult <@ Arguments.Input @>
+        let maybeInput =
+            results.TryGetResult <@ Arguments.Input @>
+            |> Option.map (fun input ->
+                input
+                |> List.filter (fun s -> not (s.StartsWith("--", StringComparison.Ordinal)))) // don't accidentally treat old flags as folders
 
         match maybeInput with
         | Some [ input ] ->
