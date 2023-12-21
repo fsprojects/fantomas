@@ -76,6 +76,16 @@ type OutputFile internal () =
             if File.Exists(filename) then
                 File.Delete(filename)
 
+type OutputFolder internal () =
+    let foldername = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString())
+
+    member _.Foldername: string = foldername
+
+    interface IDisposable with
+        member this.Dispose() : unit =
+            if Directory.Exists(foldername) then
+                Directory.Delete(foldername, true)
+
 type ConfigurationFile internal (content: string) =
     let filename = Path.Join(Path.GetTempPath(), ".editorconfig")
 

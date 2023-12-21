@@ -42,3 +42,34 @@ let ``incorrectly formatted file should be written`` () =
     exitCode |> should equal 0
 
     output |> should contain "has been written"
+
+[<Test>]
+let ``file should be written to out folder when input folder has trailing slash`` () =
+    use fileFixtureOne =
+        new TemporaryFileCodeSample(FormattedCode, fileName = "A", subFolder = "subsrc")
+
+    use outputFolder = new OutputFolder()
+
+    let arguments =
+        sprintf @"%s subsrc%c --out %s" Verbosity System.IO.Path.DirectorySeparatorChar outputFolder.Foldername
+
+    let { ExitCode = exitCode; Output = output } = runFantomasTool arguments
+
+    exitCode |> should equal 0
+    let outputFilePath = System.IO.Path.Combine(outputFolder.Foldername, "A.fs")
+    output |> should contain outputFilePath
+
+[<Test>]
+let ``file should be written to out folder when input folder has no trailing slash`` () =
+    use fileFixtureOne =
+        new TemporaryFileCodeSample(FormattedCode, fileName = "A", subFolder = "subsrc")
+
+    use outputFolder = new OutputFolder()
+
+    let arguments = sprintf @"%s subsrc --out %s" Verbosity outputFolder.Foldername
+
+    let { ExitCode = exitCode; Output = output } = runFantomasTool arguments
+
+    exitCode |> should equal 0
+    let outputFilePath = System.IO.Path.Combine(outputFolder.Foldername, "A.fs")
+    output |> should contain outputFilePath
