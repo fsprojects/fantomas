@@ -327,12 +327,11 @@ let main argv =
         findAllFilesRecursively inputFolder
         |> Seq.toList
         |> List.map (fun i ->
-            // s supposes to have form s1/suffix
-            let suffix = i.Substring(inputFolder.Length + 1)
 
             let o =
                 if inputFolder <> outputFolder then
-                    Path.Combine(outputFolder, suffix)
+                    let fileName = Path.GetFileName(i)
+                    Path.Combine(outputFolder, fileName)
                 else
                     i
 

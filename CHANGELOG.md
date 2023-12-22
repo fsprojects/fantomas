@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 6.3.0-alpha-005 - 2023-12-22
 
 ### Changed
 * Turn on strict indentation in the lexer in Fantomas.FCS. [#3014](https://github.com/fsprojects/fantomas/pull/3014)
@@ -9,6 +9,7 @@
 * Unmatched '{' error when formatting the code. [#3017](https://github.com/fsprojects/fantomas/issues/3017)
 * Comment lost after named pat pair. [#2953](https://github.com/fsprojects/fantomas/issues/2953)
 * Fix accidental treatment of old flags as folder args. [#2854](https://github.com/fsprojects/fantomas/issues/2854)
+* Fix removal of first character in output file name. [#3025](https://github.com/fsprojects/fantomas/pull/3025)
 
 ## 6.3.0-alpha-004 - 2023-12-06
 

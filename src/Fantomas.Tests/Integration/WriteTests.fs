@@ -1,5 +1,6 @@
 module Fantomas.Tests.Integration.WriteTests
 
+open System.IO
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelpers
@@ -42,3 +43,34 @@ let ``incorrectly formatted file should be written`` () =
     exitCode |> should equal 0
 
     output |> should contain "has been written"
+
+[<Test>]
+let ``file should be written to out folder when input folder has trailing slash`` () =
+    use fileFixtureOne =
+        new TemporaryFileCodeSample(FormattedCode, fileName = "A", subFolder = "subsrc")
+
+    use outputFolder = new OutputFolder()
+
+    let arguments =
+        sprintf @"%s subsrc%c --out %s" Verbosity Path.DirectorySeparatorChar outputFolder.Foldername
+
+    let { ExitCode = exitCode; Output = output } = runFantomasTool arguments
+
+    exitCode |> should equal 0
+    let outputFilePath = Path.Combine(outputFolder.Foldername, "A.fs")
+    output |> should contain outputFilePath
+
+[<Test>]
+let ``file should be written to out folder when input folder has no trailing slash`` () =
+    use fileFixtureOne =
+        new TemporaryFileCodeSample(FormattedCode, fileName = "A", subFolder = "subsrc")
+
+    use outputFolder = new OutputFolder()
+
+    let arguments = sprintf @"%s subsrc --out %s" Verbosity outputFolder.Foldername
+
+    let { ExitCode = exitCode; Output = output } = runFantomasTool arguments
+
+    exitCode |> should equal 0
+    let outputFilePath = Path.Combine(outputFolder.Foldername, "A.fs")
+    output |> should contain outputFilePath
