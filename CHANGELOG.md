@@ -8,6 +8,7 @@
 ### Fixed
 * Unmatched '{' error when formatting the code. [#3017](https://github.com/fsprojects/fantomas/issues/3017)
 * Comment lost after named pat pair. [#2953](https://github.com/fsprojects/fantomas/issues/2953)
+* Fix accidental treatment of old flags as folder args. [#2854](https://github.com/fsprojects/fantomas/issues/2854)
 
 ## 6.3.0-alpha-004 - 2023-12-06
 
