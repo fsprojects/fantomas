@@ -234,25 +234,31 @@ let main argv =
             else
                 InputPath.NotFound input
         | Some inputs ->
-            let isFolder (path: string) =
-                String.IsNullOrWhiteSpace(Path.GetExtension(path))
+            let missing =
+                inputs |> List.tryFind (fun x -> not (Directory.Exists(x) || File.Exists(x)))
 
-            let rec loop
-                (files: string list)
-                (finalContinuation: string list * string list -> string list * string list)
-                =
-                match files with
-                | [] -> finalContinuation ([], [])
-                | h :: rest ->
-                    loop rest (fun (files, folders) ->
-                        if isFolder h then
-                            files, (h :: folders)
-                        else
-                            (h :: files), folders
-                        |> finalContinuation)
+            match missing with
+            | Some x -> InputPath.NotFound x
+            | None ->
+                let isFolder (path: string) =
+                    String.IsNullOrWhiteSpace(Path.GetExtension(path))
 
-            let filesAndFolders = loop inputs id
-            InputPath.Multiple filesAndFolders
+                let rec loop
+                    (files: string list)
+                    (finalContinuation: string list * string list -> string list * string list)
+                    =
+                    match files with
+                    | [] -> finalContinuation ([], [])
+                    | h :: rest ->
+                        loop rest (fun (files, folders) ->
+                            if isFolder h then
+                                files, (h :: folders)
+                            else
+                                (h :: files), folders
+                            |> finalContinuation)
+
+                let filesAndFolders = loop inputs id
+                InputPath.Multiple filesAndFolders
         | None -> InputPath.Unspecified
 
     let force = results.Contains <@ Arguments.Force @>
