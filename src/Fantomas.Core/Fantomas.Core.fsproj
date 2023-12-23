@@ -8,36 +8,23 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="ISourceTextExtensions.fsi" />
     <Compile Include="ISourceTextExtensions.fs" />
-    <Compile Include="RangeHelpers.fsi" />
     <Compile Include="RangeHelpers.fs" />
-    <Compile Include="Utils.fsi" />
     <Compile Include="Utils.fs" />
     <Compile Include="FormatConfig.fs" />
     <Compile Include="SyntaxOak.fs" />
-    <Compile Include="ASTTransformer.fsi" />
     <Compile Include="ASTTransformer.fs" />
     <Compile Include="Version.fs" />
     <Compile Include="Queue.fs" />
-    <Compile Include="Trivia.fsi" />
     <Compile Include="Trivia.fs" />
-    <Compile Include="Defines.fsi" />
     <Compile Include="Defines.fs" />
     <Compile Include="CodeFormatterTypes.fs" />
-    <Compile Include="Context.fsi" />
     <Compile Include="Context.fs" />
-    <Compile Include="CodePrinter.fsi" />
     <Compile Include="CodePrinter.fs" />
-    <Compile Include="MultipleDefineCombinations.fsi" />
     <Compile Include="MultipleDefineCombinations.fs" />
-    <Compile Include="CodeFormatterImpl.fsi" />
     <Compile Include="CodeFormatterImpl.fs" />
-    <Compile Include="Validation.fsi" />
     <Compile Include="Validation.fs" />
-    <Compile Include="Selection.fsi" />
     <Compile Include="Selection.fs" />
-    <Compile Include="CodeFormatter.fsi" />
     <Compile Include="CodeFormatter.fs" />
   </ItemGroup>
   <ItemGroup>
