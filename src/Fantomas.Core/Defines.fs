@@ -6,11 +6,11 @@ open Fantomas.Core
 type internal DefineCombination =
     | DefineCombination of defines: string list
 
-    member x.Value =
+    member x.Value: string list =
         match x with
         | DefineCombination defines -> defines
 
-    static member Empty = DefineCombination([])
+    static member Empty: DefineCombination = DefineCombination([])
 
 module private DefineCombinationSolver =
     let rec map f e =
@@ -238,7 +238,7 @@ module Defines =
         |> List.distinct
         |> List.map List.singleton
 
-    let getDefineExprs (hashDirectives: ConditionalDirectiveTrivia list) =
+    let private getDefineExprs (hashDirectives: ConditionalDirectiveTrivia list) =
         let result =
             (([], []), hashDirectives)
             ||> List.fold (fun (contextExprs, exprAcc) hashLine ->
@@ -257,9 +257,9 @@ module Defines =
 
         result
 
-    let satSolveMaxStepsMaxSteps = 100
+    let private satSolveMaxStepsMaxSteps = 100
 
-    let getOptimizedDefinesSets (hashDirectives: ConditionalDirectiveTrivia list) =
+    let private getOptimizedDefinesSets (hashDirectives: ConditionalDirectiveTrivia list) =
         let defineExprs = getDefineExprs hashDirectives
 
         match
@@ -269,7 +269,7 @@ module Defines =
         | [] -> [ [] ]
         | xs -> xs
 
-    let getDefineCombination (hashDirectives: ConditionalDirectiveTrivia list) : DefineCombination list =
+    let internal getDefineCombination (hashDirectives: ConditionalDirectiveTrivia list) : DefineCombination list =
         [ yield [] // always include the empty defines set
           yield! getOptimizedDefinesSets hashDirectives
           yield! getIndividualDefine hashDirectives ]

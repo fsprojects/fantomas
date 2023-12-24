@@ -15,12 +15,12 @@ type MultilineFormatterType =
     | CharacterWidth
     | NumberOfItems
 
-    static member ToConfigString(cfg: MultilineFormatterType) =
+    static member ToConfigString(cfg: MultilineFormatterType) : string =
         match cfg with
         | MultilineFormatterType.CharacterWidth -> "character_width"
         | MultilineFormatterType.NumberOfItems -> "number_of_items"
 
-    static member OfConfigString(cfgString: string) =
+    static member OfConfigString(cfgString: string) : MultilineFormatterType option =
         match cfgString with
         | "character_width" -> Some MultilineFormatterType.CharacterWidth
         | "number_of_items" -> Some MultilineFormatterType.NumberOfItems
@@ -31,13 +31,13 @@ type MultilineBracketStyle =
     | Aligned
     | Stroustrup
 
-    static member ToConfigString(cfg: MultilineBracketStyle) =
+    static member ToConfigString(cfg: MultilineBracketStyle) : string =
         match cfg with
         | Cramped -> "cramped"
         | Aligned -> "aligned"
         | Stroustrup -> "stroustrup"
 
-    static member OfConfigString(cfgString: string) =
+    static member OfConfigString(cfgString: string) : MultilineBracketStyle option =
         match cfgString with
         | "cramped" -> Some Cramped
         | "aligned" -> Some Aligned
@@ -50,25 +50,25 @@ type EndOfLineStyle =
     | CR
     | CRLF
 
-    member x.NewLineString =
+    member x.NewLineString: string =
         match x with
         | LF -> "\n"
         | CR -> "\r"
         | CRLF -> "\r\n"
 
-    static member FromEnvironment =
+    static member FromEnvironment: EndOfLineStyle =
         match Environment.NewLine with
         | "\n" -> LF
         | "\r\n" -> CRLF
         | other -> failwithf "Unknown system newline string found: %s" other
 
-    static member ToConfigString(eol: EndOfLineStyle) =
+    static member ToConfigString(eol: EndOfLineStyle) : string =
         match eol with
         | EndOfLineStyle.LF -> "lf"
         | EndOfLineStyle.CR -> "cr"
         | EndOfLineStyle.CRLF -> "crlf"
 
-    static member OfConfigString(eolString: string) =
+    static member OfConfigString(eolString: string) : EndOfLineStyle option =
         match eolString with
         | "lf" -> Some EndOfLineStyle.LF
         | "cr" -> failwith "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
@@ -229,9 +229,9 @@ type FormatConfig =
       [<DisplayName("Applies the Stroustrup style to the final (two) array or list argument(s) in a function application")>]
       ExperimentalElmish: bool }
 
-    member x.IsStroustrupStyle = x.MultilineBracketStyle = Stroustrup
+    member x.IsStroustrupStyle: bool = x.MultilineBracketStyle = Stroustrup
 
-    static member Default =
+    static member Default: FormatConfig =
         { IndentSize = 4
           MaxLineLength = 120
           EndOfLine = EndOfLineStyle.FromEnvironment

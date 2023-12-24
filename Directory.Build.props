@@ -31,7 +31,7 @@ Some common use cases include:
         FS1182	Unused variables
         FS1178 does not support structural equality
         -->
-        <WarnOn>1182;3390;1178;$(WarnOn)</WarnOn>
+        <WarnOn>1182;3390;$(WarnOn)</WarnOn>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <RestoreLockedMode>true</RestoreLockedMode>
         <NoWarn>NU1603</NoWarn>

@@ -14,7 +14,7 @@ open Fantomas.FCS.Text
 /// When the code needs to be compared, a CustomComparison is used to determine which fragment we are interested in.
 [<RequireQualifiedAccess>]
 [<CustomEquality; CustomComparison>]
-type CodeFragment =
+type private CodeFragment =
     /// Any line that starts with `#if`, `#else` or `#endif`
     | HashLine of line: string * defines: DefineCombination
     /// Content found between two HashLines
@@ -22,19 +22,19 @@ type CodeFragment =
     /// When two HashLines follow each other without any content in between.
     | NoContent of defines: DefineCombination
 
-    member x.Defines =
+    member x.Defines: DefineCombination =
         match x with
         | HashLine(defines = defines)
         | Content(defines = defines)
         | NoContent(defines = defines) -> defines
 
-    member x.LineCount =
+    member x.LineCount: int =
         match x with
         | HashLine _ -> 1
         | Content(lineCount = lineCount) -> lineCount
         | NoContent _ -> 0
 
-    override x.Equals(other: obj) =
+    override x.Equals(other: obj) : bool =
         match other with
         | :? CodeFragment as other ->
             match x, other with
@@ -44,7 +44,7 @@ type CodeFragment =
             | _ -> false
         | _ -> false
 
-    override x.GetHashCode() =
+    override x.GetHashCode() : int =
         match x with
         | HashLine(line, defineCombination) ->
             {| line = line
@@ -107,19 +107,19 @@ type CodeFragment =
             | x, other -> failwith $"Cannot compare %A{x} with %A{other}"
 
 [<NoComparison>]
-type FormatResultForDefines =
+type private FormatResultForDefines =
     { Result: FormatResult
       Defines: DefineCombination
       Fragments: CodeFragment list }
 
 /// Accumulator type used when building up the fragments.
 [<NoComparison>]
-type SplitHashState =
+type private SplitHashState =
     { CurrentBuilder: StringBuilder
       LinesCollected: int
       LastLineInfo: LastLineInfo }
 
-    static member Zero =
+    static member Zero: SplitHashState =
         { CurrentBuilder = StringBuilder()
           LastLineInfo = LastLineInfo.None
           LinesCollected = 0 }
@@ -131,18 +131,18 @@ and [<RequireQualifiedAccess>] LastLineInfo =
 
 /// Accumulator type used when folding over the selected CodeFragments.
 [<NoComparison>]
-type FragmentWeaverState =
+type private FragmentWeaverState =
     { LastLine: int
       Cursors: Map<DefineCombination, pos>
       ContentBuilder: StringBuilder
       FoundCursor: (DefineCombination * pos) option }
 
-let stringBuilderResult (builder: StringBuilder) = builder.ToString()
+let private stringBuilderResult (builder: StringBuilder) = builder.ToString()
 
-let hashRegex = @"^\s*#(if|elseif|else|endif).*"
+let private hashRegex = @"^\s*#(if|elseif|else|endif).*"
 
 /// Split the given `source` into the matching `CodeFragments`.
-let splitWhenHash (defines: DefineCombination) (newline: string) (source: string) : CodeFragment list =
+let private splitWhenHash (defines: DefineCombination) (newline: string) (source: string) : CodeFragment list =
     let lines = source.Split([| newline |], options = StringSplitOptions.None)
     let mutable fragmentsBuilder = ListCollector<CodeFragment>()
 
@@ -187,7 +187,10 @@ let splitWhenHash (defines: DefineCombination) (newline: string) (source: string
 
     fragmentsBuilder.Close()
 
-let mergeMultipleFormatResults config (results: (DefineCombination * FormatResult) list) : FormatResult =
+let mergeMultipleFormatResults
+    (config: FormatConfig)
+    (results: (DefineCombination * FormatResult) list)
+    : FormatResult =
     let allInFragments: FormatResultForDefines list =
         results
         |> List.map (fun (dc, result) ->

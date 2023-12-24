@@ -2,7 +2,7 @@ module internal Fantomas.Core.Version
 
 open System.Reflection
 
-let fantomasVersion =
+let fantomasVersion: Lazy<string> =
     lazy
         (let assembly = typeof<SyntaxOak.Node>.Assembly
 

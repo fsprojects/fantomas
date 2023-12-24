@@ -6,10 +6,10 @@ open Fantomas.FCS.Text
 module RangeHelpers =
 
     /// Checks if Range B is fully contained by Range A
-    let rangeContainsRange (a: Range) (b: Range) =
+    let rangeContainsRange (a: Range) (b: Range) : bool =
         Position.posGeq b.Start a.Start && Position.posGeq a.End b.End
 
-    let rangeEq = Range.equals
+    let rangeEq: range -> range -> bool = Range.equals
 
     let isAdjacentTo (r1: Range) (r2: Range) : bool =
         r1.FileName = r2.FileName
@@ -28,17 +28,17 @@ module RangeHelpers =
         startRange, endRange
 
 module RangePatterns =
-    let (|StartEndRange|) (size: int) (range: range) =
+    let (|StartEndRange|) (size: int) (range: range) : range * range * range =
         let o, c = RangeHelpers.mkStartEndRange size range
         o, range, c
 
-    let (|StartRange|) (size: int) (range: range) =
+    let (|StartRange|) (size: int) (range: range) : range * range =
         let startRange =
             Range.mkRange range.FileName range.Start (Position.mkPos range.StartLine (range.StartColumn + size))
 
         startRange, range
 
-    let (|EndRange|) (size: int) (range: range) =
+    let (|EndRange|) (size: int) (range: range) : range * range =
         let endRange =
             Range.mkRange range.FileName (Position.mkPos range.EndLine (range.EndColumn - size)) range.End
 

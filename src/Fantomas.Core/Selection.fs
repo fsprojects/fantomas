@@ -4,7 +4,7 @@ open Fantomas.FCS.Text
 open Fantomas.Core.SyntaxOak
 open Fantomas.Core.ISourceTextExtensions
 
-let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: range) =
+let private correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: range) =
     let lines =
         [| selection.StartLine .. selection.EndLine |]
         |> Array.choose (fun lineNumber ->
@@ -62,7 +62,7 @@ let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: rang
             selection
     | _ -> selection
 
-let findNode (selection: range) (node: Node) : Node option =
+let private findNode (selection: range) (node: Node) : Node option =
     let isExactSelection =
         selection.StartLine = node.Range.StartLine
         && selection.StartColumn = node.Range.StartColumn
@@ -91,18 +91,18 @@ let mkOakFromModuleDecl (md: ModuleDecl) : TreeForSelection =
 /// For example when formatting a type definition: `let (a: int   list) = []`
 /// If the selection is `int    list` we cannot just drop that in an empty file and format it.
 /// We can fake a binding (or type alias) and later try and select the formatted type.
-let mkExtractableOakFromModule (md: ModuleDecl) (t: System.Type) =
+let private mkExtractableOakFromModule (md: ModuleDecl) (t: System.Type) =
     let m = (ModuleDecl.Node md).Range
     TreeForSelection.RequiresExtraction(Oak([], [ ModuleOrNamespaceNode(None, [ md ], m) ], m), t)
 
-let dummyUnit: Expr =
+let private dummyUnit: Expr =
     UnitNode(SingleTextNode("(", Range.Zero), SingleTextNode(")", Range.Zero), Range.Zero)
     |> Constant.Unit
     |> Expr.Constant
 
 /// Wrap the selected node inside an anonymous module.
 /// Keep the original trivia of the ParsedInput so code comments could still be restored.
-let mkTreeWithSingleNode (node: Node) : TreeForSelection =
+let private mkTreeWithSingleNode (node: Node) : TreeForSelection =
     let m = node.Range
 
     match node with
@@ -358,7 +358,7 @@ let printTriviaNode (node: Node) : unit =
 #endif
 
 // Find the first node that matches the type
-let rec findRangeOf (t: System.Type) (root: Node) : range option =
+let rec private findRangeOf (t: System.Type) (root: Node) : range option =
     if root.GetType() = t then
         Some root.Range
     else

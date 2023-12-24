@@ -8,4 +8,4 @@ do ()
 
 module internal AssemblyVersionInformation =
     [<Literal>]
-    let InternalsVisibleTo = "Fantomas.Tests"
+    let InternalsVisibleTo: string = "Fantomas.Tests"

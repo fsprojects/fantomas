@@ -6,18 +6,18 @@ open Microsoft.FSharp.Core.CompilerServices
 [<RequireQualifiedAccess>]
 module String =
 
-    let startsWithOrdinal (prefix: string) (str: string) =
+    let startsWithOrdinal (prefix: string) (str: string) : bool =
         str.StartsWith(prefix, StringComparison.Ordinal)
 
-    let endsWithOrdinal (postfix: string) (str: string) =
+    let endsWithOrdinal (postfix: string) (str: string) : bool =
         str.EndsWith(postfix, StringComparison.Ordinal)
 
-    let empty = String.Empty
-    let isNotNullOrEmpty = String.IsNullOrEmpty >> not
-    let isNotNullOrWhitespace = String.IsNullOrWhiteSpace >> not
+    let empty: string = String.Empty
+    let isNotNullOrEmpty: string -> bool = String.IsNullOrEmpty >> not
+    let isNotNullOrWhitespace: string -> bool = String.IsNullOrWhiteSpace >> not
 
 module List =
-    let chooseState f state l =
+    let chooseState<'a, 'b, 'c> (f: 'a -> 'b -> 'a * 'c option) (state: 'a) (l: 'b list) : 'c list =
         let mutable s = state
 
         l
@@ -26,15 +26,15 @@ module List =
             s <- s'
             r)
 
-    let isNotEmpty l = (List.isEmpty >> not) l
+    let isNotEmpty<'a> (l: 'a list) : bool = (List.isEmpty >> not) l
 
-    let moreThanOne =
+    let moreThanOne<'a> : 'a list -> bool =
         function
         | []
         | [ _ ] -> false
         | _ -> true
 
-    let partitionWhile (f: int -> 'a -> bool) (xs: 'a list) : 'a list * 'a list =
+    let private partitionWhile (f: int -> 'a -> bool) (xs: 'a list) : 'a list * 'a list =
         let rec go i before after =
             match after with
             | head :: tail ->
@@ -45,7 +45,7 @@ module List =
 
         go 0 [] xs
 
-    let mapWithLast (f: 'a -> 'b) (g: 'a -> 'b) (xs: 'a list) =
+    let mapWithLast<'a, 'b> (f: 'a -> 'b) (g: 'a -> 'b) (xs: 'a list) : 'b list =
         let rec visit xs continuation =
             match xs with
             | [] -> continuation []
@@ -54,7 +54,7 @@ module List =
 
         visit xs id
 
-    let cutOffLast list =
+    let cutOffLast<'a> (list: 'a list) : 'a list =
         let mutable headList = ListCollector<'a>()
 
         let rec visit list =
@@ -68,7 +68,7 @@ module List =
         visit list
         headList.Close()
 
-    let foldWithLast
+    let foldWithLast<'state, 'item>
         (f: 'state -> 'item -> 'state)
         (g: 'state -> 'item -> 'state)
         (initialState: 'state)
@@ -83,7 +83,7 @@ module List =
         visit initialState items
 
 module Async =
-    let map f computation =
+    let map<'a, 'b> (f: 'a -> 'b) (computation: Async<'a>) : Async<'b> =
         async.Bind(computation, f >> async.Return)
 
 [<RequireQualifiedAccess>]

@@ -13,7 +13,7 @@ open Fantomas.Core.SyntaxOak
 open Microsoft.FSharp.Core
 
 [<NoComparison>]
-type CreationAide =
+type private CreationAide =
     { SourceText: ISourceText option }
 
     member x.TextFromSource fallback range =
@@ -21,9 +21,9 @@ type CreationAide =
         | None -> fallback ()
         | Some sourceText -> sourceText.GetContentAt range
 
-let stn text range = SingleTextNode(text, range)
+let private stn text range = SingleTextNode(text, range)
 
-let mkIdent (ident: Ident) =
+let private mkIdent (ident: Ident) =
     let width = ident.idRange.EndColumn - ident.idRange.StartColumn
 
     let text =
@@ -35,14 +35,14 @@ let mkIdent (ident: Ident) =
 
     stn text ident.idRange
 
-let mkSynIdent (SynIdent(ident, trivia)) =
+let private mkSynIdent (SynIdent(ident, trivia)) =
     match trivia with
     | None -> mkIdent ident
     | Some(IdentTrivia.OriginalNotation text) -> stn text ident.idRange
     | Some(IdentTrivia.OriginalNotationWithParen(_, text, _)) -> stn $"(%s{text})" ident.idRange
     | Some(IdentTrivia.HasParenthesis _) -> stn $"(%s{ident.idText})" ident.idRange
 
-let mkSynLongIdent (sli: SynLongIdent) =
+let private mkSynLongIdent (sli: SynLongIdent) =
     match sli.IdentsWithTrivia with
     | [] -> IdentListNode.Empty
     | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(mkSynIdent single) ], sli.Range)
@@ -58,7 +58,7 @@ let mkSynLongIdent (sli: SynLongIdent) =
 
         IdentListNode(IdentifierOrDot.Ident(mkSynIdent head) :: rest, sli.Range)
 
-let mkLongIdent (longIdent: LongIdent) : IdentListNode =
+let private mkLongIdent (longIdent: LongIdent) : IdentListNode =
     match longIdent with
     | [] -> IdentListNode.Empty
     | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(mkIdent single) ], single.idRange)
@@ -72,20 +72,20 @@ let mkLongIdent (longIdent: LongIdent) : IdentListNode =
 
         IdentListNode(IdentifierOrDot.Ident(mkIdent head) :: rest, range)
 
-let mkSynAccess (vis: SynAccess option) =
+let private mkSynAccess (vis: SynAccess option) =
     match vis with
     | None -> None
     | Some(SynAccess.Internal range) -> Some(stn "internal" range)
     | Some(SynAccess.Private range) -> Some(stn "private" range)
     | Some(SynAccess.Public range) -> Some(stn "public" range)
 
-let parseExpressionInSynBinding returnInfo expr =
+let private parseExpressionInSynBinding returnInfo expr =
     match returnInfo, expr with
     | Some(SynBindingReturnInfo(typeName = t1)), SynExpr.Typed(e, t2, _) when RangeHelpers.rangeEq t1.Range t2.Range ->
         e
     | _ -> expr
 
-let mkConstString (creationAide: CreationAide) (stringKind: SynStringKind) (value: string) (range: range) =
+let private mkConstString (creationAide: CreationAide) (stringKind: SynStringKind) (value: string) (range: range) =
     let escaped = Regex.Replace(value, "\"{1}", "\\\"")
 
     let fallback () =
@@ -96,7 +96,7 @@ let mkConstString (creationAide: CreationAide) (stringKind: SynStringKind) (valu
 
     stn (creationAide.TextFromSource fallback range) range
 
-let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(ident, args, range)) =
+let private mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(ident, args, range)) =
     let args =
         args
         |> List.map (function
@@ -106,7 +106,7 @@ let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(iden
 
     ParsedHashDirectiveNode(ident, args, range)
 
-let mkConstant (creationAide: CreationAide) c r : Constant =
+let private mkConstant (creationAide: CreationAide) c r : Constant =
     let orElse fallback =
         stn (creationAide.TextFromSource (fun () -> fallback) r) r |> Constant.FromText
 
@@ -167,7 +167,7 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
         |> Constant.Measure
     | SynConst.SourceIdentifier(c, _, r) -> stn c r |> Constant.FromText
 
-let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
+let private mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
     match measure with
     | SynMeasure.Var(typar, _) -> mkSynTypar typar |> Measure.Single
     | SynMeasure.Anon m -> stn "_" m |> Measure.Single
@@ -189,7 +189,7 @@ let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
         |> Measure.Paren
     | SynMeasure.Seq(ms, m) -> MeasureSequenceNode(List.map (mkMeasure creationAide) ms, m) |> Measure.Seq
 
-let mkAttribute (creationAide: CreationAide) (a: SynAttribute) =
+let private mkAttribute (creationAide: CreationAide) (a: SynAttribute) =
     let expr =
         match a.ArgExpr with
         | UnitExpr _ -> None
@@ -197,7 +197,7 @@ let mkAttribute (creationAide: CreationAide) (a: SynAttribute) =
 
     AttributeNode(mkSynLongIdent a.TypeName, expr, Option.map mkIdent a.Target, a.Range)
 
-let mkAttributeList (creationAide: CreationAide) (al: SynAttributeList) : AttributeListNode =
+let private mkAttributeList (creationAide: CreationAide) (al: SynAttributeList) : AttributeListNode =
     let attributes = List.map (mkAttribute creationAide) al.Attributes
 
     let opening, closing =
@@ -206,7 +206,7 @@ let mkAttributeList (creationAide: CreationAide) (al: SynAttributeList) : Attrib
 
     AttributeListNode(opening, attributes, closing, al.Range)
 
-let mkAttributes (creationAide: CreationAide) (al: SynAttributeList list) : MultipleAttributeListNode option =
+let private mkAttributes (creationAide: CreationAide) (al: SynAttributeList list) : MultipleAttributeListNode option =
     match al with
     | [] -> None
     | _ ->
@@ -214,7 +214,7 @@ let mkAttributes (creationAide: CreationAide) (al: SynAttributeList list) : Mult
         let range = attributeLists |> List.map (fun al -> al.Range) |> combineRanges
         Some(MultipleAttributeListNode(attributeLists, range))
 
-let (|Sequentials|_|) e =
+let private (|Sequentials|_|) (e: SynExpr) : SynExpr list option =
     let rec visit (e: SynExpr) (finalContinuation: SynExpr list -> SynExpr list) : SynExpr list =
         match e with
         | SynExpr.Sequential(_, _, e1, e2, _) -> visit e2 (fun xs -> e1 :: xs |> finalContinuation)
@@ -226,7 +226,7 @@ let (|Sequentials|_|) e =
         Some(e1 :: xs)
     | _ -> None
 
-let mkOpenAndCloseForArrayOrList isArray range =
+let private mkOpenAndCloseForArrayOrList isArray range =
     if isArray then
         let (StartEndRange 2 (mO, _, mC)) = range
         stn "[|" mO, stn "|]" mC
@@ -234,7 +234,7 @@ let mkOpenAndCloseForArrayOrList isArray range =
         let (StartEndRange 1 (mO, _, mC)) = range
         stn "[" mO, stn "]" mC
 
-let mkInheritConstructor (creationAide: CreationAide) (t: SynType) (e: SynExpr) (mInherit: range) (m: range) =
+let private mkInheritConstructor (creationAide: CreationAide) (t: SynType) (e: SynExpr) (mInherit: range) (m: range) =
     let inheritNode = stn "inherit" mInherit
     let m = unionRanges mInherit m
 
@@ -254,7 +254,7 @@ let mkInheritConstructor (creationAide: CreationAide) (t: SynType) (e: SynExpr) 
         InheritConstructorOtherNode(inheritNode, mkType creationAide t, mkExpr creationAide e, m)
         |> InheritConstructor.Other
 
-let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range list) (m: range) =
+let private mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range list) (m: range) =
     match exprs with
     | [] -> failwith "SynExpr.Tuple with no elements"
     | head :: tail ->
@@ -268,7 +268,7 @@ let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range li
 
 /// Unfold a list of let bindings
 /// Recursive and use properties have to be determined at this point
-let rec (|LetOrUses|_|) =
+let rec private (|LetOrUses|_|): SynExpr -> ((SynBinding * range option) list * SynExpr) option =
     function
     | SynExpr.LetOrUse(_, _, xs, LetOrUses(ys, e), _, trivia) ->
         let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
@@ -278,7 +278,7 @@ let rec (|LetOrUses|_|) =
         Some(xs', e)
     | _ -> None
 
-let rec collectComputationExpressionStatements
+let rec private collectComputationExpressionStatements
     (creationAide: CreationAide)
     (e: SynExpr)
     (finalContinuation: ComputationExpressionStatement list -> ComputationExpressionStatement list)
@@ -352,7 +352,7 @@ let rec private skipGeneratedLambdas expr =
     | SynExpr.Lambda(inLambdaSeq = true; body = bodyExpr) -> skipGeneratedLambdas bodyExpr
     | _ -> expr
 
-and skipGeneratedMatch expr =
+and private skipGeneratedMatch expr =
     match expr with
     | SynExpr.Match(_, _, [ SynMatchClause.SynMatchClause(resultExpr = innerExpr) as clause ], matchRange, _) when
         matchRange.Start = clause.Range.Start
@@ -364,11 +364,11 @@ let inline private getLambdaBodyExpr expr =
     let skippedLambdas = skipGeneratedLambdas expr
     skipGeneratedMatch skippedLambdas
 
-let mkLambda creationAide pats mArrow body (StartRange 3 (mFun, m)) : ExprLambdaNode =
+let private mkLambda creationAide pats mArrow body (StartRange 3 (mFun, m)) : ExprLambdaNode =
     let body = getLambdaBodyExpr body
     ExprLambdaNode(stn "fun" mFun, List.map (mkPat creationAide) pats, stn "->" mArrow, mkExpr creationAide body, m)
 
-let mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) : MatchClauseNode =
+let private mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) : MatchClauseNode =
     let fullRange =
         match trivia.BarRange with
         | None -> range
@@ -388,7 +388,7 @@ let mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) :
         fullRange
     )
 
-let (|ColonColonInfixApp|_|) =
+let (|ColonColonInfixApp|_|): SynExpr -> (SynExpr * SingleTextNode * SynExpr) option =
     function
     | SynExpr.App(
         isInfix = true
@@ -397,7 +397,7 @@ let (|ColonColonInfixApp|_|) =
         argExpr = SynExpr.Tuple(exprs = [ e1; e2 ])) -> Some(e1, stn "::" operatorIdent.idRange, e2)
     | _ -> None
 
-let (|InfixApp|_|) synExpr =
+let (|InfixApp|_|) (synExpr: SynExpr) : (SynExpr * SingleTextNode * SynExpr) option =
     match synExpr with
     | ColonColonInfixApp(lhs, operator, rhs) -> Some(lhs, operator, rhs)
     | SynExpr.App(
@@ -409,7 +409,7 @@ let (|InfixApp|_|) synExpr =
         argExpr = e2) -> Some(e1, stn operator operatorIdent.idRange, e2)
     | _ -> None
 
-let (|IndexWithoutDot|_|) expr =
+let (|IndexWithoutDot|_|) (expr: SynExpr) : (SynExpr * SynExpr) option =
     match expr with
     | SynExpr.App(ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed(false, indexExpr, _), _) ->
         Some(identifierExpr, indexExpr)
@@ -421,7 +421,7 @@ let (|IndexWithoutDot|_|) expr =
         Some(identifierExpr, indexExpr)
     | _ -> None
 
-let (|MultipleConsInfixApps|_|) expr =
+let (|MultipleConsInfixApps|_|) (expr: SynExpr) : (SynExpr * (SingleTextNode * SynExpr) list) option =
     let rec visit expr (headAndLastOperator: (SynExpr * SingleTextNode) option) (xs: Queue<SingleTextNode * SynExpr>) =
         match expr with
         | ColonColonInfixApp(lhs, operator, rhs) ->
@@ -443,9 +443,9 @@ let (|MultipleConsInfixApps|_|) expr =
         if xs.Count < 2 then None else Some(head, Seq.toList xs)
     | _ -> None
 
-let rightOperators = set [| "@"; "**"; "^"; ":=" |]
+let private rightOperators = set [| "@"; "**"; "^"; ":=" |]
 
-let (|SameInfixApps|_|) expr =
+let private (|SameInfixApps|_|) (expr: SynExpr) : (SynExpr * (SingleTextNode * SynExpr) list) option =
     let rec visitLeft sameOperator expr continuation =
         match expr with
         | InfixApp(lhs, operator, rhs) when operator.Text = sameOperator ->
@@ -502,9 +502,9 @@ let (|SameInfixApps|_|) expr =
         if xs.Count < 2 then None else Some(head, Seq.toList xs)
     | _ -> None
 
-let newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
+let private newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
 
-let (|NewlineInfixApps|_|) expr =
+let private (|NewlineInfixApps|_|) (expr: SynExpr) : (SynExpr * (SingleTextNode * SynExpr) list) option =
     let rec visit expr continuation =
         match expr with
         | InfixApp(lhs, operator, rhs) when newLineInfixOps.Contains operator.Text ->
@@ -519,7 +519,10 @@ let (|NewlineInfixApps|_|) expr =
         if xs.Count < 2 then None else Some(head, Seq.toList xs)
     | _ -> None
 
-let rec (|ElIf|_|) =
+let rec private (|ElIf|_|)
+    : SynExpr
+          -> ((Choice<SingleTextNode, (range * range)> * SynExpr * SingleTextNode * SynExpr) list *
+          (SingleTextNode * SynExpr) option) option =
     function
     | SynExpr.IfThenElse(e1,
                          e2,
@@ -559,7 +562,7 @@ let rec (|ElIf|_|) =
         Some([ (ifNode, e1, stn "then" trivia.ThenKeyword, e2) ], elseInfo)
     | _ -> None
 
-let (|ConstNumberExpr|_|) =
+let private (|ConstNumberExpr|_|): SynExpr -> (string * range) option =
     function
     | SynExpr.Const(SynConst.Double v, m) -> Some(string<double> v, m)
     | SynExpr.Const(SynConst.Decimal v, m) -> Some(string<decimal> v, m)
@@ -569,7 +572,7 @@ let (|ConstNumberExpr|_|) =
     | SynExpr.Const(SynConst.Int64 v, m) -> Some(string<int64> v, m)
     | _ -> None
 
-let (|App|_|) e =
+let private (|App|_|) (e: SynExpr) : (SynExpr * SynExpr list) option =
     let rec visit expr continuation =
         match expr with
         | SynExpr.App(funcExpr = funcExpr; argExpr = argExpr) ->
@@ -581,19 +584,19 @@ let (|App|_|) e =
     let head, xs = visit e id
     if xs.Count = 0 then None else Some(head, Seq.toList xs)
 
-let (|ParenLambda|_|) e =
+let private (|ParenLambda|_|) (e: SynExpr) : (range * SynPat list * range * SynExpr * range * range) option =
     match e with
     | ParenExpr(lpr, SynExpr.Lambda(_, _, _, _, Some(pats, body), mLambda, { ArrowRange = Some mArrow }), rpr, _) ->
         Some(lpr, pats, mArrow, body, mLambda, rpr)
     | _ -> None
 
-let (|ParenMatchLambda|_|) e =
+let private (|ParenMatchLambda|_|) (e: SynExpr) : (range * range * SynMatchClause list * range * range) option =
     match e with
     | ParenExpr(lpr, SynExpr.MatchLambda(_, mFunction, clauses, _, mMatchLambda), rpr, _) ->
         Some(lpr, mFunction, clauses, mMatchLambda, rpr)
     | _ -> None
 
-let mkMatchLambda creationAide mFunction cs m =
+let private mkMatchLambda creationAide mFunction cs m =
     ExprMatchLambdaNode(stn "function" mFunction, List.map (mkSynMatchClause creationAide) cs, m)
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
@@ -608,7 +611,7 @@ type LinkExpr =
     | AppUnit of functionName: SynExpr * unit: range
     | IndexExpr of indexExpr: SynExpr
 
-let mkLinksFromSynLongIdent (sli: SynLongIdent) : LinkExpr list =
+let private mkLinksFromSynLongIdent (sli: SynLongIdent) : LinkExpr list =
     let idents =
         List.map (mkLongIdentExprFromSynIdent >> LinkExpr.Identifier) sli.IdentsWithTrivia
 
@@ -624,20 +627,20 @@ let mkLinksFromSynLongIdent (sli: SynLongIdent) : LinkExpr list =
         | LinkExpr.AppUnit _
         | LinkExpr.IndexExpr _ -> -1, -1)
 
-let (|UnitExpr|_|) e =
+let private (|UnitExpr|_|) (e: SynExpr) : range option =
     match e with
     | SynExpr.Const(constant = SynConst.Unit) -> Some e.Range
     | _ -> None
 
-let (|ParenExpr|_|) e =
+let private (|ParenExpr|_|) (e: SynExpr) : (range * SynExpr * range * range) option =
     match e with
     | SynExpr.Paren(e, lpr, Some rpr, pr) -> Some(lpr, e, rpr, pr)
     | _ -> None
 
-let mkLongIdentExprFromSynIdent (SynIdent(ident, identTrivia)) =
+let private mkLongIdentExprFromSynIdent (SynIdent(ident, identTrivia)) =
     SynExpr.LongIdent(false, SynLongIdent([ ident ], [], [ identTrivia ]), None, ident.idRange)
 
-let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName: SynExpr) : LinkExpr list =
+let private mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName: SynExpr) : LinkExpr list =
     match functionName with
     | SynExpr.TypeApp(SynExpr.LongIdent(longDotId = sli),
                       lessRange,
@@ -682,7 +685,7 @@ let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName:
               yield (mkLongIdentExprFromSynIdent lastSynIdent |> mkLinkFromExpr) ]
     | e -> [ mkLinkFromExpr e ]
 
-let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
+let private (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
     let rec visit (e: SynExpr) (continuation: LinkExpr list -> LinkExpr list) =
         match e with
         | SynExpr.App(
@@ -877,7 +880,7 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
         Some(visit e id)
     | _ -> None
 
-let (|AppSingleParenArg|_|) =
+let private (|AppSingleParenArg|_|): SynExpr -> (SynExpr * SynExpr) option =
     function
     | App(SynExpr.DotGet _, [ (SynExpr.Paren(expr = SynExpr.Tuple _)) ]) -> None
     | App(e, [ UnitExpr _ as px ]) -> Some(e, px)
@@ -888,10 +891,10 @@ let (|AppSingleParenArg|_|) =
         | _ -> Some(e, px)
     | _ -> None
 
-let mkParenExpr creationAide lpr e rpr m =
+let private mkParenExpr creationAide lpr e rpr m =
     ExprParenNode(stn "(" lpr, mkExpr creationAide e, stn ")" rpr, m)
 
-let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
+let private mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
     match e with
@@ -1596,7 +1599,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.DotLambda
     | _ -> failwithf "todo for %A" e
 
-let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
+let private mkExprQuote creationAide isRaw e range : ExprQuoteNode =
     let startToken, endToken =
         let sText, length, eText = if isRaw then "<@@", 3, "@@>" else "<@", 2, "@>"
 
@@ -1605,7 +1608,7 @@ let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
 
     ExprQuoteNode(startToken, mkExpr creationAide e, endToken, range)
 
-let (|ParenStarSynIdent|_|) =
+let private (|ParenStarSynIdent|_|): IdentTrivia -> (range * string * range) option =
     function
     | IdentTrivia.OriginalNotationWithParen(lpr, originalNotation, rpr) ->
         if originalNotation.Length > 1 && String.startsWithOrdinal "*" originalNotation then
@@ -1614,7 +1617,7 @@ let (|ParenStarSynIdent|_|) =
             None
     | _ -> None
 
-let (|PatParameter|_|) (p: SynPat) =
+let private (|PatParameter|_|) (p: SynPat) : (SynAttributeList list * SynPat * SynType option) option =
     match p with
     | SynPat.Typed(pat = pat; targetType = t) -> Some([], pat, Some t)
     | SynPat.Attrib(pat = SynPat.Typed(pat = pat; targetType = t); attributes = attributes) ->
@@ -1622,9 +1625,9 @@ let (|PatParameter|_|) (p: SynPat) =
     | SynPat.Attrib(pat = pat; attributes = attributes) -> Some(attributes, pat, None)
     | _ -> None
 
-let mkUnit (StartEndRange 1 (lpr, m, rpr)) = UnitNode(stn "(" lpr, stn ")" rpr, m)
+let private mkUnit (StartEndRange 1 (lpr, m, rpr)) = UnitNode(stn "(" lpr, stn ")" rpr, m)
 
-let mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range list) (m: range) =
+let private mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range list) (m: range) =
     match pats with
     | [] -> failwith "SynPat.Tuple with no elements"
     | head :: tail ->
@@ -1636,7 +1639,7 @@ let mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range l
 
         PatTupleNode([ yield Choice1Of2(mkPat creationAide head); yield! rest ], m)
 
-let mkPat (creationAide: CreationAide) (p: SynPat) =
+let private mkPat (creationAide: CreationAide) (p: SynPat) =
     let patternRange = p.Range
 
     match p with
@@ -1747,7 +1750,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         mkExprQuote creationAide isRaw e patternRange |> Pattern.QuoteExpr
     | pat -> failwith $"unexpected pattern: %A{pat}"
 
-let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
+let private mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
     Option.bind
         (fun (SynBindingReturnInfo(typeName = t; trivia = trivia)) ->
             trivia.ColonRange
@@ -1756,13 +1759,13 @@ let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
                 BindingReturnInfoNode(stn ":" mColon, mkType creationAide t, m)))
         returnInfo
 
-let (|OperatorWithStar|_|) (si: SynIdent) =
+let private (|OperatorWithStar|_|) (si: SynIdent) : IdentifierOrDot option =
     match si with
     | SynIdent(ident, Some(ParenStarSynIdent(_, text, _))) ->
         Some(IdentifierOrDot.Ident(stn $"( %s{text} )" ident.idRange))
     | _ -> None
 
-let mkBinding
+let private mkBinding
     (creationAide: CreationAide)
     (SynBinding(_, _, _, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, _, _, trivia))
     =
@@ -1839,7 +1842,7 @@ let mkBinding
         range
     )
 
-let mkExternBinding
+let private mkExternBinding
     (creationAide: CreationAide)
     (SynBinding(
         accessibility = accessibility
@@ -1953,7 +1956,7 @@ let mkExternBinding
         m
     )
 
-let mkXmlDoc (px: PreXmlDoc) =
+let private mkXmlDoc (px: PreXmlDoc) =
     if px.IsEmpty then
         None
     else
@@ -1961,7 +1964,7 @@ let mkXmlDoc (px: PreXmlDoc) =
         let lines = Array.map (sprintf "///%s") xmlDoc.UnprocessedLines
         Some(XmlDocNode(lines, xmlDoc.Range))
 
-let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
+let private mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
     let declRange = decl.Range
 
     match decl with
@@ -2009,7 +2012,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
         |> ModuleDecl.NestedModule
     | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
 
-let mkSynTyparDecl
+let private mkSynTyparDecl
     (creationAide: CreationAide)
     (SynTyparDecl(attributes = attrs; typar = typar; intersectionConstraints = intersectionConstraints; trivia = trivia))
     =
@@ -2028,7 +2031,7 @@ let mkSynTyparDecl
 
     TyparDeclNode(mkAttributes creationAide attrs, mkSynTypar typar, intersectionConstraintNodes, m)
 
-let mkSynTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls =
+let private mkSynTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls =
     match tds with
     | SynTyparDecls.PostfixList(decls, constraints, StartEndRange 1 (mOpen, m, mClose)) ->
         let decls = List.map (mkSynTyparDecl creationAide) decls
@@ -2043,12 +2046,12 @@ let mkSynTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDec
         |> TyparDecls.PrefixList
     | SynTyparDecls.SinglePrefix(decl, _) -> mkSynTyparDecl creationAide decl |> TyparDecls.SinglePrefix
 
-let mkSynValTyparDecls (creationAide: CreationAide) (vt: SynValTyparDecls option) : TyparDecls option =
+let private mkSynValTyparDecls (creationAide: CreationAide) (vt: SynValTyparDecls option) : TyparDecls option =
     match vt with
     | None -> None
     | Some(SynValTyparDecls(tds, _)) -> Option.map (mkSynTyparDecls creationAide) tds
 
-let mkSynRationalConst (creationAide: CreationAide) rc =
+let private mkSynRationalConst (creationAide: CreationAide) rc =
     let rec visit rc =
         match rc with
         | SynRationalConst.Integer(i, range) ->
@@ -2090,7 +2093,7 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
 
     visit rc
 
-let mkSynTypar (SynTypar(ident, req, _)) =
+let private mkSynTypar (SynTypar(ident, req, _)) =
     let range =
         mkRange
             ident.idRange.FileName
@@ -2109,7 +2112,7 @@ let mkSynTypar (SynTypar(ident, req, _)) =
     | TyparStaticReq.None -> stn $"'%s{identText}" range
     | TyparStaticReq.HeadType -> stn $"^%s{identText}" range
 
-let mkSynTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : TypeConstraint =
+let private mkSynTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : TypeConstraint =
     match tc with
     | SynTypeConstraint.WhereTyparIsValueType(tp, EndRange 6 (mKeyword, m)) ->
         TypeConstraintSingleNode(mkSynTypar tp, stn "struct" mKeyword, m)
@@ -2147,19 +2150,19 @@ let mkSynTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : T
     | SynTypeConstraint.WhereSelfConstrained(t, _) -> mkType creationAide t |> TypeConstraint.WhereSelfConstrained
 
 // Arrow type is right-associative
-let rec (|TFuns|_|) =
+let rec private (|TFuns|_|): SynType -> ((SynType * range) list * SynType) option =
     function
     | SynType.Fun(t1, TFuns(ts, ret), _, trivia) -> Some((t1, trivia.ArrowRange) :: ts, ret)
     | SynType.Fun(t1, t2, _, trivia) -> Some([ t1, trivia.ArrowRange ], t2)
     | _ -> None
 
-let mkTypeList creationAide ts rt m =
+let private mkTypeList creationAide ts rt m =
     let parameters =
         ts |> List.map (fun (t, mArrow) -> mkType creationAide t, stn "->" mArrow)
 
     TypeFunsNode(parameters, mkType creationAide rt, m)
 
-let mkType (creationAide: CreationAide) (t: SynType) : Type =
+let private mkType (creationAide: CreationAide) (t: SynType) : Type =
     let typeRange = t.Range
 
     match t with
@@ -2288,26 +2291,26 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         TypeIntersectionNode(typesAndSeparators, m) |> Type.Intersection
     | t -> failwith $"unexpected type: %A{t}"
 
-let rec (|OpenL|_|) =
+let rec private (|OpenL|_|): SynModuleDecl list -> ((SynOpenDeclTarget * range) list * SynModuleDecl list) option =
     function
     | SynModuleDecl.Open(target, range) :: OpenL(xs, ys) -> Some((target, range) :: xs, ys)
     | SynModuleDecl.Open(target, range) :: ys -> Some([ target, range ], ys)
     | _ -> None
 
-let mkOpenNodeForImpl (creationAide: CreationAide) (target, range) : Open =
+let private mkOpenNodeForImpl (creationAide: CreationAide) (target, range) : Open =
     match target with
     | SynOpenDeclTarget.ModuleOrNamespace(longId, _) ->
         OpenModuleOrNamespaceNode(mkSynLongIdent longId, range)
         |> Open.ModuleOrNamespace
     | SynOpenDeclTarget.Type(typeName, _) -> OpenTargetNode(mkType creationAide typeName, range) |> Open.Target
 
-let rec (|HashDirectiveL|_|) =
+let rec private (|HashDirectiveL|_|): SynModuleDecl list -> (ParsedHashDirective list * SynModuleDecl list) option =
     function
     | SynModuleDecl.HashDirective(p, _) :: HashDirectiveL(xs, ys) -> Some(p :: xs, ys)
     | SynModuleDecl.HashDirective(p, _) :: ys -> Some([ p ], ys)
     | _ -> None
 
-let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
+let private mkSynLeadingKeyword (lk: SynLeadingKeyword) =
     let mtn v =
         v
         |> List.map (fun (t, r) -> stn t r)
@@ -2347,7 +2350,7 @@ let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
     | SynLeadingKeyword.Do doRange -> mtn [ "do", doRange ]
     | SynLeadingKeyword.Synthetic -> failwith "Unexpected SynLeadingKeyword.Synthetic"
 
-let mkSynField
+let private mkSynField
     (creationAide: CreationAide)
     (SynField(ats,
               _isStatic,
@@ -2371,7 +2374,7 @@ let mkSynField
         range
     )
 
-let mkSynUnionCase
+let private mkSynUnionCase
     (creationAide: CreationAide)
     (SynUnionCase(attributes, ident, caseType, xmlDoc, _vis, m, trivia))
     : UnionCaseNode =
@@ -2397,7 +2400,7 @@ let mkSynUnionCase
         fullRange
     )
 
-let mkSynSimplePat creationAide (pat: SynSimplePat) =
+let private mkSynSimplePat creationAide (pat: SynSimplePat) =
     match pat with
     | SynSimplePat.Attrib(SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, _),
                           attributes,
@@ -2419,7 +2422,7 @@ let mkSynSimplePat creationAide (pat: SynSimplePat) =
         Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, None, m))
     | _ -> None
 
-let mkImplicitCtor
+let private mkImplicitCtor
     creationAide
     vis
     (attrs: SynAttributeList list)
@@ -2483,7 +2486,7 @@ let mkImplicitCtor
         range
     )
 
-let mkTypeDefn
+let private mkTypeDefn
     (creationAide: CreationAide)
     (SynTypeDefn(typeInfo, typeRepr, members, implicitConstructor, range, trivia))
     : TypeDefn =
@@ -2658,7 +2661,7 @@ let mkTypeDefn
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
     | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
 
-let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
+let private mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
     match withKeyword, getSet with
     | Some mWith, Some gs ->
         let withNode = stn "with" mWith
@@ -2674,7 +2677,7 @@ let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
                 Some(MultipleTextsNode([ withNode; stn "set," mSet; stn "get" mGet ], m))
     | _ -> None
 
-let mkPropertyGetSetBinding
+let private mkPropertyGetSetBinding
     (creationAide: CreationAide)
     (accessibility: SynAccess option)
     (leadingKeyword: SingleTextNode)
@@ -2730,7 +2733,7 @@ let mkPropertyGetSetBinding
         )
     | _ -> failwith "SynBinding does not expected information for PropertyGetSetBinding"
 
-let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
+let private mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     let memberDefinitionRange = md.Range
 
     match md with
@@ -3012,7 +3015,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         | _ -> failwith "SynMemberDefn.GetSetMember cannot exist with get and without set"
     | _ -> failwithf "Unexpected SynMemberDefn: %A" md
 
-let mkVal
+let private mkVal
     (creationAide: CreationAide)
     (SynValSig(ats, synIdent, vtd, t, _vi, _isInline, isMutable, px, ao, eo, range, trivia))
     : ValNode =
@@ -3036,7 +3039,7 @@ let mkVal
         range
     )
 
-let mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
+let private mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
     let memberSigRange = ms.Range
 
     match ms with
@@ -3059,7 +3062,7 @@ let mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
     | SynMemberSig.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
     | _ -> failwithf "Cannot construct node for %A" ms
 
-let rec mkModuleDecls
+let rec private mkModuleDecls
     (creationAide: CreationAide)
     (decls: SynModuleDecl list)
     (finalContinuation: ModuleDecl list -> ModuleDecl list)
@@ -3104,7 +3107,7 @@ let rec mkModuleDecls
     | head :: tail ->
         mkModuleDecls creationAide tail (fun nodes -> mkModuleDecl creationAide head :: nodes |> finalContinuation)
 
-let mkModuleOrNamespace
+let private mkModuleOrNamespace
     (creationAide: CreationAide)
     (SynModuleOrNamespace(
         xmlDoc = xmlDoc
@@ -3171,7 +3174,7 @@ let mkModuleOrNamespace
 
     ModuleOrNamespaceNode(header, decls, range)
 
-let mkImplFile
+let private mkImplFile
     (creationAide: CreationAide)
     (ParsedImplFileInput(hashDirectives = hashDirectives; contents = contents))
     (m: range)
@@ -3181,19 +3184,21 @@ let mkImplFile
     Oak(phds, mds, m)
 
 // start sig file
-let rec (|OpenSigL|_|) =
+let rec private (|OpenSigL|_|)
+    : SynModuleSigDecl list -> ((SynOpenDeclTarget * range) list * SynModuleSigDecl list) option =
     function
     | SynModuleSigDecl.Open(target, range) :: OpenSigL(xs, ys) -> Some((target, range) :: xs, ys)
     | SynModuleSigDecl.Open(target, range) :: ys -> Some([ target, range ], ys)
     | _ -> None
 
-let rec (|HashDirectiveSigL|_|) =
+let rec private (|HashDirectiveSigL|_|)
+    : SynModuleSigDecl list -> (ParsedHashDirective list * SynModuleSigDecl list) option =
     function
     | SynModuleSigDecl.HashDirective(p, _) :: HashDirectiveSigL(xs, ys) -> Some(p :: xs, ys)
     | SynModuleSigDecl.HashDirective(p, _) :: ys -> Some([ p ], ys)
     | _ -> None
 
-let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
+let private mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
     let declRange = decl.Range
 
     match decl with
@@ -3236,7 +3241,10 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
     | SynModuleSigDecl.Val(valSig, _) -> mkVal creationAide valSig |> ModuleDecl.Val
     | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
 
-let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRepr, members, range, trivia)) : TypeDefn =
+let private mkTypeDefnSig
+    (creationAide: CreationAide)
+    (SynTypeDefnSig(typeInfo, typeRepr, members, range, trivia))
+    : TypeDefn =
     let typeNameNode =
         match typeInfo with
         | SynComponentInfo(ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
@@ -3396,7 +3404,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
     | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
 
-let rec mkModuleSigDecls
+let rec private mkModuleSigDecls
     (creationAide: CreationAide)
     (decls: SynModuleSigDecl list)
     (finalContinuation: ModuleDecl list -> ModuleDecl list)
@@ -3429,7 +3437,7 @@ let rec mkModuleSigDecls
         mkModuleSigDecls creationAide tail (fun nodes ->
             mkModuleSigDecl creationAide head :: nodes |> finalContinuation)
 
-let mkModuleOrNamespaceSig
+let private mkModuleOrNamespaceSig
     (creationAide: CreationAide)
     (SynModuleOrNamespaceSig(
         xmlDoc = xmlDoc
@@ -3495,7 +3503,7 @@ let mkModuleOrNamespaceSig
 
     ModuleOrNamespaceNode(header, decls, range)
 
-let mkSigFile
+let private mkSigFile
     (creationAide: CreationAide)
     (ParsedSigFileInput(hashDirectives = hashDirectives; contents = contents))
     (m: range)
@@ -3504,7 +3512,7 @@ let mkSigFile
     let mds = List.map (mkModuleOrNamespaceSig creationAide) contents
     Oak(phds, mds, m)
 
-let includeTrivia
+let private includeTrivia
     (baseRange: range)
     (comments: CommentTrivia list)
     (conditionDirectives: ConditionalDirectiveTrivia list)
@@ -3533,7 +3541,7 @@ let includeTrivia
         else
             unionRanges triviaRange acc)
 
-let mkSynModuleOrNamespaceFullRange (mn: SynModuleOrNamespace) =
+let private mkSynModuleOrNamespaceFullRange (mn: SynModuleOrNamespace) =
     match mn with
     | SynModuleOrNamespace(kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
         match List.tryHead decls, List.tryLast decls with
@@ -3543,7 +3551,7 @@ let mkSynModuleOrNamespaceFullRange (mn: SynModuleOrNamespace) =
         | Some s, Some e -> unionRanges s.Range e.Range
     | _ -> mn.Range
 
-let mkSynModuleOrNamespaceSigFullRange (mn: SynModuleOrNamespaceSig) =
+let private mkSynModuleOrNamespaceSigFullRange (mn: SynModuleOrNamespaceSig) =
     match mn with
     | SynModuleOrNamespaceSig(kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
         match List.tryHead decls, List.tryLast decls with
@@ -3554,7 +3562,7 @@ let mkSynModuleOrNamespaceSigFullRange (mn: SynModuleOrNamespaceSig) =
 
     | _ -> mn.Range
 
-let mkFullTreeRange ast =
+let private mkFullTreeRange ast =
     match ast with
     | ParsedInput.ImplFile(ParsedImplFileInput(hashDirectives = directives; contents = modules; trivia = trivia)) ->
         let startPos =
@@ -3596,7 +3604,7 @@ let mkFullTreeRange ast =
         let astRange = unionRanges startPos endPos
         includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
 
-let mkOak (sourceText: ISourceText option) (ast: ParsedInput) =
+let mkOak (sourceText: ISourceText option) (ast: ParsedInput) : Oak =
     let creationAide = { SourceText = sourceText }
 
     let fullRange = mkFullTreeRange ast
