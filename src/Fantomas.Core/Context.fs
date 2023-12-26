@@ -414,7 +414,7 @@ let atIndentLevel (alsoSetIndent: bool) (level: int) (f: Context -> Context) (ct
 ///   Y = 1 // indent=0, atColumn=2
 /// }
 /// `atCurrentColumn` was called on `X`, then `indent` was called, but "some long string" have indent only 4, because it is bigger than `atColumn` (2).
-let atCurrentColumn (f: _ -> Context) (ctx: Context) : Context = atIndentLevel false ctx.Column f ctx
+let atCurrentColumn (f: Context -> Context) (ctx: Context) : Context = atIndentLevel false ctx.Column f ctx
 
 /// Write everything at current column indentation, set `indent` and `atColumn` on current column position
 /// /// Example (same as above):
@@ -423,10 +423,10 @@ let atCurrentColumn (f: _ -> Context) (ctx: Context) : Context = atIndentLevel f
 ///   Y = 1 // indent=2, atColumn=2
 /// }
 /// `atCurrentColumn` was called on `X`, then `indent` was called, "some long string" have indent 6, because it is indented from `atCurrentColumn` pos (2).
-let atCurrentColumnIndent (f: _ -> Context) (ctx: Context) : Context = atIndentLevel true ctx.Column f ctx
+let atCurrentColumnIndent (f: Context -> Context) (ctx: Context) : Context = atIndentLevel true ctx.Column f ctx
 
 /// Function composition operator
-let (+>) (ctx: Context -> Context) (f: _ -> Context) (x: Context) : Context =
+let (+>) (ctx: Context -> Context) (f: Context -> Context) (x: Context) : Context =
     let y = ctx x
 
     match y.WriterModel.Mode with
@@ -497,7 +497,7 @@ let colPre<'T>
     if Seq.isEmpty c then ctx else col f1 c f (f2 ctx)
 
 /// If there is a value, apply f and f' accordingly, otherwise do nothing
-let opt<'a> (f': Context -> _) (o: 'a option) (f: 'a -> Context -> Context) (ctx: Context) : Context =
+let opt<'a> (f': Context -> Context) (o: 'a option) (f: 'a -> Context -> Context) (ctx: Context) : Context =
     match o with
     | Some x -> f' (f x ctx)
     | None -> ctx
@@ -510,8 +510,8 @@ let optSingle<'a, 'b> (f: 'a -> 'b -> 'b) (o: 'a option) (ctx: 'b) : 'b =
 
 /// Similar to opt, but apply f2 at the beginning if there is a value
 let optPre<'a>
-    (f2: _ -> Context)
-    (f1: Context -> _)
+    (f2: Context -> Context)
+    (f1: Context -> Context)
     (o: 'a option)
     (f: 'a -> Context -> Context)
     (ctx: Context)
