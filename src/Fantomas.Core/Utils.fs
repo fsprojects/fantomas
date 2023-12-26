@@ -34,17 +34,6 @@ module List =
         | [ _ ] -> false
         | _ -> true
 
-    let private partitionWhile (f: int -> 'a -> bool) (xs: 'a list) : 'a list * 'a list =
-        let rec go i before after =
-            match after with
-            | head :: tail ->
-                match f i head with
-                | true -> go (i + 1) (head :: before) tail
-                | false -> List.rev before, after
-            | [] -> List.rev before, after
-
-        go 0 [] xs
-
     let mapWithLast<'a, 'b> (f: 'a -> 'b) (g: 'a -> 'b) (xs: 'a list) : 'b list =
         let rec visit xs continuation =
             match xs with

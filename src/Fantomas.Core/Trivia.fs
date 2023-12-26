@@ -1,6 +1,5 @@
 ﻿module internal Fantomas.Core.Trivia
 
-open System
 open Fantomas.FCS.Syntax
 open Fantomas.FCS.SyntaxTrivia
 open Fantomas.FCS.Text
@@ -9,12 +8,12 @@ open Fantomas.Core.SyntaxOak
 
 type CommentTrivia with
 
-    member x.Range =
+    member x.Range: range =
         match x with
         | CommentTrivia.BlockComment m
         | CommentTrivia.LineComment m -> m
 
-let internal collectTriviaFromCodeComments
+let private collectTriviaFromCodeComments
     (source: ISourceText)
     (codeComments: CommentTrivia list)
     (codeRange: range)
@@ -56,7 +55,7 @@ let internal collectTriviaFromCodeComments
 
             TriviaNode(content, r))
 
-let internal collectTriviaFromBlankLines
+let private collectTriviaFromBlankLines
     (config: FormatConfig)
     (source: ISourceText)
     (rootNode: Node)
@@ -131,13 +130,13 @@ let internal collectTriviaFromBlankLines
 
 type ConditionalDirectiveTrivia with
 
-    member x.Range =
+    member x.Range: range =
         match x with
         | ConditionalDirectiveTrivia.If(_, m)
         | ConditionalDirectiveTrivia.Else m
         | ConditionalDirectiveTrivia.EndIf m -> m
 
-let internal collectTriviaFromDirectives
+let private collectTriviaFromDirectives
     (source: ISourceText)
     (directives: ConditionalDirectiveTrivia list)
     (codeRange: range)
@@ -166,7 +165,7 @@ let rec findNodeWhereRangeFitsIn (root: Node) (range: range) : Node option =
         | Some betterChild -> Some betterChild
         | None -> Some root
 
-let triviaBeforeOrAfterEntireTree (rootNode: Node) (trivia: TriviaNode) : unit =
+let private triviaBeforeOrAfterEntireTree (rootNode: Node) (trivia: TriviaNode) : unit =
     let isBefore = trivia.Range.EndLine < rootNode.Range.StartLine
 
     if isBefore then
@@ -175,7 +174,7 @@ let triviaBeforeOrAfterEntireTree (rootNode: Node) (trivia: TriviaNode) : unit =
         rootNode.AddAfter(trivia)
 
 /// Find the last child node that will be the last node of the parent node.
-let rec visitLastChildNode (node: Node) : Node =
+let rec private visitLastChildNode (node: Node) : Node =
     match node with
     | :? ExprIfThenNode
     | :? ExprIfThenElseNode
@@ -235,7 +234,7 @@ let rec visitLastChildNode (node: Node) : Node =
             visitLastChildNode (Seq.last node.Children)
     | _ -> node
 
-let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
+let private lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
     let lineNumber = trivia.Range.StartLine
 
     let result =
@@ -249,14 +248,14 @@ let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia:
         let node = visitLastChildNode node
         node.AddAfter(trivia))
 
-let simpleTriviaToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
+let private simpleTriviaToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
     containerNode.Children
     |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
     |> Option.map (fun n -> n.AddBefore)
     |> Option.orElseWith (fun () -> Array.tryLast containerNode.Children |> Option.map (fun n -> n.AddAfter))
     |> Option.iter (fun f -> f trivia)
 
-let blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
+let private blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
     let nodeAfter =
         containerNode.Children
         |> Seq.tryFind (fun tn ->
@@ -298,7 +297,7 @@ let blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) :
             na.AddBefore(triviaWith false false)
     | _ -> ()
 
-let addToTree (tree: Oak) (trivia: TriviaNode seq) =
+let private addToTree (tree: Oak) (trivia: TriviaNode seq) =
     for trivia in trivia do
         let smallestNodeThatContainsTrivia = findNodeWhereRangeFitsIn tree trivia.Range
 
@@ -344,7 +343,7 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
     addToTree tree trivia
     tree
 
-let insertCursor (tree: Oak) (cursor: pos) =
+let insertCursor (tree: Oak) (cursor: pos) : Oak =
     let cursorRange = Range.mkRange (tree :> Node).Range.FileName cursor cursor
     let nodeWithCursor = findNodeWhereRangeFitsIn tree cursorRange
 

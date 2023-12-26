@@ -5,7 +5,7 @@ namespace Fantomas.Core
 type Queue<'T>(data: 'T array list, length: int) =
     let mutable hashCode = None
 
-    override x.GetHashCode() =
+    override x.GetHashCode() : int =
         match hashCode with
         | None ->
             let mutable hash = 1
@@ -17,7 +17,7 @@ type Queue<'T>(data: 'T array list, length: int) =
             hash
         | Some hash -> hash
 
-    override x.Equals(other) =
+    override x.Equals((other: obj)) : bool =
         match other with
         | :? Queue<'T> as y ->
             if x.Length <> y.Length then false
@@ -25,15 +25,15 @@ type Queue<'T>(data: 'T array list, length: int) =
             else Seq.forall2 Unchecked.equals x y
         | _ -> false
 
-    member x.Head =
+    member x.Head: 'T =
         if length > 0 then
             (List.head data).[0]
         else
             raise (System.Exception("Queue is empty"))
 
-    member x.TryHead = if length > 0 then Some((List.head data).[0]) else None
+    member x.TryHead: 'T option = if length > 0 then Some((List.head data).[0]) else None
 
-    member x.Tail =
+    member x.Tail: Queue<'T> =
         match data with
         | [] -> x
         | head :: tail ->
@@ -47,19 +47,19 @@ type Queue<'T>(data: 'T array list, length: int) =
                 else
                     Queue(newHead :: tail, length - 1)
 
-    member x.IsEmpty = length = 0
+    member x.IsEmpty: bool = length = 0
 
-    member x.Length = length
+    member x.Length: int = length
 
-    member x.Rev() =
+    member x.Rev<'T>() : 'T seq =
         data
         |> Seq.collect (fun arr -> seq { arr.Length - 1 .. -1 .. 0 } |> Seq.map (fun i -> arr.[i]))
 
-    member x.Append xs =
+    member x.Append<'T>(xs: 'T list) : Queue<'T> =
         Queue(Array.ofList xs :: data, length + List.length xs)
 
     /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.skipWhile p |> Seq.exists f, optimized for speed
-    member x.SkipExists n f p =
+    member x.SkipExists<'T> (n: int) (f: 'T -> bool) (p: 'T array -> bool) : bool =
         if n >= length then
             false
         else
@@ -107,25 +107,25 @@ type Queue<'T>(data: 'T array list, length: int) =
 module Queue =
     let empty<'T> : Queue<'T> = Queue<_>([ [||] ], 0)
 
-    let inline head (q: Queue<'T>) = q.Head
+    let inline private head (q: Queue<'T>) = q.Head
 
-    let inline tryHead (q: Queue<'T>) = q.TryHead
+    let inline tryHead<'T> (q: Queue<'T>) : 'T option = q.TryHead
 
-    let inline isEmpty (q: Queue<'T>) = q.IsEmpty
+    let inline private isEmpty (q: Queue<'T>) = q.IsEmpty
 
-    let inline length (q: Queue<'T>) = q.Length
+    let inline length<'T> (q: Queue<'T>) : int = q.Length
 
-    let ofList xs =
+    let ofList<'T> (xs: 'T list) : Queue<'T> =
         Queue<'T>([ List.toArray xs ], List.length xs)
 
-    let ofSeq (xs: _ seq) =
+    let ofSeq<'T> (xs: 'T seq) : Queue<'T> =
         Queue<'T>([ Seq.toArray xs ], Seq.length xs)
 
-    let inline rev (q: Queue<'T>) = q.Rev()
+    let inline rev<'T> (q: Queue<'T>) : 'T seq = q.Rev()
 
-    let inline toSeq (q: Queue<'T>) = q :> 'T seq
+    let inline toSeq<'T> (q: Queue<'T>) : 'T seq = q :> 'T seq
 
-    let inline append (q: Queue<'T>) xs = q.Append xs
+    let inline append<'T> (q: Queue<'T>) (xs: 'T list) : Queue<'T> = q.Append xs
 
     /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.skipWhile p |> Seq.exists f
-    let inline skipExists (n: int) (f: 'T -> bool) (p: 'T array -> bool) (q: Queue<'T>) : bool = q.SkipExists n f p
+    let inline skipExists<'T> (n: int) (f: 'T -> bool) (p: 'T array -> bool) (q: Queue<'T>) : bool = q.SkipExists n f p
