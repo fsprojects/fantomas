@@ -8,8 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="ISourceTextExtensions.fsi" />
-    <Compile Include="ISourceTextExtensions.fs" />
     <Compile Include="RangeHelpers.fsi" />
     <Compile Include="RangeHelpers.fs" />
     <Compile Include="Utils.fsi" />

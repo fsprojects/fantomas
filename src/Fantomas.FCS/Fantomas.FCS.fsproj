@@ -5,6 +5,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);57;</NoWarn> <!-- Experimental -->
     <NoWarn>$(NoWarn);1204</NoWarn> <!-- This construct is for use in the FSharp.Core library and should not be used directly -->
+    <NoWarn>$(NoWarn);1178</NoWarn>
     <DefineConstants>$(DefineConstants);COMPILER;FSHARPCORE_USE_PACKAGE</DefineConstants>
     <FsYaccOutputFolder>generated\$(TargetFramework)\</FsYaccOutputFolder>
     <FsLexOutputFolder>generated\$(TargetFramework)\</FsLexOutputFolder>
