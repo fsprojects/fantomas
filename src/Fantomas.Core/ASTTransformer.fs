@@ -1630,7 +1630,8 @@ let mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range l
     | head :: tail ->
         let rest =
             if tail.Length <> commas.Length then
-                failwith $"Number of elements in tail of tuple (%i{tail.Length}) was not equal to number of commas (%i{commas.Length}), at range %O{m}."
+                failwith
+                    $"Number of elements in tail of tuple (%i{tail.Length}) was not equal to number of commas (%i{commas.Length}), at range %O{m}."
 
             List.zip commas tail
             |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkPat creationAide e) ])
