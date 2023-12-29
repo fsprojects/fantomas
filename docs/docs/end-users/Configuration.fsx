@@ -20,7 +20,7 @@ UI might be available depending on the IDE.
 *)
 
 (*** hide ***)
-#r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.FCS.dll"
+#r "../../../src/Fantomas/bin/Release/net6.0/FSharp.Compiler.Service.dll"
 #r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.Core.dll"
 
 printf $"version: {Fantomas.Core.CodeFormatter.GetVersion()}"

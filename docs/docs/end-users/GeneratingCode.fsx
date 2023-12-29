@@ -32,10 +32,10 @@ In simple scenarios this can work out, but in the long run it doesn't scale well
 To illustrate the API, lets generate a simple value binding: `let a = 0`.
 *)
 
-#r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.FCS.dll"
+#r "../../../src/Fantomas/bin/Release/net6.0/FSharp.Compiler.Service.dll"
 #r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.Core.dll" // In production use #r "nuget: Fantomas.Core, 6.*"
 
-open Fantomas.FCS.Text
+open FSharp.Compiler.Text
 open Fantomas.Core.SyntaxOak
 
 let implementationSyntaxTree =
@@ -97,8 +97,6 @@ You can use `Fantomas.FCS` in your own projects, but be aware that it is **not b
 Example usage:
 
 *)
-
-open Fantomas.FCS
 
 Parse.parseFile false (SourceText.ofString "let a = 1") []
 (*** include-it ***)

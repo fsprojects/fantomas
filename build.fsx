@@ -69,6 +69,15 @@ let semanticVersioning =
     </> "net6.0"
     </> "SemanticVersioning.dll"
 
+let fcs =
+    __SOURCE_DIRECTORY__
+    </> "src"
+    </> "Fantomas"
+    </> "bin"
+    </> "Release"
+    </> "net6.0"
+    </> "FSharp.Compiler.Service.dll"
+
 let pushPackage nupkg =
     async {
         let key = Environment.GetEnvironmentVariable("NUGET_KEY")
@@ -112,7 +121,7 @@ pipeline "Build" {
             [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
                "DOTNET_ROLL_FORWARD", "LatestMajor" |]
         run
-            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict --nonpublic"
+            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}  -r:{fcs}\" --eval --strict --nonpublic"
     }
     runIfOnlySpecified false
 }
@@ -204,7 +213,7 @@ pipeline "Docs" {
             [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
                "DOTNET_ROLL_FORWARD", "LatestMajor" |]
         run
-            $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --nonpublic"
+            $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning} -r:{fcs}\" --eval --nonpublic"
     }
     runIfOnlySpecified true
 }
