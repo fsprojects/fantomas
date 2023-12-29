@@ -1,6 +1,6 @@
 namespace Fantomas.Core
 
-open Fantomas.FCS.SyntaxTrivia
+open FSharp.Compiler.SyntaxTrivia
 open Fantomas.Core
 
 type internal DefineCombination =

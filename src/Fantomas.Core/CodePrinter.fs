@@ -1,9 +1,10 @@
 module internal rec Fantomas.Core.CodePrinter
 
 open System
+open Microsoft.FSharp.Core.CompilerServices
+open FSharp.Compiler.Text
 open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak
-open Microsoft.FSharp.Core.CompilerServices
 
 let noBreakInfixOps = set [| "="; ">"; "<"; "%" |]
 let newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
@@ -102,7 +103,7 @@ let genTrivia (node: Node) (trivia: TriviaNode) (ctx: Context) =
                 let originalColumnOffset = trivia.Range.EndColumn - node.Range.EndColumn
 
                 let formattedCursor =
-                    Fantomas.FCS.Text.Position.mkPos ctx.WriterModel.Lines.Length (ctx.Column + originalColumnOffset)
+                    Position.mkPos ctx.WriterModel.Lines.Length (ctx.Column + originalColumnOffset)
 
                 { ctx with
                     FormattedCursor = Some formattedCursor }
@@ -122,7 +123,7 @@ let recordCursorNode f (node: Node) (ctx: Context) =
 
         let formattedCursor =
             let columnOffsetInSource = cursor.Column - node.Range.StartColumn
-            Fantomas.FCS.Text.Position.mkPos currentStartLine (currentStartColumn + columnOffsetInSource)
+            Position.mkPos currentStartLine (currentStartColumn + columnOffsetInSource)
 
         { ctxAfter with
             FormattedCursor = Some formattedCursor }
@@ -793,8 +794,7 @@ let genExpr (e: Expr) =
             match node.SubsequentExpressions with
             | [] -> genExpr node.LeadingExpr
             | (operator, e2) :: es ->
-                let m =
-                    Fantomas.FCS.Text.Range.unionRanges (Expr.Node node.LeadingExpr).Range (Expr.Node e2).Range
+                let m = Range.unionRanges (Expr.Node node.LeadingExpr).Range (Expr.Node e2).Range
 
                 genMultilineInfixExpr (ExprInfixAppNode(node.LeadingExpr, operator, e2, m))
                 +> sepNln
@@ -1037,9 +1037,9 @@ let genExpr (e: Expr) =
                 let parenExpr =
                     mkExprParenNode
                         node.OpeningParen
-                        (Expr.Null(SingleTextNode("", Fantomas.FCS.Text.Range.Zero)))
+                        (Expr.Null(SingleTextNode("", Range.Zero)))
                         node.ClosingParen
-                        Fantomas.FCS.Text.Range.Zero
+                        Range.Zero
 
                 sepSpaceBeforeParenInFuncInvocation node.FunctionName parenExpr
             | _ -> sepSpace
@@ -1853,18 +1853,9 @@ let genTupleExpr (node: ExprTupleNode) =
             match exprInfixAppNode.RightHandSide with
             | IsLambdaOrIfThenElse e ->
                 let parenNode =
-                    mkExprParenNode
-                        (SingleTextNode("(", Fantomas.FCS.Text.Range.Zero))
-                        e
-                        (SingleTextNode(")", Fantomas.FCS.Text.Range.Zero))
-                        Fantomas.FCS.Text.Range.Zero
+                    mkExprParenNode (SingleTextNode("(", Range.Zero)) e (SingleTextNode(")", Range.Zero)) Range.Zero
 
-                ExprInfixAppNode(
-                    exprInfixAppNode.LeftHandSide,
-                    exprInfixAppNode.Operator,
-                    parenNode,
-                    Fantomas.FCS.Text.range.Zero
-                )
+                ExprInfixAppNode(exprInfixAppNode.LeftHandSide, exprInfixAppNode.Operator, parenNode, range.Zero)
                 |> Expr.InfixApp
             | _ -> expr
         | _ -> expr

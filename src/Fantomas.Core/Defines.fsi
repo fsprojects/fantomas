@@ -8,6 +8,6 @@ type internal DefineCombination =
     static member Empty: DefineCombination
 
 module internal Defines =
-    open Fantomas.FCS.SyntaxTrivia
+    open FSharp.Compiler.SyntaxTrivia
 
     val getDefineCombination: hashDirectives: ConditionalDirectiveTrivia list -> DefineCombination list

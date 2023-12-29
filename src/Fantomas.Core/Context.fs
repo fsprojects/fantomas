@@ -1,7 +1,7 @@
 module internal Fantomas.Core.Context
 
 open System
-open Fantomas.FCS.Text
+open FSharp.Compiler.Text
 open Fantomas.Core
 open Fantomas.Core.SyntaxOak
 

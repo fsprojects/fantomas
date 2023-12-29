@@ -2,14 +2,14 @@ module Fantomas.Core.Tests.TokenParserTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.FCS.Syntax
+open FSharp.Compiler.Syntax
 open Fantomas.Core
 open Fantomas.Core.Defines
 open Fantomas.Core.Tests.TestHelpers
 
 let private getDefines (v: string) =
     let sourceText = CodeFormatterImpl.getSourceText v
-    let baseUntypedTree, _diagnostics = Fantomas.FCS.Parse.parseFile false sourceText []
+    let baseUntypedTree, _diagnostics = Parse.parseFile false sourceText []
 
     let hashDirectives =
         match baseUntypedTree with

@@ -1,7 +1,7 @@
 module rec Fantomas.Core.SyntaxOak
 
 open System.Collections.Generic
-open Fantomas.FCS.Text
+open FSharp.Compiler.Text
 
 type TriviaContent =
     | CommentOnSingleLine of string
@@ -91,7 +91,7 @@ let nodeRange (n: Node) = n.Range
 
 let combineRanges (ranges: range seq) =
     if Seq.isEmpty ranges then
-        Range.Zero
+        Range.range0
     else
         Seq.reduce Range.unionRanges ranges
 
@@ -111,7 +111,7 @@ type IdentListNode(content: IdentifierOrDot list, range) =
     inherit NodeBase(range)
     member val IsEmpty = content.IsEmpty
     member val Content = content
-    static member Empty = IdentListNode(List.empty, Range.Zero)
+    static member Empty = IdentListNode(List.empty, Range.range0)
 
     override x.Children =
         x.Content

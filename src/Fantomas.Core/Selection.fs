@@ -1,10 +1,9 @@
 ﻿module internal Fantomas.Core.Selection
 
-open Fantomas.FCS.Text
+open FSharp.Compiler.Text
 open Fantomas.Core.SyntaxOak
-open Fantomas.Core.ISourceTextExtensions
 
-let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: range) =
+let correctSelection (fileName: string) (sourceText: ISourceText) (selection: range) =
     let lines =
         [| selection.StartLine .. selection.EndLine |]
         |> Array.choose (fun lineNumber ->
@@ -54,10 +53,7 @@ let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: rang
             || endColumn <> selection.EndColumn
         then
 
-            Range.mkFileIndexRange
-                fileIndex
-                (Position.mkPos startLineNumber startColumn)
-                (Position.mkPos endLineNumber endColumn)
+            Range.mkRange fileName (Position.mkPos startLineNumber startColumn) (Position.mkPos endLineNumber endColumn)
         else
             selection
     | _ -> selection
@@ -371,8 +367,7 @@ let formatSelection
     (sourceText: ISourceText)
     : Async<string * range> =
     async {
-        let baseUntypedTree, baseDiagnostics =
-            Fantomas.FCS.Parse.parseFile isSignature sourceText []
+        let baseUntypedTree, baseDiagnostics = Parse.parseFile isSignature sourceText []
 
         let isValid = Validation.noWarningOrErrorDiagnostics baseDiagnostics
 
@@ -385,7 +380,7 @@ let formatSelection
         printTriviaNode rootNode
 #endif
 
-        let selection = correctSelection rootNode.Range.FileIndex sourceText selection
+        let selection = correctSelection rootNode.Range.FileName sourceText selection
 
         let treeWithSelection =
             Trivia.findNodeWhereRangeFitsIn rootNode selection
@@ -421,14 +416,14 @@ let formatSelection
                         CodePrinter.genFile enrichedTree context |> Context.dump true
 
                     let source = SourceText.ofString formattedCode
-                    let formattedAST, _ = Fantomas.FCS.Parse.parseFile isSignature source []
+                    let formattedAST, _ = Parse.parseFile isSignature source []
                     let formattedTree = ASTTransformer.mkOak (Some source) formattedAST
                     let rangeOfSelection = findRangeOf t formattedTree
 
                     match rangeOfSelection with
                     | None ->
                         raise (FormatException("No suitable AST node could be extracted from formatted selection."))
-                    | Some m -> source.GetContentAt m
+                    | Some m -> source.GetSubTextFromRange m
 
             return formattedSelection.TrimEnd([| '\r'; '\n' |]), selection
     }

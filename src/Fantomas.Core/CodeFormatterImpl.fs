@@ -1,17 +1,16 @@
 [<RequireQualifiedAccess>]
 module internal Fantomas.Core.CodeFormatterImpl
 
-open Fantomas.FCS.Diagnostics
-open Fantomas.FCS.Syntax
-open Fantomas.FCS.Text
+open FSharp.Compiler.Diagnostics
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.Text
 open MultipleDefineCombinations
 
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
 
 let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * DefineCombination) array> =
     // First get the syntax tree without any defines
-    let baseUntypedTree, baseDiagnostics =
-        Fantomas.FCS.Parse.parseFile isSignature source []
+    let baseUntypedTree, baseDiagnostics = Parse.parseFile isSignature source []
 
     let hashDirectives =
         match baseUntypedTree with
@@ -37,7 +36,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
         |> List.map (fun defineCombination ->
             async {
                 let untypedTree, diagnostics =
-                    Fantomas.FCS.Parse.parseFile isSignature source defineCombination.Value
+                    Parse.parseFile isSignature source defineCombination.Value
 
                 let errors =
                     diagnostics

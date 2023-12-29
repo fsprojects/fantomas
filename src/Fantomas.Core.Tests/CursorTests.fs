@@ -1,6 +1,6 @@
 ﻿module Fantomas.Core.Tests.CursorTests
 
-open Fantomas.FCS.Text
+open FSharp.Compiler.Text
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core

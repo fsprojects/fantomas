@@ -1,9 +1,9 @@
 module Fantomas.Core.Tests.SynLongIdentTests
 
-open Fantomas.FCS.Text
-open Fantomas.FCS.Syntax
-open Fantomas.FCS.SyntaxTrivia
-open Fantomas.FCS.Xml
+open FSharp.Compiler.Text
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
+open FSharp.Compiler.Xml
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core

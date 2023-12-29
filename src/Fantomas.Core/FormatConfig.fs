@@ -2,9 +2,9 @@ namespace Fantomas.Core
 
 open System
 open System.ComponentModel
-open Fantomas.FCS.Parse
+open FSharp.Compiler.Diagnostics
 
-exception ParseException of diagnostics: FSharpParserDiagnostic list
+exception ParseException of diagnostics: FSharpDiagnostic list
 
 type FormatException(msg: string) =
     inherit Exception(msg)

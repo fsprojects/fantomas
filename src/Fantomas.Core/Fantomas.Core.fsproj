@@ -8,8 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="ISourceTextExtensions.fsi" />
-    <Compile Include="ISourceTextExtensions.fs" />
+    <Compile Include="Parse.fs" />
     <Compile Include="RangeHelpers.fsi" />
     <Compile Include="RangeHelpers.fs" />
     <Compile Include="Utils.fsi" />
@@ -44,6 +43,6 @@
     <PackageReference Include="FSharp.Core" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fantomas.FCS\Fantomas.FCS.fsproj" />
+    <ProjectReference Include="..\..\..\fsharp\src\Compiler\FSharp.Compiler.Service.fsproj" />
   </ItemGroup>
 </Project>

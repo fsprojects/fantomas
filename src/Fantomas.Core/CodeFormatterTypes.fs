@@ -1,6 +1,6 @@
 ﻿namespace Fantomas.Core
 
-open Fantomas.FCS.Text
+open FSharp.Compiler.Text
 
 [<NoComparison>]
 type FormatResult =

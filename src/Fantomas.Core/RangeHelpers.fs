@@ -1,17 +1,17 @@
 namespace Fantomas.Core
 
-open Fantomas.FCS.Text
+open FSharp.Compiler.Text
 
 [<RequireQualifiedAccess>]
 module RangeHelpers =
 
-    /// Checks if Range B is fully contained by Range A
-    let rangeContainsRange (a: Range) (b: Range) =
+    /// Checks if range B is fully contained by range A
+    let rangeContainsRange (a: range) (b: range) =
         Position.posGeq b.Start a.Start && Position.posGeq a.End b.End
 
     let rangeEq = Range.equals
 
-    let isAdjacentTo (r1: Range) (r2: Range) : bool =
+    let isAdjacentTo (r1: range) (r2: range) : bool =
         r1.FileName = r2.FileName
         && r1.End.Line = r2.Start.Line
         && r1.EndColumn = r2.StartColumn

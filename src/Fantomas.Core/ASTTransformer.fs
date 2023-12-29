@@ -2,12 +2,11 @@
 
 open System.Collections.Generic
 open System.Text.RegularExpressions
-open Fantomas.FCS.Text
-open Fantomas.FCS.Text.Range
-open Fantomas.FCS.Syntax
-open Fantomas.FCS.SyntaxTrivia
-open Fantomas.FCS.Xml
-open Fantomas.Core.ISourceTextExtensions
+open FSharp.Compiler.Text
+open FSharp.Compiler.Text.Range
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
+open FSharp.Compiler.Xml
 open Fantomas.Core.RangePatterns
 open Fantomas.Core.SyntaxOak
 open Microsoft.FSharp.Core
@@ -19,7 +18,7 @@ type CreationAide =
     member x.TextFromSource fallback range =
         match x.SourceText with
         | None -> fallback ()
-        | Some sourceText -> sourceText.GetContentAt range
+        | Some sourceText -> sourceText.GetSubTextFromRange range
 
 let stn text range = SingleTextNode(text, range)
 
@@ -3141,7 +3140,7 @@ let mkModuleOrNamespace
         | Some leadingKeyword ->
             match name with
             | None ->
-                let m = mkFileIndexRange range.FileIndex range.Start leadingKeyword.Range.End
+                let m = mkRange range.FileName range.Start leadingKeyword.Range.End
 
                 ModuleOrNamespaceHeaderNode(
                     mkXmlDoc xmlDoc,
@@ -3154,7 +3153,7 @@ let mkModuleOrNamespace
                 )
                 |> Some
             | Some name ->
-                let m = mkFileIndexRange range.FileIndex range.Start name.Range.End
+                let m = mkRange range.FileName range.Start name.Range.End
 
                 ModuleOrNamespaceHeaderNode(
                     mkXmlDoc xmlDoc,
@@ -3467,7 +3466,7 @@ let mkModuleOrNamespaceSig
         | Some leadingKeyword ->
             match name with
             | None ->
-                let m = mkFileIndexRange range.FileIndex range.Start leadingKeyword.Range.End
+                let m = mkRange range.FileName range.Start leadingKeyword.Range.End
 
                 ModuleOrNamespaceHeaderNode(
                     mkXmlDoc xmlDoc,
@@ -3480,7 +3479,7 @@ let mkModuleOrNamespaceSig
                 )
                 |> Some
             | Some name ->
-                let m = mkFileIndexRange range.FileIndex range.Start name.Range.End
+                let m = mkRange range.FileName range.Start name.Range.End
 
                 ModuleOrNamespaceHeaderNode(
                     mkXmlDoc xmlDoc,

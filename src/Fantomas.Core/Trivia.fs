@@ -1,10 +1,8 @@
 ﻿module internal Fantomas.Core.Trivia
 
-open System
-open Fantomas.FCS.Syntax
-open Fantomas.FCS.SyntaxTrivia
-open Fantomas.FCS.Text
-open Fantomas.Core.ISourceTextExtensions
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
+open FSharp.Compiler.Text
 open Fantomas.Core.SyntaxOak
 
 type CommentTrivia with
@@ -23,7 +21,7 @@ let internal collectTriviaFromCodeComments
     |> List.filter (fun ct -> RangeHelpers.rangeContainsRange codeRange ct.Range)
     |> List.map (function
         | CommentTrivia.BlockComment r ->
-            let content = source.GetContentAt r
+            let content = source.GetSubTextFromRange r
             let startLine = source.GetLineString(r.StartLine - 1)
             let endLine = source.GetLineString(r.EndLine - 1)
 
@@ -40,7 +38,7 @@ let internal collectTriviaFromCodeComments
 
             TriviaNode(content, r)
         | CommentTrivia.LineComment r ->
-            let content = source.GetContentAt r
+            let content = source.GetSubTextFromRange r
             let index = r.StartLine - 1
             let line = source.GetLineString index
 
@@ -67,8 +65,6 @@ let internal collectTriviaFromBlankLines
         // weird edge cases where there is no source code but only hash defines
         []
     else
-        let fileIndex = codeRange.FileIndex
-
         let captureLinesIfMultiline (r: range) =
             if r.StartLine = r.EndLine then
                 []
@@ -122,7 +118,7 @@ let internal collectTriviaFromBlankLines
                 else
                     let range =
                         let p = Position.mkPos (idx + 1) 0
-                        Range.mkFileIndexRange fileIndex p p
+                        Range.mkRange codeRange.FileName p p
 
                     if count < config.KeepMaxNumberOfBlankLines then
                         (count + 1), Some(TriviaNode(Newline, range))
@@ -146,7 +142,7 @@ let internal collectTriviaFromDirectives
     |> List.filter (fun cdt -> RangeHelpers.rangeContainsRange codeRange cdt.Range)
     |> List.map (fun cdt ->
         let m = cdt.Range
-        let text = (source.GetContentAt m).TrimEnd()
+        let text = (source.GetSubTextFromRange m).TrimEnd()
         let content = Directive text
         TriviaNode(content, m))
 
@@ -349,7 +345,7 @@ let insertCursor (tree: Oak) (cursor: pos) =
     let nodeWithCursor = findNodeWhereRangeFitsIn tree cursorRange
 
     match nodeWithCursor with
-    | Some((:? SingleTextNode) as node) -> node.AddCursor cursor
+    | Some(:? SingleTextNode as node) -> node.AddCursor cursor
     | _ -> addToTree tree [| TriviaNode(TriviaContent.Cursor, cursorRange) |]
 
     tree
