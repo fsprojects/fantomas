@@ -1,6 +1,5 @@
 #r "nuget: Fun.Build, 1.0.3"
 #r "nuget: CliWrap, 3.6.4"
-#r "nuget: FSharp.Data, 6.3.0"
 #r "nuget: Ionide.KeepAChangelog, 0.1.8"
 #r "nuget: Humanizer.Core, 2.14.1"
 
@@ -10,9 +9,6 @@ open System.IO
 open Fun.Build
 open CliWrap
 open CliWrap.Buffered
-open FSharp.Data
-open System.Xml.Linq
-open System.Xml.XPath
 open Ionide.KeepAChangelog
 open Ionide.KeepAChangelog.Domain
 open SemVersion
@@ -222,132 +218,6 @@ pipeline "FormatAll" {
 pipeline "EnsureRepoConfig" {
     workingDir __SOURCE_DIRECTORY__
     stage "Git" { run "git config core.hooksPath .githooks" }
-    runIfOnlySpecified true
-}
-
-let deps = __SOURCE_DIRECTORY__ </> ".deps"
-
-let fsharpCompilerHash =
-    let xDoc = XElement.Load(__SOURCE_DIRECTORY__ </> "Directory.Build.props")
-    xDoc.XPathSelectElements("//FCSCommitHash") |> Seq.head |> (fun xe -> xe.Value)
-
-let updateFileRaw (file: FileInfo) =
-    let lines = File.ReadAllLines file.FullName
-    let updatedLines =
-        lines
-        |> Array.map (fun line ->
-            if line.Contains("FSharp.Compiler") then
-                line.Replace("FSharp.Compiler", "Fantomas.FCS")
-            else
-                line)
-    File.WriteAllLines(file.FullName, updatedLines)
-
-let downloadCompilerFile commitHash relativePath =
-    async {
-        let file = FileInfo(deps </> commitHash </> relativePath)
-        if file.Exists && file.Length <> 0 then
-            return ()
-        else
-            file.Directory.Create()
-            let fs = file.Create()
-            let fileName = Path.GetFileName(relativePath)
-            let url =
-                $"https://raw.githubusercontent.com/dotnet/fsharp/{commitHash}/{relativePath}"
-            let! response =
-                Http.AsyncRequestStream(
-                    url,
-                    headers = [| "Content-Disposition", $"attachment; filename=\"{fileName}\"" |]
-                )
-            if response.StatusCode <> 200 then
-                printfn $"Could not download %s{relativePath}"
-            do! Async.AwaitTask(response.ResponseStream.CopyToAsync(fs))
-            fs.Close()
-
-            updateFileRaw file
-    }
-
-pipeline "Init" {
-    workingDir __SOURCE_DIRECTORY__
-    stage "Download FCS files" {
-        run (fun _ ->
-            [| "src/Compiler/FSComp.txt"
-               "src/Compiler/FSStrings.resx"
-               "src/Compiler/Utilities/Activity.fsi"
-               "src/Compiler/Utilities/Activity.fs"
-               "src/Compiler/Utilities/sformat.fsi"
-               "src/Compiler/Utilities/sformat.fs"
-               "src/Compiler/Utilities/sr.fsi"
-               "src/Compiler/Utilities/sr.fs"
-               "src/Compiler/Utilities/ResizeArray.fsi"
-               "src/Compiler/Utilities/ResizeArray.fs"
-               "src/Compiler/Utilities/HashMultiMap.fsi"
-               "src/Compiler/Utilities/HashMultiMap.fs"
-               "src/Compiler/Utilities/TaggedCollections.fsi"
-               "src/Compiler/Utilities/TaggedCollections.fs"
-               "src/Compiler/Utilities/illib.fsi"
-               "src/Compiler/Utilities/illib.fs"
-               "src/Compiler/Utilities/Cancellable.fsi"
-               "src/Compiler/Utilities/Cancellable.fs"
-               "src/Compiler/Utilities/FileSystem.fsi"
-               "src/Compiler/Utilities/FileSystem.fs"
-               "src/Compiler/Utilities/ildiag.fsi"
-               "src/Compiler/Utilities/ildiag.fs"
-               "src/Compiler/Utilities/zmap.fsi"
-               "src/Compiler/Utilities/zmap.fs"
-               "src/Compiler/Utilities/zset.fsi"
-               "src/Compiler/Utilities/zset.fs"
-               "src/Compiler/Utilities/XmlAdapters.fsi"
-               "src/Compiler/Utilities/XmlAdapters.fs"
-               "src/Compiler/Utilities/InternalCollections.fsi"
-               "src/Compiler/Utilities/InternalCollections.fs"
-               "src/Compiler/Utilities/lib.fsi"
-               "src/Compiler/Utilities/lib.fs"
-               "src/Compiler/Utilities/PathMap.fsi"
-               "src/Compiler/Utilities/PathMap.fs"
-               "src/Compiler/Utilities/range.fsi"
-               "src/Compiler/Utilities/range.fs"
-               "src/Compiler/Facilities/LanguageFeatures.fsi"
-               "src/Compiler/Facilities/LanguageFeatures.fs"
-               "src/Compiler/Facilities/DiagnosticOptions.fsi"
-               "src/Compiler/Facilities/DiagnosticOptions.fs"
-               "src/Compiler/Facilities/DiagnosticsLogger.fsi"
-               "src/Compiler/Facilities/DiagnosticsLogger.fs"
-               "src/Compiler/Facilities/prim-lexing.fsi"
-               "src/Compiler/Facilities/prim-lexing.fs"
-               "src/Compiler/Facilities/prim-parsing.fsi"
-               "src/Compiler/Facilities/prim-parsing.fs"
-               "src/Compiler/AbstractIL/illex.fsl"
-               "src/Compiler/AbstractIL/ilpars.fsy"
-               "src/Compiler/AbstractIL/il.fsi"
-               "src/Compiler/AbstractIL/il.fs"
-               "src/Compiler/AbstractIL/ilascii.fsi"
-               "src/Compiler/AbstractIL/ilascii.fs"
-               "src/Compiler/SyntaxTree/PrettyNaming.fsi"
-               "src/Compiler/SyntaxTree/PrettyNaming.fs"
-               "src/Compiler/pplex.fsl"
-               "src/Compiler/pppars.fsy"
-               "src/Compiler/lex.fsl"
-               "src/Compiler/pars.fsy"
-               "src/Compiler/SyntaxTree/UnicodeLexing.fsi"
-               "src/Compiler/SyntaxTree/UnicodeLexing.fs"
-               "src/Compiler/SyntaxTree/XmlDoc.fsi"
-               "src/Compiler/SyntaxTree/XmlDoc.fs"
-               "src/Compiler/SyntaxTree/SyntaxTrivia.fsi"
-               "src/Compiler/SyntaxTree/SyntaxTrivia.fs"
-               "src/Compiler/SyntaxTree/SyntaxTree.fsi"
-               "src/Compiler/SyntaxTree/SyntaxTree.fs"
-               "src/Compiler/SyntaxTree/SyntaxTreeOps.fsi"
-               "src/Compiler/SyntaxTree/SyntaxTreeOps.fs"
-               "src/Compiler/SyntaxTree/ParseHelpers.fsi"
-               "src/Compiler/SyntaxTree/ParseHelpers.fs"
-               "src/Compiler/SyntaxTree/LexHelpers.fsi"
-               "src/Compiler/SyntaxTree/LexHelpers.fs"
-               "src/Compiler/SyntaxTree/LexFilter.fsi"
-               "src/Compiler/SyntaxTree/LexFilter.fs" |]
-            |> Array.map (downloadCompilerFile fsharpCompilerHash)
-            |> Async.Parallel
-            |> Async.Ignore)
-    }
     runIfOnlySpecified true
 }
 

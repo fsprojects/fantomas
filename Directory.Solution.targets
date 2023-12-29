@@ -1,7 +1,7 @@
 <Project>
 
     <ItemGroup>
-        <ProjectsToAnalyze Include="src/**/*.fsproj" Exclude="src/Fantomas.FCS/Fantomas.FCS.fsproj"/>
+        <ProjectsToAnalyze Include="src/**/*.fsproj" />
     </ItemGroup>
 
     <Target Name="AnalyzeSolution">
