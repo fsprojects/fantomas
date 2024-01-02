@@ -2,7 +2,6 @@
 
 open Fantomas.FCS.Text
 open Fantomas.Core.SyntaxOak
-open Fantomas.Core.ISourceTextExtensions
 
 let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: range) =
     let lines =
@@ -428,7 +427,7 @@ let formatSelection
                     match rangeOfSelection with
                     | None ->
                         raise (FormatException("No suitable AST node could be extracted from formatted selection."))
-                    | Some m -> source.GetContentAt m
+                    | Some m -> source.GetSubTextFromRange m
 
             return formattedSelection.TrimEnd([| '\r'; '\n' |]), selection
     }

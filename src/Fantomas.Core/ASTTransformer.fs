@@ -7,7 +7,6 @@ open Fantomas.FCS.Text.Range
 open Fantomas.FCS.Syntax
 open Fantomas.FCS.SyntaxTrivia
 open Fantomas.FCS.Xml
-open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.RangePatterns
 open Fantomas.Core.SyntaxOak
 open Microsoft.FSharp.Core
@@ -19,7 +18,7 @@ type CreationAide =
     member x.TextFromSource fallback range =
         match x.SourceText with
         | None -> fallback ()
-        | Some sourceText -> sourceText.GetContentAt range
+        | Some sourceText -> sourceText.GetSubTextFromRange range
 
 let stn text range = SingleTextNode(text, range)
 

@@ -4,7 +4,6 @@ open System
 open Fantomas.FCS.Syntax
 open Fantomas.FCS.SyntaxTrivia
 open Fantomas.FCS.Text
-open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.SyntaxOak
 
 type CommentTrivia with
@@ -23,7 +22,7 @@ let internal collectTriviaFromCodeComments
     |> List.filter (fun ct -> RangeHelpers.rangeContainsRange codeRange ct.Range)
     |> List.map (function
         | CommentTrivia.BlockComment r ->
-            let content = source.GetContentAt r
+            let content = source.GetSubTextFromRange r
             let startLine = source.GetLineString(r.StartLine - 1)
             let endLine = source.GetLineString(r.EndLine - 1)
 
@@ -40,7 +39,7 @@ let internal collectTriviaFromCodeComments
 
             TriviaNode(content, r)
         | CommentTrivia.LineComment r ->
-            let content = source.GetContentAt r
+            let content = source.GetSubTextFromRange r
             let index = r.StartLine - 1
             let line = source.GetLineString index
 
@@ -146,7 +145,7 @@ let internal collectTriviaFromDirectives
     |> List.filter (fun cdt -> RangeHelpers.rangeContainsRange codeRange cdt.Range)
     |> List.map (fun cdt ->
         let m = cdt.Range
-        let text = (source.GetContentAt m).TrimEnd()
+        let text = (source.GetSubTextFromRange m).TrimEnd()
         let content = Directive text
         TriviaNode(content, m))
 
