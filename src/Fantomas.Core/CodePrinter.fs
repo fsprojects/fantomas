@@ -1195,7 +1195,7 @@ let genExpr (e: Expr) =
                 expressionFitsOnRestOfLine shortExpression longExpression ctx
 
         |> genNode node
-    | Expr.TypeApp node -> genTypeApp false node
+    | Expr.TypeApp node -> expressionFitsOnRestOfLine (genTypeApp false node) (genTypeApp true node)
     | Expr.TryWithSingleClause node ->
         let genClause =
             let clauseNode = node.Clause
@@ -2358,7 +2358,7 @@ let (|EndsWithSingleRecordApp|_|) (config: FormatConfig) (appNode: ExprAppNode) 
                 visit args
 
         visit appNode.Arguments
-
+       
 let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
     let short =
         genExpr node.FunctionName

@@ -135,7 +135,7 @@ type CancellableTaskResultBuilderBase with
 """
 
 [<Test>]
-let ``Aligned bracket style in anonymous record is respected, #2706`` () =
+let ``aligned bracket style in anonymous record is respected, #2706`` () =
     formatSourceString
         """
 let private asJson (arm: IArmResource) =
@@ -158,11 +158,11 @@ let private asJson (arm: IArmResource) =
             kind: string
             properties: {| statisticsEnabled: bool |}
         |}
-       >
+        >
 """
 
 [<Test>]
-let ``Aligned bracket style in anonymous record is respected for multiple types, #2706`` () =
+let ``aligned bracket style in anonymous record is respected for multiple types, #2706`` () =
     formatSourceString
         """
 let private asJson (arm: IArmResource) =
@@ -193,11 +193,11 @@ let private asJson (arm: IArmResource) =
             kind: string
             properties: {| statisticsEnabled: bool |}
         |}
-       >
+        >
 """
 
 [<Test>]
-let ``Cramped bracket style in anonymous record is respected for multiple types, #2706`` () =
+let ``cramped bracket style in anonymous record is respected for multiple types, #2706`` () =
     formatSourceString
         """
 let private asJson (arm: IArmResource) =
@@ -224,11 +224,11 @@ let private asJson (arm: IArmResource) =
            properties: {| statisticsEnabled: bool |} |},
         {| kind: string
            properties: {| statisticsEnabled: bool |} |}
-       >
+        >
 """
 
 [<Test>]
-let ``Stroustrup bracket style in anonymous record is respected for multiple types, #2706`` () =
+let ``stroustrup bracket style in anonymous record is respected for multiple types, #2706`` () =
     formatSourceString
         """
 let private asJson (arm: IArmResource) =
@@ -259,7 +259,7 @@ let private asJson (arm: IArmResource) =
             kind: string
             properties: {| statisticsEnabled: bool |}
         |}
-       >
+        >
 """
 
 [<Test>]
@@ -286,8 +286,7 @@ let bv =
 """
 
 [<Test>]
-let ``Multiline type argument with AppLongIdentAndSingleParenArg`` () =
-
+let ``multiline type argument with AppLongIdentAndSingleParenArg`` () =
     { config with
         MaxLineLength = 30
         SpaceBeforeUppercaseInvocation = true
@@ -313,12 +312,19 @@ path.Replace<
     |> should
         equal
         """
-        
-        """
+path.Replace<
+    Foo<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+ > (
+    "../../../",
+    "...."
+)
+"""
 
 [<Test>]
-let ``Multiline type argument with AppLongIdentAndSingleParenArg 2`` () =
-
+let ``multiline type argument with AppLongIdentAndSingleParenArg 2`` () =
     { config with
         MaxLineLength = 30
         SpaceBeforeClassConstructor = true
@@ -341,14 +347,14 @@ path.Replace<
         'innerContextLongLongLong,
         'bb -> 'b
      >
-  > (
-      "../../../",
-      "...."
-  )
+ >(
+    "../../../",
+    "...."
+)
 """
 
 [<Test>]
-let ``Multiline type argument with AppLongIdentAndSingleParenArg 3`` () =
+let ``multiline type argument with AppLongIdentAndSingleParenArg 3`` () =
     { config with
         MaxLineLength = 30
         SpaceBeforeClassConstructor = false
@@ -371,14 +377,14 @@ path.Replace<
         'innerContextLongLongLong,
         'bb -> 'b
      >
-  >(
-      "../../../",
-      "...."
-  )
-        """
+ >(
+    "../../../",
+    "...."
+)
+"""
 
 [<Test>]
-let ``Multiline type argument with AppSingleParenArg`` () =
+let ``multiline type argument with AppSingleParenArg`` () =
     { config with
         MaxLineLength = 30
         MultilineBracketStyle = Aligned }
@@ -396,15 +402,18 @@ someFunc<
         equal
         """
 someFunc<
-        Foo<
-            'innerContextLongLongLong,
-            'bb -> 'b
-         >
-     >(a,b)
+    Foo<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+ > (
+    a,
+    b
+)
 """
 
 [<Test>]
-let ``Multiline type argument with AppWithLambda`` () =
+let ``multiline type argument with AppWithLambda`` () =
     { config with
         MaxLineLength = 30
         MultilineBracketStyle = Aligned }
@@ -421,10 +430,17 @@ someFunc<
     |> should
         equal
         """
-        """
+someFunc<
+    Bar<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+ >
+    (fun x -> x)
+"""
 
 [<Test>]
-let ``Multiline type argument with NestedIndexWithoutDot`` () =
+let ``multiline type argument with NestedIndexWithoutDot`` () =
     { config with
         MaxLineLength = 30
         MultilineBracketStyle = Aligned }
@@ -446,11 +462,11 @@ something<
         'innerContextLongLongLong,
         'bb -> 'b
      >
- >["thing"][8](a,b)
+ >["thing"][8](a, b)
 """
 
 [<Test>]
-let ``Multiline type argument with EndsWithDualListApp`` () =
+let ``multiline type argument with EndsWithDualListApp`` () =
     { config with
         MaxLineLength = 30
         MultilineBracketStyle = Aligned }
@@ -478,7 +494,37 @@ div<
 """
 
 [<Test>]
-let ``Multiline type argument with EndsWithSingleListApp`` () =
+let ``multiline type argument with elmish EndsWithDualListApp`` () =
+    { config with
+        MaxLineLength = 30
+        MultilineBracketStyle = Aligned
+        ExperimentalElmish = true }
+    |> formatSourceString
+        """
+div<
+    Bar<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+ > [ ClassName "container" ] [ str "meh" ]
+"""
+    |> prepend newline
+    |> should
+        equal
+        """
+div<
+    Bar<
+        'innerContextLongLongLong,
+        'bb -> 'b
+     >
+ >
+    [ ClassName "container" ] [
+        str "meh"
+    ]
+"""
+
+[<Test>]
+let ``multiline type argument with EndsWithSingleListApp`` () =
     { config with
         MaxLineLength = 30
         MultilineBracketStyle = Aligned }
