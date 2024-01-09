@@ -135,7 +135,7 @@ type CancellableTaskResultBuilderBase with
 """
 
 [<Test>]
-let ``aligned bracket style in anonymous record is respected, #2706`` () =
+let ``aligned bracket style in anonymous record is respected, 2706`` () =
     formatSourceString
         """
 let private asJson (arm: IArmResource) =
@@ -162,7 +162,7 @@ let private asJson (arm: IArmResource) =
 """
 
 [<Test>]
-let ``aligned bracket style in anonymous record is respected for multiple types, #2706`` () =
+let ``aligned bracket style in anonymous record is respected for multiple types, 2706`` () =
     formatSourceString
         """
 let private asJson (arm: IArmResource) =
@@ -197,7 +197,7 @@ let private asJson (arm: IArmResource) =
 """
 
 [<Test>]
-let ``cramped bracket style in anonymous record is respected for multiple types, #2706`` () =
+let ``cramped bracket style in anonymous record is respected for multiple types, 2706`` () =
     formatSourceString
         """
 let private asJson (arm: IArmResource) =
@@ -228,7 +228,7 @@ let private asJson (arm: IArmResource) =
 """
 
 [<Test>]
-let ``stroustrup bracket style in anonymous record is respected for multiple types, #2706`` () =
+let ``stroustrup bracket style in anonymous record is respected for multiple types, 2706`` () =
     formatSourceString
         """
 let private asJson (arm: IArmResource) =
@@ -534,4 +534,48 @@ input<
      >
  >
     [ Type "text" ]
+"""
+
+[<Test>]
+let ``multiline type argument with index without dot`` () =
+    formatSourceString
+        """
+XYZ.app<int -> int -> int -> string>[tellMeWhy { return wouldSomeoneWriteThisCode }]
+"""
+        alignedMaxLine30
+    |> prepend newline
+    |> should
+        equal
+        """
+XYZ.app<
+    int
+        -> int
+        -> int
+        -> string
+ >[tellMeWhy {
+       return
+           wouldSomeoneWriteThisCode
+   }]
+"""
+
+[<Test>]
+let ``multiline type argument with Index with dot`` () =
+    formatSourceString
+        """
+XYZ.app<int -> int -> int -> string>.[tellMeWhy { return wouldSomeoneWriteThisCode }]
+"""
+        alignedMaxLine30
+    |> prepend newline
+    |> should
+        equal
+        """
+XYZ.app<
+    int
+        -> int
+        -> int
+        -> string
+ >.[tellMeWhy {
+    return
+        wouldSomeoneWriteThisCode
+}]
 """
