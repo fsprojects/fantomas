@@ -262,15 +262,18 @@ let private asJson (arm: IArmResource) =
         >
 """
 
-[<Test>]
-let ``type application including nested multiline function type`` () =
+let alignedMaxLine30 =
     { config with
         MaxLineLength = 30
         MultilineBracketStyle = Aligned }
-    |> formatSourceString
+
+[<Test>]
+let ``type application including nested multiline function type`` () =
+    formatSourceString
         """
 let bv = unbox<Foo<'innerContextLongLongLong, 'bb -> 'b>> bf
-        """
+"""
+        alignedMaxLine30
     |> prepend newline
     |> should
         equal
@@ -287,19 +290,7 @@ let bv =
 
 [<Test>]
 let ``multiline type argument with AppLongIdentAndSingleParenArg`` () =
-    { config with
-        MaxLineLength = 30
-        SpaceBeforeUppercaseInvocation = true
-        SpaceBeforeClassConstructor = true
-        SpaceBeforeMember = true
-        SpaceBeforeColon = true
-        SpaceBeforeSemicolon = true
-        MultilineBracketStyle = Aligned
-        AlignFunctionSignatureToIndentation = true
-        AlternativeLongMemberDefinitions = true
-        MultiLineLambdaClosingNewline = true
-        NewlineBetweenTypeDefinitionAndMembers = false }
-    |> formatSourceString
+    formatSourceString
         """
 path.Replace<
         Foo<
@@ -308,6 +299,18 @@ path.Replace<
          >
      >("../../../", "....")
 """
+        { config with
+            MaxLineLength = 30
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBracketStyle = Aligned
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -325,11 +328,7 @@ path.Replace<
 
 [<Test>]
 let ``multiline type argument with AppLongIdentAndSingleParenArg 2`` () =
-    { config with
-        MaxLineLength = 30
-        SpaceBeforeClassConstructor = true
-        MultilineBracketStyle = Aligned }
-    |> formatSourceString
+    formatSourceString
         """
 path.Replace<
         Foo<
@@ -338,6 +337,8 @@ path.Replace<
          >
      >("../../../", "....")
 """
+        { alignedMaxLine30 with
+            SpaceBeforeClassConstructor = true }
     |> prepend newline
     |> should
         equal
@@ -355,11 +356,7 @@ path.Replace<
 
 [<Test>]
 let ``multiline type argument with AppLongIdentAndSingleParenArg 3`` () =
-    { config with
-        MaxLineLength = 30
-        SpaceBeforeClassConstructor = false
-        MultilineBracketStyle = Aligned }
-    |> formatSourceString
+    formatSourceString
         """
 path.Replace<
         Foo<
@@ -368,6 +365,7 @@ path.Replace<
          >
      >("../../../", "....")
 """
+        alignedMaxLine30
     |> prepend newline
     |> should
         equal
@@ -385,10 +383,7 @@ path.Replace<
 
 [<Test>]
 let ``multiline type argument with AppSingleParenArg`` () =
-    { config with
-        MaxLineLength = 30
-        MultilineBracketStyle = Aligned }
-    |> formatSourceString
+    formatSourceString
         """
 someFunc<
         Foo<
@@ -397,6 +392,7 @@ someFunc<
          >
      >(a,b)
 """
+        alignedMaxLine30
     |> prepend newline
     |> should
         equal
@@ -414,10 +410,7 @@ someFunc<
 
 [<Test>]
 let ``multiline type argument with AppWithLambda`` () =
-    { config with
-        MaxLineLength = 30
-        MultilineBracketStyle = Aligned }
-    |> formatSourceString
+    formatSourceString
         """
 someFunc<
     Bar<
@@ -426,6 +419,7 @@ someFunc<
      >
  > (fun x -> x)
 """
+        alignedMaxLine30
     |> prepend newline
     |> should
         equal
@@ -441,10 +435,7 @@ someFunc<
 
 [<Test>]
 let ``multiline type argument with NestedIndexWithoutDot`` () =
-    { config with
-        MaxLineLength = 30
-        MultilineBracketStyle = Aligned }
-    |> formatSourceString
+    formatSourceString
         """
 something<
         Foo<
@@ -453,6 +444,7 @@ something<
          >
      >["thing"][8](a,b)
 """
+        alignedMaxLine30
     |> prepend newline
     |> should
         equal
@@ -467,10 +459,7 @@ something<
 
 [<Test>]
 let ``multiline type argument with EndsWithDualListApp`` () =
-    { config with
-        MaxLineLength = 30
-        MultilineBracketStyle = Aligned }
-    |> formatSourceString
+    formatSourceString
         """
 div<
     Bar<
@@ -479,6 +468,7 @@ div<
      >
  > [ ClassName "container" ] [ str "meh" ]
 """
+        alignedMaxLine30
     |> prepend newline
     |> should
         equal
@@ -495,11 +485,7 @@ div<
 
 [<Test>]
 let ``multiline type argument with elmish EndsWithDualListApp`` () =
-    { config with
-        MaxLineLength = 30
-        MultilineBracketStyle = Aligned
-        ExperimentalElmish = true }
-    |> formatSourceString
+    formatSourceString
         """
 div<
     Bar<
@@ -508,6 +494,8 @@ div<
      >
  > [ ClassName "container" ] [ str "meh" ]
 """
+        { alignedMaxLine30 with
+            ExperimentalElmish = true }
     |> prepend newline
     |> should
         equal
@@ -525,10 +513,7 @@ div<
 
 [<Test>]
 let ``multiline type argument with EndsWithSingleListApp`` () =
-    { config with
-        MaxLineLength = 30
-        MultilineBracketStyle = Aligned }
-    |> formatSourceString
+    formatSourceString
         """
 input<
     Bar<
@@ -537,6 +522,7 @@ input<
      >
  > [ Type "text" ]
 """
+        alignedMaxLine30
     |> prepend newline
     |> should
         equal
