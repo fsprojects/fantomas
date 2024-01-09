@@ -2818,8 +2818,12 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                                                 (fun inner ->
                                                     if inner then
                                                         let bv =
-                                                            unbox<Foo<'innerContextLongLongLong, 'bb
-                                                                -> 'b>>
+                                                            unbox<
+                                                                Foo<
+                                                                    'innerContextLongLongLong,
+                                                                    'bb -> 'b
+                                                                 >
+                                                             >
                                                                 bf
 
                                                         this.InnerEquals af bf cont
@@ -2830,6 +2834,60 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                                             cont false
                                 }
                     }
+"""
+
+[<Test>]
+let ``multiple nested generic types`` () =
+    formatSourceString
+        """
+let bv =
+    unbox<
+        Fooadfadadfdadfadfadfadfadfadfsfdsfadfadadfada<
+            Foo<
+                innerContextLongLongLong,
+                bb
+             >
+         >
+     >
+        bf
+"""
+        { config with MaxLineLength = 10 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let bv =
+    unbox<
+        Fooadfadadfdadfadfadfadfadfadfsfdsfadfadadfada<
+            Foo<
+                innerContextLongLongLong,
+                bb
+             >
+         >
+     >
+        bf
+"""
+
+[<Test>]
+let ``Trivia inside multiline generic type parameters`` () =
+    formatSourceString
+        """
+type X =
+    Teq< //
+        int
+     //
+     >
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    Teq< //
+        int
+     //
+    >
 """
 
 [<Test>]

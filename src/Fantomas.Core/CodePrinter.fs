@@ -1183,27 +1183,19 @@ let genExpr (e: Expr) =
                         else
                             indentSepNlnUnindent f ctx
 
-                    (genExpr node.FunctionExpr
+                    let genFuncExpr =
+                        match node.FunctionExpr with
+                        | Expr.TypeApp node -> genTypeApp true node
+                        | _ -> genExpr node.FunctionExpr
+
+                    (genFuncExpr
                      +> ensureArgumentsAreNotAlignedWithFunctionName (col sepNln node.Arguments genExpr))
                         ctx
 
                 expressionFitsOnRestOfLine shortExpression longExpression ctx
 
         |> genNode node
-    | Expr.TypeApp node ->
-        fun ctx ->
-            let startColum = ctx.Column
-
-            genNode
-                node
-                (genExpr node.Identifier
-                 +> genSingleTextNode node.LessThan
-                 +> colGenericTypeParameters node.TypeParameters
-                 // we need to make sure each expression in the function application has offset at least greater than
-                 // See: https://github.com/fsprojects/fantomas/issues/1611
-                 +> addFixedSpaces startColum
-                 +> genSingleTextNode node.GreaterThan)
-                ctx
+    | Expr.TypeApp node -> expressionFitsOnRestOfLine (genTypeApp false node) (genTypeApp true node)
     | Expr.TryWithSingleClause node ->
         let genClause =
             let clauseNode = node.Clause
@@ -2030,6 +2022,22 @@ let genAppSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppSingle
 
     expressionFitsOnRestOfLine short long |> genNode node
 
+/// When called from `SynExpr.App` we need to ensure the node.GreaterThan is placed one space further than the start column.
+/// This is to ensure the application remains an application.
+let genTypeApp (addAdditionalColumnOffset: bool) (node: ExprTypeAppNode) (ctx: Context) : Context =
+    let startColumn = ctx.Column + (if addAdditionalColumnOffset then 1 else 0)
+
+    genNode
+        node
+        (genExpr node.Identifier
+         +> genSingleTextNode node.LessThan
+         +> colGenericTypeParameters node.TypeParameters
+         // we need to make sure each expression in the function application has offset at least greater than
+         // See: https://github.com/fsprojects/fantomas/issues/1611
+         +> addFixedSpaces startColumn
+         +> genSingleTextNode node.GreaterThan)
+        ctx
+
 let genClauses (clauses: MatchClauseNode list) =
     let lastIndex = clauses.Length - 1
 
@@ -2267,13 +2275,22 @@ let genKeepIdentMatchClause (startNode: Node) (e: Expr) ctx =
         indentSepNlnUnindent (genExpr e) ctx
 
 let colGenericTypeParameters typeParameters =
-    coli sepComma typeParameters (fun idx t ->
-        let leadingSpace =
-            match t with
-            | Type.Var n when idx = 0 && String.startsWithOrdinal "^" n.Text -> sepSpace
-            | _ -> sepNone
+    let genParameters sep =
+        coli sep typeParameters (fun idx t ->
+            let leadingSpace =
+                match t with
+                | Type.Var n when idx = 0 && String.startsWithOrdinal "^" n.Text -> sepSpace
+                | _ -> sepNone
 
-        leadingSpace +> genType t)
+            leadingSpace +> genType t)
+
+    let long = indentSepNlnUnindent (genParameters (sepComma +> sepNln)) +> sepNln
+    let short = genParameters sepComma
+
+    // Multiline text type params should be unmodified
+    match typeParameters with
+    | [ Type.StaticConstant(Constant.FromText textNode) ] when textNode.Text.Contains("\n") -> short
+    | _ -> expressionFitsOnRestOfLine short long
 
 let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: IdentListNode) =
     match longIdent.Content with
@@ -3130,8 +3147,10 @@ let genType (t: Type) =
         +> optSingle genIdentListNodeWithDot node.PostIdentifier
         +> genSingleTextNode node.LessThen
         +> addExtraSpace
-        +> col sepComma node.Arguments genType
+        +> leadingExpressionIsMultiline (colGenericTypeParameters node.Arguments) (fun isMultiline ->
+            onlyIf isMultiline (!- " "))
         +> addExtraSpace
+        // TODO: I think we need to add a space here
         +> genSingleTextNode node.GreaterThan
         |> genNode node
     | Type.StructTuple node ->
