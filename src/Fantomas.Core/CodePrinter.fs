@@ -2358,7 +2358,7 @@ let (|EndsWithSingleRecordApp|_|) (config: FormatConfig) (appNode: ExprAppNode) 
                 visit args
 
         visit appNode.Arguments
-       
+
 let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
     let short =
         genExpr node.FunctionName
