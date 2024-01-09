@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.0-alpha-006 - 2024-01-09
+
+### Changed
+* Aligned bracket style in anonymous record is not respected. [#2706](https://github.com/fsprojects/fantomas/issues/2706) [style guide](https://github.com/fsharp/fslang-design/issues/756)
+
 ## 6.3.0-alpha-005 - 2023-12-22
 
 ### Changed
