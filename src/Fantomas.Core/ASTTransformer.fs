@@ -2398,71 +2398,24 @@ let mkSynUnionCase
         fullRange
     )
 
-let mkSynSimplePat creationAide (pat: SynSimplePat) =
-    match pat with
-    | SynSimplePat.Attrib(SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, _),
-                          attributes,
-                          m) ->
-        Some(
-            SimplePatNode(
-                mkAttributes creationAide attributes,
-                isOptional,
-                mkIdent ident,
-                Some(mkType creationAide t),
-                m
-            )
-        )
-    | SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, m) ->
-        Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, Some(mkType creationAide t), m))
-    | SynSimplePat.Attrib(SynSimplePat.Id(ident = ident; isOptional = isOptional), attributes, m) ->
-        Some(SimplePatNode(mkAttributes creationAide attributes, isOptional, mkIdent ident, None, m))
-    | SynSimplePat.Id(ident = ident; isOptional = isOptional; range = m) ->
-        Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, None, m))
-    | _ -> None
-
 let mkImplicitCtor
-    creationAide
-    vis
+    (creationAide: CreationAide)
+    (vis: SynAccess option)
     (attrs: SynAttributeList list)
-    pats
+    (pat: SynPat)
     (self: (range * Ident) option)
     (xmlDoc: PreXmlDoc)
-    =
-    let openNode, pats, commas, closeNode =
-        match pats with
-        | SynSimplePats.SimplePats(pats = pats; commaRanges = commas; range = StartEndRange 1 (mOpen, _, mClose)) ->
-            stn "(" mOpen, pats, commas, stn ")" mClose
-
-    let pats =
-        match pats with
-        | [] ->
-            // Unit pattern
-            []
-        | head :: tail ->
-            let rest =
-                assert (tail.Length = commas.Length)
-
-                List.zip commas tail
-                |> List.collect (fun (c, p) ->
-                    match mkSynSimplePat creationAide p with
-                    | None -> []
-                    | Some simplePat -> [ Choice2Of2(stn "," c); Choice1Of2 simplePat ])
-
-            [ match mkSynSimplePat creationAide head with
-              | None -> ()
-              | Some simplePat -> yield Choice1Of2 simplePat
-              yield! rest ]
-
+    : ImplicitConstructorNode =
     let range =
         let startRange =
             if not xmlDoc.IsEmpty then xmlDoc.Range
             else if not attrs.IsEmpty then attrs.[0].Range
-            else openNode.Range
+            else pat.Range
 
         let endRange =
             match self with
             | Some(_, self) -> self.idRange
-            | None -> closeNode.Range
+            | None -> pat.Range
 
         unionRanges startRange endRange
 
@@ -2477,9 +2430,7 @@ let mkImplicitCtor
         mkXmlDoc xmlDoc,
         mkAttributes creationAide attrs,
         mkSynAccess vis,
-        openNode,
-        pats,
-        closeNode,
+        mkPat creationAide pat,
         asSelfNode,
         range
     )
