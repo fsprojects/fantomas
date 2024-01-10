@@ -2259,21 +2259,6 @@ type TypeDefnAbbrevNode(typeNameNode, t: Type, members, range) =
         member val TypeName = typeNameNode
         member val Members = members
 
-type SimplePatNode
-    (attributes: MultipleAttributeListNode option, isOptional: bool, identifier: SingleTextNode, t: Type option, range)
-    =
-    inherit NodeBase(range)
-
-    override val Children: Node array =
-        [| yield! noa attributes
-           yield identifier
-           yield! noa (Option.map Type.Node t) |]
-
-    member val Attributes = attributes
-    member val IsOptional = isOptional
-    member val Identifier = identifier
-    member val Type = t
-
 type AsSelfIdentifierNode(asNode: SingleTextNode, self: SingleTextNode, range) =
     inherit NodeBase(range)
     override val Children = [| yield (asNode :> Node); yield self |]
@@ -2285,9 +2270,7 @@ type ImplicitConstructorNode
         xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode option,
         accessibility: SingleTextNode option,
-        openingParen: SingleTextNode,
-        items: Choice<SimplePatNode, SingleTextNode> list,
-        closingParen: SingleTextNode,
+        pat: Pattern,
         self: AsSelfIdentifierNode option,
         range
     ) =
@@ -2297,20 +2280,13 @@ type ImplicitConstructorNode
         [| yield! noa xmlDoc
            yield! noa attributes
            yield! noa accessibility
-           yield openingParen
-           for item in items do
-               match item with
-               | Choice1Of2 node -> yield node
-               | Choice2Of2 comma -> yield comma
-           yield closingParen
+           yield Pattern.Node pat
            yield! noa self |]
 
     member val XmlDoc = xmlDoc
     member val Attributes = attributes
     member val Accessibility = accessibility
-    member val OpeningParen = openingParen
-    member val Items = items
-    member val ClosingParen = closingParen
+    member val Pattern = pat
     member val Self = self
 
 type TypeDefnExplicitBodyNode(kind: SingleTextNode, members: MemberDefn list, endNode: SingleTextNode, range) =

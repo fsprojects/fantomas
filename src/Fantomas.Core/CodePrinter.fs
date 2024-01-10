@@ -3261,41 +3261,25 @@ let sepNlnBetweenTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
                 ctx
 
 let genImplicitConstructor (node: ImplicitConstructorNode) =
-    let genSimplePat (node: SimplePatNode) =
-        genOnelinerAttributes node.Attributes
-        +> onlyIf node.IsOptional (!- "?")
-        +> genSingleTextNode node.Identifier
-        +> optSingle (fun t -> sepColon +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)) node.Type
-        |> genNode node
-
-    let shortPats =
-        col sepNone node.Items (function
-            | Choice1Of2 p -> genSimplePat p
-            | Choice2Of2 comma -> genSingleTextNode comma +> addSpaceIfSpaceAfterComma)
-
-    let longPats =
-        let genPats =
-            col sepNone node.Items (function
-                | Choice1Of2 p -> genSimplePat p
-                | Choice2Of2 comma -> genSingleTextNode comma +> sepNln)
-
-        indentSepNlnUnindent genPats +> sepNln
-
     let short =
         genXml node.XmlDoc
         +> onlyIf node.Attributes.IsSome sepSpace
         +> genOnelinerAttributes node.Attributes
         +> onlyIf node.Accessibility.IsSome sepSpace
         +> genAccessOpt node.Accessibility
-        +> genSingleTextNode node.OpeningParen
-        +> shortPats
-        +> genSingleTextNode node.ClosingParen
+        +> genPat node.Pattern
 
     let long =
         let genPats =
-            genSingleTextNode node.OpeningParen
-            +> expressionFitsOnRestOfLine shortPats longPats
-            +> genSingleTextNode node.ClosingParen
+            match node.Pattern with
+            | Pattern.Paren patParen ->
+                genSingleTextNode patParen.OpeningParen
+                +> expressionFitsOnRestOfLine
+                    (genPat patParen.Pattern)
+                    (indentSepNlnUnindent (genPat patParen.Pattern) +> sepNln)
+                +> genSingleTextNode patParen.ClosingParen
+                |> genNode patParen
+            | _ -> genPat node.Pattern
 
         indentSepNlnUnindent (
             genXml node.XmlDoc
