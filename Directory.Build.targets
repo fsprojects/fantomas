@@ -9,7 +9,7 @@
         <CodeRoot Condition="$(CodeRoot) == ''">.</CodeRoot>
         <FSharpAnalyzersOtherFlags>--analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
         <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
-        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --exclude-analyzer PartialAppAnalyzer</FSharpAnalyzersOtherFlags>
+        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --exclude-analyzers PartialAppAnalyzer</FSharpAnalyzersOtherFlags>
         <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --treat-as-warning GRA-STRING-001 GRA-STRING-002 GRA-STRING-003 GRA-UNIONCASE-001 GRA-VIRTUALCALL-001 GRA-TYPE-ANNOTATE-001 GRA-UNIONCASE-001 IONIDE-001 IONIDE-002 IONIDE-003 IONIDE-004 IONIDE-005 IONIDE-006</FSharpAnalyzersOtherFlags>
         <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --verbosity d</FSharpAnalyzersOtherFlags>
         <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --code-root $(CodeRoot)</FSharpAnalyzersOtherFlags>
