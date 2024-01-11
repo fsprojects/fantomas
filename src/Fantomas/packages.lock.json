@@ -47,9 +47,9 @@
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
-        "requested": "[0.6.0, )",
-        "resolved": "0.6.0",
-        "contentHash": "1ORjhbCk27Viafx3rUvK2wvql8+wzq7r4+eQti707xVO8By3C6NQJZbudjleHsXhYHimFxv30H7iwU4LpTIH4Q=="
+        "requested": "[0.7.0, )",
+        "resolved": "0.7.0",
+        "contentHash": "FeeN54AXkxo5oYigqUEEMTYjpoEvv3B7YR+sMkWnfTR/xabAtKe7gWVv9MVHaQvpavePB0egwExBfNl7sPshaw=="
       },
       "Ignore": {
         "type": "Direct",
@@ -59,9 +59,9 @@
       },
       "Ionide.Analyzers": {
         "type": "Direct",
-        "requested": "[0.6.0, )",
-        "resolved": "0.6.0",
-        "contentHash": "+CRVPqW00m8nPguCDLtkZC4c3TmCtiO0V4T1z7HAV7T5ed1cucIIqUGtkan6EA17rjomrJ8vtz54KRT1pAT5dA=="
+        "requested": "[0.7.0, )",
+        "resolved": "0.7.0",
+        "contentHash": "s2LI7VKDyJPG60yO0dMmvIg1lLqFNR5k8enCOnsjllzP/yZ6Wf8OtjOp5RcPR7uiMfL916Zf1jd0kS81mrLsbw=="
       },
       "Ionide.KeepAChangelog.Tasks": {
         "type": "Direct",
