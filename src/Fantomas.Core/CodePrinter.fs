@@ -3260,6 +3260,17 @@ let sepNlnBetweenTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
             else
                 ctx
 
+let genLongPatternInConstructor (pat: Pattern) =
+    match pat with
+    | Pattern.Paren patParen ->
+        genSingleTextNode patParen.OpeningParen
+        +> expressionFitsOnRestOfLine
+            (genPat patParen.Pattern)
+            (indentSepNlnUnindent (genPat patParen.Pattern) +> sepNln)
+        +> genSingleTextNode patParen.ClosingParen
+        |> genNode patParen
+    | _ -> genPat pat
+
 let genImplicitConstructor (node: ImplicitConstructorNode) =
     let short =
         genXml node.XmlDoc
@@ -3270,26 +3281,15 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
         +> genPat node.Pattern
 
     let long =
-        let genPats =
-            match node.Pattern with
-            | Pattern.Paren patParen ->
-                genSingleTextNode patParen.OpeningParen
-                +> expressionFitsOnRestOfLine
-                    (genPat patParen.Pattern)
-                    (indentSepNlnUnindent (genPat patParen.Pattern) +> sepNln)
-                +> genSingleTextNode patParen.ClosingParen
-                |> genNode patParen
-            | _ -> genPat node.Pattern
-
         indentSepNlnUnindent (
             genXml node.XmlDoc
             +> genOnelinerAttributes node.Attributes
             +> onlyIf node.Attributes.IsSome sepNln
             +> expressionFitsOnRestOfLine
-                (genAccessOpt node.Accessibility +> genPats)
+                (genAccessOpt node.Accessibility +> genLongPatternInConstructor node.Pattern)
                 (genAccessOpt node.Accessibility
                  +> optSingle (fun _ -> sepNln) node.Accessibility
-                 +> genPats)
+                 +> genLongPatternInConstructor node.Pattern)
             +> (fun ctx -> onlyIf ctx.Config.AlternativeLongMemberDefinitions sepNln ctx)
         )
 
@@ -3709,24 +3709,50 @@ let genMemberDefn (md: MemberDefn) =
     | MemberDefn.ExternBinding node -> genExternBinding node
     | MemberDefn.DoExpr node -> genExpr (Expr.Single node)
     | MemberDefn.ExplicitCtor node ->
+        let short =
+            genAccessOpt node.Accessibility
+            +> genSingleTextNode node.New
+            +> sepSpaceBeforeClassConstructor
+            +> genPat node.Pattern
+            +> optSingle (fun alias -> sepSpace +> !- "as" +> sepSpace +> genSingleTextNode alias) node.Alias
+            +> sepSpace
+            +> genSingleTextNode node.Equals
+            +> sepSpace
+            +> genExpr node.Expr
+
+        let long =
+            leadingExpressionIsMultiline
+                (genAccessOpt node.Accessibility
+                 +> genSingleTextNode node.New
+                 +> sepSpaceBeforeClassConstructor
+                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genLongPatternInConstructor node.Pattern)
+                 +> optSingle (fun alias -> sepSpace +> !- "as" +> sepSpace +> genSingleTextNode alias) node.Alias)
+                (fun isMultiline ctx ->
+                    let genExpr =
+                        genExpr node.Expr
+                        +> optSingle
+                            (fun thenExpr ->
+                                sepNln
+                                +> !- "then"
+                                +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr thenExpr))
+                            node.ThenExpr
+
+                    let short = genSingleTextNode node.Equals +> sepSpace +> genExpr
+
+                    let long ctx =
+                        if ctx.Config.AlternativeLongMemberDefinitions then
+                            indentSepNlnUnindent (genSingleTextNode node.Equals +> sepNln +> genExpr) ctx
+                        else
+                            (sepSpace +> genSingleTextNode node.Equals +> indentSepNlnUnindent genExpr) ctx
+
+                    if isMultiline then
+                        long ctx
+                    else
+                        expressionFitsOnRestOfLine short long ctx)
+
         genXml node.XmlDoc
         +> genAttributes node.Attributes
-        +> genAccessOpt node.Accessibility
-        +> genSingleTextNode node.New
-        +> sepSpaceBeforeClassConstructor
-        +> genPat node.Pattern
-        +> optSingle (fun alias -> sepSpace +> !- "as" +> sepSpace +> genSingleTextNode alias) node.Alias
-        +> sepSpace
-        +> genSingleTextNode node.Equals
-        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
-            genExpr node.Expr
-            +> optSingle
-                (fun thenExpr ->
-                    sepNln
-                    +> !- "then"
-                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr thenExpr))
-                node.ThenExpr
-        )
+        +> ifElse node.ThenExpr.IsSome long (expressionFitsOnRestOfLine short long)
         |> genNode (MemberDefn.Node md)
     | MemberDefn.LetBinding node -> genBindings true node.Bindings |> genNode (MemberDefn.Node md)
     | MemberDefn.Interface node ->
