@@ -1490,10 +1490,7 @@ type RequestParser<'ctx, 'a> =
           prohibited: ProhibitedRequestGetter list }
 
     static member internal Create
-        (
-            consumedFields,
-            parse: 'ctx -> Request -> Async<Result<'a, Error list>>
-        ) : RequestParser<'ctx, 'a> =
+        (consumedFields, parse: 'ctx -> Request -> Async<Result<'a, Error list>>) : RequestParser<'ctx, 'a> =
         { consumedFields = consumedFields
           parse = parse
           prohibited = [] }

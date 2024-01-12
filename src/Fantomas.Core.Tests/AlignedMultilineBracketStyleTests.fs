@@ -1050,10 +1050,7 @@ type RequestParser<'ctx, 'a> =
         }
 
     static member internal Create
-        (
-            consumedFields,
-            parse : 'ctx -> Request -> Async<Result<'a, Error list>>
-        )
+        (consumedFields, parse : 'ctx -> Request -> Async<Result<'a, Error list>>)
         : RequestParser<'ctx, 'a>
         =
         {
