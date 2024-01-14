@@ -2850,13 +2850,15 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                     +> genSingleTextNode b.Equals
 
                 let long (ctx: Context) =
-                    let genParameters, hasSingleTupledArg =
-                        match b.Parameters with
-                        | [ Pattern.Paren parenNode as pat ] ->
+                    let endsWithTupleParameter =
+                        match List.tryLast b.Parameters with
+                        | Some(Pattern.Paren parenNode) ->
                             match parenNode.Pattern with
-                            | Pattern.Tuple _ -> genLongParenPatParameter pat, true
-                            | _ -> col sepNln b.Parameters genLongParenPatParameter, false
-                        | _ -> col sepNln b.Parameters genLongParenPatParameter, false
+                            | Pattern.Tuple _ -> true
+                            | _ -> false
+                        | _ -> false
+
+                    let genParameters = col sepNln b.Parameters genLongParenPatParameter
 
                     let hasTriviaAfterLeadingKeyword =
                         let beforeInline =
@@ -2880,9 +2882,9 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                      +> indent
                      +> sepNln
                      +> genParameters
-                     +> onlyIf (not hasSingleTupledArg || alternativeSyntax) sepNln
+                     +> onlyIf (not endsWithTupleParameter || alternativeSyntax) sepNln
                      +> leadingExpressionIsMultiline
-                         (genReturnType (not hasSingleTupledArg || alternativeSyntax))
+                         (genReturnType (not endsWithTupleParameter || alternativeSyntax))
                          (fun isMultiline ->
                              if (alternativeSyntax && Option.isSome b.ReturnType) || isMultiline then
                                  sepNln +> genSingleTextNode b.Equals
@@ -3255,15 +3257,19 @@ let sepNlnBetweenTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
                 ctx
 
 /// Format a long parentheses parameter pattern in a binding or constructor.
+/// Alternate formatting will applied when a paren tuple does not fit on the remainder of the line.
 let genLongParenPatParameter (pat: Pattern) =
     match pat with
     | Pattern.Paren patParen ->
-        genSingleTextNode patParen.OpeningParen
-        +> expressionFitsOnRestOfLine
-            (genPat patParen.Pattern)
-            (indentSepNlnUnindent (genPat patParen.Pattern) +> sepNln)
-        +> genSingleTextNode patParen.ClosingParen
-        |> genNode patParen
+        match patParen.Pattern with
+        | Pattern.Tuple _ ->
+            genSingleTextNode patParen.OpeningParen
+            +> expressionFitsOnRestOfLine
+                (genPat patParen.Pattern)
+                (indentSepNlnUnindent (genPat patParen.Pattern) +> sepNln)
+            +> genSingleTextNode patParen.ClosingParen
+            |> genNode patParen
+        | _ -> genPat pat
     | _ -> genPat pat
 
 let genImplicitConstructor (node: ImplicitConstructorNode) =
