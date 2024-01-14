@@ -861,10 +861,7 @@ type MaybeBuilder () =
 type MaybeBuilder() =
     member inline __.Bind
         // meh
-        (
-            value,
-            binder: 'T -> 'U option
-        ) : 'U option =
+        (value, binder: 'T -> 'U option) : 'U option =
         Option.bind binder value
 """
 
@@ -896,10 +893,7 @@ type MaybeBuilder() =
 #else
     member inline __.Bind
 #endif
-        (
-            value,
-            binder: 'T -> 'U option
-        ) : 'U option =
+        (value, binder: 'T -> 'U option) : 'U option =
         Option.bind binder value
 """
 

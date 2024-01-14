@@ -160,9 +160,8 @@ type StateMachine
     =
     new
         (
-            // also meh but with an int
-            x: int
-        ) as secondCtor
+        // also meh but with an int
+        x: int) as secondCtor
         =
         StateMachine()
 """
