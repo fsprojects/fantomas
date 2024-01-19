@@ -2794,18 +2794,22 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                 a.Apply
                     { new ApplyEval<_, _, _> with
                         member __.Eval<'bb>
-                            (a :
-                                Foo<'innerContextLongLongLong, 'bb -> 'b> *
-                                Foo<'innerContextLongLongLong, 'bb>)
+                            (
+                                a :
+                                    Foo<'innerContextLongLongLong, 'bb -> 'b> *
+                                    Foo<'innerContextLongLongLong, 'bb>
+                            )
                             =
                             let (af, av) = a
 
                             b.Apply
                                 { new ApplyEval<_, _, _> with
                                     member __.Eval<'cb>
-                                        (b :
-                                            Foo<'innerContextLongLongLong, 'cb -> 'b> *
-                                            Foo<'innerContextLongLongLong, 'bc>)
+                                        (
+                                            b :
+                                                Foo<'innerContextLongLongLong, 'cb -> 'b> *
+                                                Foo<'innerContextLongLongLong, 'bc>
+                                        )
                                         =
                                         let (bf, bv) = b
 

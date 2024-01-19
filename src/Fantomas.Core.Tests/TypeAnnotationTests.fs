@@ -48,12 +48,14 @@ type Meh
         equal
         """
 type Meh
-    (input:
-        LongTupleItemTypeOneThing *
-        LongTupleItemTypeThingTwo *
-        LongTupleItemTypeThree *
-        LongThingFour *
-        LongThingFiveYow) = class end
+    (
+        input:
+            LongTupleItemTypeOneThing *
+            LongTupleItemTypeThingTwo *
+            LongTupleItemTypeThree *
+            LongThingFour *
+            LongThingFiveYow
+    ) = class end
 """
 
 [<Test>]

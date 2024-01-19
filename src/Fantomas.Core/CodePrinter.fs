@@ -3256,12 +3256,25 @@ let sepNlnBetweenTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
             else
                 ctx
 
+[<return: Struct>]
+let inline (|ParameterWithTupleTypePattern|_|) (pat: Pattern) =
+    match pat with
+    | Pattern.Parameter parameterNode ->
+        match parameterNode.Type with
+        | Some t ->
+            match t with
+            | Type.Tuple _ -> ValueSome()
+            | _ -> ValueNone
+        | None -> ValueNone
+    | _ -> ValueNone
+
 /// Format a long parentheses parameter pattern in a binding or constructor.
 /// Alternate formatting will applied when a paren tuple does not fit on the remainder of the line.
 let genLongParenPatParameter (pat: Pattern) =
     match pat with
     | Pattern.Paren patParen ->
         match patParen.Pattern with
+        | ParameterWithTupleTypePattern
         | Pattern.Tuple _ ->
             genSingleTextNode patParen.OpeningParen
             +> expressionFitsOnRestOfLine
