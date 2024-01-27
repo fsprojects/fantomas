@@ -864,6 +864,14 @@ type D() =
             aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
         ) : ReturnType =
         42
+
+type E() =
+    new
+        (
+            aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+        ) = E()
     """
     { FormatConfig.Default with
         AlternativeLongMemberDefinitions = true }

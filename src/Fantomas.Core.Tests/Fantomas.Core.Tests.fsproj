@@ -121,7 +121,7 @@
     <Compile Include="InterfaceStaticMethodTests.fs" />
     <Compile Include="ExternTests.fs" />
     <Compile Include="TypeAnnotationTests.fs" />
-    <Compile Include="BaseConstructorTests.fs" />
+    <Compile Include="ConstructorTests.fs" />
     <Compile Include="DallasTests.fs" />
     <Compile Include="InlineTests.fs" />
     <Compile Include="ChainTests.fs" />

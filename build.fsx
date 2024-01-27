@@ -5,7 +5,6 @@
 #r "nuget: Humanizer.Core, 2.14.1"
 
 open System
-open System.Text.Json
 open System.IO
 open Fun.Build
 open CliWrap
@@ -26,34 +25,6 @@ let cleanFolders (input: string seq) =
         |> Seq.iter (fun dir ->
             if Directory.Exists(dir) then
                 Directory.Delete(dir, true))
-    }
-
-/// Workaround for https://github.com/dotnet/sdk/issues/35989
-let restoreTools (ctx: Internal.StageContext) =
-    async {
-        let json = File.ReadAllText ".config/dotnet-tools.json"
-        let jsonDocument = JsonDocument.Parse(json)
-        let root = jsonDocument.RootElement
-        let tools = root.GetProperty("tools")
-
-        let! installs =
-            tools.EnumerateObject()
-            |> Seq.map (fun tool ->
-                let version = tool.Value.GetProperty("version").GetString()
-                ctx.RunCommand $"dotnet tool install %s{tool.Name} --version %s{version}")
-            |> Async.Sequential
-
-        let failedInstalls =
-            installs
-            |> Array.tryPick (function
-                | Ok _ -> None
-                | Error error -> Some error)
-
-        match failedInstalls with
-        | None -> return 0
-        | Some error ->
-            printfn $"%s{error}"
-            return 1
     }
 
 let benchmarkAssembly =
@@ -90,7 +61,7 @@ let analysisReportsDir = "analysisreports"
 
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
-    stage "RestoreTools" { run restoreTools }
+    stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" {
         run (
             cleanFolders
@@ -200,7 +171,7 @@ pipeline "PushClient" {
 pipeline "Docs" {
     workingDir __SOURCE_DIRECTORY__
     stage "Prepare" {
-        run restoreTools
+        run "dotnet tool restore"
         run "dotnet build -c Release src/Fantomas/Fantomas.fsproj"
     }
     stage "Watch" {

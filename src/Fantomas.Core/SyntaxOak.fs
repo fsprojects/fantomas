@@ -2389,6 +2389,8 @@ type MemberDefnInheritNode(inheritKeyword: SingleTextNode, baseType: Type, range
     member val Inherit = inheritKeyword
     member val BaseType = baseType
 
+/// Secondary constructor
+/// new (pat: type) = expr
 type MemberDefnExplicitCtorNode
     (
         xmlDoc: XmlDocNode option,
