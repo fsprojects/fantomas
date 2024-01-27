@@ -3,6 +3,9 @@ h3 {
     padding-inline: var(--spacing-100);
     font-size: var(--font-300);
     max-width: calc(100% - var(--configuration-icon-size) - var(--configuration-icon-size) - var(--spacing-100) - var(--spacing-100));
+    & a {
+        padding-top: var(--spacing-600);
+    }
 }
 
 p > fantomas-setting, p > copy-to-clipboard {

@@ -31,13 +31,21 @@ class Navigation extends LitElement {
       
       a {
         margin-top: var(--spacing-200);
-        color: var(--link-color);
+        color: var(--fantomas-800);
         display: inline-block;
+        text-decoration: none;
+        background-color: var(--fantomas-200);
+        padding: var(--spacing-50) var(--spacing-100);
       }
+        
+        a:hover {
+            background-color: var(--fantomas-400);
+            color: var(--fantomas-50);
+        }
       
       a:only-child {
         text-align: center;
-        flex: 1;
+        margin-inline: auto;
       }
     `;
     
@@ -93,7 +101,7 @@ class CopyToClipboard extends LitElement {
         margin: 0;
         transition: all 200ms;
         position: absolute;
-        z-index: 1;
+        z-index: 101;
         left: 50%;
         transform: translateX(-50%);
         bottom: 100%;
@@ -146,113 +154,113 @@ class FantomasSetting extends LitElement {
     }
 
     static styles = css`
-      :host {
-        display: inline-block;
-      }
-
-      :host([green]) iconify-icon {
-        color: #92DC84;
-      }
-
-      :host([green]) .tooltip {
-        background-color: #92DC84;
-      }
-
-      :host([green]) .tooltip::after {
-        border-color: #92DC84 transparent transparent transparent;
-      }
-
-      :host([orange]) iconify-icon {
-        color: #F5BF4F;
-      }
-
-      :host([orange]) .tooltip {
-        background-color: #F5BF4F;
-      }
-
-      :host([orange]) .tooltip::after {
-        border-color: #F5BF4F transparent transparent transparent;
-      }
-
-      :host([red]) iconify-icon {
-        color: #EA7268;
-      }
-
-      :host([red]) .tooltip {
-        background-color: #EA7268;
-      }
-
-      :host([red]) .tooltip::after {
-        border-color: #EA7268 transparent transparent transparent;
-      }
-
-      :host([gr]) iconify-icon {
-        color: #00A8E2;
-      }
-
-      :host([gr]) .tooltip {
-        background-color: #00A8E2;
-      }
-
-      :host([gr]) .tooltip::after {
-        border-color: #00A8E2 transparent transparent transparent;
-      }
-
-      div {
-        height: var(--configuration-icon-size);
-        position: relative;
-      }
-
-      img {
-        box-sizing: border-box;
-        padding: 4px;
-        background-color: #00A8E2;
-        height: var(--configuration-icon-size);
-        width: var(--configuration-icon-size);
-        border-radius: 12px;
-        display: inline-block;
-      }
-
-      img, iconify-icon {
-        position: relative;
-        cursor: pointer;
-
-        &:hover + .tooltip {
-          visibility: visible;
-          opacity: 1;
+        :host {
+            display: inline-block;
         }
-      }
 
-      .tooltip {
-        visibility: hidden;
-        opacity: 0;
-        white-space: nowrap;
-        font-size: 14px;
-        line-height: 1.5;
-        background-color: rgba(0, 0, 0, .95);
-        color: #FFF;
-        text-align: center;
-        border-radius: var(--radius);
-        padding: var(--spacing-100);
-        margin: 0;
-        transition: all 200ms;
-        position: absolute;
-        z-index: 1;
-        left: 50%;
-        transform: translateX(-50%);
-        bottom: 100%;
-
-        &::after {
-          content: " ";
-          position: absolute;
-          top: 100%;
-          left: 50%;
-          transform: translateX(-50%);
-          border-width: var(--radius);
-          border-style: solid;
-          border-color: rgba(0, 0, 0, .95) transparent transparent transparent;
+        :host([green]) iconify-icon {
+            color: #92DC84;
         }
-      }
+
+        :host([green]) .tooltip {
+            background-color: #92DC84;
+        }
+
+        :host([green]) .tooltip::after {
+            border-color: #92DC84 transparent transparent transparent;
+        }
+
+        :host([orange]) iconify-icon {
+            color: #F5BF4F;
+        }
+
+        :host([orange]) .tooltip {
+            background-color: #F5BF4F;
+        }
+
+        :host([orange]) .tooltip::after {
+            border-color: #F5BF4F transparent transparent transparent;
+        }
+
+        :host([red]) iconify-icon {
+            color: #EA7268;
+        }
+
+        :host([red]) .tooltip {
+            background-color: #EA7268;
+        }
+
+        :host([red]) .tooltip::after {
+            border-color: #EA7268 transparent transparent transparent;
+        }
+
+        :host([gr]) iconify-icon {
+            color: #00A8E2;
+        }
+
+        :host([gr]) .tooltip {
+            background-color: #00A8E2;
+        }
+
+        :host([gr]) .tooltip::after {
+            border-color: #00A8E2 transparent transparent transparent;
+        }
+
+        div {
+            height: var(--configuration-icon-size);
+            position: relative;
+        }
+
+        img {
+            box-sizing: border-box;
+            padding: 4px;
+            background-color: #00A8E2;
+            height: var(--configuration-icon-size);
+            width: var(--configuration-icon-size);
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        img, iconify-icon {
+            position: relative;
+            cursor: pointer;
+
+            &:hover + .tooltip {
+                visibility: visible;
+                opacity: 1;
+            }
+        }
+
+        .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            white-space: nowrap;
+            font-size: 14px;
+            line-height: 1.5;
+            background-color: rgba(0, 0, 0, .95);
+            color: #FFF;
+            text-align: center;
+            border-radius: var(--radius);
+            padding: var(--spacing-100);
+            margin: 0;
+            transition: all 200ms;
+            position: absolute;
+            z-index: 101;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 100%;
+
+            &::after {
+                content: " ";
+                position: absolute;
+                top: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                border-width: var(--radius);
+                border-style: solid;
+                border-color: rgba(0, 0, 0, .95) transparent transparent transparent;
+            }
+        }
     `;
 
     constructor(props) {

@@ -5,6 +5,18 @@
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
+    <!-- Opengraph properties (https://ogp.me/) -->
+    <meta property="og:site_name" content="fantomas">
+    <meta property="og:title" content="Configuration
+" />
+    <meta property="og:url" content="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html">
+    <meta property="og:type" content="website" />
+    <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
+    <meta name="twitter:title" content="Configuration
+">
+    
     <title>Configuration
  | fantomas</title>
     <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -273,7 +285,7 @@ These can be stored in an <a href="https://editorconfig.org/">.editorconfig</a> 
 commandline.<br />
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.</p>
-<table class="pre"><tr><td><pre><code>version: 6.3.0-alpha-006+d8f44dbe6c47bfb6371aed1dce9ee5227bf773c8</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 6.3.0-alpha-007+de8ac507903bf545211eaa0efd88c2436fee1424</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -1035,6 +1047,14 @@ where the difference is mainly in the equal sign and returned type placement.</p
 <span class="s">            aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse</span>
 <span class="s">        ) : ReturnType =</span>
 <span class="s">        42</span>
+
+<span class="s">type E() =</span>
+<span class="s">    new</span>
+<span class="s">        (</span>
+<span class="s">            aVeryLongType: AVeryLongTypeThatYouNeedToUse,</span>
+<span class="s">            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,</span>
+<span class="s">            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse</span>
+<span class="s">        ) = E()</span>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs16', 265)" onmouseover="showTip(event, 'fs16', 265)" class="rt">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs17', 266)" onmouseover="showTip(event, 'fs17', 266)" class="id">Default</span> <span class="k">with</span>
         <span class="prop">AlternativeLongMemberDefinitions</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
@@ -1056,7 +1076,17 @@ type D() =
         )
         : ReturnType
         =
-        42</code></pre></td></tr></table>
+        42
+
+type E() =
+    new
+        (
+            aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+        )
+        =
+        E()</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_multi_line_lambda_closing_newline" class="anchor" href="#fsharp_multi_line_lambda_closing_newline">fsharp_multi_line_lambda_closing_newline</a></h3>
 <copy-to-clipboard text="fsharp_multi_line_lambda_closing_newline = true"></copy-to-clipboard>
@@ -1376,7 +1406,7 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
     </div>
 </main>
 <aside id="fsdocs-page-menu">
-    <p>On this page</p>
+    <p id="on-this-page">On this page</p>
     <ul>
   <li class="level-1">
     <a href="#Configuration">
