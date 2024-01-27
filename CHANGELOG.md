@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 6.3.0-alpha-007- 2024-01-27
 
 ### Changed
 * Update FCS to 'Parser: parse primary ctor params as normal patterns', commit e2496896c128ccfde33c92f45bbe0d2aa738873a [#3034](https://github.com/fsprojects/fantomas/pull/3034)
