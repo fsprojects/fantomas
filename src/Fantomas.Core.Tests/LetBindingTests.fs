@@ -2284,3 +2284,31 @@ let bar
     //
     ()
 """
+
+[<Test>]
+let ``equals sign should not be on same line when last tuple is single line, 3040`` () =
+    formatSourceString
+        """
+let processSnippetLine
+    (checkResults: FSharpCheckFileResults)
+    (semanticRanges: SemanticClassificationItem array)
+    (lines: string array)
+    (line: int, lineTokens: SnippetLine)
+    =
+    let lineStr = lines.[line]
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let processSnippetLine
+    (checkResults: FSharpCheckFileResults)
+    (semanticRanges: SemanticClassificationItem array)
+    (lines: string array)
+    (line: int, lineTokens: SnippetLine)
+    =
+    let lineStr = lines.[line]
+    ()
+"""
