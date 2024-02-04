@@ -1106,7 +1106,8 @@ let longFunctionWithLongTupleParameter
         equal
         """
 let longFunctionWithLongTupleParameter
-    (aVeryLongParam, aSecondVeryLongParam, aThirdVeryLongParam, aFourthVeryLongParam) =
+    (aVeryLongParam, aSecondVeryLongParam, aThirdVeryLongParam, aFourthVeryLongParam)
+    =
     // ... the body of the method follows
     ()
 """

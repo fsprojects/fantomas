@@ -2839,6 +2839,8 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                         ifElse addSpaceBeforeParensInFunDef sepSpace sepNone
                     | _ -> sepSpace
 
+                /// Format everything in one line:
+                /// let fn p1 p2 : rt =
                 let short =
                     afterLetKeyword
                     +> sepSpace
@@ -2849,12 +2851,54 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                     +> sepSpace
                     +> genSingleTextNode b.Equals
 
+                /// Format over multiple lines
+                /// AlternativeLongMemberDefinitions or AlignFunctionSignatureToIndentation can influence the equals and return type.
+                ///
+                /// By default we go with:
+                /// let fn
+                ///     p1
+                ///     p2
+                ///     : rt =
+                ///
+                /// When `rt` is multiline, `=` is placed on the next line:
+                /// let fn
+                ///     p1
+                ///     p2
+                ///     : rt
+                ///     =
+                ///
+                /// When the p2 is a multiline tuple, there are different rules formatting rules:
+                /// let fn
+                ///     p1
+                ///     (
+                ///         p2_1,
+                ///         p2_2,
+                ///         p2_3
+                ///     ) : rt =
+                ///
+                /// AlignFunctionSignatureToIndentation will always place `rt` and `=` on their own lines:
+                /// let fn
+                ///     p1
+                ///     p2
+                ///     : rt
+                ///     =
+                ///
+                /// This happens regardless whether p2 is a multiline tuple:
+                /// let fn
+                ///     p1
+                ///     (
+                ///         p2_1,
+                ///         p2_2,
+                ///         p2_3
+                ///     )
+                ///     : rt
+                ///     =
                 let long (ctx: Context) =
-                    let endsWithTupleParameter =
+                    let endsWithMultilineTupleParameter =
                         match List.tryLast b.Parameters with
-                        | Some(Pattern.Paren parenNode) ->
+                        | Some(Pattern.Paren parenNode as p) ->
                             match parenNode.Pattern with
-                            | Pattern.Tuple _ -> true
+                            | Pattern.Tuple _ -> futureNlnCheck (genLongParenPatParameter p) ctx
                             | _ -> false
                         | _ -> false
 
@@ -2875,6 +2919,8 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
                         beforeInline || beforeIdentifier || beforeAccessibility
 
+                    let nlnOnSeparateLine = not endsWithMultilineTupleParameter || alternativeSyntax
+
                     (onlyIf hasTriviaAfterLeadingKeyword indent
                      +> afterLetKeyword
                      +> sepSpace
@@ -2882,14 +2928,12 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                      +> indent
                      +> sepNln
                      +> genParameters
-                     +> onlyIf (not endsWithTupleParameter || alternativeSyntax) sepNln
-                     +> leadingExpressionIsMultiline
-                         (genReturnType (not endsWithTupleParameter || alternativeSyntax))
-                         (fun isMultiline ->
-                             if (alternativeSyntax && Option.isSome b.ReturnType) || isMultiline then
-                                 sepNln +> genSingleTextNode b.Equals
-                             else
-                                 sepSpace +> genSingleTextNode b.Equals)
+                     +> onlyIf nlnOnSeparateLine sepNln
+                     +> leadingExpressionIsMultiline (genReturnType nlnOnSeparateLine) (fun isMultiline ->
+                         if (alternativeSyntax && Option.isSome b.ReturnType) || isMultiline then
+                             sepNln +> genSingleTextNode b.Equals
+                         else
+                             sepSpace +> genSingleTextNode b.Equals)
                      +> unindent
                      +> onlyIf hasTriviaAfterLeadingKeyword unindent)
                         ctx
