@@ -2876,7 +2876,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 ///         p2_3
                 ///     ) : rt =
                 ///
-                /// AlignFunctionSignatureToIndentation will always place `rt` and `=` on there own lines:
+                /// AlignFunctionSignatureToIndentation will always place `rt` and `=` on their own lines:
                 /// let fn
                 ///     p1
                 ///     p2
