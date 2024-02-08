@@ -3615,3 +3615,31 @@ type R =
           F2: int
       F3: int }
 """
+
+[<Test>]
+let ``long tupled member where tuple fits on single line but return type doesn't, 3041`` () =
+    formatSourceString
+        """
+type FSharpChecker with
+
+    member this.ParseAndCheckDocument
+        (
+            filePath: string,
+            sourceText: string,
+            options: FSharpProjectOptions,
+            allowStaleResults: bool
+        ) : Async<(FSharpParseFileResults * ParsedInput * FSharpCheckFileResults) option> =
+        ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type FSharpChecker with
+
+    member this.ParseAndCheckDocument
+        (filePath: string, sourceText: string, options: FSharpProjectOptions, allowStaleResults: bool)
+        : Async<(FSharpParseFileResults * ParsedInput * FSharpCheckFileResults) option> =
+        ()
+"""
