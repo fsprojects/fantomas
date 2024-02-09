@@ -78,6 +78,15 @@ val lastWriteEventIsNewline: ctx: Context -> bool
 val indent: ctx: Context -> Context
 /// Unindent one more level based on configuration
 val unindent: ctx: Context -> Context
+
+/// Add double indent if  ExperimentalDoubleIndentParameters is active
+/// Otherwise, add single indent
+val experimentalDoubleIndent: ctx: Context -> Context
+
+/// Add double unindent if  ExperimentalDoubleIndentParameters is active
+/// Otherwise, add single unindent
+val experimentalDoubleUnindent: ctx: Context -> Context
+
 // /// Apply function f at an absolute indent level (use with care)
 val atIndentLevel: alsoSetIndent: bool -> level: int -> f: (Context -> Context) -> ctx: Context -> Context
 // /// Set minimal indentation (`atColumn`) at current column position - next newline will be indented on `max indent atColumn`
