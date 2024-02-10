@@ -28,3 +28,37 @@ let sillyfuncWithParams
         =
     longBody
 """
+
+[<Test>]
+let ``sample in long member`` () =
+    formatSourceString
+        """
+type X() =
+    member x.Y(a:int, b:int, c:int, d:int, e:int) =
+    
+        // Long body goes here...
+        longBody
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X() =
+    member x.Y
+            (
+                a:
+                    int,
+                b:
+                    int,
+                c:
+                    int,
+                d:
+                    int,
+                e:
+                    int
+            ) =
+
+        // Long body goes here...
+        longBody
+"""
