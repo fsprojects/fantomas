@@ -210,8 +210,17 @@ let main argv =
                 | _ -> Some ConsoleColor.Red
         )
 
+    let helpTextMessage =
+        """Learn more about Fantomas:       https://fsprojects.github.io/fantomas/docs
+Join our Discord community:      https://discord.gg/Cpq9vf8BJH
+"""
+
     let parser =
-        ArgumentParser.Create<Arguments>(programName = "dotnet fantomas", errorHandler = errorHandler)
+        ArgumentParser.Create<Arguments>(
+            programName = "dotnet fantomas",
+            errorHandler = errorHandler,
+            helpTextMessage = helpTextMessage
+        )
 
     let results = parser.ParseCommandLine argv
 
