@@ -15,13 +15,13 @@
       ]
     },
     "fsdocs-tool": {
-      "version": "20.0.0-alpha-018",
+      "version": "20.0.0-beta-002",
       "commands": [
         "fsdocs"
       ]
     },
     "fsharp-analyzers": {
-      "version": "0.23.0",
+      "version": "0.24.0",
       "commands": [
         "fsharp-analyzers"
       ]
