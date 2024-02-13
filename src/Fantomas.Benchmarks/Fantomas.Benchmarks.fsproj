@@ -12,8 +12,6 @@
   <ItemGroup>
     <PackageReference Include="FSharp.Core" />
     <PackageReference Include="BenchmarkDotNet" />
-    <PackageReference Include="FSharp.Core" Version="6.0.4" />
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.10" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />

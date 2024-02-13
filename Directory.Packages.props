@@ -27,7 +27,7 @@
         <PackageVersion Include="Ignore" Version="0.1.50" />
         <PackageVersion Include="System.IO.Abstractions" Version="20.0.4" />
         <PackageVersion Include="Spectre.Console" Version="0.48.0" />
-        <PackageVersion Include="BenchmarkDotNet" Version="0.13.11" />
+        <PackageVersion Include="BenchmarkDotNet" Version="0.13.13-nightly.20240213.132" />
         
         <PackageVersion Include="CliWrap" Version="3.6.4" />
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0"/>
