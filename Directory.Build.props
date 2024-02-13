@@ -35,6 +35,7 @@ Some common use cases include:
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <RestoreLockedMode>true</RestoreLockedMode>
         <NoWarn>NU1603</NoWarn>
+        <UseArtifactsOutput>true</UseArtifactsOutput>
         <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
         <!-- https://www.gresearch.co.uk/blog/article/improve-nuget-restores-with-static-graph-evaluation/ -->
         <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>

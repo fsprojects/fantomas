@@ -32,8 +32,8 @@ In simple scenarios this can work out, but in the long run it doesn't scale well
 To illustrate the API, lets generate a simple value binding: `let a = 0`.
 *)
 
-#r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.FCS.dll"
-#r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.Core.dll" // In production use #r "nuget: Fantomas.Core, 6.*"
+#r "../../../artifacts/bin/Fantomas.FCS/release/Fantomas.FCS.dll"
+#r "../../../artifacts/bin/Fantomas.Core/release/Fantomas.Core.dll" // In production use #r "nuget: Fantomas.Core, 6.*"
 
 open Fantomas.FCS.Text
 open Fantomas.Core.SyntaxOak

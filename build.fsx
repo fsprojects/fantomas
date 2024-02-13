@@ -28,20 +28,14 @@ let cleanFolders (input: string seq) =
     }
 
 let benchmarkAssembly =
-    "src"
-    </> "Fantomas.Benchmarks"
-    </> "bin"
-    </> "Release"
-    </> "net7.0"
-    </> "Fantomas.Benchmarks.dll"
+    "artifacts/bin/Fantomas.Benchmarks/release/Fantomas.Benchmarks.dll"
 
 let semanticVersioning =
     __SOURCE_DIRECTORY__
-    </> "src"
-    </> "Fantomas"
+    </> "artifacts"
     </> "bin"
-    </> "Release"
-    </> "net6.0"
+    </> "Fantomas"
+    </> "release"
     </> "SemanticVersioning.dll"
 
 let pushPackage nupkg =
@@ -62,25 +56,11 @@ let analysisReportsDir = "analysisreports"
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
-    stage "Clean" {
-        run (
-            cleanFolders
-                [| analysisReportsDir
-                   "bin"
-                   "src/Fantomas.FCS/bin/Release"
-                   "src/Fantomas.FCS/obj/Release"
-                   "src/Fantomas.Core/bin/Release"
-                   "src/Fantomas.Core/obj/Release"
-                   "src/Fantomas/bin/Release"
-                   "src/Fantomas/obj/Release"
-                   "src/Fantomas.Client/bin/Release"
-                   "src/Fantomas.Client/obj/Release" |]
-        )
-    }
+    stage "Clean" { run (cleanFolders [| analysisReportsDir; "artifacts" |]) }
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
-    stage "Build" { run "dotnet build -c Release" }
-    stage "UnitTests" { run "dotnet test -c Release" }
-    stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
+    stage "Build" { run "dotnet build -c Release --tl" }
+    stage "UnitTests" { run "dotnet test -c Release --tl" }
+    stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
     stage "Docs" {
         whenNot { platformOSX }
         envVars
@@ -94,7 +74,7 @@ pipeline "Build" {
 
 pipeline "Benchmark" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Prepare" { run "dotnet build -c Release src/Fantomas.Benchmarks" }
+    stage "Prepare" { run "dotnet build -c Release src/Fantomas.Benchmarks --tl" }
     stage "Benchmark" { run $"dotnet {benchmarkAssembly}" }
     runIfOnlySpecified true
 }
@@ -154,7 +134,11 @@ pipeline "PushClient" {
         run (fun _ ->
             async {
                 return!
-                    Directory.EnumerateFiles("bin", "Fantomas.Client.*.nupkg", SearchOption.TopDirectoryOnly)
+                    Directory.EnumerateFiles(
+                        "artifacts/package/release",
+                        "Fantomas.Client.*.nupkg",
+                        SearchOption.TopDirectoryOnly
+                    )
                     |> Seq.tryExactlyOne
                     |> Option.map pushPackage
                     |> Option.defaultValue (
@@ -449,7 +433,7 @@ pipeline "Release" {
                 else
                     // Push packages to NuGet
                     let nugetPackages =
-                        Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
+                        Directory.EnumerateFiles("artifacts/package/release", "*.nupkg", SearchOption.TopDirectoryOnly)
                         |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
                         |> Seq.toArray
 

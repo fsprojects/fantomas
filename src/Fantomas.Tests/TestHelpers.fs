@@ -118,13 +118,17 @@ let getFantomasToolStartInfo arguments : ProcessStartInfo =
 
     let configuration =
 #if DEBUG
-        "Debug"
+        "debug"
 #else
-        "Release"
+        "release"
 #endif
 
     let fantomasDll =
-        Path.Combine(pwd, "..", "..", "..", "..", "Fantomas", "bin", configuration, "net6.0", "fantomas.dll")
+        Path.Combine(pwd, "..", "..", "Fantomas", configuration, "fantomas.dll")
+        |> Path.GetFullPath
+
+    if not (File.Exists fantomasDll) then
+        failwithf $"The fantomas dll at \"%s{fantomasDll}\" does not exist!"
 
     let startInfo = ProcessStartInfo("dotnet")
     startInfo.UseShellExecute <- false

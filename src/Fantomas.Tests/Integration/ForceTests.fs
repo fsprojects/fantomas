@@ -15,7 +15,11 @@ let ``code that was invalid should be still be written`` () =
     let pwd = Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
 
     let sourceFile =
-        Path.Combine(pwd, "..", "..", "..", "..", "..", "tests", "data", "CheckDeclarations.fs")
+        Path.Combine(pwd, "..", "..", "..", "..", "tests", "data", "CheckDeclarations.fs")
+        |> Path.GetFullPath
+
+    if not (File.Exists sourceFile) then
+        failwithf $"CheckDeclarations.fs was not found at \"%s{sourceFile}\""
 
     use outputFixture = new OutputFile()
 
