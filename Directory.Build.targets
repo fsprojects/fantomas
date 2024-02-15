@@ -9,7 +9,6 @@
         <CodeRoot Condition="$(CodeRoot) == ''">.</CodeRoot>
         <FSharpAnalyzersOtherFlags>--analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
         <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
-        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --exclude-analyzers PartialAppAnalyzer</FSharpAnalyzersOtherFlags>
         <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --verbosity d</FSharpAnalyzersOtherFlags>
         <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --code-root $(CodeRoot)</FSharpAnalyzersOtherFlags>
         <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --report &quot;$(CodeRoot)/analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;</FSharpAnalyzersOtherFlags>
