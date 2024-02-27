@@ -59,3 +59,48 @@ let c = _.foo().Length
         """
 let c = _.foo().Length
 """
+
+[<Test>]
+let ``idempotency problem when _.Property shorthand, 3050`` () =
+    formatSourceString
+        """
+"ABC" |> _.ToLower()
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+"ABC" |> _.ToLower()
+"""
+
+[<Test>]
+let ``idempotency problem when _.property shorthand lowercase, 3050`` () =
+    formatSourceString
+        """
+"ABC" |> _.toLower()
+"""
+        { config with
+            SpaceBeforeLowercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+"ABC" |> _.toLower()
+"""
+
+[<Test>]
+let ``idempotency problem when _.property shorthand quoted, 3050`` () =
+    formatSourceString
+        """
+"ABC" |> _.``to Lower``()
+"""
+        { config with
+            SpaceBeforeLowercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+"ABC" |> _.``to Lower``()
+"""

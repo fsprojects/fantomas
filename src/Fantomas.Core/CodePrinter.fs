@@ -2519,8 +2519,10 @@ let sepSpaceBeforeParenInFuncInvocation (functionExpr: Expr) (argExpr: Expr) ctx
     | Expr.DotLambda _, _ -> ctx
     | Expr.Constant _, _ -> sepSpace ctx
     | ParenExpr _, _ -> sepSpace ctx
-    | UppercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
-    | LowercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+    | UppercaseExpr, ParenExpr _ ->
+        onlyIf (ctx.Config.SpaceBeforeUppercaseInvocation && not (lastWriteEventIsDotLambda ctx)) sepSpace ctx
+    | LowercaseExpr, ParenExpr _ ->
+        onlyIf (ctx.Config.SpaceBeforeLowercaseInvocation && not (lastWriteEventIsDotLambda ctx)) sepSpace ctx
     | Expr.Ident _, Expr.Ident _ -> sepSpace ctx
     | _ -> sepSpace ctx
 
