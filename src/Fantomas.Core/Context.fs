@@ -338,6 +338,16 @@ let lastWriteEventIsNewline ctx =
         | _ -> false)
     |> Option.defaultValue false
 
+let lastWriteEventIsDotLambda ctx =
+    ctx.WriterEvents
+    |> Queue.rev
+    |> List.ofSeq
+    |> function
+        | WriterEvent.Write f :: Write "." :: Write "_" :: _ ->
+            String.isNotNullOrWhitespace f
+            && (Char.IsLetter(f[0]) || (f.StartsWith("``") && f.EndsWith("``")))
+        | _ -> false
+
 let (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
     match Array.tryHead events, Array.tryLast events with
     | Some(CommentOrDefineEvent _), Some(CommentOrDefineEvent _) ->
