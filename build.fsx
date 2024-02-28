@@ -207,7 +207,7 @@ let downloadCompilerFile commitHash relativePath =
             let fs = file.Create()
             let fileName = Path.GetFileName(relativePath)
             let url =
-                $"https://raw.githubusercontent.com/dotnet/fsharp/{commitHash}/{relativePath}"
+                $"https://raw.githubusercontent.com/dawedawe/fsharp/{commitHash}/{relativePath}"
             let! response =
                 Http.AsyncRequestStream(
                     url,
