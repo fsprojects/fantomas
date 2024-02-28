@@ -362,3 +362,31 @@ let ``very long triple-quoted strings do not cause the interpolated string activ
         $"let value =
     \"\"\"%s{loremIpsum}\"\"\"
 "
+
+[<Test>]
+let ``don't eat braces, 3012`` () =
+    formatSourceString
+        "
+$$$\"\"\"{{{5}}}\"\"\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+$$$\"\"\"{{{5}}}\"\"\"
+"
+
+[<Test>]
+let ``extended interpolated string with several fill expressions`` () =
+    formatSourceString
+        "
+let x = $$$\"\"\"one {{{1}}} two {{{2}}} three {{{3}}}\"\"\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let x = $$$\"\"\"one {{{1}}} two {{{2}}} three {{{3}}}\"\"\"
+"

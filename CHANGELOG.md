@@ -2,9 +2,13 @@
 
 ## [Unreleased]
 
+### Changed
+* Update FCS to 'fix wrong range start of INTERP_STRING_END', commit 2e95cbcc2cdf0317df6d5724cd62b15da4cea02b [#3052](https://github.com/fsprojects/fantomas/pull/3052)
+
 ### Fixed
 * Equals sign should only be on same line if last tuple is multiline. [#3040](https://github.com/fsprojects/fantomas/issues/3040)
 * Return type should go on next line. [#3041](https://github.com/fsprojects/fantomas/issues/3041)
+* Fantomas does not support extended interpolated strings [#3012](https://github.com/fsprojects/fantomas/issues/3012)
 
 ## 6.3.0-alpha-007 - 2024-01-27
 

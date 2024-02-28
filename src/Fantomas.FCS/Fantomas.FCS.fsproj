@@ -53,6 +53,12 @@
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\HashMultiMap.fs">
       <Link>Utilities\HashMultiMap.fs</Link>
     </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\ReadOnlySpan.fsi">
+      <Link>Utilities\HashMultiMap.fs</Link>
+    </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\ReadOnlySpan.fs">
+      <Link>Utilities\HashMultiMap.fs</Link>
+    </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\TaggedCollections.fsi">
       <Link>Utilities\TaggedCollections.fsi</Link>
     </Compile>
@@ -142,6 +148,12 @@
     </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\DiagnosticsLogger.fs">
       <Link>Facilities\DiagnosticsLogger.fs</Link>
+    </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\Hashing.fsi">
+      <Link>Facilities\Hashing.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\Hashing.fs">
+      <Link>Facilities\Hashing.fs</Link>
     </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\prim-lexing.fsi">
       <Link>Facilities\prim-lexing.fsi</Link>
@@ -304,6 +316,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource"  />
     <PackageReference Include="System.Memory" />
     <PackageReference Include="System.Runtime" />
