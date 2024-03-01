@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 6.3.0-alpha-008 - 2024-03-01
 
 ### Changed
 * Update FCS to 'Fix range start of INTERP_STRING_PART', commit 1da032a64321c77782e8d125afd3bf29863c3d9c [#3052](https://github.com/fsprojects/fantomas/pull/3052)
