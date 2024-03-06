@@ -18,7 +18,7 @@
     <Compile Include="LSPFantomasService.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FSharp.Core" VersionOverride="5.0.1" />
+    <PackageReference Include="FSharp.Core" VersionOverride="8.0.200" />
     <PackageReference Include="StreamJsonRpc" />
     <PackageReference Include="SemanticVersioning" />
   </ItemGroup>
