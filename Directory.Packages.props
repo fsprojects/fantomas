@@ -13,7 +13,7 @@
         <PackageVersion Include="Ionide.KeepAChangelog.Tasks" Version="0.1.8"/>
         <PackageVersion Include="DotNet.ReproducibleBuilds" Version="1.1.1"/>
         
-        <PackageVersion Include="G-Research.FSharp.Analyzers" Version="0.9.0" />
+        <PackageVersion Include="G-Research.FSharp.Analyzers" Version="0.9.3" />
         <PackageVersion Include="Ionide.Analyzers" Version="0.9.0" />
         <PackageVersion Include="FSharp.Analyzers.Build" Version="0.3.0" />
         
