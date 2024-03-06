@@ -5,7 +5,7 @@
     <ItemGroup>
         <PackageVersion Include="FSharp.Core" Version="6.0.1"/>
         <PackageVersion Include="System.Collections.Immutable" Version="7.0.0" />
-        <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
+        <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="7.0.2" />
         <PackageVersion Include="System.Memory" Version="4.5.5" />
         <PackageVersion Include="System.Runtime" Version="4.3.1" />
         <PackageVersion Include="FsLexYacc" Version="11.2.0" />
@@ -17,7 +17,7 @@
         <PackageVersion Include="Ionide.Analyzers" Version="0.9.0" />
         <PackageVersion Include="FSharp.Analyzers.Build" Version="0.3.0" />
         
-        <PackageVersion Include="StreamJsonRpc" Version="2.8.28" />
+        <PackageVersion Include="StreamJsonRpc" Version="2.17.11" />
         <PackageVersion Include="SemanticVersioning" Version="2.0.2" />
         <PackageVersion Include="Serilog" Version="3.1.1"/>
         <PackageVersion Include="Serilog.Sinks.Console" Version="5.0.1" />
