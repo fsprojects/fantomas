@@ -6,8 +6,3 @@ updates:
     schedule:
       interval: "weekly"
 
-  - package-ecosystem: "nuget"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-
