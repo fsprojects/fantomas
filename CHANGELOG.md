@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.3.0-beta-001 - 2024-03-07
+
+Release candidate of 6.3
+
 ## 6.3.0-alpha-008 - 2024-03-01
 
 ### Changed
