@@ -532,6 +532,9 @@ type Range =
   | Ident of SingleTextNode
   | KnownDot of SingleTextNode
   | UnknownDot
+  member IsIdent: bool
+  member IsKnownDot: bool
+  member IsUnknownDot: bool
   member Range: range option</div>
 <div class="fsdocs-tip" id="fs18">union case IdentifierOrDot.Ident: SingleTextNode -&gt; IdentifierOrDot</div>
 <div class="fsdocs-tip" id="fs19">type Expr =
@@ -547,13 +550,25 @@ type Range =
   | ArrayOrList of ExprArrayOrListNode
   ...
   static member Node: x: Expr -&gt; Node
-  member HasParentheses: bool</div>
+  member HasParentheses: bool
+  member IsAnonStructRecord: bool
+  member IsApp: bool
+  member IsAppLongIdentAndSingleParenArg: bool
+  member IsAppSingleParenArg: bool
+  member IsAppWithLambda: bool
+  member IsArrayOrList: bool
+  member IsBeginEnd: bool
+  member IsChain: bool
+  ...</div>
 <div class="fsdocs-tip" id="fs20">union case Expr.Constant: Constant -&gt; Expr</div>
 <div class="fsdocs-tip" id="fs21">type Constant =
   | FromText of SingleTextNode
   | Unit of UnitNode
   | Measure of ConstantMeasureNode
-  static member Node: c: Constant -&gt; NodeBase</div>
+  static member Node: c: Constant -&gt; NodeBase
+  member IsFromText: bool
+  member IsMeasure: bool
+  member IsUnit: bool</div>
 <div class="fsdocs-tip" id="fs22">union case Constant.FromText: SingleTextNode -&gt; Constant</div>
 <div class="fsdocs-tip" id="fs23">type ModuleDecl =
   | OpenList of OpenListNode
@@ -567,7 +582,17 @@ type Range =
   | NestedModule of NestedModuleNode
   | TypeDefn of TypeDefn
   ...
-  static member Node: x: ModuleDecl -&gt; Node<br /><em>&lt;summary&gt;
+  static member Node: x: ModuleDecl -&gt; Node
+  member IsAttributes: bool
+  member IsDeclExpr: bool
+  member IsException: bool
+  member IsExternBinding: bool
+  member IsHashDirectiveList: bool
+  member IsModuleAbbrev: bool
+  member IsNestedModule: bool
+  member IsOpenList: bool
+  member IsTopLevelBinding: bool
+  ...<br /><em>&lt;summary&gt;
  Each case in this DU should have a container node
 &lt;/summary&gt;</em></div>
 <div class="fsdocs-tip" id="fs24">union case ModuleDecl.TopLevelBinding: BindingNode -&gt; ModuleDecl</div>
@@ -659,7 +684,17 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
   | As of PatLeftMiddleRight
   | ListCons of PatLeftMiddleRight
   ...
-  static member Node: x: Pattern -&gt; Node</div>
+  static member Node: x: Pattern -&gt; Node
+  member IsAnds: bool
+  member IsArrayOrList: bool
+  member IsAs: bool
+  member IsConst: bool
+  member IsIsInst: bool
+  member IsListCons: bool
+  member IsLongIdent: bool
+  member IsNamePatPairs: bool
+  member IsNamed: bool
+  ...</div>
 <div class="fsdocs-tip" id="fs50">union case Pattern.Named: PatNamedNode -&gt; Pattern</div>
 <div class="fsdocs-tip" id="fs51">Multiple items<br />type PatNamedNode =
   inherit NodeBase
