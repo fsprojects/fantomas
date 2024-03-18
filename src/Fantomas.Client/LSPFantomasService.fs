@@ -362,10 +362,8 @@ type LSPFantomasService() =
             |> mapResultToResponse filePath
 
         member _.FormatDocumentAsync
-            (
-                formatDocumentOptions: FormatDocumentRequest,
-                ?cancellationToken: CancellationToken
-            ) : Task<FantomasResponse> =
+            (formatDocumentOptions: FormatDocumentRequest, ?cancellationToken: CancellationToken)
+            : Task<FantomasResponse> =
             isCancellationRequested cts.IsCancellationRequested
             |> Result.bind (getFolderFor formatDocumentOptions.FilePath)
             |> Result.bind (getDaemon agent)
@@ -380,10 +378,8 @@ type LSPFantomasService() =
             |> mapResultToResponse formatDocumentOptions.FilePath
 
         member _.FormatSelectionAsync
-            (
-                formatSelectionRequest: FormatSelectionRequest,
-                ?cancellationToken: CancellationToken
-            ) =
+            (formatSelectionRequest: FormatSelectionRequest, ?cancellationToken: CancellationToken)
+            =
             isCancellationRequested cts.IsCancellationRequested
             |> Result.bind (getFolderFor formatSelectionRequest.FilePath)
             |> Result.bind (getDaemon agent)
