@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en" data-root="https://fsprojects.github.io/fantomas/">
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
+    <!-- Opengraph properties (https://ogp.me/) -->
+    <meta property="og:site_name" content="fantomas">
+    <meta property="og:title" content="Recipes
+" />
+    <meta property="og:url" content="https://fsprojects.github.io/fantomas/docs/end-users/Recipes.html">
+    <meta property="og:type" content="website" />
+    <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
+    <meta name="twitter:title" content="Recipes
+">
+    
+    <title>Recipes
+ | fantomas</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fsprojects.github.io/fantomas/images/favicon.ico" rel="icon" sizes="32x32" type="image/png"/>
+    <script type="application/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-set-dark.js"></script>
+    <link href="https://fsprojects.github.io/fantomas/content/fsdocs-default.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fsprojects.github.io/fantomas/content/fsdocs-theme.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+
+    
+</head>
+<body class="content">
+<header>
+    <div class="start">
+        <div id="menu-toggle">
+            <iconify-icon class="icon closed" height="22" icon="eva:menu-fill" width="22"></iconify-icon>
+            <iconify-icon class="icon open" height="22" icon="mi:close" width="22"></iconify-icon>
+            <input type="checkbox" name="mobile-menu" />
+            <ul class="menu">
+                <li class="nav-header">Links</li>
+                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                </li>
+                <li class="nav-item"><a class="nav-link"
+                                        href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+                    Notes</a></li>
+                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                    Repository</a></li>
+                <li class="nav-header active" id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link" > Style guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link" > Upgrade guide
+</a></li>
+
+<li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Recipes.html" class="nav-link" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header " id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link" > F#
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Multiple Times.html" class="nav-link" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.html" class="nav-link" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link" > Releases
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
+</a></li>
+
+</div>
+                <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link" > All Namespaces</a></li>
+
+</div>
+            </ul>
+        </div>
+        <a href="https://fsprojects.github.io/fantomas/">
+            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <strong>fantomas</strong>
+        </a>
+    </div>
+    <div class="end">
+        <a href="https://github.com/fsprojects/fantomas/" target="_blank">
+            <iconify-icon icon="uil:github" width="26" height="26"></iconify-icon>
+        </a>
+        <iconify-icon id="search-btn" icon="carbon:search" class="search" width="24" height="24"></iconify-icon>
+        <fsdocs-theme-toggle></fsdocs-theme-toggle>
+    </div>
+</header>
+<aside id="fsdocs-main-menu">
+    <ul class="menu">
+        <li class="nav-header">Links</li>
+        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        </li>
+        <li class="nav-item"><a class="nav-link"
+                                href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+            Notes</a></li>
+        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+            Repository</a></li>
+        <li class="nav-header active" id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link" > Style guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link" > Upgrade guide
+</a></li>
+
+<li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Recipes.html" class="nav-link" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header " id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link" > F#
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Multiple Times.html" class="nav-link" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.html" class="nav-link" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link" > Releases
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
+</a></li>
+
+</div>
+        <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link" > All Namespaces</a></li>
+
+</div>
+    </ul>
+</aside>
+<main>
+    <div id="content">
+        
+<h1><a name="Recipes" class="anchor" href="#Recipes">Recipes</a></h1>
+<p>Fantomas has a limited set of settings and adheres to style guides.
+These style guides are meant to be agnostic to any specific framework.</p>
+<p>That being said, there are certain combinations that provide a more ideal result when working with certain scenarios.</p>
+<p><strong>These snippets aren’t to spark requests for new settings suited to framework of the day!</strong></p>
+<p>Remember that a <code>.editorconfig</code> file can apply certain settings only to certain files.
+Sometimes, it makes sense to tweak a few setting for a subset of your codebase.</p>
+<h2><a name="HTML-DSL" class="anchor" href="#HTML-DSL">HTML DSL</a></h2>
+<p>When working with a HTML inspired DSL (typically a function call with one or two lists), you can use <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_experimental_elmish">fsharp_experimental_elmish</a></p>
+<h3><a name="Fable-React" class="anchor" href="#Fable-React">Fable.React</a></h3>
+<h3><a name="Elmish" class="anchor" href="#Elmish">Elmish</a></h3>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 46)" onmouseover="showTip(event, 'fs5', 46)" class="fn">formatCode</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">div</span>
+<span class="s">    []</span>
+<span class="s">    [</span>
+<span class="s">        h1 [] [ str &quot;Some title&quot; ]</span>
+<span class="s">        ul</span>
+<span class="s">            []</span>
+<span class="s">            [</span>
+<span class="s">                for p in model.Points do</span>
+<span class="s">                    li [] [ str $&quot;%i{p.X}, %i{p.Y}&quot; ]</span>
+<span class="s">            ]</span>
+<span class="s">        hr []</span>
+<span class="s">    ]</span>
+<span class="s">    &quot;&quot;&quot;</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">fsharp_experimental_elmish = true</span>
+<span class="s">    &quot;&quot;&quot;</span>
+</code></pre>
+<table class="pre"><tr><td><pre><code>div [] [
+    h1 [] [ str "Some title" ]
+    ul [] [
+        for p in model.Points do
+            li [] [ str $"%i{p.X}, %i{p.Y}" ]
+    ]
+    hr []
+]</code></pre></td></tr></table>
+<h3><a name="Feliz" class="anchor" href="#Feliz">Feliz</a></h3>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 47)" onmouseover="showTip(event, 'fs5', 47)" class="fn">formatCode</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">Html.div</span>
+<span class="s">    [</span>
+<span class="s">        Html.h1 [ str &quot;Some title&quot; ]</span>
+<span class="s">        Html.ul</span>
+<span class="s">            [</span>
+<span class="s">                for p in model.Points do</span>
+<span class="s">                    Html.li [ str $&quot;%i{p.X}, %i{p.Y}&quot; ]</span>
+<span class="s">            ]</span>
+<span class="s">    ]</span>
+<span class="s">    &quot;&quot;&quot;</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">fsharp_experimental_elmish = true</span>
+<span class="s">    &quot;&quot;&quot;</span>
+</code></pre>
+<table class="pre"><tr><td><pre><code>Html.div [
+    Html.h1 [ str "Some title" ]
+    Html.ul [
+        for p in model.Points do
+            Html.li [ str $"%i{p.X}, %i{p.Y}" ]
+    ]
+]</code></pre></td></tr></table>
+<h3><a name="Giraffe" class="anchor" href="#Giraffe">Giraffe</a></h3>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 48)" onmouseover="showTip(event, 'fs5', 48)" class="fn">formatCode</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">let indexView =</span>
+<span class="s">    html</span>
+<span class="s">        []</span>
+<span class="s">        [ head [] [ title [] [ str &quot;Giraffe Sample&quot; ] ]</span>
+<span class="s">          body</span>
+<span class="s">              []</span>
+<span class="s">              [ h1 [] [ str &quot;I |&gt; F#&quot; ]</span>
+<span class="s">                p [ _class &quot;some-css-class&quot;; _id &quot;someId&quot; ] [ str &quot;Hello World&quot; ] ] ]</span>
+<span class="s">    &quot;&quot;&quot;</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">fsharp_experimental_elmish = true</span>
+<span class="s">    &quot;&quot;&quot;</span>
+</code></pre>
+<table class="pre"><tr><td><pre><code>let indexView =
+    html [] [
+        head [] [ title [] [ str "Giraffe Sample" ] ]
+        body [] [
+            h1 [] [ str "I |&gt; F#" ]
+            p [ _class "some-css-class"; _id "someId" ] [ str "Hello World" ]
+        ]
+    ]</code></pre></td></tr></table>
+<h3><a name="Falco" class="anchor" href="#Falco">Falco</a></h3>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 49)" onmouseover="showTip(event, 'fs5', 49)" class="fn">formatCode</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">let markup =</span>
+<span class="s">    Elem.div</span>
+<span class="s">        []</span>
+<span class="s">        [ Text.comment &quot;An HTML comment&quot;</span>
+<span class="s">          Elem.p [] [ Text.raw &quot;A paragraph&quot; ]</span>
+<span class="s">          Elem.p [] [ Text.rawf &quot;Hello %s&quot; &quot;Jim&quot; ]</span>
+<span class="s">          Elem.code [] [ Text.enc &quot;&lt;div&gt;Hello&lt;/div&gt;&quot; ] ] // HTML encodes text before rendering</span>
+<span class="s">    &quot;&quot;&quot;</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">fsharp_experimental_elmish = true</span>
+<span class="s">    &quot;&quot;&quot;</span>
+</code></pre>
+<table class="pre"><tr><td><pre><code>let markup =
+    Elem.div [] [
+        Text.comment "An HTML comment"
+        Elem.p [] [ Text.raw "A paragraph" ]
+        Elem.p [] [ Text.rawf "Hello %s" "Jim" ]
+        Elem.code [] [ Text.enc "&lt;div&gt;Hello&lt;/div&gt;" ]
+    ] // HTML encodes text before rendering</code></pre></td></tr></table>
+<h2><a name="Expecto" class="anchor" href="#Expecto">Expecto</a></h2>
+<p>The <a href="https://github.com/haf/expecto">Expect</a> test framework can benefit from <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_multiline_bracket_style">Stroustrup</a> style when defining test lists.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 50)" onmouseover="showTip(event, 'fs5', 50)" class="fn">formatCode</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">let tests =</span>
+<span class="s">    testList</span>
+<span class="s">        &quot;A test group&quot;</span>
+<span class="s">        [ test &quot;one test&quot; { Expect.equal (2 + 2) 4 &quot;2+2&quot; }</span>
+
+<span class="s">          test &quot;another test that fails&quot; { Expect.equal (3 + 3) 5 &quot;3+3&quot; }</span>
+
+<span class="s">          testAsync &quot;this is an async test&quot; {</span>
+<span class="s">              let! x = async { return 4 }</span>
+<span class="s">              Expect.equal x (2 + 2) &quot;2+2&quot;</span>
+<span class="s">          }</span>
+
+<span class="s">          testTask &quot;this is a task test&quot; {</span>
+<span class="s">              let! n = Task.FromResult 2</span>
+<span class="s">              Expect.equal n 2 &quot;n=2&quot;</span>
+<span class="s">          } ]</span>
+<span class="s">    |&gt; testLabel &quot;samples&quot;</span>
+<span class="s">    &quot;&quot;&quot;</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">fsharp_multiline_bracket_style = stroustrup</span>
+<span class="s">    &quot;&quot;&quot;</span>
+</code></pre>
+<table class="pre"><tr><td><pre><code>let tests =
+    testList "A test group" [
+        test "one test" { Expect.equal (2 + 2) 4 "2+2" }
+
+        test "another test that fails" { Expect.equal (3 + 3) 5 "3+3" }
+
+        testAsync "this is an async test" {
+            let! x = async { return 4 }
+            Expect.equal x (2 + 2) "2+2"
+        }
+
+        testTask "this is a task test" {
+            let! n = Task.FromResult 2
+            Expect.equal n 2 "n=2"
+        }
+    ]
+    |&gt; testLabel "samples"</code></pre></td></tr></table>
+<h2><a name="FAKE" class="anchor" href="#FAKE">FAKE</a></h2>
+<p>At the end of a <a href="https://fake.build/">FAKE</a> script, the target dependencies are typically listed using custom operators.<br />
+Using <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_max_infix_operator_expression">fsharp_max_infix_operator_expression</a>
+you can tweak when they should go to the next line.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 51)" onmouseover="showTip(event, 'fs5', 51)" class="fn">formatCode</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">&quot;Build&quot;</span>
+<span class="s">==&gt; &quot;EnsureCanScaffoldCodeFix&quot;</span>
+<span class="s">==&gt; &quot;LspTest&quot;</span>
+<span class="s">==&gt; &quot;Coverage&quot;</span>
+<span class="s">==&gt; &quot;Test&quot;</span>
+<span class="s">==&gt; &quot;All&quot;</span>
+
+<span class="s">&quot;Clean&quot; ==&gt; &quot;LocalRelease&quot; ==&gt; &quot;ReleaseArchive&quot; ==&gt; &quot;Release&quot;</span>
+<span class="s">    &quot;&quot;&quot;</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">fsharp_max_infix_operator_expression = 5</span>
+<span class="s">    &quot;&quot;&quot;</span>
+</code></pre>
+<table class="pre"><tr><td><pre><code>"Build"
+==&gt; "EnsureCanScaffoldCodeFix"
+==&gt; "LspTest"
+==&gt; "Coverage"
+==&gt; "Test"
+==&gt; "All"
+
+"Clean"
+==&gt; "LocalRelease"
+==&gt; "ReleaseArchive"
+==&gt; "Release"</code></pre></td></tr></table>
+<h2><a name="Paragraphs" class="anchor" href="#Paragraphs">Paragraphs</a></h2>
+<p>When expressions are multiline Fantomas will put a blank line before and after them.
+This helps for code to stay consistent in teams.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 52)" onmouseover="showTip(event, 'fs5', 52)" class="fn">formatCode</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">let Foo =</span>
+<span class="s">    try // Start paragraph 1</span>
+<span class="s">        printfn &quot;%A&quot; blah</span>
+<span class="s">    with ex -&gt;</span>
+<span class="s">        printfn &quot;Failed to print blah&quot; // End paragraph 1</span>
+
+<span class="s">    let mutable a = 8 // This line belongs // Start paragraph 2</span>
+<span class="s">    for i in [ 1 .. 10 ] do</span>
+<span class="s">        a &lt;- a + i // Start paragraph 2</span>
+<span class="s">    &quot;&quot;&quot;</span>
+    <span class="s">&quot;&quot;</span>
+</code></pre>
+<table class="pre"><tr><td><pre><code>let Foo =
+    try // Start paragraph 1
+        printfn "%A" blah
+    with ex -&gt;
+        printfn "Failed to print blah" // End paragraph 1
+
+    let mutable a = 8 // This line belongs // Start paragraph 2
+
+    for i in [ 1..10 ] do
+        a &lt;- a + i // Start paragraph 2</code></pre></td></tr></table>
+<p>However, some developers like to group their code in self-defined paragraphs, and thus want full control when Fantomas inserts blank lines.
+Full control is not possible but outside top level expressions this can be done via <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_blank_lines_around_nested_multiline_expressions">fsharp_blank_lines_around_nested_multiline_expressions = false</a>.</p>
+<p>⚠️ This approach is generally advised against because it gives the code author control over newlines.
+Within teams, this can lead to debates, which is precisely what using Fantomas aims to eliminate: code style discussions. ⚠️</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 53)" onmouseover="showTip(event, 'fs5', 53)" class="fn">formatCode</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">let Foo =</span>
+<span class="s">    try // Start paragraph 1</span>
+<span class="s">        printfn &quot;%A&quot; blah</span>
+<span class="s">    with ex -&gt;</span>
+<span class="s">        printfn &quot;Failed to print blah&quot; // End paragraph 1</span>
+
+<span class="s">    let mutable a = 8 // This line belongs // Start paragraph 2</span>
+<span class="s">    for i in [ 1 .. 10 ] do</span>
+<span class="s">        a &lt;- a + i // Start paragraph 2</span>
+<span class="s">    &quot;&quot;&quot;</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">fsharp_blank_lines_around_nested_multiline_expressions = false</span>
+<span class="s">    &quot;&quot;&quot;</span>
+</code></pre>
+<table class="pre"><tr><td><pre><code>let Foo =
+    try // Start paragraph 1
+        printfn "%A" blah
+    with ex -&gt;
+        printfn "Failed to print blah" // End paragraph 1
+
+    let mutable a = 8 // This line belongs // Start paragraph 2
+    for i in [ 1..10 ] do
+        a &lt;- a + i // Start paragraph 2</code></pre></td></tr></table>
+<h2><a name="Early-returns" class="anchor" href="#Early-returns">Early returns</a></h2>
+<p>In F# there is no such concept as early returns. However, sometimes we do want to return an empty or error result when a certain condition is not met.
+To avoid extreme indentation in our happy path, you can use <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_experimental_keep_indent_in_branch">fsharp_experimental_keep_indent_in_branch = true</a>.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 54)" onmouseover="showTip(event, 'fs5', 54)" class="fn">formatCode</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">let fix (getParseResultsForFile: GetParseResultsForFile) : CodeFix =</span>
+<span class="s">    Run.ifDiagnosticByCode (set [ &quot;20&quot; ]) (fun diagnostic (codeActionParams: CodeActionParams) -&gt;</span>
+<span class="s">        asyncResult {</span>
+<span class="s">            if mDiag.StartLine &lt;&gt; mDiag.EndLine then</span>
+<span class="s">                // Only do single line for now</span>
+<span class="s">                return []</span>
+<span class="s">            else</span>
+
+<span class="s">            // Happy path at same indent</span>
+
+<span class="s">            let! (parseAndCheckResults: ParseAndCheckResults, _line: string, sourceText: IFSACSourceText) =</span>
+<span class="s">                getParseResultsForFile fileName fcsPos</span>
+
+<span class="s">            let mExprOpt =</span>
+<span class="s">                (fcsPos, parseAndCheckResults.GetParseResults.ParseTree)</span>
+<span class="s">                ||&gt; ParsedInput.tryPick (fun path node -&gt;</span>
+<span class="s">                    match node with</span>
+<span class="s">                    | SyntaxNode.SynExpr(e) when Range.equals mDiag e.Range -&gt; Some(path, e)</span>
+<span class="s">                    | _ -&gt; None)</span>
+
+<span class="s">            match mExprOpt with</span>
+<span class="s">            | None -&gt;</span>
+<span class="s">                // Empty result is Option is None</span>
+<span class="s">                return []</span>
+<span class="s">            | Some(path, expr) -&gt;</span>
+
+<span class="s">            // Happy path at same indent</span>
+
+<span class="s">            return</span>
+<span class="s">                [ { SourceDiagnostic = None</span>
+<span class="s">                    Title = title</span>
+<span class="s">                    File = codeActionParams.TextDocument</span>
+<span class="s">                    Edits =</span>
+<span class="s">                        [| { Range = fcsRangeToLsp expr.Range</span>
+<span class="s">                            NewText = newText } |]</span>
+<span class="s">                    Kind = FixKind.Fix } ]</span>
+<span class="s">        })</span>
+
+<span class="s">    &quot;&quot;&quot;</span>
+    <span class="s">&quot;&quot;&quot;</span>
+<span class="s">fsharp_experimental_keep_indent_in_branch = true</span>
+<span class="s">    &quot;&quot;&quot;</span>
+</code></pre>
+<table class="pre"><tr><td><pre><code>let fix (getParseResultsForFile: GetParseResultsForFile) : CodeFix =
+    Run.ifDiagnosticByCode (set [ "20" ]) (fun diagnostic (codeActionParams: CodeActionParams) -&gt;
+        asyncResult {
+            if mDiag.StartLine &lt;&gt; mDiag.EndLine then
+                // Only do single line for now
+                return []
+            else
+
+            // Happy path at same indent
+
+            let! (parseAndCheckResults: ParseAndCheckResults, _line: string, sourceText: IFSACSourceText) =
+                getParseResultsForFile fileName fcsPos
+
+            let mExprOpt =
+                (fcsPos, parseAndCheckResults.GetParseResults.ParseTree)
+                ||&gt; ParsedInput.tryPick (fun path node -&gt;
+                    match node with
+                    | SyntaxNode.SynExpr(e) when Range.equals mDiag e.Range -&gt; Some(path, e)
+                    | _ -&gt; None)
+
+            match mExprOpt with
+            | None -&gt;
+                // Empty result is Option is None
+                return []
+            | Some(path, expr) -&gt;
+
+            // Happy path at same indent
+
+            return
+                [ { SourceDiagnostic = None
+                    Title = title
+                    File = codeActionParams.TextDocument
+                    Edits = [| { Range = fcsRangeToLsp expr.Range NewText = newText } |]
+                    Kind = FixKind.Fix } ]
+        })</code></pre></td></tr></table>
+<p>⚠️ The downside of this setting is that it only respects this style of formatting if it was already present in the original source.
+The problem with this approach is that the author of the original code decides whether this style is used.
+Discuss this with your team! ⚠️</p>
+
+        <div class="fsdocs-tip" id="fs1">namespace System</div>
+<div class="fsdocs-tip" id="fs2">namespace Fantomas</div>
+<div class="fsdocs-tip" id="fs3">namespace Fantomas.Core</div>
+<div class="fsdocs-tip" id="fs4">module EditorConfig
+
+from Fantomas</div>
+<div class="fsdocs-tip" id="fs5">val formatCode: input: string -&gt; settings: string -&gt; unit</div>
+<div class="fsdocs-tip" id="fs6">val input: string</div>
+<div class="fsdocs-tip" id="fs7">val settings: string</div>
+<div class="fsdocs-tip" id="fs8">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = String</div>
+<div class="fsdocs-tip" id="fs9">val async: AsyncBuilder</div>
+<div class="fsdocs-tip" id="fs10">val config: FormatConfig</div>
+<div class="fsdocs-tip" id="fs11">val editorConfigProperties: Collections.Generic.IReadOnlyDictionary&lt;string,string&gt;</div>
+<div class="fsdocs-tip" id="fs12">String.Split([&lt;ParamArray&gt;] separator: char array) : string array<br />String.Split(separator: string array, options: StringSplitOptions) : string array<br />String.Split(separator: string, ?options: StringSplitOptions) : string array<br />String.Split(separator: char array, options: StringSplitOptions) : string array<br />String.Split(separator: char array, count: int) : string array<br />String.Split(separator: char, ?options: StringSplitOptions) : string array<br />String.Split(separator: string array, count: int, options: StringSplitOptions) : string array<br />String.Split(separator: string, count: int, ?options: StringSplitOptions) : string array<br />String.Split(separator: char array, count: int, options: StringSplitOptions) : string array<br />String.Split(separator: char, count: int, ?options: StringSplitOptions) : string array</div>
+<div class="fsdocs-tip" id="fs13">[&lt;Struct&gt;]
+type StringSplitOptions =
+  | None = 0
+  | RemoveEmptyEntries = 1
+  | TrimEntries = 2<br /><em>&lt;summary&gt;Specifies options for applicable &lt;see cref=&quot;Overload:System.String.Split&quot; /&gt; method overloads, such as whether to omit empty substrings from the returned array or trim whitespace from substrings.&lt;/summary&gt;</em></div>
+<div class="fsdocs-tip" id="fs14">field StringSplitOptions.RemoveEmptyEntries: StringSplitOptions = 1</div>
+<div class="fsdocs-tip" id="fs15">type Array =
+  interface ICollection
+  interface IEnumerable
+  interface IList
+  interface IStructuralComparable
+  interface IStructuralEquatable
+  interface ICloneable
+  member Clone: unit -&gt; obj
+  member CopyTo: array: Array * index: int -&gt; unit + 1 overload
+  member GetEnumerator: unit -&gt; IEnumerator
+  member GetLength: dimension: int -&gt; int
+  ...<br /><em>&lt;summary&gt;Provides methods for creating, manipulating, searching, and sorting arrays, thereby serving as the base class for all arrays in the common language runtime.&lt;/summary&gt;</em></div>
+<div class="fsdocs-tip" id="fs16">val choose: chooser: (&#39;T -&gt; &#39;U option) -&gt; array: &#39;T array -&gt; &#39;U array</div>
+<div class="fsdocs-tip" id="fs17">val line: string</div>
+<div class="fsdocs-tip" id="fs18">val parts: string array</div>
+<div class="fsdocs-tip" id="fs19">field StringSplitOptions.TrimEntries: StringSplitOptions = 2</div>
+<div class="fsdocs-tip" id="fs20">property Array.Length: int with get<br /><em>&lt;summary&gt;Gets the total number of elements in all the dimensions of the &lt;see cref=&quot;T:System.Array&quot; /&gt;.&lt;/summary&gt;<br />&lt;exception cref=&quot;T:System.OverflowException&quot;&gt;The array is multidimensional and contains more than &lt;see cref=&quot;F:System.Int32.MaxValue&quot;&gt;Int32.MaxValue&lt;/see&gt; elements.&lt;/exception&gt;<br />&lt;returns&gt;The total number of elements in all the dimensions of the &lt;see cref=&quot;T:System.Array&quot; /&gt;; zero if there are no elements in the array.&lt;/returns&gt;</em></div>
+<div class="fsdocs-tip" id="fs21">union case Option.None: Option&lt;&#39;T&gt;</div>
+<div class="fsdocs-tip" id="fs22">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
+<div class="fsdocs-tip" id="fs23">val readOnlyDict: keyValuePairs: (&#39;Key * &#39;Value) seq -&gt; Collections.Generic.IReadOnlyDictionary&lt;&#39;Key,&#39;Value&gt; (requires equality)</div>
+<div class="fsdocs-tip" id="fs24">val parseOptionsFromEditorConfig: fallbackConfig: FormatConfig -&gt; editorConfigProperties: Collections.Generic.IReadOnlyDictionary&lt;string,string&gt; -&gt; FormatConfig</div>
+<div class="fsdocs-tip" id="fs25">type FormatConfig =
+  {
+    IndentSize: Num
+    MaxLineLength: Num
+    EndOfLine: EndOfLineStyle
+    InsertFinalNewline: bool
+    SpaceBeforeParameter: bool
+    SpaceBeforeLowercaseInvocation: bool
+    SpaceBeforeUppercaseInvocation: bool
+    SpaceBeforeClassConstructor: bool
+    SpaceBeforeMember: bool
+    SpaceBeforeColon: bool
+    ...
+  }
+  member IsStroustrupStyle: bool
+  static member Default: FormatConfig</div>
+<div class="fsdocs-tip" id="fs26">property FormatConfig.Default: FormatConfig with get</div>
+<div class="fsdocs-tip" id="fs27">val result: FormatResult</div>
+<div class="fsdocs-tip" id="fs28">type CodeFormatter =
+  static member FormatASTAsync: ast: ParsedInput -&gt; Async&lt;string&gt; + 2 overloads
+  static member FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt; + 2 overloads
+  static member FormatOakAsync: oak: Oak -&gt; Async&lt;string&gt; + 1 overload
+  static member FormatSelectionAsync: isSignature: bool * source: string * selection: range -&gt; Async&lt;string * range&gt; + 1 overload
+  static member GetVersion: unit -&gt; string
+  static member IsValidFSharpCodeAsync: isSignature: bool * source: string -&gt; Async&lt;bool&gt;
+  static member MakePosition: line: int * column: int -&gt; pos
+  static member MakeRange: fileName: string * startLine: int * startCol: int * endLine: int * endCol: int -&gt; range
+  static member ParseAsync: isSignature: bool * source: string -&gt; Async&lt;(ParsedInput * string list) array&gt;
+  static member ParseOakAsync: isSignature: bool * source: string -&gt; Async&lt;(Oak * string list) array&gt;
+  ...</div>
+<div class="fsdocs-tip" id="fs29">static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig * cursor: Fantomas.FCS.Text.pos -&gt; Async&lt;FormatResult&gt;</div>
+<div class="fsdocs-tip" id="fs30">val printf: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+<div class="fsdocs-tip" id="fs31">FormatResult.Code: string<br /><em>&lt;summary&gt;
+ Formatted code
+&lt;/summary&gt;</em></div>
+<div class="fsdocs-tip" id="fs32">Multiple items<br />module Async
+
+from Fantomas.Core<br /><br />--------------------<br />type Async =
+  static member AsBeginEnd: computation: (&#39;Arg -&gt; Async&lt;&#39;T&gt;) -&gt; (&#39;Arg * AsyncCallback * obj -&gt; IAsyncResult) * (IAsyncResult -&gt; &#39;T) * (IAsyncResult -&gt; unit)
+  static member AwaitEvent: event: IEvent&lt;&#39;Del,&#39;T&gt; * ?cancelAction: (unit -&gt; unit) -&gt; Async&lt;&#39;T&gt; (requires delegate and &#39;Del :&gt; Delegate)
+  static member AwaitIAsyncResult: iar: IAsyncResult * ?millisecondsTimeout: int -&gt; Async&lt;bool&gt;
+  static member AwaitTask: task: Task&lt;&#39;T&gt; -&gt; Async&lt;&#39;T&gt; + 1 overload
+  static member AwaitWaitHandle: waitHandle: WaitHandle * ?millisecondsTimeout: int -&gt; Async&lt;bool&gt;
+  static member CancelDefaultToken: unit -&gt; unit
+  static member Catch: computation: Async&lt;&#39;T&gt; -&gt; Async&lt;Choice&lt;&#39;T,exn&gt;&gt;
+  static member Choice: computations: Async&lt;&#39;T option&gt; seq -&gt; Async&lt;&#39;T option&gt;
+  static member FromBeginEnd: beginAction: (AsyncCallback * obj -&gt; IAsyncResult) * endAction: (IAsyncResult -&gt; &#39;T) * ?cancelAction: (unit -&gt; unit) -&gt; Async&lt;&#39;T&gt; + 3 overloads
+  static member FromContinuations: callback: ((&#39;T -&gt; unit) * (exn -&gt; unit) * (OperationCanceledException -&gt; unit) -&gt; unit) -&gt; Async&lt;&#39;T&gt;
+  ...<br /><br />--------------------<br />type Async&lt;&#39;T&gt;</div>
+<div class="fsdocs-tip" id="fs33">static member Async.RunSynchronously: computation: Async&lt;&#39;T&gt; * ?timeout: int * ?cancellationToken: Threading.CancellationToken -&gt; &#39;T</div>
+
+    </div>
+</main>
+<aside id="fsdocs-page-menu">
+    <p id="on-this-page">On this page</p>
+    <ul>
+  <li class="level-1">
+    <a href="#Recipes">
+      Recipes
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#HTML-DSL">
+      HTML DSL
+    </a>
+  </li>
+  <li class="level-3">
+    <a href="#Fable-React">
+      Fable.React
+    </a>
+  </li>
+  <li class="level-3">
+    <a href="#Elmish">
+      Elmish
+    </a>
+  </li>
+  <li class="level-3">
+    <a href="#Feliz">
+      Feliz
+    </a>
+  </li>
+  <li class="level-3">
+    <a href="#Giraffe">
+      Giraffe
+    </a>
+  </li>
+  <li class="level-3">
+    <a href="#Falco">
+      Falco
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Expecto">
+      Expecto
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#FAKE">
+      FAKE
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Paragraphs">
+      Paragraphs
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Early-returns">
+      Early returns
+    </a>
+  </li>
+</ul>
+</aside>
+<dialog>
+    <input type="search" placeholder="Search docs" />
+    <div class="results">
+        <ul></ul>
+        <p class="empty">Type something to start searching.</p>
+    </div>
+</dialog>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-tips.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-toggle.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module">
+    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        themeVariables: {
+            primaryColor: '#338cbb',
+            primaryTextColor: '#FFF',
+            primaryBorderColor: '#5aacd6'
+        }
+    });
+
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
+</body>
+</html>
