@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* HashDirective before closing `]`. [#3070](https://github.com/fsprojects/fantomas/issues/3070)
+
 ## 6.3.0 - 2024-03-15
 
 ### Miscellaneous
