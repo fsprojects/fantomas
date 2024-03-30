@@ -96,6 +96,65 @@ let x y = [
 """
 
 [<Test>]
+let ``hash directive before closing list bracket, 3070`` () =
+    formatSourceString
+        """
+let private knownProviders = [
+#if !FABLE_COMPILER
+    (SerilogProvider.isAvailable, SerilogProvider.create)
+    (MicrosoftExtensionsLoggingProvider.isAvailable, MicrosoftExtensionsLoggingProvider.create)
+#endif
+                                        ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let private knownProviders =
+    [
+#if !FABLE_COMPILER
+        (SerilogProvider.isAvailable, SerilogProvider.create)
+        (MicrosoftExtensionsLoggingProvider.isAvailable, MicrosoftExtensionsLoggingProvider.create)
+#endif
+    ]
+"""
+
+[<Test>]
+let ``hash directive before closing list bracket, nested let binding`` () =
+    formatSourceString
+        """
+let foo bar =
+    let tfms = [
+    #if NET6_0_OR_GREATER
+        "net6.0"
+    #endif
+    #if NET7_0_OR_GREATER
+        "net7.0"
+    #endif
+                                ]
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo bar =
+    let tfms =
+        [
+#if NET6_0_OR_GREATER
+            "net6.0"
+#endif
+#if NET7_0_OR_GREATER
+            "net7.0"
+#endif
+        ]
+
+    ()
+"""
+
+[<Test>]
 let ``synbinding function with array`` () =
     formatSourceString
         """
