@@ -7,7 +7,7 @@ index: 12
 # Recipes
 
 Fantomas has a limited set of settings and adheres to style guides.
-These style guides are meant to agnostic to any specific framework.
+These style guides are meant to be agnostic to any specific framework.
 
 That being said, there are certain combinations that provide a more ideal result when working with certain scenarios.
 
