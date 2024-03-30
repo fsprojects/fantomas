@@ -22,6 +22,33 @@ UI might be available depending on the IDE.
 (*** hide ***)
 #r "../../../artifacts/bin/Fantomas.FCS/release/Fantomas.FCS.dll"
 #r "../../../artifacts/bin/Fantomas.Core/release/Fantomas.Core.dll"
+#r "../../../artifacts/bin/Fantomas/release/EditorConfig.Core.dll"
+#load "../../../src/Fantomas/EditorConfig.fs"
+
+open System
+open Fantomas.Core
+open Fantomas.EditorConfig
+
+let formatCode input (settings: string) =
+    async {
+        let config =
+            let editorConfigProperties =
+                settings.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                |> Array.choose (fun line ->
+                    let parts = line.Split('=', StringSplitOptions.TrimEntries)
+
+                    if parts.Length <> 2 then
+                        None
+                    else
+                        Some(parts.[0], parts.[1]))
+                |> readOnlyDict
+
+            parseOptionsFromEditorConfig FormatConfig.Default editorConfigProperties
+
+        let! result = CodeFormatter.FormatDocumentAsync(false, input, config)
+        printf $"%s{result.Code}"
+    }
+    |> Async.RunSynchronously
 
 printf $"version: {Fantomas.Core.CodeFormatter.GetVersion()}"
 (*** include-output  ***)
@@ -50,15 +77,6 @@ You can quickly try your settings via the <a href="https://fsprojects.github.io/
 <img src="{{root}}/online_tool_usage.gif" alt="drawing" width="100%"/>
 *)
 
-open Fantomas.Core
-
-let formatCode input configIndent =
-    async {
-        let! result = CodeFormatter.FormatDocumentAsync(false, input, configIndent)
-        printf $"%s{result.Code}"
-    }
-    |> Async.RunSynchronously
-
 (**
 ## Settings recommendations
 Fantomas ships with a series of settings that you can use freely depending  on your case.  
@@ -85,7 +103,7 @@ The same indentation is ensured to be consistent in a source file.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.IndentSize}"
+printfn $"# Default\nindent_size = {FormatConfig.Default.IndentSize}"
 (*** include-output ***)
 
 formatCode
@@ -101,8 +119,10 @@ formatCode
 
       find <| f.Length - 1
     """
-    { FormatConfig.Default with
-        IndentSize = 2 }
+    """
+indent_size = 2
+    """
+
 (*** include-output ***)
 (**
 <fantomas-setting green></fantomas-setting>
@@ -114,7 +134,8 @@ This preference sets the column where we break F# constructs into new lines.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MaxLineLength}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxLineLength)} = {FormatConfig.Default.MaxLineLength}"
 (*** include-output ***)
 
 formatCode
@@ -123,8 +144,10 @@ formatCode
     | Some foo -> someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
     | None -> printfn "nothing"
     """
-    { FormatConfig.Default with
-        MaxLineLength = 60 }
+    """
+max_line_length = 60
+    """
+
 (*** include-output ***)
 
 (**
@@ -147,15 +170,17 @@ Adds a final newline character at the end of the file.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.InsertFinalNewline.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.InsertFinalNewline)} = {FormatConfig.Default.InsertFinalNewline.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
     """ 
     let a = 42
     """
-    { FormatConfig.Default with
-        InsertFinalNewline = false }
+    """
+insert_final_newline = false
+    """
 (*** include-output ***)
 
 (**
@@ -168,7 +193,8 @@ This setting influences function definitions.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.SpaceBeforeParameter.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.SpaceBeforeParameter)} = {FormatConfig.Default.SpaceBeforeParameter.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -176,8 +202,9 @@ formatCode
    let value (a: int) = x
    let DumpTrace() = ()
     """
-    { FormatConfig.Default with
-        SpaceBeforeParameter = false }
+    """
+fsharp_space_before_parameter = false
+    """
 (*** include-output ***)
 
 (**
@@ -190,7 +217,8 @@ This setting influences function invocation in expressions and patterns.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.SpaceBeforeLowercaseInvocation.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.SpaceBeforeLowercaseInvocation)} = {FormatConfig.Default.SpaceBeforeLowercaseInvocation.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -201,8 +229,9 @@ startTimer ()
 match x with
 | value (a, b) -> ()
     """
-    { FormatConfig.Default with
-        SpaceBeforeLowercaseInvocation = false }
+    """
+fsharp_space_before_lowercase_invocation = false
+    """
 (*** include-output ***)
 
 (**
@@ -215,7 +244,8 @@ This setting influences function invocation in expressions and patterns.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.SpaceBeforeUppercaseInvocation.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.SpaceBeforeUppercaseInvocation)} = {FormatConfig.Default.SpaceBeforeUppercaseInvocation.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -226,8 +256,9 @@ person.ToString()
 match x with
 | Value(a, b) -> ()
     """
-    { FormatConfig.Default with
-        SpaceBeforeUppercaseInvocation = true }
+    """
+fsharp_space_before_uppercase_invocation = true
+    """
 (*** include-output ***)
 
 (**
@@ -239,7 +270,8 @@ Add a space after a type name and before the class constructor.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.SpaceBeforeClassConstructor.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.SpaceBeforeClassConstructor)} = {FormatConfig.Default.SpaceBeforeClassConstructor.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -248,8 +280,9 @@ formatCode
         class
         end
     """
-    { FormatConfig.Default with
-        SpaceBeforeClassConstructor = true }
+    """
+fsharp_space_before_class_constructor = true
+    """
 
 (*** include-output ***)
 
@@ -262,7 +295,8 @@ Add a space after a member name and before the opening parenthesis of the first 
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.SpaceBeforeMember.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.SpaceBeforeMember)} = {FormatConfig.Default.SpaceBeforeMember.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -273,8 +307,9 @@ formatCode
         member __.singAlong() = ()
         member __.swim(duration: TimeSpan) = ()
     """
-    { FormatConfig.Default with
-        SpaceBeforeMember = true }
+    """
+fsharp_space_before_member = true
+    """
 (*** include-output ***)
 
 (**
@@ -286,7 +321,8 @@ Add a space before `:`. Please note that not every `:` is controlled by this set
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.SpaceBeforeColon.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.SpaceBeforeColon)} = {FormatConfig.Default.SpaceBeforeColon.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -295,8 +331,9 @@ formatCode
    let myValue: int = 42
    let update (msg: Msg) (model: Model) : Model = model
     """
-    { FormatConfig.Default with
-        SpaceBeforeColon = true }
+    """
+fsharp_space_before_colon = true
+    """
 (*** include-output ***)
 
 (**
@@ -308,7 +345,8 @@ Adds a space after `,` in tuples.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.SpaceAfterComma.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.SpaceAfterComma)} = {FormatConfig.Default.SpaceAfterComma.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -316,8 +354,9 @@ formatCode
     myValue.SomeFunction(foo, bar, somethingElse)
     (a, b, c)
     """
-    { FormatConfig.Default with
-        SpaceAfterComma = false }
+    """
+fsharp_space_after_comma = false
+    """
 (*** include-output ***)
 
 (**
@@ -329,7 +368,8 @@ Adds a space before `;` in records, arrays, lists, etc.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.SpaceBeforeSemicolon.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.SpaceBeforeSemicolon)} = {FormatConfig.Default.SpaceBeforeSemicolon.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -338,8 +378,9 @@ formatCode
     let b = [| foo ; bar |]
     type C = { X: int ; Y: int }
     """
-    { FormatConfig.Default with
-        SpaceBeforeSemicolon = true }
+    """
+fsharp_space_before_semicolon = true
+    """
 (*** include-output ***)
 
 (**
@@ -351,7 +392,8 @@ Adds a space after `;` in records, arrays, lists, etc.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.SpaceAfterSemicolon.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.SpaceAfterSemicolon)} = {FormatConfig.Default.SpaceAfterSemicolon.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -360,8 +402,9 @@ formatCode
     let b = [| foo; bar |]
     type C = { X: int; Y: int }
     """
-    { FormatConfig.Default with
-        SpaceAfterSemicolon = false }
+    """
+fsharp_space_after_semicolon = false
+    """
 (*** include-output ***)
 
 (**
@@ -373,7 +416,8 @@ Adds a space around delimiters like `[`,`[|`,{`.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.SpaceAroundDelimiter.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.SpaceAroundDelimiter)} = {FormatConfig.Default.SpaceAroundDelimiter.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -381,8 +425,9 @@ formatCode
     let a = [ 1;2;3 ]
     let b = [| 4;5;6 |]
     """
-    { FormatConfig.Default with
-        SpaceAroundDelimiter = false }
+    """
+fsharp_space_around_delimiter = false
+    """
 (*** include-output ***)
 
 (**
@@ -401,7 +446,8 @@ The [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/st
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MaxIfThenShortWidth}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxIfThenShortWidth)} = {FormatConfig.Default.MaxIfThenShortWidth}"
 (*** include-output ***)
 
 formatCode
@@ -409,8 +455,9 @@ formatCode
     if a then 
         ()
     """
-    { FormatConfig.Default with
-        MaxIfThenShortWidth = 15 }
+    """
+fsharp_max_if_then_short_width = 15
+    """
 (*** include-output ***)
 
 (**
@@ -423,15 +470,17 @@ This setting facilitates this by determining the maximum character width where t
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MaxIfThenElseShortWidth}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxIfThenElseShortWidth)} = {FormatConfig.Default.MaxIfThenElseShortWidth}"
 (*** include-output ***)
 
 formatCode
     """ 
     if myCheck then truth else bogus
     """
-    { FormatConfig.Default with
-        MaxIfThenElseShortWidth = 10 }
+    """
+fsharp_max_if_then_else_short_width = 10
+    """
 (*** include-output ***)
 
 (**
@@ -443,7 +492,8 @@ Control the maximum length for which infix expression can be on one line.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MaxInfixOperatorExpression}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxInfixOperatorExpression)} = {FormatConfig.Default.MaxInfixOperatorExpression}"
 (*** include-output ***)
 
 formatCode
@@ -451,8 +501,9 @@ formatCode
     let WebApp =
         route "/ping" >=> authorized >=> text "pong"
     """
-    { FormatConfig.Default with
-        MaxInfixOperatorExpression = 20 }
+    """
+fsharp_max_infix_operator_expression = 20
+    """
 (*** include-output ***)
 
 (**
@@ -466,7 +517,8 @@ Requires `fsharp_record_multiline_formatter` to be `character_width` to take eff
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MaxRecordWidth}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxRecordWidth)} = {FormatConfig.Default.MaxRecordWidth}"
 (*** include-output ***)
 
 formatCode
@@ -474,8 +526,9 @@ formatCode
     type MyRecord = { X: int; Y: int; Length: int }
     let myInstance = { X = 10; Y = 20; Length = 90 }
     """
-    { FormatConfig.Default with
-        MaxRecordWidth = 20 }
+    """
+fsharp_max_record_width = 20
+    """
 (*** include-output ***)
 
 (**
@@ -490,7 +543,8 @@ Requires `fsharp_record_multiline_formatter` to be
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MaxRecordNumberOfItems}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxRecordNumberOfItems)} = {FormatConfig.Default.MaxRecordNumberOfItems}"
 (*** include-output ***)
 
 formatCode
@@ -509,9 +563,10 @@ formatCode
 
     let myRecord''' = { r with x = 3; y = "hello"; z = 0.0 }
     """
-    { FormatConfig.Default with
-        MaxRecordNumberOfItems = 2
-        RecordMultilineFormatter = MultilineFormatterType.NumberOfItems }
+    """
+fsharp_record_multiline_formatter = number_of_items
+fsharp_max_record_number_of_items = 2
+    """
 (*** include-output ***)
 
 (**
@@ -527,7 +582,8 @@ Note that in either case, record expressions/statements are still governed by `m
 *)
 
 (*** hide ***)
-printfn $"Default = {MultilineFormatterType.ToConfigString FormatConfig.Default.RecordMultilineFormatter}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.RecordMultilineFormatter)} = {MultilineFormatterType.ToConfigString FormatConfig.Default.RecordMultilineFormatter}"
 (*** include-output ***)
 
 formatCode
@@ -542,8 +598,9 @@ formatCode
 
     let myRecord'' = { r with x = 3; y = "hello" }
     """
-    { FormatConfig.Default with
-        RecordMultilineFormatter = MultilineFormatterType.NumberOfItems }
+    """
+fsharp_record_multiline_formatter = number_of_items
+    """
 (*** include-output ***)
 
 (**
@@ -557,15 +614,17 @@ Requires `fsharp_array_or_list_multiline_formatter` to be `character_width` to t
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MaxArrayOrListWidth}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxArrayOrListWidth)} = {FormatConfig.Default.MaxArrayOrListWidth}"
 (*** include-output ***)
 
 formatCode
     """ 
     let myArray = [| one; two; three |]
     """
-    { FormatConfig.Default with
-        MaxArrayOrListWidth = 20 }
+    """
+fsharp_max_array_or_list_width = 20
+    """
 (*** include-output ***)
 
 (**
@@ -579,7 +638,8 @@ Requires `fsharp_array_or_list_multiline_formatter` to be `number_of_items` to t
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MaxArrayOrListNumberOfItems}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxArrayOrListNumberOfItems)} = {FormatConfig.Default.MaxArrayOrListNumberOfItems}"
 (*** include-output ***)
 
 formatCode
@@ -587,9 +647,10 @@ formatCode
     let myList = [ one; two ]
     let myArray = [| one; two; three |]
     """
-    { FormatConfig.Default with
-        MaxArrayOrListNumberOfItems = 2
-        ArrayOrListMultilineFormatter = MultilineFormatterType.NumberOfItems }
+    """
+fsharp_array_or_list_multiline_formatter = number_of_items
+fsharp_max_array_or_list_number_of_items = 2
+    """
 (*** include-output ***)
 
 (**
@@ -605,15 +666,17 @@ Note that in either case, list expressions are still governed by `max_line_lengt
 *)
 
 (*** hide ***)
-printfn $"Default = {MultilineFormatterType.ToConfigString FormatConfig.Default.ArrayOrListMultilineFormatter}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.ArrayOrListMultilineFormatter)} = {MultilineFormatterType.ToConfigString FormatConfig.Default.ArrayOrListMultilineFormatter}"
 (*** include-output ***)
 
 formatCode
     """ 
     let myArray = [| one; two; three |]
     """
-    { FormatConfig.Default with
-        ArrayOrListMultilineFormatter = MultilineFormatterType.NumberOfItems }
+    """
+fsharp_array_or_list_multiline_formatter = number_of_items
+    """
 (*** include-output ***)
 
 (**
@@ -626,7 +689,8 @@ The width is that of the pattern for the binding plus the right-hand expression 
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MaxValueBindingWidth}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxValueBindingWidth)} = {FormatConfig.Default.MaxValueBindingWidth}"
 (*** include-output ***)
 
 formatCode
@@ -635,8 +699,9 @@ formatCode
     type MyType() =
         member this.HelpText = "Some help text"
     """
-    { FormatConfig.Default with
-        MaxValueBindingWidth = 10 }
+    """
+fsharp_max_value_binding_width = 10
+    """
 (*** include-output ***)
 
 (**
@@ -649,7 +714,8 @@ In contrast to `fsharp_max_value_binding_width`, only the right-hand side expres
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MaxFunctionBindingWidth}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxFunctionBindingWidth)} = {FormatConfig.Default.MaxFunctionBindingWidth}"
 (*** include-output ***)
 
 formatCode
@@ -658,8 +724,9 @@ formatCode
     type MyType() =
         member this.HelpText = "Some help text"
     """
-    { FormatConfig.Default with
-        MaxFunctionBindingWidth = 10 }
+    """
+fsharp_max_function_binding_width = 10
+    """
 (*** include-output ***)
 
 (**
@@ -671,15 +738,17 @@ Control the maximum width for which (nested) [SynExpr.DotGet](https://fsharp.git
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MaxDotGetExpressionWidth}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxDotGetExpressionWidth)} = {FormatConfig.Default.MaxDotGetExpressionWidth}"
 (*** include-output ***)
 
 formatCode
     """ 
    let job = JobBuilder.UsingJobData(jobDataMap).Create<WrapperJob>().Build()
     """
-    { FormatConfig.Default with
-        MaxDotGetExpressionWidth = 60 }
+    """
+fsharp_max_dot_get_expression_width = 60
+    """
 (*** include-output ***)
 
 (**
@@ -693,7 +762,8 @@ formatCode
 *)
 
 (*** hide ***)
-printfn $"Default = {MultilineBracketStyle.ToConfigString FormatConfig.Default.MultilineBracketStyle}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MultilineBracketStyle)} = {MultilineBracketStyle.ToConfigString FormatConfig.Default.MultilineBracketStyle}"
 (*** include-output ***)
 
 formatCode
@@ -719,8 +789,9 @@ formatCode
            (16, 17,18)
            (19, 20, 21) |]
     """
-    { FormatConfig.Default with
-        MultilineBracketStyle = Aligned }
+    """
+fsharp_multiline_bracket_style = aligned
+    """
 (*** include-output ***)
 
 formatCode
@@ -746,8 +817,9 @@ formatCode
            (16, 17,18)
            (19, 20, 21) |]
     """
-    { FormatConfig.Default with
-        MultilineBracketStyle = Stroustrup }
+    """
+fsharp_multiline_bracket_style = stroustrup
+    """
 (*** include-output ***)
 
 (**
@@ -760,9 +832,9 @@ Insert a newline before a computation expression that spans multiple lines
 
 (*** hide ***)
 printfn
-    $"Default = {FormatConfig.Default.NewlineBeforeMultilineComputationExpression
-                     .ToString()
-                     .ToLower()}"
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.NewlineBeforeMultilineComputationExpression)} = {FormatConfig.Default.NewlineBeforeMultilineComputationExpression
+                                                                                                                       .ToString()
+                                                                                                                       .ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -773,8 +845,9 @@ formatCode
             return 5
         }
     """
-    { FormatConfig.Default with
-        NewlineBeforeMultilineComputationExpression = false }
+    """
+fsharp_newline_before_multiline_computation_expression = false
+    """
 (*** include-output ***)
 
 (**
@@ -791,7 +864,8 @@ Adds a new line between a type definition and its first member.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.NewlineBetweenTypeDefinitionAndMembers.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.NewlineBetweenTypeDefinitionAndMembers)} = {FormatConfig.Default.NewlineBetweenTypeDefinitionAndMembers.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -802,8 +876,9 @@ type Range =
 
     member this.Length = this.To - this.From
     """
-    { FormatConfig.Default with
-        NewlineBetweenTypeDefinitionAndMembers = false }
+    """
+fsharp_newline_between_type_definition_and_members = false
+    """
 (*** include-output ***)
 
 (**
@@ -816,7 +891,8 @@ This setting also places the equals sign and return type on a new line.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.AlignFunctionSignatureToIndentation.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.AlignFunctionSignatureToIndentation)} = {FormatConfig.Default.AlignFunctionSignatureToIndentation.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -828,8 +904,9 @@ let run
     : HttpResponse =
     Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
     """
-    { FormatConfig.Default with
-        AlignFunctionSignatureToIndentation = true }
+    """
+fsharp_align_function_signature_to_indentation = true
+    """
 (*** include-output ***)
 
 (**
@@ -842,7 +919,8 @@ where the difference is mainly in the equal sign and returned type placement.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.AlternativeLongMemberDefinitions.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.AlternativeLongMemberDefinitions)} = {FormatConfig.Default.AlternativeLongMemberDefinitions.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -873,8 +951,9 @@ type E() =
             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
         ) = E()
     """
-    { FormatConfig.Default with
-        AlternativeLongMemberDefinitions = true }
+    """
+fsharp_alternative_long_member_definitions = true
+    """
 (*** include-output ***)
 
 (**
@@ -886,7 +965,8 @@ Places the closing parenthesis of a multiline lambda argument on the next line.
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.MultiLineLambdaClosingNewline.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MultiLineLambdaClosingNewline)} = {FormatConfig.Default.MultiLineLambdaClosingNewline.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -905,8 +985,9 @@ let printListWithOffset a list1 =
             // print stuff
             printfn "%d" (a + elem))
     """
-    { FormatConfig.Default with
-        MultiLineLambdaClosingNewline = true }
+    """
+fsharp_multi_line_lambda_closing_newline = true
+    """
 (*** include-output ***)
 
 (**
@@ -917,8 +998,13 @@ let printListWithOffset a list1 =
 Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.  
 Only when the last pattern match or else branch was already at the same level of the entire match or if expression.
 
-*This feature is considecolor="red" experimental and is subject to change.*
+*This feature is experimental and is subject to change.*
 *)
+
+(*** hide ***)
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.ExperimentalKeepIndentInBranch)} = {FormatConfig.Default.ExperimentalKeepIndentInBranch.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -937,8 +1023,9 @@ let main argv =
     // do more stuff
     0
     """
-    { FormatConfig.Default with
-        ExperimentalKeepIndentInBranch = true }
+    """
+fsharp_experimental_keep_indent_in_branch = true
+    """
 (*** include-output ***)
 
 (**
@@ -951,15 +1038,17 @@ If `false`, a `|` character is used only in multiple-case discriminated unions, 
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.BarBeforeDiscriminatedUnionDeclaration.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.BarBeforeDiscriminatedUnionDeclaration)} = {FormatConfig.Default.BarBeforeDiscriminatedUnionDeclaration.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
     """ 
     type MyDU = Short of int
     """
-    { FormatConfig.Default with
-        BarBeforeDiscriminatedUnionDeclaration = true }
+    """
+fsharp_bar_before_discriminated_union_declaration = true
+    """
 
 (*** include-output ***)
 
@@ -979,9 +1068,9 @@ Top level expressions will always follow the [2020 blank lines revision](https:/
 
 (*** hide ***)
 printfn
-    $"Default = {FormatConfig.Default.BlankLinesAroundNestedMultilineExpressions
-                     .ToString()
-                     .ToLower()}"
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.BlankLinesAroundNestedMultilineExpressions)} = {FormatConfig.Default.BlankLinesAroundNestedMultilineExpressions
+                                                                                                                      .ToString()
+                                                                                                                      .ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -1000,8 +1089,9 @@ formatCode
         // ...
         ()
     """
-    { FormatConfig.Default with
-        BlankLinesAroundNestedMultilineExpressions = false }
+    """
+fsharp_blank_lines_around_nested_multiline_expressions = false
+    """
 (*** include-output ***)
 
 (**
@@ -1013,7 +1103,8 @@ Set maximal number of consecutive blank lines to keep from original source. It d
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.KeepMaxNumberOfBlankLines}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.KeepMaxNumberOfBlankLines)} = {FormatConfig.Default.KeepMaxNumberOfBlankLines}"
 (*** include-output ***)
 
 formatCode
@@ -1022,8 +1113,9 @@ formatCode
 
     let x = 42
     """
-    { FormatConfig.Default with
-        KeepMaxNumberOfBlankLines = 1 }
+    """
+fsharp_keep_max_number_of_blank_lines = 1
+    """
 (*** include-output ***)
 
 (**
@@ -1036,7 +1128,8 @@ Note that this behaviour is also active when `fsharp_multiline_bracket_style = s
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.ExperimentalElmish.ToString().ToLower()}"
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.ExperimentalElmish)} = {FormatConfig.Default.ExperimentalElmish.ToString().ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -1066,8 +1159,9 @@ let singleList =
                 ]
         ]
     """
-    { FormatConfig.Default with
-        ExperimentalElmish = true }
+    """
+fsharp_experimental_elmish = true
+    """
 (*** include-output ***)
 
 (**
