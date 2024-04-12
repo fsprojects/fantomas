@@ -165,3 +165,40 @@ type StateMachine
         =
         StateMachine()
 """
+
+[<Test>]
+let ``explicit constructor with then keyword, 3074`` () =
+    formatSourceString
+        """
+type CreateBuildingViewModel =
+    new (items) as vm
+        =
+        let p = ""
+        {
+            inherit ResizeArray(seq {
+                yield p
+                yield! items
+            })
+        }
+        then
+            vm.program <- p
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type CreateBuildingViewModel =
+    new(items) as vm =
+        let p = ""
+
+        { inherit
+            ResizeArray(
+                seq {
+                    yield p
+                    yield! items
+                }
+            ) }
+
+        then vm.program <- p
+"""
