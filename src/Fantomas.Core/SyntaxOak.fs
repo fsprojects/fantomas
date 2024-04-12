@@ -1649,6 +1649,14 @@ type ExprBeginEndNode(beginNode: SingleTextNode, expr: Expr, endNode: SingleText
     member val Expr = expr
     member val End = endNode
 
+/// then <expr>
+/// Only valid in secondary constructors, original coming from SynExpr.Sequential(trivia = { SeparatorRange = Some mThen })
+type ExprExplicitConstructorThenExpr(thenNode: SingleTextNode, expr: Expr, range) =
+    inherit NodeBase(range)
+    override val Children: Node array = [| yield thenNode; yield Expr.Node expr |]
+    member val Then = thenNode
+    member val Expr = expr
+
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Expr =
     | Lazy of ExprLazyNode
@@ -1715,6 +1723,7 @@ type Expr =
     | Chain of ExprChain
     | DotLambda of ExprDotLambda
     | BeginEnd of ExprBeginEndNode
+    | ExplicitConstructorThenExpr of ExprExplicitConstructorThenExpr
 
     static member Node(x: Expr) : Node =
         match x with
@@ -1782,6 +1791,7 @@ type Expr =
         | Chain n -> n
         | DotLambda n -> n
         | BeginEnd n -> n
+        | ExplicitConstructorThenExpr n -> n
 
     member e.HasParentheses: bool =
         match e with
@@ -2399,7 +2409,6 @@ type MemberDefnExplicitCtorNode
         alias: SingleTextNode option,
         equals: SingleTextNode,
         expr: Expr,
-        thenExpr: Expr option,
         range
     ) =
     inherit NodeBase(range)
@@ -2412,8 +2421,7 @@ type MemberDefnExplicitCtorNode
            yield Pattern.Node pat
            yield! noa alias
            yield equals
-           yield Expr.Node expr
-           yield! noa (Option.map Expr.Node thenExpr) |]
+           yield Expr.Node expr |]
 
     member val XmlDoc = xmlDoc
     member val Attributes = attributes
@@ -2423,7 +2431,6 @@ type MemberDefnExplicitCtorNode
     member val Alias = alias
     member val Equals = equals
     member val Expr = expr
-    member val ThenExpr = thenExpr
 
 type MemberDefnInterfaceNode
     (interfaceNode: SingleTextNode, t: Type, withNode: SingleTextNode option, members: MemberDefn list, range) =

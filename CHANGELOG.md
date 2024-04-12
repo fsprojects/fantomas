@@ -1,5 +1,13 @@
 # Changelog
 
+## 6.3.2 - 2024-04-12
+
+### Changed
+* Update FCS to 'Add SynExprSequentialTrivia', commit 050271d631956a4e0d0484a583d38236b727a46d [#3075](https://github.com/fsprojects/fantomas/pull/3075)
+
+### Fixed
+* Fantomas corrupts an explicit constructor with then clause. [#3074](https://github.com/fsprojects/fantomas/issues/3074)
+
 ## 6.3.1 - 2024-03-30
 
 ### Fixed
