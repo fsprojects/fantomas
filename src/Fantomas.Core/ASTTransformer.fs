@@ -139,7 +139,7 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
             | '\\' -> @"'\\'"
             | '\b' -> @"'\b'"
             | '\f' -> @"'\f'"
-            | _ -> c.ToString()
+            | _ -> $"'%c{c}'"
 
         orElse escapedChar
     | SynConst.Bytes(bytes, _, r) ->
