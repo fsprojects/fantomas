@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.3 - 2024-04-12
+
+### Fixed
+* FormatASTAsync loses single quotes for characters. [#3076](https://github.com/fsprojects/fantomas/issues/3076)
+
 ## 6.3.2 - 2024-04-12
 
 ### Changed
