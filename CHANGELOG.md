@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.4 - 2024-04-16
+
+### Fixed
+* Regression: An empty line or comment at the end of a list breaks Stroustrup formatting. [#3079](https://github.com/fsprojects/fantomas/issues/3079)
+
 ## 6.3.3 - 2024-04-12
 
 ### Fixed
