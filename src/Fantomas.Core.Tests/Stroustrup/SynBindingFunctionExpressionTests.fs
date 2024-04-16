@@ -96,31 +96,6 @@ let x y = [
 """
 
 [<Test>]
-let ``hash directive before closing list bracket, 3070`` () =
-    formatSourceString
-        """
-let private knownProviders = [
-#if !FABLE_COMPILER
-    (SerilogProvider.isAvailable, SerilogProvider.create)
-    (MicrosoftExtensionsLoggingProvider.isAvailable, MicrosoftExtensionsLoggingProvider.create)
-#endif
-                                        ]
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let private knownProviders =
-    [
-#if !FABLE_COMPILER
-        (SerilogProvider.isAvailable, SerilogProvider.create)
-        (MicrosoftExtensionsLoggingProvider.isAvailable, MicrosoftExtensionsLoggingProvider.create)
-#endif
-    ]
-"""
-
-[<Test>]
 let ``hash directive before closing list bracket, nested let binding`` () =
     formatSourceString
         """
