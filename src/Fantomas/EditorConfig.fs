@@ -64,8 +64,7 @@ let (|Number|_|) (d: string) =
     | true, d -> Some(box d)
     | _ -> None
 
-let (|PatternMatchStyle|_|) pms =
-    PatternMatchStyle.OfConfigString pms
+let (|PatternMatchStyle|_|) pms = PatternMatchStyle.OfConfigString pms
 
 let (|MultilineFormatterType|_|) mft =
     MultilineFormatterType.OfConfigString mft

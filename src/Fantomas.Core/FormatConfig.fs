@@ -29,10 +29,12 @@ type MultilineFormatterType =
 type PatternMatchStyle =
     | LineSpecific
     | Consistent
+
     static member ToConfigString(cfg: PatternMatchStyle) =
         match cfg with
         | LineSpecific -> "line_specific"
         | Consistent -> "consistent"
+
     static member OfConfigString(cfgString: string) =
         match cfgString with
         | "line_specific" -> Some LineSpecific
@@ -245,8 +247,7 @@ type FormatConfig =
       [<Category("Indentation")>]
       [<DisplayName("How to format pattern match expression")>]
       [<Description("Possible options include each line judged separately (default), or consistent (either all single line or all multiline)")>]
-      ExperimentalPatternMatchStyle : PatternMatchStyle
-    }
+      ExperimentalPatternMatchStyle: PatternMatchStyle }
 
     member x.IsStroustrupStyle = x.MultilineBracketStyle = Stroustrup
 
