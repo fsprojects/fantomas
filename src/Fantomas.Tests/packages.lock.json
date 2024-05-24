@@ -825,7 +825,7 @@
       "fantomas": {
         "type": "Project",
         "dependencies": {
-          "Argu": "[6.1.1, )",
+          "Argu": "[6.2.4, )",
           "FSharp.Core": "[6.0.1, )",
           "Fantomas.Client": "[1.0.0, )",
           "Fantomas.Core": "[1.0.0, )",
@@ -867,11 +867,11 @@
       },
       "Argu": {
         "type": "CentralTransitive",
-        "requested": "[6.1.1, )",
-        "resolved": "6.1.1",
-        "contentHash": "5SBLYihaZ6/YNpRU+0v0QLsCk7ABmOWNOUwkXVUql2w7kJ6Hi4AFhgIv5XLTtxTid5/xrJAL+PglQkNcjANCJg==",
+        "requested": "[6.2.4, )",
+        "resolved": "6.2.4",
+        "contentHash": "RuANu8+L1P2HWozmbRXkj6MQGYwP5DL2wdARfBPtRjsLS8TSgwYjOKxMnY5LtjmHLlMBD3u2+MfbAy8xMGg8Qg==",
         "dependencies": {
-          "FSharp.Core": "4.3.2",
+          "FSharp.Core": "6.0.7",
           "System.Configuration.ConfigurationManager": "4.4.0"
         }
       },
