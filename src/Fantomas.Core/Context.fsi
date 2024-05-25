@@ -73,7 +73,6 @@ val hasWriteBeforeNewlineContent: ctx: Context -> bool
 val dump: isSelection: bool -> ctx: Context -> FormatResult
 val dumpAndContinue: ctx: Context -> Context
 val lastWriteEventIsNewline: ctx: Context -> bool
-val lastWriteEventIsDotLambda: ctx: Context -> bool
 
 /// Indent one more level based on configuration
 val indent: ctx: Context -> Context

@@ -1553,9 +1553,24 @@ let genExpr (e: Expr) =
     | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr |> genNode node
     | Expr.Typar node -> genSingleTextNode node
     | Expr.DotLambda node ->
+        let genDotLambdaExpr expr =
+            fun ctx ->
+                let currentConfig = ctx.Config
+
+                let dotLambdaConfig =
+                    { currentConfig with
+                        // override the SpaceBefore[Upper|Lower]caseInvocation to avoid generating breaking code.
+                        // see unit tests for issue 3050``
+                        SpaceBeforeUppercaseInvocation = false
+                        SpaceBeforeLowercaseInvocation = false }
+
+                genExpr expr { ctx with Config = dotLambdaConfig }
+                // Restore the existing configuration after printing the DotLambda expression
+                |> fun ctx -> { ctx with Config = currentConfig }
+
         genSingleTextNode node.Underscore
         +> genSingleTextNode node.Dot
-        +> genExpr node.Expr
+        +> genDotLambdaExpr node.Expr
         |> genNode node
     | Expr.BeginEnd node ->
         let short =
@@ -2523,10 +2538,8 @@ let sepSpaceBeforeParenInFuncInvocation (functionExpr: Expr) (argExpr: Expr) ctx
     | Expr.DotLambda _, _ -> ctx
     | Expr.Constant _, _ -> sepSpace ctx
     | ParenExpr _, _ -> sepSpace ctx
-    | UppercaseExpr, ParenExpr _ ->
-        onlyIf (ctx.Config.SpaceBeforeUppercaseInvocation && not (lastWriteEventIsDotLambda ctx)) sepSpace ctx
-    | LowercaseExpr, ParenExpr _ ->
-        onlyIf (ctx.Config.SpaceBeforeLowercaseInvocation && not (lastWriteEventIsDotLambda ctx)) sepSpace ctx
+    | UppercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
+    | LowercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
     | Expr.Ident _, Expr.Ident _ -> sepSpace ctx
     | _ -> sepSpace ctx
 
