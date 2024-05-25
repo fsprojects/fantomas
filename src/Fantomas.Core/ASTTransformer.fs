@@ -139,7 +139,7 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
             | '\\' -> @"'\\'"
             | '\b' -> @"'\b'"
             | '\f' -> @"'\f'"
-            | _ -> c.ToString()
+            | _ -> $"'%c{c}'"
 
         orElse escapedChar
     | SynConst.Bytes(bytes, _, r) ->
@@ -213,14 +213,18 @@ let mkAttributes (creationAide: CreationAide) (al: SynAttributeList list) : Mult
         let range = attributeLists |> List.map (fun al -> al.Range) |> combineRanges
         Some(MultipleAttributeListNode(attributeLists, range))
 
+/// Only used to get items of SynExpr.ArrayOrListComputed
+/// We can safely assume the SequentialTrivia.SeparatorRange is not going to be `then`.
 let (|Sequentials|_|) e =
     let rec visit (e: SynExpr) (finalContinuation: SynExpr list -> SynExpr list) : SynExpr list =
         match e with
-        | SynExpr.Sequential(_, _, e1, e2, _) -> visit e2 (fun xs -> e1 :: xs |> finalContinuation)
+        | SynExpr.Sequential(expr1 = e1; expr2 = e2) ->
+
+            visit e2 (fun xs -> e1 :: xs |> finalContinuation)
         | e -> finalContinuation [ e ]
 
     match e with
-    | SynExpr.Sequential(_, _, e1, e2, _) ->
+    | SynExpr.Sequential(expr1 = e1; expr2 = e2) ->
         let xs = visit e2 id
         Some(e1 :: xs)
     | _ -> None
@@ -332,12 +336,25 @@ let rec collectComputationExpressionStatements
 
         collectComputationExpressionStatements creationAide body (fun bodyStatements ->
             [ letOrUseBang; yield! andBangs; yield! bodyStatements ] |> finalContinuation)
-    | SynExpr.Sequential(_, _, e1, e2, _) ->
+    | SynExpr.Sequential(expr1 = e1; expr2 = e2; trivia = trivia) ->
         let continuations
             : ((ComputationExpressionStatement list -> ComputationExpressionStatement list)
                   -> ComputationExpressionStatement list) list =
-            [ collectComputationExpressionStatements creationAide e1
-              collectComputationExpressionStatements creationAide e2 ]
+            let c2 =
+                match trivia.SeparatorRange with
+                // detect then keyword in explicit constructor
+                | Some mThen when mThen.StartColumn + 4 = mThen.EndColumn ->
+                    let thenNode = stn "then" mThen
+                    let expr = mkExpr creationAide e2
+                    let m = unionRanges mThen e2.Range
+                    let node = ExprExplicitConstructorThenExpr(thenNode, expr, m)
+
+                    fun finalContinuation ->
+                        finalContinuation
+                            [ ComputationExpressionStatement.OtherStatement(Expr.ExplicitConstructorThenExpr node) ]
+                | _ -> collectComputationExpressionStatements creationAide e2
+
+            [ collectComputationExpressionStatements creationAide e1; c2 ]
 
         let finalContinuation (nodes: ComputationExpressionStatement list list) : ComputationExpressionStatement list =
             List.collect id nodes |> finalContinuation
@@ -2732,10 +2749,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                 accessibility = ao)
             expr = expr
             trivia = { EqualsRange = Some mEq })) when (newIdent.idText = "new") ->
-        let exprNode, thenExprNode =
-            match expr with
-            | SynExpr.Sequential(_, false, e1, e2, _) -> mkExpr creationAide e1, Some(mkExpr creationAide e2)
-            | e -> mkExpr creationAide e, None
+        let exprNode = mkExpr creationAide expr
 
         MemberDefnExplicitCtorNode(
             mkXmlDoc px,
@@ -2746,7 +2760,6 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             Option.map mkIdent ido,
             stn "=" mEq,
             exprNode,
-            thenExprNode,
             memberDefinitionRange
         )
         |> MemberDefn.ExplicitCtor

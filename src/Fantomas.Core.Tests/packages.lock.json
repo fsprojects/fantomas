@@ -35,9 +35,9 @@
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
-        "requested": "[0.9.0, )",
-        "resolved": "0.9.0",
-        "contentHash": "VFra4fQCNuuY9z/gOISvloPLdaAYD2hIN6sjj27JYvDRXy8HQGROMj3FyDXz3O4EzU79QIN7Y+behA+hl7Wzug=="
+        "requested": "[0.9.3, )",
+        "resolved": "0.9.3",
+        "contentHash": "V83sHl7ubgQ9HLjxto/rZbgNKGMMpHZ+E6tmWm1JAGfpNUaYWnKdAkpdKxxooHmE/804pIAPuVTpna5xLeX1dw=="
       },
       "Ionide.Analyzers": {
         "type": "Direct",
@@ -157,10 +157,17 @@
         "type": "Project",
         "dependencies": {
           "FSharp.Core": "[6.0.1, )",
+          "System.Collections.Immutable": "[7.0.0, )",
           "System.Diagnostics.DiagnosticSource": "[7.0.0, )",
           "System.Memory": "[4.5.5, )",
           "System.Runtime": "[4.3.1, )"
         }
+      },
+      "System.Collections.Immutable": {
+        "type": "CentralTransitive",
+        "requested": "[7.0.0, )",
+        "resolved": "7.0.0",
+        "contentHash": "dQPcs0U1IKnBdRDBkrCTi1FoajSTBzLcVTpjO4MBCMC7f4pDOIPzgBoX8JjG7X6uZRJ8EBxsi8+DR1JuwjnzOQ=="
       },
       "System.Diagnostics.DiagnosticSource": {
         "type": "CentralTransitive",

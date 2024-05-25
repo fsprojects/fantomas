@@ -4,11 +4,11 @@
     "net6.0": {
       "Argu": {
         "type": "Direct",
-        "requested": "[6.1.1, )",
-        "resolved": "6.1.1",
-        "contentHash": "5SBLYihaZ6/YNpRU+0v0QLsCk7ABmOWNOUwkXVUql2w7kJ6Hi4AFhgIv5XLTtxTid5/xrJAL+PglQkNcjANCJg==",
+        "requested": "[6.2.4, )",
+        "resolved": "6.2.4",
+        "contentHash": "RuANu8+L1P2HWozmbRXkj6MQGYwP5DL2wdARfBPtRjsLS8TSgwYjOKxMnY5LtjmHLlMBD3u2+MfbAy8xMGg8Qg==",
         "dependencies": {
-          "FSharp.Core": "4.3.2",
+          "FSharp.Core": "6.0.7",
           "System.Configuration.ConfigurationManager": "4.4.0"
         }
       },
@@ -44,9 +44,9 @@
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
-        "requested": "[0.9.0, )",
-        "resolved": "0.9.0",
-        "contentHash": "VFra4fQCNuuY9z/gOISvloPLdaAYD2hIN6sjj27JYvDRXy8HQGROMj3FyDXz3O4EzU79QIN7Y+behA+hl7Wzug=="
+        "requested": "[0.9.3, )",
+        "resolved": "0.9.3",
+        "contentHash": "V83sHl7ubgQ9HLjxto/rZbgNKGMMpHZ+E6tmWm1JAGfpNUaYWnKdAkpdKxxooHmE/804pIAPuVTpna5xLeX1dw=="
       },
       "Ignore": {
         "type": "Direct",
@@ -414,11 +414,6 @@
           "System.Threading": "4.3.0",
           "System.Threading.Tasks": "4.3.0"
         }
-      },
-      "System.Collections.Immutable": {
-        "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "FXkLXiK0sVVewcso0imKQoOxjoPAj42R8HtjjbSjVPAzwDfzoyoznWxgA3c38LDbN9SJux1xXoXYAhz98j7r2g=="
       },
       "System.Configuration.ConfigurationManager": {
         "type": "Transitive",
@@ -916,6 +911,7 @@
         "type": "Project",
         "dependencies": {
           "FSharp.Core": "[6.0.1, )",
+          "System.Collections.Immutable": "[7.0.0, )",
           "System.Diagnostics.DiagnosticSource": "[7.0.0, )",
           "System.Memory": "[4.5.5, )",
           "System.Runtime": "[4.3.1, )"
@@ -926,6 +922,15 @@
         "requested": "[2.0.2, )",
         "resolved": "2.0.2",
         "contentHash": "4EQgYdNZ92SyaO7YFk6olVnebF5V+jrHyMUjvPq89tLeMo8NSfgDF+6Zwq/lgh9j/0yfQp9Lkm0ZA0rUATCZFA=="
+      },
+      "System.Collections.Immutable": {
+        "type": "CentralTransitive",
+        "requested": "[7.0.0, )",
+        "resolved": "7.0.0",
+        "contentHash": "dQPcs0U1IKnBdRDBkrCTi1FoajSTBzLcVTpjO4MBCMC7f4pDOIPzgBoX8JjG7X6uZRJ8EBxsi8+DR1JuwjnzOQ==",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        }
       },
       "System.Diagnostics.DiagnosticSource": {
         "type": "CentralTransitive",

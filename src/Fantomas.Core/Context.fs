@@ -948,7 +948,19 @@ let addParenIfAutoNln expr f =
 
 let indentSepNlnUnindentUnlessStroustrup f (e: Expr) (ctx: Context) =
     let shouldUseStroustrup =
-        isStroustrupStyleExpr ctx.Config e && canSafelyUseStroustrup (Expr.Node e) ctx
+        let isArrayOrListWithHashDirectiveBeforeClosingBracket () =
+            match e with
+            | Expr.ArrayOrList node ->
+                node.Closing.ContentBefore
+                |> Seq.forall (fun x ->
+                    match x.Content with
+                    | TriviaContent.Directive _ -> false
+                    | _ -> true)
+            | _ -> true
+
+        isStroustrupStyleExpr ctx.Config e
+        && canSafelyUseStroustrup (Expr.Node e) ctx
+        && isArrayOrListWithHashDirectiveBeforeClosingBracket ()
 
     if shouldUseStroustrup then
         f e ctx

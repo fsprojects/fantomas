@@ -335,3 +335,7 @@ bbb\"\"\"
 let ``unicode null character should be recognized as a trivia item, 2050`` () =
     formatSourceString "let s = \"\\000\"" config
     |> should equal "let s = \"\\000\"\n"
+
+[<Test>]
+let ``character quotes should be preserved, 3076`` () =
+    formatAST false "let s = 'A'" config |> should equal "let s = 'A'\n"

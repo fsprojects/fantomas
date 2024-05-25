@@ -1,11 +1,52 @@
 # Changelog
 
-## [Unreleased]
+ ## [Unreleased]
+
+### Fixed
+* Idempotency problem when _.Property shorthand. [#3050](https://github.com/fsprojects/fantomas/issues/3050)
+
+## 6.3.4 - 2024-04-16
+
+### Fixed
+* Regression: An empty line or comment at the end of a list breaks Stroustrup formatting. [#3079](https://github.com/fsprojects/fantomas/issues/3079)
+
+## 6.3.3 - 2024-04-12
+
+### Fixed
+* FormatASTAsync loses single quotes for characters. [#3076](https://github.com/fsprojects/fantomas/issues/3076)
+
+## 6.3.2 - 2024-04-12
+
+### Changed
+* Update FCS to 'Add SynExprSequentialTrivia', commit 050271d631956a4e0d0484a583d38236b727a46d [#3075](https://github.com/fsprojects/fantomas/pull/3075)
+
+### Fixed
+* Fantomas corrupts an explicit constructor with then clause. [#3074](https://github.com/fsprojects/fantomas/issues/3074)
+
+## 6.3.1 - 2024-03-30
+
+### Fixed
+* HashDirective before closing `]`. [#3070](https://github.com/fsprojects/fantomas/issues/3070)
+
+## 6.3.0 - 2024-03-15
+
+### Miscellaneous
+* Stable release of 6.3
+
+## 6.3.0-beta-001 - 2024-03-07
+
+### Miscellaneous
+* Release candidate of 6.3
+
+## 6.3.0-alpha-008 - 2024-03-01
+
+### Changed
+* Update FCS to 'Fix range start of INTERP_STRING_PART', commit 1da032a64321c77782e8d125afd3bf29863c3d9c [#3052](https://github.com/fsprojects/fantomas/pull/3052)
 
 ### Fixed
 * Equals sign should only be on same line if last tuple is multiline. [#3040](https://github.com/fsprojects/fantomas/issues/3040)
 * Return type should go on next line. [#3041](https://github.com/fsprojects/fantomas/issues/3041)
-* Idempotency problem when _.Property shorthand. [#3050](https://github.com/fsprojects/fantomas/issues/3050)
+* Fantomas does not support extended interpolated strings [#3012](https://github.com/fsprojects/fantomas/issues/3012)
 
 ## 6.3.0-alpha-007 - 2024-01-27
 

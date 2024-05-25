@@ -736,3 +736,99 @@ let b = // Build an inbound for the specified subnet.
         Tags = Map.empty
     }
 """
+
+[<Test>]
+let ``hash directive before closing list bracket, 3070`` () =
+    formatSourceString
+        """
+let private knownProviders = [
+#if !FABLE_COMPILER
+    (SerilogProvider.isAvailable, SerilogProvider.create)
+    (MicrosoftExtensionsLoggingProvider.isAvailable, MicrosoftExtensionsLoggingProvider.create)
+#endif
+                                        ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let private knownProviders =
+    [
+#if !FABLE_COMPILER
+        (SerilogProvider.isAvailable, SerilogProvider.create)
+        (MicrosoftExtensionsLoggingProvider.isAvailable, MicrosoftExtensionsLoggingProvider.create)
+#endif
+    ]
+"""
+
+[<Test>]
+let ``empty line before closing list bracket, 3079`` () =
+    formatSourceString
+        """
+let list = [
+    someItem
+
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let list = [
+    someItem
+
+]
+"""
+
+[<Test>]
+let ``comment before closing list bracket, 3079`` () =
+    formatSourceString
+        """
+let list = [
+    someItem
+    // comment
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let list = [
+    someItem
+// comment
+]
+"""
+
+[<Test>]
+let ``comment before closing list bracket with hash directive`` () =
+    formatSourceString
+        """
+let list = [
+    someItem
+    #if something
+    item1
+    #else
+    item2
+    #endif
+    // comment
+                ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let list =
+    [
+        someItem
+#if something
+        item1
+#else
+        item2
+#endif
+    // comment
+    ]
+"""

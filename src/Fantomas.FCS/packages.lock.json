@@ -38,9 +38,9 @@
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
-        "requested": "[0.9.0, )",
-        "resolved": "0.9.0",
-        "contentHash": "VFra4fQCNuuY9z/gOISvloPLdaAYD2hIN6sjj27JYvDRXy8HQGROMj3FyDXz3O4EzU79QIN7Y+behA+hl7Wzug=="
+        "requested": "[0.9.3, )",
+        "resolved": "0.9.3",
+        "contentHash": "V83sHl7ubgQ9HLjxto/rZbgNKGMMpHZ+E6tmWm1JAGfpNUaYWnKdAkpdKxxooHmE/804pIAPuVTpna5xLeX1dw=="
       },
       "Ionide.Analyzers": {
         "type": "Direct",
@@ -61,6 +61,16 @@
         "contentHash": "st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0"
+        }
+      },
+      "System.Collections.Immutable": {
+        "type": "Direct",
+        "requested": "[7.0.0, )",
+        "resolved": "7.0.0",
+        "contentHash": "dQPcs0U1IKnBdRDBkrCTi1FoajSTBzLcVTpjO4MBCMC7f4pDOIPzgBoX8JjG7X6uZRJ8EBxsi8+DR1JuwjnzOQ==",
+        "dependencies": {
+          "System.Memory": "4.5.5",
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
         }
       },
       "System.Diagnostics.DiagnosticSource": {

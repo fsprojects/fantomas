@@ -27,7 +27,8 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
                         true,
                         mkStringExpr (),
                         childExpr,
-                        Range.Zero
+                        Range.Zero,
+                        SynExprSequentialTrivia.Zero
                     ))
 
         SynExpr.ArrayOrListComputed(true, mkArray 0 (mkStringExpr ()), Range.Zero)

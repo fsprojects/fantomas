@@ -1572,6 +1572,10 @@ let genExpr (e: Expr) =
             +> genSingleTextNode node.End
 
         expressionFitsOnRestOfLine short long |> genNode node
+    | Expr.ExplicitConstructorThenExpr node ->
+        genSingleTextNode node.Then
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+        |> genNode node
 
 let genQuoteExpr (node: ExprQuoteNode) =
     genSingleTextNode node.OpenToken
@@ -3788,15 +3792,7 @@ let genMemberDefn (md: MemberDefn) =
                  +> autoIndentAndNlnIfExpressionExceedsPageWidth (genLongParenPatParameter node.Pattern)
                  +> optSingle (fun alias -> sepSpace +> !- "as" +> sepSpace +> genSingleTextNode alias) node.Alias)
                 (fun isMultiline ctx ->
-                    let genExpr =
-                        genExpr node.Expr
-                        +> optSingle
-                            (fun thenExpr ->
-                                sepNln
-                                +> !- "then"
-                                +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr thenExpr))
-                            node.ThenExpr
-
+                    let genExpr = genExpr node.Expr
                     let short = genSingleTextNode node.Equals +> sepSpace +> genExpr
 
                     let long ctx =
@@ -3812,7 +3808,7 @@ let genMemberDefn (md: MemberDefn) =
 
         genXml node.XmlDoc
         +> genAttributes node.Attributes
-        +> ifElse node.ThenExpr.IsSome long (expressionFitsOnRestOfLine short long)
+        +> expressionFitsOnRestOfLine short long
         |> genNode (MemberDefn.Node md)
     | MemberDefn.LetBinding node -> genBindings true node.Bindings |> genNode (MemberDefn.Node md)
     | MemberDefn.Interface node ->

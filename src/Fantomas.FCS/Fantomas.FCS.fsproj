@@ -53,6 +53,12 @@
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\HashMultiMap.fs">
       <Link>Utilities\HashMultiMap.fs</Link>
     </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\ReadOnlySpan.fsi">
+      <Link>Utilities\HashMultiMap.fs</Link>
+    </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\ReadOnlySpan.fs">
+      <Link>Utilities\HashMultiMap.fs</Link>
+    </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\TaggedCollections.fsi">
       <Link>Utilities\TaggedCollections.fsi</Link>
     </Compile>
@@ -143,6 +149,12 @@
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\DiagnosticsLogger.fs">
       <Link>Facilities\DiagnosticsLogger.fs</Link>
     </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\Hashing.fsi">
+      <Link>Facilities\Hashing.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\Hashing.fs">
+      <Link>Facilities\Hashing.fs</Link>
+    </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\prim-lexing.fsi">
       <Link>Facilities\prim-lexing.fsi</Link>
     </Compile>
@@ -212,7 +224,7 @@
       <Link>SyntaxTree\lex.fsl</Link>
     </FsLex>
     <FsYacc Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\pars.fsy">
-      <OtherFlags>-v --module Fantomas.FCS.Parser --open Fantomas.FCS --open Fantomas.FCS.Syntax --open Fantomas.FCS.Text --internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing --buffer-type-argument char</OtherFlags>
+      <OtherFlags>--module Fantomas.FCS.Parser --open Fantomas.FCS --open Fantomas.FCS.Syntax --open Fantomas.FCS.Text --internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing --buffer-type-argument char</OtherFlags>
       <Link>SyntaxTree\pars.fsy</Link>
     </FsYacc>
     <None Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\pplex.fsl">
@@ -304,6 +316,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource"  />
     <PackageReference Include="System.Memory" />
     <PackageReference Include="System.Runtime" />
