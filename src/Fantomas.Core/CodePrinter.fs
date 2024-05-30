@@ -1554,19 +1554,9 @@ let genExpr (e: Expr) =
     | Expr.Typar node -> genSingleTextNode node
     | Expr.DotLambda node ->
         let genDotLambdaExpr expr =
-            fun ctx ->
-                let currentConfig = ctx.Config
-
-                let dotLambdaConfig =
-                    { currentConfig with
-                        // override the SpaceBefore[Upper|Lower]caseInvocation to avoid generating breaking code.
-                        // see unit tests for issue 3050``
-                        SpaceBeforeUppercaseInvocation = false
-                        SpaceBeforeLowercaseInvocation = false }
-
-                genExpr expr { ctx with Config = dotLambdaConfig }
-                // Restore the existing configuration after printing the DotLambda expression
-                |> fun ctx -> { ctx with Config = currentConfig }
+            match expr with
+            | Expr.AppSingleParenArg p -> genExpr p.FunctionExpr +> genExpr p.ArgExpr // be always atomic, see 3050
+            | _ -> genExpr expr
 
         genSingleTextNode node.Underscore
         +> genSingleTextNode node.Dot

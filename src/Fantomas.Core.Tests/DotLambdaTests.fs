@@ -104,3 +104,30 @@ let ``idempotency problem when _.property shorthand quoted, 3050`` () =
         """
 "ABC" |> _.``to Lower``()
 """
+
+[<Test>]
+let ``idempotency problem when _.Property shorthand with app arg, 3050`` () =
+    formatSourceString
+        """
+let Meh () = 1
+
+type Bar() =
+    member this.Foo(v:int):int = v + 1
+
+let b = Bar()
+b |> _.Foo(Meh ())
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let Meh () = 1
+
+type Bar() =
+    member this.Foo(v: int) : int = v + 1
+
+let b = Bar ()
+b |> _.Foo(Meh ())
+"""
