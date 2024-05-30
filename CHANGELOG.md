@@ -1,6 +1,6 @@
 # Changelog
 
- ## [Unreleased]
+## 6.3.5 - 2024-05-30
 
 ### Fixed
 * Idempotency problem when _.Property shorthand. [#3050](https://github.com/fsprojects/fantomas/issues/3050)
