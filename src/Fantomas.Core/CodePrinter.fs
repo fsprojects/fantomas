@@ -1553,9 +1553,14 @@ let genExpr (e: Expr) =
     | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr |> genNode node
     | Expr.Typar node -> genSingleTextNode node
     | Expr.DotLambda node ->
+        let genDotLambdaExpr expr =
+            match expr with
+            | Expr.AppSingleParenArg p -> genExpr p.FunctionExpr +> genExpr p.ArgExpr // be always atomic, see 3050
+            | _ -> genExpr expr
+
         genSingleTextNode node.Underscore
         +> genSingleTextNode node.Dot
-        +> genExpr node.Expr
+        +> genDotLambdaExpr node.Expr
         |> genNode node
     | Expr.BeginEnd node ->
         let short =
