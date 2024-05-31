@@ -12,6 +12,8 @@
     <IsPackable>true</IsPackable>
     <RootNamespace>Fantomas</RootNamespace>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
@@ -38,7 +40,7 @@
     <PackageReference Include="Serilog"  />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="StreamJsonRpc" />
-    <PackageReference Include="Argu" />
+    <PackageReference Include="Fargo.Cmdline" />
     <PackageReference Include="Thoth.Json.Net" />
     <PackageReference Include="SerilogTraceListener" />
     <PackageReference Include="editorconfig" />
