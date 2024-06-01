@@ -128,10 +128,17 @@ let args =
                 "c"
                 "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
 
-        and! daemon = flag "daemon" "d" "Daemon mode, launches an LSP-like server that can be used by editor tooling."
-        and! version = flag "version" "v" "Displays the version of Fantomas"
-        and! verbosity = pVerbosity
-        and! input = pInput
+        // Applicative builders with more than 5 bindings break under AOT: https://github.com/dotnet/fsharp/issues/15488
+        let! (daemon, version, verbosity, input) =
+            fargo {
+                let! daemon =
+                    flag "daemon" "d" "Daemon mode, launches an LSP-like server that can be used by editor tooling."
+
+                and! version = flag "version" "v" "Displays the version of Fantomas"
+                and! verbosity = pVerbosity
+                and! input = pInput
+                return (daemon, version, verbosity, input)
+            }
 
         return
             { Force = force
