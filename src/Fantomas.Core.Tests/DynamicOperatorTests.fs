@@ -110,3 +110,18 @@ let doc2 = X?a("arg")?B("barg")?c("carg")
 let doc1 = x?a("arg")?B("barg")?c("carg")
 let doc2 = X?a ("arg")?B ("barg")?c ("carg")
 """
+
+[<Test>]
+let ``case determination issue with ExprParenNode uppercase with config lower, 2998`` () =
+    formatSourceString
+        """
+let statusBarHeight = (window?getComputedStyle document.documentElement)?getPropertyValue "--statusBarHeight"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let statusBarHeight =
+    (window?getComputedStyle document.documentElement)?getPropertyValue "--statusBarHeight"
+"""

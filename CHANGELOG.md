@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.7 - 2024-06-01
+
+### Fixed
+* Fix case determination issue with ExprAppNode and ExprParenNode. [#2998](https://github.com/fsprojects/fantomas/issues/2998)
+
 ## 6.3.6 - 2024-06-01
 
 ### Fixed
