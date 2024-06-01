@@ -57,6 +57,7 @@ let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
     | Expr.DotIndexedGet node -> (|UppercaseExpr|LowercaseExpr|) node.ObjectExpr
     | Expr.TypeApp node -> (|UppercaseExpr|LowercaseExpr|) node.Identifier
     | Expr.Dynamic node -> (|UppercaseExpr|LowercaseExpr|) node.FuncExpr
+    | Expr.AppSingleParenArg node -> (|UppercaseExpr|LowercaseExpr|) node.FunctionExpr
     | _ -> failwithf "cannot determine if Expr %A is uppercase or lowercase" expr
 
 let (|ParenExpr|_|) (e: Expr) =
