@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 6.3.6 - 2024-06-01
 
 ### Fixed
 * Fix case determination issue with ExprAppSingleParenArgNode. [#3088](https://github.com/fsprojects/fantomas/issues/3088)
