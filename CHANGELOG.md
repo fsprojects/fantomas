@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Fix loss of tuple type annotation without parens. [#2942](https://github.com/fsprojects/fantomas/issues/2942)
+
 ## 6.3.7 - 2024-06-01
 
 ### Fixed

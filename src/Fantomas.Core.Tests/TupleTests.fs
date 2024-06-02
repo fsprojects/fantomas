@@ -515,3 +515,39 @@ a |> fun b -> if b then 0 else 1
         """
 a |> (fun b -> if b then 0 else 1), 2
 """
+
+[<Test>]
+let ``removes type annotation without parens, 2942`` () =
+    formatSourceString
+        """
+let clReducedValues, clFirstActualKeys, clSecondActualKeys: ClArray<'a> * ClArray<int> * ClArray<int> =
+    reduce processor DeviceOnly resultLength clOffsets clFirstKeys clSecondKeys clValues
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let clReducedValues, clFirstActualKeys, clSecondActualKeys: ClArray<'a> * ClArray<int> * ClArray<int> =
+    reduce processor DeviceOnly resultLength clOffsets clFirstKeys clSecondKeys clValues
+"""
+
+[<Test>]
+let ``removes type annotation without parens multiline, 2942`` () =
+    formatSourceString
+        """
+let clReducedValues, // some comment 1
+    clFirstActualKeys, // some comment 2
+    clSecondActualKeys: ClArray<'a> * ClArray<int> * ClArray<int> =
+        reduce processor DeviceOnly resultLength clOffsets clFirstKeys clSecondKeys clValues
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let (clReducedValues, // some comment 1
+     clFirstActualKeys, // some comment 2
+     clSecondActualKeys): ClArray<'a> * ClArray<int> * ClArray<int> =
+    reduce processor DeviceOnly resultLength clOffsets clFirstKeys clSecondKeys clValues
+"""
