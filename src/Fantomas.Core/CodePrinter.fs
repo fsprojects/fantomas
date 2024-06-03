@@ -2986,6 +2986,12 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
             let genDestructedTuples =
                 expressionFitsOnRestOfLine (genPat pat) (sepOpenT +> genPat pat +> sepCloseT)
+                +> optSingle
+                    (fun (rt: BindingReturnInfoNode) ->
+                        genSingleTextNode rt.Colon
+                        +> sepSpace
+                        +> atCurrentColumnIndent (genType rt.Type))
+                    b.ReturnType
 
             genXml b.XmlDoc
             +> genAttrAndPref
