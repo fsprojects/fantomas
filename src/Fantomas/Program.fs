@@ -159,7 +159,7 @@ type Table with
 
 let isInExcludedDir (fullPath: string) =
     set [| "obj"; ".fable"; "fable_modules"; "node_modules" |]
-    |> Set.map (fun dir -> sprintf "%c%s%c" Path.DirectorySeparatorChar dir Path.DirectorySeparatorChar)
+    |> Set.map (fun dir -> string Path.DirectorySeparatorChar + dir + string Path.DirectorySeparatorChar)
     |> Set.exists fullPath.Contains
 
 /// Get all appropriate files, recursively.
@@ -436,7 +436,7 @@ let main argv =
                         | :? ParseException -> "Could not parse file."
                         | :? FormatException as fe -> fe.Message
                         | _ -> ""
-                    | VerbosityLevel.Detailed -> $"%A{exn}"
+                    | VerbosityLevel.Detailed -> $"%O{exn}"
 
                 let message =
                     if String.IsNullOrEmpty message then
@@ -465,7 +465,7 @@ let main argv =
 
                 let reportProfileInfo (f, p: ProfileInfo option) =
                     match profile, p with
-                    | true, Some pI -> stdlog $"%s{f} Line count: %d{pI.LineCount} Time taken %A{pI.TimeTaken}"
+                    | true, Some pI -> stdlog $"%s{f} Line count: %d{pI.LineCount} Time taken %O{pI.TimeTaken}"
                     | _ -> ()
 
                 match singleResult with

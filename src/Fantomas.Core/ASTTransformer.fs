@@ -118,18 +118,23 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
     | SynConst.Int32 v -> orElse (v.ToString())
     | SynConst.Int64 v -> orElse (v.ToString() + "L")
     | SynConst.UInt16 v -> orElse (v.ToString() + "us")
-    | SynConst.UInt16s v -> 
-        orElse (v |> Array.map (fun uint16 -> (uint16.ToString() + "us")) |> String.concat "; " |> sprintf "[| %s |]")
+    | SynConst.UInt16s v ->
+        orElse (
+            v
+            |> Array.map (fun uint16 -> (uint16.ToString() + "us"))
+            |> String.concat "; "
+            |> sprintf "[| %s |]"
+        )
     | SynConst.UInt32 v -> orElse (v.ToString() + "u")
     | SynConst.UInt64 v -> orElse (v.ToString() + "uL")
     | SynConst.Double v -> orElse (v.ToString())
     | SynConst.Single v -> orElse (v.ToString() + "f")
-    | SynConst.Decimal v -> 
+    | SynConst.Decimal v ->
         let bits = System.Decimal.GetBits(v)
-        let scale = (bits[3] >>> 16) &&& 0x7F;
+        let scale = (bits[3] >>> 16) &&& 0x7F
         orElse (sprintf "%sM {Scale = %suy}" (v.ToString()) (scale.ToString()))
-    | SynConst.IntPtr v -> orElse (v.ToString() + "n") 
-    | SynConst.UIntPtr v -> orElse (v.ToString() + "un") 
+    | SynConst.IntPtr v -> orElse (v.ToString() + "n")
+    | SynConst.UIntPtr v -> orElse (v.ToString() + "un")
     | SynConst.UserNum(v, s) ->
         let fallback () = $"%s{v}%s{s}"
         stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
