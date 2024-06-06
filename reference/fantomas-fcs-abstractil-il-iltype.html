@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en" data-root="https://fsprojects.github.io/fantomas/">
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
+    <!-- Opengraph properties (https://ogp.me/) -->
+    <meta property="og:site_name" content="fantomas">
+    <meta property="og:title" content="ILType (fantomas)" />
+    <meta property="og:url" content="https://fsprojects.github.io/fantomas/{{fsdocs-source-basename}}.html">
+    <meta property="og:type" content="website" />
+    <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
+    <meta name="twitter:title" content="ILType (fantomas)">
+    
+    <title>ILType (fantomas) | fantomas</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fsprojects.github.io/fantomas/images/favicon.ico" rel="icon" sizes="32x32" type="image/png"/>
+    <script type="application/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-set-dark.js"></script>
+    <link href="https://fsprojects.github.io/fantomas/content/fsdocs-default.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fsprojects.github.io/fantomas/content/fsdocs-theme.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+
+    
+</head>
+<body class="api-docs">
+<header>
+    <div class="start">
+        <div id="menu-toggle">
+            <iconify-icon class="icon closed" height="22" icon="eva:menu-fill" width="22"></iconify-icon>
+            <iconify-icon class="icon open" height="22" icon="mi:close" width="22"></iconify-icon>
+            <input type="checkbox" name="mobile-menu" />
+            <ul class="menu">
+                <li class="nav-header">Links</li>
+                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                </li>
+                <li class="nav-item"><a class="nav-link"
+                                        href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+                    Notes</a></li>
+                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                    Repository</a></li>
+                <li class="nav-header " id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link" > Style guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link" > Upgrade guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Recipes.html" class="nav-link" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header " id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link" > F#
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Multiple Times.html" class="nav-link" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.html" class="nav-link" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link" > Releases
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
+</a></li>
+
+</div>
+                <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link" > All Namespaces</a></li>
+
+</div>
+            </ul>
+        </div>
+        <a href="https://fsprojects.github.io/fantomas/">
+            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <strong>fantomas</strong>
+        </a>
+    </div>
+    <div class="end">
+        <a href="https://github.com/fsprojects/fantomas/" target="_blank">
+            <iconify-icon icon="uil:github" width="26" height="26"></iconify-icon>
+        </a>
+        <iconify-icon id="search-btn" icon="carbon:search" class="search" width="24" height="24"></iconify-icon>
+        <fsdocs-theme-toggle></fsdocs-theme-toggle>
+    </div>
+</header>
+<aside id="fsdocs-main-menu">
+    <ul class="menu">
+        <li class="nav-header">Links</li>
+        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        </li>
+        <li class="nav-item"><a class="nav-link"
+                                href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+            Notes</a></li>
+        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+            Repository</a></li>
+        <li class="nav-header " id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link" > Style guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link" > Upgrade guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Recipes.html" class="nav-link" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header " id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link" > F#
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Multiple Times.html" class="nav-link" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.html" class="nav-link" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link" > Releases
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
+</a></li>
+
+</div>
+        <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link" > All Namespaces</a></li>
+
+</div>
+    </ul>
+</aside>
+<main>
+    <div id="content">
+        <div>
+  <h2>
+    ILType Type
+  </h2>
+  <dl class="fsdocs-metadata">
+    <dt>
+      Namespace: 
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil.html">
+        Fantomas.FCS.AbstractIL
+      </a>
+    </dt>
+    <dt>
+      Assembly: Fantomas.FCS.dll
+    </dt>
+    <dt>
+      Parent Module: 
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il.html">
+        IL
+      </a>
+    </dt>
+    <dt>
+      Base Type: 
+      <code>obj</code>
+    </dt>
+    <dt>
+      All Interfaces: 
+      <code><a href="https://learn.microsoft.com/dotnet/api/system.collections.istructuralequatable">IStructuralEquatable</a></code>
+      , 
+      <code><span><a href="https://learn.microsoft.com/dotnet/api/system.icomparable-1">IComparable</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a>&gt;</span></code>
+      , 
+      <code><a href="https://learn.microsoft.com/dotnet/api/system.icomparable">IComparable</a></code>
+      , 
+      <code><a href="https://learn.microsoft.com/dotnet/api/system.collections.istructuralcomparable">IStructuralComparable</a></code>
+    </dt>
+  </dl>
+  <div class="fsdocs-xmldoc">
+    <div>
+      <p class="fsdocs-summary">
+        
+      </p>
+    </div>
+  </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div>
+    <h3>
+      Union cases
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Union case
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7834', 7834)" onmouseover="showTip(event, '7834', 7834)">
+                <p>
+                  <a id="Array">
+                    <a href="#Array">
+                      <code><span>Array(<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilarrayshape.html">ILArrayShape</a>,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></span>)</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7834">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Array(<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilarrayshape.html">ILArrayShape</a>,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></span>)</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item1
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilarrayshape.html">ILArrayShape</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        Item2
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                    <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                  </a>
+                  <p class="fsdocs-summary">
+                     Array types
+                  </p>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item1
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilarrayshape.html">ILArrayShape</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item2
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7835', 7835)" onmouseover="showTip(event, '7835', 7835)">
+                <p>
+                  <a id="Boxed">
+                    <a href="#Boxed">
+                      <code><span>Boxed&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltypespec.html">ILTypeSpec</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7835">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Boxed&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltypespec.html">ILTypeSpec</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltypespec.html">ILTypeSpec</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                    <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                  </a>
+                  <p class="fsdocs-summary">
+                     Reference types.  Also may be used for parents of members even if for members in value types.
+                  </p>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltypespec.html">ILTypeSpec</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7836', 7836)" onmouseover="showTip(event, '7836', 7836)">
+                <p>
+                  <a id="Byref">
+                    <a href="#Byref">
+                      <code><span>Byref&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7836">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Byref&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                    <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                  </a>
+                  <p class="fsdocs-summary">
+                     Managed pointers.
+                  </p>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7837', 7837)" onmouseover="showTip(event, '7837', 7837)">
+                <p>
+                  <a id="FunctionPointer">
+                    <a href="#FunctionPointer">
+                      <code><span>FunctionPointer&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilcallingsignature.html">ILCallingSignature</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7837">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>FunctionPointer&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilcallingsignature.html">ILCallingSignature</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilcallingsignature.html">ILCallingSignature</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                    <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                  </a>
+                  <p class="fsdocs-summary">
+                     ILCode pointers.
+                  </p>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilcallingsignature.html">ILCallingSignature</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7838', 7838)" onmouseover="showTip(event, '7838', 7838)">
+                <p>
+                  <a id="Modified">
+                    <a href="#Modified">
+                      <code><span>Modified(<span>bool,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltyperef.html">ILTypeRef</a>,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></span>)</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7838">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Modified(<span>bool,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltyperef.html">ILTypeRef</a>,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></span>)</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item1
+                      </b>
+                      :
+                      <code>bool</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        Item2
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltyperef.html">ILTypeRef</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        Item3
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                    <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                  </a>
+                  <p class="fsdocs-summary">
+                     Custom modifiers.
+                  </p>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item1
+                  </span>
+                  :
+                  <code>bool</code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item2
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltyperef.html">ILTypeRef</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item3
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7839', 7839)" onmouseover="showTip(event, '7839', 7839)">
+                <p>
+                  <a id="Ptr">
+                    <a href="#Ptr">
+                      <code><span>Ptr&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7839">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Ptr&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                    <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                  </a>
+                  <p class="fsdocs-summary">
+                     Unmanaged pointers.  Nb. the type is used by tools and for binding only, not by the verifier.
+                  </p>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7840', 7840)" onmouseover="showTip(event, '7840', 7840)">
+                <p>
+                  <a id="TypeVar">
+                    <a href="#TypeVar">
+                      <code><span>TypeVar&#32;uint16</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7840">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>TypeVar&#32;uint16</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>uint16</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                    <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                  </a>
+                  <p class="fsdocs-summary">
+                     Reference a generic arg.
+                  </p>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item
+                  </span>
+                  :
+                  <code>uint16</code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7841', 7841)" onmouseover="showTip(event, '7841', 7841)">
+                <p>
+                  <a id="Value">
+                    <a href="#Value">
+                      <code><span>Value&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltypespec.html">ILTypeSpec</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7841">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Value&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltypespec.html">ILTypeSpec</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltypespec.html">ILTypeSpec</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                    <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                  </a>
+                  <p class="fsdocs-summary">
+                     Unboxed types, including builtin types.
+                  </p>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltypespec.html">ILTypeSpec</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7842', 7842)" onmouseover="showTip(event, '7842', 7842)">
+                <p>
+                  <a id="Void">
+                    <a href="#Void">
+                      <code><span>Void</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7842">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Void</span></code>
+                  <br/>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <p class="fsdocs-summary">
+                 Used only in return and pointer types.
+              </p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div>
+    <h3>
+      Instance members
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Instance member
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7843', 7843)" onmouseover="showTip(event, '7843', 7843)">
+                <p>
+                  <a id="BasicQualifiedName">
+                    <a href="#BasicQualifiedName">
+                      <code><span>this.BasicQualifiedName</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7843">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.BasicQualifiedName</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7844', 7844)" onmouseover="showTip(event, '7844', 7844)">
+                <p>
+                  <a id="Boxity">
+                    <a href="#Boxity">
+                      <code><span>this.Boxity</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7844">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.Boxity</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilboxity.html">ILBoxity</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilboxity.html">ILBoxity</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7845', 7845)" onmouseover="showTip(event, '7845', 7845)">
+                <p>
+                  <a id="GenericArgs">
+                    <a href="#GenericArgs">
+                      <code><span>this.GenericArgs</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7845">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.GenericArgs</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilgenericargs.html">ILGenericArgs</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilgenericargs.html">ILGenericArgs</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7846', 7846)" onmouseover="showTip(event, '7846', 7846)">
+                <p>
+                  <a id="IsArray">
+                    <a href="#IsArray">
+                      <code><span>this.IsArray</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7846">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsArray</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7847', 7847)" onmouseover="showTip(event, '7847', 7847)">
+                <p>
+                  <a id="IsBoxed">
+                    <a href="#IsBoxed">
+                      <code><span>this.IsBoxed</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7847">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsBoxed</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7848', 7848)" onmouseover="showTip(event, '7848', 7848)">
+                <p>
+                  <a id="IsByref">
+                    <a href="#IsByref">
+                      <code><span>this.IsByref</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7848">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsByref</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7849', 7849)" onmouseover="showTip(event, '7849', 7849)">
+                <p>
+                  <a id="IsFunctionPointer">
+                    <a href="#IsFunctionPointer">
+                      <code><span>this.IsFunctionPointer</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7849">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsFunctionPointer</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7850', 7850)" onmouseover="showTip(event, '7850', 7850)">
+                <p>
+                  <a id="IsModified">
+                    <a href="#IsModified">
+                      <code><span>this.IsModified</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7850">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsModified</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7851', 7851)" onmouseover="showTip(event, '7851', 7851)">
+                <p>
+                  <a id="IsNominal">
+                    <a href="#IsNominal">
+                      <code><span>this.IsNominal</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7851">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsNominal</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7852', 7852)" onmouseover="showTip(event, '7852', 7852)">
+                <p>
+                  <a id="IsPtr">
+                    <a href="#IsPtr">
+                      <code><span>this.IsPtr</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7852">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsPtr</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7853', 7853)" onmouseover="showTip(event, '7853', 7853)">
+                <p>
+                  <a id="IsTypeVar">
+                    <a href="#IsTypeVar">
+                      <code><span>this.IsTypeVar</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7853">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsTypeVar</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7854', 7854)" onmouseover="showTip(event, '7854', 7854)">
+                <p>
+                  <a id="IsTyvar">
+                    <a href="#IsTyvar">
+                      <code><span>this.IsTyvar</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7854">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsTyvar</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7855', 7855)" onmouseover="showTip(event, '7855', 7855)">
+                <p>
+                  <a id="IsValue">
+                    <a href="#IsValue">
+                      <code><span>this.IsValue</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7855">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsValue</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7856', 7856)" onmouseover="showTip(event, '7856', 7856)">
+                <p>
+                  <a id="IsVoid">
+                    <a href="#IsVoid">
+                      <code><span>this.IsVoid</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7856">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsVoid</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7857', 7857)" onmouseover="showTip(event, '7857', 7857)">
+                <p>
+                  <a id="QualifiedName">
+                    <a href="#QualifiedName">
+                      <code><span>this.QualifiedName</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7857">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.QualifiedName</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7858', 7858)" onmouseover="showTip(event, '7858', 7858)">
+                <p>
+                  <a id="TypeRef">
+                    <a href="#TypeRef">
+                      <code><span>this.TypeRef</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7858">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.TypeRef</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltyperef.html">ILTypeRef</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltyperef.html">ILTypeRef</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7859', 7859)" onmouseover="showTip(event, '7859', 7859)">
+                <p>
+                  <a id="TypeSpec">
+                    <a href="#TypeSpec">
+                      <code><span>this.TypeSpec</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7859">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.TypeSpec</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltypespec.html">ILTypeSpec</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltypespec.html">ILTypeSpec</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div></div>
+</div>
+        
+    </div>
+</main>
+<aside id="fsdocs-page-menu">
+    <p id="on-this-page">On this page</p>
+    <div class="empty"></div>
+</aside>
+<dialog>
+    <input type="search" placeholder="Search docs" />
+    <div class="results">
+        <ul></ul>
+        <p class="empty">Type something to start searching.</p>
+    </div>
+</dialog>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-tips.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-toggle.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module">
+    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        themeVariables: {
+            primaryColor: '#338cbb',
+            primaryTextColor: '#FFF',
+            primaryBorderColor: '#5aacd6'
+        }
+    });
+
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
+</body>
+</html>

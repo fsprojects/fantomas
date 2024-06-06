@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en" data-root="https://fsprojects.github.io/fantomas/">
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
+    <!-- Opengraph properties (https://ogp.me/) -->
+    <meta property="og:site_name" content="fantomas">
+    <meta property="og:title" content="ILFieldInit (fantomas)" />
+    <meta property="og:url" content="https://fsprojects.github.io/fantomas/{{fsdocs-source-basename}}.html">
+    <meta property="og:type" content="website" />
+    <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
+    <meta name="twitter:title" content="ILFieldInit (fantomas)">
+    
+    <title>ILFieldInit (fantomas) | fantomas</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fsprojects.github.io/fantomas/images/favicon.ico" rel="icon" sizes="32x32" type="image/png"/>
+    <script type="application/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-set-dark.js"></script>
+    <link href="https://fsprojects.github.io/fantomas/content/fsdocs-default.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fsprojects.github.io/fantomas/content/fsdocs-theme.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+
+    
+</head>
+<body class="api-docs">
+<header>
+    <div class="start">
+        <div id="menu-toggle">
+            <iconify-icon class="icon closed" height="22" icon="eva:menu-fill" width="22"></iconify-icon>
+            <iconify-icon class="icon open" height="22" icon="mi:close" width="22"></iconify-icon>
+            <input type="checkbox" name="mobile-menu" />
+            <ul class="menu">
+                <li class="nav-header">Links</li>
+                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                </li>
+                <li class="nav-item"><a class="nav-link"
+                                        href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+                    Notes</a></li>
+                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                    Repository</a></li>
+                <li class="nav-header " id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link" > Style guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link" > Upgrade guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Recipes.html" class="nav-link" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header " id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link" > F#
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Multiple Times.html" class="nav-link" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.html" class="nav-link" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link" > Releases
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
+</a></li>
+
+</div>
+                <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link" > All Namespaces</a></li>
+
+</div>
+            </ul>
+        </div>
+        <a href="https://fsprojects.github.io/fantomas/">
+            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <strong>fantomas</strong>
+        </a>
+    </div>
+    <div class="end">
+        <a href="https://github.com/fsprojects/fantomas/" target="_blank">
+            <iconify-icon icon="uil:github" width="26" height="26"></iconify-icon>
+        </a>
+        <iconify-icon id="search-btn" icon="carbon:search" class="search" width="24" height="24"></iconify-icon>
+        <fsdocs-theme-toggle></fsdocs-theme-toggle>
+    </div>
+</header>
+<aside id="fsdocs-main-menu">
+    <ul class="menu">
+        <li class="nav-header">Links</li>
+        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        </li>
+        <li class="nav-item"><a class="nav-link"
+                                href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+            Notes</a></li>
+        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+            Repository</a></li>
+        <li class="nav-header " id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link" > Style guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link" > Upgrade guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Recipes.html" class="nav-link" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header " id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link" > F#
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Multiple Times.html" class="nav-link" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.html" class="nav-link" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link" > Releases
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
+</a></li>
+
+</div>
+        <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link" > All Namespaces</a></li>
+
+</div>
+    </ul>
+</aside>
+<main>
+    <div id="content">
+        <div>
+  <h2>
+    ILFieldInit Type
+  </h2>
+  <dl class="fsdocs-metadata">
+    <dt>
+      Namespace: 
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil.html">
+        Fantomas.FCS.AbstractIL
+      </a>
+    </dt>
+    <dt>
+      Assembly: Fantomas.FCS.dll
+    </dt>
+    <dt>
+      Parent Module: 
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il.html">
+        IL
+      </a>
+    </dt>
+    <dt>
+      Base Type: 
+      <code>obj</code>
+    </dt>
+    <dt>
+      All Interfaces: 
+      <code><a href="https://learn.microsoft.com/dotnet/api/system.collections.istructuralequatable">IStructuralEquatable</a></code>
+      , 
+      <code><span><a href="https://learn.microsoft.com/dotnet/api/system.icomparable-1">IComparable</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilfieldinit.html">ILFieldInit</a>&gt;</span></code>
+      , 
+      <code><a href="https://learn.microsoft.com/dotnet/api/system.icomparable">IComparable</a></code>
+      , 
+      <code><a href="https://learn.microsoft.com/dotnet/api/system.collections.istructuralcomparable">IStructuralComparable</a></code>
+    </dt>
+  </dl>
+  <div class="fsdocs-xmldoc">
+    <div>
+      <p class="fsdocs-summary">
+         Field Init
+      </p>
+    </div>
+  </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div>
+    <h3>
+      Union cases
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Union case
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7065', 7065)" onmouseover="showTip(event, '7065', 7065)">
+                <p>
+                  <a id="Bool">
+                    <a href="#Bool">
+                      <code><span>Bool&#32;bool</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7065">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Bool&#32;bool</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>bool</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7066', 7066)" onmouseover="showTip(event, '7066', 7066)">
+                <p>
+                  <a id="Char">
+                    <a href="#Char">
+                      <code><span>Char&#32;uint16</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7066">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Char&#32;uint16</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>uint16</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>uint16</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7067', 7067)" onmouseover="showTip(event, '7067', 7067)">
+                <p>
+                  <a id="Double">
+                    <a href="#Double">
+                      <code><span>Double&#32;double</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7067">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Double&#32;double</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>double</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>double</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7068', 7068)" onmouseover="showTip(event, '7068', 7068)">
+                <p>
+                  <a id="Int16">
+                    <a href="#Int16">
+                      <code><span>Int16&#32;int16</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7068">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Int16&#32;int16</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>int16</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>int16</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7069', 7069)" onmouseover="showTip(event, '7069', 7069)">
+                <p>
+                  <a id="Int32">
+                    <a href="#Int32">
+                      <code><span>Int32&#32;int32</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7069">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Int32&#32;int32</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>int32</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>int32</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7070', 7070)" onmouseover="showTip(event, '7070', 7070)">
+                <p>
+                  <a id="Int64">
+                    <a href="#Int64">
+                      <code><span>Int64&#32;int64</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7070">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Int64&#32;int64</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>int64</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>int64</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7071', 7071)" onmouseover="showTip(event, '7071', 7071)">
+                <p>
+                  <a id="Int8">
+                    <a href="#Int8">
+                      <code><span>Int8&#32;sbyte</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7071">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Int8&#32;sbyte</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>sbyte</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>sbyte</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7072', 7072)" onmouseover="showTip(event, '7072', 7072)">
+                <p>
+                  <a id="Null">
+                    <a href="#Null">
+                      <code><span>Null</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7072">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Null</span></code>
+                  <br/>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7073', 7073)" onmouseover="showTip(event, '7073', 7073)">
+                <p>
+                  <a id="Single">
+                    <a href="#Single">
+                      <code><span>Single&#32;single</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7073">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Single&#32;single</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>single</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>single</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7074', 7074)" onmouseover="showTip(event, '7074', 7074)">
+                <p>
+                  <a id="String">
+                    <a href="#String">
+                      <code><span>String&#32;string</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7074">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>String&#32;string</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7075', 7075)" onmouseover="showTip(event, '7075', 7075)">
+                <p>
+                  <a id="UInt16">
+                    <a href="#UInt16">
+                      <code><span>UInt16&#32;uint16</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7075">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>UInt16&#32;uint16</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>uint16</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>uint16</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7076', 7076)" onmouseover="showTip(event, '7076', 7076)">
+                <p>
+                  <a id="UInt32">
+                    <a href="#UInt32">
+                      <code><span>UInt32&#32;uint32</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7076">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>UInt32&#32;uint32</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>uint32</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>uint32</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7077', 7077)" onmouseover="showTip(event, '7077', 7077)">
+                <p>
+                  <a id="UInt64">
+                    <a href="#UInt64">
+                      <code><span>UInt64&#32;uint64</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7077">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>UInt64&#32;uint64</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>uint64</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>uint64</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7078', 7078)" onmouseover="showTip(event, '7078', 7078)">
+                <p>
+                  <a id="UInt8">
+                    <a href="#UInt8">
+                      <code><span>UInt8&#32;byte</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7078">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>UInt8&#32;byte</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code>byte</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code>byte</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div>
+    <h3>
+      Instance members
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Instance member
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7079', 7079)" onmouseover="showTip(event, '7079', 7079)">
+                <p>
+                  <a id="AsObject">
+                    <a href="#AsObject">
+                      <code><span>this.AsObject</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7079">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.AsObject</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>obj</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>obj</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7080', 7080)" onmouseover="showTip(event, '7080', 7080)">
+                <p>
+                  <a id="IsBool">
+                    <a href="#IsBool">
+                      <code><span>this.IsBool</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7080">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsBool</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7081', 7081)" onmouseover="showTip(event, '7081', 7081)">
+                <p>
+                  <a id="IsChar">
+                    <a href="#IsChar">
+                      <code><span>this.IsChar</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7081">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsChar</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7082', 7082)" onmouseover="showTip(event, '7082', 7082)">
+                <p>
+                  <a id="IsDouble">
+                    <a href="#IsDouble">
+                      <code><span>this.IsDouble</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7082">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsDouble</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7083', 7083)" onmouseover="showTip(event, '7083', 7083)">
+                <p>
+                  <a id="IsInt16">
+                    <a href="#IsInt16">
+                      <code><span>this.IsInt16</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7083">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsInt16</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7084', 7084)" onmouseover="showTip(event, '7084', 7084)">
+                <p>
+                  <a id="IsInt32">
+                    <a href="#IsInt32">
+                      <code><span>this.IsInt32</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7084">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsInt32</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7085', 7085)" onmouseover="showTip(event, '7085', 7085)">
+                <p>
+                  <a id="IsInt64">
+                    <a href="#IsInt64">
+                      <code><span>this.IsInt64</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7085">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsInt64</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7086', 7086)" onmouseover="showTip(event, '7086', 7086)">
+                <p>
+                  <a id="IsInt8">
+                    <a href="#IsInt8">
+                      <code><span>this.IsInt8</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7086">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsInt8</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7087', 7087)" onmouseover="showTip(event, '7087', 7087)">
+                <p>
+                  <a id="IsNull">
+                    <a href="#IsNull">
+                      <code><span>this.IsNull</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7087">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsNull</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7088', 7088)" onmouseover="showTip(event, '7088', 7088)">
+                <p>
+                  <a id="IsSingle">
+                    <a href="#IsSingle">
+                      <code><span>this.IsSingle</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7088">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsSingle</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7089', 7089)" onmouseover="showTip(event, '7089', 7089)">
+                <p>
+                  <a id="IsString">
+                    <a href="#IsString">
+                      <code><span>this.IsString</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7089">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsString</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7090', 7090)" onmouseover="showTip(event, '7090', 7090)">
+                <p>
+                  <a id="IsUInt16">
+                    <a href="#IsUInt16">
+                      <code><span>this.IsUInt16</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7090">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsUInt16</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7091', 7091)" onmouseover="showTip(event, '7091', 7091)">
+                <p>
+                  <a id="IsUInt32">
+                    <a href="#IsUInt32">
+                      <code><span>this.IsUInt32</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7091">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsUInt32</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7092', 7092)" onmouseover="showTip(event, '7092', 7092)">
+                <p>
+                  <a id="IsUInt64">
+                    <a href="#IsUInt64">
+                      <code><span>this.IsUInt64</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7092">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsUInt64</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7093', 7093)" onmouseover="showTip(event, '7093', 7093)">
+                <p>
+                  <a id="IsUInt8">
+                    <a href="#IsUInt8">
+                      <code><span>this.IsUInt8</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7093">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsUInt8</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div></div>
+</div>
+        
+    </div>
+</main>
+<aside id="fsdocs-page-menu">
+    <p id="on-this-page">On this page</p>
+    <div class="empty"></div>
+</aside>
+<dialog>
+    <input type="search" placeholder="Search docs" />
+    <div class="results">
+        <ul></ul>
+        <p class="empty">Type something to start searching.</p>
+    </div>
+</dialog>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-tips.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-toggle.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module">
+    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        themeVariables: {
+            primaryColor: '#338cbb',
+            primaryTextColor: '#FFF',
+            primaryBorderColor: '#5aacd6'
+        }
+    });
+
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
+</body>
+</html>
