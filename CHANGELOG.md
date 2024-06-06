@@ -1,9 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## 6.3.8 - 2024-06-06
 
 ### Fixed
-* Fix loss of tuple type annotation without parens. [#2942](https://github.com/fsprojects/fantomas/issues/2942)
+* Fix precedence change of `||>` due to inserted newline. [#2866](https://github.com/fsprojects/fantomas/issues/2866)
 
 ## 6.3.7 - 2024-06-01
 
