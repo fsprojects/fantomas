@@ -2163,7 +2163,7 @@ let genMultilineInfixExpr (node: ExprInfixAppNode) =
         match node.LeftHandSide with
         | IsIfThenElse _ when (ctx.Config.IndentSize - 1 <= node.Operator.Text.Length) ->
             autoParenthesisIfExpressionExceedsPageWidth (genExpr node.LeftHandSide) ctx
-        | Expr.Match _ when (ctx.Config.IndentSize <= node.Operator.Text.Length) ->
+        | Expr.Match _ when (ctx.Config.IndentSize - 1 <= node.Operator.Text.Length) ->
             let ctxAfterMatch = genExpr node.LeftHandSide ctx
 
             let lastClauseIsSingleLine =

@@ -2286,3 +2286,26 @@ match synExpr with
     ) -> Some ident.idRange
 | _ -> defaultTraverse synExpr
 """
+
+[<Test>]
+let ``insertion of a newline changes precedence of the ||> operator, 2866`` () =
+    formatSourceString
+        """
+let value =
+    match "string" with
+    | "value" -> "1", "2"
+    | _ -> "111111111111111111111111111111111111111111111111111111111111111111111", "22222222222222222222222222222222222"
+    ||> createTuple
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let value =
+    (match "string" with
+     | "value" -> "1", "2"
+     | _ ->
+         "111111111111111111111111111111111111111111111111111111111111111111111", "22222222222222222222222222222222222")
+    ||> createTuple
+"""
