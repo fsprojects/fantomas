@@ -76,3 +76,52 @@ let ``preserve back ticks from checked keyword, 937`` () =
         """
 let toggle = unbox<bool> (e.target?``checked``)
 """
+
+[<Test>]
+let ``case determination issue with ExprAppSingleParenArgNode, 3088`` () =
+    formatSourceString
+        """
+let doc = x?a("")?b(t)?b(t)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let doc = x?a ("")?b (t)?b (t)
+"""
+
+[<Test>]
+let ``case determination issue with ExprAppSingleParenArgNode uppercase with config lower, 3088`` () =
+    // We want to disobey SpaceBefore(Upper|Lower)caseInvocation inside of the ? chain because mixing it up can generate invalid code like x?a("arg")?B ("barg")?c("carg")
+    // The space config that is used (Upper or Lower) depends on the case of the dynamic object, here x
+    formatSourceString
+        """
+let doc1 = x?a("arg")?B("barg")?c("carg")
+let doc2 = X?a("arg")?B("barg")?c("carg")
+"""
+        { config with
+            SpaceBeforeLowercaseInvocation = false
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let doc1 = x?a("arg")?B("barg")?c("carg")
+let doc2 = X?a ("arg")?B ("barg")?c ("carg")
+"""
+
+[<Test>]
+let ``case determination issue with ExprParenNode uppercase with config lower, 2998`` () =
+    formatSourceString
+        """
+let statusBarHeight = (window?getComputedStyle document.documentElement)?getPropertyValue "--statusBarHeight"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let statusBarHeight =
+    (window?getComputedStyle document.documentElement)?getPropertyValue "--statusBarHeight"
+"""

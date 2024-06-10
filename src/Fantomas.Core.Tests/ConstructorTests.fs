@@ -202,3 +202,38 @@ type CreateBuildingViewModel =
 
         then vm.program <- p
 """
+
+[<Test>]
+let ``invalid location of comma when using named parameters for a class, 2865`` () =
+    formatSourceString
+        """
+let instance =
+    MyClass(
+        Prop =
+            match value.SomeValue with
+            | Some _ -> 0.0m
+            | None -> 0.0m
+        ,
+        Prop2 =
+            match value.SomeValue with
+            | Some _ -> 0.0m
+            | None -> 0.0m
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let instance =
+    MyClass(
+        Prop =
+            match value.SomeValue with
+            | Some _ -> 0.0m
+            | None -> 0.0m
+        , Prop2 =
+            match value.SomeValue with
+            | Some _ -> 0.0m
+            | None -> 0.0m
+    )
+"""
