@@ -196,8 +196,12 @@ let addSpaceBeforeParenInPattern (node: IdentListNode) (ctx: Context) =
         | _ -> sepSpace ctx
 
 let genParsedHashDirective (phd: ParsedHashDirectiveNode) =
-    !- "#" +> !-phd.Ident +> sepSpace +> col sepSpace phd.Args genSingleTextNode
-    |> genNode phd
+    let genArg =
+        function
+        | Choice1Of2(stn) -> genSingleTextNode stn
+        | Choice2Of2(idl) -> genIdentListNode idl
+
+    !- "#" +> !-phd.Ident +> sepSpace +> col sepSpace phd.Args genArg |> genNode phd
 
 let genUnit (n: UnitNode) =
     genSingleTextNode n.OpeningParen +> genSingleTextNode n.ClosingParen

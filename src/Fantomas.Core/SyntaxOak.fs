@@ -146,11 +146,16 @@ type Oak(parsedHashDirectives: ParsedHashDirectiveNode list, modulesOrNamespaces
 
     override val Children: Node array = [| yield! nodes parsedHashDirectives; yield! nodes modulesOrNamespaces |]
 
-type ParsedHashDirectiveNode(ident: string, args: SingleTextNode list, range) =
+type ParsedHashDirectiveNode(ident: string, args: Choice<SingleTextNode, IdentListNode> list, range) =
     inherit NodeBase(range)
     member val Ident = ident
     member val Args = args
-    override val Children: Node array = [| yield! nodes args |]
+
+    override val Children: Node array =
+        [| for arg in args do
+               match arg with
+               | Choice1Of2(node) -> node
+               | Choice2Of2(node) -> node |]
 
 type ModuleOrNamespaceHeaderNode
     (
