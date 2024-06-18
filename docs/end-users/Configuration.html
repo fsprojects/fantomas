@@ -292,7 +292,7 @@ These can be stored in an <a href="https://editorconfig.org/">.editorconfig</a> 
 commandline.<br />
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.</p>
-<table class="pre"><tr><td><pre><code>version: 6.3.9+6b1ce0356162579a179ca6ff5a088538686442a1</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 6.3.9+09635e55f71fc834c4ac2c33381a80f349f472c4</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -1483,9 +1483,7 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
   | CharacterWidth
   | NumberOfItems
   static member OfConfigString: cfgString: string -&gt; MultilineFormatterType option
-  static member ToConfigString: cfg: MultilineFormatterType -&gt; string
-  member IsCharacterWidth: bool
-  member IsNumberOfItems: bool</div>
+  static member ToConfigString: cfg: MultilineFormatterType -&gt; string</div>
 <div class="fsdocs-tip" id="fs59">static member MultilineFormatterType.ToConfigString: cfg: MultilineFormatterType -&gt; string</div>
 <div class="fsdocs-tip" id="fs60">FormatConfig.MaxArrayOrListWidth: Num</div>
 <div class="fsdocs-tip" id="fs61">FormatConfig.MaxArrayOrListNumberOfItems: Num</div>
@@ -1499,10 +1497,7 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
   | Aligned
   | Stroustrup
   static member OfConfigString: cfgString: string -&gt; MultilineBracketStyle option
-  static member ToConfigString: cfg: MultilineBracketStyle -&gt; string
-  member IsAligned: bool
-  member IsCramped: bool
-  member IsStroustrup: bool</div>
+  static member ToConfigString: cfg: MultilineBracketStyle -&gt; string</div>
 <div class="fsdocs-tip" id="fs68">static member MultilineBracketStyle.ToConfigString: cfg: MultilineBracketStyle -&gt; string</div>
 <div class="fsdocs-tip" id="fs69">FormatConfig.NewlineBeforeMultilineComputationExpression: bool</div>
 <div class="fsdocs-tip" id="fs70">FormatConfig.NewlineBetweenTypeDefinitionAndMembers: bool</div>
