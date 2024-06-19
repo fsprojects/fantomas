@@ -507,7 +507,7 @@ fsharp_multiline_bracket_style = cramped
     Assert.That(config.MultilineBracketStyle, Is.EqualTo Cramped)
 
 [<Test>]
-let fsharp_prefer_computation_expression_name_on_same_line () =
+let fsharp_newline_before_multiline_computation_expression () =
     let rootDir = tempName ()
 
     let editorConfig =
@@ -526,7 +526,7 @@ fsharp_newline_before_multiline_computation_expression = false
     Assert.That(config.NewlineBeforeMultilineComputationExpression, Is.False)
 
 [<Test>]
-let fsharp_stroustrup_final_list_arguments () =
+let fsharp_experimental_elmish () =
     let rootDir = tempName ()
 
     let editorConfig =
@@ -543,3 +543,22 @@ fsharp_experimental_elmish = true
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.That(config.ExperimentalElmish, Is.True)
+
+[<Test>]
+let fsharp_experimental_double_indent_parameters () =
+    let rootDir = tempName ()
+
+    let editorConfig =
+        """
+[*.fs]
+fsharp_experimental_double_indent_parameters = true
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
+
+    use fsharpFile = new FSharpFile(rootDir)
+
+    let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    Assert.That(config.ExperimentalDoubleIndentParameters, Is.True)
