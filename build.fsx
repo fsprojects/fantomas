@@ -442,12 +442,16 @@ pipeline "Release" {
                         |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
                         |> Seq.toArray
 
+                    let aotCompiledExecutableFiles =
+                        [ "fantomas"; "fantomas.dbg" ]
+                        |> List.map (fun file -> $"artifacts/publish/Fantomas/release_linux-x64/%s{file}")
+
                     let! nugetExitCodes = nugetPackages |> Array.map pushPackage |> Async.Sequential
 
                     let notes = getReleaseNotes currentRelease lastRelease
                     let noteFile = Path.GetTempFileName()
                     File.WriteAllText(noteFile, notes)
-                    let files = nugetPackages |> String.concat " "
+                    let files = [ yield! nugetPackages; yield! aotCompiledExecutableFiles ] |> String.concat " "
 
                     // We create a draft release for minor and majors. Those that requires a manual publish.
                     // This is to allow us to add additional release notes when it makes sense.
