@@ -6,8 +6,6 @@ open Fantomas.Daemon
 open Fantomas.Logging
 open System.Text
 open Spectre.Console
-open Fargo
-open Fargo.Operators
 
 let extensions = set [ ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" ]
 
@@ -38,109 +36,99 @@ type Args =
       Verbosity: string option
       Input: InputPath }
 
-let parseVerbosity =
-    function
-    | "normal"
-    | "n" -> Ok "normal"
-    | "detailed"
-    | "d" -> Ok "detailed"
-    | v -> Error $"Unknown verbosity {v}"
+module Args =
 
-let verbosityCompleter = Completer.choices [ "normal"; "detailed"; "n"; "d" ]
+    open Fargo
 
-let many (arg: Arg<'t>) =
-    let rec findAll tokens result usages =
-        match tokens with
-        | [] -> Ok(List.rev result), [], usages
-        | _ ->
-            match arg.Parse(tokens) with
-            | Ok v, tokens, us -> findAll tokens (v :: result) (Usages.merge usages us)
-            | Error e, tokens, us -> Error e, tokens, us
+    let parseVerbosity =
+        function
+        | "normal"
+        | "n" -> Ok "normal"
+        | "detailed"
+        | "d" -> Ok "detailed"
+        | v -> Error $"Unknown verbosity {v}"
 
-    { Parse = fun tokens -> findAll tokens [] Usages.empty
-      Complete =
-        fun i tokens ->
-            match arg.Complete i tokens with
-            | [ x ], b -> [ $"{x}..." ], b
-            | r -> r }
+    let verbosityCompleter = Completer.choices [ "normal"; "detailed"; "n"; "d" ]
 
-let pOut =
-    opt "out" "o" "<path>" "Output path for files/folders"
-    |> map (function
-        | None -> OutputPath.NotKnown
-        | Some path -> OutputPath.IO path)
+    // Taken from https://github.com/thinkbeforecoding/Fargo/issues/6
+    let many (arg: Arg<'t>) =
+        let rec findAll tokens result usages =
+            match tokens with
+            | [] -> Ok(List.rev result), [], usages
+            | _ ->
+                match arg.Parse(tokens) with
+                | Ok v, tokens, us -> findAll tokens (v :: result) (Usages.merge usages us)
+                | Error e, tokens, us -> Error e, tokens, us
 
-let pVerbosity =
-    optc "verbosity" "v" "normal|detailed" "Set the verbosity level" verbosityCompleter
-    |> optParse parseVerbosity
+        { Parse = fun tokens -> findAll tokens [] Usages.empty
+          Complete =
+            fun i tokens ->
+                match arg.Complete i tokens with
+                | [ x ], b -> [ $"%s{x}..." ], b
+                | r -> r }
 
-let pInput =
-    arg "input" "Input files or folders"
-    |> many
-    |> map (List.choose id)
-    |> map (function
-        | [] -> InputPath.Unspecified
-        | [ input ] ->
-            if Directory.Exists(input) then
-                InputPath.Folder input
-            elif File.Exists input && isFSharpFile input then
-                InputPath.File input
-            elif File.Exists input then
-                InputPath.NoFSharpFile input
+    let pOut =
+        opt "out" "o" "path" "Output path for files/folders"
+        |> map (function
+            | None -> OutputPath.NotKnown
+            | Some path -> OutputPath.IO path)
+
+    let pVerbosity =
+        optc "verbosity" "v" "normal|detailed" "Set the verbosity level" verbosityCompleter
+        |> optParse parseVerbosity
+
+    let pInput =
+        arg "input" "Input files or folders"
+        |> reqArg
+        |> parse (fun arg ->
+            if arg.StartsWith "--" then
+                Error "Not a positional input arg"
             else
-                InputPath.NotFound input
-        | inputs ->
-            let missing =
-                inputs |> List.tryFind (fun x -> not (Directory.Exists(x) || File.Exists(x)))
+                Ok arg)
+        |> many
+        |> map (function
+            | [] -> InputPath.Unspecified
+            | [ input ] ->
+                if Directory.Exists(input) then
+                    InputPath.Folder input
+                elif File.Exists input && isFSharpFile input then
+                    InputPath.File input
+                elif File.Exists input then
+                    InputPath.NoFSharpFile input
+                else
+                    InputPath.NotFound input
+            | inputs ->
+                let missing =
+                    inputs |> List.tryFind (fun x -> not (Directory.Exists(x) || File.Exists(x)))
 
-            match missing with
-            | Some x -> InputPath.NotFound x
-            | None ->
-                let isFolder (path: string) =
-                    String.IsNullOrWhiteSpace(Path.GetExtension(path))
+                match missing with
+                | Some x -> InputPath.NotFound x
+                | None ->
+                    let isFolder (path: string) =
+                        String.IsNullOrWhiteSpace(Path.GetExtension(path))
 
-                let rec loop
-                    (files: string list)
-                    (finalContinuation: string list * string list -> string list * string list)
-                    =
-                    match files with
-                    | [] -> finalContinuation ([], [])
-                    | h :: rest ->
-                        loop rest (fun (files, folders) ->
-                            if isFolder h then
-                                files, (h :: folders)
-                            else
-                                (h :: files), folders
-                            |> finalContinuation)
+                    let rec loop
+                        (files: string list)
+                        (finalContinuation: string list * string list -> string list * string list)
+                        =
+                        match files with
+                        | [] -> finalContinuation ([], [])
+                        | h :: rest ->
+                            loop rest (fun (files, folders) ->
+                                if isFolder h then
+                                    files, (h :: folders)
+                                else
+                                    (h :: files), folders
+                                |> finalContinuation)
 
-                let filesAndFolders = loop inputs id
-                InputPath.Multiple filesAndFolders)
+                    let filesAndFolders = loop inputs id
+                    InputPath.Multiple filesAndFolders)
 
-let args =
-    fargo {
-        let! force = flag "force" "f" "Print the output even if it is not valid F# code. For debugging purposes only."
-        and! profile = flag "profile" "p" "Print performance profiling information."
-        and! out = pOut
+    // Applicative builders with more than 5 bindings break under AOT: https://github.com/dotnet/fsharp/issues/15488
+    let (<~|) a b = Fargo.map2 (<|) a b
 
-        and! check =
-            flag
-                "check"
-                "c"
-                "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
-
-        // Applicative builders with more than 5 bindings break under AOT: https://github.com/dotnet/fsharp/issues/15488
-        let! (daemon, version, verbosity, input) =
-            fargo {
-                let! daemon =
-                    flag "daemon" "d" "Daemon mode, launches an LSP-like server that can be used by editor tooling."
-
-                and! version = flag "version" "v" "Displays the version of Fantomas"
-                and! verbosity = pVerbosity
-                and! input = pInput
-                return (daemon, version, verbosity, input)
-            }
-
-        return
+    let args =
+        ret (fun force profile out check daemon version verbosity input ->
             { Force = force
               Profile = profile
               Out = out
@@ -148,8 +136,18 @@ let args =
               Daemon = daemon
               Version = version
               Verbosity = verbosity
-              Input = input }
-    }
+              Input = input })
+        <~| flag "force" "f" "Print the output even if it is not valid F# code. For debugging purposes only."
+        <~| flag "profile" "p" "Print performance profiling information."
+        <~| pOut
+        <~| flag
+                "check"
+                "c"
+                "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
+        <~| flag "daemon" "d" "Daemon mode, launches an LSP-like server that can be used by editor tooling."
+        <~| flag "version" "v" "Displays the version of Fantomas"
+        <~| pVerbosity
+        <~| pInput
 
 type Table with
 
@@ -299,7 +297,17 @@ let runCheckCommand (inputPath: InputPath) : int =
 
 [<EntryPoint>]
 let main argv =
-    run "fantomas" args argv (fun _ctok args ->
+    if Array.contains "--help" argv then
+        // As of 2024-07-08, Fargo does not support any application-level help text or docs for positional arguments. Hardcode it here.
+        printfn
+            """Learn more about Fantomas:       https://fsprojects.github.io/fantomas/docs
+Join our Discord community:      https://discord.gg/Cpq9vf8BJH
+
+INPUT:
+    <string>...           Input paths: can be multiple folders or files with *.fs,*.fsi,*.fsx,*.ml,*.mli extension.
+        """
+
+    Fargo.Run.run "fantomas" Args.args argv (fun _ctok args ->
 
         //     let errorHandler =
         //         ProcessExiter(
@@ -307,18 +315,6 @@ let main argv =
         //                 function
         //                 | ErrorCode.HelpText -> None
         //                 | _ -> Some ConsoleColor.Red
-        //         )
-
-        //     let helpTextMessage =
-        //         """Learn more about Fantomas:       https://fsprojects.github.io/fantomas/docs
-        // Join our Discord community:      https://discord.gg/Cpq9vf8BJH
-        // """
-
-        //     let parser =
-        //         ArgumentParser.Create<Arguments>(
-        //             programName = "dotnet fantomas",
-        //             errorHandler = errorHandler,
-        //             helpTextMessage = helpTextMessage
         //         )
 
         let outputPath = args.Out
