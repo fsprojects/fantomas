@@ -61,7 +61,7 @@ pipeline "Build" {
     stage "Build" { run "dotnet build -c Release --tl" }
     stage "UnitTests" { run "dotnet test -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
-    stage "Publish" { run "dotnet publish --no-restore -r linux-x64 -c Release" }
+    stage "PublishAOT" { run "dotnet publish src/Fantomas/Fantomas.fsproj -r linux-x64 -c Release -p:DoPublishAot=yes --tl" }
     stage "Docs" {
         whenNot { platformOSX }
         envVars
