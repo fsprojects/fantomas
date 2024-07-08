@@ -100,8 +100,13 @@ let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(iden
         args
         |> List.map (function
             | ParsedHashDirectiveArgument.String(value, stringKind, range) ->
-                mkConstString creationAide stringKind value range
-            | ParsedHashDirectiveArgument.SourceIdentifier(identifier, _, range) -> stn identifier range)
+                mkConstString creationAide stringKind value range |> Choice1Of2
+            | ParsedHashDirectiveArgument.SourceIdentifier(identifier, _, range) -> stn identifier range |> Choice1Of2
+            | ParsedHashDirectiveArgument.Int32(value, range) ->
+                let text = creationAide.TextFromSource (fun () -> $"%A{value}") range
+                stn text range |> Choice1Of2
+            | ParsedHashDirectiveArgument.Ident(value = ident) -> mkIdent ident |> Choice1Of2
+            | ParsedHashDirectiveArgument.LongIdent(value = lid) -> mkSynLongIdent lid |> Choice2Of2)
 
     ParsedHashDirectiveNode(ident, args, range)
 

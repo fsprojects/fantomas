@@ -219,3 +219,45 @@ type FSharpTokenizerColorState =
     | TripleQuoteStringInComment = 14
     | InitialState = 0
 """
+
+[<Test>]
+let ``#help with string`` () =
+    formatSourceString
+        """
+#help  "List.map"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#help "List.map"
+"""
+
+[<Test>]
+let ``#help without string`` () =
+    formatSourceString
+        """
+#help  List.map
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#help List.map
+"""
+
+[<Test>]
+let ``#nowarn with integer`` () =
+    formatSourceString
+        """
+#nowarn  1182
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#nowarn 1182
+"""
