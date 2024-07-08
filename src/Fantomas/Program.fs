@@ -124,30 +124,42 @@ module Args =
                     let filesAndFolders = loop inputs id
                     InputPath.Multiple filesAndFolders)
 
-    // Applicative builders with more than 5 bindings break under AOT: https://github.com/dotnet/fsharp/issues/15488
-    let (<~|) a b = Fargo.map2 (<|) a b
-
     let args =
-        ret (fun force profile out check daemon version verbosity input ->
-            { Force = force
-              Profile = profile
-              Out = out
-              Check = check
-              Daemon = daemon
-              Version = version
-              Verbosity = verbosity
-              Input = input })
-        <~| flag "force" "f" "Print the output even if it is not valid F# code. For debugging purposes only."
-        <~| flag "profile" "p" "Print performance profiling information."
-        <~| pOut
-        <~| flag
-                "check"
-                "c"
-                "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
-        <~| flag "daemon" "d" "Daemon mode, launches an LSP-like server that can be used by editor tooling."
-        <~| flag "version" "v" "Displays the version of Fantomas"
-        <~| pVerbosity
-        <~| pInput
+        fargo {
+            let! force =
+                flag "force" "f" "Print the output even if it is not valid F# code. For debugging purposes only."
+
+            and! profile = flag "profile" "p" "Print performance profiling information."
+            and! out = pOut
+
+            and! check =
+                flag
+                    "check"
+                    "c"
+                    "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
+
+            // Applicative builders with more than 5 bindings break under AOT: https://github.com/dotnet/fsharp/issues/15488
+            and! (daemon, version, verbosity, input) =
+                fargo {
+                    let! daemon =
+                        flag "daemon" "d" "Daemon mode, launches an LSP-like server that can be used by editor tooling."
+
+                    and! version = flag "version" "v" "Displays the version of Fantomas"
+                    and! verbosity = pVerbosity
+                    and! input = pInput
+                    return (daemon, version, verbosity, input)
+                }
+
+            return
+                { Force = force
+                  Profile = profile
+                  Out = out
+                  Check = check
+                  Daemon = daemon
+                  Version = version
+                  Verbosity = verbosity
+                  Input = input }
+        }
 
 type Table with
 
