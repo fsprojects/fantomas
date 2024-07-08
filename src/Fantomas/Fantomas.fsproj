@@ -12,7 +12,6 @@
     <IsPackable>true</IsPackable>
     <RootNamespace>Fantomas</RootNamespace>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
-    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
     <PublishAot>true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
