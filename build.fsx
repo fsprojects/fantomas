@@ -451,7 +451,8 @@ pipeline "Release" {
                     let notes = getReleaseNotes currentRelease lastRelease
                     let noteFile = Path.GetTempFileName()
                     File.WriteAllText(noteFile, notes)
-                    let files = [ yield! nugetPackages; yield! aotCompiledExecutableFiles ] |> String.concat " "
+                    let files =
+                        [ yield! nugetPackages; yield! aotCompiledExecutableFiles ] |> String.concat " "
 
                     // We create a draft release for minor and majors. Those that requires a manual publish.
                     // This is to allow us to add additional release notes when it makes sense.

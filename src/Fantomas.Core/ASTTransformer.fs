@@ -135,8 +135,7 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
     | SynConst.UInt64 v -> orElse (v.ToString() + "uL")
     | SynConst.Double v -> orElse (v.ToString("r"))
     | SynConst.Single v -> orElse (v.ToString("r") + "f")
-    | SynConst.Decimal v ->
-        orElse (sprintf "%sM" (v.ToString()))
+    | SynConst.Decimal v -> orElse (sprintf "%sM" (v.ToString()))
     | SynConst.IntPtr v -> orElse (v.ToString() + "n")
     | SynConst.UIntPtr v -> orElse (v.ToString() + "un")
     | SynConst.UserNum(v, s) ->
