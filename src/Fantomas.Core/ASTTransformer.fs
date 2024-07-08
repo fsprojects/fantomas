@@ -123,6 +123,7 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
     | SynConst.Int32 v -> orElse (v.ToString())
     | SynConst.Int64 v -> orElse (v.ToString() + "L")
     | SynConst.UInt16 v -> orElse (v.ToString() + "us")
+    // This formatting is likely imperfect, but SynConst.UInt16s is only used internally to the F# compiler.
     | SynConst.UInt16s v ->
         orElse (
             v
