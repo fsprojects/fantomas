@@ -132,12 +132,10 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
         )
     | SynConst.UInt32 v -> orElse (v.ToString() + "u")
     | SynConst.UInt64 v -> orElse (v.ToString() + "uL")
-    | SynConst.Double v -> orElse (v.ToString())
-    | SynConst.Single v -> orElse (v.ToString() + "f")
+    | SynConst.Double v -> orElse (v.ToString("r"))
+    | SynConst.Single v -> orElse (v.ToString("r") + "f")
     | SynConst.Decimal v ->
-        let bits = System.Decimal.GetBits(v)
-        let scale = (bits[3] >>> 16) &&& 0x7F
-        orElse (sprintf "%sM {Scale = %suy}" (v.ToString()) (scale.ToString()))
+        orElse (sprintf "%sM" (v.ToString()))
     | SynConst.IntPtr v -> orElse (v.ToString() + "n")
     | SynConst.UIntPtr v -> orElse (v.ToString() + "un")
     | SynConst.UserNum(v, s) ->
