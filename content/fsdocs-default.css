@@ -15,7 +15,7 @@
     --spacing-900: 128px;
     --spacing-950: 192px;
 
-    --font-50: 12x;
+    --font-50: 12px;
     --font-100: 14px;
     --font-200: 16px;
     --font-300: 18px;
@@ -47,6 +47,8 @@
     --main-grid-row: 2;
     --main-grid-column: 2;
     --dialog-width: 500px;
+    --api-docs-first-column-min-width: 320px;
+    --api-docs-second-column-min-width: 240px;
 
     /* light theme */
     --primary: #1e8bc3;
@@ -725,6 +727,10 @@ code, table.pre, pre {
     -webkit-text-size-adjust: 100%;
 }
 
+h1 code, h2 code, h3 code, h4 code, h5 code, h6 code {
+    font-size: inherit;
+}
+
 table.pre, #content > pre.fssnip {
     border: 1px solid var(--code-fence-border-color);
 }
@@ -994,6 +1000,13 @@ span[onmouseout] {
     margin-top: 0;
 }
 
+.fsdocs-member-list-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
 .fsdocs-xmldoc {
     & pre {
         overflow-x: auto;
@@ -1009,37 +1022,40 @@ span[onmouseout] {
         padding: var(--spacing-400) 0;
     }
 
-    & tbody td {
-        border-top: 1px solid var(--header-border);
-        padding: var(--spacing-300) 0;
-        padding-right: var(--spacing-300);
+    & tr {
+        display: flex;
+        flex-flow: row wrap;
+        column-gap: var(--spacing-300);
 
-        &:first-child a {
+        & td:first-of-type {
+            flex: 25 0 0;
+            min-width: var(--api-docs-first-column-min-width);
             overflow-x: hidden;
             text-overflow: ellipsis;
-            width: 100%;
-            display: block;
+            overflow-wrap: break-word;
+
+            & p {
+                margin: unset;
+            }
         }
 
-        &:last-child {
-            padding-right: 0;
+        & td:nth-of-type(2) {
+            flex: 75 0 0;
+            min-width: var(--api-docs-second-column-min-width);
         }
     }
 
-    & thead tr td:first-child, & td.fsdocs-entity-name, & td.fsdocs-member-usage {
-        width: 25%;
-
-        & p {
-            margin: 0;
-        }
+    & tbody td {
+        border-top: 1px solid var(--header-border);
+        padding: var(--spacing-300) 0;
     }
 
     .fsdocs-entity-xmldoc {
         > div {
             display: flex;
-            flex-direction: row-reverse;
-            justify-content: flex-start;
-            align-items: center;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
 
             & p.fsdocs-summary {
                 margin: 0;
@@ -1055,14 +1071,56 @@ span[onmouseout] {
         }
     }
 
+    .fsdocs-summary-contents {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .fsdocs-member-xmldoc-column {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+
+        > * {
+            margin: var(--spacing-200) 0 var(--spacing-200) var(--spacing-300);
+
+            &:first-child:is(.icon-button-row) {
+                margin-block: 0;
+            }
+
+            &:nth-child(2) {
+                margin-top: 0;
+            }
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    .icon-button-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: flex-start;
+        height: calc(-1 * var(--spacing-200));
+    }
+
     .fsdocs-member-xmldoc {
         & summary {
-            list-style: none;
+            display: list-item;
+            counter-increment: list-item 0;
+            list-style: disclosure-closed outside;
+            cursor: pointer;
 
             > .fsdocs-summary {
                 display: flex;
-                align-items: center;
-                flex-direction: row-reverse;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-start;
 
                 & p.fsdocs-summary {
                     margin: 0;
@@ -1076,23 +1134,19 @@ span[onmouseout] {
                     overflow-x: auto;
                 }
             }
-
-            &::after {
-                content: '▶';
-                cursor: pointer;
-            }
         }
 
         & details[open] summary {
+            list-style-type: disclosure-open;
             margin-bottom: var(--spacing-200);
         }
 
-        & details[open] summary::after {
-            content: "▼";
-        }
+        & details > * {
+            margin: var(--spacing-200) 0 var(--spacing-200) var(--spacing-300);
 
-        .fsdocs-returns, .fsdocs-params {
-            margin: var(--spacing-200) 0;
+            &:is(summary) {
+                margin-block: 0;
+            }
 
             &:first-child {
                 margin-top: 0;
@@ -1107,19 +1161,22 @@ span[onmouseout] {
             font-weight: 500;
         }
 
-        /* hide the browser mark and display one after the summary */
+        .fsdocs-param-docs p {
+            margin: var(--spacing-200) 0;
+        }
 
-        & ::marker {
-            display: none;
+        .fsdocs-example-header {
+            font-size: var(--font-200);
         }
 
         > div.fsdocs-summary {
             display: flex;
-            flex-direction: row-reverse;
+            flex-direction: row;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+                margin: 0 0 0 var(--spacing-300);
 
-            > p {
+            & p {
                 margin: 0;
             }
         }

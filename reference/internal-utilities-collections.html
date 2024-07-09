@@ -22,6 +22,7 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <link href="https://fsprojects.github.io/fantomas/images/favicon.ico" rel="icon" sizes="32x32" type="image/png"/>
     <script type="application/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-set-dark.js"></script>
+    <script type="application/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-set-expanded.js"></script>
     <link href="https://fsprojects.github.io/fantomas/content/fsdocs-default.css" rel="stylesheet" type="text/css"/>
     <link href="https://fsprojects.github.io/fantomas/content/fsdocs-theme.css" rel="stylesheet" type="text/css"/>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
@@ -310,20 +311,22 @@
         </td>
         <td class="fsdocs-entity-xmldoc">
           <div>
-            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Collections.AgedLookup`3``')">
-              <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
-            </div>
-            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.AgedLookup`3\'/>')">
-              <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
-            </div>
-            <a href="" class="fsdocs-source-link" title="Source on GitHub">
-              <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-            </a>
             <pre> Simple aging lookup table. When a member is accessed it's
  moved to the top of the list and when there are too many elements
  the least-recently-accessed element falls of the end.
 
   - areSimilar: Keep at most once association for two similar keys (as given by areSimilar)</pre>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.AgedLookup`3\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Collections.AgedLookup`3``')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
+            </div>
           </div>
         </td>
       </tr>
@@ -339,19 +342,23 @@
         </td>
         <td class="fsdocs-entity-xmldoc">
           <div>
-            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Collections.HashMultiMap`2``')">
-              <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
-            </div>
-            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.HashMultiMap`2\'/>')">
-              <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
-            </div>
-            <a href="" class="fsdocs-source-link" title="Source on GitHub">
-              <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-            </a>
-            <p class="fsdocs-summary">
-               Hash tables, by default based on F# structural "hash" and (=) functions.
+            <div class="fsdocs-summary-contents">
+              <p class="fsdocs-summary">
+                 Hash tables, by default based on F# structural "hash" and (=) functions.
  The table may map a single key to multiple bindings.
-            </p>
+              </p>
+            </div>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.HashMultiMap`2\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Collections.HashMultiMap`2``')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
+            </div>
           </div>
         </td>
       </tr>
@@ -367,15 +374,6 @@
         </td>
         <td class="fsdocs-entity-xmldoc">
           <div>
-            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Collections.MruCache`3``')">
-              <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
-            </div>
-            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.MruCache`3\'/>')">
-              <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
-            </div>
-            <a href="" class="fsdocs-source-link" title="Source on GitHub">
-              <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-            </a>
             <pre> Simple priority caching for a small number of key/value associations.
  This cache may age-out results that have been Set by the caller.
  Because of this, the caller must be able to tolerate values
@@ -385,6 +383,17 @@
  threads seeing different live sets of cached items.
 
   - areSimilar: Keep at most once association for two similar keys (as given by areSimilar)</pre>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.MruCache`3\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Collections.MruCache`3``')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
+            </div>
           </div>
         </td>
       </tr>
@@ -400,18 +409,22 @@
         </td>
         <td class="fsdocs-entity-xmldoc">
           <div>
-            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Collections.Zmap`')">
-              <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+            <div class="fsdocs-summary-contents">
+              <p class="fsdocs-summary">
+                
+              </p>
             </div>
-            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.Zmap\'/>')">
-              <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.Zmap\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Collections.Zmap`')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
             </div>
-            <a href="" class="fsdocs-source-link" title="Source on GitHub">
-              <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-            </a>
-            <p class="fsdocs-summary">
-              
-            </p>
           </div>
         </td>
       </tr>
@@ -427,18 +440,22 @@
         </td>
         <td class="fsdocs-entity-xmldoc">
           <div>
-            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Collections.Zmap`2``')">
-              <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+            <div class="fsdocs-summary-contents">
+              <p class="fsdocs-summary">
+                 Maps with a specific comparison function
+              </p>
             </div>
-            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.Zmap`2\'/>')">
-              <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.Zmap`2\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Collections.Zmap`2``')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
             </div>
-            <a href="" class="fsdocs-source-link" title="Source on GitHub">
-              <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-            </a>
-            <p class="fsdocs-summary">
-               Maps with a specific comparison function
-            </p>
           </div>
         </td>
       </tr>
@@ -454,18 +471,22 @@
         </td>
         <td class="fsdocs-entity-xmldoc">
           <div>
-            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Collections.Zset`')">
-              <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+            <div class="fsdocs-summary-contents">
+              <p class="fsdocs-summary">
+                
+              </p>
             </div>
-            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.Zset\'/>')">
-              <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.Zset\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Collections.Zset`')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
             </div>
-            <a href="" class="fsdocs-source-link" title="Source on GitHub">
-              <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-            </a>
-            <p class="fsdocs-summary">
-              
-            </p>
           </div>
         </td>
       </tr>
@@ -481,18 +502,22 @@
         </td>
         <td class="fsdocs-entity-xmldoc">
           <div>
-            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Collections.Zset`1``')">
-              <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+            <div class="fsdocs-summary-contents">
+              <p class="fsdocs-summary">
+                 Sets with a specific comparison function
+              </p>
             </div>
-            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.Zset`1\'/>')">
-              <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Collections.Zset`1\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Collections.Zset`1``')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
             </div>
-            <a href="" class="fsdocs-source-link" title="Source on GitHub">
-              <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-            </a>
-            <p class="fsdocs-summary">
-               Sets with a specific comparison function
-            </p>
           </div>
         </td>
       </tr>
@@ -515,6 +540,7 @@
 </dialog>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-tips.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-toggle.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
 <script type="module">
