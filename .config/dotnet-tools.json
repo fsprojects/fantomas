@@ -6,25 +6,29 @@
       "version": "0.19.2",
       "commands": [
         "dotnet-fsharplint"
-      ]
+      ],
+      "rollForward": false
     },
     "fantomas": {
-      "version": "6.3.0",
+      "version": "6.3.9",
       "commands": [
         "fantomas"
-      ]
+      ],
+      "rollForward": false
     },
     "fsdocs-tool": {
-      "version": "20.0.0",
+      "version": "21.0.0-beta-002",
       "commands": [
         "fsdocs"
-      ]
+      ],
+      "rollForward": false
     },
     "fsharp-analyzers": {
       "version": "0.25.0",
       "commands": [
         "fsharp-analyzers"
-      ]
+      ],
+      "rollForward": false
     }
   }
 }
