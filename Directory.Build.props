@@ -43,11 +43,6 @@ Some common use cases include:
         <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen --strict-indentation+</OtherFlags>
     </PropertyGroup>
     
-    <!-- Lockfiles interact strangely with RIDs: https://github.com/NuGet/Home/issues/8287 -->
-    <PropertyGroup Condition="$(RuntimeIdentifier) != ''" >
-      <NuGetLockFilePath>packages.$(RuntimeIdentifier).lock.json</NuGetLockFilePath>
-    </PropertyGroup>
-    
     <!-- Versions -->
     <PropertyGroup>
         <FCSCommitHash>836d4e0603442d6053c8d439993a022501cae494</FCSCommitHash>
