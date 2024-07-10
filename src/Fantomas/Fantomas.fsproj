@@ -2,7 +2,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
     <!-- Don't create localization (en-US, etc) folders with resources -->
     <!-- https://github.com/dotnet/fsharp/issues/6007#issuecomment-547041463 -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
