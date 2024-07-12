@@ -131,3 +131,31 @@ type Bar() =
 let b = Bar ()
 b |> _.Foo(Meh ())
 """
+
+[<Test>]
+let ``regression with dot lambda args being pushed out too far, 3097`` () =
+    formatSourceString
+        """
+workstations
+|> Seq.sumBy
+    _.GetWeeklyValueWithoutAccessCheck(
+        year,
+        week,
+        CapacityAggregateValueType.CostPrice,
+        category
+    )
+"""
+        { config with MaxLineLength = 50 }
+    |> prepend newline
+    |> should
+        equal
+        """
+workstations
+|> Seq.sumBy
+    _.GetWeeklyValueWithoutAccessCheck(
+        year,
+        week,
+        CapacityAggregateValueType.CostPrice,
+        category
+    )
+"""
