@@ -1562,7 +1562,7 @@ let genExpr (e: Expr) =
     | Expr.DotLambda node ->
         let genDotLambdaExpr expr =
             match expr with
-            | Expr.AppSingleParenArg p -> genExpr p.FunctionExpr +> genExpr p.ArgExpr // be always atomic, see 3050
+            | Expr.AppSingleParenArg p -> genAppSingleParenArgExpr sepNone p // be always atomic, see 3050
             | _ -> genExpr expr
 
         genSingleTextNode node.Underscore

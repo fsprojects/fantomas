@@ -1,9 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## 6.3.10 - 2024-07-12
 
 ### Changed
 * Update FCS to 'Allow ParsedHashDirectives to take non string arguments', commit 836d4e0603442d6053c8d439993a022501cae494 [#3096](https://github.com/fsprojects/fantomas/pull/3096)
+
+### Fixed
+* Regression with dot lambda args being pushed out too far. [#3097](https://github.com/fsprojects/fantomas/issues/3097)
 
 ## 6.3.9 - 2024-06-10
 
