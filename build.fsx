@@ -62,7 +62,8 @@ pipeline "Build" {
     stage "UnitTests" { run "dotnet test -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
     stage "PublishAOT" {
-        run "dotnet publish src/Fantomas/Fantomas.fsproj -r linux-x64 -c Release -p:DoPublishAot=yes -p:RestoreLockedMode=false --tl"
+        run
+            "dotnet publish src/Fantomas/Fantomas.fsproj -r linux-x64 -c Release -p:DoPublishAot=yes -p:RestoreLockedMode=false --tl"
     }
     stage "Docs" {
         whenNot { platformOSX }
