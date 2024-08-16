@@ -2292,3 +2292,17 @@ let fns =
     Functions[Checked false
               OnChange(fun _ -> s |> updateSettings)]
 """
+
+[<Test>]
+let ``negative numbers in range operator, 3105`` () =
+    formatSourceString
+        """
+[|-24.0 .. -1.0 .. -30.0|]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[| -24.0 .. -1.0 .. -30.0 |]
+"""
