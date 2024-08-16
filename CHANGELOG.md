@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.11 - 2024-08-16
+
+### Fixed
+* F# Range Operator (\.\.) with negative numbers produces invalid F# code and idempotent. [#3105](https://github.com/fsprojects/fantomas/issues/3105)
+
 ## 6.3.10 - 2024-07-12
 
 ### Changed

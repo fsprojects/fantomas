@@ -1546,10 +1546,19 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.IndexRangeWildcard node -> genSingleTextNode node
     | Expr.TripleNumberIndexRange node ->
+        let isNegativeFloat (text: string) =
+            text.StartsWith("-", StringComparison.Ordinal) && text.Contains(".")
+
+        let genDots (before: SingleTextNode) (dots: SingleTextNode) (after: SingleTextNode) =
+            if not (isNegativeFloat before.Text) && not (isNegativeFloat after.Text) then
+                genSingleTextNode dots
+            else
+                sepSpace +> genSingleTextNode dots +> sepSpace
+
         genSingleTextNode node.Start
-        +> genSingleTextNode node.StartDots
+        +> genDots node.Start node.StartDots node.Center
         +> genSingleTextNode node.Center
-        +> genSingleTextNode node.EndDots
+        +> genDots node.Center node.EndDots node.EndDots
         +> genSingleTextNode node.End
         |> genNode node
     | Expr.IndexRange node ->
