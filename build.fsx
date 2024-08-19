@@ -130,6 +130,7 @@ pipeline "FormatChanged" {
 
 pipeline "PushClient" {
     workingDir __SOURCE_DIRECTORY__
+    stage "Pack" { run "dotnet pack ./src/Fantomas.Client -c Release --tl" }
     stage "Push" {
         run (fun _ ->
             async {

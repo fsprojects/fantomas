@@ -1,0 +1,26 @@
+name: Push Client
+
+on:
+  workflow_dispatch:
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    continue-on-error: true
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v4
+    - name: PushClient
+      run: dotnet fsi build.fsx -p PushClient
+      env:
+        NUGET_KEY: ${{ secrets.NUGET_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
