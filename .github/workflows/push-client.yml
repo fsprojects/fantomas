@@ -9,11 +9,7 @@ env:
 
 jobs:
   build:
-    continue-on-error: true
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
