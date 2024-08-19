@@ -202,11 +202,16 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
             ps.Arguments <- "fantomas --daemon"
             ps
         | FantomasToolStartInfo.GlobalTool ->
-            let userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+
+            let globalToolsPath =
+                match Option.ofObj (Environment.GetEnvironmentVariable("DOTNET_CLI_HOME")) with
+                | Some s -> Path.Combine(s, "tools")
+                | None ->
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".dotnet", "tools")
 
             let fantomasExecutable =
                 let fileName = if isWindows then "fantomas.exe" else "fantomas"
-                Path.Combine(userProfile, ".dotnet", "tools", fileName)
+                Path.Combine(globalToolsPath, fileName)
 
             let ps = ProcessStartInfo(fantomasExecutable)
             ps.Arguments <- "--daemon"
