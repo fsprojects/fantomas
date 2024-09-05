@@ -2650,17 +2650,30 @@ let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
 
 let mkPropertyGetSetBinding
     (creationAide: CreationAide)
+    (withOrAndKeyword: range)
     (accessibility: SynAccess option)
     (leadingKeyword: SingleTextNode)
     (binding: SynBinding)
     : PropertyGetSetBindingNode =
     match binding with
     | SynBinding(
+        attributes = attributes
         headPat = SynPat.LongIdent(extraId = Some extraIdent; argPats = SynArgPats.Pats ps)
         returnInfo = returnInfo
         expr = expr
         trivia = { EqualsRange = Some mEq
                    InlineKeyword = inlineKw }) ->
+        // Attribute are not accurate in this case.
+        // The binding could contain attributes for the entire member and the getter or setter member.
+        // We use the `with` or `and` keyword to filter them.
+        let attributes =
+            attributes
+            |> List.map (fun al ->
+                { al with
+                    Attributes =
+                        al.Attributes
+                        |> List.filter (fun a -> Position.posGt a.Range.Start withOrAndKeyword.End) })
+
         let e = parseExpressionInSynBinding returnInfo expr
         let returnTypeNode = mkBindingReturnInfo creationAide returnInfo
 
@@ -2694,6 +2707,7 @@ let mkPropertyGetSetBinding
 
         PropertyGetSetBindingNode(
             Option.map (stn "inline") inlineKw,
+            mkAttributes creationAide attributes,
             mkSynAccess accessibility,
             leadingKeyword,
             pats,
@@ -2863,7 +2877,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                    GetKeyword = Some getKeyword
                                    SetKeyword = Some setKeyword
                                    WithKeyword = withKeyword
-                                   AndKeyword = andKeyword }) ->
+                                   AndKeyword = Some andKeyword }) ->
 
         let firstAccessibility, firstBinding, firstKeyword, lastBinding, lastKeyword =
             if Position.posLt getKeyword.Start setKeyword.Start then
@@ -2885,27 +2899,43 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             | SynBinding(headPat = SynPat.LongIdent(accessibility = Some vis)) when
                 rangeBeforePos memberName.Range vis.Range.Start
                 ->
-                mkPropertyGetSetBinding creationAide (Some vis) firstKeyword firstBinding
-            | _ -> mkPropertyGetSetBinding creationAide None firstKeyword firstBinding
+                mkPropertyGetSetBinding creationAide withKeyword (Some vis) firstKeyword firstBinding
+            | _ -> mkPropertyGetSetBinding creationAide withKeyword None firstKeyword firstBinding
 
         let lastBinding =
             match lastBinding with
             | SynBinding(headPat = SynPat.LongIdent(accessibility = Some vis)) when
                 rangeBeforePos memberName.Range vis.Range.Start
                 ->
-                mkPropertyGetSetBinding creationAide (Some vis) lastKeyword lastBinding
-            | _ -> mkPropertyGetSetBinding creationAide None lastKeyword lastBinding
+                mkPropertyGetSetBinding creationAide andKeyword (Some vis) lastKeyword lastBinding
+            | _ -> mkPropertyGetSetBinding creationAide andKeyword None lastKeyword lastBinding
+
+        // Attributes placed on the member will be included in both bindings for the getter and setter.
+        // We need to filter out the attributes above the leading keyword (typically `member`).
+        let memberAttributes =
+            ats
+            |> List.choose (fun al ->
+                let filteredAttributeList =
+                    { al with
+                        Attributes =
+                            al.Attributes
+                            |> List.filter (fun a -> Position.posLt a.Range.End lk.Range.Start) }
+
+                if filteredAttributeList.Attributes.IsEmpty then
+                    None
+                else
+                    Some filteredAttributeList)
 
         MemberDefnPropertyGetSetNode(
             mkXmlDoc px,
-            mkAttributes creationAide ats,
+            mkAttributes creationAide memberAttributes,
             mkSynLeadingKeyword lk,
             Option.map (stn "inline") inlineKw,
             mkSynAccess accessibility,
             mkSynLongIdent memberName,
             stn "with" withKeyword,
             firstBinding,
-            Option.map (stn "and") andKeyword,
+            Some(stn "and" andKeyword),
             Some lastBinding,
             memberDefinitionRange
         )
@@ -2945,7 +2975,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         match getKeyword, setKeyword with
         | Some getKeyword, None ->
             let bindingNode =
-                mkPropertyGetSetBinding creationAide visProperty (stn "get" getKeyword) binding
+                mkPropertyGetSetBinding creationAide withKeyword visProperty (stn "get" getKeyword) binding
 
             MemberDefnPropertyGetSetNode(
                 mkXmlDoc px,
@@ -2963,7 +2993,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             |> MemberDefn.PropertyGetSet
         | None, Some setKeyword ->
             let bindingNode =
-                mkPropertyGetSetBinding creationAide visProperty (stn "set" setKeyword) binding
+                mkPropertyGetSetBinding creationAide withKeyword visProperty (stn "set" setKeyword) binding
 
             MemberDefnPropertyGetSetNode(
                 mkXmlDoc px,
