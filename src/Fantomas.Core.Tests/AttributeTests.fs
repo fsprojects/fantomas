@@ -1050,3 +1050,51 @@ let ``trivia in nested multiline tuple expression in attribute, 2525`` () =
                             Justification = "Bytecode delta only")>]
 ()
 """
+
+[<Test>]
+let ``attributes on member and get, set properties`` () =
+    formatSourceString
+        """
+type Object3D() =
+    [<X>]
+    member this.position
+        with [<Y>] set v = _position <- v 
+        and [<Z>] get () = _position
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Object3D() =
+    [<X>]
+    member this.position
+        with [<Y>] set v = _position <- v
+        and [<Z>] get () = _position
+"""
+
+[<Test>]
+let ``attributes on get,set properties, 3114`` () =
+    formatSourceString
+        """
+[<Erase>]
+type Object3D() =
+    let mutable _position: Vector3 = null
+
+    member this.position
+        with [<Emit("$0.position")>] set v = _position <- v 
+        and [<Emit("$0.position = $1")>] get () = _position
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Erase>]
+type Object3D() =
+    let mutable _position: Vector3 = null
+
+    member this.position
+        with [<Emit("$0.position")>] set v = _position <- v
+        and [<Emit("$0.position = $1")>] get () = _position
+"""

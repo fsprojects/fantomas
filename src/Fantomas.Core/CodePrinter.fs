@@ -3877,6 +3877,7 @@ let genMemberDefn (md: MemberDefn) =
     | MemberDefn.PropertyGetSet node ->
         let genProperty (node: PropertyGetSetBindingNode) =
             genInlineOpt node.Inline
+            +> genOnelinerAttributes node.Attributes
             +> genAccessOpt node.Accessibility
             +> genSingleTextNode node.LeadingKeyword
             +> sepSpace

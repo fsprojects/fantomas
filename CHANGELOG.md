@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.12 - 2024-09-05
+
+### Fixed
+* Fantomas deletes attributes from getters. [#3114](https://github.com/fsprojects/fantomas/issues/3114)
+
 ## 6.3.11 - 2024-08-16
 
 ### Fixed
