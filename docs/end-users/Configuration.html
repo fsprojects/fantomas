@@ -293,7 +293,7 @@ These can be stored in an <a href="https://editorconfig.org/">.editorconfig</a> 
 commandline.<br />
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.</p>
-<table class="pre"><tr><td><pre><code>version: 6.3.11+a4788cbdf856ae6f47b6032f7cb8ecb506ad7733</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 6.3.12+87a6577b2002ee61cd22e23a808adb27889f90a2</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -1420,6 +1420,7 @@ type StringSplitOptions =
     SpaceBeforeColon: bool
     ...
   }
+  member Equals: FormatConfig * IEqualityComparer -&gt; bool
   member IsStroustrupStyle: bool
   static member Default: FormatConfig</div>
 <div class="fsdocs-tip" id="fs26">property FormatConfig.Default: FormatConfig with get</div>
@@ -1483,6 +1484,7 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
 <div class="fsdocs-tip" id="fs58">Multiple items<br />active recognizer MultilineFormatterType: string -&gt; MultilineFormatterType option<br /><br />--------------------<br />type MultilineFormatterType =
   | CharacterWidth
   | NumberOfItems
+  member Equals: MultilineFormatterType * IEqualityComparer -&gt; bool
   static member OfConfigString: cfgString: string -&gt; MultilineFormatterType option
   static member ToConfigString: cfg: MultilineFormatterType -&gt; string</div>
 <div class="fsdocs-tip" id="fs59">static member MultilineFormatterType.ToConfigString: cfg: MultilineFormatterType -&gt; string</div>
@@ -1497,6 +1499,7 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
   | Cramped
   | Aligned
   | Stroustrup
+  member Equals: MultilineBracketStyle * IEqualityComparer -&gt; bool
   static member OfConfigString: cfgString: string -&gt; MultilineBracketStyle option
   static member ToConfigString: cfg: MultilineBracketStyle -&gt; string</div>
 <div class="fsdocs-tip" id="fs68">static member MultilineBracketStyle.ToConfigString: cfg: MultilineBracketStyle -&gt; string</div>

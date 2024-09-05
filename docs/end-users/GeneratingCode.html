@@ -539,6 +539,7 @@ type Range =
   | Ident of SingleTextNode
   | KnownDot of SingleTextNode
   | UnknownDot
+  member Equals: IdentifierOrDot * IEqualityComparer -&gt; bool
   member Range: range option</div>
 <div class="fsdocs-tip" id="fs18">union case IdentifierOrDot.Ident: SingleTextNode -&gt; IdentifierOrDot</div>
 <div class="fsdocs-tip" id="fs19">type Expr =
