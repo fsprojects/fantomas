@@ -3643,3 +3643,42 @@ type FSharpChecker with
         : Async<(FSharpParseFileResults * ParsedInput * FSharpCheckFileResults) option> =
         ()
 """
+
+[<Test>]
+let ``single member union extensions without pipe, 3102`` () =
+    formatSourceString
+        """
+type X = X
+    with
+        static member x = 1
+    """
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = X
+    with
+
+        static member x = 1
+"""
+
+[<Test>]
+let ``single member union extensions without pipe idempotent, 3102`` () =
+    formatSourceString
+        """
+type X = X
+    with
+
+        static member x = 1
+    """
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = X
+    with
+
+        static member x = 1
+"""
