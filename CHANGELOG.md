@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Fix idempotency issue when defining a single case union with an extension [#3102](https://github.com/fsprojects/fantomas/issues/3102)
+
 ## 6.3.12 - 2024-09-05
 
 ### Fixed
