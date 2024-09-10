@@ -1,9 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## 6.3.13 - 2024-09-10
 
 ### Fixed
-* Fix idempotency issue when defining a single case union with an extension [#3102](https://github.com/fsprojects/fantomas/issues/3102)
+* Idempotency problem when adding members to a single case union without a pipe [#3102](https://github.com/fsprojects/fantomas/issues/3102)
 
 ## 6.3.12 - 2024-09-05
 
