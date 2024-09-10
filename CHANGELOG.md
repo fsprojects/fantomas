@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.13 - 2024-09-10
+
+### Fixed
+* Idempotency problem when adding members to a single case union without a pipe [#3102](https://github.com/fsprojects/fantomas/issues/3102)
+
 ## 6.3.12 - 2024-09-05
 
 ### Fixed

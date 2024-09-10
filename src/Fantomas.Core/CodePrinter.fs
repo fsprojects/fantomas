@@ -3585,16 +3585,16 @@ let genTypeDefn (td: TypeDefn) =
              | _ ->
                  header
                  +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
-                 +> onlyIf
-                     hasMembers
-                     (optSingle
-                         (fun withNode ->
-                             indentSepNlnUnindent (
-                                 genSingleTextNode withNode
-                                 +> onlyIfCtx (fun ctx -> ctx.Config.NewlineBetweenTypeDefinitionAndMembers) sepNln
-                                 +> indentSepNlnUnindent (genMemberDefnList members)
-                             ))
-                         typeName.WithKeyword)
+                 +> (match List.tryHead members, typeName.WithKeyword with
+                     | Some firstMember, Some withNode ->
+                         indentSepNlnUnindent (
+                             genSingleTextNode withNode
+                             +> onlyIfCtx
+                                 (fun ctx -> ctx.Config.NewlineBetweenTypeDefinitionAndMembers)
+                                 (sepNlnUnlessContentBefore (MemberDefn.Node firstMember))
+                             +> indentSepNlnUnindent (genMemberDefnList members)
+                         )
+                     | _ -> sepNone)
                  |> genNode node)
                 ctx
     | TypeDefn.Explicit node ->
