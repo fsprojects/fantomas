@@ -2321,6 +2321,8 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
                   yield Choice1Of2(mkType creationAide t) ]
 
         TypeIntersectionNode(typesAndSeparators, m) |> Type.Intersection
+    | SynType.StaticConstantNull(m) -> stn "null" m |> Type.Var
+    | SynType.WithNull(innerType, ambivalent, range) -> failwithf $"SynType.WithNull %A{(innerType, ambivalent, range)}"
     | t -> failwith $"unexpected type: %A{t}"
 
 let rec (|OpenL|_|) =
