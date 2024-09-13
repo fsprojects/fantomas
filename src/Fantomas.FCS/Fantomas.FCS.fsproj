@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="TailCall.fs" />
     <EmbeddedText Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\FSComp.txt">
       <Link>FSComp.txt</Link>
     </EmbeddedText>
