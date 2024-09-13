@@ -26,7 +26,8 @@ let ``public get, private set in signature`` () =
 module A
 
 type X =
-    member val internal Y: int = 7 with public get, private set
+    new: unit -> X
+    member internal Y: int with public get, private set
 """
         config
     |> prepend newline
