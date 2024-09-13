@@ -78,12 +78,15 @@ let mkSynAccess (vis: SynAccess option) =
     | Some(SynAccess.Private range) -> Some(stn "private" range)
     | Some(SynAccess.Public range) -> Some(stn "public" range)
 
-/// https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synvalsigaccess.html
-let mkSynValSigAccess (vis: SynValSigAccess) =
-    match vis with
-    | SynValSigAccess.GetSet(accessibility = vis; getterAccessibility = None; setterAccessibility = None)
-    | SynValSigAccess.Single(accessibility = vis) -> mkSynAccess vis
-    | _ -> failwithf "todo SynValSigAccess: %A" vis
+let (|AccessSynValSigAccess|) (valSigAccess: SynValSigAccess) =
+    match valSigAccess with
+    | SynValSigAccess.GetSet(accessibility = vis)
+    | SynValSigAccess.Single(accessibility = vis) -> vis
+
+let (|SynValSigAccessAll|) (valSigAccess: SynValSigAccess) =
+    match valSigAccess with
+    | SynValSigAccess.Single(vis) -> vis, None, None
+    | SynValSigAccess.GetSet(vis, g, s) -> vis, g, s
 
 let parseExpressionInSynBinding returnInfo expr =
     match returnInfo, expr with
@@ -2652,20 +2655,44 @@ let mkTypeDefn
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
     | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
 
-let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
+let mkWithGetSet
+    (withKeyword: range option)
+    (getSet: GetSetKeywords option)
+    (visGet: SynAccess option)
+    (visSet: SynAccess option)
+    =
     match withKeyword, getSet with
     | Some mWith, Some gs ->
         let withNode = stn "with" mWith
         let m = unionRanges mWith gs.Range
+        let visNodes vis = Option.toList (mkSynAccess vis)
 
         match gs with
-        | GetSetKeywords.Get mGet -> Some(MultipleTextsNode([ withNode; stn "get" mGet ], m))
-        | GetSetKeywords.Set mSet -> Some(MultipleTextsNode([ withNode; stn "set" mSet ], m))
+        | GetSetKeywords.Get mGet -> Some(MultipleTextsNode([ withNode; yield! visNodes visGet; stn "get" mGet ], m))
+        | GetSetKeywords.Set mSet -> Some(MultipleTextsNode([ withNode; yield! visNodes visSet; stn "set" mSet ], m))
         | GetSetKeywords.GetSet(mGet, mSet) ->
             if rangeBeforePos mGet mSet.Start then
-                Some(MultipleTextsNode([ withNode; stn "get," mGet; stn "set" mSet ], m))
+                Some(
+                    MultipleTextsNode(
+                        [ withNode
+                          yield! visNodes visGet
+                          stn "get," mGet
+                          yield! visNodes visSet
+                          stn "set" mSet ],
+                        m
+                    )
+                )
             else
-                Some(MultipleTextsNode([ withNode; stn "set," mSet; stn "get" mGet ], m))
+                Some(
+                    MultipleTextsNode(
+                        [ withNode
+                          yield! visNodes visSet
+                          stn "set," mSet
+                          yield! visNodes visGet
+                          stn "get" mGet ],
+                        m
+                    )
+                )
     | _ -> None
 
 let mkPropertyGetSetBinding
@@ -2846,35 +2873,45 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             memberDefinitionRange
         )
         |> MemberDefn.Interface
-    | SynMemberDefn.AutoProperty(ats,
-                                 _isStatic,
-                                 ident,
-                                 typeOpt,
-                                 _,
-                                 _,
-                                 _,
-                                 px,
-                                 ao,
-                                 e,
-                                 _,
-                                 { LeadingKeyword = lk
-                                   EqualsRange = Some mEq
-                                   WithKeyword = mWith
-                                   GetSetKeywords = mGS }) ->
+    | SynMemberDefn.AutoProperty(
+        attributes = ats
+        ident = ident
+        typeOpt = typeOpt
+        xmlDoc = px
+        accessibility = valSigAccess
+        synExpr = e
+        trivia = { LeadingKeyword = lk
+                   EqualsRange = Some mEq
+                   WithKeyword = mWith
+                   GetSetKeywords = mGS }) ->
+        let vis, getVis, setVis =
+            match valSigAccess with
+            | SynValSigAccess.Single(ao) -> ao, None, None
+            | SynValSigAccess.GetSet(ao, g, s) -> ao, g, s
+
         MemberDefnAutoPropertyNode(
             mkXmlDoc px,
             mkAttributes creationAide ats,
             mkSynLeadingKeyword lk,
-            mkSynValSigAccess ao,
+            mkSynAccess vis,
             mkIdent ident,
             Option.map (mkType creationAide) typeOpt,
             stn "=" mEq,
             mkExpr creationAide e,
-            mkWithGetSet mWith mGS,
+            mkWithGetSet mWith mGS getVis setVis,
             memberDefinitionRange
         )
         |> MemberDefn.AutoProperty
-    | SynMemberDefn.AbstractSlot(SynValSig(ats, ident, tds, t, _, _, _, px, _ao, _, _, trivia), _, _, abstractSlotTrivia) ->
+    | SynMemberDefn.AbstractSlot(
+        slotSig = SynValSig(
+            attributes = ats
+            ident = ident
+            explicitTypeParams = tds
+            synType = t
+            xmlDoc = px
+            accessibility = SynValSigAccessAll(_ao, visGet, visSet)
+            trivia = trivia)
+        trivia = abstractSlotTrivia) ->
         MemberDefnAbstractSlotNode(
             mkXmlDoc px,
             mkAttributes creationAide ats,
@@ -2882,7 +2919,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             mkSynIdent ident,
             mkSynValTyparDecls creationAide (Some tds),
             mkType creationAide t,
-            mkWithGetSet trivia.WithKeyword abstractSlotTrivia.GetSetKeywords,
+            mkWithGetSet trivia.WithKeyword abstractSlotTrivia.GetSetKeywords visGet visSet,
             memberDefinitionRange
         )
         |> MemberDefn.AbstractSlot
@@ -3034,7 +3071,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
 
 let mkVal
     (creationAide: CreationAide)
-    (SynValSig(ats, synIdent, vtd, t, _vi, _isInline, isMutable, px, ao, eo, range, trivia))
+    (SynValSig(ats, synIdent, vtd, t, _vi, _isInline, isMutable, px, AccessSynValSigAccess(ao), eo, range, trivia))
     : ValNode =
     let lk =
         match trivia.LeadingKeyword with
@@ -3047,7 +3084,7 @@ let mkVal
         lk,
         Option.map (stn "inline") trivia.InlineKeyword,
         isMutable,
-        mkSynValSigAccess ao,
+        mkSynAccess ao,
         mkSynIdent synIdent,
         mkSynValTyparDecls creationAide (Some vtd),
         mkType creationAide t,
@@ -3061,11 +3098,12 @@ let mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
 
     match ms with
     | SynMemberSig.Member(vs, _, _, memberTrivia) ->
-        let (SynValSig(trivia = trivia)) = vs
+        let (SynValSig(trivia = trivia; accessibility = SynValSigAccessAll(_ao, visGet, visSet))) =
+            vs
 
         MemberDefnSigMemberNode(
             mkVal creationAide vs,
-            mkWithGetSet trivia.WithKeyword memberTrivia.GetSetKeywords,
+            mkWithGetSet trivia.WithKeyword memberTrivia.GetSetKeywords visGet visSet,
             memberSigRange
         )
         |> MemberDefn.SigMember
