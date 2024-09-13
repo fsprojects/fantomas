@@ -333,15 +333,18 @@ let rec collectComputationExpressionStatements
 
         let andBangs =
             andBangs
-            |> List.map (fun (SynExprAndBang(_, _, _, ap, ae, StartRange 4 (mAnd, m), trivia)) ->
-                ExprAndBang(
-                    stn "and!" mAnd,
-                    mkPat creationAide ap,
-                    stn "=" trivia.EqualsRange,
-                    mkExpr creationAide ae,
-                    m
-                )
-                |> ComputationExpressionStatement.AndBangStatement)
+            |> List.map
+                (fun
+                    (SynExprAndBang(_,
+                                    _,
+                                    _,
+                                    ap,
+                                    ae,
+                                    m,
+                                    { AndBangKeyword = mAnd
+                                      EqualsRange = mEq })) ->
+                    ExprAndBang(stn "and!" mAnd, mkPat creationAide ap, stn "=" mEq, mkExpr creationAide ae, m)
+                    |> ComputationExpressionStatement.AndBangStatement)
 
         collectComputationExpressionStatements creationAide body (fun bodyStatements ->
             [ letOrUseBang; yield! andBangs; yield! bodyStatements ] |> finalContinuation)
