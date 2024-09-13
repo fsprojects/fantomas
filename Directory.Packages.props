@@ -1,9 +1,10 @@
 <Project>
     <PropertyGroup>
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     </PropertyGroup>
     <ItemGroup>
-        <PackageVersion Include="FSharp.Core" Version="6.0.1"/>
+        <PackageVersion Include="FSharp.Core" Version="9.0.100-beta.24422.2"/>
         <PackageVersion Include="System.Collections.Immutable" Version="7.0.0" />
         <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
         <PackageVersion Include="System.Memory" Version="4.5.5" />
@@ -18,6 +19,7 @@
         <PackageVersion Include="FSharp.Analyzers.Build" Version="0.3.0" />
         
         <PackageVersion Include="StreamJsonRpc" Version="2.8.28" />
+        <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageVersion Include="SemanticVersioning" Version="2.0.2" />
         <PackageVersion Include="Serilog" Version="3.1.1"/>
         <PackageVersion Include="Serilog.Sinks.Console" Version="5.0.1" />

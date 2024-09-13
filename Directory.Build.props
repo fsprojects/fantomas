@@ -40,12 +40,12 @@ Some common use cases include:
         <!-- https://www.gresearch.co.uk/blog/article/improve-nuget-restores-with-static-graph-evaluation/ -->
         <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
         <ServerGarbageCollection>true</ServerGarbageCollection>
-        <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen --strict-indentation+</OtherFlags>
+        <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen --strict-indentation+ --realsig+</OtherFlags>
     </PropertyGroup>
     
     <!-- Versions -->
     <PropertyGroup>
-        <FCSCommitHash>836d4e0603442d6053c8d439993a022501cae494</FCSCommitHash>
+        <FCSCommitHash>92754eb9b7076c29e19d3f6d619883b2b526c23f</FCSCommitHash>
     </PropertyGroup>
     
     <PropertyGroup>
