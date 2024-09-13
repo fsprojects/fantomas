@@ -15,7 +15,7 @@ type DU = MyCase of (string | null)
     |> should
         equal
         """
-
+type DU = MyCase of (string | null)
 """
 
 [<Test>]
@@ -29,7 +29,7 @@ let myFunc ("abc" | "" : string | null | "123") = 15
     |> should
         equal
         """
-
+let myFunc ("abc" | "": string | null | "123") = 15
 """
 
 [<Test>]
@@ -104,5 +104,7 @@ type DU = MyCase of (string | null)
     |> should
         equal
         """
+namespace Meh
 
+type DU = MyCase of (string | null)
 """
