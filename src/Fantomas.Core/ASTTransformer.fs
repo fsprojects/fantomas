@@ -81,6 +81,7 @@ let mkSynAccess (vis: SynAccess option) =
 /// https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synvalsigaccess.html
 let mkSynValSigAccess (vis: SynValSigAccess) =
     match vis with
+    | SynValSigAccess.GetSet(accessibility = vis; getterAccessibility = None; setterAccessibility = None)
     | SynValSigAccess.Single(accessibility = vis) -> mkSynAccess vis
     | _ -> failwithf "todo SynValSigAccess: %A" vis
 
