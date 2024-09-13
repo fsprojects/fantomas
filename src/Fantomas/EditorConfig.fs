@@ -16,7 +16,7 @@ module Reflection =
           DisplayName: string option
           Description: string option }
 
-    let inline getCustomAttribute<'t, 'v when 't :> Attribute and 't: null>
+    let inline getCustomAttribute<'t, 'v when 't :> Attribute and 't: null and 't: not struct>
         (projection: 't -> 'v)
         (property: PropertyInfo)
         : 'v option =

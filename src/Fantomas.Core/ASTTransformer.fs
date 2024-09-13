@@ -78,6 +78,10 @@ let mkSynAccess (vis: SynAccess option) =
     | Some(SynAccess.Private range) -> Some(stn "private" range)
     | Some(SynAccess.Public range) -> Some(stn "public" range)
 
+let mkSynValSigAccess (vis: SynValSigAccess) =
+    // https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synvalsigaccess.html
+    failwith "todo SynValSigAccess: %A" vis
+
 let parseExpressionInSynBinding returnInfo expr =
     match returnInfo, expr with
     | Some(SynBindingReturnInfo(typeName = t1)), SynExpr.Typed(e, t2, _) when RangeHelpers.rangeEq t1.Range t2.Range ->
@@ -2168,6 +2172,8 @@ let mkSynTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : T
         TypeConstraintEnumOrDelegateNode(mkSynTypar tp, "delegate", List.map (mkType creationAide) ts, m)
         |> TypeConstraint.EnumOrDelegate
     | SynTypeConstraint.WhereSelfConstrained(t, _) -> mkType creationAide t |> TypeConstraint.WhereSelfConstrained
+    | SynTypeConstraint.WhereTyparNotSupportsNull(genericName, range) ->
+        failwithf "todo WhereTyparNotSupportsNull : %A" (genericName, range)
 
 // Arrow type is right-associative
 let rec (|TFuns|_|) =
@@ -2845,7 +2851,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             mkXmlDoc px,
             mkAttributes creationAide ats,
             mkSynLeadingKeyword lk,
-            mkSynAccess ao,
+            mkSynValSigAccess ao,
             mkIdent ident,
             Option.map (mkType creationAide) typeOpt,
             stn "=" mEq,
@@ -3027,7 +3033,7 @@ let mkVal
         lk,
         Option.map (stn "inline") trivia.InlineKeyword,
         isMutable,
-        mkSynAccess ao,
+        mkSynValSigAccess ao,
         mkSynIdent synIdent,
         mkSynValTyparDecls creationAide (Some vtd),
         mkType creationAide t,
