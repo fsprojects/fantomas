@@ -43,7 +43,7 @@ let myFunc() : 'T when 'T : not struct and 'T:null = null
     |> should
         equal
         """
-
+let myFunc () : 'T when 'T: not struct and 'T: null = null
 """
 
 [<Test>]
@@ -86,7 +86,9 @@ match x with
     |> should
         equal
         """
-
+match x with
+| :? string
+| null -> ()
 """
 
 [<Test>]
