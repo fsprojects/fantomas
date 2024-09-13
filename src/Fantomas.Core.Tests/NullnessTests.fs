@@ -57,7 +57,7 @@ let myFunc (x: 'T when 'T: not null) = 42
     |> should
         equal
         """
-
+let myFunc (x: 'T when 'T: not null) = 42
 """
 
 [<Test>]
@@ -71,7 +71,7 @@ type C<'T when 'T: not null> = class end
     |> should
         equal
         """
-
+type C<'T when 'T: not null> = class end
 """
 
 [<Test>]

@@ -3155,6 +3155,13 @@ let genTypeConstraint (tc: TypeConstraint) =
         +> !- ">"
         |> genNode node
     | TypeConstraint.WhereSelfConstrained t -> genType t
+    | TypeConstraint.WhereNotSupportsNull node ->
+        genSingleTextNode node.Typar
+        +> sepColon
+        +> !- "not"
+        +> sepSpace
+        +> genSingleTextNode node.Null
+        |> genNode node
 
 let genTypeConstraints (tcs: TypeConstraint list) =
     let short = colPre (sepSpace +> !- "when ") wordAnd tcs genTypeConstraint
