@@ -1887,12 +1887,13 @@ let genTupleExpr (node: ExprTupleNode) =
         | _ -> expr
 
     let shortExpression =
-        col sepNone node.Items (function
-            | Choice1Of2 e ->
+        coli sepNone node.Items (fun i c ->
+            match i, c with
+            | i, Choice1Of2 e ->
                 match e with
-                | IsLambdaOrIfThenElse e -> sepOpenT +> genExpr e +> sepCloseT
+                | IsLambdaOrIfThenElse e when i <> Array.length node.Children - 1 -> sepOpenT +> genExpr e +> sepCloseT
                 | e -> genExpr (wrapInfixAppRhsInParenIfNeeded e)
-            | Choice2Of2 comma -> genSingleTextNode comma +> addSpaceIfSpaceAfterComma)
+            | _, Choice2Of2 comma -> genSingleTextNode comma +> addSpaceIfSpaceAfterComma)
 
     let longExpression = genTupleMultiline node
 
