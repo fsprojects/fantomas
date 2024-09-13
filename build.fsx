@@ -194,6 +194,8 @@ let updateFileRaw (file: FileInfo) =
         |> Array.map (fun line ->
             if line.Contains("FSharp.Compiler") then
                 line.Replace("FSharp.Compiler", "Fantomas.FCS")
+            elif line.Contains("[<TailCall>]") then
+                line.Replace("[<TailCall>]", "[<Microsoft.FSharp.Core.TailCall>]")
             else
                 line)
     File.WriteAllLines(file.FullName, updatedLines)
