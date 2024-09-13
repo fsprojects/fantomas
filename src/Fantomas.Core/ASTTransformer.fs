@@ -2322,7 +2322,12 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
 
         TypeIntersectionNode(typesAndSeparators, m) |> Type.Intersection
     | SynType.StaticConstantNull(m) -> stn "null" m |> Type.Var
-    | SynType.WithNull(innerType, ambivalent, range) -> failwithf $"SynType.WithNull %A{(innerType, ambivalent, range)}"
+    // string | null
+    | SynType.WithNull(innerType, _, EndRange 4 (mNull, m)) ->
+        let nullType = stn "null" mNull |> Type.Var
+
+        TypeOrNode(mkType creationAide innerType, stn "|" Range.Zero, nullType, m)
+        |> Type.Or
     | t -> failwith $"unexpected type: %A{t}"
 
 let rec (|OpenL|_|) =
