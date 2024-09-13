@@ -78,9 +78,11 @@ let mkSynAccess (vis: SynAccess option) =
     | Some(SynAccess.Private range) -> Some(stn "private" range)
     | Some(SynAccess.Public range) -> Some(stn "public" range)
 
+/// https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synvalsigaccess.html
 let mkSynValSigAccess (vis: SynValSigAccess) =
-    // https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synvalsigaccess.html
-    failwith "todo SynValSigAccess: %A" vis
+    match vis with
+    | SynValSigAccess.Single(accessibility = vis) -> mkSynAccess vis
+    | _ -> failwithf "todo SynValSigAccess: %A" vis
 
 let parseExpressionInSynBinding returnInfo expr =
     match returnInfo, expr with
