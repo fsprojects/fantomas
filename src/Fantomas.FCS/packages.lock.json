@@ -22,9 +22,9 @@
       },
       "FSharp.Core": {
         "type": "Direct",
-        "requested": "[6.0.1, )",
-        "resolved": "6.0.1",
-        "contentHash": "VrFAiW8dEEekk+0aqlbvMNZzDvYXmgWZwAt68AUBqaWK8RnoEVUNglj66bZzhs4/U63q0EfXlhcEKnH1sTYLjw=="
+        "requested": "[9.0.100-beta.24422.2, )",
+        "resolved": "9.0.100-beta.24422.2",
+        "contentHash": "NmzJmz7DS6h+kAW14ooG396DAr2xU8NbAj73RNZvQg+aNaLC0PLJYcvsQ8r6Hb0ZUZxKnjxTn3ROsQiSDSNaKg=="
       },
       "FsLexYacc": {
         "type": "Direct",
