@@ -2787,6 +2787,15 @@ type TypeConstraintEnumOrDelegateNode(typar: SingleTextNode, verb: string, ts: T
     member val Verb = verb
     member val Types = ts
 
+type TypeConstraintWhereNotSupportsNull(typar: SingleTextNode, nullNode: SingleTextNode, range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array = [| yield typar; yield nullNode |]
+
+    member val Typar = typar
+
+    member val Null = nullNode
+
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type TypeConstraint =
     | Single of TypeConstraintSingleNode
@@ -2795,6 +2804,7 @@ type TypeConstraint =
     | SupportsMember of TypeConstraintSupportsMemberNode
     | EnumOrDelegate of TypeConstraintEnumOrDelegateNode
     | WhereSelfConstrained of Type
+    | WhereNotSupportsNull of TypeConstraintWhereNotSupportsNull
 
     static member Node(tc: TypeConstraint) : Node =
         match tc with
@@ -2804,6 +2814,7 @@ type TypeConstraint =
         | SupportsMember n -> n
         | EnumOrDelegate n -> n
         | WhereSelfConstrained t -> Type.Node t
+        | WhereNotSupportsNull n -> n
 
 type UnitOfMeasureNode(lessThan: SingleTextNode, measure: Measure, greaterThan: SingleTextNode, range) =
     inherit NodeBase(range)

@@ -2178,8 +2178,9 @@ let mkSynTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : T
         TypeConstraintEnumOrDelegateNode(mkSynTypar tp, "delegate", List.map (mkType creationAide) ts, m)
         |> TypeConstraint.EnumOrDelegate
     | SynTypeConstraint.WhereSelfConstrained(t, _) -> mkType creationAide t |> TypeConstraint.WhereSelfConstrained
-    | SynTypeConstraint.WhereTyparNotSupportsNull(genericName, range) ->
-        failwithf "todo WhereTyparNotSupportsNull : %A" (genericName, range)
+    | SynTypeConstraint.WhereTyparNotSupportsNull(typar, EndRange 4 (mNull, m)) ->
+        TypeConstraintWhereNotSupportsNull(mkSynTypar typar, stn "null" mNull, m)
+        |> TypeConstraint.WhereNotSupportsNull
 
 // Arrow type is right-associative
 let rec (|TFuns|_|) =
