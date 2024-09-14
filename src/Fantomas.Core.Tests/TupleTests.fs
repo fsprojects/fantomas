@@ -551,3 +551,17 @@ let (clReducedValues, // some comment 1
      clSecondActualKeys): ClArray<'a> * ClArray<int> * ClArray<int> =
     reduce processor DeviceOnly resultLength clOffsets clFirstKeys clSecondKeys clValues
 """
+
+[<Test>]
+let ``unneeded parentheses on last tuple item, 3082`` () =
+    formatSourceString
+        """
+func ("/health", fun a b -> "")
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+func ("/health", fun a b -> "")
+"""

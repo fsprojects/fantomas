@@ -1354,7 +1354,7 @@ fun i -> sprintf "%i" i, fun () -> i
     |> should
         equal
         """
-(fun i -> sprintf "%i" i, (fun () -> i)) |> List.init foo |> Map.ofList
+(fun i -> sprintf "%i" i, fun () -> i) |> List.init foo |> Map.ofList
 """
 
 [<Test>]

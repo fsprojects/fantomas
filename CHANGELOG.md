@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.15 - 2024-09-14
+
+### Fixed
+* Non needed parentheses are added around lambda call from tuple/members [#3082](https://github.com/fsprojects/fantomas/issues/3082)
+
 ## 6.3.14 - 2024-09-14
 
 ### Fixed
