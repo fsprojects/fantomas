@@ -80,8 +80,8 @@ let mkSynAccess (vis: SynAccess option) =
 
 let (|AccessSynValSigAccess|) (valSigAccess: SynValSigAccess) =
     match valSigAccess with
-    | SynValSigAccess.GetSet(accessibility = vis)
-    | SynValSigAccess.Single(accessibility = vis) -> vis
+    | SynValSigAccess.Single(accessibility = vis)
+    | SynValSigAccess.GetSet(accessibility = vis) -> vis
 
 let (|SynValSigAccessAll|) (valSigAccess: SynValSigAccess) =
     match valSigAccess with
@@ -2878,16 +2878,12 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         ident = ident
         typeOpt = typeOpt
         xmlDoc = px
-        accessibility = valSigAccess
+        accessibility = SynValSigAccessAll(vis, getVis, setVis)
         synExpr = e
         trivia = { LeadingKeyword = lk
                    EqualsRange = Some mEq
                    WithKeyword = mWith
                    GetSetKeywords = mGS }) ->
-        let vis, getVis, setVis =
-            match valSigAccess with
-            | SynValSigAccess.Single(ao) -> ao, None, None
-            | SynValSigAccess.GetSet(ao, g, s) -> ao, g, s
 
         MemberDefnAutoPropertyNode(
             mkXmlDoc px,
