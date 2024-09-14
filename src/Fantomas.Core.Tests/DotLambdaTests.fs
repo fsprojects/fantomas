@@ -76,6 +76,21 @@ let ``idempotency problem when _.Property shorthand, 3050`` () =
 """
 
 [<Test>]
+let ``idempotency problem with _.Property shorthand with record value,`` () =
+    formatSourceString
+        """
+_.A.ToLower()
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+_.A.ToLower()
+"""
+
+[<Test>]
 let ``idempotency problem when _.property shorthand lowercase, 3050`` () =
     formatSourceString
         """

@@ -1572,6 +1572,7 @@ let genExpr (e: Expr) =
         let genDotLambdaExpr expr =
             match expr with
             | Expr.AppSingleParenArg p -> genAppSingleParenArgExpr sepNone p // be always atomic, see 3050
+            | Expr.AppLongIdentAndSingleParenArg p -> genAppLongIdentAndSingleParenArgExpr sepNone p
             | _ -> genExpr expr
 
         genSingleTextNode node.Underscore
