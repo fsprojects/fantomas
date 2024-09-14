@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.14 - 2024-09-14
+
+### Fixed
+* Idempotency problem when _.Property shorthand with record value. [#3120](https://github.com/fsprojects/fantomas/issues/3120)
+
 ## 6.3.13 - 2024-09-10
 
 ### Fixed
