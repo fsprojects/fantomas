@@ -76,7 +76,7 @@ let ``idempotency problem when _.Property shorthand, 3050`` () =
 """
 
 [<Test>]
-let ``idempotency problem with _.Property shorthand with record value,`` () =
+let ``idempotency problem with _.Property shorthand with record value, 3120`` () =
     formatSourceString
         """
 _.A.ToLower()
