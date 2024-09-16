@@ -108,3 +108,43 @@ namespace Meh
 
 type DU = MyCase of (string | null)
 """
+
+[<Test>]
+let ``trivia in SynType.WithNull`` () =
+    formatSourceString
+        """
+type DU = MyCase of (string 
+                        | // but why?
+                            null)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type DU =
+    | MyCase of
+        (string | // but why?
+            null)
+"""
+
+[<Test>]
+let ``trivia in SynTypeConstraint.WhereTyparNotSupportsNull`` () =
+    formatSourceString
+        """
+type C<'T when 
+                'T
+                    : // comment 1 
+                    not // comment 2
+                        null> = class end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type C<'T
+    when 'T: // comment 1
+        not // comment 2
+        null> = class end
+"""

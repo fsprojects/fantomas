@@ -2787,13 +2787,15 @@ type TypeConstraintEnumOrDelegateNode(typar: SingleTextNode, verb: string, ts: T
     member val Verb = verb
     member val Types = ts
 
-type TypeConstraintWhereNotSupportsNull(typar: SingleTextNode, nullNode: SingleTextNode, range) =
+/// `'T: not null` in `type C<'T when 'T: not null> = class end`
+type TypeConstraintWhereNotSupportsNull
+    (typar: SingleTextNode, colon: SingleTextNode, notNode: SingleTextNode, nullNode: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override val Children: Node array = [| yield typar; yield nullNode |]
-
+    override val Children: Node array = [| yield typar; yield colon; yield notNode; yield nullNode |]
     member val Typar = typar
-
+    member val Colon = colon
+    member val Not = notNode
     member val Null = nullNode
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
