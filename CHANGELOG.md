@@ -1,5 +1,13 @@
 # Changelog
 
+## 7.0.0-alpha-001 - 2024-09-16
+
+### Added
+* Add initial support for Nullness syntax. [#3118](https://github.com/fsprojects/fantomas/pull/3118)
+
+### Changed
+* Update FCS to 'Add trivia to Nullness nodes in SyntaxTree', commit 836d4e0603442d6053c8d439993a022501cae494 [#3118](https://github.com/fsprojects/fantomas/pull/3118)
+
 ## 6.3.16 - 2024-10-29
 
 ### Fixed
