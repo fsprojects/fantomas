@@ -2181,8 +2181,8 @@ let mkSynTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : T
         TypeConstraintEnumOrDelegateNode(mkSynTypar tp, "delegate", List.map (mkType creationAide) ts, m)
         |> TypeConstraint.EnumOrDelegate
     | SynTypeConstraint.WhereSelfConstrained(t, _) -> mkType creationAide t |> TypeConstraint.WhereSelfConstrained
-    | SynTypeConstraint.WhereTyparNotSupportsNull(typar, EndRange 4 (mNull, m)) ->
-        TypeConstraintWhereNotSupportsNull(mkSynTypar typar, stn "null" mNull, m)
+    | SynTypeConstraint.WhereTyparNotSupportsNull(typar, EndRange 4 (mNull, m), { ColonRange = mColon; NotRange = mNot }) ->
+        TypeConstraintWhereNotSupportsNull(mkSynTypar typar, stn ":" mColon, stn "not" mNot, stn "null" mNull, m)
         |> TypeConstraint.WhereNotSupportsNull
 
 // Arrow type is right-associative
@@ -2327,11 +2327,10 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         TypeIntersectionNode(typesAndSeparators, m) |> Type.Intersection
     | SynType.StaticConstantNull(m) -> stn "null" m |> Type.Var
     // string | null
-    | SynType.WithNull(innerType, _, EndRange 4 (mNull, m)) ->
+    | SynType.WithNull(innerType, _, EndRange 4 (mNull, m), { BarRange = mBar }) ->
         let nullType = stn "null" mNull |> Type.Var
 
-        TypeOrNode(mkType creationAide innerType, stn "|" Range.Zero, nullType, m)
-        |> Type.Or
+        TypeOrNode(mkType creationAide innerType, stn "|" mBar, nullType, m) |> Type.Or
     | t -> failwith $"unexpected type: %A{t}"
 
 let rec (|OpenL|_|) =

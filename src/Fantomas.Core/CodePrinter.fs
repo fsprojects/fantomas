@@ -3156,12 +3156,26 @@ let genTypeConstraint (tc: TypeConstraint) =
         |> genNode node
     | TypeConstraint.WhereSelfConstrained t -> genType t
     | TypeConstraint.WhereNotSupportsNull node ->
-        genSingleTextNode node.Typar
-        +> sepColon
-        +> !- "not"
-        +> sepSpace
-        +> genSingleTextNode node.Null
-        |> genNode node
+        let short =
+            genSingleTextNode node.Typar
+            +> onlyIfCtx (fun ctx -> ctx.Config.SpaceBeforeColon) sepSpace
+            +> genSingleTextNode node.Colon
+            +> sepSpace
+            +> genSingleTextNode node.Not
+            +> sepSpace
+            +> genSingleTextNode node.Null
+
+        let long =
+            genSingleTextNode node.Typar
+            +> onlyIfCtx (fun ctx -> ctx.Config.SpaceBeforeColon) sepSpace
+            +> genSingleTextNode node.Colon
+            +> indentSepNlnUnindent (
+                genSingleTextNode node.Not
+                +> sepNlnWhenWriteBeforeNewlineNotEmptyOr sepSpace
+                +> genSingleTextNode node.Null
+            )
+
+        expressionFitsOnRestOfLine short long |> genNode node
 
 let genTypeConstraints (tcs: TypeConstraint list) =
     let short = colPre (sepSpace +> !- "when ") wordAnd tcs genTypeConstraint
@@ -3299,12 +3313,20 @@ let genType (t: Type) =
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
         |> genNode node
     | Type.Or node ->
-        genType node.LeftHandSide
-        +> sepSpace
-        +> genSingleTextNode node.Or
-        +> sepSpace
-        +> genType node.RightHandSide
-        |> genNode node
+        let short =
+            genType node.LeftHandSide
+            +> sepSpace
+            +> genSingleTextNode node.Or
+            +> sepSpace
+            +> genType node.RightHandSide
+
+        let long =
+            genType node.LeftHandSide
+            +> sepSpace
+            +> genSingleTextNode node.Or
+            +> indentSepNlnUnindent (genType node.RightHandSide)
+
+        expressionFitsOnRestOfLine short long |> genNode node
     | Type.LongIdentApp node ->
         genType node.AppType +> sepDot +> genIdentListNode node.LongIdent
         |> genNode node
