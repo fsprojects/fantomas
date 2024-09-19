@@ -2925,7 +2925,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 ///     : rt
                 ///     =
                 let long (ctx: Context) =
-                    let endsWithMultilineTupleParameter =
+                    let endsWithMultilineTupleParameter ctx =
                         match List.tryLast b.Parameters with
                         | Some(Pattern.Paren parenNode as p) ->
                             match parenNode.Pattern with
@@ -2950,21 +2950,24 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
                         beforeInline || beforeIdentifier || beforeAccessibility
 
-                    let nlnOnSeparateLine = not endsWithMultilineTupleParameter || alternativeSyntax
-
                     (onlyIf hasTriviaAfterLeadingKeyword indent
                      +> afterLetKeyword
                      +> sepSpace
                      +> genFunctionName
                      +> indent
                      +> sepNln
-                     +> genParameters
-                     +> onlyIf nlnOnSeparateLine sepNln
-                     +> leadingExpressionIsMultiline (genReturnType nlnOnSeparateLine) (fun isMultiline ->
-                         if (alternativeSyntax && Option.isSome b.ReturnType) || isMultiline then
-                             sepNln +> genSingleTextNode b.Equals
-                         else
-                             sepSpace +> genSingleTextNode b.Equals)
+                     +> (fun ctx ->
+                         let nlnOnSeparateLine =
+                             not (endsWithMultilineTupleParameter ctx) || alternativeSyntax
+
+                         (genParameters
+                          +> onlyIf nlnOnSeparateLine sepNln
+                          +> leadingExpressionIsMultiline (genReturnType nlnOnSeparateLine) (fun isMultiline ->
+                              if (alternativeSyntax && Option.isSome b.ReturnType) || isMultiline then
+                                  sepNln +> genSingleTextNode b.Equals
+                              else
+                                  sepSpace +> genSingleTextNode b.Equals))
+                             ctx)
                      +> unindent
                      +> onlyIf hasTriviaAfterLeadingKeyword unindent)
                         ctx
