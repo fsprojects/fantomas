@@ -196,11 +196,6 @@
           "System.Runtime.CompilerServices.Unsafe": "4.7.1"
         }
       },
-      "Newtonsoft.Json": {
-        "type": "Transitive",
-        "resolved": "13.0.1",
-        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
-      },
       "NuGet.Frameworks": {
         "type": "Transitive",
         "resolved": "6.5.0",
@@ -886,6 +881,12 @@
         "requested": "[0.1.50, )",
         "resolved": "0.1.50",
         "contentHash": "nr7/KaY5KP9QvCEf478w1k9Yz+dXQZKLEAsjfhIjuneScmyLvMKoItPL6OfkNODeCrINtHEBt8A7q7yETS1PQQ=="
+      },
+      "Newtonsoft.Json": {
+        "type": "CentralTransitive",
+        "requested": "[13.0.3, )",
+        "resolved": "13.0.3",
+        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
       "SemanticVersioning": {
         "type": "CentralTransitive",

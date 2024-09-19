@@ -20,15 +20,13 @@ let initLogger (level: VerbosityLevel) : VerbosityLevel =
     Log.Logger <- logger
     level
 
-let logger = Log.Logger
-
 /// log a message
-let stdlog (s: string) = logger.Information(s)
+let stdlog (s: string) = Log.Logger.Information(s)
 
 /// log an error
-let elog (s: string) = logger.Error(s)
+let elog (s: string) = Log.Logger.Error(s)
 
 /// log a message if the verbosity level is >= Detailed
-let logGrEqDetailed s = logger.Debug(s)
+let logGrEqDetailed s = Log.Logger.Debug(s)
 
 let closeAndFlushLog () = Log.CloseAndFlush()

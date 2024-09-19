@@ -1323,3 +1323,22 @@ type X() =
         // some comment
         with get, set
 """
+
+[<Test>]
+let ``long tuple on single line, 3124`` () =
+    formatSourceString
+        """
+type Y =
+    static member putItem (client: AmazonDynamoDBClient, tableName: string,  attributeValueDict: Dictionary<string, AttributeValue>) : TaskResult<unit,Error> =   ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Y =
+    static member putItem
+        (client: AmazonDynamoDBClient, tableName: string, attributeValueDict: Dictionary<string, AttributeValue>)
+        : TaskResult<unit, Error> =
+        ()
+"""

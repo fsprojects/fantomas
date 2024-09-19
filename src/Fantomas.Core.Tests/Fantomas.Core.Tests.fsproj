@@ -132,6 +132,8 @@
     <Compile Include="DotLambdaTests.fs" />
     <Compile Include="ConstraintIntersectionTests.fs" />
     <Compile Include="BeginEndTests.fs" />
+    <Compile Include="NullnessTests.fs" />
+    <Compile Include="AutoPropertiesTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />

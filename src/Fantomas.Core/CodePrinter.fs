@@ -2924,7 +2924,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 ///     : rt
                 ///     =
                 let long (ctx: Context) =
-                    let endsWithMultilineTupleParameter =
+                    let endsWithMultilineTupleParameter ctx =
                         match List.tryLast b.Parameters with
                         | Some(Pattern.Paren parenNode as p) ->
                             match parenNode.Pattern with
@@ -2949,21 +2949,24 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
                         beforeInline || beforeIdentifier || beforeAccessibility
 
-                    let nlnOnSeparateLine = not endsWithMultilineTupleParameter || alternativeSyntax
-
                     (onlyIf hasTriviaAfterLeadingKeyword indent
                      +> afterLetKeyword
                      +> sepSpace
                      +> genFunctionName
                      +> indent
                      +> sepNln
-                     +> genParameters
-                     +> onlyIf nlnOnSeparateLine sepNln
-                     +> leadingExpressionIsMultiline (genReturnType nlnOnSeparateLine) (fun isMultiline ->
-                         if (alternativeSyntax && Option.isSome b.ReturnType) || isMultiline then
-                             sepNln +> genSingleTextNode b.Equals
-                         else
-                             sepSpace +> genSingleTextNode b.Equals)
+                     +> (fun ctx ->
+                         let nlnOnSeparateLine =
+                             not (endsWithMultilineTupleParameter ctx) || alternativeSyntax
+
+                         (genParameters
+                          +> onlyIf nlnOnSeparateLine sepNln
+                          +> leadingExpressionIsMultiline (genReturnType nlnOnSeparateLine) (fun isMultiline ->
+                              if (alternativeSyntax && Option.isSome b.ReturnType) || isMultiline then
+                                  sepNln +> genSingleTextNode b.Equals
+                              else
+                                  sepSpace +> genSingleTextNode b.Equals))
+                             ctx)
                      +> unindent
                      +> onlyIf hasTriviaAfterLeadingKeyword unindent)
                         ctx
@@ -3155,6 +3158,27 @@ let genTypeConstraint (tc: TypeConstraint) =
         +> !- ">"
         |> genNode node
     | TypeConstraint.WhereSelfConstrained t -> genType t
+    | TypeConstraint.WhereNotSupportsNull node ->
+        let short =
+            genSingleTextNode node.Typar
+            +> onlyIfCtx (fun ctx -> ctx.Config.SpaceBeforeColon) sepSpace
+            +> genSingleTextNode node.Colon
+            +> sepSpace
+            +> genSingleTextNode node.Not
+            +> sepSpace
+            +> genSingleTextNode node.Null
+
+        let long =
+            genSingleTextNode node.Typar
+            +> onlyIfCtx (fun ctx -> ctx.Config.SpaceBeforeColon) sepSpace
+            +> genSingleTextNode node.Colon
+            +> indentSepNlnUnindent (
+                genSingleTextNode node.Not
+                +> sepNlnWhenWriteBeforeNewlineNotEmptyOr sepSpace
+                +> genSingleTextNode node.Null
+            )
+
+        expressionFitsOnRestOfLine short long |> genNode node
 
 let genTypeConstraints (tcs: TypeConstraint list) =
     let short = colPre (sepSpace +> !- "when ") wordAnd tcs genTypeConstraint
@@ -3292,12 +3316,20 @@ let genType (t: Type) =
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
         |> genNode node
     | Type.Or node ->
-        genType node.LeftHandSide
-        +> sepSpace
-        +> genSingleTextNode node.Or
-        +> sepSpace
-        +> genType node.RightHandSide
-        |> genNode node
+        let short =
+            genType node.LeftHandSide
+            +> sepSpace
+            +> genSingleTextNode node.Or
+            +> sepSpace
+            +> genType node.RightHandSide
+
+        let long =
+            genType node.LeftHandSide
+            +> sepSpace
+            +> genSingleTextNode node.Or
+            +> indentSepNlnUnindent (genType node.RightHandSide)
+
+        expressionFitsOnRestOfLine short long |> genNode node
     | Type.LongIdentApp node ->
         genType node.AppType +> sepDot +> genIdentListNode node.LongIdent
         |> genNode node
