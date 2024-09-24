@@ -2955,7 +2955,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                      +> afterLetKeyword
                      +> sepSpace
                      +> genFunctionName
-                     +> indent
+                     +> experimentalDoubleIndent
                      +> sepNln
                      +> genParameters
                      +> onlyIf nlnOnSeparateLine sepNln
@@ -2964,7 +2964,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                              sepNln +> genSingleTextNode b.Equals
                          else
                              sepSpace +> genSingleTextNode b.Equals)
-                     +> unindent
+                     +> experimentalDoubleUnindent
                      +> onlyIf hasTriviaAfterLeadingKeyword unindent)
                         ctx
 

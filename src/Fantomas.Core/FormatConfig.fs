@@ -227,7 +227,12 @@ type FormatConfig =
 
       [<Category("Convention")>]
       [<DisplayName("Applies the Stroustrup style to the final (two) array or list argument(s) in a function application")>]
-      ExperimentalElmish: bool }
+      ExperimentalElmish: bool
+
+      [<Category("Indentation")>]
+      [<DisplayName("Double indent parameters")>]
+      [<Description("Use double indentation for parameters.")>]
+      ExperimentalDoubleIndentParameters: bool }
 
     member x.IsStroustrupStyle = x.MultilineBracketStyle = Stroustrup
 
@@ -268,4 +273,5 @@ type FormatConfig =
           MultilineBracketStyle = Cramped
           KeepMaxNumberOfBlankLines = 100
           NewlineBeforeMultilineComputationExpression = true
-          ExperimentalElmish = false }
+          ExperimentalElmish = false
+          ExperimentalDoubleIndentParameters = false }
