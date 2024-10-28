@@ -414,3 +414,29 @@ v().w.x.y.z['a'].b
         """
 v().w.x.y.z['a'].b
 """
+
+[<Test>]
+let ``multiple line type expression with dotget, 3132`` () =
+    formatSourceString
+        """
+Animal<
+    Identifier
+ >
+    .Dog(
+        "Spot"
+    )
+"""
+        { config with
+            MaxDotGetExpressionWidth = 0
+            MaxLineLength = 10 }
+    |> prepend newline
+    |> should
+        equal
+        """
+Animal<
+    Identifier
+ >
+    .Dog(
+        "Spot"
+    )
+"""
