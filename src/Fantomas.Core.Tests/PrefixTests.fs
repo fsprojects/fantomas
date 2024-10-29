@@ -126,7 +126,17 @@ let operator_application_literal_values_with_sign =
       "-4.41F"
       "-4.14"
       "-12456I"
-      "-0.7833M" ]
+      "-0.7833M"
+      "+46y"
+      "+46s"
+      "+46"
+      "+46l"
+      "+423n"
+      "+46L"
+      "+3.41F"
+      "+3.14"
+      "+32456I"
+      "+0.7833M" ]
 
 [<TestCaseSource("operator_application_literal_values_with_sign")>]
 let ``operators maintain spacing from literal values which start with + or -`` (literalValue: string) =
@@ -155,7 +165,9 @@ let operator_application_literal_values_without_sign =
       "\"text\"B" ]
 
 [<TestCaseSource("operator_application_literal_values_without_sign")>]
-let ``operators maintain spacing from literal values which start without + or -`` (literalValue: string) =
+let ``no space added between prefix operators and literal values that do not start with a symbol``
+    (literalValue: string)
+    =
     formatSourceString
         $"""
 let subtractTwo = + %s{literalValue}
@@ -166,4 +178,34 @@ let subtractTwo = + %s{literalValue}
         equal
         $"""
 let subtractTwo = +%s{literalValue}
+"""
+
+[<Test>]
+let ``add space between prefix and quotation`` () =
+    formatSourceString
+        """
+let _ = + <@ 1 @>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let _ = + <@ 1 @>
+"""
+
+[<Test>]
+let ``add space between prefix and measure`` () =
+    formatSourceString
+        """
+let _ = - +1<m>
+let _ = - -1<m>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let _ = - +1<m>
+let _ = - -1<m>
 """
