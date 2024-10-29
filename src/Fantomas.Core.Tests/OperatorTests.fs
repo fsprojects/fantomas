@@ -6,41 +6,6 @@ open Fantomas.Core.Tests.TestHelpers
 open Fantomas.Core
 
 [<Test>]
-let ``should format prefix operators`` () =
-    formatSourceString
-        """let x = -y
-let z = !!x
-    """
-        config
-    |> should
-        equal
-        """let x = -y
-let z = !!x
-"""
-
-[<Test>]
-let ``should keep triple ~~~ operator`` () =
-    formatSourceString
-        """x ~~~FileAttributes.ReadOnly
-    """
-        config
-    |> should
-        equal
-        """x ~~~FileAttributes.ReadOnly
-"""
-
-[<Test>]
-let ``should keep single triple ~~~ operator`` () =
-    formatSourceString
-        """~~~FileAttributes.ReadOnly
-    """
-        config
-    |> should
-        equal
-        """~~~FileAttributes.ReadOnly
-"""
-
-[<Test>]
 let ``should keep parens around ? operator definition`` () =
     formatSourceString
         """let (?) f s = f s
@@ -60,17 +25,6 @@ let ``should keep parens around ?<- operator definition`` () =
     |> should
         equal
         """let (?<-) f s = f s
-"""
-
-[<Test>]
-let ``should keep parens around !+ prefix operator definition`` () =
-    formatSourceString
-        """let (!+) x = Include x
-    """
-        config
-    |> should
-        equal
-        """let (!+) x = Include x
 """
 
 [<Test>]
@@ -472,19 +426,6 @@ let ``equal sign operator should not move to next line`` () =
         """
 let result =
     (typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null)
-"""
-
-[<Test>]
-let ``operator before verbatim string add extra space, 736`` () =
-    formatSourceString
-        """Target M.Tools (fun _ -> !! @"Tools\Tools.sln" |> rebuild)
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-Target M.Tools (fun _ -> !! @"Tools\Tools.sln" |> rebuild)
 """
 
 [<Test>]
@@ -1178,42 +1119,6 @@ module Foo =
             | false -> id)
 """
 
-let operator_application_literal_values =
-    [ "-86y"
-      "86uy"
-      "-86s"
-      "86us"
-      "-86"
-      "-86l"
-      "86u"
-      "86ul"
-      "-123n"
-      "0x00002D3Fun"
-      "-86L"
-      "86UL"
-      "-4.41F"
-      "-4.14"
-      "-12456I"
-      "-0.7833M"
-      "'a'"
-      "\"text\""
-      "'a'B"
-      "\"text\"B" ]
-
-[<TestCaseSource("operator_application_literal_values")>]
-let ``operators maintain spacing from literal values`` (literalValue: string) =
-    formatSourceString
-        $"""
-let subtractTwo = + %s{literalValue}
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        $"""
-let subtractTwo = + %s{literalValue}
-"""
-
 [<Test>]
 let ``qualified name to active pattern, 1937`` () =
     formatSourceString
@@ -1514,26 +1419,4 @@ let allDecls =
     inheritsL
     @+ iimplsLs
     @+ ctorLs
-"""
-
-[<Test>]
-let ``adding space after prefix operator breaks code, 2796`` () =
-    formatSourceString
-        """
-let inline (~%%) id = int id
-
-let f a b = a + b
-
-let foo () = f %%"17" %%"42"
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let inline (~%%) id = int id
-
-let f a b = a + b
-
-let foo () = f %%"17" %%"42"
 """

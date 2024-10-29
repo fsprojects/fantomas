@@ -753,33 +753,33 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.Dynamic node -> genExpr node.FuncExpr +> !- "?" +> genExpr node.ArgExpr |> genNode node
     | Expr.PrefixApp node ->
-        let fallback = genSingleTextNode node.Operator +> genExpr node.Expr
+        let genWithoutSpace = genSingleTextNode node.Operator +> genExpr node.Expr
+        let genWithSpace = genSingleTextNode node.Operator +> sepSpace +> genExpr node.Expr
 
         match node.Expr with
-        | Expr.Constant _
-        | Expr.InterpolatedStringExpr _ when not (String.startsWithOrdinal "%" node.Operator.Text) ->
-            genSingleTextNode node.Operator +> sepSpace +> genExpr node.Expr
+        // E.g. !! @"foobar", because !!@ would be mistaken for an operator.
+        | Expr.Constant(Constant.FromText(stn)) ->
+            match stn.Text.[0] with
+            | '@'
+            | '-'
+            | '+' -> genWithSpace
+            | _ -> genWithoutSpace
+        // !- $"blah{s}"
+        | Expr.InterpolatedStringExpr _ -> genWithSpace
+        // We don't respect SpaceBeforeLowercaseInvocation here because it can alter the meaning of the code.
+        // E.g. !-meh()
         | Expr.AppSingleParenArg appNode ->
             genSingleTextNode node.Operator
-            +> sepSpace
             +> genExpr appNode.FunctionExpr
             +> genExpr appNode.ArgExpr
+        // E.g. !-Foo.Meh(a)
         | Expr.AppLongIdentAndSingleParenArg appNode ->
             let mOptVarNode = appNode.FunctionName.Range
 
             genSingleTextNode node.Operator
-            +> sepSpace
             +> genExpr (Expr.OptVar(ExprOptVarNode(false, appNode.FunctionName, mOptVarNode)))
             +> genExpr appNode.ArgExpr
-        | Expr.App appNode ->
-            match appNode.Arguments with
-            | [ Expr.Constant(Constant.Unit _) as argExpr ] ->
-                genSingleTextNode node.Operator
-                +> sepSpace
-                +> genExpr appNode.FunctionExpr
-                +> genExpr argExpr
-            | _ -> fallback
-        | _ -> fallback
+        | _ -> genWithoutSpace
         |> genNode node
     | Expr.SameInfixApps node ->
         let headIsSynExprLambdaOrIfThenElse = isLambdaOrIfThenElse node.LeadingExpr

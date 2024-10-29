@@ -268,7 +268,7 @@ let expr =
         es
         (fun e ->
             match e with
-            | Paren(_, Lambda _, _) -> !- "lambda"
+            | Paren(_, Lambda _, _) -> !-"lambda"
             | _ -> genExpr astContext e
         )
 """

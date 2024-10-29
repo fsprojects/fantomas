@@ -1342,7 +1342,7 @@ let internal sepSpace =
         then
             ctx
         else
-            (!- " ") ctx
+            (!-" ") ctx
 """
 
 [<Test>]
