@@ -1014,8 +1014,9 @@ let genExpr (e: Expr) =
                         (coli sepNone leadingChain (fun idx -> genLink (idx = lastIndex)))
                         (match leadingChain with
                          | [] -> sepNone
-                         | head :: rest -> genLink false head +> indent +> genIndentedLinks true rest +> unindent)
-                    +> indentSepNlnUnindent (genIndentedLinks false links)
+                         | [ head ] -> genLink false head
+                         | head :: rest -> genLink false head +> indentSepNlnUnindent (genIndentedLinks true rest))
+                    +> indentSepNlnUnindent (genIndentedLinks true links)
 
             | head :: links -> genFirstLinkAndIndentOther head links
 
