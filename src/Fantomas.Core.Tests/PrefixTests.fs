@@ -195,7 +195,7 @@ let _ = + <@ 1 @>
 """
 
 [<Test>]
-let ``add space between prefix and measure`` () =
+let ``add space between prefix and measure literal that starts with a symbol`` () =
     formatSourceString
         """
 let _ = - +1<m>

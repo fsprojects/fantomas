@@ -756,21 +756,22 @@ let genExpr (e: Expr) =
         let genWithoutSpace = genSingleTextNode node.Operator +> genExpr node.Expr
         let genWithSpace = genSingleTextNode node.Operator +> sepSpace +> genExpr node.Expr
 
-        match node.Expr with
-        // E.g. + <@ 1 @>
-        | Expr.Quote _ -> genWithSpace
-        | Expr.Constant(constant) ->
-            // E.g. !! @"foobar", because !!@ would be mistaken for an operator.
-            match constant with
+        let rec (|ConstantWithSign|_|) =
+            function
             | Constant.FromText(stn) ->
                 match stn.Text.[0] with
                 | '@'
                 | '-'
-                | '+' -> genWithSpace
-                | _ -> genWithoutSpace
-            // E.g. - +1<m>
-            | Constant.Measure _ -> genWithSpace
-            | Constant.Unit _ -> genWithoutSpace
+                | '+' -> Some()
+                | _ -> None
+            | Constant.Measure measure -> (|ConstantWithSign|_|) measure.Constant
+            | Constant.Unit _ -> None
+
+        match node.Expr with
+        // E.g. + <@ 1 @>
+        | Expr.Quote _ -> genWithSpace
+        // E.g. !! @"foobar", because !!@ would be mistaken for an operator.
+        | Expr.Constant(ConstantWithSign) -> genWithSpace
         // !- $"blah{s}"
         | Expr.InterpolatedStringExpr _ -> genWithSpace
         // We don't respect SpaceBeforeLowercaseInvocation here because it can alter the meaning of the code.
