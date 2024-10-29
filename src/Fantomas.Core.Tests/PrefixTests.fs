@@ -3,7 +3,6 @@
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelpers
-open Fantomas.Core
 
 [<Test>]
 let ``should format prefix operators`` () =
