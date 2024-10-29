@@ -1,9 +1,14 @@
 # Changelog
 
+## 6.3.16 - 2024-10-29
+
+### Fixed
+* Idempotency problem when calling multi-line discriminated union with generic type parameter. [#3132](https://github.com/fsprojects/fantomas/issues/3132)
+
 ## 6.3.15 - 2024-09-14
 
 ### Fixed
-* Non needed parentheses are added around lambda call from tuple/members [#3082](https://github.com/fsprojects/fantomas/issues/3082)
+* Non needed parentheses are added around lambda call from tuple/members. [#3082](https://github.com/fsprojects/fantomas/issues/3082)
 
 ## 6.3.14 - 2024-09-14
 
