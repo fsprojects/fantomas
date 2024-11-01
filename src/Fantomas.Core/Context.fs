@@ -391,6 +391,24 @@ let indent (ctx: Context) =
 let unindent (ctx: Context) =
     writerEvent (UnIndentBy ctx.Config.IndentSize) ctx
 
+let experimentalDoubleIndent (ctx: Context) =
+    let indentSize =
+        if not ctx.Config.ExperimentalDoubleIndentParameters then
+            ctx.Config.IndentSize
+        else
+            2 * ctx.Config.IndentSize
+
+    writerEvent (IndentBy indentSize) ctx
+
+let experimentalDoubleUnindent (ctx: Context) =
+    let indentSize =
+        if not ctx.Config.ExperimentalDoubleIndentParameters then
+            ctx.Config.IndentSize
+        else
+            2 * ctx.Config.IndentSize
+
+    writerEvent (UnIndentBy indentSize) ctx
+
 /// Apply function f at an absolute indent level (use with care)
 let atIndentLevel alsoSetIndent level (f: Context -> Context) (ctx: Context) =
     if level < 0 then
