@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.0.0-alpha-002 - 2024-11-02
+
+### Changed
+* Unary operators: inconsistent formatting when arg is literal vs variable. [#3131](https://github.com/fsprojects/fantomas/issues/3131)
+
 ## 7.0.0-alpha-001 - 2024-09-16
 
 ### Added
