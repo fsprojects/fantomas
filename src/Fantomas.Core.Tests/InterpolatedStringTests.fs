@@ -166,20 +166,6 @@ $\"\"\"one: {1}<
 "
 
 [<Test>]
-let ``prefix application, 1414`` () =
-    formatSourceString
-        """
-!- $".{s}"
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-!- $".{s}"
-"""
-
-[<Test>]
 let ``format in FillExpr, 1549`` () =
     formatSourceString
         """

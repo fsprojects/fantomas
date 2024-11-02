@@ -644,7 +644,7 @@ let genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
             genPreXmlDoc px
             +> genAttributes astContext ats
             +> genMemberFlags astContext mf1
-            +> ifElse isInline (!- "inline ") sepNone
+            +> ifElse isInline (!-"inline ") sepNone
             +> opt sepSpace ao genAccess
 
         assert (ps1 |> Seq.map fst |> Seq.forall Option.isNone)

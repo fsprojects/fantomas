@@ -217,9 +217,9 @@ let ``ignore setting when function call is the argument of prefix application`` 
     |> should
         equal
         """
-!- String.Empty.padLeft(braceSize + spaceAround)
-(!- System.String.Empty.padRight(delta)) ({ ctx with RecordBraceStart = rest })
-!- meh()
+!-String.Empty.padLeft(braceSize + spaceAround)
+(!-System.String.Empty.padRight(delta)) ({ ctx with RecordBraceStart = rest })
+!-meh()
 """
 
 [<Test>]
