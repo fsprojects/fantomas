@@ -134,6 +134,7 @@
     <Compile Include="BeginEndTests.fs" />
     <Compile Include="NullnessTests.fs" />
     <Compile Include="AutoPropertiesTests.fs" />
+    <Compile Include="PrefixTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />

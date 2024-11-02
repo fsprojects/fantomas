@@ -354,7 +354,7 @@ let genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingA
                     | Token { TokenInfo = { TokenName = "MEMBER" } } -> r.StartLine = rangeOfBindingAndRhs.StartLine
 
                     | _ -> false)
-                |> Option.defaultValue (!- "override ")
+                |> Option.defaultValue (!-"override ")
                 <| ctx)
         <| ctx
 """
