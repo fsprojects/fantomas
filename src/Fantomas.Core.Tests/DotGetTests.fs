@@ -611,7 +611,8 @@ Log.Logger <-
         .CreateLogger()
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+            MaxLineLength = 40 }
     |> prepend newline
     |> should
         equal
@@ -634,7 +635,8 @@ Log.Logger <-
         .CreateLogger()
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+            MaxLineLength = 40 }
     |> prepend newline
     |> should
         equal
