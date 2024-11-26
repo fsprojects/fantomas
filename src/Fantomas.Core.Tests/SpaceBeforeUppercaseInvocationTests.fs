@@ -54,15 +54,12 @@ let ``spaceBeforeUppercaseInvocation should not have impact when member is calle
         """
 let x = DateTimeOffset(2017,6,1,10,3,14,TimeSpan(1,30,0)).LocalDateTime
 """
-        { spaceBeforeConfig with
-            MaxDotGetExpressionWidth = 50 }
+        spaceBeforeConfig
     |> prepend newline
     |> should
         equal
         """
-let x =
-    DateTimeOffset(2017, 6, 1, 10, 3, 14, TimeSpan (1, 30, 0))
-        .LocalDateTime
+let x = DateTimeOffset(2017, 6, 1, 10, 3, 14, TimeSpan (1, 30, 0)).LocalDateTime
 """
 
 // Space before parentheses (a+b) in Uppercase function call

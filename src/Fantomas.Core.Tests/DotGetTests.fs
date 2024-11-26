@@ -11,18 +11,13 @@ let ``a TypeApp inside a DotGet should stay on the same line, 994`` () =
         """
 Microsoft.FSharp.Reflection.FSharpType.GetUnionCases(typeof<option<option<unit>>>.GetGenericTypeDefinition().MakeGenericType(t)).Assembly
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> prepend newline
     |> should
         equal
         """
 Microsoft.FSharp.Reflection.FSharpType
-    .GetUnionCases(
-        typeof<option<option<unit>>>
-            .GetGenericTypeDefinition()
-            .MakeGenericType(t)
-    )
+    .GetUnionCases(typeof<option<option<unit>>>.GetGenericTypeDefinition().MakeGenericType(t))
     .Assembly
 """
 
@@ -33,19 +28,13 @@ let ``a DotGetApp inside a DotGet should stay on the same line, 1051`` () =
 System.Diagnostics.FileVersionInfo.GetVersionInfo(
                System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion
 """
-        { config with
-            MaxLineLength = 80
-            MaxDotGetExpressionWidth = 50 }
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
         """
 System.Diagnostics.FileVersionInfo
-    .GetVersionInfo(
-        System.Reflection.Assembly
-            .GetExecutingAssembly()
-            .Location
-    )
+    .GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location)
     .FileVersion
 """
 
@@ -60,7 +49,6 @@ let ``split chained method call expression, 246`` () =
                System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion)
 """
         { config with
-            MaxDotGetExpressionWidth = 50
             MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
@@ -70,11 +58,7 @@ root.SetAttribute(
     "driverVersion",
     "AltCover.Recorder "
     + System.Diagnostics.FileVersionInfo
-        .GetVersionInfo(
-            System.Reflection.Assembly
-                .GetExecutingAssembly()
-                .Location
-        )
+        .GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location)
         .FileVersion
 )
 """
@@ -139,9 +123,7 @@ module Services =
             ) =
             match storage with
             | Storage.MemoryStore store ->
-                Equinox.MemoryStore
-                    .Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
-                    .Resolve
+                Equinox.MemoryStore.Resolver(store, FsCodec.Box.Codec.Create(), fold, initial).Resolve
             | Storage.EventStore(gateway, cache) ->
                 let accessStrategy = Equinox.EventStore.AccessStrategy.RollingSnapshots snapshot
 
@@ -196,10 +178,7 @@ let main args =
     Host
         .CreateDefaultBuilder(args)
         .ConfigureWebHostDefaults(fun builder ->
-            builder
-                .CaptureStartupErrors(true)
-                .UseSerilog(dispose = true)
-                .UseStartup<Startup>()
+            builder.CaptureStartupErrors(true).UseSerilog(dispose = true).UseStartup<Startup>()
             |> ignore)
         .Build()
         .Run()
@@ -218,7 +197,7 @@ let job =
         .WithIdentity(taskName, groupName)
         .Build()
 """
-        config
+        { config with MaxLineLength = 50 }
     |> prepend newline
     |> should
         equal
@@ -241,7 +220,7 @@ let c =
         .UseSerilog(dispose = true)
         .UseStartup<Startup>()
 """
-        config
+        { config with MaxLineLength = 40 }
     |> prepend newline
     |> should
         equal
@@ -283,7 +262,7 @@ let ``long ident with dots inside app inside dotget`` () =
 Equinox.MemoryStore.Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
                     .Resolve
 """
-        config
+        { config with MaxLineLength = 65 }
     |> prepend newline
     |> should
         equal
@@ -305,7 +284,7 @@ let ``long ident with dots inside type app inside dotget`` () =
                                                                accessStrategy)
                     .Resolve
 """
-        config
+        { config with MaxLineLength = 100 }
     |> prepend newline
     |> should
         equal
@@ -862,8 +841,7 @@ let PublishValueDefn cenv env declKind (vspec: Val) =
 
     ()
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> prepend newline
     |> should
         equal
@@ -871,16 +849,14 @@ let PublishValueDefn cenv env declKind (vspec: Val) =
 let PublishValueDefn cenv env declKind (vspec: Val) =
     if
         (declKind = ModuleOrMemberBinding)
-        && ((GetCurrAccumulatedModuleOrNamespaceType env)
-               .ModuleOrNamespaceKind = Namespace)
+        && ((GetCurrAccumulatedModuleOrNamespaceType env).ModuleOrNamespaceKind = Namespace)
         && (Option.isNone vspec.MemberInfo)
     then
         errorR (Error(FSComp.SR.tcNamespaceCannotContainValues (), vspec.Range))
 
     if
         (declKind = ExtrinsicExtensionBinding)
-        && ((GetCurrAccumulatedModuleOrNamespaceType env)
-               .ModuleOrNamespaceKind = Namespace)
+        && ((GetCurrAccumulatedModuleOrNamespaceType env).ModuleOrNamespaceKind = Namespace)
     then
         errorR (Error(FSComp.SR.tcNamespaceCannotContainExtensionMembers (), vspec.Range))
 
@@ -912,9 +888,7 @@ type Foobar =
             FileSystem.SafeExists filename
             && ((tcConfig.GetTargetFrameworkDirectories()
                  |> List.exists (fun clrRoot -> clrRoot = Path.GetDirectoryName filename))
-                || (tcConfig.FxResolver
-                       .GetSystemAssemblies()
-                       .Contains(fileNameWithoutExtension filename))
+                || (tcConfig.FxResolver.GetSystemAssemblies().Contains(fileNameWithoutExtension filename))
                 || tcConfig.FxResolver.IsInReferenceAssemblyPackDirectory filename)
         with _ ->
             false
@@ -950,8 +924,7 @@ services
     .AddIdentityCore(fun options -> ())
     .AddUserManager<UserManager<web.ApplicationUser>>()
 """
-        { config with
-            MaxDotGetExpressionWidth = 200 }
+        { config with MaxLineLength = 200 }
     |> prepend newline
     |> should
         equal
@@ -1137,8 +1110,7 @@ let ``dotget function application should add space before argument, long`` () =
         """
 m.Property(fun p -> p.Name).IsRequired().HasColumnName("ModelName").HasMaxLength 64
 """
-        { config with
-            MaxDotGetExpressionWidth = 70 }
+        { config with MaxLineLength = 70 }
     |> prepend newline
     |> should
         equal
@@ -1157,8 +1129,7 @@ let ``dotget lambda multiline application`` () =
         """
 m.Property(fun p -> p.Name).IsRequired().HasColumnName("ModelName").HasMaxLength
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        { config with MaxLineLength = 50 }
     |> prepend newline
     |> should
         equal
@@ -1195,12 +1166,7 @@ db.Schema.Users.Query
         | Role.User companyId -> companyId
         | _ -> __
     )
-    .In(
-        db.Schema.Companies.Query
-            .Where(fun x -> x.LicenceId)
-            .Equals(licenceId)
-            .Select(fun x -> x.Id)
-    )
+    .In(db.Schema.Companies.Query.Where(fun x -> x.LicenceId).Equals(licenceId).Select(fun x -> x.Id))
 """
 
 [<Test>]
@@ -1229,8 +1195,7 @@ module Program =
         builder.Build().RunAsync() |> ignore
         0
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> prepend newline
     |> should
         equal
@@ -1266,17 +1231,12 @@ let ``dotget inside a quotation, 2154`` () =
         """
 (fun (Singleton arg) -> <@@ ((%%arg: Indicators) :> IIndicators).AsyncGetIndicator(indicatorIdVal) @@>)
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> prepend newline
     |> should
         equal
         """
-(fun (Singleton arg) ->
-    <@@
-        ((%%arg: Indicators) :> IIndicators)
-            .AsyncGetIndicator(indicatorIdVal)
-    @@>)
+(fun (Singleton arg) -> <@@ ((%%arg: Indicators) :> IIndicators).AsyncGetIndicator(indicatorIdVal) @@>)
 """
 
 [<Test>]
@@ -1285,7 +1245,7 @@ let ``argument in short type app as function name, 2683`` () =
         """
 Assembly.GetExecutingAssembly().GetCustomAttribute<MyCustomAttribute>().SomeProperty
 """
-        config
+        { config with MaxLineLength = 50 }
     |> prepend newline
     |> should
         equal

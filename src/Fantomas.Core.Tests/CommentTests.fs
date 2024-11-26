@@ -1587,8 +1587,7 @@ Host
 
 //
 """
-        { config with
-            MaxDotGetExpressionWidth = 40 }
+        { config with MaxLineLength = 55 }
     |> prepend newline
     |> should
         equal

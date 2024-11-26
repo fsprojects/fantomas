@@ -1001,18 +1001,13 @@ let ``let bang + do expression + let + return in ce`` () =
         return Ok(user.Identity.Name, collectClaims user)
     }
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> prepend newline
     |> should
         equal
         """
 task {
-    let! config =
-        manager
-            .GetConfigurationAsync()
-            .ConfigureAwait(false)
-
+    let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
     parameters.IssuerSigningKeys <- config.SigningKeys
     let user, _ = handler.ValidateToken((token: string), parameters)
     return Ok(user.Identity.Name, collectClaims user)
@@ -2300,8 +2295,7 @@ aggregateResult {
 }
 """
         { config with
-            MaxInfixOperatorExpression = 40
-            MaxDotGetExpressionWidth = 50 }
+            MaxInfixOperatorExpression = 40 }
     |> prepend newline
     |> should
         equal

@@ -816,7 +816,6 @@ type BlobHelper(Account : CloudStorageAccount) =
         BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
     """
         { config with
-            MaxDotGetExpressionWidth = 50
             MaxInfixOperatorExpression = 40 }
     |> prepend newline
     |> should

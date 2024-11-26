@@ -31,6 +31,8 @@ let formatFSharpString isFsiFile (s: string) config =
         if formattedCode <> secondFormattedCode then
             failwith $"The formatted result was not idempotent.\n%s{formattedCode}\n%s{secondFormattedCode}"
 
+        printfn "formatted code:\n%s\n" formattedCode
+
         return formattedCode
     }
     |> Async.RunSynchronously

@@ -41,8 +41,7 @@ let logger =
         .Returns(())
         .Create()
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        { config with MaxLineLength = 50 }
     |> prepend newline
     |> should
         equal
@@ -69,8 +68,7 @@ let action =
     @>
 """
         { config with
-            MaxInfixOperatorExpression = 50
-            MaxDotGetExpressionWidth = 50 }
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

@@ -181,8 +181,7 @@ let ``identifier dot appUnit dot typed appUnit `` () =
         """
 A.B().C<'d>()
 """
-        { config with
-            MaxDotGetExpressionWidth = 0 }
+        { config with MaxLineLength = 10 }
     |> prepend newline
     |> should
         equal
@@ -198,8 +197,7 @@ let ``identifier dot appUnit dot typed identifier `` () =
         """
 A.B().C<'d>
 """
-        { config with
-            MaxDotGetExpressionWidth = 0 }
+        { config with MaxLineLength = 10 }
     |> prepend newline
     |> should
         equal
@@ -215,8 +213,7 @@ let ``identifier dot identifier dot appExpr dot appUnit dot index expr`` () =
         """
 A.B.C(D).E().[0]
 """
-        { config with
-            MaxDotGetExpressionWidth = 0 }
+        { config with MaxLineLength = 10 }
     |> prepend newline
     |> should
         equal
@@ -233,8 +230,7 @@ let ``identifier dot identifier dot appExpr dot identifier dot index expr`` () =
         """
 A.B.C(D).E.[0]
 """
-        { config with
-            MaxDotGetExpressionWidth = 0 }
+        { config with MaxLineLength = 10 }
     |> prepend newline
     |> should
         equal
@@ -288,8 +284,7 @@ Map
     .empty<_, obj>
     .Add("headerAction", modifyHeader.Action.ArmValue)
 """
-        { config with
-            MaxDotGetExpressionWidth = 0 }
+        { config with MaxLineLength = 55 }
     |> prepend newline
     |> should
         equal
@@ -310,7 +305,7 @@ let d = Duck()
 
 d.Duck.Duck.Duck.Goose().Duck.Goose().Duck.Duck.Goose().Duck.Duck.Duck.Goose().Duck.Duck.Duck.Duck.Goose()
 """
-        config
+        { config with MaxLineLength = 45 }
     |> prepend newline
     |> should
         equal
@@ -335,9 +330,7 @@ let ``very long chain with a some index expressions`` () =
         """
 Universe.Galaxy.SolarSystem.Planet.[3].Countries.[9].People.Count
 """
-        { config with
-            MaxDotGetExpressionWidth = 0
-            MaxLineLength = 50 }
+        { config with MaxLineLength = 50 }
     |> prepend newline
     |> should
         equal
@@ -353,9 +346,7 @@ let ``even longer chain with only simple links`` () =
 Fooooooooooo.Baaaaaaaaaaaaaaaaar.Foooooooooooooooooo.Baaaaaaaar.Basssss.Baazzzzzzzzzzzzzzzzzz.[0].Meeeeeeeeeeeeeeeeeh
     .Moooooooooooooooo.Booooooooooooooooooooh.Yooooooooooooooou.Meeeeeeh.Meh2
 """
-        { config with
-            MaxDotGetExpressionWidth = 0
-            MaxLineLength = 50 }
+        { config with MaxLineLength = 50 }
     |> prepend newline
     |> should
         equal
@@ -426,9 +417,7 @@ Animal<
         "Spot"
     )
 """
-        { config with
-            MaxDotGetExpressionWidth = 0
-            MaxLineLength = 10 }
+        { config with MaxLineLength = 10 }
     |> prepend newline
     |> should
         equal
