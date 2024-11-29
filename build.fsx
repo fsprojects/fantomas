@@ -496,6 +496,7 @@ pipeline "PublishAlpha" {
                 return Seq.sum nugetExitCodes
             })
     }
+    runIfOnlySpecified true
 }
 
 tryPrintPipelineCommandHelp ()
