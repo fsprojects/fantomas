@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.0.0-alpha-003 - 2024-11-29
+
+### Removed
+* setting `MaxDotGetExpressionWidth`. [#3138](https://github.com/fsprojects/fantomas/pull/3138)
+
 ## 7.0.0-alpha-002 - 2024-11-02
 
 ### Changed

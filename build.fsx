@@ -478,4 +478,24 @@ pipeline "Release" {
     runIfOnlySpecified true
 }
 
+pipeline "PublishAlpha" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Clean" { run (cleanFolders [| analysisReportsDir; "artifacts" |]) }
+    stage "Build" { run "dotnet build -c Release --tl" }
+    stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
+    stage "Publish" {
+        run (fun ctx ->
+            async {
+                let nugetPackages =
+                    Directory.EnumerateFiles("artifacts/package/release", "*.nupkg", SearchOption.TopDirectoryOnly)
+                    |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
+                    |> Seq.toArray
+
+                let! nugetExitCodes = nugetPackages |> Array.map pushPackage |> Async.Sequential
+
+                return Seq.sum nugetExitCodes
+            })
+    }
+}
+
 tryPrintPipelineCommandHelp ()
