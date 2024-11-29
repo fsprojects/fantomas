@@ -179,10 +179,6 @@ type FormatConfig =
       [<DisplayName("Maximum function-binding width")>]
       MaxFunctionBindingWidth: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Maximum dot get expression width")>]
-      MaxDotGetExpressionWidth: Num
-
       [<Category("Convention")>]
       [<DisplayName("Newline between type definition and members")>]
       NewlineBetweenTypeDefinitionAndMembers: bool
@@ -257,7 +253,6 @@ type FormatConfig =
           ArrayOrListMultilineFormatter = MultilineFormatterType.CharacterWidth
           MaxValueBindingWidth = 80
           MaxFunctionBindingWidth = 40
-          MaxDotGetExpressionWidth = 80
           NewlineBetweenTypeDefinitionAndMembers = true
           AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false

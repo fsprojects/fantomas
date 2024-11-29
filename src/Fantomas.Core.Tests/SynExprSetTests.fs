@@ -262,11 +262,7 @@ Log.Logger <-
     |> should
         equal
         """
-Log.Logger <-
-    LoggerConfiguration<Foo>()
-        .Destructure.FSharpTypes()
-        .WriteTo.Console()
-        .CreateLogger ()
+Log.Logger <- LoggerConfiguration<Foo>().Destructure.FSharpTypes().WriteTo.Console().CreateLogger ()
 """
 
 [<Test>]

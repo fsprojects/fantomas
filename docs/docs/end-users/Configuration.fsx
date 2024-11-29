@@ -730,28 +730,6 @@ fsharp_max_function_binding_width = 10
 (*** include-output ***)
 
 (**
-<fantomas-setting green></fantomas-setting>
-### fsharp_max_dot_get_expression_width
-<copy-to-clipboard text="fsharp_max_dot_get_expression_width = 100"></copy-to-clipboard>
-
-Control the maximum width for which (nested) [SynExpr.DotGet](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#DotGet) expressions should be in one line.
-*)
-
-(*** hide ***)
-printfn
-    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.MaxDotGetExpressionWidth)} = {FormatConfig.Default.MaxDotGetExpressionWidth}"
-(*** include-output ***)
-
-formatCode
-    """ 
-   let job = JobBuilder.UsingJobData(jobDataMap).Create<WrapperJob>().Build()
-    """
-    """
-fsharp_max_dot_get_expression_width = 60
-    """
-(*** include-output ***)
-
-(**
 <fantomas-setting green gr></fantomas-setting>
 ### fsharp_multiline_bracket_style
 <copy-to-clipboard text="fsharp_multiline_bracket_style = stroustrup"></copy-to-clipboard>

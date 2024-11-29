@@ -604,7 +604,6 @@ a:hover {color: #ecc;}
     xmlform.Save packable
 "
         { config with
-            MaxDotGetExpressionWidth = 50
             MaxInfixOperatorExpression = 50
             MaxArrayOrListWidth = 40 }
     |> prepend newline

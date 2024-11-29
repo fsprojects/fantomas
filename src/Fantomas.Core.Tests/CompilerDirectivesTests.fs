@@ -651,8 +651,7 @@ type FunctionComponent =
 
     static member Foo = ()
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> should
         equal
         """namespace Fable.React
@@ -673,8 +672,7 @@ type FunctionComponent =
         let elemType =
             ReactBindings.React.``lazy`` (fun () ->
                 // React.lazy requires a default export
-                (importValueDynamic f)
-                    .``then`` (fun x -> createObj [ "default" ==> x ]))
+                (importValueDynamic f).``then`` (fun x -> createObj [ "default" ==> x ]))
 
         fun props ->
             ReactElementType.create
@@ -845,8 +843,7 @@ type FunctionComponent =
 
     static member Foo = ()
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> should
         equal
         """namespace Fable.React
@@ -867,8 +864,7 @@ type FunctionComponent =
         let elemType =
             ReactBindings.React.``lazy`` (fun () ->
                 // React.lazy requires a default export
-                (importValueDynamic f)
-                    .``then`` (fun x -> createObj [ "default" ==> x ]))
+                (importValueDynamic f).``then`` (fun x -> createObj [ "default" ==> x ]))
 
         fun props ->
             ReactElementType.create
@@ -2214,7 +2210,6 @@ let loader (projectRoot: string) (siteContent: SiteContents) =
   disableLiveRefresh
 """
         { config with
-            MaxDotGetExpressionWidth = 50
             MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
