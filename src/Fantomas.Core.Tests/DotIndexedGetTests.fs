@@ -86,7 +86,6 @@ let mySampleMethod() =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            MaxDotGetExpressionWidth = 50
             MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should

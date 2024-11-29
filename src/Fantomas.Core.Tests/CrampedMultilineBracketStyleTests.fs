@@ -778,9 +778,7 @@ let expect =
                                   args = []
                                   commands = [] }
 """
-        { config with
-            MaxDotGetExpressionWidth = 50
-            MaxArrayOrListWidth = 40 }
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -1988,7 +1986,6 @@ let defaultTestOptions fwk common (o: DotNet.TestOptions) =
           Configuration = DotNet.BuildConfiguration.Debug }
 """
         { config with
-            MaxDotGetExpressionWidth = 50
             MaxInfixOperatorExpression = 50
             MaxRecordWidth = 55 }
     |> prepend newline

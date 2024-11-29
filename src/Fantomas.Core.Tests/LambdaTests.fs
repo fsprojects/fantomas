@@ -295,7 +295,6 @@ CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettin
             configSettingPublisher.Invoke(connectionString) |> ignore)
 """
         { config with
-            MaxDotGetExpressionWidth = 50
             MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should

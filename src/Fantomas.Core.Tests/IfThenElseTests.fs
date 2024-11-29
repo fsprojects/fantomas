@@ -1656,10 +1656,7 @@ let private tryGetUrlWithExactMatch
   (urlPattern: string<Url>)
   (document: Document)
   =
-  if
-    (UMX.untag pathPattern)
-      .Equals(UMX.untag document.Name, System.StringComparison.Ordinal)
-  then
+  if (UMX.untag pathPattern).Equals(UMX.untag document.Name, System.StringComparison.Ordinal) then
     Some(urlPattern, normalizeRepoPath (UMX.cast<SourcelinkPattern, RepoPathSegment> pathPattern), document)
   else
     None
@@ -1669,10 +1666,7 @@ let private tryGetUrlWithExactMatch
   (urlPattern: string<Url>)
   (document: Document)
   =
-  if
-    (UMX.untag pathPattern)
-      .Equals(UMX.untag document.Name, System.StringComparison.Ordinal)
-  then
+  if (UMX.untag pathPattern).Equals(UMX.untag document.Name, System.StringComparison.Ordinal) then
     Some(urlPattern, normalizeRepoPath (UMX.cast<SourcelinkPattern, RepoPathSegment> pathPattern), document)
   else
     None
@@ -2362,8 +2356,7 @@ module Foo =
             None
         else Some "hi"
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal

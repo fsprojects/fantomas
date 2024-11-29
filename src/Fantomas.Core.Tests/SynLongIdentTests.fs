@@ -18,8 +18,7 @@ Log.Logger <-
     .Destructure.FSharpTypes()
     .WriteTo.Console()
     .CreateLogger()"""
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        { config with MaxLineLength = 60 }
     |> prepend newline
     |> should
         equal
@@ -117,8 +116,7 @@ let main _ =
     finally
         Log.CloseAndFlush()
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> prepend newline
     |> should
         equal
@@ -132,9 +130,7 @@ let main _ =
             Config.Logger.configure ()
 
             let config =
-                ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .Build()
+                ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).Build()
 
             WebHostBuilder()
                 .UseConfiguration(config)

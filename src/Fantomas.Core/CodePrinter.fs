@@ -1009,14 +1009,11 @@ let genExpr (e: Expr) =
             | LeadingSimpleChain(leadingChain, links) ->
                 match links with
                 | [] ->
-                    fun ctx ->
-                        isShortExpression
-                            ctx.Config.MaxDotGetExpressionWidth
-                            short
-                            (match leadingChain with
-                             | [] -> sepNone
-                             | head :: links -> genLink false head +> indent +> genIndentedLinks true links +> unindent)
-                            ctx
+                    expressionFitsOnRestOfLine
+                        short
+                        (match leadingChain with
+                         | [] -> sepNone
+                         | head :: links -> genLink false head +> indent +> genIndentedLinks true links +> unindent)
                 | _ ->
                     expressionFitsOnRestOfLine
                         (coli sepNone leadingChain (fun idx -> genLink (idx = lastIndex)))
@@ -1028,8 +1025,7 @@ let genExpr (e: Expr) =
 
             | head :: links -> genFirstLinkAndIndentOther head links
 
-        (fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx)
-        |> genNode node
+        expressionFitsOnRestOfLine short long |> genNode node
 
     // path.Replace("../../../", "....")
     | Expr.AppLongIdentAndSingleParenArg node ->

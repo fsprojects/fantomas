@@ -110,8 +110,8 @@ let tomorrow =
         .AddDays(1.)
 """
         { config with
-            MaxValueBindingWidth = 70
-            MaxDotGetExpressionWidth = 50 }
+            MaxValueBindingWidth = 60
+            MaxLineLength = 70 }
     |> prepend newline
     |> should
         equal
@@ -850,8 +850,7 @@ let private authenticateRequest (logger: ILogger) header =
         logger.LogError(sprintf "Could not authenticate token %s\n%A" token exn)
         task { return None }
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> prepend newline
     |> should
         equal
@@ -878,11 +877,7 @@ let private authenticateRequest (logger: ILogger) header =
 
     try
         task {
-            let! config =
-                manager
-                    .GetConfigurationAsync()
-                    .ConfigureAwait(false)
-
+            let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
             parameters.IssuerSigningKeys <- config.SigningKeys
 
             let user, _ = handler.ValidateToken((token: string), parameters)
@@ -1043,8 +1038,7 @@ let ``don't add additional newline before SynExpr.New, 1049`` () =
         new HttpResponseMessage(HttpStatusCode.OK,
                                 Content = new StringContent(version, System.Text.Encoding.UTF8, "application/text"))
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> prepend newline
     |> should
         equal
@@ -1193,8 +1187,7 @@ let x =
            else
                false
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> prepend newline
     |> should
         equal
@@ -1254,8 +1247,7 @@ let x =
            else
                false
 """
-        { config with
-            MaxDotGetExpressionWidth = 50 }
+        config
     |> prepend newline
     |> should
         equal

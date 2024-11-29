@@ -1464,7 +1464,7 @@ let longExpr = genExpr e +> indentSepNlnUnindent (genSynLongIdentMultiline true 
 
 fun ctx ->
     isShortExpression
-        ctx.Config.MaxDotGetExpressionWidth
+        ctx.Config.Blaaaaaaaaaaaaaaaaaaaaaaaaah
         shortExpr
         longExpr
         ctx
@@ -1477,7 +1477,7 @@ fun ctx ->
 let shortExpr = genExpr e +> genSynLongIdent true sli
 let longExpr = genExpr e +> indentSepNlnUnindent (genSynLongIdentMultiline true sli)
 
-fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
+fun ctx -> isShortExpression ctx.Config.Blaaaaaaaaaaaaaaaaaaaaaaaaah shortExpr longExpr ctx
 """
 
 [<Test>]
