@@ -303,9 +303,9 @@
     <Compile Include="$(FsYaccOutputFolder)pplex.fs">
       <Link>SyntaxTree\FsLexOutput\pplex.fs</Link>
     </Compile>
-    <Compile Include="$(FsYaccOutputFolder)\lex.fsi">
-      <Link>SyntaxTree\FsLexOutput\lex.fsi</Link>
-    </Compile>
+<!--    <Compile Include="$(FsYaccOutputFolder)\lex.fsi">-->
+<!--      <Link>SyntaxTree\FsLexOutput\lex.fsi</Link>-->
+<!--    </Compile>-->
     <Compile Include="$(FsYaccOutputFolder)\lex.fs">
       <Link>SyntaxTree\FsLexOutput\lex.fs</Link>
     </Compile>
