@@ -1,5 +1,6 @@
 module Fantomas.Core.Tests.ComputationExpressionTests
 
+open Internal.Utilities.Library.Extras
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelpers
@@ -2452,4 +2453,18 @@ let zero =
 let zero =
     async { () } // foo
     |> ignore
+"""
+
+[<Test>]
+let ``empty computation expression with application`` () =
+    formatSourceString
+        """
+A() {}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+A() { }
 """

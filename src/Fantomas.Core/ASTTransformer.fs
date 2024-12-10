@@ -455,6 +455,15 @@ let (|IndexWithoutDot|_|) expr =
         Some(identifierExpr, indexExpr)
     | _ -> None
 
+let (|EmptyComputationExpr|_|) expr =
+    match expr with
+    | SynExpr.App(ExprAtomicFlag.NonAtomic,
+                  false,
+                  funcExpr,
+                  SynExpr.Record(recordFields = []; range = StartEndRange 1 (mOpen, _, mClose)),
+                  range) -> Some(funcExpr, mOpen, mClose, range)
+    | _ -> None
+
 let (|MultipleConsInfixApps|_|) expr =
     let rec visit expr (headAndLastOperator: (SynExpr * SingleTextNode) option) (xs: Queue<SingleTextNode * SynExpr>) =
         match expr with
@@ -1251,6 +1260,16 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | IndexWithoutDot(identifierExpr, indexExpr) ->
         ExprIndexWithoutDotNode(mkExpr creationAide identifierExpr, mkExpr creationAide indexExpr, exprRange)
         |> Expr.IndexWithoutDot
+
+    | EmptyComputationExpr(expr, mOpen, mClose, m) ->
+        ExprNamedComputationNode(
+            mkExpr creationAide expr,
+            stn "{" mOpen,
+            Expr.Ident(stn "" Range.Zero),
+            stn "}" mClose,
+            m
+        )
+        |> Expr.NamedComputation
 
     | ChainExpr links ->
         let chainLinks =
