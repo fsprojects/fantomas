@@ -2453,3 +2453,17 @@ let zero =
     async { () } // foo
     |> ignore
 """
+
+[<Test>]
+let ``empty computation expression with application`` () =
+    formatSourceString
+        """
+A() {}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+A() { }
+"""
