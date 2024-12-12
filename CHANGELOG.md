@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.0.0-alpha-004 - 2024-12-12
+
+### Fixed
+* (Empty/NoEmpty)-bodied named computation expression produces inconsistent formatting. [#3140](https://github.com/fsprojects/fantomas/issues/3140)
+
 ## 7.0.0-alpha-003 - 2024-11-29
 
 ### Removed
