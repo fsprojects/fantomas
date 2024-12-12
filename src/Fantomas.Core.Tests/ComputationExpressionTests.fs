@@ -1,6 +1,5 @@
 module Fantomas.Core.Tests.ComputationExpressionTests
 
-open Internal.Utilities.Library.Extras
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelpers
