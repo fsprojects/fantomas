@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.0.0-beta-001 - 2024-12-30
+
+### Miscellaneous
+* Stable API of v7, no more breaking changes going forward.
+
 ## 7.0.0-alpha-004 - 2024-12-12
 
 ### Fixed
