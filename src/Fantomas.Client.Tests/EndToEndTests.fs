@@ -76,7 +76,7 @@ type EndToEndTests() =
     [<TestCase("5.0.6")>]
     [<TestCase("5.1.5")>]
     [<TestCase("5.2.2")>]
-    [<TestCase("6.0.0-alpha-004")>]
+    [<TestCase("6.0.0")>]
     member _.Version(version: string) =
         withVersion version (fun fsharpFile ->
             backgroundTask {
@@ -87,7 +87,7 @@ type EndToEndTests() =
     [<TestCase("5.0.6")>]
     [<TestCase("5.1.5")>]
     [<TestCase("5.2.2")>]
-    [<TestCase("6.0.0-alpha-004")>]
+    [<TestCase("6.0.0")>]
     member _.FormatDocument(version: string) =
         withVersion version (fun fsharpFile ->
             backgroundTask {
