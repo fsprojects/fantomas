@@ -293,7 +293,7 @@ These can be stored in an <a href="https://editorconfig.org/">.editorconfig</a> 
 commandline.<br />
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.</p>
-<table class="pre"><tr><td><pre><code>version: 6.3.16+b7dca797317471654fc693ed5a056cfb90bd73d4</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 7.0.0+0b159378b85384fbc112f636103f87c4882c92cd</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -875,25 +875,6 @@ fsharp_max_function_binding_width = 40</code></pre></td></tr></table>
 
 type MyType() =
     member this.HelpText = "Some help text"</code></pre></td></tr></table>
-<fantomas-setting green></fantomas-setting>
-<h3><a name="fsharp_max_dot_get_expression_width" class="anchor" href="#fsharp_max_dot_get_expression_width">fsharp_max_dot_get_expression_width</a></h3>
-<copy-to-clipboard text="fsharp_max_dot_get_expression_width = 100"></copy-to-clipboard>
-<p>Control the maximum width for which (nested) <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#DotGet">SynExpr.DotGet</a> expressions should be in one line.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_max_dot_get_expression_width = 80</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 310)" onmouseover="showTip(event, 'fs5', 310)" class="fn">formatCode</span>
-    <span class="s">&quot;&quot;&quot; </span>
-<span class="s">   let job = JobBuilder.UsingJobData(jobDataMap).Create&lt;WrapperJob&gt;().Build()</span>
-<span class="s">    &quot;&quot;&quot;</span>
-    <span class="s">&quot;&quot;&quot;</span>
-<span class="s">fsharp_max_dot_get_expression_width = 60</span>
-<span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let job =
-    JobBuilder
-        .UsingJobData(jobDataMap)
-        .Create&lt;WrapperJob&gt;()
-        .Build()</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_multiline_bracket_style" class="anchor" href="#fsharp_multiline_bracket_style">fsharp_multiline_bracket_style</a></h3>
 <copy-to-clipboard text="fsharp_multiline_bracket_style = stroustrup"></copy-to-clipboard>
@@ -902,7 +883,7 @@ fsharp_max_dot_get_expression_width = 80</code></pre></td></tr></table>
 <code>Stroustrup</code> Allow for easier reordering of members and keeping the code succinct.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_multiline_bracket_style = cramped</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 322)" onmouseover="showTip(event, 'fs5', 322)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 312)" onmouseover="showTip(event, 'fs5', 312)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myRecord =</span>
 <span class="s">        { Level = 1</span>
@@ -955,7 +936,7 @@ let a =
         (16, 17, 18)
         (19, 20, 21)
     |]</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 323)" onmouseover="showTip(event, 'fs5', 323)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 313)" onmouseover="showTip(event, 'fs5', 313)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myRecord =</span>
 <span class="s">        { Level = 1</span>
@@ -1011,7 +992,7 @@ let a = [|
 <p>Insert a newline before a computation expression that spans multiple lines</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_newline_before_multiline_computation_expression = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 333)" onmouseover="showTip(event, 'fs5', 333)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 323)" onmouseover="showTip(event, 'fs5', 323)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let something =</span>
 <span class="s">        task {</span>
@@ -1036,7 +1017,7 @@ From a consistency point of view, it is recommend to enable all these settings i
 <p>Adds a new line between a type definition and its first member.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_newline_between_type_definition_and_members = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 344)" onmouseover="showTip(event, 'fs5', 344)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 334)" onmouseover="showTip(event, 'fs5', 334)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">type Range =</span>
 <span class="s">    { From: float</span>
@@ -1060,7 +1041,7 @@ fsharp_newline_between_type_definition_and_members = true</code></pre></td></tr>
 This setting also places the equals sign and return type on a new line.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_align_function_signature_to_indentation = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 355)" onmouseover="showTip(event, 'fs5', 355)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 345)" onmouseover="showTip(event, 'fs5', 345)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">[&lt;FunctionName(&quot;FormatCode&quot;)&gt;]</span>
 <span class="s">let run </span>
@@ -1087,7 +1068,7 @@ let run
 where the difference is mainly in the equal sign and returned type placement.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_alternative_long_member_definitions = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 366)" onmouseover="showTip(event, 'fs5', 366)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 356)" onmouseover="showTip(event, 'fs5', 356)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">type C</span>
 <span class="s">    (</span>
@@ -1153,7 +1134,7 @@ type E() =
 <p>Places the closing parenthesis of a multiline lambda argument on the next line.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_multi_line_lambda_closing_newline = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 377)" onmouseover="showTip(event, 'fs5', 377)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 367)" onmouseover="showTip(event, 'fs5', 367)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let printListWithOffset a list1 =</span>
 <span class="s">    List.iter</span>
@@ -1195,7 +1176,7 @@ Only when the last pattern match or else branch was already at the same level of
 <p><em>This feature is experimental and is subject to change.</em></p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_experimental_keep_indent_in_branch = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 388)" onmouseover="showTip(event, 'fs5', 388)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 378)" onmouseover="showTip(event, 'fs5', 378)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let main argv =</span>
 <span class="s">    let args = parse argv</span>
@@ -1237,7 +1218,7 @@ fsharp_experimental_keep_indent_in_branch = false</code></pre></td></tr></table>
 If <code>false</code>, a <code>|</code> character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_bar_before_discriminated_union_declaration = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 399)" onmouseover="showTip(event, 'fs5', 399)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 389)" onmouseover="showTip(event, 'fs5', 389)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type MyDU = Short of int</span>
 <span class="s">    &quot;&quot;&quot;</span>
@@ -1256,7 +1237,7 @@ Existing blank lines are always preserved (via trivia), with exception when <a h
 Top level expressions will always follow the <a href="https://github.com/fsprojects/fantomas/blob/main/docs-old/FormattingConventions.md#2020-revision">2020 blank lines revision</a> principle.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_blank_lines_around_nested_multiline_expressions = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 409)" onmouseover="showTip(event, 'fs5', 409)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 399)" onmouseover="showTip(event, 'fs5', 399)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let topLevelFunction () =</span>
 <span class="s">        printfn &quot;Something to print&quot;</span>
@@ -1294,7 +1275,7 @@ let secondTopLevelFunction () =
 <p>Set maximal number of consecutive blank lines to keep from original source. It doesn't change number of new blank lines generated by Fantomas.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_keep_max_number_of_blank_lines = 100</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 419)" onmouseover="showTip(event, 'fs5', 419)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 409)" onmouseover="showTip(event, 'fs5', 409)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    open Foo</span>
 
@@ -1314,7 +1295,7 @@ let x = 42</code></pre></td></tr></table>
 Note that this behaviour is also active when <code>fsharp_multiline_bracket_style = stroustrup</code>.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_experimental_elmish = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 430)" onmouseover="showTip(event, 'fs5', 430)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 420)" onmouseover="showTip(event, 'fs5', 420)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let dualList =</span>
 <span class="s">    div</span>
@@ -1493,26 +1474,25 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
 <div class="fsdocs-tip" id="fs62">FormatConfig.ArrayOrListMultilineFormatter: MultilineFormatterType</div>
 <div class="fsdocs-tip" id="fs63">FormatConfig.MaxValueBindingWidth: Num</div>
 <div class="fsdocs-tip" id="fs64">FormatConfig.MaxFunctionBindingWidth: Num</div>
-<div class="fsdocs-tip" id="fs65">FormatConfig.MaxDotGetExpressionWidth: Num</div>
-<div class="fsdocs-tip" id="fs66">FormatConfig.MultilineBracketStyle: MultilineBracketStyle</div>
-<div class="fsdocs-tip" id="fs67">type MultilineBracketStyle =
+<div class="fsdocs-tip" id="fs65">FormatConfig.MultilineBracketStyle: MultilineBracketStyle</div>
+<div class="fsdocs-tip" id="fs66">type MultilineBracketStyle =
   | Cramped
   | Aligned
   | Stroustrup
   member Equals: MultilineBracketStyle * IEqualityComparer -&gt; bool
   static member OfConfigString: cfgString: string -&gt; MultilineBracketStyle option
   static member ToConfigString: cfg: MultilineBracketStyle -&gt; string</div>
-<div class="fsdocs-tip" id="fs68">static member MultilineBracketStyle.ToConfigString: cfg: MultilineBracketStyle -&gt; string</div>
-<div class="fsdocs-tip" id="fs69">FormatConfig.NewlineBeforeMultilineComputationExpression: bool</div>
-<div class="fsdocs-tip" id="fs70">FormatConfig.NewlineBetweenTypeDefinitionAndMembers: bool</div>
-<div class="fsdocs-tip" id="fs71">FormatConfig.AlignFunctionSignatureToIndentation: bool</div>
-<div class="fsdocs-tip" id="fs72">FormatConfig.AlternativeLongMemberDefinitions: bool</div>
-<div class="fsdocs-tip" id="fs73">FormatConfig.MultiLineLambdaClosingNewline: bool</div>
-<div class="fsdocs-tip" id="fs74">FormatConfig.ExperimentalKeepIndentInBranch: bool</div>
-<div class="fsdocs-tip" id="fs75">FormatConfig.BarBeforeDiscriminatedUnionDeclaration: bool</div>
-<div class="fsdocs-tip" id="fs76">FormatConfig.BlankLinesAroundNestedMultilineExpressions: bool</div>
-<div class="fsdocs-tip" id="fs77">FormatConfig.KeepMaxNumberOfBlankLines: Num</div>
-<div class="fsdocs-tip" id="fs78">FormatConfig.ExperimentalElmish: bool</div>
+<div class="fsdocs-tip" id="fs67">static member MultilineBracketStyle.ToConfigString: cfg: MultilineBracketStyle -&gt; string</div>
+<div class="fsdocs-tip" id="fs68">FormatConfig.NewlineBeforeMultilineComputationExpression: bool</div>
+<div class="fsdocs-tip" id="fs69">FormatConfig.NewlineBetweenTypeDefinitionAndMembers: bool</div>
+<div class="fsdocs-tip" id="fs70">FormatConfig.AlignFunctionSignatureToIndentation: bool</div>
+<div class="fsdocs-tip" id="fs71">FormatConfig.AlternativeLongMemberDefinitions: bool</div>
+<div class="fsdocs-tip" id="fs72">FormatConfig.MultiLineLambdaClosingNewline: bool</div>
+<div class="fsdocs-tip" id="fs73">FormatConfig.ExperimentalKeepIndentInBranch: bool</div>
+<div class="fsdocs-tip" id="fs74">FormatConfig.BarBeforeDiscriminatedUnionDeclaration: bool</div>
+<div class="fsdocs-tip" id="fs75">FormatConfig.BlankLinesAroundNestedMultilineExpressions: bool</div>
+<div class="fsdocs-tip" id="fs76">FormatConfig.KeepMaxNumberOfBlankLines: Num</div>
+<div class="fsdocs-tip" id="fs77">FormatConfig.ExperimentalElmish: bool</div>
 
     </div>
 </main>
@@ -1672,11 +1652,6 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
   <li class="level-3">
     <a href="#fsharp_max_function_binding_width">
       fsharp_max_function_binding_width
-    </a>
-  </li>
-  <li class="level-3">
-    <a href="#fsharp_max_dot_get_expression_width">
-      fsharp_max_dot_get_expression_width
     </a>
   </li>
   <li class="level-3">
