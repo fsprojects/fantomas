@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.0.0 - 2025-01-10
+
+### Miscellaneous
+* Stable release.
+
 ## 7.0.0-beta-001 - 2024-12-30
 
 ### Miscellaneous
