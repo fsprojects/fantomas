@@ -2,6 +2,9 @@
 
 This is the changelog for the Fantomas.Client package specifically. It's distinct from that of the overall libraries and command-line tool.
 
+## 0.10.0 - 2025-01-13
+* Bump packages
+
 ## 0.9.1 - 2024-08-19
 
 ### Fixed
