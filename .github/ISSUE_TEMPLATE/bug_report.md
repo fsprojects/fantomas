@@ -12,7 +12,7 @@ assignees: ''
 Go to https://fsprojects.github.io/fantomas-tools/#/fantomas/preview and reproduce your problem there.
 Use the `create issue` link at the bottom, this will generate a report with everything we need to investigate your problem.
 
-![Fantomas online tool](https://github.com/fsprojects/fantomas/blob/main/docs/fantomas-tools.png)
+![Fantomas online tool](https://github.com/fsprojects/fantomas/blob/main/docs/online_tool_usage.gif)
 
 Try and reproduce your problem against the `preview` version of the tool, this is linked to the main branch of the project.
 
