@@ -108,6 +108,9 @@ let configToEditorConfig (config: FormatConfig) : string =
         | :? EndOfLineStyle as eols ->
             $"%s{toEditorConfigName recordField.PropertyName}=%s{EndOfLineStyle.ToConfigString eols}"
             |> Some
+        | :? MultilineBracketStyle as mbs ->
+            $"%s{toEditorConfigName recordField.PropertyName}=%s{MultilineBracketStyle.ToConfigString mbs}"
+            |> Some
         | _ -> None)
     |> String.concat "\n"
 
