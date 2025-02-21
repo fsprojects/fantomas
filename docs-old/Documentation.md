@@ -1180,11 +1180,6 @@ git diff --cached --name-only --diff-filter=ACM -z | xargs -0 git add
 
 **Please use with caution** as [Fantomas is not without bugs](https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+label%3A%22bug+%28soundness%29%22).
 
-## FAKE Helpers
-
-Fantomas also exposes some less official helper functions in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/), these will be deprecated in the next major version.
-It is advised to run the `fantomas` instead when using FAKE, see [example](../fake-sample/README.md).
-
 ## Updating to a new Fantomas version
 
 By default, Fantomas adheres to the Microsoft [F# code formatting guidelines](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting).
