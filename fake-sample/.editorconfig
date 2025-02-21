@@ -1,5 +1,0 @@
-root = true
-
-[*.fs]
-max_line_length=140
-fsharp_space_before_colon=true
