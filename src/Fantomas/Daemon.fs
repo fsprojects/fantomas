@@ -167,6 +167,13 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                                   yield "defaultValue", Encode.string (EndOfLineStyle.ToConfigString e)
                                   yield! meta ]
                         )
+                    | :? MultilineBracketStyle as m ->
+                        Some(
+                            Encode.object
+                                [ yield "type", Encode.string "multilineBracketStyle"
+                                  yield "defaultValue", Encode.string (MultilineBracketStyle.ToConfigString m)
+                                  yield! meta ]
+                        )
                     | _ -> None
 
                 type' |> Option.map (fun t -> toEditorConfigName recordField.PropertyName, t))
@@ -183,7 +190,12 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                   "endOfLineStyle",
                   Encode.list
                       [ (EndOfLineStyle.ToConfigString EndOfLineStyle.LF |> Encode.string)
-                        (EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF |> Encode.string) ] ]
+                        (EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF |> Encode.string) ]
+                  "multilineBracketStyle",
+                  Encode.list
+                      [ (MultilineBracketStyle.ToConfigString Aligned |> Encode.string)
+                        (MultilineBracketStyle.ToConfigString Cramped |> Encode.string)
+                        (MultilineBracketStyle.ToConfigString Stroustrup |> Encode.string) ] ]
 
         Encode.object [ "settings", settings; "enumOptions", enumOptions ]
         |> Encode.toString 4

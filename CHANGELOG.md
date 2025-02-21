@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.0.1 - 2025-02-21
+
+### Fixed
+
+* Add missing 'MultilineBracketStyle' in the returned configuration JSON. [#3151](https://github.com/fsprojects/fantomas/issues/3151)
+
 ## 7.0.0 - 2025-01-10
 
 ### Miscellaneous
