@@ -1430,3 +1430,22 @@ MailboxProcessor<string>.Start(fun inbox ->
             do! sw.WriteLineAsync(msg) |> Async.AwaitTask
     })
 """
+
+[<Test>]
+let ``comment in app on lambda expr, 3128`` () =
+    formatSourceString
+        """
+f(
+    // some comment
+    fun x -> x)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+f
+    (
+    // some comment
+    fun x -> x)
+"""
