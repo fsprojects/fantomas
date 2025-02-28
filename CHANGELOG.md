@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+* Idempotency problem with comments in applications on lambda expressions. [#3128](https://github.com/fsprojects/fantomas/issues/3128)
+
 ## 7.0.1 - 2025-02-21
 
 ### Fixed
