@@ -2402,7 +2402,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
         +> onlyIf (List.isNotEmpty node.Arguments) sepSpace
         +> (genSingleTextNode node.OpeningParen
             +> (match node.Lambda with
-                | Choice1Of2 lambdaNode -> genLambdaWithParen lambdaNode |> genNode lambdaNode
+                | Choice1Of2 lambdaNode -> genLambdaWithParen lambdaNode
                 | Choice2Of2 matchLambdaNode ->
                     genSingleTextNode matchLambdaNode.Function
                     +> indentSepNlnUnindent (genClauses matchLambdaNode.Clauses)
@@ -2418,7 +2418,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                     match node.Lambda with
                     | Choice1Of2 lambdaNode ->
                         genSingleTextNode node.OpeningParen
-                        +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
+                        +> genLambdaWithParen lambdaNode
                         +> onlyIf (not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)) sepNln
                         +> genSingleTextNode node.ClosingParen
                     | Choice2Of2 matchLambdaNode ->
@@ -2437,8 +2437,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                     +> (match node.Lambda with
                         | Choice1Of2 lambdaNode ->
                             leadingExpressionIsMultiline
-                                (genSingleTextNode node.OpeningParen
-                                 +> (genLambdaWithParen lambdaNode |> genNode lambdaNode))
+                                (genSingleTextNode node.OpeningParen +> genLambdaWithParen lambdaNode)
                                 (fun isMultiline ->
                                     onlyIf
                                         (isMultiline && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr))
@@ -2482,7 +2481,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                      +> col sepSpace node.Arguments genExpr
                      +> sep
                      +> genSingleTextNode node.OpeningParen
-                     +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
+                     +> genLambdaWithParen lambdaNode
                      +> sepNlnWhenWriteBeforeNewlineNotEmpty
                      +> addFixedSpaces startColumn
                      +> genSingleTextNode node.ClosingParen)
@@ -2496,7 +2495,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                         (col sepNln node.Arguments genExpr
                          +> onlyIfNot (List.isEmpty node.Arguments) sepNln
                          +> genSingleTextNode node.OpeningParen
-                         +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
+                         +> genLambdaWithParen lambdaNode
                          +> addFixedSpaces startColumn
                          +> genSingleTextNode node.ClosingParen)
                             ctx)
