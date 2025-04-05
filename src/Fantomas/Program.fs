@@ -462,9 +462,15 @@ Join our Discord community:      https://discord.gg/Cpq9vf8BJH
 
     let asyncRunner = Async.Parallel >> Async.RunSynchronously
 
-    if Option.isSome version then
+    let versionLog =
         let version = CodeFormatter.GetVersion()
-        stdlog $"Fantomas v%s{version}"
+        $"Fantomas v%s{version}"
+
+    if Option.isNone version then
+        logGrEqDetailed versionLog
+
+    if Option.isSome version then
+        stdlog versionLog
     elif isDaemon then
         let daemon =
             new FantomasDaemon(Console.OpenStandardOutput(), Console.OpenStandardInput())
