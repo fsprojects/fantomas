@@ -10,21 +10,21 @@ let private dump ctx = (dump false ctx).Code
 
 [<Test>]
 let ``sepSpace should not add an additional space if the line ends with a space`` () =
-    let expr = !- "let a = " +> sepSpace
+    let expr = !-"let a = " +> sepSpace
     let result = dump (expr Context.Default)
     result |> should equal "let a ="
 
 [<Test>]
 let ``sepColon should not add a space when nothing proceeds it`` () =
     let expr =
-        !- "let add a b"
+        !-"let add a b"
         +> indent
         +> sepNln
         +> sepColon
-        +> !- "int ="
+        +> !-"int ="
         +> indent
         +> sepNln
-        +> !- "a + b"
+        +> !-"a + b"
         +> unindent
         +> unindent
         +> sepNln
@@ -49,7 +49,7 @@ let add a b
 
 [<Test>]
 let ``sepColon should not add a space when space proceeds it`` () =
-    let expr = !- "let a " +> sepNone +> sepColon
+    let expr = !-"let a " +> sepNone +> sepColon
 
     let config =
         { FormatConfig.Default with
@@ -87,15 +87,15 @@ Long comment
 [<Test>]
 let ``nested exceedsMultiline expression should bubble up to parent check`` () =
     let expression =
-        !- "let a ="
+        !-"let a ="
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (
             expressionFitsOnRestOfLine
                 // short expression, should cross the max page width of 50
-                (!- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+                (!-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +> !-"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
                 // fallback expression
-                (!- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                (!-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                  +> sepNln
-                 +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+                 +> !-"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
                  +> sepNln)
         )
 

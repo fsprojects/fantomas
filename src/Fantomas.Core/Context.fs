@@ -533,22 +533,22 @@ let rep n (f: Context -> Context) (ctx: Context) =
 
 // Separator functions
 let sepNone = id
-let sepDot = !- "."
+let sepDot = !-"."
 
 let sepSpace (ctx: Context) =
     if ctx.WriterModel.IsDummy then
-        (!- " ") ctx
+        (!-" ") ctx
     else
         match lastWriteEventOnLastLine ctx with
         | Some w when (String.endsWithOrdinal " " w || String.endsWithOrdinal Environment.NewLine w) -> ctx
         | None -> ctx
-        | _ -> (!- " ") ctx
+        | _ -> (!-" ") ctx
 
 // add actual spaces until the target column is reached, regardless of previous content
 // use with care
 let addFixedSpaces (targetColumn: int) (ctx: Context) : Context =
     let delta = targetColumn - ctx.Column
-    onlyIf (delta > 0) (rep delta (!- " ")) ctx
+    onlyIf (delta > 0) (rep delta (!-" ")) ctx
 
 let sepNln = writerEvent WriteLine
 
@@ -559,12 +559,12 @@ let sepNlnForTrivia = writerEvent WriteLineBecauseOfTrivia
 let sepNlnUnlessLastEventIsNewline (ctx: Context) =
     if lastWriteEventIsNewline ctx then ctx else sepNln ctx
 
-let sepStar = sepSpace +> !- "* "
-let sepEq = !- " ="
-let sepEqFixed = !- "="
-let sepArrow = !- " -> "
-let sepArrowRev = !- " <- "
-let sepBar = !- "| "
+let sepStar = sepSpace +> !-"* "
+let sepEq = !-" ="
+let sepEqFixed = !-"="
+let sepArrow = !-" -> "
+let sepArrowRev = !-" <- "
+let sepBar = !-"| "
 
 let addSpaceIfSpaceAroundDelimiter (ctx: Context) =
     onlyIf ctx.Config.SpaceAroundDelimiter sepSpace ctx
@@ -573,22 +573,22 @@ let addSpaceIfSpaceAfterComma (ctx: Context) =
     onlyIf ctx.Config.SpaceAfterComma sepSpace ctx
 
 /// opening token of list
-let sepOpenLFixed = !- "["
+let sepOpenLFixed = !-"["
 
 /// closing token of list
-let sepCloseLFixed = !- "]"
+let sepCloseLFixed = !-"]"
 
 /// opening token of anon record
-let sepOpenAnonRecdFixed = !- "{|"
+let sepOpenAnonRecdFixed = !-"{|"
 /// opening token of tuple
-let sepOpenT = !- "("
+let sepOpenT = !-"("
 
 /// closing token of tuple
-let sepCloseT = !- ")"
+let sepCloseT = !-")"
 
-let wordAnd = sepSpace +> !- "and "
-let wordAndFixed = !- "and"
-let wordOf = sepSpace +> !- "of "
+let wordAnd = sepSpace +> !-"and "
+let wordAndFixed = !-"and"
+let wordOf = sepSpace +> !-"of "
 
 let indentSepNlnUnindent f = indent +> sepNln +> f +> unindent
 
@@ -858,7 +858,7 @@ let sepSpaceBeforeClassConstructor ctx =
         ctx
 
 let sepColon (ctx: Context) =
-    let defaultExpr = if ctx.Config.SpaceBeforeColon then !- " : " else !- ": "
+    let defaultExpr = if ctx.Config.SpaceBeforeColon then !-" : " else !-": "
 
     if ctx.WriterModel.IsDummy then
         defaultExpr ctx
@@ -868,9 +868,9 @@ let sepColon (ctx: Context) =
         | None -> !- ": " ctx
         | _ -> defaultExpr ctx
 
-let sepColonFixed = !- ":"
+let sepColonFixed = !-":"
 
-let sepColonWithSpacesFixed = !- " : "
+let sepColonWithSpacesFixed = !-" : "
 
 let sepComma (ctx: Context) =
     if ctx.Config.SpaceAfterComma then
@@ -884,10 +884,10 @@ let sepSemi (ctx: Context) =
         ctx
 
     match before, after with
-    | false, false -> !- ";"
-    | true, false -> !- " ;"
-    | false, true -> !- "; "
-    | true, true -> !- " ; "
+    | false, false -> !-";"
+    | true, false -> !-" ;"
+    | false, true -> !-"; "
+    | true, true -> !-" ; "
     <| ctx
 
 let ifAlignOrStroustrupBrackets f g =

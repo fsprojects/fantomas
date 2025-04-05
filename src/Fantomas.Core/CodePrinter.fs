@@ -201,7 +201,7 @@ let genParsedHashDirective (phd: ParsedHashDirectiveNode) =
         | Choice1Of2(stn) -> genSingleTextNode stn
         | Choice2Of2(idl) -> genIdentListNode idl
 
-    !- "#" +> !-phd.Ident +> sepSpace +> col sepSpace phd.Args genArg |> genNode phd
+    !-"#" +> !-phd.Ident +> sepSpace +> col sepSpace phd.Args genArg |> genNode phd
 
 let genUnit (n: UnitNode) =
     genSingleTextNode n.OpeningParen +> genSingleTextNode n.ClosingParen
@@ -579,7 +579,7 @@ let genExpr (e: Expr) =
             genSingleTextNode node.While
             +> sepSpace
             +> genExpr node.WhileExpr
-            +> !- " do"
+            +> !-" do"
             +> indentSepNlnUnindent (genExpr node.DoExpr)
         )
         |> genNode node
@@ -592,9 +592,9 @@ let genExpr (e: Expr) =
             +> genSingleTextNode node.Equals
             +> sepSpace
             +> genExpr node.IdentBody
-            +> ifElse node.Direction (!- " to ") (!- " downto ")
+            +> ifElse node.Direction (!-" to ") (!-" downto ")
             +> genExpr node.ToBody
-            +> !- " do"
+            +> !-" do"
             +> indent
             +> sepNln
             +> genExpr node.DoBody
@@ -606,12 +606,12 @@ let genExpr (e: Expr) =
             genSingleTextNode node.For
             +> sepSpace
             +> genPat node.Pattern
-            +> !- " in "
+            +> !-" in "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.EnumExpr)
             +> ifElse
                 node.IsArrow
                 (sepArrow +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.BodyExpr))
-                (!- " do" +> indent +> sepNln +> genExpr node.BodyExpr +> unindent)
+                (!-" do" +> indent +> sepNln +> genExpr node.BodyExpr +> unindent)
         )
         |> genNode node
     | Expr.NamedComputation node ->
@@ -751,7 +751,7 @@ let genExpr (e: Expr) =
             +> genExpr node.Expr
             +> genSingleTextNode node.ClosingParen
         |> genNode node
-    | Expr.Dynamic node -> genExpr node.FuncExpr +> !- "?" +> genExpr node.ArgExpr |> genNode node
+    | Expr.Dynamic node -> genExpr node.FuncExpr +> !-"?" +> genExpr node.ArgExpr |> genNode node
     | Expr.PrefixApp node ->
         let genWithoutSpace = genSingleTextNode node.Operator +> genExpr node.Expr
         let genWithSpace = genSingleTextNode node.Operator +> sepSpace +> genExpr node.Expr
@@ -1220,7 +1220,7 @@ let genExpr (e: Expr) =
             +> genPatInClause clauseNode.Pattern
             +> optSingle
                 (fun e ->
-                    !- " when"
+                    !-" when"
                     +> expressionFitsOnRestOfLine (sepSpace +> genExpr e) (fun ctx ->
                         // See https://github.com/fsprojects/fantomas/issues/2784
                         let doubleIndent = ctx.Config.IndentSize < 4
@@ -1395,7 +1395,7 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.Ident node -> genSingleTextNode node
     | Expr.OptVar node ->
-        onlyIf node.IsOptional (!- "?") +> genIdentListNode node.Identifier
+        onlyIf node.IsOptional (!-"?") +> genIdentListNode node.Identifier
         |> genNode node
     | Expr.LongIdentSet node ->
         genIdentListNode node.Identifier
@@ -1410,7 +1410,7 @@ let genExpr (e: Expr) =
                 | _ -> false
 
             ifElse isParen (genExpr node.ObjectExpr) (addParenIfAutoNln node.ObjectExpr genExpr)
-            +> !- "."
+            +> !-"."
             +> sepOpenLFixed
             +> genExpr node.IndexExpr
             +> sepCloseLFixed
@@ -1421,7 +1421,7 @@ let genExpr (e: Expr) =
             let long =
                 funcExpr +> genMultilineFunctionApplicationArguments argExpr |> genNode appNode
 
-            let idx = !- "." +> sepOpenLFixed +> genExpr node.IndexExpr +> sepCloseLFixed
+            let idx = !-"." +> sepOpenLFixed +> genExpr node.IndexExpr +> sepCloseLFixed
             expressionFitsOnRestOfLine (short +> idx) (long +> idx)
 
         match node.ObjectExpr with
@@ -1440,9 +1440,9 @@ let genExpr (e: Expr) =
     | Expr.DotIndexedSet node ->
         let genDotIndexedSet =
             addParenIfAutoNln node.ObjectExpr genExpr
-            +> !- ".["
+            +> !-".["
             +> genExpr node.Index
-            +> !- "] <- "
+            +> !-"] <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value
 
         let genDotIndexedSetWithApp funcExpr argExpr (appNode: Node) =
@@ -1452,7 +1452,7 @@ let genExpr (e: Expr) =
                 funcExpr +> genMultilineFunctionApplicationArguments argExpr |> genNode appNode
 
             let idx =
-                !- "." +> sepOpenLFixed +> genExpr node.Index +> sepCloseLFixed +> sepArrowRev
+                !-"." +> sepOpenLFixed +> genExpr node.Index +> sepCloseLFixed +> sepArrowRev
 
             expressionFitsOnRestOfLine
                 (short +> idx +> genExpr node.Value)
@@ -1512,7 +1512,7 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.LibraryOnlyStaticOptimization node ->
         genExpr node.OptimizedExpr
-        +> onlyIfNot node.Constraints.IsEmpty (!- " when ")
+        +> onlyIfNot node.Constraints.IsEmpty (!-" when ")
         +> col sepSpace node.Constraints (function
             | StaticOptimizationConstraint.WhenTyparTyconEqualsTycon n ->
                 genSingleTextNode n.TypeParameter +> sepColon +> sepSpace +> genType n.Type
@@ -1571,7 +1571,7 @@ let genExpr (e: Expr) =
         +> genSingleTextNode node.Dots
         +> optSingle genExpr node.To
         |> genNode node
-    | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr |> genNode node
+    | Expr.IndexFromEnd node -> !-"^" +> genExpr node.Expr |> genNode node
     | Expr.Typar node -> genSingleTextNode node
     | Expr.DotLambda node ->
         let genDotLambdaExpr expr =
@@ -1621,7 +1621,7 @@ let genQuoteExpr (node: ExprQuoteNode) =
 /// <param name="copyExpr">Expression before the `with` keyword.</param>
 let genMultilineRecordCopyExpr (addAdditionalIndent: bool) fieldsExpr copyExpr =
     atCurrentColumnIndent (genExpr copyExpr)
-    +> !- " with"
+    +> !-" with"
     +> indent
     +> onlyIf addAdditionalIndent indent
     +> sepNln
@@ -1689,7 +1689,7 @@ let genSmallRecordBaseExpr genExtra (node: ExprRecordBaseNode) =
 let genSmallRecordNode (node: ExprRecordNode) =
     genSmallRecordBaseExpr
         (match node.CopyInfo with
-         | Some we -> genExpr we +> !- " with "
+         | Some we -> genExpr we +> !-" with "
          | None -> sepNone)
         node
 
@@ -2091,7 +2091,7 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
         +> leadingExpressionIsMultiline
             (optSingle
                 (fun e ->
-                    !- "when"
+                    !-"when"
                     +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
                     +> sepSpace)
                 node.WhenExpr)
@@ -2151,7 +2151,7 @@ let genControlExpressionStartCore
         | Choice2Of2 ifKw ->
             match ifKw with
             | IfKeywordNode.SingleWord node -> !-node.Text
-            | IfKeywordNode.ElseIf _ -> !- "else if"
+            | IfKeywordNode.ElseIf _ -> !-"else if"
 
     let leaveStart =
         match startKeyword with
@@ -2243,7 +2243,7 @@ let genExprInMultilineInfixExpr (e: Expr) =
                     | ComputationExpressionStatement.LetOrUseStatement letOrUseNode ->
                         let genIn =
                             match letOrUseNode.In with
-                            | None -> !- "in"
+                            | None -> !-"in"
                             | Some inNode -> genSingleTextNode inNode
 
                         genBinding letOrUseNode.Binding +> sepSpace +> genIn +> sepSpace
@@ -2615,7 +2615,7 @@ let genPat (p: Pattern) =
     match p with
     | Pattern.OptionalVal n -> genSingleTextNode n
     | Pattern.Or node -> genPatLeftMiddleRight node
-    | Pattern.Ands node -> col (!- " & ") node.Patterns genPat |> genNode node
+    | Pattern.Ands node -> col (!-" & ") node.Patterns genPat |> genNode node
     | Pattern.Null node
     | Pattern.Wild node -> genSingleTextNode node
     | Pattern.Parameter node ->
@@ -2686,7 +2686,7 @@ let genPat (p: Pattern) =
         |> genNode node
     | Pattern.Tuple node -> genTuplePat node
     | Pattern.StructTuple node ->
-        !- "struct "
+        !-"struct "
         +> sepOpenT
         +> atCurrentColumn (colAutoNlnSkip0 sepComma node.Patterns genPat)
         +> sepCloseT
@@ -2763,7 +2763,7 @@ let genPatInClause (pat: Pattern) =
             let genAs =
                 match p.Middle with
                 | Choice1Of2 asNode -> genSingleTextNode asNode
-                | Choice2Of2 _ -> !- "as"
+                | Choice2Of2 _ -> !-"as"
 
             genPatMultiline p.LeftHandSide
             +> sepSpace
@@ -2834,7 +2834,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                     +> genOnelinerAttributes b.Attributes
 
             let afterLetKeyword =
-                ifElse b.IsMutable (!- "mutable ") sepNone
+                ifElse b.IsMutable (!-"mutable ") sepNone
                 +> genInlineOpt b.Inline
                 +> genAccessOpt b.Accessibility
 
@@ -3006,7 +3006,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
             let afterLetKeyword =
                 genAccessOpt b.Accessibility
-                +> ifElse b.IsMutable (!- "mutable ") sepNone
+                +> ifElse b.IsMutable (!-"mutable ") sepNone
                 +> genInlineOpt b.Inline
 
             let genDestructedTuples =
@@ -3047,7 +3047,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                      +> genOnelinerAttributes b.Attributes)
 
             let afterLetKeyword =
-                ifElse b.IsMutable (!- "mutable ") sepNone
+                ifElse b.IsMutable (!-"mutable ") sepNone
                 +> genInlineOpt b.Inline
                 +> genAccessOpt b.Accessibility
 
@@ -3129,8 +3129,8 @@ let genExternBinding (externNode: ExternBindingNode) =
 
 let genOpenList (openList: OpenListNode) =
     col sepNln openList.Opens (function
-        | Open.ModuleOrNamespace node -> !- "open " +> genIdentListNode node.Name |> genNode node
-        | Open.Target node -> !- "open type " +> genType node.Target |> genNode node)
+        | Open.ModuleOrNamespace node -> !-"open " +> genIdentListNode node.Name |> genNode node
+        | Open.Target node -> !-"open type " +> genType node.Target |> genNode node)
     |> genNode openList
 
 let genTypeConstraint (tc: TypeConstraint) =
@@ -3145,8 +3145,7 @@ let genTypeConstraint (tc: TypeConstraint) =
         +> sepColon
         +> genType node.Type
         |> genNode node
-    | TypeConstraint.SubtypeOfType node ->
-        genSingleTextNode node.Typar +> !- " :> " +> genType node.Type |> genNode node
+    | TypeConstraint.SubtypeOfType node -> genSingleTextNode node.Typar +> !-" :> " +> genType node.Type |> genNode node
     | TypeConstraint.SupportsMember node ->
         genType node.Type
         +> sepColon
@@ -3159,7 +3158,7 @@ let genTypeConstraint (tc: TypeConstraint) =
         +> sepColon
         +> !- $"%s{node.Verb}<"
         +> col sepComma node.Types genType
-        +> !- ">"
+        +> !-">"
         |> genNode node
     | TypeConstraint.WhereSelfConstrained t -> genType t
     | TypeConstraint.WhereNotSupportsNull node ->
@@ -3185,10 +3184,10 @@ let genTypeConstraint (tc: TypeConstraint) =
         expressionFitsOnRestOfLine short long |> genNode node
 
 let genTypeConstraints (tcs: TypeConstraint list) =
-    let short = colPre (sepSpace +> !- "when ") wordAnd tcs genTypeConstraint
+    let short = colPre (sepSpace +> !-"when ") wordAnd tcs genTypeConstraint
 
     let long =
-        colPre (!- "when ") (sepNln +> wordAndFixed +> sepSpace) tcs genTypeConstraint
+        colPre (!-"when ") (sepNln +> wordAndFixed +> sepSpace) tcs genTypeConstraint
 
     autoIndentAndNlnIfExpressionExceedsPageWidth (expressionFitsOnRestOfLine short long)
 
@@ -3219,7 +3218,7 @@ let genType (t: Type) =
         expressionFitsOnRestOfLine short long |> genNode node
     | Type.Tuple node -> genSynTupleTypeSegments node.Path |> genNode node
     | Type.HashConstraint node -> genSingleTextNode node.Hash +> genType node.Type |> genNode node
-    | Type.MeasurePower node -> genType node.BaseMeasure +> !- "^" +> genRational node.Exponent |> genNode node
+    | Type.MeasurePower node -> genType node.BaseMeasure +> !-"^" +> genRational node.Exponent |> genNode node
     | Type.StaticConstant c -> genConstant c
     | Type.StaticConstantExpr node ->
         let addSpace =
@@ -3230,12 +3229,12 @@ let genType (t: Type) =
         genSingleTextNode node.Const +> addSpace +> genExpr node.Expr |> genNode node
     | Type.StaticConstantNamed node ->
         genType node.Identifier
-        +> !- "="
+        +> !-"="
         +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString node.Value
         +> genType node.Value
         |> genNode node
     | Type.Array node ->
-        genType node.Type +> !- "[" +> rep (node.Rank - 1) (!- ",") +> !- "]"
+        genType node.Type +> !-"[" +> rep (node.Rank - 1) (!-",") +> !-"]"
         |> genNode node
     | Type.Anon node -> genSingleTextNode node
     | Type.Var node -> genSingleTextNode node
@@ -3252,7 +3251,7 @@ let genType (t: Type) =
         +> genSingleTextNode node.LessThen
         +> addExtraSpace
         +> leadingExpressionIsMultiline (colGenericTypeParameters node.Arguments) (fun isMultiline ->
-            onlyIf isMultiline (!- " "))
+            onlyIf isMultiline (!-" "))
         +> addExtraSpace
         // TODO: I think we need to add a space here
         +> genSingleTextNode node.GreaterThan
@@ -3563,7 +3562,7 @@ let genTypeDefn (td: TypeDefn) =
             let stroustrup =
                 let withKw =
                     match typeName.WithKeyword with
-                    | None -> !- "with"
+                    | None -> !-"with"
                     | Some withNode -> genSingleTextNode withNode
 
                 genAccessOpt node.Accessibility
@@ -3677,7 +3676,7 @@ let genTypeDefn (td: TypeDefn) =
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
             genSingleTextNode node.DelegateNode
             +> sepSpace
-            +> !- "of"
+            +> !-"of"
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genTypeList node.TypeList)
         )
         |> genNode node
@@ -3729,11 +3728,11 @@ let genTypeInSignature (t: Type) =
         | Type.Funs funsNode ->
             let genConstraints =
                 let short =
-                    ifElse (List.isNotEmpty node.TypeConstraints) (!- "when ") sepSpace
+                    ifElse (List.isNotEmpty node.TypeConstraints) (!-"when ") sepSpace
                     +> col wordAnd node.TypeConstraints genTypeConstraint
 
                 let long =
-                    ifElse (List.isNotEmpty node.TypeConstraints) (!- "when ") sepSpace
+                    ifElse (List.isNotEmpty node.TypeConstraints) (!-"when ") sepSpace
                     +> col (sepNln +> wordAndFixed +> sepSpace) node.TypeConstraints genTypeConstraint
 
                 expressionFitsOnRestOfLine short long
@@ -3811,7 +3810,7 @@ let genVal (node: ValNode) (optGetSet: MultipleTextsNode option) =
     +> genAttributes node.Attributes
     +> optSingle (fun lk -> genMultipleTextsNode lk +> sepSpace) node.LeadingKeyword
     +> genInlineOpt node.Inline
-    +> onlyIf node.IsMutable (!- "mutable ")
+    +> onlyIf node.IsMutable (!-"mutable ")
     +> genAccessOpt node.Accessibility
     +> genTypeAndParam (genSingleTextNode node.Identifier) node.TypeParams
     +> ifElse (Option.isSome node.TypeParams) sepColonWithSpacesFixed sepColon
@@ -3844,7 +3843,7 @@ let genMemberDefn (md: MemberDefn) =
             +> genSingleTextNode node.New
             +> sepSpaceBeforeClassConstructor
             +> genPat node.Pattern
-            +> optSingle (fun alias -> sepSpace +> !- "as" +> sepSpace +> genSingleTextNode alias) node.Alias
+            +> optSingle (fun alias -> sepSpace +> !-"as" +> sepSpace +> genSingleTextNode alias) node.Alias
             +> sepSpace
             +> genSingleTextNode node.Equals
             +> sepSpace
@@ -3856,7 +3855,7 @@ let genMemberDefn (md: MemberDefn) =
                  +> genSingleTextNode node.New
                  +> sepSpaceBeforeClassConstructor
                  +> autoIndentAndNlnIfExpressionExceedsPageWidth (genLongParenPatParameter node.Pattern)
-                 +> optSingle (fun alias -> sepSpace +> !- "as" +> sepSpace +> genSingleTextNode alias) node.Alias)
+                 +> optSingle (fun alias -> sepSpace +> !-"as" +> sepSpace +> genSingleTextNode alias) node.Alias)
                 (fun isMultiline ctx ->
                     let genExpr = genExpr node.Expr
                     let short = genSingleTextNode node.Equals +> sepSpace +> genExpr
@@ -3948,7 +3947,7 @@ let genMemberDefn (md: MemberDefn) =
 let genException (node: ExceptionDefnNode) =
     genXml node.XmlDoc
     +> genAttributes node.Attributes
-    +> !- "exception "
+    +> !-"exception "
     +> genAccessOpt node.Accessibility
     +> genUnionCase false node.UnionCase
     +> onlyIf
@@ -3987,7 +3986,7 @@ let genModuleDecl (md: ModuleDecl) =
         +> sepSpace
         +> onlyIf hasTriviaAfterLeadingKeyword indent
         +> genAccessOpt node.Accessibility
-        +> onlyIf node.IsRecursive (sepSpace +> !- "rec" +> sepSpace)
+        +> onlyIf node.IsRecursive (sepSpace +> !-"rec" +> sepSpace)
         +> genIdentListNode node.Identifier
         +> onlyIf hasTriviaAfterLeadingKeyword unindent
         +> sepSpace
@@ -3995,7 +3994,7 @@ let genModuleDecl (md: ModuleDecl) =
         +> indentSepNlnUnindent (
             ifElse
                 (List.isEmpty node.Declarations)
-                (!- "begin end")
+                (!-"begin end")
                 (colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl node.Declarations)
         )
 
@@ -4039,7 +4038,7 @@ let genModule (m: ModuleOrNamespaceNode) =
              +> genMultipleTextsNode header.LeadingKeyword
              +> sepSpace
              +> genAccessOpt header.Accessibility
-             +> onlyIf header.IsRecursive (sepSpace +> !- "rec" +> sepSpace)
+             +> onlyIf header.IsRecursive (sepSpace +> !-"rec" +> sepSpace)
              +> optSingle genIdentListNode header.Name
              |> genNode header)
             +> newline)
