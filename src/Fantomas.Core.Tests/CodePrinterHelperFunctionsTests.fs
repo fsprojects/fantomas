@@ -58,8 +58,8 @@ let ``+> will compose two functions`` () =
 let ``partially application when composing function`` () =
     // We can write the previous example in a more concise way.
     // Because of partial application in F#: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/#partial-application-of-arguments
-    let f = !- "f" // signature of f remains the same: Context -> Context
-    let g = !- " and g" // signature of g remains the same: Context -> Context
+    let f = !-"f" // signature of f remains the same: Context -> Context
+    let g = !-" and g" // signature of g remains the same: Context -> Context
     let h = f +> g // signature of h remains the same: Context -> Context
 
     // Conceptually, you should really read `+>` as and then.
@@ -88,7 +88,7 @@ let ``the Context module has a lot of helper functions`` () =
 
 [<Test>]
 let ``some helper function are clever like sepSpace`` () =
-    let f = !- "a" +> sepSpace +> sepSpace +> !- "b"
+    let f = !-"a" +> sepSpace +> sepSpace +> !-"b"
 
     let contextBefore: Context = Context.Default
     let contextAfter: Context = f contextBefore
@@ -102,7 +102,7 @@ let ``some helper function are clever like sepSpace`` () =
 
 [<Test>]
 let ``other helper function respect configuration settings`` () =
-    let f = !- "a" +> sepColon +> !- "b"
+    let f = !-"a" +> sepColon +> !-"b"
     let defaultConfig: Context = Context.Default
     // The `FormatConfig` is present in the `Context`.
     let configWithSpaceBeforeTrue =
@@ -125,7 +125,7 @@ let ``traversing collections`` () =
     let items = [ 2; 3; 4 ]
     // The `col` function will traverse the collection and apply the first function between elements and the last function for each individual element.
     let f (items: int seq) : Context -> Context =
-        col (!- " + ") items (fun (item: int) -> !- $"%i{item}")
+        col (!-" + ") items (fun (item: int) -> !- $"%i{item}")
 
     // Note that there are some variants of `col` that can be used to process a collection in a different way.
     // coli, colEx, ...
@@ -141,7 +141,7 @@ let ``newlines and indentation`` () =
     // Indentation only kick in on the next line, this is something to be aware of.
     // `sepNln` is a helper function that will add a newline.
 
-    let f = !- "first line" +> sepNln +> indent +> !- "second line"
+    let f = !-"first line" +> sepNln +> indent +> !-"second line"
     // The dump function will respect the newline from the configuration.
     // For this test we will set it to `EndOfLineStyle.LF`
     let ctx =
@@ -154,14 +154,14 @@ let ``newlines and indentation`` () =
     Assert.AreEqual("first line\nsecond line", code)
     // There is no indentation because that would only kick in after the second line.
 
-    let g = !- "first line" +> indent +> sepNln +> !- "second line" +> unindent
+    let g = !-"first line" +> indent +> sepNln +> !-"second line" +> unindent
     let indentedCode = g ctx |> dump
     Assert.AreEqual("first line\n    second line", indentedCode)
 
     // Using `indent` typically goes together with and `unindent` call.
     // This is a very common pattern in CodePrinter, so the use of `indentSepNlnUnindent` is encouraged.
     // Forgetting to `unindent` can be a nasty bug in Fantomas.
-    let h = !- "first line" +> indentSepNlnUnindent (!- "second line")
+    let h = !-"first line" +> indentSepNlnUnindent (!-"second line")
     let indentedCtx = h ctx
     let indentedCode = dump indentedCtx
     Assert.AreEqual("first line\n    second line", indentedCode)
@@ -176,8 +176,8 @@ let ``newlines and indentation`` () =
 let ``trying multiple code paths`` () =
     // Sometimes we want to try and fit everything in a single line.
     // And have a fallback behavior when that is not possible.
-    let short = !- "This fits on a single line"
-    let long = !- "This fits on" +> sepNln +> !- "two lines"
+    let short = !-"This fits on a single line"
+    let long = !-"This fits on" +> sepNln +> !-"two lines"
     // `expressionFitsOnRestOfLine` will try the first expression and if it doesn't fit, it will try the second expression.
     // All the events of the first expression will be remove from the context when it needs to fallback to the second expression.
     let f = expressionFitsOnRestOfLine short long
@@ -242,7 +242,7 @@ let a =
     let genExpr (expr: Expr) =
         match expr with
         | Expr.Ident identNode -> !-identNode.Text
-        | _ -> !- "error"
+        | _ -> !-"error"
 
     let f (genExpr: Expr -> Context -> Context) (tree: Oak) : Context -> Context =
         match tree.ModulesOrNamespaces.[0].Declarations.[0] with
@@ -254,8 +254,8 @@ let a =
                 | Choice1Of2 functionNameNode ->
                     match functionNameNode.Content with
                     | [ IdentifierOrDot.Ident node ] -> !-node.Text
-                    | _ -> !- "error"
-                | Choice2Of2 _ -> !- "error"
+                    | _ -> !-"error"
+                | Choice2Of2 _ -> !-"error"
 
             let genEq = !-bindingNode.Equals.Text
 
@@ -267,7 +267,7 @@ let a =
             // Try to add a space and print the expression.
             // If the expression is multiline add indent, newline, print the expression and unindent.
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr bindingNode.Expr)
-        | _ -> !- "error"
+        | _ -> !-"error"
 
     let ctx =
         { Context.Default with
@@ -302,10 +302,10 @@ let a =
                     // If found we check the content and try to print the comment text followed by a newline
                     match triviaNode.Content with
                     | CommentOnSingleLine comment -> !-comment +> sepNln
-                    | _ -> !- "error"
+                    | _ -> !-"error"
 
             firstComment +> !-identNode.Text
-        | _ -> !- "error"
+        | _ -> !-"error"
 
     let codeWithTriviaPrinting = f genExprWithTrivia tree ctx |> dump
     Assert.AreEqual("let a =\n    // code comment\n    b", codeWithTriviaPrinting)
@@ -379,7 +379,7 @@ let b = 2
 
                 // print trivia before BindingNode
                 enterNode node
-                +> !- "let"
+                +> !-"let"
                 +> sepSpace
                 +> !-name.Text
                 +> sepEq
@@ -393,7 +393,7 @@ let b = 2
             +> sepNln
             +> genBinding b
 
-        | _ -> !- "error"
+        | _ -> !-"error"
 
     let ctx =
         { Context.Default with
@@ -438,7 +438,7 @@ let b = 2
 
                 // print trivia before BindingNode
                 enterNode node
-                +> !- "let"
+                +> !-"let"
                 +> sepSpace
                 +> !-name.Text
                 +> sepEq
@@ -456,7 +456,7 @@ let b = 2
             +> sepNlnUnlessBindingHasTrivia b
             +> genBinding b
 
-        | _ -> !- "error"
+        | _ -> !-"error"
 
     let finalCode = g tree ctx |> dump
     Assert.AreEqual("let a = 1\n\nlet b = 2", finalCode)
@@ -467,7 +467,7 @@ let ``locking the indentation at a fixed column`` () =
     // This is typically to produce valid F# due to the offset rules.
     let f =
         sepOpenT
-        +> atCurrentColumn (!- "first line" +> sepNln +> !- "second line")
+        +> atCurrentColumn (!-"first line" +> sepNln +> !-"second line")
         +> sepCloseT
 
     let ctxBefore =

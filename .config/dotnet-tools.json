@@ -10,7 +10,7 @@
       "rollForward": false
     },
     "fantomas": {
-      "version": "6.3.9",
+      "version": "7.0.1",
       "commands": [
         "fantomas"
       ],
