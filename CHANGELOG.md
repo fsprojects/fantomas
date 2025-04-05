@@ -4,7 +4,7 @@
 
 ### Changed
 
-* Pring version at beginning of execution when detailed verbosity is set. [3148](https://github.com/fsprojects/fantomas/issues/3148)
+* Print version at beginning of execution when detailed verbosity is set. [3148](https://github.com/fsprojects/fantomas/issues/3148)
 
 ### Fixed
 
