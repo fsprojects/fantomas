@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+* Print version at beginning of execution when detailed verbosity is set. [3148](https://github.com/fsprojects/fantomas/issues/3148)
+
 ### Fixed
 
 * Idempotency problem with comments in applications on lambda expressions. [#3128](https://github.com/fsprojects/fantomas/issues/3128)
