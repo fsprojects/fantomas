@@ -293,7 +293,7 @@ These can be stored in an <a href="https://editorconfig.org/">.editorconfig</a> 
 commandline.<br />
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.</p>
-<table class="pre"><tr><td><pre><code>version: 7.0.1+6108fc41cf9ff49c9bd0f0059fc6b5fd2bc7974d</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 7.0.1+b37d8215cc87dfc52fe1412997aa03fb96ccb7b6</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -992,7 +992,7 @@ let a = [|
 <p>Insert a newline before a computation expression that spans multiple lines</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_newline_before_multiline_computation_expression = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 323)" onmouseover="showTip(event, 'fs5', 323)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 324)" onmouseover="showTip(event, 'fs5', 324)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let something =</span>
 <span class="s">        task {</span>
@@ -1017,7 +1017,7 @@ From a consistency point of view, it is recommend to enable all these settings i
 <p>Adds a new line between a type definition and its first member.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_newline_between_type_definition_and_members = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 334)" onmouseover="showTip(event, 'fs5', 334)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 335)" onmouseover="showTip(event, 'fs5', 335)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">type Range =</span>
 <span class="s">    { From: float</span>
@@ -1041,7 +1041,7 @@ fsharp_newline_between_type_definition_and_members = true</code></pre></td></tr>
 This setting also places the equals sign and return type on a new line.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_align_function_signature_to_indentation = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 345)" onmouseover="showTip(event, 'fs5', 345)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 346)" onmouseover="showTip(event, 'fs5', 346)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">[&lt;FunctionName(&quot;FormatCode&quot;)&gt;]</span>
 <span class="s">let run </span>
@@ -1068,7 +1068,7 @@ let run
 where the difference is mainly in the equal sign and returned type placement.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_alternative_long_member_definitions = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 356)" onmouseover="showTip(event, 'fs5', 356)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 357)" onmouseover="showTip(event, 'fs5', 357)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">type C</span>
 <span class="s">    (</span>
@@ -1134,7 +1134,7 @@ type E() =
 <p>Places the closing parenthesis of a multiline lambda argument on the next line.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_multi_line_lambda_closing_newline = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 367)" onmouseover="showTip(event, 'fs5', 367)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 368)" onmouseover="showTip(event, 'fs5', 368)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let printListWithOffset a list1 =</span>
 <span class="s">    List.iter</span>
@@ -1176,7 +1176,7 @@ Only when the last pattern match or else branch was already at the same level of
 <p><em>This feature is experimental and is subject to change.</em></p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_experimental_keep_indent_in_branch = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 378)" onmouseover="showTip(event, 'fs5', 378)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 379)" onmouseover="showTip(event, 'fs5', 379)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let main argv =</span>
 <span class="s">    let args = parse argv</span>
@@ -1218,7 +1218,7 @@ fsharp_experimental_keep_indent_in_branch = false</code></pre></td></tr></table>
 If <code>false</code>, a <code>|</code> character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_bar_before_discriminated_union_declaration = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 389)" onmouseover="showTip(event, 'fs5', 389)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 390)" onmouseover="showTip(event, 'fs5', 390)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type MyDU = Short of int</span>
 <span class="s">    &quot;&quot;&quot;</span>
@@ -1237,7 +1237,7 @@ Existing blank lines are always preserved (via trivia), with exception when <a h
 Top level expressions will always follow the <a href="https://github.com/fsprojects/fantomas/blob/main/docs-old/FormattingConventions.md#2020-revision">2020 blank lines revision</a> principle.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_blank_lines_around_nested_multiline_expressions = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 399)" onmouseover="showTip(event, 'fs5', 399)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 401)" onmouseover="showTip(event, 'fs5', 401)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let topLevelFunction () =</span>
 <span class="s">        printfn &quot;Something to print&quot;</span>
@@ -1275,7 +1275,7 @@ let secondTopLevelFunction () =
 <p>Set maximal number of consecutive blank lines to keep from original source. It doesn't change number of new blank lines generated by Fantomas.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_keep_max_number_of_blank_lines = 100</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 409)" onmouseover="showTip(event, 'fs5', 409)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 411)" onmouseover="showTip(event, 'fs5', 411)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    open Foo</span>
 
@@ -1295,7 +1295,7 @@ let x = 42</code></pre></td></tr></table>
 Note that this behaviour is also active when <code>fsharp_multiline_bracket_style = stroustrup</code>.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_experimental_elmish = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 420)" onmouseover="showTip(event, 'fs5', 420)" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 422)" onmouseover="showTip(event, 'fs5', 422)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let dualList =</span>
 <span class="s">    div</span>
