@@ -3681,3 +3681,21 @@ type X = X
 
         static member x = 1
 """
+
+[<Test>]
+let ``type without body but with comment produces superfluous newline, 3145`` () =
+    formatSourceString
+        """
+type X // oh dear
+
+23
+    """
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X // oh dear
+
+23
+"""
