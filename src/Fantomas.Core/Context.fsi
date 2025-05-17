@@ -226,6 +226,7 @@ val leadingExpressionIsMultiline:
 /// add an indent and newline if the expression is longer
 val autoIndentAndNlnIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
 val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
+val sepSpaceOrIndentIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
 val sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
 
 val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup:

@@ -748,6 +748,15 @@ let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
         expr
         ctx
 
+let sepSpaceOrIndentIfExpressionExceedsPageWidth expr (ctx: Context) =
+    expressionExceedsPageWidth
+        sepSpace
+        sepNone // before and after for short expressions
+        indent
+        unindent // before and after for long expressions
+        expr
+        ctx
+
 let sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepSpace
