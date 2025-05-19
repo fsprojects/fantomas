@@ -3472,9 +3472,9 @@ let genTypeDefn (td: TypeDefn) =
                 if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
                     (optSingle genSingleTextNode typeName.EqualsToken) ctx
                 else
-                    (sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
-                        optSingle genSingleTextNode typeName.EqualsToken
-                    ))
+                    optSingle
+                        (fun eq -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genSingleTextNode eq))
+                        typeName.EqualsToken
                         ctx)
         |> genNode typeName
 
