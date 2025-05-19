@@ -3472,12 +3472,10 @@ let genTypeDefn (td: TypeDefn) =
                 if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
                     (optSingle genSingleTextNode typeName.EqualsToken) ctx
                 else
-                    let sep =
-                        match typeName.EqualsToken with
-                        | Some _ -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth
-                        | None -> sepSpaceOrIndentIfExpressionExceedsPageWidth
-
-                    (sep (optSingle genSingleTextNode typeName.EqualsToken)) ctx)
+                    (sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
+                        optSingle genSingleTextNode typeName.EqualsToken
+                    ))
+                        ctx)
         |> genNode typeName
 
     let members = typeDefnNode.Members
