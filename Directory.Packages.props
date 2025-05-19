@@ -4,12 +4,13 @@
         <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     </PropertyGroup>
     <ItemGroup>
-        <PackageVersion Include="FSharp.Core" Version="8.0.100"/>
+        <PackageVersion Include="FSharp.Core" Version="9.0.100"/>
         <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
         <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
         <PackageVersion Include="System.Memory" Version="4.6.0" />
         <PackageVersion Include="System.Runtime" Version="4.3.1" />
         <PackageVersion Include="FsLexYacc" Version="11.3.0" />
+        <PackageVersion Include="FSharp.Core.Extended" Version="1.0.4" />
         
         <PackageVersion Include="Ionide.KeepAChangelog.Tasks" Version="0.1.8"/>
         <PackageVersion Include="DotNet.ReproducibleBuilds" Version="1.1.1"/>

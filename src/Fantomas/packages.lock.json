@@ -1,7 +1,7 @@
 {
   "version": 2,
   "dependencies": {
-    "net8.0": {
+    "net9.0": {
       "Argu": {
         "type": "Direct",
         "requested": "[6.2.4, )",
@@ -38,9 +38,9 @@
       },
       "FSharp.Core": {
         "type": "Direct",
-        "requested": "[8.0.100, )",
-        "resolved": "8.0.100",
-        "contentHash": "ZOVZ/o+jI3ormTZOa28Wh0tSRoyle1f7lKFcUN61sPiXI7eDZu8eSveFybgTeyIEyW0ujjp31cp7GOglDgsNEg=="
+        "requested": "[9.0.100, )",
+        "resolved": "9.0.100",
+        "contentHash": "ye8yagHGsH08H2Twno5GRWkSbrMtxK/SWiHuPcF+3nODpW65/VJ8RO0aWxp8n9+KQbmahg90wAEL3TEXjF0r6A=="
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
@@ -278,7 +278,7 @@
       "fantomas.client": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[8.0.100, )",
+          "FSharp.Core": "[9.0.100, )",
           "SemanticVersioning": "[2.0.2, )",
           "StreamJsonRpc": "[2.20.20, )"
         }
@@ -286,19 +286,27 @@
       "fantomas.core": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[8.0.100, )",
+          "FSharp.Core": "[9.0.100, )",
+          "FSharp.Core.Extended": "[1.0.4, )",
           "Fantomas.FCS": "[1.0.0, )"
         }
       },
       "fantomas.fcs": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[8.0.100, )",
+          "FSharp.Core": "[9.0.100, )",
+          "FSharp.Core.Extended": "[1.0.4, )",
           "System.Collections.Immutable": "[8.0.0, )",
           "System.Diagnostics.DiagnosticSource": "[8.0.1, )",
           "System.Memory": "[4.6.0, )",
           "System.Runtime": "[4.3.1, )"
         }
+      },
+      "FSharp.Core.Extended": {
+        "type": "CentralTransitive",
+        "requested": "[1.0.4, )",
+        "resolved": "1.0.4",
+        "contentHash": "uwS+mTaOis2ZaFr6uPWhaFrDkluuXbZLU5CvX4tuA4HQhazHRjsAEuVV8wWEICQ2DEk9IwxIcC+WRwaEBPIVAQ=="
       },
       "Newtonsoft.Json": {
         "type": "CentralTransitive",
