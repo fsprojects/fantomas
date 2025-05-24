@@ -95,3 +95,44 @@ match expr with
 match expr with
 | SpecificCall <@@ ( ** ) @@> (_, _, [ s1; s2 ]) -> ()
 """
+
+[<Test>]
+let ``active pattern with backticks in ident, 3126`` () =
+    formatSourceString
+        """
+let (|``Custom Prefix``|_|) (p: string) (s: string) =
+    if s.StartsWith(p) then
+        Some(s.Substring(p.Length))
+    else
+        None
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let (|``Custom Prefix``|_|) (p: string) (s: string) =
+    if s.StartsWith(p) then
+        Some(s.Substring(p.Length))
+    else
+        None
+"""
+
+[<Test>]
+let ``multiple backticked idents in active pattern are preserved`` () =
+    formatSourceString
+        """
+let (|``Is Even``|``Is Odd``|) (p: int) =
+    if p % 2 = 0 then
+        ``Is Even``
+    else
+        ``Is Odd``
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let (|``Is Even``|``Is Odd``|) (p: int) =
+    if p % 2 = 0 then ``Is Even`` else ``Is Odd``
+"""

@@ -34,17 +34,27 @@ let mkIdent (ident: Ident) =
 
     stn text ident.idRange
 
-let mkSynIdent (SynIdent(ident, trivia)) =
+let mkSynIdent (creationAide: CreationAide) (SynIdent(ident, trivia)) =
     match trivia with
     | None -> mkIdent ident
     | Some(IdentTrivia.OriginalNotation text) -> stn text ident.idRange
     | Some(IdentTrivia.OriginalNotationWithParen(_, text, _)) -> stn $"(%s{text})" ident.idRange
-    | Some(IdentTrivia.HasParenthesis _) -> stn $"(%s{ident.idText})" ident.idRange
+    | Some(IdentTrivia.HasParenthesis _) ->
+        let width = ident.idRange.EndColumn - ident.idRange.StartColumn
 
-let mkSynLongIdent (sli: SynLongIdent) =
+        let text =
+            if ident.idText.Length < width then
+                // preserve backticks inside the idText, e.g. the idText could be "|``Is Even``|``Is Odd``|"
+                creationAide.TextFromSource (fun () -> $"(%s{ident.idText})") ident.idRange
+            else
+                ident.idText
+
+        stn $"(%s{text})" ident.idRange
+
+let mkSynLongIdent (creationAide: CreationAide) (sli: SynLongIdent) =
     match sli.IdentsWithTrivia with
     | [] -> IdentListNode.Empty
-    | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(mkSynIdent single) ], sli.Range)
+    | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(mkSynIdent creationAide single) ], sli.Range)
     | head :: tail ->
         assert (tail.Length = sli.Dots.Length)
 
@@ -53,9 +63,9 @@ let mkSynLongIdent (sli: SynLongIdent) =
             ||> List.zip
             |> List.collect (fun (dot, ident) ->
                 [ IdentifierOrDot.KnownDot(stn "." dot)
-                  IdentifierOrDot.Ident(mkSynIdent ident) ])
+                  IdentifierOrDot.Ident(mkSynIdent creationAide ident) ])
 
-        IdentListNode(IdentifierOrDot.Ident(mkSynIdent head) :: rest, sli.Range)
+        IdentListNode(IdentifierOrDot.Ident(mkSynIdent creationAide head) :: rest, sli.Range)
 
 let mkLongIdent (longIdent: LongIdent) : IdentListNode =
     match longIdent with
@@ -116,7 +126,7 @@ let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(iden
                 let text = creationAide.TextFromSource (fun () -> $"%A{value}") range
                 stn text range |> Choice1Of2
             | ParsedHashDirectiveArgument.Ident(value = ident) -> mkIdent ident |> Choice1Of2
-            | ParsedHashDirectiveArgument.LongIdent(value = lid) -> mkSynLongIdent lid |> Choice2Of2)
+            | ParsedHashDirectiveArgument.LongIdent(value = lid) -> mkSynLongIdent creationAide lid |> Choice2Of2)
 
     ParsedHashDirectiveNode(ident, args, range)
 
@@ -209,7 +219,7 @@ let mkAttribute (creationAide: CreationAide) (a: SynAttribute) =
         | UnitExpr _ -> None
         | e -> mkExpr creationAide e |> Some
 
-    AttributeNode(mkSynLongIdent a.TypeName, expr, Option.map mkIdent a.Target, a.Range)
+    AttributeNode(mkSynLongIdent creationAide a.TypeName, expr, Option.map mkIdent a.Target, a.Range)
 
 let mkAttributeList (creationAide: CreationAide) (al: SynAttributeList) : AttributeListNode =
     let attributes = List.map (mkAttribute creationAide) al.Attributes
@@ -1021,7 +1031,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             |> List.choose (function
                 | SynExprRecordField((fieldName, _), Some mEq, Some expr, _) ->
                     let m = unionRanges fieldName.Range expr.Range
-                    Some(RecordFieldNode(mkSynLongIdent fieldName, stn "=" mEq, mkExpr creationAide expr, m))
+
+                    Some(
+                        RecordFieldNode(mkSynLongIdent creationAide fieldName, stn "=" mEq, mkExpr creationAide expr, m)
+                    )
                 | _ -> None)
 
         match baseInfo, copyInfo with
@@ -1049,7 +1062,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             |> List.choose (function
                 | sli, Some mEq, e ->
                     let m = unionRanges sli.Range e.Range
-                    let longIdent = mkSynLongIdent sli
+                    let longIdent = mkSynLongIdent creationAide sli
 
                     Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
                 | _ -> None)
@@ -1069,7 +1082,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             |> List.choose (function
                 | sli, Some mEq, e ->
                     let m = unionRanges sli.Range e.Range
-                    let longIdent = mkSynLongIdent sli
+                    let longIdent = mkSynLongIdent creationAide sli
                     Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
                 | _ -> None)
 
@@ -1294,7 +1307,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprChain(chainLinks, exprRange) |> Expr.Chain
 
     | AppSingleParenArg(SynExpr.LongIdent(longDotId = longDotId), px) ->
-        ExprAppLongIdentAndSingleParenArgNode(mkSynLongIdent longDotId, mkExpr creationAide px, exprRange)
+        ExprAppLongIdentAndSingleParenArgNode(mkSynLongIdent creationAide longDotId, mkExpr creationAide px, exprRange)
         |> Expr.AppLongIdentAndSingleParenArg
     | AppSingleParenArg(e, px) ->
         ExprAppSingleParenArgNode(mkExpr creationAide e, mkExpr creationAide px, exprRange)
@@ -1479,9 +1492,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
     | SynExpr.Ident ident -> mkIdent ident |> Expr.Ident
     | SynExpr.LongIdent(isOpt, synLongIdent, _, m) ->
-        ExprOptVarNode(isOpt, mkSynLongIdent synLongIdent, m) |> Expr.OptVar
+        ExprOptVarNode(isOpt, mkSynLongIdent creationAide synLongIdent, m)
+        |> Expr.OptVar
     | SynExpr.LongIdentSet(synLongIdent, e, _) ->
-        ExprLongIdentSetNode(mkSynLongIdent synLongIdent, mkExpr creationAide e, exprRange)
+        ExprLongIdentSetNode(mkSynLongIdent creationAide synLongIdent, mkExpr creationAide e, exprRange)
         |> Expr.LongIdentSet
     | SynExpr.DotIndexedGet(objectExpr, indexArgs, _, _) ->
         ExprDotIndexedGetNode(mkExpr creationAide objectExpr, mkExpr creationAide indexArgs, exprRange)
@@ -1497,7 +1511,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.DotIndexedSet
     | SynExpr.NamedIndexedPropertySet(synLongIdent, e1, e2, _) ->
         ExprNamedIndexedPropertySetNode(
-            mkSynLongIdent synLongIdent,
+            mkSynLongIdent creationAide synLongIdent,
             mkExpr creationAide e1,
             mkExpr creationAide e2,
             exprRange
@@ -1506,7 +1520,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.DotNamedIndexedPropertySet(e, synLongIdent, e1, e2, _) ->
         ExprDotNamedIndexedPropertySetNode(
             mkExpr creationAide e,
-            mkSynLongIdent synLongIdent,
+            mkSynLongIdent creationAide synLongIdent,
             mkExpr creationAide e1,
             mkExpr creationAide e2,
             exprRange
@@ -1721,7 +1735,8 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         PatNamedParenStarIdentNode(mkSynAccess ao, stn "(" lpr, stn op ident.idRange, stn ")" rpr, patternRange)
         |> Pattern.NamedParenStarIdent
     | SynPat.Named(accessibility = ao; ident = ident) ->
-        PatNamedNode(mkSynAccess ao, mkSynIdent ident, patternRange) |> Pattern.Named
+        PatNamedNode(mkSynAccess ao, mkSynIdent creationAide ident, patternRange)
+        |> Pattern.Named
     | SynPat.As(p1, p2, _) ->
         PatLeftMiddleRight(mkPat creationAide p1, Choice2Of2 "as", mkPat creationAide p2, patternRange)
         |> Pattern.As
@@ -1753,14 +1768,21 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
                         unionRanges ident.idRange pat.Range
                     )))
 
-        PatNamePatPairsNode(mkSynLongIdent synLongIdent, typarDecls, stn "(" lpr, pairs, stn ")" rpr, patternRange)
+        PatNamePatPairsNode(
+            mkSynLongIdent creationAide synLongIdent,
+            typarDecls,
+            stn "(" lpr,
+            pairs,
+            stn ")" rpr,
+            patternRange
+        )
         |> Pattern.NamePatPairs
     | SynPat.LongIdent(synLongIdent, _, vtdo, SynArgPats.Pats pats, ao, _) ->
         let typarDecls = mkSynValTyparDecls creationAide vtdo
 
         PatLongIdentNode(
             mkSynAccess ao,
-            mkSynLongIdent synLongIdent,
+            mkSynLongIdent creationAide synLongIdent,
             typarDecls,
             List.map (mkPat creationAide) pats,
             patternRange
@@ -1825,13 +1847,13 @@ let mkBinding
         match sli.IdentsWithTrivia with
         | [ prefix; OperatorWithStar operatorNode ] ->
             IdentListNode(
-                [ IdentifierOrDot.Ident(mkSynIdent prefix)
+                [ IdentifierOrDot.Ident(mkSynIdent creationAide prefix)
                   IdentifierOrDot.UnknownDot
                   operatorNode ],
                 sli.Range
             )
         | [ OperatorWithStar operatorNode ] -> IdentListNode([ operatorNode ], sli.Range)
-        | _ -> mkSynLongIdent sli
+        | _ -> mkSynLongIdent creationAide sli
 
     let ao, functionName, genericParameters, parameters =
         match pat with
@@ -1844,7 +1866,7 @@ let mkBinding
             let name =
                 match si with
                 | OperatorWithStar operatorNode -> operatorNode
-                | _ -> IdentifierOrDot.Ident(mkSynIdent si)
+                | _ -> IdentifierOrDot.Ident(mkSynIdent creationAide si)
 
             let m =
                 let (SynIdent(ident, _)) = si
@@ -1958,7 +1980,7 @@ let mkExternBinding
                 id = [ ArrayText suffix ]))
             isPostfix = true
             typeArgs = [ SynType.App(typeName = SynType.LongIdent argLid; isPostfix = false; typeArgs = []) ]) ->
-            let lid = mkSynLongIdent argLid
+            let lid = mkSynLongIdent creationAide argLid
 
             let lidPieces =
                 lid.Content
@@ -1991,7 +2013,7 @@ let mkExternBinding
         | SynPat.LongIdent(
             longDotId = longDotId
             argPats = SynArgPats.Pats [ SynPat.Tuple(_, ps, _, StartEndRange 1 (mOpen, _, mClose)) ]) ->
-            mkSynLongIdent longDotId, stn "(" mOpen, List.map mkExternPat ps, stn ")" mClose
+            mkSynLongIdent creationAide longDotId, stn "(" mOpen, List.map mkExternPat ps, stn ")" mClose
         | _ -> failwith "expecting a SynPat.LongIdent for extern binding"
 
     ExternBindingNode(
@@ -2276,7 +2298,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.LongIdentApp(t, lid, Some mLt, args, _, Some mGt, _) ->
         TypeAppPrefixNode(
             mkType creationAide t,
-            Some(mkSynLongIdent lid),
+            Some(mkSynLongIdent creationAide lid),
             stn "<" mLt,
             List.map (mkType creationAide) args,
             stn ">" mGt,
@@ -2284,14 +2306,14 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         )
         |> Type.AppPrefix
     | SynType.LongIdentApp(t, lid, None, [], _, None, _) ->
-        TypeLongIdentAppNode(mkType creationAide t, mkSynLongIdent lid, typeRange)
+        TypeLongIdentAppNode(mkType creationAide t, mkSynLongIdent creationAide lid, typeRange)
         |> Type.LongIdentApp
     | SynType.WithGlobalConstraints(SynType.Var _, [ SynTypeConstraint.WhereTyparSubtypeOfType _ as tc ], _) ->
         mkSynTypeConstraint creationAide tc |> Type.WithSubTypeConstraint
     | SynType.WithGlobalConstraints(t, tcs, _) ->
         TypeWithGlobalConstraintsNode(mkType creationAide t, List.map (mkSynTypeConstraint creationAide) tcs, typeRange)
         |> Type.WithGlobalConstraints
-    | SynType.LongIdent lid -> Type.LongIdent(mkSynLongIdent lid)
+    | SynType.LongIdent lid -> Type.LongIdent(mkSynLongIdent creationAide lid)
     | SynType.AnonRecd(isStruct, fields, StartEndRange 2 (_, r, mClosing)) ->
         let structNode, openingNode =
             if isStruct then
@@ -2361,7 +2383,7 @@ let rec (|OpenL|_|) =
 let mkOpenNodeForImpl (creationAide: CreationAide) (target, range) : Open =
     match target with
     | SynOpenDeclTarget.ModuleOrNamespace(longId, _) ->
-        OpenModuleOrNamespaceNode(mkSynLongIdent longId, range)
+        OpenModuleOrNamespaceNode(mkSynLongIdent creationAide longId, range)
         |> Open.ModuleOrNamespace
     | SynOpenDeclTarget.Type(typeName, _) -> OpenTargetNode(mkType creationAide typeName, range) |> Open.Target
 
@@ -2456,7 +2478,7 @@ let mkSynUnionCase
         mkXmlDoc xmlDoc,
         mkAttributes creationAide attributes,
         Option.map (stn "|") trivia.BarRange,
-        mkSynIdent ident,
+        mkSynIdent creationAide ident,
         fields,
         fullRange
     )
@@ -2570,7 +2592,7 @@ let mkTypeDefn
                     mkXmlDoc xmlDoc,
                     Option.map (stn "|") trivia.BarRange,
                     mkAttributes creationAide attributes,
-                    mkSynIdent ident,
+                    mkSynIdent creationAide ident,
                     stn "=" trivia.EqualsRange,
                     mkExpr creationAide valueExpr,
                     range
@@ -2930,7 +2952,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             mkXmlDoc px,
             mkAttributes creationAide ats,
             mkSynLeadingKeyword trivia.LeadingKeyword,
-            mkSynIdent ident,
+            mkSynIdent creationAide ident,
             mkSynValTyparDecls creationAide (Some tds),
             mkType creationAide t,
             mkWithGetSet trivia.WithKeyword abstractSlotTrivia.GetSetKeywords visGet visSet,
@@ -3003,7 +3025,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             mkSynLeadingKeyword lk,
             Option.map (stn "inline") inlineKw,
             mkSynAccess accessibility,
-            mkSynLongIdent memberName,
+            mkSynLongIdent creationAide memberName,
             stn "with" withKeyword,
             firstBinding,
             Some(stn "and" andKeyword),
@@ -3054,7 +3076,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                 mkSynLeadingKeyword lk,
                 Option.map (stn "inline") inlineKw,
                 mkSynAccess visMember,
-                mkSynLongIdent memberName,
+                mkSynLongIdent creationAide memberName,
                 stn "with" withKeyword,
                 bindingNode,
                 None,
@@ -3072,7 +3094,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                 mkSynLeadingKeyword lk,
                 Option.map (stn "inline") inlineKw,
                 mkSynAccess visMember,
-                mkSynLongIdent memberName,
+                mkSynLongIdent creationAide memberName,
                 stn "with" withKeyword,
                 bindingNode,
                 None,
@@ -3099,7 +3121,7 @@ let mkVal
         Option.map (stn "inline") trivia.InlineKeyword,
         isMutable,
         mkSynAccess ao,
-        mkSynIdent synIdent,
+        mkSynIdent creationAide synIdent,
         mkSynValTyparDecls creationAide (Some vtd),
         mkType creationAide t,
         Option.map (stn "=") trivia.EqualsRange,
@@ -3356,7 +3378,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                     mkXmlDoc xmlDoc,
                     Option.map (stn "|") trivia.BarRange,
                     mkAttributes creationAide attributes,
-                    mkSynIdent ident,
+                    mkSynIdent creationAide ident,
                     stn "=" trivia.EqualsRange,
                     mkExpr creationAide valueExpr,
                     range
