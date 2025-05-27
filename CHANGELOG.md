@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 7.0.2 - 2025-05-27
 
 ### Changed
 
@@ -8,6 +8,7 @@
 
 ### Fixed
 
+* Anonymous records in interpolated strings. [#3162](https://github.com/fsprojects/fantomas/issues/3162)
 * Preserve backticks in active pattern idents. [#3126](https://github.com/fsprojects/fantomas/issues/3126)
 * New lines are added after comment in measure type. [#3145](https://github.com/fsprojects/fantomas/issues/3145)
 * Idempotency problem with comments in applications on lambda expressions. [#3128](https://github.com/fsprojects/fantomas/issues/3128)
