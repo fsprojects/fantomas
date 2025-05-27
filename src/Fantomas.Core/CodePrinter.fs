@@ -1543,8 +1543,17 @@ let genExpr (e: Expr) =
             | Choice1Of2 stringNode -> genSingleTextNode stringNode
             | Choice2Of2 fillNode ->
                 fun ctx ->
+                    let sep =
+                        match fillNode.Expr with
+                        | Expr.AnonStructRecord _
+                        | Expr.Record _
+                        | Expr.Computation _ -> sepSpace
+                        | _ -> sepNone
+
                     let genFill =
-                        genInterpolatedFillExpr fillNode.Expr
+                        sep
+                        +> genInterpolatedFillExpr fillNode.Expr
+                        +> sep
                         +> optSingle (fun format -> sepColonFixed +> genSingleTextNode format) fillNode.Ident
 
                     genFill ctx)
