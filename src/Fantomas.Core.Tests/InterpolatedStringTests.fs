@@ -376,3 +376,31 @@ let x = $$$\"\"\"one {{{1}}} two {{{2}}} three {{{3}}}\"\"\"
         "
 let x = $$$\"\"\"one {{{1}}} two {{{2}}} three {{{3}}}\"\"\"
 "
+
+[<Test>]
+let ``anonymous record in interpolated string, 3162`` () =
+    formatSourceString
+        "
+$\"\"\"{ {| Prop = \"XYZ\" |} }\"\"\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+$\"\"\"{ {| Prop = \"XYZ\" |} }\"\"\"
+"
+
+[<Test>]
+let ``seq without seq keyword in interpolated string`` () =
+    formatSourceString
+        "
+$\"\"\"{ { 1..3 } }\"\"\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+$\"\"\"{ { 1..3 } }\"\"\"
+"
