@@ -11,6 +11,7 @@ open Fantomas.FCS
 open Fantomas.FCS.AbstractIL.IL
 open Fantomas.FCS.DiagnosticsLogger
 open Fantomas.FCS.Features
+open Fantomas.FCS.LexerStore
 open Fantomas.FCS.Lexhelp
 open Fantomas.FCS.Text
 open Fantomas.FCS.Text.Position
@@ -153,27 +154,16 @@ let QualFileNameOfImpls filename specs =
     | [ SynModuleOrNamespace(kind = kind; range = m) ] when not kind.IsModule -> QualFileNameOfFilename m filename
     | _ -> QualFileNameOfFilename (mkRange filename pos0 pos0) filename
 
-let GetScopedPragmasForInput input =
-    match input with
-    | ParsedInput.SigFile(ParsedSigFileInput(scopedPragmas = pragmas)) -> pragmas
-    | ParsedInput.ImplFile(ParsedImplFileInput(scopedPragmas = pragmas)) -> pragmas
+let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) =
+    let tripleSlashComments = XmlDocStore.ReportInvalidXmlDocPositions lexbuf
 
-let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) (tripleSlashComments: range list) =
-    [ yield! LexbufCommentStore.GetComments(lexbuf)
-      yield! (List.map CommentTrivia.LineComment tripleSlashComments) ]
+    [ yield! CommentStore.GetComments(lexbuf)
+      yield! List.map CommentTrivia.LineComment tripleSlashComments ]
     |> List.sortBy (function
         | CommentTrivia.LineComment r
         | CommentTrivia.BlockComment r -> r.StartLine, r.StartColumn)
 
-let PostParseModuleImpls
-    (
-        defaultNamespace,
-        filename,
-        isLastCompiland,
-        ParsedImplFile(hashDirectives, impls),
-        lexbuf: UnicodeLexing.Lexbuf,
-        tripleSlashComments: range list
-    ) =
+let PostParseModuleImpls (defaultNamespace, filename, isLastCompiland, ParsedImplFile(hashDirectives, impls), lexbuf) =
     match
         impls
         |> List.rev
@@ -191,23 +181,13 @@ let PostParseModuleImpls
     let qualName = QualFileNameOfImpls filename impls
     let isScript = IsScript filename
 
-    let scopedPragmas = []
-    let conditionalDirectives = LexbufIfdefStore.GetTrivia(lexbuf)
-    let codeComments = collectCodeComments lexbuf tripleSlashComments
+    let trivia =
+        { ConditionalDirectives = IfdefStore.GetTrivia(lexbuf)
+          WarnDirectives = WarnScopes.getDirectiveTrivia (lexbuf)
+          CodeComments = collectCodeComments lexbuf }
 
     ParsedInput.ImplFile(
-        ParsedImplFileInput(
-            filename,
-            isScript,
-            qualName,
-            scopedPragmas,
-            hashDirectives,
-            impls,
-            isLastCompiland,
-            { ConditionalDirectives = conditionalDirectives
-              CodeComments = codeComments },
-            Set.empty
-        )
+        ParsedImplFileInput(filename, isScript, qualName, hashDirectives, impls, isLastCompiland, trivia, Set.empty)
     )
 
 let PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf) =
@@ -273,14 +253,8 @@ let PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf)
         SynModuleOrNamespaceSig(lid, isRecursive, kind, decls, xmlDoc, attributes, None, range, trivia)
 
 let PostParseModuleSpecs
-    (
-        defaultNamespace,
-        filename,
-        isLastCompiland,
-        ParsedSigFile(hashDirectives, specs),
-        lexbuf: UnicodeLexing.Lexbuf,
-        tripleSlashComments: range list
-    ) =
+    (defaultNamespace, filename, isLastCompiland, ParsedSigFile(hashDirectives, specs), lexbuf: UnicodeLexing.Lexbuf)
+    =
     match
         specs
         |> List.rev
@@ -296,23 +270,13 @@ let PostParseModuleSpecs
         |> List.mapi (fun i x -> PostParseModuleSpec(i, defaultNamespace, isLastCompiland, filename, x))
 
     let qualName = QualFileNameOfSpecs filename specs
-    let scopedPragmas = []
 
-    let conditionalDirectives = LexbufIfdefStore.GetTrivia(lexbuf)
-    let codeComments = collectCodeComments lexbuf tripleSlashComments
+    let trivia =
+        { ConditionalDirectives = IfdefStore.GetTrivia(lexbuf)
+          WarnDirectives = WarnScopes.getDirectiveTrivia (lexbuf)
+          CodeComments = collectCodeComments lexbuf }
 
-    ParsedInput.SigFile(
-        ParsedSigFileInput(
-            filename,
-            qualName,
-            scopedPragmas,
-            hashDirectives,
-            specs,
-            { ConditionalDirectives = conditionalDirectives
-              CodeComments = codeComments },
-            Set.empty
-        )
-    )
+    ParsedInput.SigFile(ParsedSigFileInput(filename, qualName, hashDirectives, specs, trivia, Set.empty))
 
 let ParseInput
     (
@@ -337,38 +301,24 @@ let ParseInput
     use _ = UseDiagnosticsLogger delayLogger
     use _ = UseBuildPhase BuildPhase.Parse
 
-    let mutable scopedPragmas = []
-
     try
-        let input =
-            if mlCompatSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
-                if lexbuf.SupportsFeature LanguageFeature.MLCompatRevisions then
-                    errorR (Error(FSComp.SR.buildInvalidSourceFileExtensionML filename, rangeStartup))
-                else
-                    mlCompatWarning (FSComp.SR.buildCompilingExtensionIsForML ()) rangeStartup
-
-            // Call the appropriate parser - for signature files or implementation files
-            if FSharpImplFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
-                let impl = Parser.implementationFile lexer lexbuf
-
-                let tripleSlashComments =
-                    LexbufLocalXmlDocStore.ReportInvalidXmlDocPositions(lexbuf)
-
-                PostParseModuleImpls(defaultNamespace, filename, isLastCompiland, impl, lexbuf, tripleSlashComments)
-            elif FSharpSigFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
-                let intfs = Parser.signatureFile lexer lexbuf
-
-                let tripleSlashComments =
-                    LexbufLocalXmlDocStore.ReportInvalidXmlDocPositions(lexbuf)
-
-                PostParseModuleSpecs(defaultNamespace, filename, isLastCompiland, intfs, lexbuf, tripleSlashComments)
-            else if lexbuf.SupportsFeature LanguageFeature.MLCompatRevisions then
-                error (Error(FSComp.SR.buildInvalidSourceFileExtensionUpdated filename, rangeStartup))
+        if mlCompatSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
+            if lexbuf.SupportsFeature LanguageFeature.MLCompatRevisions then
+                errorR (Error(FSComp.SR.buildInvalidSourceFileExtensionML filename, rangeStartup))
             else
-                error (Error(FSComp.SR.buildInvalidSourceFileExtension filename, rangeStartup))
+                mlCompatWarning (FSComp.SR.buildCompilingExtensionIsForML ()) rangeStartup
 
-        scopedPragmas <- GetScopedPragmasForInput input
-        input
+        // Call the appropriate parser - for signature files or implementation files
+        if FSharpImplFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
+            let impl = Parser.implementationFile lexer lexbuf
+            PostParseModuleImpls(defaultNamespace, filename, isLastCompiland, impl, lexbuf)
+        elif FSharpSigFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
+            let intfs = Parser.signatureFile lexer lexbuf
+            PostParseModuleSpecs(defaultNamespace, filename, isLastCompiland, intfs, lexbuf)
+        else if lexbuf.SupportsFeature LanguageFeature.MLCompatRevisions then
+            error (Error(FSComp.SR.buildInvalidSourceFileExtensionUpdated filename, rangeStartup))
+        else
+            error (Error(FSComp.SR.buildInvalidSourceFileExtension filename, rangeStartup))
     finally
         // OK, now commit the errors, since the ScopedPragmas will (hopefully) have been scraped
         let filteringErrorLogger = errorLogger // TODO: does this matter? //GetErrorLoggerFilteringByScopedPragmas(false, scopedPragmas, diagnosticOptions, errorLogger)
@@ -379,16 +329,7 @@ let EmptyParsedInput (filename, isLastCompiland) =
 
     if FSharpSigFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
         ParsedInput.SigFile(
-            ParsedSigFileInput(
-                filename,
-                QualFileNameOfImpls filename [],
-                [],
-                [],
-                [],
-                { ConditionalDirectives = []
-                  CodeComments = [] },
-                Set.empty
-            )
+            ParsedSigFileInput(filename, QualFileNameOfImpls filename [], [], [], ParsedInputTrivia.Empty, Set.empty)
         )
     else
         ParsedInput.ImplFile(
@@ -398,10 +339,8 @@ let EmptyParsedInput (filename, isLastCompiland) =
                 QualFileNameOfImpls filename [],
                 [],
                 [],
-                [],
                 isLastCompiland,
-                { ConditionalDirectives = []
-                  CodeComments = [] },
+                ParsedInputTrivia.Empty,
                 Set.empty
             )
         )

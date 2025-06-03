@@ -352,7 +352,6 @@ let ``backticks can be added from AST only scenarios`` () =
                 true,
                 QualifiedNameOfFile testIdent,
                 [],
-                [],
                 [ SynModuleOrNamespace(
                       [ testIdent ],
                       false,
@@ -377,8 +376,7 @@ let ``backticks can be added from AST only scenarios`` () =
                       { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
                   ) ],
                 (true, false),
-                { ConditionalDirectives = []
-                  CodeComments = [] },
+                ParsedInputTrivia.Empty,
                 Set.empty
             )
         )

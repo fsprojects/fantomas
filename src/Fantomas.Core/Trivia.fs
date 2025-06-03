@@ -136,15 +136,21 @@ type ConditionalDirectiveTrivia with
         | ConditionalDirectiveTrivia.Else m
         | ConditionalDirectiveTrivia.EndIf m -> m
 
-let internal collectTriviaFromDirectives
+type WarnDirectiveTrivia with
+
+    member x.Range =
+        match x with
+        | WarnDirectiveTrivia.Nowarn m
+        | WarnDirectiveTrivia.Warnon m -> m
+
+let internal collectTriviaFromDirectiveRanges
     (source: ISourceText)
-    (directives: ConditionalDirectiveTrivia list)
+    (directiveRanges: range list)
     (codeRange: range)
     : TriviaNode list =
-    directives
-    |> List.filter (fun cdt -> RangeHelpers.rangeContainsRange codeRange cdt.Range)
-    |> List.map (fun cdt ->
-        let m = cdt.Range
+    directiveRanges
+    |> List.filter (RangeHelpers.rangeContainsRange codeRange)
+    |> List.map (fun m ->
         let text = (source.GetSubTextFromRange m).TrimEnd()
         let content = Directive text
         TriviaNode(content, m))
@@ -315,27 +321,24 @@ let addToTree (tree: Oak) (trivia: TriviaNode seq) =
 let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak =
     let fullTreeRange = tree.Range
 
-    let directives, codeComments =
+    let parsedTrivia =
         match ast with
-        | ParsedInput.ImplFile(ParsedImplFileInput(
-            trivia = { ConditionalDirectives = directives
-                       CodeComments = codeComments })) -> directives, codeComments
-        | ParsedInput.SigFile(ParsedSigFileInput(
-            trivia = { ConditionalDirectives = directives
-                       CodeComments = codeComments })) -> directives, codeComments
+        | ParsedInput.ImplFile(ParsedImplFileInput(trivia = t))
+        | ParsedInput.SigFile(ParsedSigFileInput(trivia = t)) -> t
 
     let trivia =
         let newlines =
-            collectTriviaFromBlankLines config sourceText tree codeComments fullTreeRange
+            collectTriviaFromBlankLines config sourceText tree parsedTrivia.CodeComments fullTreeRange
 
         let comments =
-            match ast with
-            | ParsedInput.ImplFile(ParsedImplFileInput(trivia = trivia)) ->
-                collectTriviaFromCodeComments sourceText trivia.CodeComments fullTreeRange
-            | ParsedInput.SigFile(ParsedSigFileInput(trivia = trivia)) ->
-                collectTriviaFromCodeComments sourceText trivia.CodeComments fullTreeRange
+            collectTriviaFromCodeComments sourceText parsedTrivia.CodeComments fullTreeRange
 
-        let directives = collectTriviaFromDirectives sourceText directives fullTreeRange
+        let directiveRanges =
+            (parsedTrivia.ConditionalDirectives |> List.map _.Range)
+            @ (parsedTrivia.WarnDirectives |> List.map _.Range)
+
+        let directives =
+            collectTriviaFromDirectiveRanges sourceText directiveRanges fullTreeRange
 
         [| yield! comments; yield! newlines; yield! directives |]
         |> Array.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)

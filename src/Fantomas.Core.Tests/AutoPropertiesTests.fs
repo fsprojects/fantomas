@@ -74,7 +74,7 @@ type X =
     member internal Y: int with public get, private set
 """
 
-[<Test>]
+[<Test; Ignore "no longer supported (see #17802)">]
 let ``abstract member with public get, private set`` () =
     formatSignatureString
         """

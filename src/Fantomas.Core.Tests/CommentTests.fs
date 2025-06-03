@@ -6,6 +6,11 @@ open Fantomas.Core.Tests.TestHelpers
 open Fantomas.Core
 
 [<Test>]
+let ``should keep sticky-to-the-left comments after #if directivesXXX`` () =
+    formatSourceString "#if DEBUG // debug only\n#endif\n" config
+    |> should equal "#if DEBUG // debug only\n#endif\n"
+
+[<Test>]
 let ``should keep sticky-to-the-left comments after nowarn directives`` () =
     formatSourceString """#nowarn "51" // address-of operator can occur in the code""" config
     |> should
