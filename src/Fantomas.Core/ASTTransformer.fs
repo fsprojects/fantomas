@@ -966,23 +966,23 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.AddressOf(false, e, _, StartRange 2 (ampersandToken, _range)) ->
         ExprSingleNode(stn "&&" ampersandToken, false, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturn((true, _), e, StartRange 5 (yieldKeyword, _range), _) ->
-        ExprSingleNode(stn "yield" yieldKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturn((true, _), e, _range, trivia) ->
+        ExprSingleNode(stn "yield" trivia.YieldOrReturnKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturn((false, _), e, StartRange 6 (returnKeyword, _range), _) ->
-        ExprSingleNode(stn "return" returnKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturn((false, _), e, _range, trivia) ->
+        ExprSingleNode(stn "return" trivia.YieldOrReturnKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturnFrom((true, _), e, StartRange 6 (yieldBangKeyword, _range), _) ->
-        ExprSingleNode(stn "yield!" yieldBangKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturnFrom((true, _), e, _range, trivia) ->
+        ExprSingleNode(stn "yield!" trivia.YieldOrReturnFromKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturnFrom((false, _), e, StartRange 7 (returnBangKeyword, _range), _) ->
-        ExprSingleNode(stn "return!" returnBangKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturnFrom((false, _), e, _range, trivia) ->
+        ExprSingleNode(stn "return!" trivia.YieldOrReturnFromKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Do(e, StartRange 2 (doKeyword, _range)) ->
         ExprSingleNode(stn "do" doKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.DoBang(e, StartRange 3 (doBangKeyword, _range), _) ->
-        ExprSingleNode(stn "do!" doBangKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.DoBang(e, _range, trivia) ->
+        ExprSingleNode(stn "do!" trivia.DoBangKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Fixed(e, StartRange 5 (fixedKeyword, _range)) ->
         ExprSingleNode(stn "fixed" fixedKeyword, true, false, mkExpr creationAide e, exprRange)
@@ -2807,8 +2807,8 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     let memberDefinitionRange = md.Range
 
     match md with
-    | SynMemberDefn.ImplicitInherit(t, e, _, StartRange 7 (mInherit, _), _) ->
-        mkInheritConstructor creationAide t e mInherit memberDefinitionRange
+    | SynMemberDefn.ImplicitInherit(t, e, _, _, trivia) ->
+        mkInheritConstructor creationAide t e trivia.InheritKeyword memberDefinitionRange
         |> MemberDefn.ImplicitInherit
 
     // Transforms: `member this.Y with get() = "meh"` into `member this.Y = "meh"`
@@ -2868,10 +2868,14 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         )
         |> MemberDefn.ExplicitCtor
     | SynMemberDefn.Member(memberDefn, _) -> mkBinding creationAide memberDefn |> MemberDefn.Member
-    | SynMemberDefn.Inherit(baseTypeOpt, _, StartRange 7 (mInherit, _), _) ->
+    | SynMemberDefn.Inherit(baseTypeOpt, _, _isInline, trivia) ->
         match baseTypeOpt with
         | Some baseType ->
-            MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide baseType, memberDefinitionRange)
+            MemberDefnInheritNode(
+                stn "inherit" trivia.InheritKeyword,
+                mkType creationAide baseType,
+                memberDefinitionRange
+            )
             |> MemberDefn.Inherit
         | None -> failwith "successful parse shouldn't have any unfinished inherit"
     | SynMemberDefn.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField

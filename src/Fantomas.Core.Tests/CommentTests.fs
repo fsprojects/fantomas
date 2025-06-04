@@ -6,7 +6,7 @@ open Fantomas.Core.Tests.TestHelpers
 open Fantomas.Core
 
 [<Test>]
-let ``should keep sticky-to-the-left comments after #if directivesXXX`` () =
+let ``should keep sticky-to-the-left comments after #if directives`` () =
     formatSourceString "#if DEBUG // debug only\n#endif\n" config
     |> should equal "#if DEBUG // debug only\n#endif\n"
 
