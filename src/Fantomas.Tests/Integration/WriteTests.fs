@@ -11,8 +11,7 @@ let FormattedCode = "let a = 9\n"
 [<Literal>]
 let UnformattedCode = "let a =   9"
 
-[<Literal>]
-let Verbosity = "--verbosity d"
+let Verbosity = [ "--verbosity"; "d" ]
 
 [<Test>]
 let ``correctly formatted file should not be written, 1984`` () =
@@ -27,7 +26,7 @@ end_of_line=lf
         )
 
     use inputFixture = new TemporaryFileCodeSample(FormattedCode, fileName = fileName)
-    let args = sprintf "%s %s" Verbosity inputFixture.Filename
+    let args = Verbosity @ [ inputFixture.Filename ]
     let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
 
@@ -38,7 +37,7 @@ let ``incorrectly formatted file should be written`` () =
     let fileName = "A"
 
     use inputFixture = new TemporaryFileCodeSample(UnformattedCode, fileName = fileName)
-    let args = sprintf "%s %s" Verbosity inputFixture.Filename
+    let args = Verbosity @ [ inputFixture.Filename ]
     let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
 
@@ -52,7 +51,8 @@ let ``file should be written to out folder when input folder has trailing slash`
     use outputFolder = new OutputFolder()
 
     let arguments =
-        sprintf @"%s subsrc%c --out %s" Verbosity Path.DirectorySeparatorChar outputFolder.Foldername
+        Verbosity
+        @ [ $"subsrc%c{Path.DirectorySeparatorChar}"; "--out"; outputFolder.Foldername ]
 
     let { ExitCode = exitCode; Output = output } = runFantomasTool arguments
 
@@ -67,7 +67,7 @@ let ``file should be written to out folder when input folder has no trailing sla
 
     use outputFolder = new OutputFolder()
 
-    let arguments = sprintf @"%s subsrc --out %s" Verbosity outputFolder.Foldername
+    let arguments = Verbosity @ [ "subsrc"; "--out"; outputFolder.Foldername ]
 
     let { ExitCode = exitCode; Output = output } = runFantomasTool arguments
 

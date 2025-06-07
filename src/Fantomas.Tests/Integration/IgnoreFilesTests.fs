@@ -8,8 +8,7 @@ open Fantomas.Tests.TestHelpers
 [<Literal>]
 let Source = "let  foo =   47"
 
-[<Literal>]
-let Verbosity = "--verbosity d"
+let Verbosity = [ "--verbosity"; "d" ]
 
 [<Test>]
 let ``ignore all fs files`` () =
@@ -21,8 +20,7 @@ let ``ignore all fs files`` () =
     use outputFixture = new OutputFile()
 
     let { ExitCode = exitCode } =
-        sprintf "--out %s %s" outputFixture.Filename inputFixture.Filename
-        |> runFantomasTool
+        [ "--out"; outputFixture.Filename; inputFixture.Filename ] |> runFantomasTool
 
     exitCode |> should equal 0
     File.Exists outputFixture.Filename |> should equal false
@@ -34,7 +32,7 @@ let ``ignore specific file`` () =
     use inputFixture = new TemporaryFileCodeSample(Source, fileName = fileName)
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
-    let args = sprintf "%s %s" Verbosity inputFixture.Filename
+    let args = Verbosity @ [ inputFixture.Filename ]
     let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
 
@@ -53,7 +51,7 @@ let ``ignore specific file in subfolder`` () =
     use ignoreFixture = new FantomasIgnoreFile(sprintf "%s/%s/A.fs" sub1 sub2)
 
     let { ExitCode = exitCode } =
-        runFantomasTool (sprintf "--check .%c%s" Path.DirectorySeparatorChar sub1)
+        runFantomasTool [ "--check"; $".%c{Path.DirectorySeparatorChar}%s{sub1}" ]
 
     exitCode |> should equal 0
 
@@ -64,7 +62,7 @@ let ``don't ignore other files`` () =
     use inputFixture = new TemporaryFileCodeSample(Source, fileName = fileName)
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
-    let args = sprintf "%s %s" Verbosity inputFixture.Filename
+    let args = Verbosity @ [ inputFixture.Filename ]
     let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
 
@@ -83,7 +81,7 @@ let ``ignore file in folder`` () =
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
     let { ExitCode = exitCode; Output = output } =
-        runFantomasTool $"%s{Verbosity} .%c{Path.DirectorySeparatorChar}%s{subFolder}"
+        runFantomasTool (Verbosity @ [ $".%c{Path.DirectorySeparatorChar}%s{subFolder}" ])
 
     exitCode |> should equal 0
     File.ReadAllText inputFixture.Filename |> should equal Source
@@ -99,7 +97,7 @@ let ``ignore file while checking`` () =
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
     let { ExitCode = exitCode; Output = output } =
-        sprintf "%s %s --check" Verbosity inputFixture.Filename |> runFantomasTool
+        [ "--check"; yield! Verbosity; inputFixture.Filename ] |> runFantomasTool
 
     exitCode |> should equal 0
 
@@ -116,7 +114,7 @@ let ``ignore file in folder while checking`` () =
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
     let { ExitCode = exitCode } =
-        runFantomasTool (sprintf ".%c%s --check" Path.DirectorySeparatorChar subFolder)
+        runFantomasTool [ $".%c{Path.DirectorySeparatorChar}%s{subFolder}"; "--check" ]
 
     exitCode |> should equal 0
     File.ReadAllText inputFixture.Filename |> should equal Source
@@ -132,7 +130,7 @@ let ``honor ignore file when processing a folder`` () =
     use inputFixture = new FantomasIgnoreFile("*.fsx")
 
     let { Output = output } =
-        runFantomasTool (sprintf "%s .%c%s" Verbosity Path.DirectorySeparatorChar subFolder)
+        runFantomasTool (Verbosity @ [ $".%c{Path.DirectorySeparatorChar}%s{subFolder}" ])
 
     output |> should not' (contain "ignored")
     output |> should contain "A.fs was formatted"

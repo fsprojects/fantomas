@@ -130,9 +130,9 @@ let getFantomasToolStartInfo arguments : ProcessStartInfo =
     if not (File.Exists fantomasDll) then
         failwithf $"The fantomas dll at \"%s{fantomasDll}\" does not exist!"
 
-    let startInfo = ProcessStartInfo("dotnet")
+    let argumentArray = [ fantomasDll; yield! arguments ]
+    let startInfo = ProcessStartInfo("dotnet", argumentArray)
     startInfo.UseShellExecute <- false
-    startInfo.Arguments <- sprintf "%s %s" fantomasDll arguments
     startInfo.WorkingDirectory <- Path.GetTempPath()
     startInfo.RedirectStandardOutput <- true
     startInfo.RedirectStandardError <- true
@@ -150,14 +150,7 @@ let runFantomasTool arguments : FantomasToolResult =
       Error = error }
 
 let checkCode (files: string list) : FantomasToolResult =
-    let files =
-        files |> List.map (fun file -> sprintf "\"%s\"" file) |> String.concat " "
-
-    let arguments = sprintf "--check %s" files
+    let arguments = [ "--check" ] @ files
     runFantomasTool arguments
 
-let formatCode (files: string list) : FantomasToolResult =
-    let arguments =
-        files |> List.map (fun file -> sprintf "\"%s\"" file) |> String.concat " "
-
-    runFantomasTool arguments
+let formatCode (files: string list) : FantomasToolResult = runFantomasTool files

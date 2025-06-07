@@ -5,8 +5,7 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelpers
 
-[<Literal>]
-let Verbosity = "--verbosity d"
+let Verbosity = [ "--verbosity"; "d" ]
 
 // The day this test fails because Fantomas can format the file, is the day you can remove this file.
 
@@ -24,7 +23,7 @@ let ``code that was invalid should be still be written`` () =
     use outputFixture = new OutputFile()
 
     let { ExitCode = exitCode; Output = output } =
-        runFantomasTool $"%s{Verbosity} --force --out %s{outputFixture.Filename} %s{sourceFile}"
+        runFantomasTool (Verbosity @ [ "--force"; "--out"; outputFixture.Filename; sourceFile ])
 
     exitCode |> should equal 0
     output |> should contain "was not valid after formatting"

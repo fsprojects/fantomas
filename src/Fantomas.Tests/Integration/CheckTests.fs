@@ -131,7 +131,7 @@ let ``honor ignore file when processing a folder`` () =
     use inputFixture = new FantomasIgnoreFile("*.fsx")
 
     let { Output = output } =
-        runFantomasTool (sprintf "--check .%c%s" Path.DirectorySeparatorChar subFolder)
+        runFantomasTool [ "--check"; $".%c{Path.DirectorySeparatorChar}%s{subFolder}" ]
 
     output |> should not' (contain "ignored")
 

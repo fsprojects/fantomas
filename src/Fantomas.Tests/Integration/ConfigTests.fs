@@ -5,8 +5,7 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelpers
 
-[<Literal>]
-let DetailedVerbosity = "--verbosity d"
+let DetailedVerbosity = [ "--verbosity"; "d" ]
 
 [<Literal>]
 let NormalVerbosity = "--verbosity n"
@@ -28,7 +27,7 @@ end_of_line=lf
 """
         )
 
-    let args = sprintf "%s %s" DetailedVerbosity fileFixture.Filename
+    let args = DetailedVerbosity @ [ fileFixture.Filename ]
     let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
     output |> should contain (sprintf "Processing %s" fileFixture.Filename)
@@ -48,7 +47,7 @@ end_of_line=cr
 """
         )
 
-    let args = sprintf "%s %s" DetailedVerbosity fileFixture.Filename
+    let args = DetailedVerbosity @ [ fileFixture.Filename ]
     let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 1
     Assert.That(output, Does.Contain "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'")
@@ -77,7 +76,7 @@ end_of_line = %s
                 setting
         )
 
-    let { ExitCode = exitCode } = runFantomasTool fileFixture.Filename
+    let { ExitCode = exitCode } = runFantomasTool [ fileFixture.Filename ]
     exitCode |> should equal 0
 
     let result = System.IO.File.ReadAllText(fileFixture.Filename)
@@ -99,7 +98,7 @@ end_of_line = lf
 """
         )
 
-    let { ExitCode = exitCode } = runFantomasTool fileFixture.Filename
+    let { ExitCode = exitCode } = runFantomasTool [ fileFixture.Filename ]
     exitCode |> should equal 0
 
     let result = System.IO.File.ReadAllText(fileFixture.Filename)
