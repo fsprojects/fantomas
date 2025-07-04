@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.0.3 - 2025-07-04
+
+### Fixed
+
+* Application in indexed set should not be multiline. [#1999](https://github.com/fsprojects/fantomas/issues/1999)
+
 ## 7.0.2 - 2025-05-27
 
 ### Changed
