@@ -63,9 +63,7 @@ app(meh).[x] <-
     |> should
         equal
         """
-app(
-    meh
-).[x] <- task {
+app(meh).[x] <- task {
     // some computation here
     ()
 }
