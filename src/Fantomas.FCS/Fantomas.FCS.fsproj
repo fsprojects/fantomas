@@ -319,7 +319,7 @@
     <Compile Include="Parse.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="FSharp.Core" VersionOverride="4.6.2" />
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource"  />
     <PackageReference Include="System.Memory" />
