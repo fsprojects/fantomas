@@ -3318,39 +3318,38 @@ let ``directive and attributes after keyword should indent correctly, no defines
     formatSourceStringWithDefines
         []
         """
-type
+type C = Object 
+and
 #if FOO
-    [<NoEquality; NoComparison; Struct>] D = Object
+    [<CustomEquality; NoComparison; Struct>] D = Object
+#else
+    D = Object
+#endif
+
+type 
+#if FOO
+    [<NoEquality; NoComparison; Struct>] D = struct end
 #else
     E = struct end
 #endif
-
-#if FOO
-type A = int
-and
-#else
-type 
-#endif
-    [<Struct>] D = struct end
-
 """
         config
     |> prepend newline
     |> should
         equal
         """
-type
+type C = Object 
+and
+#if FOO
+#else
+    D = Object
+#endif
+
+type 
 #if FOO
 #else
     E = struct end
 #endif
-
-#if FOO
-and
-#else
-type 
-#endif
-    [<Struct>] D = struct end
 """
         
         
@@ -3359,38 +3358,38 @@ let ``directive and attributes after keyword should indent correctly, FOO`` () =
     formatSourceStringWithDefines
         ["FOO"]
         """
-type
+type C = Object 
+and
 #if FOO
-    [<NoEquality; NoComparison; Struct>] D = Object
+    [<CustomEquality; NoComparison; Struct>] D = Object
+#else
+    D = Object
+#endif
+
+type 
+#if FOO
+    [<NoEquality; NoComparison; Struct>] D = struct end
 #else
     E = struct end
 #endif
-
-#if FOO
-type A = int
-and
-#else
-type 
-#endif
-    [<Struct>] D = struct end
-
 """
         config
     |> prepend newline
     |> should
         equal
         """
-type
+type C = Object 
+and
 #if FOO
+    [<CustomEquality; NoComparison; Struct>] D = Object
 #else
 #endif
 
+type 
 #if FOO
-type A = int
-and
+    [<NoEquality; NoComparison; Struct>] D = struct end
 #else
 #endif
-    [<Struct>] D = struct end
 """
         
         
@@ -3399,40 +3398,42 @@ and
 let ``directive and attributes after keyword should indent correctly, 3174`` () =
     formatSourceString
         """
-type
+type C = Object 
+and
 #if FOO
-    [<NoEquality; NoComparison; Struct>] D = Object
+    [<CustomEquality; NoComparison; Struct>] D = Object
+#else
+    D = Object
+#endif
+
+type 
+#if FOO
+    [<NoEquality; NoComparison; Struct>] D = struct end
 #else
     E = struct end
 #endif
-
-#if FOO
-type A = int
-and
-#else
-type 
-#endif
-    [<Struct>] D = struct end
-
 """
         config
     |> prepend newline
     |> should
         equal
         """
-type
+type C = Object 
+and
 #if FOO
-    [<NoEquality; NoComparison; Struct>] D = Object
+    [<CustomEquality; NoComparison; Struct>] D = Object
 #else
+    D = Object
 #endif
 
+type 
 #if FOO
-type A = int
-and
+    [<NoEquality; NoComparison; Struct>] D = struct end
 #else
+    E = struct end
 #endif
-    [<Struct>] D = struct end
 """
+
         
         
 [<Test>]
