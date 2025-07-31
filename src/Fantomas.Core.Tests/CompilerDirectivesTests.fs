@@ -3233,3 +3233,285 @@ let CombineImportedAssembliesTask
 
     ()
 """
+
+[<Test>]
+let ``should keep attributes on mutually recursive class, no defines`` () =
+    formatSourceStringWithDefines
+        []
+        """
+type X = int
+    and
+#if NET5_0_OR_GREATER
+    [<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
+    [<Obsolete>]
+    [<CustomEquality; NoComparison; Struct>] Y = int
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = int
+and
+#if NET5_0_OR_GREATER
+#endif
+[<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
+"""
+
+[<Test>]
+let ``should keep attributes on mutually recursive class, NET5_0_OR_GREATER`` () =
+    formatSourceStringWithDefines
+        [ "NET5_0_OR_GREATER" ]
+        """
+type X = int
+    and
+#if NET5_0_OR_GREATER
+    [<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
+    [<Obsolete>]
+    [<CustomEquality; NoComparison; Struct>] Y = int
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = int
+and
+#if NET5_0_OR_GREATER
+[<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
+[<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
+"""
+
+[<Test>]
+let ``should keep attributes on mutually recursive class, 3174`` () =
+    formatSourceString
+        """
+type X = int
+    and
+#if NET5_0_OR_GREATER
+    [<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
+    [<Obsolete>]
+    [<CustomEquality; NoComparison; Struct>] Y = int
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = int
+and
+#if NET5_0_OR_GREATER
+[<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
+[<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
+"""
+        
+[<Test>]
+let ``directive and attributes after keyword should indent correctly, no defines`` () =
+    formatSourceStringWithDefines
+        []
+        """
+type
+#if FOO
+    [<NoEquality; NoComparison; Struct>] D = Object
+#else
+    E = struct end
+#endif
+
+#if FOO
+type A = int
+and
+#else
+type 
+#endif
+    [<Struct>] D = struct end
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type
+#if FOO
+#else
+    E = struct end
+#endif
+
+#if FOO
+and
+#else
+type 
+#endif
+    [<Struct>] D = struct end
+"""
+        
+        
+[<Test>]
+let ``directive and attributes after keyword should indent correctly, FOO`` () =
+    formatSourceStringWithDefines
+        ["FOO"]
+        """
+type
+#if FOO
+    [<NoEquality; NoComparison; Struct>] D = Object
+#else
+    E = struct end
+#endif
+
+#if FOO
+type A = int
+and
+#else
+type 
+#endif
+    [<Struct>] D = struct end
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type
+#if FOO
+#else
+#endif
+
+#if FOO
+type A = int
+and
+#else
+#endif
+    [<Struct>] D = struct end
+"""
+        
+        
+        
+[<Test>]
+let ``directive and attributes after keyword should indent correctly, 3174`` () =
+    formatSourceString
+        """
+type
+#if FOO
+    [<NoEquality; NoComparison; Struct>] D = Object
+#else
+    E = struct end
+#endif
+
+#if FOO
+type A = int
+and
+#else
+type 
+#endif
+    [<Struct>] D = struct end
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type
+#if FOO
+    [<NoEquality; NoComparison; Struct>] D = Object
+#else
+#endif
+
+#if FOO
+type A = int
+and
+#else
+#endif
+    [<Struct>] D = struct end
+"""
+        
+        
+[<Test>]
+let ``directive and attributes after keyword should not be moved out, no defines`` () =
+    formatSourceStringWithDefines
+        []
+        """
+#if FOO
+type A = int
+and
+#else
+type 
+#endif
+    [<Struct>] D = struct end
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO
+#else
+type 
+#endif
+    [<Struct>] D = struct end
+
+"""
+[<Test>]
+let ``directive and attributes after keyword should not be moved out, FOO`` () =
+    formatSourceStringWithDefines
+        ["FOO"]
+        """
+#if FOO
+type A = int
+and
+#else
+type 
+#endif
+    [<Struct>] D = struct end
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO
+type A = int
+and
+#else
+#endif
+    [<Struct>] D = struct end
+
+"""
+[<Test>]
+let ``directive and attributes after keyword should not be moved out, 3174`` () =
+    formatSourceString
+        """
+#if FOO
+type A = int
+and
+#else
+type 
+#endif
+    [<Struct>] D = struct end
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO
+type A = int
+and
+#else
+type
+#endif
+    [<Struct>] D = struct end
+
+"""
