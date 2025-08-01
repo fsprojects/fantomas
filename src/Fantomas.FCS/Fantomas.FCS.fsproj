@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);57;</NoWarn> <!-- Experimental -->
     <NoWarn>$(NoWarn);1204</NoWarn> <!-- This construct is for use in the FSharp.Core library and should not be used directly -->
@@ -325,6 +325,7 @@
     <PackageReference Include="System.Memory" />
     <PackageReference Include="System.Runtime" />
     <PackageReference Include="FsLexYacc" PrivateAssets="all" />
+    <PackageReference Include="FSharp.Core.Extended" />
   </ItemGroup>
 
   <Target Name="AcquireCompilerFiles" Condition="!Exists('../../.deps/$(FCSCommitHash)')" BeforeTargets="CollectPackageReferences">
