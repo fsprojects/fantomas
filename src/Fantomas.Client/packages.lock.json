@@ -22,9 +22,9 @@
       },
       "FSharp.Core": {
         "type": "Direct",
-        "requested": "[8.0.100, )",
-        "resolved": "8.0.100",
-        "contentHash": "ZOVZ/o+jI3ormTZOa28Wh0tSRoyle1f7lKFcUN61sPiXI7eDZu8eSveFybgTeyIEyW0ujjp31cp7GOglDgsNEg=="
+        "requested": "[9.0.300, )",
+        "resolved": "9.0.300",
+        "contentHash": "TVt2J7RCE1KCS2IaONF+p8/KIZ1eHNbW+7qmKF6hGoD4tXl+o07ja1mPtFjMqRa5uHMFaTrGTPn/m945WnDLiQ=="
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
