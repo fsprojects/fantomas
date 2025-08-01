@@ -3257,7 +3257,7 @@ type X = int
 and
 #if NET5_0_OR_GREATER
 #endif
-[<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
+    [<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
 """
 
 [<Test>]
@@ -3282,9 +3282,9 @@ type X = int
 type X = int
 and
 #if NET5_0_OR_GREATER
-[<System.Runtime.CompilerServices.IsReadOnly>]
+    [<System.Runtime.CompilerServices.IsReadOnly>]
 #endif
-[<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
+    [<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
 """
 
 [<Test>]
@@ -3308,9 +3308,9 @@ type X = int
 type X = int
 and
 #if NET5_0_OR_GREATER
-[<System.Runtime.CompilerServices.IsReadOnly>]
+    [<System.Runtime.CompilerServices.IsReadOnly>]
 #endif
-[<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
+    [<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
 """
         
 [<Test>]
@@ -3338,14 +3338,14 @@ type
     |> should
         equal
         """
-type C = Object 
+type C = Object
 and
 #if FOO
 #else
     D = Object
 #endif
 
-type 
+type
 #if FOO
 #else
     E = struct end
@@ -3378,14 +3378,14 @@ type
     |> should
         equal
         """
-type C = Object 
+type C = Object
 and
 #if FOO
     [<CustomEquality; NoComparison; Struct>] D = Object
 #else
 #endif
 
-type 
+type
 #if FOO
     [<NoEquality; NoComparison; Struct>] D = struct end
 #else
@@ -3406,7 +3406,7 @@ and
     D = Object
 #endif
 
-type 
+type
 #if FOO
     [<NoEquality; NoComparison; Struct>] D = struct end
 #else
@@ -3418,7 +3418,7 @@ type
     |> should
         equal
         """
-type C = Object 
+type C = Object
 and
 #if FOO
     [<CustomEquality; NoComparison; Struct>] D = Object
@@ -3426,7 +3426,7 @@ and
     D = Object
 #endif
 
-type 
+type
 #if FOO
     [<NoEquality; NoComparison; Struct>] D = struct end
 #else
@@ -3457,10 +3457,9 @@ type
         """
 #if FOO
 #else
-type 
+type
 #endif
     [<Struct>] D = struct end
-
 """
 [<Test>]
 let ``directive and attributes after keyword should not be moved out, FOO`` () =
@@ -3471,7 +3470,7 @@ let ``directive and attributes after keyword should not be moved out, FOO`` () =
 type A = int
 and
 #else
-type 
+type
 #endif
     [<Struct>] D = struct end
 
@@ -3487,7 +3486,6 @@ and
 #else
 #endif
     [<Struct>] D = struct end
-
 """
 [<Test>]
 let ``directive and attributes after keyword should not be moved out, 3174`` () =
@@ -3514,5 +3512,4 @@ and
 type
 #endif
     [<Struct>] D = struct end
-
 """

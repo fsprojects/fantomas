@@ -311,6 +311,17 @@ let genAttributes (node: MultipleAttributeListNode option) =
             |> genNode a)
         |> genNode node
 
+let genAttributesNoNewline (node: MultipleAttributeListNode option) =
+    match node with
+    | None -> sepNone
+    | Some node ->
+        col sepNlnUnlessLastEventIsNewline node.AttributeLists (fun a ->
+            genSingleTextNode a.Opening
+            +> (genAttributesCore a.Attributes)
+            +> genSingleTextNode a.Closing
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty
+            |> genNode a)
+        |> genNode node
 // The inherit keyword should already be printed by the caller
 let genInheritConstructor (ic: InheritConstructor) =
     match ic with
@@ -3463,22 +3474,30 @@ let genTypeDefn (td: TypeDefn) =
 
     let header =
         let implicitConstructor = typeName.ImplicitConstructor
-        let hasAndKeyword = typeName.LeadingKeyword.Text = "and"
+        // let hasAndKeyword = typeName.LeadingKeyword.Text = "and"
 
         // Workaround for https://github.com/fsprojects/fantomas/issues/628
+        let hasAttributesAfterLeadingKeyword =
+            match typeName.Attributes with
+            | Some attributes -> Fantomas.FCS.Text.Range.rangeBeforePos typeName.LeadingKeyword.Range attributes.Range.Start
+            | None -> false
         let hasTriviaAfterLeadingKeyword =
             hasTriviaAfterLeadingKeyword typeName.Identifier typeName.Accessibility
+        let hasTriviaBeforeAttributes =
+            match typeName.Attributes with
+            | Some attributes -> attributes.HasContentBefore
+            | None -> false
 
         genXml typeName.XmlDoc
-        +> onlyIfNot hasAndKeyword (genAttributes typeName.Attributes)
+        +> onlyIfNot hasAttributesAfterLeadingKeyword (genAttributes typeName.Attributes)
         +> genSingleTextNode typeName.LeadingKeyword
-        +> onlyIf hasTriviaAfterLeadingKeyword indent
-        +> onlyIf hasAndKeyword (sepSpace +> genOnelinerAttributes typeName.Attributes)
+        +> onlyIf (hasTriviaAfterLeadingKeyword || hasTriviaBeforeAttributes) indent
+        +> onlyIf hasAttributesAfterLeadingKeyword (sepSpace +> genAttributesNoNewline typeName.Attributes)
         +> sepSpace
         +> genAccessOpt typeName.Accessibility
         +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
         +> onlyIfNot typeName.Constraints.IsEmpty (sepSpace +> genTypeConstraints typeName.Constraints)
-        +> onlyIf hasTriviaAfterLeadingKeyword unindent
+        +> onlyIf (hasTriviaAfterLeadingKeyword || hasTriviaBeforeAttributes) unindent
         +> leadingExpressionIsMultiline
             (optSingle
                 (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor)
