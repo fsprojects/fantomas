@@ -2145,8 +2145,8 @@ type TypeNameNode
 
     override val Children: Node array =
         [| yield! noa xmlDoc
-           yield leadingKeyword
            yield! noa attributes
+           yield leadingKeyword
            yield! noa ao
            yield identifier
            yield! noa (Option.map TyparDecls.Node typeParams)
