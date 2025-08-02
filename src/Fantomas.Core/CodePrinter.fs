@@ -310,9 +310,7 @@ let partitionOn splitBefore splitAfter items =
 
     items |> List.fold folder [] |> List.map List.rev |> List.rev
 
-// Like genOnelinerAtrtibutes, but splits the attributelist into chunks if there are contentBefore/After,
-// Then properly renders those in between
-let genOnelinerAttributesWithTrivia (n: MultipleAttributeListNode option) =
+let genCompactedAttributes (n: MultipleAttributeListNode option) =
     match n with
     | None -> sepNone
     | Some n ->
@@ -347,17 +345,6 @@ let genAttributes (node: MultipleAttributeListNode option) =
             |> genNode a)
         |> genNode node
 
-// let genAttributesNoNewline (node: MultipleAttributeListNode option) =
-//     match node with
-//     | None -> sepNone
-//     | Some node ->
-//         col sepNlnUnlessLastEventIsNewline node.AttributeLists (fun a ->
-//             genSingleTextNode a.Opening
-//             +> (genAttributesCore a.Attributes)
-//             +> genSingleTextNode a.Closing
-//             +> sepNlnWhenWriteBeforeNewlineNotEmpty
-//             |> genNode a)
-//         |> genNode node
 // The inherit keyword should already be printed by the caller
 let genInheritConstructor (ic: InheritConstructor) =
     match ic with
@@ -3544,12 +3531,10 @@ let genTypeDefn (td: TypeDefn) =
             || (hasAttributesAfterLeadingKeyword && hasTriviaAfterLeadingKeyword)
 
         genXml typeName.XmlDoc
-        +> onlyIfNot (shouldAttributesBeAfterLeadingKeyword) (genAttributes typeName.Attributes)
+        +> onlyIfNot shouldAttributesBeAfterLeadingKeyword (genAttributes typeName.Attributes)
         +> genSingleTextNode typeName.LeadingKeyword
         +> onlyIf (hasTriviaAfterLeadingKeyword || hasTriviaBeforeAttributes) indent
-        +> onlyIf
-            (shouldAttributesBeAfterLeadingKeyword)
-            (sepSpace +> genOnelinerAttributesWithTrivia typeName.Attributes)
+        +> onlyIf shouldAttributesBeAfterLeadingKeyword (sepSpace +> genCompactedAttributes typeName.Attributes)
         +> sepSpace
         +> genAccessOpt typeName.Accessibility
         +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
