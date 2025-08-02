@@ -3312,7 +3312,7 @@ and
 #endif
     [<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
 """
-        
+
 [<Test>]
 let ``directive and attributes after keyword should indent correctly, no defines`` () =
     formatSourceStringWithDefines
@@ -3351,12 +3351,11 @@ type
     E = struct end
 #endif
 """
-        
-        
+
 [<Test>]
 let ``directive and attributes after keyword should indent correctly, FOO`` () =
     formatSourceStringWithDefines
-        ["FOO"]
+        [ "FOO" ]
         """
 type C = Object 
 and
@@ -3391,9 +3390,7 @@ type
 #else
 #endif
 """
-        
-        
-        
+
 [<Test>]
 let ``directive and attributes after keyword should indent correctly, 3174`` () =
     formatSourceString
@@ -3434,8 +3431,6 @@ type
 #endif
 """
 
-        
-        
 [<Test>]
 let ``directive and attributes after keyword should not be moved out, no defines`` () =
     formatSourceStringWithDefines
@@ -3461,10 +3456,11 @@ type
 #endif
     [<Struct>] D = struct end
 """
+
 [<Test>]
 let ``directive and attributes after keyword should not be moved out, FOO`` () =
     formatSourceStringWithDefines
-        ["FOO"]
+        [ "FOO" ]
         """
 #if FOO
 type A = int
@@ -3487,6 +3483,7 @@ and
 #endif
     [<Struct>] D = struct end
 """
+
 [<Test>]
 let ``directive and attributes after keyword should not be moved out, 3174`` () =
     formatSourceString
