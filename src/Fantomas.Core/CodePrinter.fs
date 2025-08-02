@@ -3482,11 +3482,7 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
             +> sepSpace)
         node.Self
 
-let hasTriviaAfterLeadingKeyword
-    (identifier: IdentListNode)
-    (accessibility: SingleTextNode option)
-    (attributes: MultipleAttributeListNode option)
-    =
+let hasTriviaAfterLeadingKeyword (identifier: IdentListNode) (accessibility: SingleTextNode option) =
     let beforeAccess =
         match accessibility with
         | Some n -> n.HasContentBefore
@@ -3494,16 +3490,7 @@ let hasTriviaAfterLeadingKeyword
 
     let beforeIdentifier = identifier.HasContentBefore
 
-    let anyAttributeTrivia =
-        match attributes with
-        | Some n ->
-            n.HasContentBefore
-            || n.HasContentAfter
-            || (n.AttributeLists
-                |> List.exists (fun a -> a.HasContentBefore || a.HasContentAfter))
-        | _ -> false
-
-    beforeAccess || beforeIdentifier || anyAttributeTrivia
+    beforeAccess || beforeIdentifier
 
 let genTypeDefn (td: TypeDefn) =
     let typeDefnNode = TypeDefn.TypeDefnNode td
@@ -3511,35 +3498,34 @@ let genTypeDefn (td: TypeDefn) =
 
     let header =
         let implicitConstructor = typeName.ImplicitConstructor
+        let hasAndKeyword = typeName.LeadingKeyword.Text = "and"
 
-        let hasAttributesAfterLeadingKeyword =
-            match typeName.Attributes with
-            | Some attributes ->
-                Fantomas.FCS.Text.Range.rangeBeforePos typeName.LeadingKeyword.Range attributes.Range.Start
-            | None -> false
         // Workaround for https://github.com/fsprojects/fantomas/issues/628
         let hasTriviaAfterLeadingKeyword =
-            hasTriviaAfterLeadingKeyword typeName.Identifier typeName.Accessibility typeName.Attributes
+            hasTriviaAfterLeadingKeyword typeName.Identifier typeName.Accessibility
 
-        let hasTriviaBeforeAttributes =
+        let hasTriviaInAttributes =
             match typeName.Attributes with
-            | Some attributes -> attributes.HasContentBefore
+            | Some attributes ->
+                attributes.HasContentBefore
+                || attributes.HasContentAfter
+                || attributes.AttributeLists
+                   |> List.exists (fun a -> a.HasContentBefore || a.HasContentAfter)
             | None -> false
 
-        let shouldAttributesBeAfterLeadingKeyword =
-            typeName.LeadingKeyword.Text = "and"
-            || (hasAttributesAfterLeadingKeyword && hasTriviaAfterLeadingKeyword)
+        let shouldIndent =
+            hasTriviaAfterLeadingKeyword || (hasAndKeyword && hasTriviaInAttributes)
 
         genXml typeName.XmlDoc
-        +> onlyIfNot shouldAttributesBeAfterLeadingKeyword (genAttributes typeName.Attributes)
+        +> onlyIfNot hasAndKeyword (genAttributes typeName.Attributes)
         +> genSingleTextNode typeName.LeadingKeyword
-        +> onlyIf (hasTriviaAfterLeadingKeyword || hasTriviaBeforeAttributes) indent
-        +> onlyIf shouldAttributesBeAfterLeadingKeyword (sepSpace +> genCompactedAttributes typeName.Attributes)
+        +> onlyIf shouldIndent indent
+        +> onlyIf hasAndKeyword (sepSpace +> genCompactedAttributes typeName.Attributes)
         +> sepSpace
         +> genAccessOpt typeName.Accessibility
         +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
         +> onlyIfNot typeName.Constraints.IsEmpty (sepSpace +> genTypeConstraints typeName.Constraints)
-        +> onlyIf (hasTriviaAfterLeadingKeyword || hasTriviaBeforeAttributes) unindent
+        +> onlyIf shouldIndent unindent
         +> leadingExpressionIsMultiline
             (optSingle
                 (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor)
@@ -4054,7 +4040,7 @@ let genModuleDecl (md: ModuleDecl) =
     | ModuleDecl.NestedModule node ->
         // Workaround for https://github.com/fsprojects/fantomas/issues/2867
         let hasTriviaAfterLeadingKeyword =
-            hasTriviaAfterLeadingKeyword node.Identifier node.Accessibility node.Attributes
+            hasTriviaAfterLeadingKeyword node.Identifier node.Accessibility
 
         genXml node.XmlDoc
         +> genAttributes node.Attributes
