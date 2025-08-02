@@ -298,6 +298,49 @@ let genOnelinerAttributes (n: MultipleAttributeListNode option) =
             |> genNode n
 
         ifElse ats.IsEmpty sepNone (genAttrs +> sepSpace)
+let partitionOn splitBefore splitAfter items =
+    let folder acc item =
+        match acc with
+        | [] -> 
+            [[item]]
+        | (lastItem :: _ as currentGroup) :: restGroups when splitAfter lastItem -> 
+            [item] :: currentGroup :: restGroups
+        | currentGroup :: restGroups when splitBefore item ->
+            [item] :: currentGroup :: restGroups
+        | currentGroup :: restGroups ->
+            (item :: currentGroup) :: restGroups
+
+    items
+    |> List.fold folder []
+    |> List.map List.rev
+    |> List.rev
+
+// Like genOnelinerAtrtibutes, but splits the attributelist into chunks if there are contentBefore/After,
+// Then properly renders those in between
+let genOnelinerAttributesWithTrivia (n: MultipleAttributeListNode option) =
+    match n with
+    | None -> sepNone
+    | Some n ->
+        let attributeLists =
+            n.AttributeLists |> partitionOn (_.HasContentBefore) (_.HasContentAfter)
+            
+        col sepNone attributeLists (fun (al) ->
+            let ats = al |> List.collect _.Attributes 
+            let openingToken =
+                List.tryHead al
+                |> Option.map (fun (a: AttributeListNode) -> a.Opening)
+
+            let closingToken =
+                List.tryLast al
+                |> Option.map (fun (a: AttributeListNode) -> a.Closing)
+            optSingle genSingleTextNode openingToken
+            +> (genAttributesCore ats)
+            +> optSingle genSingleTextNode closingToken
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty
+            |> genNode (al |> List.head)
+            ) |> genNode n
+            
+    
 
 let genAttributes (node: MultipleAttributeListNode option) =
     match node with
@@ -311,17 +354,17 @@ let genAttributes (node: MultipleAttributeListNode option) =
             |> genNode a)
         |> genNode node
 
-let genAttributesNoNewline (node: MultipleAttributeListNode option) =
-    match node with
-    | None -> sepNone
-    | Some node ->
-        col sepNlnUnlessLastEventIsNewline node.AttributeLists (fun a ->
-            genSingleTextNode a.Opening
-            +> (genAttributesCore a.Attributes)
-            +> genSingleTextNode a.Closing
-            +> sepNlnWhenWriteBeforeNewlineNotEmpty
-            |> genNode a)
-        |> genNode node
+// let genAttributesNoNewline (node: MultipleAttributeListNode option) =
+//     match node with
+//     | None -> sepNone
+//     | Some node ->
+//         col sepNlnUnlessLastEventIsNewline node.AttributeLists (fun a ->
+//             genSingleTextNode a.Opening
+//             +> (genAttributesCore a.Attributes)
+//             +> genSingleTextNode a.Closing
+//             +> sepNlnWhenWriteBeforeNewlineNotEmpty
+//             |> genNode a)
+//         |> genNode node
 // The inherit keyword should already be printed by the caller
 let genInheritConstructor (ic: InheritConstructor) =
     match ic with
@@ -3459,14 +3502,18 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
             +> sepSpace)
         node.Self
 
-let hasTriviaAfterLeadingKeyword (identifier: IdentListNode) (accessibility: SingleTextNode option) =
+let hasTriviaAfterLeadingKeyword (identifier: IdentListNode) (accessibility: SingleTextNode option) (attributes: MultipleAttributeListNode option) =
     let beforeAccess =
         match accessibility with
         | Some n -> n.HasContentBefore
         | _ -> false
 
     let beforeIdentifier = identifier.HasContentBefore
-    beforeAccess || beforeIdentifier
+    let anyAttributeTrivia =
+        match attributes with
+        | Some n -> n.HasContentBefore || n.HasContentAfter || (n.AttributeLists |> List.exists (fun a -> a.HasContentBefore || a.HasContentAfter))
+        | _ -> false
+    beforeAccess || beforeIdentifier || anyAttributeTrivia
 
 let genTypeDefn (td: TypeDefn) =
     let typeDefnNode = TypeDefn.TypeDefnNode td
@@ -3474,25 +3521,28 @@ let genTypeDefn (td: TypeDefn) =
 
     let header =
         let implicitConstructor = typeName.ImplicitConstructor
-        // let hasAndKeyword = typeName.LeadingKeyword.Text = "and"
 
-        // Workaround for https://github.com/fsprojects/fantomas/issues/628
         let hasAttributesAfterLeadingKeyword =
             match typeName.Attributes with
             | Some attributes -> Fantomas.FCS.Text.Range.rangeBeforePos typeName.LeadingKeyword.Range attributes.Range.Start
             | None -> false
+        // Workaround for https://github.com/fsprojects/fantomas/issues/628
         let hasTriviaAfterLeadingKeyword =
-            hasTriviaAfterLeadingKeyword typeName.Identifier typeName.Accessibility
+            hasTriviaAfterLeadingKeyword typeName.Identifier typeName.Accessibility typeName.Attributes
         let hasTriviaBeforeAttributes =
             match typeName.Attributes with
             | Some attributes -> attributes.HasContentBefore
             | None -> false
+        let shouldAttributesBeAfterLeadingKeyword =
+            typeName.LeadingKeyword.Text = "and"
+            || (hasAttributesAfterLeadingKeyword && hasTriviaAfterLeadingKeyword)
+            
 
         genXml typeName.XmlDoc
-        +> onlyIfNot hasAttributesAfterLeadingKeyword (genAttributes typeName.Attributes)
+        +> onlyIfNot (shouldAttributesBeAfterLeadingKeyword) (genAttributes typeName.Attributes)
         +> genSingleTextNode typeName.LeadingKeyword
         +> onlyIf (hasTriviaAfterLeadingKeyword || hasTriviaBeforeAttributes) indent
-        +> onlyIf hasAttributesAfterLeadingKeyword (sepSpace +> genAttributesNoNewline typeName.Attributes)
+        +> onlyIf (shouldAttributesBeAfterLeadingKeyword) (sepSpace +> genOnelinerAttributesWithTrivia typeName.Attributes)
         +> sepSpace
         +> genAccessOpt typeName.Accessibility
         +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
@@ -4012,7 +4062,7 @@ let genModuleDecl (md: ModuleDecl) =
     | ModuleDecl.NestedModule node ->
         // Workaround for https://github.com/fsprojects/fantomas/issues/2867
         let hasTriviaAfterLeadingKeyword =
-            hasTriviaAfterLeadingKeyword node.Identifier node.Accessibility
+            hasTriviaAfterLeadingKeyword node.Identifier node.Accessibility node.Attributes
 
         genXml node.XmlDoc
         +> genAttributes node.Attributes
