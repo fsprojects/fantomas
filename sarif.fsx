@@ -1,4 +1,4 @@
-module Sarif
+#r "nuget: FSharp.SystemTextJson, 1.4.36"
 
 open System
 open System.IO
@@ -82,7 +82,7 @@ type Driver =
       [<field: JsonPropertyName("informationUri")>]
       informationUri: string
       [<field: JsonPropertyName("rules")>]
-      rules: Rule list }
+      rules: Rule list option }
 
 [<CLIMutable>]
 type Tool =
@@ -120,12 +120,14 @@ type SarifLog =
       [<field: JsonPropertyName("runs")>]
       runs: Run list }
 
-let private options = JsonSerializerOptions()
+let private options = 
+    JsonFSharpOptions.Default()
+        .ToJsonSerializerOptions()
 
-let private readSarif (json: System.IO.Stream) : System.Threading.Tasks.ValueTask<SarifLog> =
+let private readSarif (json: Stream) : System.Threading.Tasks.ValueTask<SarifLog> =
     JsonSerializer.DeserializeAsync<SarifLog>(json, options)
 
-let private writeSarif (json: System.IO.Stream) (sarifLog: SarifLog) : Threading.Tasks.Task =
+let private writeSarif (json: Stream) (sarifLog: SarifLog) : Task =
     JsonSerializer.SerializeAsync(json, sarifLog, options)
 
 let mergeSarifFiles _ =
@@ -134,7 +136,7 @@ let mergeSarifFiles _ =
             Directory.GetFiles("analysisreports", "*.sarif")
             |> Seq.map (fun path ->
                 task {
-                    let sarifContent = File.OpenRead(path)
+                    use sarifContent = File.OpenRead(path)
                     let! sarif = readSarif sarifContent
                     return path, sarif
                 })
@@ -146,16 +148,17 @@ let mergeSarifFiles _ =
             let firstSarif = snd (sarifFiles.[0])
             let firstRun = firstSarif.runs.[0]
 
-            let results =
-                sarifFiles
-                |> Array.fold
-                    (fun acc (_, sarif: SarifLog) ->
-                        sarif.runs
-                        |> List.collect (fun (r: Run) -> r.results)
-                        |> List.toArray
-                        |> Array.append acc)
-                    [||]
-                |> List.ofArray
+            let results = ResizeArray()
+            let rules = ResizeArray()
+
+            for _, sarif in sarifFiles do
+                for run in sarif.runs do
+                    results.AddRange(run.results)
+
+                    match run.tool.driver.rules with
+                    | None -> ()
+                    | Some rulesList -> rules.AddRange(rulesList)
+
 
             let combined: SarifLog =
                 {
@@ -163,14 +166,20 @@ let mergeSarifFiles _ =
                   schema = "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.6.json"
                   version = firstSarif.version
                   runs =
-                    [ { tool = firstRun.tool
+                    [ { tool =
+                          { firstRun.tool with
+                              driver =
+                                  { firstRun.tool.driver with
+                                      rules = Some(List.ofSeq rules) } }
                         invocations = firstRun.invocations
                         columnKind = firstRun.columnKind
-                        results = results } ] }
+                        results = List.ofSeq results } ] }
 
             sarifFiles |> Array.iter (fun (path, _) -> File.Delete(path))
 
             let mergedStream = File.OpenWrite("analysisreports/merged.sarif")
             do! writeSarif mergedStream combined
             do! mergedStream.FlushAsync()
+            mergedStream.Close()
+            printfn "Successfully merged %d SARIF files" sarifFiles.Length
     }
