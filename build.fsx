@@ -3,6 +3,7 @@
 #r "nuget: FSharp.Data, 6.3.0"
 #r "nuget: Ionide.KeepAChangelog, 0.1.8"
 #r "nuget: Humanizer.Core, 2.14.1"
+#load "./sarif.fsx"
 
 open System
 open System.IO
@@ -496,6 +497,13 @@ pipeline "PublishAlpha" {
                 return Seq.sum nugetExitCodes
             })
     }
+    runIfOnlySpecified true
+}
+
+pipeline "Analyze" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Analyze" { run "dotnet msbuild /t:AnalyzeSolution" }
+    stage "Merge" { run Sarif.mergeSarifFiles }
     runIfOnlySpecified true
 }
 
