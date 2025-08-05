@@ -200,3 +200,6 @@ tests/.repositories/**
 # Analyzer files
 .analyzerpackages
 *.sarif
+
+# vscode history plugin
+.history/

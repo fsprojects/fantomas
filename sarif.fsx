@@ -1,144 +1,254 @@
-#r "nuget: FSharp.SystemTextJson, 1.4.36"
+#r "nuget: Thoth.Json.Newtonsoft, 0.3.2"
 
 open System
 open System.IO
 open System.Text.Json
-open System.Text.Json.Serialization
 open System.Threading.Tasks
 
-[<CLIMutable>]
-type Text =
-    { [<field: JsonPropertyName("text")>]
-      text: string }
+type Text = { text: string }
 
-[<CLIMutable>]
 type Region =
-    { [<field: JsonPropertyName("startLine")>]
-      startLine: int
-      [<field: JsonPropertyName("startColumn")>]
+    { startLine: int
       startColumn: int
-      [<field: JsonPropertyName("endLine")>]
       endLine: int
-      [<field: JsonPropertyName("endColumn")>]
       endColumn: int }
 
-[<CLIMutable>]
-type ArtifactLocation =
-    { [<field: JsonPropertyName("uri")>]
-      uri: string }
+type ArtifactLocation = { uri: string }
 
-[<CLIMutable>]
 type PhysicalLocation =
-    { [<field: JsonPropertyName("artifactLocation")>]
-      artifactLocation: ArtifactLocation
-      [<field: JsonPropertyName("region")>]
+    { artifactLocation: ArtifactLocation
       region: Region }
 
-[<CLIMutable>]
-type Location =
-    { [<field: JsonPropertyName("physicalLocation")>]
-      physicalLocation: PhysicalLocation }
+type Location = { physicalLocation: PhysicalLocation }
 
-[<CLIMutable>]
-type Message =
-    { [<field: JsonPropertyName("text")>]
-      text: string }
+type Message = { text: string }
 
-[<CLIMutable>]
 type Result =
-    { [<field: JsonPropertyName("ruleId")>]
-      ruleId: string
-      [<field: JsonPropertyName("ruleIndex")>]
+    { ruleId: string
       ruleIndex: int
-      [<field: JsonPropertyName("message")>]
       message: Message
-      [<field: JsonPropertyName("locations")>]
       locations: Location list }
 
-[<CLIMutable>]
-type RuleShortDescription =
-    { [<field: JsonPropertyName("text")>]
-      text: string
-      [<field: JsonPropertyName("markdown")>]
-      markdown: string }
+type RuleShortDescription = { text: string; markdown: string }
 
-[<CLIMutable>]
 type Rule =
-    { [<field: JsonPropertyName("id")>]
-      id: string
-      [<field: JsonPropertyName("name")>]
+    { id: string
       name: string
-      [<field: JsonPropertyName("shortDescription")>]
       shortDescription: RuleShortDescription
-      [<field: JsonPropertyName("helpUri")>]
       helpUri: string }
 
-[<CLIMutable>]
 type Driver =
-    { [<field: JsonPropertyName("name")>]
-      name: string
-      [<field: JsonPropertyName("version")>]
+    { name: string
       version: string
-      [<field: JsonPropertyName("informationUri")>]
       informationUri: string
-      [<field: JsonPropertyName("rules")>]
       rules: Rule list option }
 
-[<CLIMutable>]
-type Tool =
-    { [<field: JsonPropertyName("driver")>]
-      driver: Driver }
+type Tool = { driver: Driver }
 
-[<CLIMutable>]
 type Invocation =
-    { [<field: JsonPropertyName("startTimeUtc")>]
-      startTimeUtc: DateTime
-      [<field: JsonPropertyName("endTimeUtc")>]
+    { startTimeUtc: DateTime
       endTimeUtc: DateTime
-      [<field: JsonPropertyName("executionSuccessful")>]
       executionSuccessful: bool }
 
-[<CLIMutable>]
 type Run =
-    { [<field: JsonPropertyName("results")>]
-      results: Result list
-      [<field: JsonPropertyName("tool")>]
+    { results: Result list
       tool: Tool
-      [<field: JsonPropertyName("invocations")>]
       invocations: Invocation list
-      [<field: JsonPropertyName("columnKind")>]
       columnKind: string }
 
-[<CLIMutable>]
 type SarifLog =
-    {
-      // This field needs JsonPropertyName because F# doesn't allow '$' in identifiers.
-      [<field: JsonPropertyName("$schema")>]
-      schema: string
-      [<field: JsonPropertyName("version")>]
+    { schema: string
       version: string
-      [<field: JsonPropertyName("runs")>]
       runs: Run list }
 
-let private options = 
-    JsonFSharpOptions.Default()
-        .ToJsonSerializerOptions()
+module private Encoders =
+    open Thoth.Json.Core
 
-let private readSarif (json: Stream) : System.Threading.Tasks.ValueTask<SarifLog> =
-    JsonSerializer.DeserializeAsync<SarifLog>(json, options)
+    let textEncoder: Encoder<Text> =
+        fun (t: Text) -> Encode.object [ ("text", Encode.string t.text) ]
 
-let private writeSarif (json: Stream) (sarifLog: SarifLog) : Task =
-    JsonSerializer.SerializeAsync(json, sarifLog, options)
+    let regionEncoder: Encoder<Region> =
+        fun (r: Region) ->
+            Encode.object
+                [ ("startLine", Encode.int r.startLine)
+                  ("startColumn", Encode.int r.startColumn)
+                  ("endLine", Encode.int r.endLine)
+                  ("endColumn", Encode.int r.endColumn) ]
+
+    let artifactLocationEncoder: Encoder<ArtifactLocation> =
+        fun (al: ArtifactLocation) -> Encode.object [ ("uri", Encode.string al.uri) ]
+
+    let physicalLocationEncoder: Encoder<PhysicalLocation> =
+        fun (pl: PhysicalLocation) ->
+            Encode.object
+                [ ("artifactLocation", artifactLocationEncoder pl.artifactLocation)
+                  ("region", regionEncoder pl.region) ]
+
+    let locationEncoder: Encoder<Location> =
+        fun (l: Location) -> Encode.object [ ("physicalLocation", physicalLocationEncoder l.physicalLocation) ]
+
+    let messageEncoder: Encoder<Message> =
+        fun (m: Message) -> Encode.object [ ("text", Encode.string m.text) ]
+
+    let resultEncoder: Encoder<Result> =
+        fun (r: Result) ->
+            Encode.object
+                [ ("ruleId", Encode.string r.ruleId)
+                  ("ruleIndex", Encode.int r.ruleIndex)
+                  ("message", messageEncoder r.message)
+                  ("locations", List.map locationEncoder r.locations |> Encode.list) ]
+
+    let ruleShortDescriptionEncoder: Encoder<RuleShortDescription> =
+        fun (rsd: RuleShortDescription) ->
+            Encode.object [ ("text", Encode.string rsd.text); ("markdown", Encode.string rsd.markdown) ]
+
+    let ruleEncoder: Encoder<Rule> =
+        fun (r: Rule) ->
+            Encode.object
+                [ ("id", Encode.string r.id)
+                  ("name", Encode.string r.name)
+                  ("shortDescription", ruleShortDescriptionEncoder r.shortDescription)
+                  ("helpUri", Encode.string r.helpUri) ]
+
+    let driverEncoder: Encoder<Driver> =
+        fun (d: Driver) ->
+            Encode.object
+                [ ("name", Encode.string d.name)
+                  ("version", Encode.string d.version)
+                  ("informationUri", Encode.string d.informationUri)
+                  ("rules",
+                   match d.rules with
+                   | None -> Encode.list []
+                   | Some rules -> List.map ruleEncoder rules |> Encode.list) ]
+
+    let toolEncoder: Encoder<Tool> =
+        fun (t: Tool) -> Encode.object [ ("driver", driverEncoder t.driver) ]
+
+    let invocationEncoder: Encoder<Invocation> =
+        fun (i: Invocation) ->
+            Encode.object
+                [ ("startTimeUtc", Encode.string (i.startTimeUtc.ToString("o"))) // ISO 8601 format
+                  ("endTimeUtc", Encode.string (i.endTimeUtc.ToString("o")))
+                  ("executionSuccessful", Encode.bool i.executionSuccessful) ]
+
+    let runEncoder: Encoder<Run> =
+        fun (r: Run) ->
+            Encode.object
+                [ ("results", List.map resultEncoder r.results |> Encode.list)
+                  ("tool", toolEncoder r.tool)
+                  ("invocations", List.map invocationEncoder r.invocations |> Encode.list)
+                  ("columnKind", Encode.string r.columnKind) ]
+
+    let sarifLogEncoder: Encoder<SarifLog> =
+        fun (log: SarifLog) ->
+            Encode.object
+                [ ("$schema", Encode.string log.schema)
+                  ("version", Encode.string log.version)
+                  ("runs", List.map runEncoder log.runs |> Encode.list) ]
+
+module private Decoders =
+    open Thoth.Json.Core
+
+    let textDecoder: Decoder<Text> =
+        Decode.object (fun get -> { text = get.Required.Field "text" Decode.string })
+
+    let regionDecoder: Decoder<Region> =
+        Decode.object (fun get ->
+            { startLine = get.Required.Field "startLine" Decode.int
+              startColumn = get.Required.Field "startColumn" Decode.int
+              endLine = get.Required.Field "endLine" Decode.int
+              endColumn = get.Required.Field "endColumn" Decode.int })
+
+    let artifactLocationDecoder: Decoder<ArtifactLocation> =
+        Decode.object (fun get -> { uri = get.Required.Field "uri" Decode.string })
+
+    let physicalLocationDecoder: Decoder<PhysicalLocation> =
+        Decode.object (fun get ->
+            { artifactLocation = get.Required.Field "artifactLocation" artifactLocationDecoder
+              region = get.Required.Field "region" regionDecoder })
+
+    let locationDecoder: Decoder<Location> =
+        Decode.object (fun get -> { physicalLocation = get.Required.Field "physicalLocation" physicalLocationDecoder })
+
+    let messageDecoder: Decoder<Message> =
+        Decode.object (fun get -> { text = get.Required.Field "text" Decode.string })
+
+    let resultDecoder: Decoder<Result> =
+        Decode.object (fun get ->
+            { ruleId = get.Required.Field "ruleId" Decode.string
+              ruleIndex = get.Required.Field "ruleIndex" Decode.int
+              message = get.Required.Field "message" messageDecoder
+              locations = get.Required.Field "locations" (Decode.list locationDecoder) })
+
+    let ruleShortDescriptionDecoder: Decoder<RuleShortDescription> =
+        Decode.object (fun get ->
+            { text = get.Required.Field "text" Decode.string
+              markdown = get.Required.Field "markdown" Decode.string })
+
+    let ruleDecoder: Decoder<Rule> =
+        Decode.object (fun get ->
+            { id = get.Required.Field "id" Decode.string
+              name = get.Required.Field "name" Decode.string
+              shortDescription = get.Required.Field "shortDescription" ruleShortDescriptionDecoder
+              helpUri = get.Required.Field "helpUri" Decode.string })
+
+    let driverDecoder: Decoder<Driver> =
+        Decode.object (fun get ->
+            { name = get.Required.Field "name" Decode.string
+              version = get.Required.Field "version" Decode.string
+              informationUri = get.Required.Field "informationUri" Decode.string
+              rules = get.Optional.Field "rules" (Decode.list ruleDecoder) })
+
+    let toolDecoder: Decoder<Tool> =
+        Decode.object (fun get -> { driver = get.Required.Field "driver" driverDecoder })
+
+    let invocationDecoder: Decoder<Invocation> =
+        Decode.object (fun get ->
+            { startTimeUtc = get.Required.Field "startTimeUtc" Decode.datetimeUtc
+              endTimeUtc = get.Required.Field "endTimeUtc" Decode.datetimeUtc
+              executionSuccessful = get.Required.Field "executionSuccessful" Decode.bool })
+
+    let runDecoder: Decoder<Run> =
+        Decode.object (fun get ->
+            { results = get.Required.Field "results" (Decode.list resultDecoder)
+              tool = get.Required.Field "tool" toolDecoder
+              invocations = get.Required.Field "invocations" (Decode.list invocationDecoder)
+              columnKind = get.Required.Field "columnKind" Decode.string })
+
+    let sarifLogDecoder: Decoder<SarifLog> =
+        Decode.object (fun get ->
+            { schema = get.Required.Field "$schema" Decode.string
+              version = get.Required.Field "version" Decode.string
+              runs = get.Required.Field "runs" (Decode.list runDecoder) })
+
+let private readSarif (json: string) : Result<SarifLog, string> =
+    match Thoth.Json.Newtonsoft.Decode.fromString Decoders.sarifLogDecoder json with
+    | Ok sarifLog -> Ok sarifLog
+    | Error err -> Error($"Failed to decode, got %A{err}")
+
+let private writeSarif (sarifLog: SarifLog) : string =
+    Encoders.sarifLogEncoder sarifLog |> Thoth.Json.Newtonsoft.Encode.toString 4
 
 let mergeSarifFiles _ =
     task {
+        let mergedPath =
+            Path.Combine(__SOURCE_DIRECTORY__, "analysisreports", "merged.sarif")
+
+        if Path.Exists(mergedPath) then
+            File.Delete(mergedPath)
+
         let! sarifFiles =
             Directory.GetFiles("analysisreports", "*.sarif")
             |> Seq.map (fun path ->
                 task {
-                    use sarifContent = File.OpenRead(path)
-                    let! sarif = readSarif sarifContent
-                    return path, sarif
+                    let! sarifContent = File.ReadAllTextAsync(path)
+                    let sarifResult = readSarif sarifContent
+
+                    match sarifResult with
+                    | Error e ->
+                        eprintfn $"%A{e}"
+                        return exit 1
+                    | Ok sarif -> return path, sarif
                 })
             |> Task.WhenAll
 
@@ -178,8 +288,9 @@ let mergeSarifFiles _ =
             sarifFiles |> Array.iter (fun (path, _) -> File.Delete(path))
 
             let mergedStream = File.OpenWrite("analysisreports/merged.sarif")
-            do! writeSarif mergedStream combined
+            let combinedJson = writeSarif combined
+            do! mergedStream.WriteAsync(System.Text.Encoding.UTF8.GetBytes(combinedJson))
             do! mergedStream.FlushAsync()
             mergedStream.Close()
-            printfn "Successfully merged %d SARIF files" sarifFiles.Length
+            printfn $"Successfully merged %d{sarifFiles.Length} SARIF files"
     }
