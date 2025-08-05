@@ -2,7 +2,6 @@
 
 open System
 open System.IO
-open System.Text.Json
 open System.Threading.Tasks
 
 type Text = { text: string }
@@ -255,7 +254,7 @@ let mergeSarifFiles _ =
         if Array.isEmpty sarifFiles then
             printfn "No sarif files could be merged"
         else
-            let firstSarif = snd (sarifFiles.[0])
+            let firstSarif = snd sarifFiles.[0]
             let firstRun = firstSarif.runs.[0]
 
             let results = ResizeArray()
