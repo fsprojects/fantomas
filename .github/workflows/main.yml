@@ -28,7 +28,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'
       run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
     - name: "Run analyzers"
-      run: dotnet msbuild /t:AnalyzeSolution
+      run: dotnet fsi build.fsx -- -p Analyze
       continue-on-error: true
       if: matrix.os == 'ubuntu-latest'
     - name: Upload SARIF file
