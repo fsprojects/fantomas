@@ -271,8 +271,7 @@ let mergeSarifFiles _ =
 
             let combined: SarifLog =
                 {
-                  // I don't know why firstSarif.schema is null
-                  schema = "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.6.json"
+                  schema = firstSarif.schema
                   version = firstSarif.version
                   runs =
                     [ { tool =
