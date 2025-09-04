@@ -11,7 +11,7 @@
         <PackageVersion Include="System.Runtime" Version="4.3.1" />
         <PackageVersion Include="FsLexYacc" Version="11.3.0" />
         
-        <PackageVersion Include="Ionide.KeepAChangelog.Tasks" Version="0.1.8"/>
+        <PackageVersion Include="Ionide.KeepAChangelog.Tasks" Version="0.3.0"/>
         <PackageVersion Include="DotNet.ReproducibleBuilds" Version="1.1.1"/>
         
         <PackageVersion Include="G-Research.FSharp.Analyzers" Version="0.9.3" />
