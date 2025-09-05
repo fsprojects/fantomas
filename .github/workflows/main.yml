@@ -27,15 +27,6 @@ jobs:
     - name: "trigger fantomas-tools action"
       if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'
       run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
-    - name: "Run analyzers"
-      run: dotnet fsi build.fsx -- -p Analyze
-      continue-on-error: true
-      if: matrix.os == 'ubuntu-latest'
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v3
-      if: matrix.os == 'ubuntu-latest' && (github.event_name != 'push' || github.actor != 'dependabot[bot]')
-      with:
-        sarif_file: analysisreports
     - name: "Documentation"
       if: matrix.os == 'windows-latest' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v4
@@ -48,6 +39,26 @@ jobs:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: dotnet fsi build.fsx -p Release
+
+  analyze:
+    name: Analyze solution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+
+      - name: Run analyzers
+        run: dotnet fsi build.fsx -- -p Analyze
+        continue-on-error: true
+
+      - name: Upload merged SARIF
+        if: github.event_name != 'push' || github.actor != 'dependabot[bot]'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: analysis.sarif
 
   # Builds the project in a dev container
   build-devcontainer:

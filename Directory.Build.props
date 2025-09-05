@@ -65,6 +65,5 @@ Some common use cases include:
            <PrivateAssets>all</PrivateAssets>
            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
        </PackageReference>
-       <PackageReference Include="FSharp.Analyzers.Build" PrivateAssets="All" />
    </ItemGroup>
 </Project>

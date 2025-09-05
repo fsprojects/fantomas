@@ -5,12 +5,4 @@
         <PackageReference Include="Ionide.KeepAChangelog.Tasks" PrivateAssets="all" />
         <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all" />
     </ItemGroup>
-    <PropertyGroup>
-        <CodeRoot Condition="$(CodeRoot) == ''">.</CodeRoot>
-        <FSharpAnalyzersOtherFlags>--analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
-        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
-        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --verbosity d</FSharpAnalyzersOtherFlags>
-        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --code-root $(CodeRoot)</FSharpAnalyzersOtherFlags>
-        <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --report &quot;$(CodeRoot)/analysisreports/$(MSBuildProjectName)-analysis.sarif&quot;</FSharpAnalyzersOtherFlags>
-    </PropertyGroup>
 </Project>
