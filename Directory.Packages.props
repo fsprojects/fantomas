@@ -16,7 +16,6 @@
         
         <PackageVersion Include="G-Research.FSharp.Analyzers" Version="0.9.3" />
         <PackageVersion Include="Ionide.Analyzers" Version="0.9.0" />
-        <PackageVersion Include="FSharp.Analyzers.Build" Version="0.3.0" />
         
         <PackageVersion Include="StreamJsonRpc" Version="2.20.20" />
         <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />

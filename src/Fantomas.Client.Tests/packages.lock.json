@@ -8,12 +8,6 @@
         "resolved": "3.6.7",
         "contentHash": "KYhA0OAGmNg22xI2OjkqG0zlgd61OCJOHYb+/uvSILriQNMQNmAjsRj7OqAh9dgltEuNpuPvN9+Y7pMBD/0NyQ=="
       },
-      "FSharp.Analyzers.Build": {
-        "type": "Direct",
-        "requested": "[0.3.0, )",
-        "resolved": "0.3.0",
-        "contentHash": "twj4mNJLOEjHK6OQJCAbix2d8ODG5RySASejQ/v2fLgoqyRqYsXmceFaXb17ZE1pNrfenjwv/xpR+GembufaZA=="
-      },
       "FSharp.Core": {
         "type": "Direct",
         "requested": "[8.0.100, )",

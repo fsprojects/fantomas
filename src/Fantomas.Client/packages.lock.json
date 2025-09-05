@@ -14,12 +14,6 @@
           "Microsoft.SourceLink.GitLab": "1.1.1"
         }
       },
-      "FSharp.Analyzers.Build": {
-        "type": "Direct",
-        "requested": "[0.3.0, )",
-        "resolved": "0.3.0",
-        "contentHash": "twj4mNJLOEjHK6OQJCAbix2d8ODG5RySASejQ/v2fLgoqyRqYsXmceFaXb17ZE1pNrfenjwv/xpR+GembufaZA=="
-      },
       "FSharp.Core": {
         "type": "Direct",
         "requested": "[8.0.100, )",

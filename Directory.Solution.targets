@@ -1,17 +1,27 @@
 <Project>
+    <!-- Import the NuGet props file to get access to Pkg* variables -->
+    <Import Project="artifacts/obj/Fantomas/Fantomas.fsproj.nuget.g.props" Condition="Exists('artifacts/obj/Fantomas/Fantomas.fsproj.nuget.g.props')" />
 
     <ItemGroup>
         <ProjectsToAnalyze Include="src/**/*.fsproj" Exclude="src/Fantomas.FCS/Fantomas.FCS.fsproj"/>
     </ItemGroup>
 
-    <Target Name="AnalyzeSolution">
+    <Target Name="AnalyzeSolution" Condition="Exists('artifacts/obj/Fantomas/Fantomas.fsproj.nuget.g.props')">
         <PropertyGroup>
             <CodeRoot>$(SolutionDir)</CodeRoot>
         </PropertyGroup>
+        
+        <PropertyGroup>
+            <FSharpAnalyzersOtherFlags>--analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
+            <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
+            <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --verbosity d</FSharpAnalyzersOtherFlags>
+            <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --code-root $(CodeRoot)</FSharpAnalyzersOtherFlags>
+        </PropertyGroup>
         <RemoveDir Directories="$(SolutionDir)/analysisreports" />
-        <MSBuild Projects="@(ProjectsToAnalyze)" 
-                 Targets="AnalyzeFSharpProject"
-                 Properties="CodeRoot=$(CodeRoot)" ContinueOnError="true" />
+        
+        <!-- Execute fsharp-analyzers with all projects in a single process -->
+        <Exec Command="dotnet fsharp-analyzers $(FSharpAnalyzersOtherFlags) @(ProjectsToAnalyze->'--project %(FullPath)', ' ')" 
+              ContinueOnError="true" />
     </Target>
 
 </Project>
