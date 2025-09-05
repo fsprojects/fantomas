@@ -149,8 +149,11 @@ module Format =
         async {
             let! formatted =
                 filenames
-                |> Seq.filter (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) >> not)
-                |> Seq.map (fun f -> formatFileInternalAsync (FormatParams.Create(true, false, f)))
+                |> Seq.choose (fun filename ->
+                    if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) filename then
+                        None
+                    else
+                        Some(formatFileInternalAsync (FormatParams.Create(true, false, filename))))
                 |> Async.Parallel
 
             let getChangedFile =

@@ -2640,10 +2640,10 @@ let mkTypeDefn
 
         let objectMembers =
             objectMembers
-            |> List.filter (function
-                | SynMemberDefn.ImplicitCtor _ -> false
-                | _ -> true)
-            |> List.map (mkMemberDefn creationAide)
+            |> List.choose (fun md ->
+                match md with
+                | SynMemberDefn.ImplicitCtor _ -> None
+                | _ -> Some(mkMemberDefn creationAide md))
 
         let endNode =
             match range with
@@ -2685,15 +2685,15 @@ let mkTypeDefn
         let allMembers =
             let objectMembers =
                 objectMembers
-                |> List.filter (function
-                    | SynMemberDefn.ImplicitCtor _ -> false
-                    | _ -> true)
-                |> List.map (mkMemberDefn creationAide)
+                |> List.choose (fun md ->
+                    match md with
+                    | SynMemberDefn.ImplicitCtor _ -> None
+                    | _ -> Some(mkMemberDefn creationAide md))
 
             [ yield! objectMembers; yield! members ]
 
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
-    | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
+    | _ -> failwithf $"Could not create a TypeDefn for %A{typeRepr}"
 
 let mkWithGetSet
     (withKeyword: range option)

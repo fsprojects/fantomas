@@ -1,17 +1,28 @@
 <Project>
+    <!-- Import the NuGet props file to get access to Pkg* variables -->
+    <Import Project="artifacts/obj/Fantomas/Fantomas.fsproj.nuget.g.props" Condition="Exists('artifacts/obj/Fantomas/Fantomas.fsproj.nuget.g.props')" />
 
     <ItemGroup>
         <ProjectsToAnalyze Include="src/**/*.fsproj" Exclude="src/Fantomas.FCS/Fantomas.FCS.fsproj"/>
     </ItemGroup>
 
-    <Target Name="AnalyzeSolution">
+    <Target Name="AnalyzeSolution" Condition="Exists('artifacts/obj/Fantomas/Fantomas.fsproj.nuget.g.props')">
         <PropertyGroup>
             <CodeRoot>$(SolutionDir)</CodeRoot>
         </PropertyGroup>
-        <RemoveDir Directories="$(SolutionDir)/analysisreports" />
-        <MSBuild Projects="@(ProjectsToAnalyze)" 
-                 Targets="AnalyzeFSharpProject"
-                 Properties="CodeRoot=$(CodeRoot)" ContinueOnError="true" />
+        
+        <PropertyGroup>
+            <FSharpAnalyzersOtherFlags>--analyzers-path &quot;$(PkgG-Research_FSharp_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
+            <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
+            <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --verbosity d</FSharpAnalyzersOtherFlags>
+            <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --code-root $(CodeRoot)</FSharpAnalyzersOtherFlags>
+            <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --report &quot;$(CodeRoot)/analysis.sarif&quot;</FSharpAnalyzersOtherFlags>
+        </PropertyGroup>
+        <Delete Files="$(SolutionDir)/analysis.sarif" Condition="Exists('$(SolutionDir)/analysis.sarif')" />
+        
+        <!-- Execute fsharp-analyzers with all projects in a single process -->
+        <Exec Command="dotnet fsharp-analyzers $(FSharpAnalyzersOtherFlags) @(ProjectsToAnalyze->'--project &quot;%(FullPath)&quot;', ' ')" 
+              ContinueOnError="true" />
     </Target>
 
 </Project>
