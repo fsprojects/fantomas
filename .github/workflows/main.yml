@@ -60,9 +60,16 @@ jobs:
       - name: Merge SARIF files
         run: |
           if compgen -G "analysisreports/*.sarif" > /dev/null; then
-            codeql github merge-results \
-              --output=merged.sarif \
-              analysisreports/*.sarif
+            # Find and use the CodeQL CLI
+            CODEQL_PATH=$(find ${{ runner.tool_cache }}/CodeQL -name "codeql" -type f | head -1)
+            if [ -n "$CODEQL_PATH" ]; then
+              "$CODEQL_PATH" github merge-results \
+                --output=merged.sarif \
+                analysisreports/*.sarif
+            else
+              echo "CodeQL CLI not found, creating empty SARIF."
+              echo '{"version":"2.1.0","runs":[]}' > merged.sarif
+            fi
           else
             echo "No SARIF files found to merge; creating empty SARIF."
             echo '{"version":"2.1.0","runs":[]}' > merged.sarif
