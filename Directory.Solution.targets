@@ -16,6 +16,7 @@
             <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --analyzers-path &quot;$(PkgIonide_Analyzers)/analyzers/dotnet/fs&quot;</FSharpAnalyzersOtherFlags>
             <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --verbosity d</FSharpAnalyzersOtherFlags>
             <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --code-root $(CodeRoot)</FSharpAnalyzersOtherFlags>
+            <FSharpAnalyzersOtherFlags>$(FSharpAnalyzersOtherFlags) --report &quot;$(CodeRoot)/analysisreports/analysis.sarif&quot;</FSharpAnalyzersOtherFlags>
         </PropertyGroup>
         <RemoveDir Directories="$(SolutionDir)/analysisreports" />
         
