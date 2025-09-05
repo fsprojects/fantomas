@@ -209,8 +209,7 @@ module private DefineCombinationSolver =
             | Some((i, x), (j, y), r) ->
                 f (
                     (exprsIndexed
-                     |> Seq.filter (fun (k, _) -> i <> k && j <> k)
-                     |> Seq.map snd
+                     |> Seq.choose (fun (k, xs) -> if i <> k && j <> k then Some(xs) else None)
                      |> Seq.toList)
                     @ [ IfDirectiveExpression.And(x, y), Some r ]
                 )
