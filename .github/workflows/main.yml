@@ -54,24 +54,15 @@ jobs:
         run: dotnet fsi build.fsx -- -p Analyze
         continue-on-error: true
 
-      - name: Setup CodeQL CLI
-        uses: github/codeql-action/setup-codeql@v3
-        with:
-          version: latest
-
-      - name: Prepare SARIF files
-        run: |
-          mkdir -p sarif-files
-          if compgen -G "analysisreports/*.sarif" > /dev/null; then
-            cp analysisreports/*.sarif sarif-files/
-          fi
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
 
       - name: Merge SARIF files
         run: |
-          if compgen -G "sarif-files/*.sarif" > /dev/null; then
+          if compgen -G "analysisreports/*.sarif" > /dev/null; then
             codeql github merge-results \
               --output=merged.sarif \
-              sarif-files/*.sarif
+              analysisreports/*.sarif
           else
             echo "No SARIF files found to merge; creating empty SARIF."
             echo '{"version":"2.1.0","runs":[]}' > merged.sarif
