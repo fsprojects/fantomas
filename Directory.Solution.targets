@@ -21,7 +21,7 @@
         <Delete Files="$(SolutionDir)/analysis.sarif" Condition="Exists('$(SolutionDir)/analysis.sarif')" />
         
         <!-- Execute fsharp-analyzers with all projects in a single process -->
-        <Exec Command="dotnet fsharp-analyzers $(FSharpAnalyzersOtherFlags) @(ProjectsToAnalyze->'--project %(FullPath)', ' ')" 
+        <Exec Command="dotnet fsharp-analyzers $(FSharpAnalyzersOtherFlags) @(ProjectsToAnalyze->'--project &quot;%(FullPath)&quot;', ' ')" 
               ContinueOnError="true" />
     </Target>
 
