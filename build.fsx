@@ -503,7 +503,6 @@ pipeline "PublishAlpha" {
 pipeline "Analyze" {
     workingDir __SOURCE_DIRECTORY__
     stage "Analyze" { run "dotnet msbuild /t:AnalyzeSolution" }
-    stage "Merge" { run Sarif.mergeSarifFiles }
     runIfOnlySpecified true
 }
 
