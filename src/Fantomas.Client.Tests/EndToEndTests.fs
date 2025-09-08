@@ -58,6 +58,20 @@ type EndToEndTests() =
 
                 let fsharpFile = Path.Combine(subDirectory.FullName, "File.fs")
                 File.Create(fsharpFile).Dispose()
+
+                // Create a .editorconfig file to override any parent configuration
+                let editorConfigPath = Path.Combine(subDirectory.FullName, ".editorconfig")
+
+                let editorConfigContent =
+                    """
+root = true
+
+[*.fs]
+end_of_line = lf
+"""
+
+                File.WriteAllText(editorConfigPath, editorConfigContent)
+
                 do! callback fsharpFile
             }
 
