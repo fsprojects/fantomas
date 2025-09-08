@@ -300,9 +300,6 @@ Every F# developer should be able to understand the project, even the ones new t
 The best is yet to come!</p>
 <p>PS: Don't hesitate to open <a href="https://github.com/fsprojects/fantomas/issues/new/choose">an issue</a> if you have any questions.
 Or if something isn't all that clear. Our goal is to make this documentation as complete as possible🎉!</p>
-<h2><a name="Visual-Studio-Issue" class="anchor" href="#Visual-Studio-Issue">Visual Studio Issue</a></h2>
-<p>There is currently <a href="https://github.com/fsprojects/fantomas/issues/2447">a known issue</a> when loading the <code>fantomas</code> solution in Visual Studio that prevents the solution from being able to build properly. This is due to an issue in the <code>Ionide.KeepAChangelog</code> build step (tracking the issue <a href="https://github.com/ionide/KeepAChangelog/issues/8">here</a>).</p>
-<p>To workaround this in the meantime, you'll need to comment out the references to <code>Ionide.KeepAChangelog.Tasks</code> in <code>Directory.Build.props</code> and all of the <code>packages.lock.json</code> files, and then run <code>dotnet restore</code>. <strong>Please be careful not to include these changes when submitting a PR!</strong></p>
 <fantomas-nav next="FSharp.html"></fantomas-nav>
 
         
@@ -314,11 +311,6 @@ Or if something isn't all that clear. Our goal is to make this documentation as 
   <li class="level-1">
     <a href="#Contributors">
       Contributors
-    </a>
-  </li>
-  <li class="level-2">
-    <a href="#Visual-Studio-Issue">
-      Visual Studio Issue
     </a>
   </li>
 </ul>
