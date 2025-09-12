@@ -966,23 +966,23 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.AddressOf(false, e, _, StartRange 2 (ampersandToken, _range)) ->
         ExprSingleNode(stn "&&" ampersandToken, false, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturn((true, _), e, StartRange 5 (yieldKeyword, _range)) ->
-        ExprSingleNode(stn "yield" yieldKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturn((true, _), e, _range, trivia) ->
+        ExprSingleNode(stn "yield" trivia.YieldOrReturnKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturn((false, _), e, StartRange 6 (returnKeyword, _range)) ->
-        ExprSingleNode(stn "return" returnKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturn((false, _), e, _range, trivia) ->
+        ExprSingleNode(stn "return" trivia.YieldOrReturnKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturnFrom((true, _), e, StartRange 6 (yieldBangKeyword, _range)) ->
-        ExprSingleNode(stn "yield!" yieldBangKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturnFrom((true, _), e, _range, trivia) ->
+        ExprSingleNode(stn "yield!" trivia.YieldOrReturnFromKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturnFrom((false, _), e, StartRange 7 (returnBangKeyword, _range)) ->
-        ExprSingleNode(stn "return!" returnBangKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturnFrom((false, _), e, _range, trivia) ->
+        ExprSingleNode(stn "return!" trivia.YieldOrReturnFromKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Do(e, StartRange 2 (doKeyword, _range)) ->
         ExprSingleNode(stn "do" doKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.DoBang(e, StartRange 3 (doBangKeyword, _range)) ->
-        ExprSingleNode(stn "do!" doBangKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.DoBang(e, _range, trivia) ->
+        ExprSingleNode(stn "do!" trivia.DoBangKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Fixed(e, StartRange 5 (fixedKeyword, _range)) ->
         ExprSingleNode(stn "fixed" fixedKeyword, true, false, mkExpr creationAide e, exprRange)
@@ -1029,9 +1029,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let fieldNodes =
             recordFields
             |> List.choose (function
-                | SynExprRecordField((fieldName, _), Some mEq, Some expr, _) ->
-                    let m = unionRanges fieldName.Range expr.Range
-
+                | SynExprRecordField((fieldName, _), Some mEq, Some expr, m, _) ->
                     Some(
                         RecordFieldNode(mkSynLongIdent creationAide fieldName, stn "=" mEq, mkExpr creationAide expr, m)
                     )
@@ -1144,7 +1142,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                       _,
                       pat,
                       e1,
-                      SynExpr.YieldOrReturn((true, _), e2, _),
+                      SynExpr.YieldOrReturn((true, _), e2, _, _),
                       StartRange 3 (mFor, _)) ->
         ExprForEachNode(
             stn "for" mFor,
@@ -2809,8 +2807,8 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     let memberDefinitionRange = md.Range
 
     match md with
-    | SynMemberDefn.ImplicitInherit(t, e, _, StartRange 7 (mInherit, _)) ->
-        mkInheritConstructor creationAide t e mInherit memberDefinitionRange
+    | SynMemberDefn.ImplicitInherit(t, e, _, _, trivia) ->
+        mkInheritConstructor creationAide t e trivia.InheritKeyword memberDefinitionRange
         |> MemberDefn.ImplicitInherit
 
     // Transforms: `member this.Y with get() = "meh"` into `member this.Y = "meh"`
@@ -2870,9 +2868,16 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         )
         |> MemberDefn.ExplicitCtor
     | SynMemberDefn.Member(memberDefn, _) -> mkBinding creationAide memberDefn |> MemberDefn.Member
-    | SynMemberDefn.Inherit(baseType, _, StartRange 7 (mInherit, _)) ->
-        MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide baseType, memberDefinitionRange)
-        |> MemberDefn.Inherit
+    | SynMemberDefn.Inherit(baseTypeOpt, _, _isInline, trivia) ->
+        match baseTypeOpt with
+        | Some baseType ->
+            MemberDefnInheritNode(
+                stn "inherit" trivia.InheritKeyword,
+                mkType creationAide baseType,
+                memberDefinitionRange
+            )
+            |> MemberDefn.Inherit
+        | None -> failwith "successful parse shouldn't have any unfinished inherit"
     | SynMemberDefn.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
     | SynMemberDefn.LetBindings(
         bindings = [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) as binding ]) ->
@@ -3598,25 +3603,27 @@ let mkSigFile
     let mds = List.map (mkModuleOrNamespaceSig creationAide) contents
     Oak(phds, mds, m)
 
-let includeTrivia
-    (baseRange: range)
-    (comments: CommentTrivia list)
-    (conditionDirectives: ConditionalDirectiveTrivia list)
-    : range =
+let includeTrivia (baseRange: range) (trivia: ParsedInputTrivia) : range =
     let ranges =
         [ yield!
               List.map
                   (function
                   | CommentTrivia.LineComment m
                   | CommentTrivia.BlockComment m -> m)
-                  comments
+                  trivia.CodeComments
           yield!
               List.map
                   (function
                   | ConditionalDirectiveTrivia.If(range = range)
                   | ConditionalDirectiveTrivia.Else(range = range)
                   | ConditionalDirectiveTrivia.EndIf(range = range) -> range)
-                  conditionDirectives ]
+                  trivia.ConditionalDirectives
+          yield!
+              List.map
+                  (function
+                  | WarnDirectiveTrivia.Nowarn range
+                  | WarnDirectiveTrivia.Warnon range -> range)
+                  trivia.WarnDirectives ]
 
     (baseRange, ranges)
     ||> List.fold (fun acc triviaRange ->
@@ -3668,7 +3675,7 @@ let mkFullTreeRange ast =
             | Some lastModule -> mkSynModuleOrNamespaceFullRange lastModule
 
         let astRange = unionRanges startPos endPos
-        includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
+        includeTrivia astRange trivia
 
     | ParsedInput.SigFile(ParsedSigFileInput(hashDirectives = directives; contents = modules; trivia = trivia)) ->
         let startPos =
@@ -3688,7 +3695,7 @@ let mkFullTreeRange ast =
             | Some lastModule -> mkSynModuleOrNamespaceSigFullRange lastModule
 
         let astRange = unionRanges startPos endPos
-        includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
+        includeTrivia astRange trivia
 
 let mkOak (sourceText: ISourceText option) (ast: ParsedInput) =
     let creationAide = { SourceText = sourceText }

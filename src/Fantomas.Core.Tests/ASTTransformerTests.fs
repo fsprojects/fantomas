@@ -40,7 +40,6 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
                 true,
                 QualifiedNameOfFile(Ident("", Range.Zero)),
                 [],
-                [],
                 [ SynModuleOrNamespace(
                       [],
                       false,
@@ -53,8 +52,7 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
                       { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
                   ) ],
                 (false, false),
-                { ConditionalDirectives = []
-                  CodeComments = [] },
+                ParsedInputTrivia.Empty,
                 Set.empty
             )
         )
