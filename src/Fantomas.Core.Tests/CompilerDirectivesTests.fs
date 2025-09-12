@@ -3233,3 +3233,82 @@ let CombineImportedAssembliesTask
 
     ()
 """
+
+[<Test>]
+let ``should keep attributes on mutually recursive class, no defines`` () =
+    formatSourceStringWithDefines
+        []
+        """
+type X = int
+    and
+#if NET5_0_OR_GREATER
+    [<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
+    [<Obsolete>]
+    [<CustomEquality; NoComparison; Struct>] Y = int
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = int
+and
+#if NET5_0_OR_GREATER
+#endif
+    [<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
+"""
+
+[<Test>]
+let ``should keep attributes on mutually recursive class, NET5_0_OR_GREATER`` () =
+    formatSourceStringWithDefines
+        [ "NET5_0_OR_GREATER" ]
+        """
+type X = int
+    and
+#if NET5_0_OR_GREATER
+    [<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
+    [<Obsolete>]
+    [<CustomEquality; NoComparison; Struct>] Y = int
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = int
+and
+#if NET5_0_OR_GREATER
+    [<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
+    [<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
+"""
+
+[<Test>]
+let ``should keep attributes on mutually recursive class, 3174`` () =
+    formatSourceString
+        """
+type X = int
+    and
+#if NET5_0_OR_GREATER
+    [<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
+    [<Obsolete>]
+    [<CustomEquality; NoComparison; Struct>] Y = int
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = int
+and
+#if NET5_0_OR_GREATER
+    [<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
+    [<Obsolete; CustomEquality; NoComparison; Struct>] Y = int
+"""
