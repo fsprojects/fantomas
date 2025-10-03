@@ -1178,3 +1178,115 @@ let ``don't indent function application arguments when function name is further 
     b
     c))))))))))))))))))))))
 """
+
+[<Test>]
+let ``type annotation spacing should not be adjusted for previous expression length, 3179`` () =
+    formatSourceString
+        """
+let x =
+            (someFunctionCall()) |> anotherOne |> anotherOne |> alsoAnotherOne
+
+            Unchecked.defaultof<_>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    (someFunctionCall ()) |> anotherOne |> anotherOne |> alsoAnotherOne
+
+    Unchecked.defaultof<_>
+"""
+
+[<Test>]
+let ``type annotation spacing should not be adjusted for previous expression length without blank line, 3179`` () =
+    formatSourceString
+        """
+let x =
+            (someFunctionCall()) |> anotherOne |> anotherOne |> alsoAnotherOne
+            Unchecked.defaultof<_>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    (someFunctionCall ()) |> anotherOne |> anotherOne |> alsoAnotherOne
+    Unchecked.defaultof<_>
+"""
+
+[<Test>]
+let ``type annotation spacing should not be adjusted for short previous expression, 3179`` () =
+    formatSourceString
+        """
+let x =
+            someFunction()
+
+            Unchecked.defaultof<_>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    someFunction ()
+
+    Unchecked.defaultof<_>
+"""
+
+[<Test>]
+let ``type annotation spacing should not be adjusted for different type applications, 3179`` () =
+    formatSourceString
+        """
+let x =
+            (someFunctionCall()) |> anotherOne |> anotherOne |> alsoAnotherOne
+
+            List.map<int, string>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    (someFunctionCall ()) |> anotherOne |> anotherOne |> alsoAnotherOne
+
+    List.map<int, string>
+"""
+
+[<Test>]
+let ``type annotation spacing should not be adjusted for generic type applications, 3179`` () =
+    formatSourceString
+        """
+let x =
+            (someFunctionCall()) |> anotherOne |> anotherOne |> alsoAnotherOne
+
+            Some<'T>.Create
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    (someFunctionCall ()) |> anotherOne |> anotherOne |> alsoAnotherOne
+
+    Some<'T>.Create
+"""
+
+[<Test>]
+let ``function application type parameters should still be aligned correctly, 3179`` () =
+    formatSourceString
+        """
+let x = someFunction<int, string> (arg1, arg2)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x = someFunction<int, string> (arg1, arg2)
+"""

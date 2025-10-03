@@ -6,7 +6,9 @@ open Fantomas.FCS.Syntax
 open Fantomas.FCS.Text
 open MultipleDefineCombinations
 
-let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
+let getSourceText (source: string) : ISourceText =
+    MCPEvents.addEvent MCPEvents.EventKind.SourceTextCreated
+    source.TrimEnd() |> SourceText.ofString
 
 let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * DefineCombination) array> =
     // First get the syntax tree without any defines
@@ -18,20 +20,20 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
         | ParsedInput.ImplFile(ParsedImplFileInput(trivia = { ConditionalDirectives = directives }))
         | ParsedInput.SigFile(ParsedSigFileInput(trivia = { ConditionalDirectives = directives })) -> directives
 
+    let errors =
+        baseDiagnostics
+        |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
+
+    if not errors.IsEmpty then
+        raise (ParseException baseDiagnostics)
+
+    MCPEvents.addEvent (MCPEvents.EventKind.ParsedBaseUntypedTree(baseUntypedTree, baseDiagnostics))
+
     match hashDirectives with
-    | [] ->
-        async {
-            let errors =
-                baseDiagnostics
-                |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
-
-            if not errors.IsEmpty then
-                raise (ParseException baseDiagnostics)
-
-            return [| (baseUntypedTree, DefineCombination.Empty) |]
-        }
+    | [] -> async { return [| (baseUntypedTree, DefineCombination.Empty) |] }
     | hashDirectives ->
         let defineCombinations = Defines.getDefineCombination hashDirectives
+        MCPEvents.addEvent (MCPEvents.EventKind.SourceCodeHadDefines defineCombinations)
 
         defineCombinations
         |> List.map (fun defineCombination ->
@@ -45,6 +47,10 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
 
                 if not errors.IsEmpty then
                     raise (ParseException diagnostics)
+
+                MCPEvents.addEvent (
+                    MCPEvents.EventKind.ParsedUntypedTreeWithDefines(untypedTree, diagnostics, defineCombination)
+                )
 
                 return (untypedTree, defineCombination)
             })
@@ -66,12 +72,23 @@ let formatAST
             ASTTransformer.mkOak (Some sourceText) ast
             |> Trivia.enrichTree config sourceText ast
 
+    MCPEvents.addEvent (MCPEvents.EventKind.CreatedOakRaw oak)
+
     let oak =
         match cursor with
         | None -> oak
         | Some cursor -> Trivia.insertCursor oak cursor
 
-    context |> CodePrinter.genFile oak |> Context.dump false
+    let contextAfter = context |> CodePrinter.genFile oak
+
+    MCPEvents.addEvent (
+        contextAfter.WriterEvents
+        |> Seq.map string<Context.WriterEvent>
+        |> String.concat " , "
+        |> MCPEvents.CollectedEventsAfterCodePrinter
+    )
+
+    contextAfter |> Context.dump false
 
 let formatDocument
     (config: FormatConfig)

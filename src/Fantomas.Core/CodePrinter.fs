@@ -2084,7 +2084,11 @@ let genTypeApp (addAdditionalColumnOffset: bool) (node: ExprTypeAppNode) (ctx: C
          +> colGenericTypeParameters node.TypeParameters
          // we need to make sure each expression in the function application has offset at least greater than
          // See: https://github.com/fsprojects/fantomas/issues/1611
-         +> addFixedSpaces startColumn
+         // However, for standalone type applications, we don't need this alignment
+         // Only add fixed spaces when this is called from a function application context (addAdditionalColumnOffset = true)
+         // AND when we're not in a standalone type application context
+         // For standalone type applications, we check if there's contentBefore trivia (newlines) which indicates standalone context
+         +> ifElse (addAdditionalColumnOffset && not node.HasContentBefore) (addFixedSpaces startColumn) sepNone
          +> genSingleTextNode node.GreaterThan)
         ctx
 
@@ -4052,9 +4056,24 @@ let genModule (m: ModuleOrNamespaceNode) =
              +> genAttributes header.Attributes
              +> genMultipleTextsNode header.LeadingKeyword
              +> sepSpace
-             +> genAccessOpt header.Accessibility
+             +> optSingle
+                 (fun (accessibility: SingleTextNode) ->
+                     let hasTriviaBeforeAccess = accessibility.HasContentBefore
+
+                     onlyIf hasTriviaBeforeAccess indent
+                     +> genSingleTextNode accessibility
+                     +> sepSpace
+                     +> onlyIf hasTriviaBeforeAccess unindent)
+                 header.Accessibility
              +> onlyIf header.IsRecursive (sepSpace +> !-"rec" +> sepSpace)
-             +> optSingle genIdentListNode header.Name
+             +> optSingle
+                 (fun (name: IdentListNode) ->
+                     let hasTriviaBeforeName = name.HasContentBefore
+
+                     onlyIf hasTriviaBeforeName (indent +> indent)
+                     +> genIdentListNode name
+                     +> onlyIf hasTriviaBeforeName (unindent +> unindent))
+                 header.Name
              |> genNode header)
             +> newline)
         m.Header

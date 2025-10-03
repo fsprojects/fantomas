@@ -15,6 +15,10 @@ type TriviaNode(content: TriviaContent, range: range) =
     member val Content = content
     member val Range = range
 
+    override this.ToString() =
+        sprintf
+            $"%A{this.Content} (%d{this.Range.StartLine},%d{this.Range.StartColumn} - %d{this.Range.EndLine},%d{this.Range.EndColumn})"
+
 [<Interface>]
 type Node =
     abstract ContentBefore: TriviaNode seq

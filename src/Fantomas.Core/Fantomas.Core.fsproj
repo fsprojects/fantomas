@@ -18,10 +18,11 @@
     <Compile Include="ASTTransformer.fs" />
     <Compile Include="Version.fs" />
     <Compile Include="Queue.fs" />
-    <Compile Include="Trivia.fsi" />
-    <Compile Include="Trivia.fs" />
     <Compile Include="Defines.fsi" />
     <Compile Include="Defines.fs" />
+    <Compile Include="MCPEvents.fs" />
+    <Compile Include="Trivia.fsi" />
+    <Compile Include="Trivia.fs" />
     <Compile Include="CodeFormatterTypes.fs" />
     <Compile Include="Context.fsi" />
     <Compile Include="Context.fs" />
