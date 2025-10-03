@@ -11,5 +11,5 @@ fsharp_keep_max_number_of_blank_lines=1
 [tests/*.fsx]
 fsharp_multiline_bracket_style = aligned
 
-[src/Fantomas.MCP/*.fs]
+[mcp/**/*.fsx]
 fsharp_multiline_bracket_style = stroustrup

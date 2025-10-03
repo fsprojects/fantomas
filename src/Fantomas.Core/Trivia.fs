@@ -337,6 +337,9 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
         [| yield! comments; yield! newlines; yield! directives |]
         |> Array.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
+    if trivia.Length > 0 then
+        MCPEvents.addEvent (MCPEvents.EventKind.FoundTrivia trivia)
+
     addToTree tree trivia
     tree
 

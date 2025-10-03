@@ -47,3 +47,7 @@ Guide the LLM to generate tests.
 ## Prompts
 
 We should probably also create a bunch of example prompt on how to ask the LLM to fix certain issues.
+
+## Test issues
+
+Try and solve https://github.com/fsprojects/fantomas/issues/3188
