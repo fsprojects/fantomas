@@ -125,6 +125,9 @@ dotnet build
 # Run specific test
 dotnet test src/Fantomas.Core.Tests/ --filter "test-name"
 
+# Run tests in release mode (recommended to avoid stack overflows on Mac)
+dotnet test src/Fantomas.Core.Tests/ --filter "test-name" -c Release
+
 # Format changed files
 dotnet fsi build.fsx -p FormatChanged
 
@@ -500,6 +503,11 @@ if not errors.IsEmpty then
 - Run `dotnet clean` and rebuild
 - Check for syntax errors in your changes
 - Ensure all dependencies are restored
+
+#### Stack Overflow on Mac
+- Stack overflows can occur in debug mode on macOS
+- Use `-c Release` flag when running tests: `dotnet test -c Release`
+- This is a known issue with F# compilation in debug mode on macOS
 
 ### Debugging Tips
 
