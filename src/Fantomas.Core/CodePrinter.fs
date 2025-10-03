@@ -2084,7 +2084,11 @@ let genTypeApp (addAdditionalColumnOffset: bool) (node: ExprTypeAppNode) (ctx: C
          +> colGenericTypeParameters node.TypeParameters
          // we need to make sure each expression in the function application has offset at least greater than
          // See: https://github.com/fsprojects/fantomas/issues/1611
-         +> addFixedSpaces startColumn
+         // However, for standalone type applications, we don't need this alignment
+         // Only add fixed spaces when this is called from a function application context (addAdditionalColumnOffset = true)
+         // AND when we're not in a standalone type application context
+         // For standalone type applications, we check if there's contentBefore trivia (newlines) which indicates standalone context
+         +> ifElse (addAdditionalColumnOffset && not node.HasContentBefore) (addFixedSpaces startColumn) sepNone
          +> genSingleTextNode node.GreaterThan)
         ctx
 
