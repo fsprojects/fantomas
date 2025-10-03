@@ -221,10 +221,12 @@ let ``descriptive test name, issue-number`` () =
 
 ### Test Categories
 
-- **ModuleTests.fs**: Module and namespace formatting
-- **TypeTests.fs**: Type definition formatting
-- **ExpressionTests.fs**: Expression formatting
-- **PatternTests.fs**: Pattern matching formatting
+- We organize the tests in `Fantomas.Core.Tests` according to syntax constructs:
+  - **ModuleTests.fs**: Module and namespace formatting
+  - **TypeTests.fs**: Type definition formatting
+  - **ExpressionTests.fs**: Expression formatting
+  - **PatternTests.fs**: Pattern matching formatting
+- `src/Fantomas.Core.Tests/CodePrinterHelperFunctionsTests.fs` can be insightful to understand the `Context` pipeline setup.
 
 ### Writing Tests
 
