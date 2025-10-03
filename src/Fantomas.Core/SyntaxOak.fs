@@ -17,7 +17,7 @@ type TriviaNode(content: TriviaContent, range: range) =
 
     override this.ToString() =
         sprintf
-            $"%A{this.Content} ({this.Range.StartLine},{this.Range.StartColumn} - {this.Range.EndLine},{this.Range.EndColumn})"
+            $"%A{this.Content} (%d{this.Range.StartLine},%d{this.Range.StartColumn} - %d{this.Range.EndLine},%d{this.Range.EndColumn})"
 
 [<Interface>]
 type Node =

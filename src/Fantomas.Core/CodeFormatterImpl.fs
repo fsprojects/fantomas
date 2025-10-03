@@ -83,7 +83,7 @@ let formatAST
 
     MCPEvents.addEvent (
         contextAfter.WriterEvents
-        |> Seq.map string
+        |> Seq.map string<Context.WriterEvent>
         |> String.concat " , "
         |> MCPEvents.CollectedEventsAfterCodePrinter
     )

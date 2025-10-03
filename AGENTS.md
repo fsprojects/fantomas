@@ -40,6 +40,7 @@ dotnet test --filter "test-name"        # Run specific test
 dotnet fsi build.fsx -p FormatChanged   # Format changes
 dotnet fsi build.fsx                    # Full build and test (use for final verification)
 dotnet fsi build.fsx -p FormatAll       # Format all files
+dotnet fsi build.fsx -- -p Analyze      # Run code analyzers
 ```
 
 ## Project Structure
@@ -149,6 +150,9 @@ dotnet fsi build.fsx -p FormatChanged
 
 # Setup git hooks
 dotnet fsi build.fsx -p EnsureRepoConfig
+
+# Run code analyzers
+dotnet fsi build.fsx -- -p Analyze
 ```
 
 ## Core Architecture
