@@ -1086,3 +1086,27 @@ namespace ``G-Research``.``FSharp X``.``Analyzers Y``
 module StringAnalyzers =
     ()
 """
+
+[<Test>]
+let ``hash directives around access modifier in module, 3188`` () =
+    formatSourceString
+        """
+[<RequireQualifiedAccess>]
+module
+    #if !MCP
+    internal
+    #endif
+        Fantomas.Core.CodeFormatterImpl
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<RequireQualifiedAccess>]
+module
+#if !MCP
+    internal
+#endif
+        Fantomas.Core.CodeFormatterImpl
+"""

@@ -4052,9 +4052,24 @@ let genModule (m: ModuleOrNamespaceNode) =
              +> genAttributes header.Attributes
              +> genMultipleTextsNode header.LeadingKeyword
              +> sepSpace
-             +> genAccessOpt header.Accessibility
+             +> optSingle
+                 (fun (accessibility: SingleTextNode) ->
+                     let hasTriviaBeforeAccess = accessibility.HasContentBefore
+
+                     onlyIf hasTriviaBeforeAccess indent
+                     +> genSingleTextNode accessibility
+                     +> sepSpace
+                     +> onlyIf hasTriviaBeforeAccess unindent)
+                 header.Accessibility
              +> onlyIf header.IsRecursive (sepSpace +> !-"rec" +> sepSpace)
-             +> optSingle genIdentListNode header.Name
+             +> optSingle
+                 (fun (name: IdentListNode) ->
+                     let hasTriviaBeforeName = name.HasContentBefore
+
+                     onlyIf hasTriviaBeforeName (indent +> indent)
+                     +> genIdentListNode name
+                     +> onlyIf hasTriviaBeforeName (unindent +> unindent))
+                 header.Name
              |> genNode header)
             +> newline)
         m.Header
