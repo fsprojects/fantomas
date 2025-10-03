@@ -35,9 +35,10 @@ Fantomas is an F# code formatter that transforms F# source code into a standardi
 
 ```bash
 # Most common commands for LLMs
-dotnet fsi build.fsx                    # Build and test
-dotnet fsi build.fsx -p FormatChanged   # Format changes
+dotnet build                            # Quick build check (use during development)
 dotnet test --filter "test-name"        # Run specific test
+dotnet fsi build.fsx -p FormatChanged   # Format changes
+dotnet fsi build.fsx                    # Full build and test (use for final verification)
 dotnet fsi build.fsx -p FormatAll       # Format all files
 ```
 
@@ -118,14 +119,17 @@ dotnet fsi build.fsx
 ### 3. Testing
 
 ```bash
-# Run all tests
-dotnet fsi build.fsx
+# Quick build check during development
+dotnet build
 
 # Run specific test
 dotnet test src/Fantomas.Core.Tests/ --filter "test-name"
 
 # Format changed files
 dotnet fsi build.fsx -p FormatChanged
+
+# Full build and test (use for final verification)
+dotnet fsi build.fsx
 ```
 
 ### 4. Build Commands
@@ -170,6 +174,13 @@ dotnet fsi build.fsx -p EnsureRepoConfig
 - **WriterEvents**: Capture formatting actions (indent, newline, text)
 - **WriterModel**: Track current state (column, indentation level)
 - **Config**: Formatting configuration options
+
+#### Indentation System
+- **Indentation Events**: `IndentBy`, `UnIndentBy`, `SetIndent`, `RestoreIndent`
+- **Column Tracking**: `AtColumn` helps maintain alignment at specific positions
+- **Critical Rule**: Indentation only takes effect after `WriteLine`/`WriteLineBecauseOfTrivia` events
+- **Common Pattern**: `indent` → `sepNln` → content → `unindent`
+- **Helper Functions**: `indentSepNlnUnindent`, `atCurrentColumn`, `atCurrentColumnIndent`
 
 #### Trivia System
 - **ContentBefore/ContentAfter**: Attach comments and directives to nodes
@@ -266,6 +277,62 @@ let ``descriptive test name, issue-number`` () =
 - Breakpoints in CodePrinter show function composition, not execution
 - Check WriterEvents to understand formatting decisions
 - Use MCP tools to test formatting in real-time
+
+### Understanding Indentation
+
+Indentation in Fantomas is **deferred** - it only takes effect after newline events:
+
+```fsharp
+// This pattern is very common in CodePrinter:
+indent +> sepNln +> content +> unindent
+
+// Or using the helper:
+indentSepNlnUnindent content
+```
+
+**Key Points:**
+- `indent` adds an `IndentBy` event to the context
+- The actual indentation only applies when `WriteLine`/`WriteLineBecauseOfTrivia` events are processed
+- `WriterModel.update` in `Context.fs` handles this by setting `Indent = max m.Indent m.AtColumn` on newlines
+- Always pair `indent` with `unindent` to avoid indentation drift
+- Use `atCurrentColumn` and `atCurrentColumnIndent` for fixed column positioning
+
+**Example from CodePrinterHelperFunctionsTests.fs:**
+```fsharp
+let g = !-"first line" +> indent +> sepNln +> !-"second line" +> unindent
+// Result: "first line\n    second line"
+```
+
+### Understanding genNode and Trivia Processing
+
+The `genNode` function is crucial for understanding how indentation interacts with trivia:
+
+```fsharp
+let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) =
+    enterNode n +> recordCursorNode f n +> leaveNode n
+
+let enterNode<'n when 'n :> Node> (n: 'n) =
+    col sepNone n.ContentBefore (genTrivia n)
+```
+
+**Critical Understanding:**
+- `genNode` processes `ContentBefore` trivia first, then runs the function, then `ContentAfter` trivia
+- `genTrivia` handles directives and comments, often emitting `sepNlnForTrivia` events
+- **Trivia processing can override indentation**: When `genTrivia` processes directives, it may emit newline events that apply indentation before your intended content
+- This is why `indentSepNlnUnindent` patterns can fail when nodes have trivia - the trivia emits newlines that consume the indentation
+
+**Common Issue Pattern:**
+```fsharp
+// This fails when node has ContentBefore trivia:
+indentSepNlnUnindent (genIdentListNode node)
+// Because genIdentListNode calls genNode, which processes trivia first
+// The trivia emits newlines that apply indentation before the module name
+```
+
+**Solution Approaches:**
+1. **Bypass genNode**: Write content directly without trivia processing
+2. **Handle trivia separately**: Process trivia before applying indentation
+3. **Use different indentation strategy**: Apply indentation at a different level in the tree
 
 ## MCP Tools
 
@@ -474,7 +541,7 @@ if not errors.IsEmpty then
 ```bash
 # 1. Setup
 git checkout -b fix-3188
-dotnet fsi build.fsx
+dotnet build
 
 # 2. Write test
 # Add test to ModuleTests.fs
@@ -484,7 +551,7 @@ dotnet fsi build.fsx
 
 # 4. Test and verify
 dotnet test src/Fantomas.Core.Tests/ --filter "3188"
-dotnet fsi build.fsx
+dotnet build
 
 # 5. Format changes
 dotnet fsi build.fsx -p FormatChanged
