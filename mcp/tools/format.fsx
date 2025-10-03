@@ -148,10 +148,7 @@ open Fantomas.Core
 module OakPrinter =
     open Thoth.Json.Core
     open Thoth.Json.System.Text.Json
-    open Fantomas.FCS.Diagnostics
     open Fantomas.FCS.Text
-    open Fantomas.FCS.Parse
-    open Fantomas.Core
     open Fantomas.Core.SyntaxOak
 
     let encodeRange (m: range) =
@@ -228,6 +225,11 @@ async {
     | ParseException(diags) -> MCPEvents.addEvent (MCPEvents.EventKind.ParseFailed(diags))
     | ex -> MCPEvents.addEvent (MCPEvents.EventKind.UnExpectedExceptionHappened(ex))
 
+    let! isValid =
+        match formatted with
+        | None -> async { return false }
+        | Some(formattedCode) -> CodeFormatter.IsValidFSharpCodeAsync(isSignature, formattedCode)
+
     let events =
         MCPEvents.capturedEvents
         |> Seq.map (fun event ->
@@ -244,7 +246,8 @@ async {
 
     let formatted = formatted |> Option.defaultValue "<no result>"
 
-    printfn $"Events:\n---\n{events}\n---\n\nFormatted code:\n---\n{formatted}---"
+    printfn
+        $"Events:\n---\n{events}\n---\n\nResult is valid F# code: {isValid}\n---\n\nFormatted code:\n---\n{formatted}---"
 }
 |> Async.RunSynchronously
 

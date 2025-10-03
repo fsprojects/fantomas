@@ -59,6 +59,7 @@ type FantomasMcpServer() = //as this =
 The ultimate Fantomas debug tool. 
 This format the input code with a locally built Fantomas.Core and will report detailed events of what happened during this formatting process.
 This will give key insight of how the F# source code was transformed to Untyped AST, Syntax Oak, what trivia was collected and what writer events were produced.
+It will also will also let you know if the formatted code was still valid F# code!
 Upon invocation this tool will try and compile the local codebase so that the latest code changes are reflected.
 If the build did not succeed, an the build error will be reported.
     """)>]
