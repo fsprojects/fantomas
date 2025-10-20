@@ -10,17 +10,17 @@ This is the changelog for the Fantomas.Client package specifically. It's distinc
 ## [0.9.1] - 2024-08-19
 
 ### Fixed
-- Fantomas.Client does not respect DOTNET_CLI_HOME env variable. [\#3104](https://github.com/fsprojects/fantomas/issues/3104)
+- Fantomas.Client does not respect DOTNET_CLI_HOME env variable. [#3104](https://github.com/fsprojects/fantomas/issues/3104)
 
 ## [0.9.0] - 2023-02-24
 
 ### Fixed
-- Fix JSON serialization of new cursor API. [\#2778](https://github.com/fsprojects/fantomas/issues/2778)
+- Fix JSON serialization of new cursor API. [#2778](https://github.com/fsprojects/fantomas/issues/2778)
 
 ## [0.8.0] - 2023-01-24
 
 ### Changed
-- Initial cursor API. [\#2739](https://github.com/fsprojects/fantomas/pull/2739)
+- Initial cursor API. [#2739](https://github.com/fsprojects/fantomas/pull/2739)
 
 ## [0.7.0] - 2022-11-09
 
@@ -35,16 +35,16 @@ This is the changelog for the Fantomas.Client package specifically. It's distinc
 ## [0.5.4] - 2022-05-06
 
 ### Changed
-- FSharp.Core 5.0.1 or higher. [\#2227](https://github.com/fsprojects/fantomas/pull/2227)
+- FSharp.Core 5.0.1 or higher. [#2227](https://github.com/fsprojects/fantomas/pull/2227)
 
 ## [0.5.3] - 2022-05-06
 
 ### Changed
-- Lower StreamJsonRpc to match 2.8.28. [\#2227](https://github.com/fsprojects/fantomas/pull/2227)
+- Lower StreamJsonRpc to match 2.8.28. [#2227](https://github.com/fsprojects/fantomas/pull/2227)
 
 ## [0.5.2] - 2022-05-06
 
 ### Fixed
-- Include prerelease when verifying a compatible version. [\#2227](https://github.com/fsprojects/fantomas/pull/2227)
+- Include prerelease when verifying a compatible version. [#2227](https://github.com/fsprojects/fantomas/pull/2227)
 
 ## [0.5.1] - 2022-02-01

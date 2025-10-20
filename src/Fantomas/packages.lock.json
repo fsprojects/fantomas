@@ -56,9 +56,9 @@
       },
       "Ionide.KeepAChangelog.Tasks": {
         "type": "Direct",
-        "requested": "[0.3.0, )",
-        "resolved": "0.3.0",
-        "contentHash": "hHyUItpnkq16G5Crwx/I1lnBDoZ///hHo/s0mSRB1MiX7fFHCN0xWk6XnvMPXry4fgBii7UFNkMcc6a6rUrYQQ=="
+        "requested": "[0.3.1, )",
+        "resolved": "0.3.1",
+        "contentHash": "xjLncTEPyaspNrFC5C21xU8QqjXl8KuVE9k/mqmdPEk+dmTY4MR0WMmrUKsY/JfSlnkLuCQDzZhSYAaYEHTvbQ=="
       },
       "Serilog": {
         "type": "Direct",
