@@ -123,6 +123,45 @@ let private (|CompatibleTool|_|) lines =
 
 let private isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 
+/// Validates that an executable path is safe to execute
+/// Prevents arbitrary code execution by ensuring the file:
+/// 1. Exists
+/// 2. Is named 'fantomas' or 'fantomas-tool' (with optional .exe)
+/// 3. Is not in suspicious locations (temp directories, user input paths)
+let private validateExecutablePath (path: string) : bool =
+    try
+        if String.IsNullOrWhiteSpace path then
+            false
+        else
+            let fileName = Path.GetFileName(path).ToLowerInvariant()
+            let directory = Path.GetDirectoryName path
+
+            // Only allow known fantomas executable names
+            let validNames =
+                [ "fantomas"; "fantomas.exe"; "fantomas-tool"; "fantomas-tool.exe" ]
+
+            let isValidName = List.contains fileName validNames
+
+            // Block suspicious directories
+            let suspiciousPatterns =
+                [ Path.GetTempPath().ToLowerInvariant()
+                  Environment.GetFolderPath(Environment.SpecialFolder.InternetCache).ToLowerInvariant()
+                  "\\temp\\"
+                  "/tmp/"
+                  "\\downloads\\"
+                  "/downloads/" ]
+
+            let isSuspiciousLocation =
+                suspiciousPatterns
+                |> List.exists (fun pattern ->
+                    not (String.IsNullOrEmpty pattern)
+                    && directory.ToLowerInvariant().Contains pattern)
+
+            // File must exist and not be in suspicious location
+            isValidName && File.Exists path && not isSuspiciousLocation
+    with _ ->
+        false
+
 // Find an executable fantomas file on the PATH
 let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option =
     let fantomasExecutableOnPathOpt =
@@ -149,26 +188,30 @@ let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion
 
     fantomasExecutableOnPathOpt
     |> Option.bind (fun fantomasExecutablePath ->
-        let processStart = ProcessStartInfo(fantomasExecutablePath)
-        processStart.Arguments <- "--version"
-        processStart.RedirectStandardOutput <- true
-        processStart.CreateNoWindow <- true
-        processStart.RedirectStandardOutput <- true
-        processStart.RedirectStandardError <- true
-        processStart.UseShellExecute <- false
+        // SECURITY: Validate executable path before executing
+        if not (validateExecutablePath fantomasExecutablePath) then
+            None
+        else
+            let processStart = ProcessStartInfo(fantomasExecutablePath)
+            processStart.Arguments <- "--version"
+            processStart.RedirectStandardOutput <- true
+            processStart.CreateNoWindow <- true
+            processStart.RedirectStandardOutput <- true
+            processStart.RedirectStandardError <- true
+            processStart.UseShellExecute <- false
 
-        match startProcess processStart with
-        | Ok p ->
-            p.WaitForExit()
-            let stdOut = p.StandardOutput.ReadToEnd()
+            match startProcess processStart with
+            | Ok p ->
+                p.WaitForExit()
+                let stdOut = p.StandardOutput.ReadToEnd()
 
-            stdOut
-            |> Option.ofObj
-            |> Option.map (fun s ->
-                let version = s.ToLowerInvariant().Replace("fantomas", String.Empty).Trim()
-                FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(version))
-        | Error(ProcessStartError.ExecutableFileNotFound _)
-        | Error(ProcessStartError.UnExpectedException _) -> None)
+                stdOut
+                |> Option.ofObj
+                |> Option.map (fun s ->
+                    let version = s.ToLowerInvariant().Replace("fantomas", String.Empty).Trim()
+                    FantomasExecutableFile fantomasExecutablePath, FantomasVersion version)
+            | Error(ProcessStartError.ExecutableFileNotFound _)
+            | Error(ProcessStartError.UnExpectedException _) -> None)
 
 let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasToolError> =
     // First try and find a local tool for the folder.
@@ -217,6 +260,17 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
             ps.Arguments <- "--daemon"
             ps
         | FantomasToolStartInfo.ToolOnPath(FantomasExecutableFile executableFile) ->
+            // SECURITY: Validate executable path before starting daemon
+            if not (validateExecutablePath executableFile) then
+                return
+                    Error(
+                        ProcessStartError.UnExpectedException(
+                            executableFile,
+                            "--daemon",
+                            "Executable path failed security validation. Only known fantomas executables in trusted locations are allowed."
+                        )
+                    )
+
             let ps = ProcessStartInfo(executableFile)
             ps.Arguments <- "--daemon"
             ps
