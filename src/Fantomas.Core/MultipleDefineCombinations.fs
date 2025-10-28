@@ -139,7 +139,7 @@ type FragmentWeaverState =
 
 let stringBuilderResult (builder: StringBuilder) = builder.ToString()
 
-let hashRegex = @"^\s*#(if|elseif|else|endif).*"
+let hashRegex = Regex(@"^\s*#(if|elseif|else|endif).*")
 
 /// Split the given `source` into the matching `CodeFragments`.
 let splitWhenHash (defines: DefineCombination) (newline: string) (source: string) : CodeFragment list =
@@ -154,7 +154,7 @@ let splitWhenHash (defines: DefineCombination) (newline: string) (source: string
 
     (SplitHashState.Zero, lines)
     ||> Array.fold (fun acc line ->
-        if Regex.IsMatch(line, hashRegex) then
+        if hashRegex.IsMatch line then
             // Only add the previous fragment if it had content
             match acc.LastLineInfo with
             | LastLineInfo.None -> ()
