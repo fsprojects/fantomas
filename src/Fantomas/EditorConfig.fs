@@ -116,14 +116,30 @@ let configToEditorConfig (config: FormatConfig) : string =
 
 let editorConfigParser = EditorConfigParser(EditorConfigFileCache.GetOrCreate)
 
-let tryReadConfiguration (fsharpFile: string) : FormatConfig option =
-    let editorConfigSettings: FileConfiguration =
-        editorConfigParser.Parse(fileName = fsharpFile)
+// Cache parsed configurations by directory to avoid N+1 parsing
+// Uses System.IO.Path.GetDirectoryName to group files by directory
+let private configCache =
+    System.Collections.Concurrent.ConcurrentDictionary<string, FormatConfig option>()
 
-    if editorConfigSettings.Properties.Count = 0 then
-        None
-    else
-        Some(parseOptionsFromEditorConfig FormatConfig.Default editorConfigSettings.Properties)
+let tryReadConfiguration (fsharpFile: string) : FormatConfig option =
+    // Cache key: directory path (files in same directory share same .editorconfig)
+    let directory = System.IO.Path.GetDirectoryName fsharpFile
+
+    configCache.GetOrAdd(
+        directory,
+        fun _ ->
+            let editorConfigSettings: FileConfiguration =
+                editorConfigParser.Parse(fileName = fsharpFile)
+
+            if editorConfigSettings.Properties.Count = 0 then
+                None
+            else
+                Some(parseOptionsFromEditorConfig FormatConfig.Default editorConfigSettings.Properties)
+    )
 
 let readConfiguration (fsharpFile: string) : FormatConfig =
     tryReadConfiguration fsharpFile |> Option.defaultValue FormatConfig.Default
+
+// Utility to clear cache if needed (e.g., when .editorconfig changes)
+// However typically fantomas is not too-long running process.
+let clearConfigurationCache () = configCache.Clear()
