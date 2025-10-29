@@ -85,12 +85,11 @@ let private runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Resu
             Error(DotNetToolListError.ExitCodeNonZero(ps.FileName, ps.Arguments, exitCode, error))
     | Error err -> Error(DotNetToolListError.ProcessStartError err)
 
+let private packageSidVersionRegex = Regex(@"^Package\sId\s+Version.+$")
+
 let private (|CompatibleTool|_|) lines =
     let (|HeaderLine|_|) line =
-        if Regex.IsMatch(line, @"^Package\sId\s+Version.+$") then
-            Some()
-        else
-            None
+        if packageSidVersionRegex.IsMatch line then Some() else None
 
     let (|Dashes|_|) line =
         if String.forall ((=) '-') line then Some() else None

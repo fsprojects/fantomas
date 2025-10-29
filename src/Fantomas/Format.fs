@@ -43,6 +43,8 @@ type CheckResult =
 
 module Format =
 
+    let private formatR = System.Text.RegularExpressions.Regex(@"\r")
+
     let private formatContentInternalAsync
         (formatParams: FormatParams)
         (originalContent: string)
@@ -91,8 +93,7 @@ module Format =
 
                     let contentChanged =
                         if formatParams.CompareWithoutLineEndings then
-                            let stripNewlines (s: string) =
-                                System.Text.RegularExpressions.Regex.Replace(s, @"\r", String.Empty)
+                            let stripNewlines (s: string) = formatR.Replace(s, String.Empty)
 
                             (stripNewlines originalContent) <> (stripNewlines formattedContent)
                         else
