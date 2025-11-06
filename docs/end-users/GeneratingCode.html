@@ -299,6 +299,11 @@ In simple scenarios this can work out, but in the long run it doesn't scale well
 <li>It is easier to map your domain model to untyped syntax tree nodes and let Fantomas take care of the actual generation of code.</li>
 </ul>
 <p><strong>For mercy's sake don't use string concatenation when generating F# code, use Fantomas instead. It is battle tested and proven technology!</strong></p>
+<h2><a name="Consider-using-Fabulous-AST" class="anchor" href="#Consider-using-Fabulous-AST">Consider using Fabulous.AST</a></h2>
+<p>If you're looking to generate F# code programmatically, you might want to check out <a href="https://edgarfgp.github.io/Fabulous.AST/">Fabulous.AST</a> first.<br />
+Fabulous.AST provides a more user-friendly DSL built on top of Fantomas Oak AST, dramatically reducing the boilerplate code required to generate F# code.<br />
+It offers a concise and easier-to-use API compared to constructing Oak nodes directly, which can be quite verbose.</p>
+<p>The rest of this page documents how to work with Fantomas Oak AST directly, which is useful if you need more control or want to understand the underlying structure.</p>
 <h2><a name="Generating-source-code-from-scratch" class="anchor" href="#Generating-source-code-from-scratch">Generating source code from scratch</a></h2>
 <h3><a name="Example-syntax-tree" class="anchor" href="#Example-syntax-tree">Example syntax tree</a></h3>
 <p>To illustrate the API, lets generate a simple value binding: <code>let a = 0</code>.</p>
@@ -690,6 +695,11 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
   <li class="level-2">
     <a href="#Key-motivation">
       Key motivation
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Consider-using-Fabulous-AST">
+      Consider using Fabulous.AST
     </a>
   </li>
   <li class="level-2">
