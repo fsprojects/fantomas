@@ -12,6 +12,11 @@ Fantomas tries to adhere to two F# style guides:
 By default Fantomas  will format the code according to the Microsoft guide.   
 The benefit of these guides is that this allows us, as the F# community, to write code in the same manner.  
 
+## How Fantomas formats code
+
+Fantomas rewrites the entire source text after formatting. Think of it like a word document: Fantomas will re-type your entire text according to its rules in a new file.  
+It does not modify the original text. This approach ensures complete consistency and adherence to the formatting rules, but it means that all formatting decisions are made by Fantomas according to its opinionated style guide.
+
 ## Let it go
 
 If you are not used to having a code formatter, you might struggle a bit at first. A part of using a code formatter is about letting go how you wrote things and accept a common consistent style instead.  

@@ -25,6 +25,16 @@ In simple scenarios this can work out, but in the long run it doesn't scale well
 *)
 
 (**
+## Consider using Fabulous.AST
+
+If you're looking to generate F# code programmatically, you might want to check out [Fabulous.AST](https://edgarfgp.github.io/Fabulous.AST/) first.  
+Fabulous.AST provides a more user-friendly DSL built on top of Fantomas Oak AST, dramatically reducing the boilerplate code required to generate F# code.  
+It offers a concise and easier-to-use API compared to constructing Oak nodes directly, which can be quite verbose.
+
+The rest of this page documents how to work with Fantomas Oak AST directly, which is useful if you need more control or want to understand the underlying structure.
+*)
+
+(**
 ## Generating source code from scratch
 
 ### Example syntax tree
