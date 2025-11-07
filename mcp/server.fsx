@@ -23,6 +23,9 @@ let fantomasCoreFsproj =
 let formatScript =
     Path.Combine(repositoryRoot, "mcp", "tools", "format.fsx") |> Path.GetFullPath
 
+let astScript =
+    Path.Combine(repositoryRoot, "mcp", "tools", "ast.fsx") |> Path.GetFullPath
+
 let buildCodebase () =
     task {
         let! buildResult =
@@ -77,6 +80,40 @@ If the build did not succeed, an the build error will be reported.
                             [|
                                 yield "fsi"
                                 yield formatScript
+                                if isSignature then
+                                    yield "--"
+                                    yield "--signature"
+                            |]
+                        )
+                        .WithStandardInputPipe(PipeSource.FromStream inputStream)
+                        .ExecuteBufferedAsync()
+                        .Task
+
+                return result.StandardOutput
+        }
+
+    [<McpServerTool;
+      Description("""
+Parse F# source code to untyped AST (not Oak).
+This tool parses the input code and returns the untyped F# AST along with any parse errors or diagnostics.
+Useful for understanding how the F# compiler parses code before it gets transformed to Oak.
+Upon invocation this tool will try and compile the local codebase so that the latest code changes are reflected.
+If the build did not succeed, the build error will be reported.
+    """)>]
+    member this.ParseAST(sourceCode: string, isSignature: bool) =
+        task {
+            match! buildCodebase () with
+            | Error(error) -> return error
+            | Ok() ->
+                let inputStream = new MemoryStream(Encoding.UTF8.GetBytes(sourceCode))
+
+                let! result =
+                    Cli
+                        .Wrap("dotnet")
+                        .WithArguments(
+                            [|
+                                yield "fsi"
+                                yield astScript
                                 if isSignature then
                                     yield "--"
                                     yield "--signature"
