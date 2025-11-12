@@ -2557,7 +2557,7 @@ let mkTypeDefn
                     else
                         match ats with
                         | [] -> leadingKeyword.Range
-                        | firstAttr :: _ -> firstAttr.Range
+                        | firstAttr :: _ -> unionRanges leadingKeyword.Range firstAttr.Range
 
                 let endRange =
                     match trivia.EqualsRange with

@@ -299,6 +299,40 @@ let genOnelinerAttributes (n: MultipleAttributeListNode option) =
 
         ifElse ats.IsEmpty sepNone (genAttrs +> sepSpace)
 
+let partitionOn splitBefore splitAfter items =
+    let folder acc item =
+        match acc with
+        | [] -> [ [ item ] ]
+        | (lastItem :: _ as currentGroup) :: restGroups when splitAfter lastItem ->
+            [ item ] :: currentGroup :: restGroups
+        | currentGroup :: restGroups when splitBefore item -> [ item ] :: currentGroup :: restGroups
+        | currentGroup :: restGroups -> (item :: currentGroup) :: restGroups
+
+    items |> List.fold folder [] |> List.map List.rev |> List.rev
+
+let genCompactedAttributes (n: MultipleAttributeListNode option) =
+    match n with
+    | None -> sepNone
+    | Some n ->
+        let attributeLists =
+            n.AttributeLists |> partitionOn (_.HasContentBefore) (_.HasContentAfter)
+
+        col sepNone attributeLists (fun (al) ->
+            let ats = al |> List.collect _.Attributes
+
+            let openingToken =
+                List.tryHead al |> Option.map (fun (a: AttributeListNode) -> a.Opening)
+
+            let closingToken =
+                List.tryLast al |> Option.map (fun (a: AttributeListNode) -> a.Closing)
+
+            optSingle genSingleTextNode openingToken
+            +> (genAttributesCore ats)
+            +> optSingle genSingleTextNode closingToken
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty
+            |> genNode (al |> List.head))
+        |> genNode n
+
 let genAttributes (node: MultipleAttributeListNode option) =
     match node with
     | None -> sepNone
@@ -3455,6 +3489,7 @@ let hasTriviaAfterLeadingKeyword (identifier: IdentListNode) (accessibility: Sin
         | _ -> false
 
     let beforeIdentifier = identifier.HasContentBefore
+
     beforeAccess || beforeIdentifier
 
 let genTypeDefn (td: TypeDefn) =
@@ -3469,16 +3504,28 @@ let genTypeDefn (td: TypeDefn) =
         let hasTriviaAfterLeadingKeyword =
             hasTriviaAfterLeadingKeyword typeName.Identifier typeName.Accessibility
 
+        let hasTriviaInAttributes =
+            match typeName.Attributes with
+            | Some attributes ->
+                attributes.HasContentBefore
+                || attributes.HasContentAfter
+                || attributes.AttributeLists
+                   |> List.exists (fun a -> a.HasContentBefore || a.HasContentAfter)
+            | None -> false
+
+        let shouldIndent =
+            hasTriviaAfterLeadingKeyword || (hasAndKeyword && hasTriviaInAttributes)
+
         genXml typeName.XmlDoc
         +> onlyIfNot hasAndKeyword (genAttributes typeName.Attributes)
         +> genSingleTextNode typeName.LeadingKeyword
-        +> onlyIf hasTriviaAfterLeadingKeyword indent
-        +> onlyIf hasAndKeyword (sepSpace +> genOnelinerAttributes typeName.Attributes)
+        +> onlyIf shouldIndent indent
+        +> onlyIf hasAndKeyword (sepSpace +> genCompactedAttributes typeName.Attributes)
         +> sepSpace
         +> genAccessOpt typeName.Accessibility
         +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
         +> onlyIfNot typeName.Constraints.IsEmpty (sepSpace +> genTypeConstraints typeName.Constraints)
-        +> onlyIf hasTriviaAfterLeadingKeyword unindent
+        +> onlyIf shouldIndent unindent
         +> leadingExpressionIsMultiline
             (optSingle
                 (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor)
