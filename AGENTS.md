@@ -562,7 +562,7 @@ dotnet build
 # Modify CodePrinter.fs
 
 # 4. Test and verify
-dotnet test src/Fantomas.Core.Tests/ --filter "3188"
+dotnet test src/Fantomas.Core.Tests/ --filter "Name~3188"
 dotnet build
 
 # 5. Format changes
