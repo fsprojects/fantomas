@@ -1070,25 +1070,11 @@ type ExprLetOrUseBangNode(leadingKeyword: SingleTextNode, pat: Pattern, equals: 
     member val Equals = equals
     member val Expression = expr
 
-type ExprAndBang(leadingKeyword: SingleTextNode, pat: Pattern, equals: SingleTextNode, expr: Expr, range) =
-    inherit NodeBase(range)
-
-    override val Children: Node array =
-        [| yield leadingKeyword
-           yield Pattern.Node pat
-           yield equals
-           yield Expr.Node expr |]
-
-    member val LeadingKeyword = leadingKeyword
-    member val Pattern = pat
-    member val Equals = equals
-    member val Expression = expr
-
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type ComputationExpressionStatement =
     | LetOrUseStatement of ExprLetOrUseNode
     | LetOrUseBangStatement of ExprLetOrUseBangNode
-    | AndBangStatement of ExprAndBang
+    | AndBangStatement of BindingNode
     | OtherStatement of Expr
 
     static member Node(ces: ComputationExpressionStatement) : Node =

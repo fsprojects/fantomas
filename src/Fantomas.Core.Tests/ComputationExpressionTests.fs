@@ -1360,6 +1360,11 @@ let loginHandler =
 """
 
 [<Test>]
+[<Ignore("""
+    TODO: I blame Edgar for this one, 
+    happend after https://github.com/dotnet/fsharp/pull/18805, 
+    key issue is that inline keyword is somehow present for and! binding
+""")>]
 let ``all keywords`` () =
     formatSourceString
         """

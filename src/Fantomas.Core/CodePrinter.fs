@@ -663,15 +663,7 @@ let genExpr (e: Expr) =
 
                     ColMultilineItem(expr, sepNlnUnlessContentBefore node)
                 | ComputationExpressionStatement.AndBangStatement node ->
-                    let expr =
-                        genSingleTextNode node.LeadingKeyword
-                        +> sepSpace
-                        +> genPat node.Pattern
-                        +> sepSpace
-                        +> genSingleTextNode node.Equals
-                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
-                        |> genNode node
-
+                    let expr = genBinding node
                     ColMultilineItem(expr, sepNlnUnlessContentBefore node)
                 | ComputationExpressionStatement.OtherStatement e ->
                     ColMultilineItem(genExpr e, sepNlnUnlessContentBefore (Expr.Node e)))
@@ -2831,7 +2823,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
     let isRecursiveLetOrUseFunction =
         match b.LeadingKeyword.Content with
-        | [ singleText ] -> singleText.Text = "and"
+        | [ singleText ] -> singleText.Text = "and" || singleText.Text = "and!"
         | _ -> false
 
     let binding =

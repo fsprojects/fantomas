@@ -349,18 +349,29 @@ let rec collectComputationExpressionStatements
 
         let andBangs =
             andBangs
-            |> List.map
-                (fun
-                    (SynExprAndBang(_,
-                                    _,
-                                    _,
-                                    ap,
-                                    ae,
-                                    m,
-                                    { AndBangKeyword = mAnd
-                                      EqualsRange = mEq })) ->
-                    ExprAndBang(stn "and!" mAnd, mkPat creationAide ap, stn "=" mEq, mkExpr creationAide ae, m)
-                    |> ComputationExpressionStatement.AndBangStatement)
+            |> List.map (fun binding ->
+                let bindingNode = mkBinding creationAide binding
+                // let SynBinding(trivia = { LeadingKeyword = lk }) = binding is "and" and not "and!"
+
+                BindingNode(
+                    bindingNode.XmlDoc,
+                    bindingNode.Attributes,
+                    MultipleTextsNode(
+                        [ stn "and!" bindingNode.LeadingKeyword.Range ],
+                        bindingNode.LeadingKeyword.Range
+                    ),
+                    bindingNode.IsMutable,
+                    bindingNode.Inline,
+                    bindingNode.Accessibility,
+                    bindingNode.FunctionName,
+                    bindingNode.GenericTypeParameters,
+                    bindingNode.Parameters,
+                    bindingNode.ReturnType,
+                    bindingNode.Equals,
+                    bindingNode.Expr,
+                    bindingNode.Range
+                )
+                |> ComputationExpressionStatement.AndBangStatement)
 
         collectComputationExpressionStatements creationAide body (fun bodyStatements ->
             [ letOrUseBang; yield! andBangs; yield! bodyStatements ] |> finalContinuation)

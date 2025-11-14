@@ -188,7 +188,6 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? ExprLambdaNode
     | :? ExprLetOrUseNode
     | :? ExprLetOrUseBangNode
-    | :? ExprAndBang
     | :? BindingNode
     | :? TypeDefnEnumNode
     | :? TypeDefnUnionNode
