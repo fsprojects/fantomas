@@ -2467,3 +2467,65 @@ A() {}
         """
 A() { }
 """
+
+[<Test>]
+let ``typed let bang expression`` () =
+    formatSourceString
+        """
+async {
+    let! { Name = name }: Person  = asyncPerson()
+    return name
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+async {
+    let! { Name = name }: Person = asyncPerson ()
+    return name
+}
+"""
+
+[<Test>]
+let ``unwrap union case in computation expression`` () =
+    formatSourceString
+        """
+async {
+    let! Union value = asyncOption()
+    ()
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+async {
+    let! Union value = asyncOption ()
+    ()
+}
+"""
+
+[<Test>]
+let ``typed and bang expression`` () =
+    formatSourceString
+        """
+async {
+    let! x: int = doX()
+    and! y: int = doY()
+    return x + y
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+async {
+    let! x: int = doX ()
+    and! y: int = doY ()
+    return x + y
+}
+"""
