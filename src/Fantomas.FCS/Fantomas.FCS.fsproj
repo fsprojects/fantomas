@@ -33,6 +33,12 @@
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\Activity.fs">
       <Link>Utilities\Activity.fs</Link>
     </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\Caches.fsi">
+      <Link>Utilities\Caches.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\Caches.fs">
+      <Link>Utilities\Caches.fs</Link>
+    </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\sformat.fsi">
       <Link>Utilities\sformat.fsi</Link>
     </Compile>

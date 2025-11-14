@@ -1647,7 +1647,9 @@ let private removeSubscription (log : ILogger) (req : HttpRequest) =
         return sendText "Subscription removed"
     }
 """
-        { config with SpaceBeforeColon = true }
+        { config with
+            SpaceBeforeColon = true
+            MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal

@@ -531,10 +531,10 @@ type PatNamedNode(accessibility: SingleTextNode option, name: SingleTextNode, ra
     member val Name = name
     member val Accessibility = accessibility
 
-type NamePatPair(ident: SingleTextNode, equals: SingleTextNode, pat: Pattern, range) =
+type NamePatPairNode(fieldName: IdentListNode, equals: SingleTextNode, pat: Pattern, range) =
     inherit NodeBase(range)
-    override val Children: Node array = [| yield ident; yield equals; yield Pattern.Node pat |]
-    member val Ident = ident
+    override val Children: Node array = [| yield fieldName; yield equals; yield Pattern.Node pat |]
+    member val FieldName = fieldName
     member val Equals = equals
     member val Pattern = pat
 
@@ -543,7 +543,7 @@ type PatNamePatPairsNode
         identifier: IdentListNode,
         typarDecls: TyparDecls option,
         openingParen: SingleTextNode,
-        pairs: NamePatPair list,
+        pairs: NamePatPairNode list,
         closingParen: SingleTextNode,
         range
     ) =
@@ -618,18 +618,7 @@ type PatArrayOrListNode(openToken: SingleTextNode, pats: Pattern list, closeToke
     member val Patterns = pats
     member val CloseToken = closeToken
 
-type PatRecordField
-    (prefix: IdentListNode option, fieldName: SingleTextNode, equals: SingleTextNode, pat: Pattern, range) =
-    inherit NodeBase(range)
-
-    override val Children: Node array = [| yield! noa prefix; yield fieldName; yield equals; yield Pattern.Node pat |]
-
-    member val Prefix = prefix
-    member val FieldName = fieldName
-    member val Equals = equals
-    member val Pattern = pat
-
-type PatRecordNode(openingNode: SingleTextNode, fields: PatRecordField list, closingNode: SingleTextNode, range) =
+type PatRecordNode(openingNode: SingleTextNode, fields: NamePatPairNode list, closingNode: SingleTextNode, range) =
     inherit NodeBase(range)
 
     override val Children: Node array = [| yield openingNode; yield! nodes fields; yield closingNode |]
@@ -1072,16 +1061,12 @@ type ExprLetOrUseBangNode(leadingKeyword: SingleTextNode, pat: Pattern, equals: 
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type ComputationExpressionStatement =
-    | LetOrUseStatement of ExprLetOrUseNode
-    | LetOrUseBangStatement of ExprLetOrUseBangNode
-    | AndBangStatement of BindingNode
+    | BindingStatement of ExprLetOrUseNode
     | OtherStatement of Expr
 
     static member Node(ces: ComputationExpressionStatement) : Node =
         match ces with
-        | LetOrUseStatement n -> n
-        | LetOrUseBangStatement n -> n
-        | AndBangStatement n -> n
+        | BindingStatement n -> n
         | OtherStatement o -> Expr.Node o
 
 type ExprCompExprBodyNode(statements: ComputationExpressionStatement list, range) =

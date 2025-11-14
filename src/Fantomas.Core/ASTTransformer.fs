@@ -298,10 +298,10 @@ let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range li
 /// Recursive and use properties have to be determined at this point
 let rec (|LetOrUses|_|) =
     function
-    | SynExpr.LetOrUse(_, _, xs, LetOrUses(ys, e), _, trivia) ->
+    | SynExpr.LetOrUse(bindings = xs; body = LetOrUses(ys, e); trivia = trivia) ->
         let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
         Some(xs' @ ys, e)
-    | SynExpr.LetOrUse(_, _, xs, e, _, trivia) ->
+    | SynExpr.LetOrUse(bindings = xs; body = e; trivia = trivia) ->
         let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
         Some(xs', e)
     | _ -> None
@@ -324,57 +324,10 @@ let rec collectComputationExpressionStatements
                     | Some mIn -> Some(stn "in" mIn), unionRanges b.Range mIn
 
                 ExprLetOrUseNode(b, inNode, m)
-                |> ComputationExpressionStatement.LetOrUseStatement)
+                |> ComputationExpressionStatement.BindingStatement)
 
         collectComputationExpressionStatements creationAide body (fun bodyStatements ->
             [ yield! bindings; yield! bodyStatements ] |> finalContinuation)
-    | SynExpr.LetOrUseBang(_,
-                           isUse,
-                           _,
-                           pat,
-                           expr,
-                           andBangs,
-                           body,
-                           StartRange 4 (mLeading, _m),
-                           { EqualsRange = Some mEq }) ->
-        let letOrUseBang =
-            ExprLetOrUseBangNode(
-                stn (if isUse then "use!" else "let!") mLeading,
-                mkPat creationAide pat,
-                stn "=" mEq,
-                mkExpr creationAide expr,
-                unionRanges mLeading expr.Range
-            )
-            |> ComputationExpressionStatement.LetOrUseBangStatement
-
-        let andBangs =
-            andBangs
-            |> List.map (fun binding ->
-                let bindingNode = mkBinding creationAide binding
-                // let SynBinding(trivia = { LeadingKeyword = lk }) = binding is "and" and not "and!"
-
-                BindingNode(
-                    bindingNode.XmlDoc,
-                    bindingNode.Attributes,
-                    MultipleTextsNode(
-                        [ stn "and!" bindingNode.LeadingKeyword.Range ],
-                        bindingNode.LeadingKeyword.Range
-                    ),
-                    bindingNode.IsMutable,
-                    bindingNode.Inline,
-                    bindingNode.Accessibility,
-                    bindingNode.FunctionName,
-                    bindingNode.GenericTypeParameters,
-                    bindingNode.Parameters,
-                    bindingNode.ReturnType,
-                    bindingNode.Equals,
-                    bindingNode.Expr,
-                    bindingNode.Range
-                )
-                |> ComputationExpressionStatement.AndBangStatement)
-
-        collectComputationExpressionStatements creationAide body (fun bodyStatements ->
-            [ letOrUseBang; yield! andBangs; yield! bodyStatements ] |> finalContinuation)
     | SynExpr.Sequential(expr1 = e1; expr2 = e2; trivia = trivia) ->
         let continuations
             : ((ComputationExpressionStatement list -> ComputationExpressionStatement list)
@@ -1192,7 +1145,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.Computation
 
     | SynExpr.LetOrUse _
-    | SynExpr.LetOrUseBang _
     | SynExpr.Sequential _ ->
         ExprCompExprBodyNode(collectComputationExpressionStatements creationAide e id, exprRange)
         |> Expr.CompExprBody
@@ -1767,14 +1719,14 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
 
         let pairs =
             nps
-            |> List.choose (fun (ident, eq, pat) ->
+            |> List.choose (fun (NamePatPairField(fieldName = fieldName; equalsRange = eq; pat = pat)) ->
                 eq
                 |> Option.map (fun eq ->
-                    NamePatPair(
-                        mkIdent ident,
+                    NamePatPairNode(
+                        mkSynLongIdent creationAide fieldName,
                         stn "=" eq,
                         mkPat creationAide pat,
-                        unionRanges ident.idRange pat.Range
+                        unionRanges fieldName.Range pat.Range
                     )))
 
         PatNamePatPairsNode(
@@ -1813,16 +1765,10 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     | SynPat.Record(fields, StartEndRange 1 (o, _, c)) ->
         let fields =
             fields
-            |> List.map (fun ((lid, ident), eq, pat) ->
-                let prefix = if lid.IsEmpty then None else Some(mkLongIdent lid)
-
-                let range =
-                    match prefix with
-                    | None -> unionRanges ident.idRange pat.Range
-                    | Some prefix -> unionRanges prefix.Range pat.Range
-
+            |> List.map (fun (NamePatPairField(fieldName = fieldName; equalsRange = eq; pat = pat) as np) ->
+                let range = np.Range // TODO: might be wrong unionRanges prefix.Range pat.Range
                 let eqNode = stn "=" (Option.defaultValue Range.range0 eq)
-                PatRecordField(prefix, mkIdent ident, eqNode, mkPat creationAide pat, range))
+                NamePatPairNode(mkSynLongIdent creationAide fieldName, eqNode, mkPat creationAide pat, range))
 
         PatRecordNode(stn "{" o, fields, stn "}" c, patternRange) |> Pattern.Record
     | SynPat.Const(c, r) -> mkConstant creationAide c r |> Pattern.Const
@@ -2410,9 +2356,12 @@ let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
 
     match lk with
     | SynLeadingKeyword.Let letRange -> mtn [ "let", letRange ]
+    | SynLeadingKeyword.LetBang letBangRange -> mtn [ "let!", letBangRange ]
     | SynLeadingKeyword.LetRec(letRange, recRange) -> mtn [ "let", letRange; "rec", recRange ]
     | SynLeadingKeyword.And andRange -> mtn [ "and", andRange ]
+    | SynLeadingKeyword.AndBang andBangRange -> mtn [ "and!", andBangRange ]
     | SynLeadingKeyword.Use useRange -> mtn [ "use", useRange ]
+    | SynLeadingKeyword.UseBang useBangRange -> mtn [ "use!", useBangRange ]
     | SynLeadingKeyword.UseRec(useRange, recRange) -> mtn [ "use", useRange; "rec", recRange ]
     | SynLeadingKeyword.Extern externRange -> mtn [ "extern", externRange ]
     | SynLeadingKeyword.Member memberRange -> mtn [ "member", memberRange ]
