@@ -3622,8 +3622,8 @@ let includeTrivia (baseRange: range) (trivia: ParsedInputTrivia) : range =
           yield!
               List.map
                   (function
-                  | WarnDirectiveTrivia.Nowarn(_, range)
-                  | WarnDirectiveTrivia.Warnon(_, range) -> range)
+                  | WarnDirectiveTrivia.Nowarn(range)
+                  | WarnDirectiveTrivia.Warnon(range) -> range)
                   trivia.WarnDirectives ]
 
     (baseRange, ranges)

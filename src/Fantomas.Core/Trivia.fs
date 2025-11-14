@@ -337,8 +337,8 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
             (parsedTrivia.ConditionalDirectives |> List.map _.Range)
             @ (parsedTrivia.WarnDirectives
                |> List.map (function
-                   | WarnDirectiveTrivia.Nowarn(_, m)
-                   | WarnDirectiveTrivia.Warnon(_, m) -> m))
+                   | WarnDirectiveTrivia.Nowarn(m)
+                   | WarnDirectiveTrivia.Warnon(m) -> m))
 
         let directives =
             collectTriviaFromDirectiveRanges sourceText directiveRanges fullTreeRange
