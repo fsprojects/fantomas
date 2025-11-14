@@ -136,12 +136,12 @@ type ConditionalDirectiveTrivia with
         | ConditionalDirectiveTrivia.Else m
         | ConditionalDirectiveTrivia.EndIf m -> m
 
-type WarnDirectiveTrivia with
+// type WarnDirectiveTrivia with
 
-    member x.Range =
-        match x with
-        | WarnDirectiveTrivia.Nowarn m
-        | WarnDirectiveTrivia.Warnon m -> m
+//     member x.Range =
+//         match x with
+//         | WarnDirectiveTrivia.Nowarn m
+//         | WarnDirectiveTrivia.Warnon m -> m
 
 let internal collectTriviaFromDirectiveRanges
     (source: ISourceText)
@@ -335,7 +335,10 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
 
         let directiveRanges =
             (parsedTrivia.ConditionalDirectives |> List.map _.Range)
-            @ (parsedTrivia.WarnDirectives |> List.map _.Range)
+            @ (parsedTrivia.WarnDirectives
+               |> List.map (function
+                   | WarnDirectiveTrivia.Nowarn(_, m)
+                   | WarnDirectiveTrivia.Warnon(_, m) -> m))
 
         let directives =
             collectTriviaFromDirectiveRanges sourceText directiveRanges fullTreeRange

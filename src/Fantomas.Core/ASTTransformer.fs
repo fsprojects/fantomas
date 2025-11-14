@@ -3618,11 +3618,12 @@ let includeTrivia (baseRange: range) (trivia: ParsedInputTrivia) : range =
                   | ConditionalDirectiveTrivia.Else(range = range)
                   | ConditionalDirectiveTrivia.EndIf(range = range) -> range)
                   trivia.ConditionalDirectives
+
           yield!
               List.map
                   (function
-                  | WarnDirectiveTrivia.Nowarn range
-                  | WarnDirectiveTrivia.Warnon range -> range)
+                  | WarnDirectiveTrivia.Nowarn(_, range)
+                  | WarnDirectiveTrivia.Warnon(_, range) -> range)
                   trivia.WarnDirectives ]
 
     (baseRange, ranges)
