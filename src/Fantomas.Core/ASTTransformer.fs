@@ -1276,7 +1276,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprNamedComputationNode(
             mkExpr creationAide expr,
             stn "{" mOpen,
-            Expr.Ident(stn "" Range.Zero),
+            Expr.Ident(stn "" Range.range0),
             stn "}" mClose,
             m
         )
@@ -1810,7 +1810,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
                     | None -> unionRanges ident.idRange pat.Range
                     | Some prefix -> unionRanges prefix.Range pat.Range
 
-                let eqNode = stn "=" (Option.defaultValue Range.Zero eq)
+                let eqNode = stn "=" (Option.defaultValue Range.range0 eq)
                 PatRecordField(prefix, mkIdent ident, eqNode, mkPat creationAide pat, range))
 
         PatRecordNode(stn "{" o, fields, stn "}" c, patternRange) |> Pattern.Record
@@ -3222,7 +3222,7 @@ let mkModuleOrNamespace
         | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
             match kind with
             | SynModuleOrNamespaceKind.GlobalNamespace ->
-                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.Zero ], mNamespace))
+                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.range0 ], mNamespace))
             | _ -> Some(MultipleTextsNode([ stn "namespace" mNamespace ], mNamespace))
         | SynModuleOrNamespaceLeadingKeyword.None -> None
 
@@ -3547,7 +3547,7 @@ let mkModuleOrNamespaceSig
         | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
             match kind with
             | SynModuleOrNamespaceKind.GlobalNamespace ->
-                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.Zero ], mNamespace))
+                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.range0 ], mNamespace))
             | _ -> Some(MultipleTextsNode([ stn "namespace" mNamespace ], mNamespace))
         | SynModuleOrNamespaceLeadingKeyword.None -> None
 
@@ -3639,7 +3639,7 @@ let mkSynModuleOrNamespaceFullRange (mn: SynModuleOrNamespace) =
     match mn with
     | SynModuleOrNamespace(kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
         match List.tryHead decls, List.tryLast decls with
-        | None, None -> Range.Zero
+        | None, None -> RangeHelpers.absoluteZeroRange
         | Some d, None
         | None, Some d -> d.Range
         | Some s, Some e -> unionRanges s.Range e.Range
@@ -3649,7 +3649,7 @@ let mkSynModuleOrNamespaceSigFullRange (mn: SynModuleOrNamespaceSig) =
     match mn with
     | SynModuleOrNamespaceSig(kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
         match List.tryHead decls, List.tryLast decls with
-        | None, None -> Range.Zero
+        | None, None -> RangeHelpers.absoluteZeroRange
         | Some d, None
         | None, Some d -> d.Range
         | Some s, Some e -> unionRanges s.Range e.Range
@@ -3665,13 +3665,13 @@ let mkFullTreeRange ast =
             | [] ->
                 match modules with
                 | m :: _ -> mkSynModuleOrNamespaceFullRange m
-                | _ -> Range.Zero
+                | _ -> RangeHelpers.absoluteZeroRange
 
         let endPos =
             match List.tryLast modules with
             | None ->
                 match List.tryLast directives with
-                | None -> Range.Zero
+                | None -> RangeHelpers.absoluteZeroRange
                 | Some(ParsedHashDirective(range = r)) -> r
             | Some lastModule -> mkSynModuleOrNamespaceFullRange lastModule
 
@@ -3685,13 +3685,13 @@ let mkFullTreeRange ast =
             | [] ->
                 match modules with
                 | m :: _ -> mkSynModuleOrNamespaceSigFullRange m
-                | _ -> Range.Zero
+                | _ -> RangeHelpers.absoluteZeroRange
 
         let endPos =
             match List.tryLast modules with
             | None ->
                 match List.tryLast directives with
-                | None -> Range.Zero
+                | None -> RangeHelpers.absoluteZeroRange
                 | Some(ParsedHashDirective(range = r)) -> r
             | Some lastModule -> mkSynModuleOrNamespaceSigFullRange lastModule
 

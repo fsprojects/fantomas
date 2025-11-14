@@ -344,7 +344,7 @@ let path =
 [<Test>]
 let ``backticks can be added from AST only scenarios`` () =
     let tree =
-        let testIdent = Ident("Test", Range.Zero)
+        let testIdent = Ident("Test", Range.range0)
 
         ParsedInput.ImplFile(
             ParsedImplFileInput(
@@ -360,19 +360,19 @@ let ``backticks can be added from AST only scenarios`` () =
                             SynExpr.LongIdent(
                                 false,
                                 SynLongIdent(
-                                    [ Ident("new", Range.Zero) ],
+                                    [ Ident("new", Range.range0) ],
                                     [],
                                     [ Some(IdentTrivia.OriginalNotation "``new``") ]
                                 ),
                                 None,
-                                Range.Zero
+                                Range.range0
                             ),
-                            Range.Zero
+                            Range.range0
                         ) ],
                       PreXmlDoc.Empty,
                       [],
                       None,
-                      Range.Zero,
+                      Range.range0,
                       { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
                   ) ],
                 (true, false),

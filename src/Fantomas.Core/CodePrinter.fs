@@ -1049,9 +1049,9 @@ let genExpr (e: Expr) =
                 let parenExpr =
                     mkExprParenNode
                         node.OpeningParen
-                        (Expr.Null(SingleTextNode("", Fantomas.FCS.Text.Range.Zero)))
+                        (Expr.Null(SingleTextNode("", Fantomas.FCS.Text.Range.range0)))
                         node.ClosingParen
-                        Fantomas.FCS.Text.Range.Zero
+                        Fantomas.FCS.Text.Range.range0
 
                 sepSpaceBeforeParenInFuncInvocation node.FunctionName parenExpr
             | _ -> sepSpace
@@ -1886,16 +1886,16 @@ let genTupleExpr (node: ExprTupleNode) =
             | IsLambdaOrIfThenElse e ->
                 let parenNode =
                     mkExprParenNode
-                        (SingleTextNode("(", Fantomas.FCS.Text.Range.Zero))
+                        (SingleTextNode("(", Fantomas.FCS.Text.Range.range0))
                         e
-                        (SingleTextNode(")", Fantomas.FCS.Text.Range.Zero))
-                        Fantomas.FCS.Text.Range.Zero
+                        (SingleTextNode(")", Fantomas.FCS.Text.Range.range0))
+                        Fantomas.FCS.Text.Range.range0
 
                 ExprInfixAppNode(
                     exprInfixAppNode.LeftHandSide,
                     exprInfixAppNode.Operator,
                     parenNode,
-                    Fantomas.FCS.Text.range.Zero
+                    Fantomas.FCS.Text.Range.range0
                 )
                 |> Expr.InfixApp
             | _ -> expr
