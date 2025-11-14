@@ -290,9 +290,7 @@ app(meh).[x] <-
     |> should
         equal
         """
-app(
-    meh
-).[x] <- {
+app(meh).[x] <- {
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -311,9 +309,7 @@ app(meh).[x] <-
     |> should
         equal
         """
-app(
-    meh
-).[x] <- {
+app(meh).[x] <- {
     astContext with
         IsInsideMatchClausePattern = true
 }
@@ -333,9 +329,7 @@ app(meh).[x] <-
     |> should
         equal
         """
-app(
-    meh
-).[x] <- {|
+app(meh).[x] <- {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -357,9 +351,7 @@ app(meh).[x] <-
     |> should
         equal
         """
-app(
-    meh
-).[x] <- struct {|
+app(meh).[x] <- struct {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -382,9 +374,7 @@ app(meh).[x] <-
     |> should
         equal
         """
-app(
-    meh
-).[x] <- [
+app(meh).[x] <- [
     itemOne
     itemTwo
     itemThree
@@ -409,9 +399,7 @@ app(meh).[x] <-
     |> should
         equal
         """
-app(
-    meh
-).[x] <- [|
+app(meh).[x] <- [|
     itemOne
     itemTwo
     itemThree

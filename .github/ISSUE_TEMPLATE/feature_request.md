@@ -7,9 +7,9 @@ assignees: ''
 
 ---
 
-I propose we ... (describe your suggestion here)
+I propose that we ... (describe your suggestion here)
 
-The existing way of Fantomas deals with this problem is ...
+The existing way Fantomas deals with this problem is ...
 
 ## Pros and Cons 
 

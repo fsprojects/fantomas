@@ -99,7 +99,7 @@ let configToEditorConfig (config: FormatConfig) : string =
     |> Array.choose (fun (recordField, v) ->
         match v with
         | :? System.Boolean as b ->
-            sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (if b then "true " else "false")
+            sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (if b then "true" else "false")
             |> Some
         | :? System.Int32 as i -> $"%s{toEditorConfigName recordField.PropertyName}=%d{i}" |> Some
         | :? MultilineFormatterType as mft ->

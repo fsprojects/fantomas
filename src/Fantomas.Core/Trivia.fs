@@ -164,12 +164,9 @@ let rec findNodeWhereRangeFitsIn (root: Node) (range: range) : Node option =
         // The more specific the node fits the selection, the better
         let betterChildNode =
             root.Children
-            |> Array.choose (fun childNode -> findNodeWhereRangeFitsIn childNode range)
-            |> Array.tryHead
+            |> Array.tryPick (fun childNode -> findNodeWhereRangeFitsIn childNode range)
 
-        match betterChildNode with
-        | Some betterChild -> Some betterChild
-        | None -> Some root
+        betterChildNode |> Option.orElseWith (fun () -> Some root)
 
 let triviaBeforeOrAfterEntireTree (rootNode: Node) (trivia: TriviaNode) : unit =
     let isBefore = trivia.Range.EndLine < rootNode.Range.StartLine

@@ -1448,11 +1448,17 @@ let genExpr (e: Expr) =
         let genDotIndexedSetWithApp funcExpr argExpr (appNode: Node) =
             let short = funcExpr +> genExpr argExpr |> genNode appNode
 
-            let long =
-                funcExpr +> genMultilineFunctionApplicationArguments argExpr |> genNode appNode
-
             let idx =
                 !-"." +> sepOpenLFixed +> genExpr node.Index +> sepCloseLFixed +> sepArrowRev
+
+            let long ctx =
+                let multiline =
+                    funcExpr +> genMultilineFunctionApplicationArguments argExpr |> genNode appNode
+
+                if futureNlnCheck (short +> idx) ctx then
+                    multiline ctx
+                else
+                    short ctx
 
             expressionFitsOnRestOfLine
                 (short +> idx +> genExpr node.Value)

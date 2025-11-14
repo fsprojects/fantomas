@@ -59,12 +59,12 @@ If you are using `FAKE` by any chance, a good step is to have `CheckFormat` targ
 ```fsharp
 Target.create "CheckFormat" (fun _ ->
     let result =
-        DotNet.exec id "fantomas ourSourceFolder --recurse --check"
+        DotNet.exec id "fantomas" "ourSourceFolder --check"
 
     if result.ExitCode = 0 then
         Trace.log "No files need formatting"
     elif result.ExitCode = 99 then
-        failwith "Some files need formatting, run \"dotnet fantomas  ourSourceFolder --recurse\" to resolve this."
+        failwith "Some files need formatting, run \"dotnet fantomas ourSourceFolder\" to resolve this."
     else
         Trace.logf "Errors while formatting: %A" result.Errors)
         
@@ -83,7 +83,7 @@ Target.runOrDefault "All"
 ```
 
 The recommendation is to install `fantomas` as a local tool and run it using the generic `DotNet.exec` api.
-This translates to running `dotnet fantomas ourSourceFolder --recurse --check`.
+This translates to running `dotnet fantomas ourSourceFolder --check`.
 
 ### Any other continuous integration environment
 

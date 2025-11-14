@@ -14,12 +14,6 @@
           "Microsoft.SourceLink.GitLab": "1.1.1"
         }
       },
-      "FSharp.Analyzers.Build": {
-        "type": "Direct",
-        "requested": "[0.3.0, )",
-        "resolved": "0.3.0",
-        "contentHash": "twj4mNJLOEjHK6OQJCAbix2d8ODG5RySASejQ/v2fLgoqyRqYsXmceFaXb17ZE1pNrfenjwv/xpR+GembufaZA=="
-      },
       "FSharp.Core": {
         "type": "Direct",
         "requested": "[9.0.300, )",
@@ -28,21 +22,21 @@
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
-        "requested": "[0.9.3, )",
-        "resolved": "0.9.3",
-        "contentHash": "V83sHl7ubgQ9HLjxto/rZbgNKGMMpHZ+E6tmWm1JAGfpNUaYWnKdAkpdKxxooHmE/804pIAPuVTpna5xLeX1dw=="
+        "requested": "[0.18.0, )",
+        "resolved": "0.18.0",
+        "contentHash": "axpIIOMOHUK/GS1s1q4thDTfcZxBVaQryPFDAURPX78TTLqHPF83USUgI4yM2cvIo+ZA7+c5SUWtkVXKkedlVQ=="
       },
       "Ionide.Analyzers": {
         "type": "Direct",
-        "requested": "[0.9.0, )",
-        "resolved": "0.9.0",
-        "contentHash": "yCJHdPHJef/Yl7iPED8lRoxPjM1HXx1tielT7lp40FxOKURiLGziyhxfZqbo4WTYVKdSxOJv3+s2+ArJYuirvg=="
+        "requested": "[0.14.7, )",
+        "resolved": "0.14.7",
+        "contentHash": "xjYTHbb/aP6QPD9rJOZNJW3YN7KAegWAy42N61A9m7BVMspaSNEX8Y57Cey9ySWCrjvEaXKAnzVuyL9N3zZVLA=="
       },
       "Ionide.KeepAChangelog.Tasks": {
         "type": "Direct",
-        "requested": "[0.1.8, )",
-        "resolved": "0.1.8",
-        "contentHash": "hHUZIVz9BlF++B5w183c5HwbqSIXUtJU+lxhKz3ebQ5X8INBIWV7dS/FK8uSqSMUTYavuKkRRTZvJlbYXPUykg=="
+        "requested": "[0.3.1, )",
+        "resolved": "0.3.1",
+        "contentHash": "xjLncTEPyaspNrFC5C21xU8QqjXl8KuVE9k/mqmdPEk+dmTY4MR0WMmrUKsY/JfSlnkLuCQDzZhSYAaYEHTvbQ=="
       },
       "NETStandard.Library": {
         "type": "Direct",

@@ -24,7 +24,7 @@
       "rollForward": false
     },
     "fsharp-analyzers": {
-      "version": "0.25.0",
+      "version": "0.32.1",
       "commands": [
         "fsharp-analyzers"
       ],
