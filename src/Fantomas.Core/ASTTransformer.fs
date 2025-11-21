@@ -298,10 +298,10 @@ let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range li
 /// Recursive and use properties have to be determined at this point
 let rec (|LetOrUses|_|) =
     function
-    | SynExpr.LetOrUse(_, _, xs, LetOrUses(ys, e), _, trivia) ->
+    | SynExpr.LetOrUse(bindings = xs; body = LetOrUses(ys, e); trivia = trivia) ->
         let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
         Some(xs' @ ys, e)
-    | SynExpr.LetOrUse(_, _, xs, e, _, trivia) ->
+    | SynExpr.LetOrUse(bindings = xs; body = e; trivia = trivia) ->
         let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
         Some(xs', e)
     | _ -> None
@@ -324,46 +324,10 @@ let rec collectComputationExpressionStatements
                     | Some mIn -> Some(stn "in" mIn), unionRanges b.Range mIn
 
                 ExprLetOrUseNode(b, inNode, m)
-                |> ComputationExpressionStatement.LetOrUseStatement)
+                |> ComputationExpressionStatement.BindingStatement)
 
         collectComputationExpressionStatements creationAide body (fun bodyStatements ->
             [ yield! bindings; yield! bodyStatements ] |> finalContinuation)
-    | SynExpr.LetOrUseBang(_,
-                           isUse,
-                           _,
-                           pat,
-                           expr,
-                           andBangs,
-                           body,
-                           StartRange 4 (mLeading, _m),
-                           { EqualsRange = Some mEq }) ->
-        let letOrUseBang =
-            ExprLetOrUseBangNode(
-                stn (if isUse then "use!" else "let!") mLeading,
-                mkPat creationAide pat,
-                stn "=" mEq,
-                mkExpr creationAide expr,
-                unionRanges mLeading expr.Range
-            )
-            |> ComputationExpressionStatement.LetOrUseBangStatement
-
-        let andBangs =
-            andBangs
-            |> List.map
-                (fun
-                    (SynExprAndBang(_,
-                                    _,
-                                    _,
-                                    ap,
-                                    ae,
-                                    m,
-                                    { AndBangKeyword = mAnd
-                                      EqualsRange = mEq })) ->
-                    ExprAndBang(stn "and!" mAnd, mkPat creationAide ap, stn "=" mEq, mkExpr creationAide ae, m)
-                    |> ComputationExpressionStatement.AndBangStatement)
-
-        collectComputationExpressionStatements creationAide body (fun bodyStatements ->
-            [ letOrUseBang; yield! andBangs; yield! bodyStatements ] |> finalContinuation)
     | SynExpr.Sequential(expr1 = e1; expr2 = e2; trivia = trivia) ->
         let continuations
             : ((ComputationExpressionStatement list -> ComputationExpressionStatement list)
@@ -966,23 +930,23 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.AddressOf(false, e, _, StartRange 2 (ampersandToken, _range)) ->
         ExprSingleNode(stn "&&" ampersandToken, false, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturn((true, _), e, StartRange 5 (yieldKeyword, _range)) ->
-        ExprSingleNode(stn "yield" yieldKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturn((true, _), e, _range, trivia) ->
+        ExprSingleNode(stn "yield" trivia.YieldOrReturnKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturn((false, _), e, StartRange 6 (returnKeyword, _range)) ->
-        ExprSingleNode(stn "return" returnKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturn((false, _), e, _range, trivia) ->
+        ExprSingleNode(stn "return" trivia.YieldOrReturnKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturnFrom((true, _), e, StartRange 6 (yieldBangKeyword, _range)) ->
-        ExprSingleNode(stn "yield!" yieldBangKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturnFrom((true, _), e, _range, trivia) ->
+        ExprSingleNode(stn "yield!" trivia.YieldOrReturnFromKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.YieldOrReturnFrom((false, _), e, StartRange 7 (returnBangKeyword, _range)) ->
-        ExprSingleNode(stn "return!" returnBangKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.YieldOrReturnFrom((false, _), e, _range, trivia) ->
+        ExprSingleNode(stn "return!" trivia.YieldOrReturnFromKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Do(e, StartRange 2 (doKeyword, _range)) ->
         ExprSingleNode(stn "do" doKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.DoBang(e, StartRange 3 (doBangKeyword, _range)) ->
-        ExprSingleNode(stn "do!" doBangKeyword, true, true, mkExpr creationAide e, exprRange)
+    | SynExpr.DoBang(e, _range, trivia) ->
+        ExprSingleNode(stn "do!" trivia.DoBangKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Fixed(e, StartRange 5 (fixedKeyword, _range)) ->
         ExprSingleNode(stn "fixed" fixedKeyword, true, false, mkExpr creationAide e, exprRange)
@@ -1029,9 +993,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let fieldNodes =
             recordFields
             |> List.choose (function
-                | SynExprRecordField((fieldName, _), Some mEq, Some expr, _) ->
-                    let m = unionRanges fieldName.Range expr.Range
-
+                | SynExprRecordField((fieldName, _), Some mEq, Some expr, m, _) ->
                     Some(
                         RecordFieldNode(mkSynLongIdent creationAide fieldName, stn "=" mEq, mkExpr creationAide expr, m)
                     )
@@ -1144,7 +1106,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                       _,
                       pat,
                       e1,
-                      SynExpr.YieldOrReturn((true, _), e2, _),
+                      SynExpr.YieldOrReturn((true, _), e2, _, _),
                       StartRange 3 (mFor, _)) ->
         ExprForEachNode(
             stn "for" mFor,
@@ -1183,7 +1145,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.Computation
 
     | SynExpr.LetOrUse _
-    | SynExpr.LetOrUseBang _
     | SynExpr.Sequential _ ->
         ExprCompExprBodyNode(collectComputationExpressionStatements creationAide e id, exprRange)
         |> Expr.CompExprBody
@@ -1278,7 +1239,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprNamedComputationNode(
             mkExpr creationAide expr,
             stn "{" mOpen,
-            Expr.Ident(stn "" Range.Zero),
+            Expr.Ident(stn "" Range.range0),
             stn "}" mClose,
             m
         )
@@ -1758,14 +1719,14 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
 
         let pairs =
             nps
-            |> List.choose (fun (ident, eq, pat) ->
+            |> List.choose (fun (NamePatPairField(fieldName = fieldName; equalsRange = eq; pat = pat)) ->
                 eq
                 |> Option.map (fun eq ->
-                    NamePatPair(
-                        mkIdent ident,
+                    NamePatPairNode(
+                        mkSynLongIdent creationAide fieldName,
                         stn "=" eq,
                         mkPat creationAide pat,
-                        unionRanges ident.idRange pat.Range
+                        unionRanges fieldName.Range pat.Range
                     )))
 
         PatNamePatPairsNode(
@@ -1804,16 +1765,10 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     | SynPat.Record(fields, StartEndRange 1 (o, _, c)) ->
         let fields =
             fields
-            |> List.map (fun ((lid, ident), eq, pat) ->
-                let prefix = if lid.IsEmpty then None else Some(mkLongIdent lid)
-
-                let range =
-                    match prefix with
-                    | None -> unionRanges ident.idRange pat.Range
-                    | Some prefix -> unionRanges prefix.Range pat.Range
-
-                let eqNode = stn "=" (Option.defaultValue Range.Zero eq)
-                PatRecordField(prefix, mkIdent ident, eqNode, mkPat creationAide pat, range))
+            |> List.map (fun (NamePatPairField(fieldName = fieldName; equalsRange = eq; pat = pat) as np) ->
+                let range = np.Range // TODO: might be wrong unionRanges prefix.Range pat.Range
+                let eqNode = stn "=" (Option.defaultValue Range.range0 eq)
+                NamePatPairNode(mkSynLongIdent creationAide fieldName, eqNode, mkPat creationAide pat, range))
 
         PatRecordNode(stn "{" o, fields, stn "}" c, patternRange) |> Pattern.Record
     | SynPat.Const(c, r) -> mkConstant creationAide c r |> Pattern.Const
@@ -2401,9 +2356,12 @@ let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
 
     match lk with
     | SynLeadingKeyword.Let letRange -> mtn [ "let", letRange ]
+    | SynLeadingKeyword.LetBang letBangRange -> mtn [ "let!", letBangRange ]
     | SynLeadingKeyword.LetRec(letRange, recRange) -> mtn [ "let", letRange; "rec", recRange ]
     | SynLeadingKeyword.And andRange -> mtn [ "and", andRange ]
+    | SynLeadingKeyword.AndBang andBangRange -> mtn [ "and!", andBangRange ]
     | SynLeadingKeyword.Use useRange -> mtn [ "use", useRange ]
+    | SynLeadingKeyword.UseBang useBangRange -> mtn [ "use!", useBangRange ]
     | SynLeadingKeyword.UseRec(useRange, recRange) -> mtn [ "use", useRange; "rec", recRange ]
     | SynLeadingKeyword.Extern externRange -> mtn [ "extern", externRange ]
     | SynLeadingKeyword.Member memberRange -> mtn [ "member", memberRange ]
@@ -2809,8 +2767,8 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     let memberDefinitionRange = md.Range
 
     match md with
-    | SynMemberDefn.ImplicitInherit(t, e, _, StartRange 7 (mInherit, _)) ->
-        mkInheritConstructor creationAide t e mInherit memberDefinitionRange
+    | SynMemberDefn.ImplicitInherit(t, e, _, _, trivia) ->
+        mkInheritConstructor creationAide t e trivia.InheritKeyword memberDefinitionRange
         |> MemberDefn.ImplicitInherit
 
     // Transforms: `member this.Y with get() = "meh"` into `member this.Y = "meh"`
@@ -2870,9 +2828,16 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         )
         |> MemberDefn.ExplicitCtor
     | SynMemberDefn.Member(memberDefn, _) -> mkBinding creationAide memberDefn |> MemberDefn.Member
-    | SynMemberDefn.Inherit(baseType, _, StartRange 7 (mInherit, _)) ->
-        MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide baseType, memberDefinitionRange)
-        |> MemberDefn.Inherit
+    | SynMemberDefn.Inherit(baseTypeOpt, _, _isInline, trivia) ->
+        match baseTypeOpt with
+        | Some baseType ->
+            MemberDefnInheritNode(
+                stn "inherit" trivia.InheritKeyword,
+                mkType creationAide baseType,
+                memberDefinitionRange
+            )
+            |> MemberDefn.Inherit
+        | None -> failwith "successful parse shouldn't have any unfinished inherit"
     | SynMemberDefn.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
     | SynMemberDefn.LetBindings(
         bindings = [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) as binding ]) ->
@@ -3217,7 +3182,7 @@ let mkModuleOrNamespace
         | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
             match kind with
             | SynModuleOrNamespaceKind.GlobalNamespace ->
-                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.Zero ], mNamespace))
+                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.range0 ], mNamespace))
             | _ -> Some(MultipleTextsNode([ stn "namespace" mNamespace ], mNamespace))
         | SynModuleOrNamespaceLeadingKeyword.None -> None
 
@@ -3542,7 +3507,7 @@ let mkModuleOrNamespaceSig
         | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
             match kind with
             | SynModuleOrNamespaceKind.GlobalNamespace ->
-                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.Zero ], mNamespace))
+                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.range0 ], mNamespace))
             | _ -> Some(MultipleTextsNode([ stn "namespace" mNamespace ], mNamespace))
         | SynModuleOrNamespaceLeadingKeyword.None -> None
 
@@ -3598,25 +3563,28 @@ let mkSigFile
     let mds = List.map (mkModuleOrNamespaceSig creationAide) contents
     Oak(phds, mds, m)
 
-let includeTrivia
-    (baseRange: range)
-    (comments: CommentTrivia list)
-    (conditionDirectives: ConditionalDirectiveTrivia list)
-    : range =
+let includeTrivia (baseRange: range) (trivia: ParsedInputTrivia) : range =
     let ranges =
         [ yield!
               List.map
                   (function
                   | CommentTrivia.LineComment m
                   | CommentTrivia.BlockComment m -> m)
-                  comments
+                  trivia.CodeComments
           yield!
               List.map
                   (function
                   | ConditionalDirectiveTrivia.If(range = range)
                   | ConditionalDirectiveTrivia.Else(range = range)
                   | ConditionalDirectiveTrivia.EndIf(range = range) -> range)
-                  conditionDirectives ]
+                  trivia.ConditionalDirectives
+
+          yield!
+              List.map
+                  (function
+                  | WarnDirectiveTrivia.Nowarn(range)
+                  | WarnDirectiveTrivia.Warnon(range) -> range)
+                  trivia.WarnDirectives ]
 
     (baseRange, ranges)
     ||> List.fold (fun acc triviaRange ->
@@ -3631,7 +3599,7 @@ let mkSynModuleOrNamespaceFullRange (mn: SynModuleOrNamespace) =
     match mn with
     | SynModuleOrNamespace(kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
         match List.tryHead decls, List.tryLast decls with
-        | None, None -> Range.Zero
+        | None, None -> RangeHelpers.absoluteZeroRange
         | Some d, None
         | None, Some d -> d.Range
         | Some s, Some e -> unionRanges s.Range e.Range
@@ -3641,7 +3609,7 @@ let mkSynModuleOrNamespaceSigFullRange (mn: SynModuleOrNamespaceSig) =
     match mn with
     | SynModuleOrNamespaceSig(kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
         match List.tryHead decls, List.tryLast decls with
-        | None, None -> Range.Zero
+        | None, None -> RangeHelpers.absoluteZeroRange
         | Some d, None
         | None, Some d -> d.Range
         | Some s, Some e -> unionRanges s.Range e.Range
@@ -3657,18 +3625,18 @@ let mkFullTreeRange ast =
             | [] ->
                 match modules with
                 | m :: _ -> mkSynModuleOrNamespaceFullRange m
-                | _ -> Range.Zero
+                | _ -> RangeHelpers.absoluteZeroRange
 
         let endPos =
             match List.tryLast modules with
             | None ->
                 match List.tryLast directives with
-                | None -> Range.Zero
+                | None -> RangeHelpers.absoluteZeroRange
                 | Some(ParsedHashDirective(range = r)) -> r
             | Some lastModule -> mkSynModuleOrNamespaceFullRange lastModule
 
         let astRange = unionRanges startPos endPos
-        includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
+        includeTrivia astRange trivia
 
     | ParsedInput.SigFile(ParsedSigFileInput(hashDirectives = directives; contents = modules; trivia = trivia)) ->
         let startPos =
@@ -3677,18 +3645,18 @@ let mkFullTreeRange ast =
             | [] ->
                 match modules with
                 | m :: _ -> mkSynModuleOrNamespaceSigFullRange m
-                | _ -> Range.Zero
+                | _ -> RangeHelpers.absoluteZeroRange
 
         let endPos =
             match List.tryLast modules with
             | None ->
                 match List.tryLast directives with
-                | None -> Range.Zero
+                | None -> RangeHelpers.absoluteZeroRange
                 | Some(ParsedHashDirective(range = r)) -> r
             | Some lastModule -> mkSynModuleOrNamespaceSigFullRange lastModule
 
         let astRange = unionRanges startPos endPos
-        includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
+        includeTrivia astRange trivia
 
 let mkOak (sourceText: ISourceText option) (ast: ParsedInput) =
     let creationAide = { SourceText = sourceText }

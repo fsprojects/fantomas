@@ -210,7 +210,7 @@ let downloadCompilerFile commitHash relativePath =
             let fs = file.Create()
             let fileName = Path.GetFileName(relativePath)
             let url =
-                $"https://raw.githubusercontent.com/dotnet/fsharp/{commitHash}/{relativePath}"
+                $"https://raw.githubusercontent.com/nojaf/fsharp/{commitHash}/{relativePath}"
             let! response =
                 Http.AsyncRequestStream(
                     url,
@@ -233,6 +233,8 @@ pipeline "Init" {
                "src/Compiler/Utilities/NullnessShims.fs"
                "src/Compiler/Utilities/Activity.fsi"
                "src/Compiler/Utilities/Activity.fs"
+               "src/Compiler/Utilities/Caches.fsi"
+               "src/Compiler/Utilities/Caches.fs"
                "src/Compiler/Utilities/sformat.fsi"
                "src/Compiler/Utilities/sformat.fs"
                "src/Compiler/Utilities/sr.fsi"
@@ -301,6 +303,10 @@ pipeline "Init" {
                "src/Compiler/SyntaxTree/SyntaxTree.fs"
                "src/Compiler/SyntaxTree/SyntaxTreeOps.fsi"
                "src/Compiler/SyntaxTree/SyntaxTreeOps.fs"
+               "src/Compiler/SyntaxTree/WarnScopes.fsi"
+               "src/Compiler/SyntaxTree/WarnScopes.fs"
+               "src/Compiler/SyntaxTree/LexerStore.fsi"
+               "src/Compiler/SyntaxTree/LexerStore.fs"
                "src/Compiler/SyntaxTree/ParseHelpers.fsi"
                "src/Compiler/SyntaxTree/ParseHelpers.fs"
                "src/Compiler/SyntaxTree/LexHelpers.fsi"

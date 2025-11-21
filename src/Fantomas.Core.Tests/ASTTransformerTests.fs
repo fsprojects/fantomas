@@ -11,8 +11,8 @@ open Fantomas.Core
 let ``avoid stack-overflow in long array/list, 2485`` () =
     let mkStringExpr () =
         SynExpr.Const(
-            SynConst.String((System.Guid.NewGuid().ToString("N"), SynStringKind.Regular, Range.Zero)),
-            Range.Zero
+            SynConst.String((System.Guid.NewGuid().ToString("N"), SynStringKind.Regular, Range.range0)),
+            Range.range0
         )
 
     let longArrayExpr: SynExpr =
@@ -27,34 +27,32 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
                         true,
                         mkStringExpr (),
                         childExpr,
-                        Range.Zero,
+                        Range.range0,
                         SynExprSequentialTrivia.Zero
                     ))
 
-        SynExpr.ArrayOrListComputed(true, mkArray 0 (mkStringExpr ()), Range.Zero)
+        SynExpr.ArrayOrListComputed(true, mkArray 0 (mkStringExpr ()), Range.range0)
 
     let ast =
         ParsedInput.ImplFile(
             ParsedImplFileInput(
                 "filename.fsx",
                 true,
-                QualifiedNameOfFile(Ident("", Range.Zero)),
-                [],
+                QualifiedNameOfFile(Ident("", Range.range0)),
                 [],
                 [ SynModuleOrNamespace(
                       [],
                       false,
                       SynModuleOrNamespaceKind.AnonModule,
-                      [ SynModuleDecl.Expr(longArrayExpr, Range.Zero) ],
+                      [ SynModuleDecl.Expr(longArrayExpr, Range.range0) ],
                       PreXmlDoc.Empty,
                       [],
                       None,
-                      Range.Zero,
+                      Range.range0,
                       { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
                   ) ],
                 (false, false),
-                { ConditionalDirectives = []
-                  CodeComments = [] },
+                ParsedInputTrivia.Empty,
                 Set.empty
             )
         )

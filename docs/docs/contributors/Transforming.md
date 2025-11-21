@@ -74,6 +74,15 @@ let a =
 Depending on the defines `[]` or `["DEBUG"]`, the AST will be different.
 The tree will also be created based on a single code path.
 
+You can use your locally installed F# compiler to parse a file and view the AST via:
+
+```shell
+# Tip: figure out the location of your installed sdk
+whereis dotnet
+# Invoke the parser
+dotnet '/Users/nojaf/Library/Application Support/dnvm/dn/sdk/10.0.100/FSharp/fsc.dll' --parseonly --ast foo.fs
+```
+
 ### Transform untyped AST to Oak
 
 The untyped syntax tree from the F# compiler is used as an intermediate representation of source code in the process of transforming a text file to binary.  
