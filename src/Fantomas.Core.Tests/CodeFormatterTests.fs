@@ -4,7 +4,6 @@ open Fantomas.Core.SyntaxOak
 open NUnit.Framework
 open Fantomas.FCS.Text
 open Fantomas.Core
-open Fantomas.Core.SyntaxOak
 open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]

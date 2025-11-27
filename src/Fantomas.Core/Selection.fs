@@ -95,7 +95,7 @@ let mkExtractableOakFromModule (md: ModuleDecl) (t: System.Type) =
     TreeForSelection.RequiresExtraction(Oak([], [ ModuleOrNamespaceNode(None, [ md ], m) ], m), t)
 
 let dummyUnit: Expr =
-    UnitNode(SingleTextNode("(", Range.Zero), SingleTextNode(")", Range.Zero), Range.Zero)
+    UnitNode(SingleTextNode("(", Range.range0), SingleTextNode(")", Range.range0), Range.range0)
     |> Constant.Unit
     |> Expr.Constant
 

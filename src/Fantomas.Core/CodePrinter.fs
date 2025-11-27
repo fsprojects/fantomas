@@ -644,32 +644,10 @@ let genExpr (e: Expr) =
         let genStatements =
             node.Statements
             |> List.map (function
-                | ComputationExpressionStatement.LetOrUseStatement node ->
+                | ComputationExpressionStatement.BindingStatement node ->
                     let expr =
                         genBinding node.Binding
                         +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode) node.In
-                        |> genNode node
-
-                    ColMultilineItem(expr, sepNlnUnlessContentBefore node)
-                | ComputationExpressionStatement.LetOrUseBangStatement node ->
-                    let expr =
-                        genSingleTextNode node.LeadingKeyword
-                        +> sepSpace
-                        +> genPat node.Pattern
-                        +> sepSpace
-                        +> genSingleTextNode node.Equals
-                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
-                        |> genNode node
-
-                    ColMultilineItem(expr, sepNlnUnlessContentBefore node)
-                | ComputationExpressionStatement.AndBangStatement node ->
-                    let expr =
-                        genSingleTextNode node.LeadingKeyword
-                        +> sepSpace
-                        +> genPat node.Pattern
-                        +> sepSpace
-                        +> genSingleTextNode node.Equals
-                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
                         |> genNode node
 
                     ColMultilineItem(expr, sepNlnUnlessContentBefore node)
@@ -679,7 +657,7 @@ let genExpr (e: Expr) =
             |> genNode node
 
         match node.Statements with
-        | [ ComputationExpressionStatement.LetOrUseStatement letOrUseNode
+        | [ ComputationExpressionStatement.BindingStatement letOrUseNode
             ComputationExpressionStatement.OtherStatement inExpr ] when letOrUseNode.In.IsSome ->
             let short =
                 (genBinding letOrUseNode.Binding
@@ -1049,9 +1027,9 @@ let genExpr (e: Expr) =
                 let parenExpr =
                     mkExprParenNode
                         node.OpeningParen
-                        (Expr.Null(SingleTextNode("", Fantomas.FCS.Text.Range.Zero)))
+                        (Expr.Null(SingleTextNode("", Fantomas.FCS.Text.Range.range0)))
                         node.ClosingParen
-                        Fantomas.FCS.Text.Range.Zero
+                        Fantomas.FCS.Text.Range.range0
 
                 sepSpaceBeforeParenInFuncInvocation node.FunctionName parenExpr
             | _ -> sepSpace
@@ -1892,16 +1870,16 @@ let genTupleExpr (node: ExprTupleNode) =
             | IsLambdaOrIfThenElse e ->
                 let parenNode =
                     mkExprParenNode
-                        (SingleTextNode("(", Fantomas.FCS.Text.Range.Zero))
+                        (SingleTextNode("(", Fantomas.FCS.Text.Range.range0))
                         e
-                        (SingleTextNode(")", Fantomas.FCS.Text.Range.Zero))
-                        Fantomas.FCS.Text.Range.Zero
+                        (SingleTextNode(")", Fantomas.FCS.Text.Range.range0))
+                        Fantomas.FCS.Text.Range.range0
 
                 ExprInfixAppNode(
                     exprInfixAppNode.LeftHandSide,
                     exprInfixAppNode.Operator,
                     parenNode,
-                    Fantomas.FCS.Text.range.Zero
+                    Fantomas.FCS.Text.Range.range0
                 )
                 |> Expr.InfixApp
             | _ -> expr
@@ -2240,7 +2218,7 @@ let genExprInMultilineInfixExpr (e: Expr) =
             node.Statements
             |> List.mapWithLast
                 (function
-                | ComputationExpressionStatement.LetOrUseStatement _ -> true
+                | ComputationExpressionStatement.BindingStatement _ -> true
                 | _ -> false)
                 (function
                  | ComputationExpressionStatement.OtherStatement _ -> true
@@ -2255,7 +2233,7 @@ let genExprInMultilineInfixExpr (e: Expr) =
                 ComputationExpressionStatement.Node
                 (fun ces ->
                     match ces with
-                    | ComputationExpressionStatement.LetOrUseStatement letOrUseNode ->
+                    | ComputationExpressionStatement.BindingStatement letOrUseNode ->
                         let genIn =
                             match letOrUseNode.In with
                             | None -> !-"in"
@@ -2626,6 +2604,14 @@ let genTuplePat (node: PatTupleNode) =
     atCurrentColumn (expressionFitsOnRestOfLine short (atCurrentColumn (genTuplePatLong node)))
     |> genNode node
 
+let genNamePatPair (node: NamePatPairNode) =
+    genIdentListNode node.FieldName
+    +> sepSpace
+    +> genSingleTextNode node.Equals
+    +> sepSpace
+    +> genPat node.Pattern
+    |> genNode node
+
 let genPat (p: Pattern) =
     match p with
     | Pattern.OptionalVal n -> genSingleTextNode n
@@ -2654,18 +2640,11 @@ let genPat (p: Pattern) =
     | Pattern.As node
     | Pattern.ListCons node -> genPatLeftMiddleRight node
     | Pattern.NamePatPairs node ->
-        let genPatWithIdent (node: NamePatPair) =
-            genSingleTextNode node.Ident
-            +> sepSpace
-            +> genSingleTextNode node.Equals
-            +> sepSpace
-            +> genPat node.Pattern
-            |> genNode node
 
         let pats =
             expressionFitsOnRestOfLine
-                (atCurrentColumn (col sepSemi node.Pairs genPatWithIdent))
-                (atCurrentColumn (col sepNln node.Pairs genPatWithIdent))
+                (atCurrentColumn (col sepSemi node.Pairs genNamePatPair))
+                (atCurrentColumn (col sepNln node.Pairs genNamePatPair))
 
         genIdentListNode node.Identifier
         +> optSingle genTyparDecls node.TyparDecls
@@ -2732,14 +2711,14 @@ let genPat (p: Pattern) =
         let smallRecordExpr =
             genSingleTextNode node.OpeningNode
             +> addSpaceIfSpaceAroundDelimiter
-            +> col sepSemi node.Fields genPatRecordFieldName
+            +> col sepSemi node.Fields genNamePatPair
             +> addSpaceIfSpaceAroundDelimiter
             +> genSingleTextNode node.ClosingNode
 
         let multilineRecordExpr =
             genSingleTextNode node.OpeningNode
             +> addSpaceIfSpaceAroundDelimiter
-            +> atCurrentColumn (col sepNln node.Fields genPatRecordFieldName)
+            +> atCurrentColumn (col sepNln node.Fields genNamePatPair)
             +> addSpaceIfSpaceAroundDelimiter
             +> genSingleTextNode node.ClosingNode
 
@@ -2747,7 +2726,7 @@ let genPat (p: Pattern) =
             genSingleTextNode node.OpeningNode
             +> indent
             +> sepNln
-            +> atCurrentColumn (col sepNln node.Fields genPatRecordFieldName)
+            +> atCurrentColumn (col sepNln node.Fields genNamePatPair)
             +> unindent
             +> sepNln
             +> genSingleTextNode node.ClosingNode
@@ -2790,23 +2769,6 @@ let genPatInClause (pat: Pattern) =
 
     genPatMultiline pat
 
-let genPatRecordFieldName (node: PatRecordField) =
-    match node.Prefix with
-    | None ->
-        genSingleTextNode node.FieldName
-        +> sepSpace
-        +> genSingleTextNode node.Equals
-        +> sepSpace
-        +> genPat node.Pattern
-    | Some prefix ->
-        genIdentListNode prefix
-        +> sepDot
-        +> genSingleTextNode node.FieldName
-        +> sepSpace
-        +> genSingleTextNode node.Equals
-        +> sepSpace
-        +> genPat node.Pattern
-
 let genReturnTypeBinding (node: BindingReturnInfoNode option) =
     match node with
     | None -> sepNone
@@ -2831,7 +2793,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
     let isRecursiveLetOrUseFunction =
         match b.LeadingKeyword.Content with
-        | [ singleText ] -> singleText.Text = "and"
+        | [ singleText ] -> singleText.Text = "and" || singleText.Text = "and!"
         | _ -> false
 
     let binding =
