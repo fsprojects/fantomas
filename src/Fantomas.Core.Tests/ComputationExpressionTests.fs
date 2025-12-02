@@ -2536,3 +2536,25 @@ async {
     return x + y
 }
 """
+
+[<Test>]
+let ``nojaf2`` () =
+    formatSourceString
+        """
+comp {
+    let! a = b
+    and! c  = d in
+    ()
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+comp {
+    let! a = b
+    and! c = d in
+    ()
+}
+"""

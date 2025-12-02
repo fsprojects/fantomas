@@ -303,3 +303,18 @@ and a    b  c    =    2
 """
         config
     |> should equal "and a b c = 2"
+
+[<Test>]
+let ``format and! binding inside computation expression nojaf`` () =
+    formatSelectionOnly
+        false
+        (mkSelection (4, 4) (4, 19))
+        """
+comp {
+    let! a = b
+    and! c  = d in
+    ()
+}
+"""
+        config
+    |> should equal "and! c = d in"

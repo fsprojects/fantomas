@@ -136,13 +136,6 @@ type ConditionalDirectiveTrivia with
         | ConditionalDirectiveTrivia.Else m
         | ConditionalDirectiveTrivia.EndIf m -> m
 
-// type WarnDirectiveTrivia with
-
-//     member x.Range =
-//         match x with
-//         | WarnDirectiveTrivia.Nowarn m
-//         | WarnDirectiveTrivia.Warnon m -> m
-
 let internal collectTriviaFromDirectiveRanges
     (source: ISourceText)
     (directiveRanges: range list)
@@ -186,8 +179,6 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? ExprSameInfixAppsNode
     | :? ExprInfixAppNode
     | :? ExprLambdaNode
-    | :? ExprLetOrUseNode
-    | :? ExprLetOrUseBangNode
     | :? BindingNode
     | :? TypeDefnEnumNode
     | :? TypeDefnUnionNode

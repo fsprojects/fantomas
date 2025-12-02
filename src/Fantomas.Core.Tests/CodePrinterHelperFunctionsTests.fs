@@ -231,6 +231,7 @@ let a =
                             None,
                             stn "=",
                             Expr.Ident(stn "b"),
+                            None,
                             zeroRange
                         )
                     ) ],
@@ -338,6 +339,7 @@ let b = 2
             None,
             stn "=",
             Expr.Ident(stn body),
+            None,
             zeroRange
         )
 

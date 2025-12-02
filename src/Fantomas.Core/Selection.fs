@@ -192,6 +192,7 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprCompExprBodyNode as node ->
         let expr = Expr.CompExprBody node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    // TODO: we don't have ComputationExpressionStatement it seems
     | :? ExprJoinInNode as node ->
         let expr = Expr.JoinIn node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
@@ -309,6 +310,7 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExceptionDefnNode as node -> mkOakFromModuleDecl (ModuleDecl.Exception node)
     | :? ExternBindingNode as node -> mkOakFromModuleDecl (ModuleDecl.ExternBinding node)
     | :? BindingNode as node -> mkOakFromModuleDecl (ModuleDecl.TopLevelBinding node)
+    // ComputationExpressionStatement.OtherStatement isn't needed as Expr is covered.
     | :? ModuleAbbrevNode as node -> mkOakFromModuleDecl (ModuleDecl.ModuleAbbrev node)
     | :? NestedModuleNode as node -> mkOakFromModuleDecl (ModuleDecl.NestedModule node)
     // TypeDefn
@@ -346,16 +348,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
 #endif
         TreeForSelection.Unsupported
 
-#if DEBUG
-let printTriviaNode (node: Node) : unit =
-    let rec visit (level: int) (node: Node) =
-        let name = node.GetType().Name
-        printfn "%s%s: %A" ("".PadRight(level * 2)) name node.Range
-        Array.iter (visit (level + 1)) node.Children
-
-    visit 0 node
-#endif
-
 // Find the first node that matches the type
 let rec findRangeOf (t: System.Type) (root: Node) : range option =
     if root.GetType() = t then
@@ -380,9 +372,8 @@ let formatSelection
 
         let rootNode = ASTTransformer.mkOak (Some sourceText) baseUntypedTree
 
-#if DEBUG
-        printTriviaNode rootNode
-#endif
+        // Uncomment if needed to debug the root node
+        printfn "rootNode:\n%A" rootNode
 
         let selection = correctSelection rootNode.Range.FileIndex sourceText selection
 

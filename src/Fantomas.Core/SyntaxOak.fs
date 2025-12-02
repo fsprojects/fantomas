@@ -97,6 +97,7 @@ type NodeBase(range: range) =
             if hasChildren then
                 for n in x.Children do
                     match n with
+                    | :? SingleTextNode as stn -> sb.Append(contentIndent).Append(stn.ToString()).AppendLine() |> ignore
                     | :? NodeBase as nb ->
                         nb.AppendToStringWithIndent(sb, depth + 1)
                         sb.AppendLine() |> ignore
@@ -179,6 +180,9 @@ type SingleTextNode(idText: string, range: range) =
     inherit NodeBase(range)
     member val Text = idText
     override val Children = Array.empty
+
+    override x.ToString() =
+        $"SingleTextNode(%A{x.Range}, \"%s{x.Text}\")"
 
 type MultipleTextsNode(content: SingleTextNode list, range) =
     inherit NodeBase(range)
@@ -1039,29 +1043,9 @@ type ExprComputationNode(openingBrace: SingleTextNode, bodyExpr: Expr, closingBr
     member val Body = bodyExpr
     member val ClosingBrace = closingBrace
 
-type ExprLetOrUseNode(binding: BindingNode, inKeyword: SingleTextNode option, range) =
-    inherit NodeBase(range)
-    override val Children: Node array = [| yield binding; yield! noa inKeyword |]
-    member val Binding = binding
-    member val In = inKeyword
-
-type ExprLetOrUseBangNode(leadingKeyword: SingleTextNode, pat: Pattern, equals: SingleTextNode, expr: Expr, range) =
-    inherit NodeBase(range)
-
-    override val Children: Node array =
-        [| yield leadingKeyword
-           yield Pattern.Node pat
-           yield equals
-           yield Expr.Node expr |]
-
-    member val LeadingKeyword = leadingKeyword
-    member val Pattern = pat
-    member val Equals = equals
-    member val Expression = expr
-
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type ComputationExpressionStatement =
-    | BindingStatement of ExprLetOrUseNode
+    | BindingStatement of BindingNode
     | OtherStatement of Expr
 
     static member Node(ces: ComputationExpressionStatement) : Node =
@@ -2061,6 +2045,7 @@ type BindingNode
         returnType: BindingReturnInfoNode option,
         equals: SingleTextNode,
         expr: Expr,
+        inKeyword: SingleTextNode option,
         range
     ) =
     inherit NodeBase(range)
@@ -2076,6 +2061,7 @@ type BindingNode
     member val ReturnType = returnType
     member val Equals = equals
     member val Expr = expr
+    member val In = inKeyword
 
     override val Children: Node array =
         [| yield! noa xmlDoc
@@ -2091,7 +2077,8 @@ type BindingNode
            yield! nodes (List.map Pattern.Node parameters)
            yield! noa returnType
            yield equals
-           yield Expr.Node expr |]
+           yield Expr.Node expr
+           yield! noa inKeyword |]
 
 type BindingListNode(bindings: BindingNode list, range) =
     inherit NodeBase(range)

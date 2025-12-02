@@ -298,10 +298,14 @@ let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range li
 /// Recursive and use properties have to be determined at this point
 let rec (|LetOrUses|_|) =
     function
-    | SynExpr.LetOrUse(bindings = xs; body = LetOrUses(ys, e); trivia = trivia) ->
+    | SynExpr.LetOrUse { Bindings = xs
+                         Body = LetOrUses(ys, e)
+                         Trivia = trivia } ->
         let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
         Some(xs' @ ys, e)
-    | SynExpr.LetOrUse(bindings = xs; body = e; trivia = trivia) ->
+    | SynExpr.LetOrUse { Bindings = xs
+                         Body = e
+                         Trivia = trivia } ->
         let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
         Some(xs', e)
     | _ -> None
@@ -316,14 +320,7 @@ let rec collectComputationExpressionStatements
         let bindings =
             bindings
             |> List.map (fun (b, inNode) ->
-                let b: BindingNode = mkBinding creationAide b
-
-                let inNode, m =
-                    match inNode with
-                    | None -> None, b.Range
-                    | Some mIn -> Some(stn "in" mIn), unionRanges b.Range mIn
-
-                ExprLetOrUseNode(b, inNode, m)
+                mkBinding creationAide b (Option.map (stn "in") inNode)
                 |> ComputationExpressionStatement.BindingStatement)
 
         collectComputationExpressionStatements creationAide body (fun bodyStatements ->
@@ -1064,7 +1061,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                     stn "interface" mInterface,
                     mkType creationAide t,
                     Option.map (stn "with") mWith,
-                    List.map (mkBinding creationAide) bs,
+                    List.map (fun b -> mkBinding creationAide b None) bs,
                     List.map (mkMemberDefn creationAide) members,
                     m
                 ))
@@ -1075,7 +1072,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             mkType creationAide t,
             Option.map (fun (e, _) -> mkExpr creationAide e) eio,
             Option.map (stn "with") withKeyword,
-            List.map (mkBinding creationAide) bd,
+            List.map (fun b -> mkBinding creationAide b None) bd,
             List.map (mkMemberDefn creationAide) members,
             interfaceNodes,
             stn "}" mClose,
@@ -1797,6 +1794,7 @@ let (|OperatorWithStar|_|) (si: SynIdent) =
 let mkBinding
     (creationAide: CreationAide)
     (SynBinding(_, _, _, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, _, _, trivia))
+    (inKeyword: SingleTextNode option)
     =
     let mkFunctionName (sli: SynLongIdent) : IdentListNode =
         match sli.IdentsWithTrivia with
@@ -1853,7 +1851,11 @@ let mkBinding
                 | SynLeadingKeyword.Member _, SynPat.LongIdent(extraId = Some _) -> pat.Range
                 | _ -> trivia.LeadingKeyword.Range
 
-        unionRanges start e.Range
+        let range = unionRanges start e.Range
+
+        match inKeyword with
+        | None -> range
+        | Some inKeyword -> unionRanges range inKeyword.Range
 
     BindingNode(
         mkXmlDoc xmlDoc,
@@ -1868,6 +1870,7 @@ let mkBinding
         returnTypeNode,
         equals,
         (mkExpr creationAide e),
+        inKeyword,
         range
     )
 
@@ -2013,10 +2016,11 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             declRange
         )
         |> ModuleDecl.Exception
-    | SynModuleDecl.Let(_, [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) as binding ], _) ->
+    | SynModuleDecl.Let(bindings = [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) as binding ]) ->
         mkExternBinding creationAide binding |> ModuleDecl.ExternBinding
-    | SynModuleDecl.Let(bindings = [ singleBinding ]) ->
-        mkBinding creationAide singleBinding |> ModuleDecl.TopLevelBinding
+    | SynModuleDecl.Let(bindings = [ singleBinding ]; trivia = trivia) ->
+        mkBinding creationAide singleBinding (Option.map (stn "in") trivia.InKeyword)
+        |> ModuleDecl.TopLevelBinding
     | SynModuleDecl.ModuleAbbrev(ident, lid, StartRange 6 (mModule, _)) ->
         ModuleAbbrevNode(stn "module" mModule, mkIdent ident, mkLongIdent lid, declRange)
         |> ModuleDecl.ModuleAbbrev
@@ -2801,6 +2805,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         mkBinding
             creationAide
             (SynBinding(None, kind, isInline, isMutable, ats, px, valData, pat, ri, e, bindingRange, dp, trivia))
+            None
         |> MemberDefn.Member
     | SynMemberDefn.Member(
         memberDefn = SynBinding(
@@ -2827,7 +2832,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             memberDefinitionRange
         )
         |> MemberDefn.ExplicitCtor
-    | SynMemberDefn.Member(memberDefn, _) -> mkBinding creationAide memberDefn |> MemberDefn.Member
+    | SynMemberDefn.Member(memberDefn, _) -> mkBinding creationAide memberDefn None |> MemberDefn.Member
     | SynMemberDefn.Inherit(baseTypeOpt, _, _isInline, trivia) ->
         match baseTypeOpt with
         | Some baseType ->
@@ -2857,8 +2862,15 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             memberDefinitionRange
         )
         |> MemberDefn.DoExpr
-    | SynMemberDefn.LetBindings(bindings = bindings) ->
-        BindingListNode(List.map (mkBinding creationAide) bindings, memberDefinitionRange)
+    | SynMemberDefn.LetBindings(bindings = bindings; trivia = trivia) ->
+        BindingListNode(
+            List.mapi
+                (fun i b ->
+                    let inKeyword = if i <> 0 then None else trivia.InKeyword
+                    mkBinding creationAide b (Option.map (stn "in") inKeyword))
+                bindings,
+            memberDefinitionRange
+        )
         |> MemberDefn.LetBinding
     | SynMemberDefn.Interface(t, mWith, mdsOpt, _) ->
         let interfaceNode =
@@ -3154,9 +3166,15 @@ let rec mkModuleDecls
         let node = ModuleDeclAttributesNode(attributes, expr, range)
         mkModuleDecls creationAide rest (fun nodes -> ModuleDecl.Attributes node :: nodes |> finalContinuation)
 
-    | SynModuleDecl.Let(bindings = bindings) :: rest when List.moreThanOne bindings ->
+    | SynModuleDecl.Let(bindings = bindings; trivia = { InKeyword = inKeyword }) :: rest when List.moreThanOne bindings ->
         let bindingNodes =
-            List.map (fun b -> mkBinding creationAide b |> ModuleDecl.TopLevelBinding) bindings
+            List.mapi
+                (fun i b ->
+                    let inKeyword = if i <> 0 then None else inKeyword
+
+                    mkBinding creationAide b (Option.map (stn "in") inKeyword)
+                    |> ModuleDecl.TopLevelBinding)
+                bindings
 
         mkModuleDecls creationAide rest (fun nodes -> [ yield! bindingNodes; yield! nodes ] |> finalContinuation)
 
@@ -3507,7 +3525,7 @@ let mkModuleOrNamespaceSig
         | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
             match kind with
             | SynModuleOrNamespaceKind.GlobalNamespace ->
-                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.range0 ], mNamespace))
+                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" range0 ], mNamespace))
             | _ -> Some(MultipleTextsNode([ stn "namespace" mNamespace ], mNamespace))
         | SynModuleOrNamespaceLeadingKeyword.None -> None
 

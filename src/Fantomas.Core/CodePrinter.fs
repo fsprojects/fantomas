@@ -644,11 +644,8 @@ let genExpr (e: Expr) =
         let genStatements =
             node.Statements
             |> List.map (function
-                | ComputationExpressionStatement.BindingStatement node ->
-                    let expr =
-                        genBinding node.Binding
-                        +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode) node.In
-                        |> genNode node
+                | ComputationExpressionStatement.BindingStatement bindingNode ->
+                    let expr = genBinding bindingNode |> genNode node
 
                     ColMultilineItem(expr, sepNlnUnlessContentBefore node)
                 | ComputationExpressionStatement.OtherStatement e ->
@@ -656,19 +653,7 @@ let genExpr (e: Expr) =
             |> colWithNlnWhenItemIsMultilineUsingConfig
             |> genNode node
 
-        match node.Statements with
-        | [ ComputationExpressionStatement.BindingStatement letOrUseNode
-            ComputationExpressionStatement.OtherStatement inExpr ] when letOrUseNode.In.IsSome ->
-            let short =
-                (genBinding letOrUseNode.Binding
-                 +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode +> sepSpace) letOrUseNode.In
-                 |> genNode letOrUseNode)
-                +> sepSpace
-                +> genExpr inExpr
-                |> genNode node
-
-            expressionFitsOnRestOfLine short genStatements
-        | _ -> genStatements
+        genStatements
     | Expr.JoinIn node ->
         genExpr node.LeftHandSide
         +> sepSpace
@@ -2233,16 +2218,8 @@ let genExprInMultilineInfixExpr (e: Expr) =
                 ComputationExpressionStatement.Node
                 (fun ces ->
                     match ces with
-                    | ComputationExpressionStatement.BindingStatement letOrUseNode ->
-                        let genIn =
-                            match letOrUseNode.In with
-                            | None -> !-"in"
-                            | Some inNode -> genSingleTextNode inNode
-
-                        genBinding letOrUseNode.Binding +> sepSpace +> genIn +> sepSpace
-                        |> genNode letOrUseNode
-                    | ComputationExpressionStatement.OtherStatement otherNode -> genExpr otherNode
-                    | _ -> failwith "unexpected ComputationExpressionStatement")
+                    | ComputationExpressionStatement.BindingStatement bindingNode -> genBinding bindingNode
+                    | ComputationExpressionStatement.OtherStatement otherNode -> genExpr otherNode)
                 node.Statements
             |> atCurrentColumn
             |> genNode node
@@ -3061,7 +3038,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 let long = prefix +> indentSepNlnUnindentUnlessStroustrup genExpr b.Expr
                 isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 
-    genNode b binding ctx
+    genNode b (binding +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode) b.In) ctx
 
 let genBindings withUseConfig (bs: BindingNode list) : Context -> Context =
     colWithNlnWhenNodeIsMultiline withUseConfig genBinding bs
