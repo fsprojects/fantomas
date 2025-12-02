@@ -2537,8 +2537,10 @@ async {
 }
 """
 
+// In older versions of F# the parser would allow an in keyword after and!
+// However, according to the F# language specification, it is not allowed.
 [<Test>]
-let ``nojaf2`` () =
+let ``and! cannot have an in keyword`` () =
     formatSourceString
         """
 comp {
@@ -2554,7 +2556,7 @@ comp {
         """
 comp {
     let! a = b
-    and! c = d in
+    and! c = d
     ()
 }
 """

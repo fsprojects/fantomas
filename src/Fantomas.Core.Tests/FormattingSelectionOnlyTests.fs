@@ -308,13 +308,12 @@ and a    b  c    =    2
 let ``format and! binding inside computation expression nojaf`` () =
     formatSelectionOnly
         false
-        (mkSelection (4, 4) (4, 19))
+        (mkSelection (3, 4) (3, 19))
         """
 comp {
-    let! a = b
-    and! c  = d in
+    let! a  =  b in
     ()
 }
 """
         config
-    |> should equal "and! c = d in"
+    |> should equal "let! a = b in"

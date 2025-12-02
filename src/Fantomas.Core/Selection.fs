@@ -373,7 +373,7 @@ let formatSelection
         let rootNode = ASTTransformer.mkOak (Some sourceText) baseUntypedTree
 
         // Uncomment if needed to debug the root node
-        printfn "rootNode:\n%A" rootNode
+        // printfn "rootNode:\n%A" rootNode
 
         let selection = correctSelection rootNode.Range.FileIndex sourceText selection
 
