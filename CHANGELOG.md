@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.0.4] - 2025-12-05
+
+### Changed
+
+- Add trusted publishing. [#3204](https://github.com/fsprojects/fantomas/pull/3204)
+
 ## [7.0.3] - 2025-07-04
 
 ### Fixed
