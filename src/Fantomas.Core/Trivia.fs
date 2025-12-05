@@ -142,11 +142,13 @@ let internal collectTriviaFromDirectiveRanges
     (codeRange: range)
     : TriviaNode list =
     directiveRanges
-    |> List.filter (RangeHelpers.rangeContainsRange codeRange)
-    |> List.map (fun m ->
-        let text = (source.GetSubTextFromRange m).TrimEnd()
-        let content = Directive text
-        TriviaNode(content, m))
+    |> List.choose (fun directiveRange ->
+        if not (RangeHelpers.rangeContainsRange codeRange directiveRange) then
+            None
+        else
+            let text = (source.GetSubTextFromRange directiveRange).TrimEnd()
+            let content = Directive text
+            Some(TriviaNode(content, directiveRange)))
 
 let rec findNodeWhereRangeFitsIn (root: Node) (range: range) : Node option =
     let doesSelectionFitInNode = RangeHelpers.rangeContainsRange root.Range range
