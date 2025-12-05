@@ -10,7 +10,7 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
-  build:
+  release:
     runs-on: windows-latest
     environment: release
     permissions:
