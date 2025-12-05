@@ -645,9 +645,7 @@ let genExpr (e: Expr) =
             node.Statements
             |> List.map (function
                 | ComputationExpressionStatement.BindingStatement bindingNode ->
-                    let expr = genBinding bindingNode |> genNode node
-
-                    ColMultilineItem(expr, sepNlnUnlessContentBefore node)
+                    ColMultilineItem(genBinding bindingNode, sepNlnUnlessContentBefore bindingNode)
                 | ComputationExpressionStatement.OtherStatement e ->
                     ColMultilineItem(genExpr e, sepNlnUnlessContentBefore (Expr.Node e)))
             |> colWithNlnWhenItemIsMultilineUsingConfig
