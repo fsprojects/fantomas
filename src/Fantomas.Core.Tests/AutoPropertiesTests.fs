@@ -73,23 +73,3 @@ type X =
     new: unit -> X
     member internal Y: int with public get, private set
 """
-
-[<Test; Ignore "no longer supported (see #17802)">]
-let ``abstract member with public get, private set`` () =
-    formatSignatureString
-        """
-namespace Meh
-
-type X =
-    abstract Y: int with public  get,  private set
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-namespace Meh
-
-type X =
-    abstract Y: int with public get, private set
-"""
