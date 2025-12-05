@@ -248,7 +248,7 @@ let ``#help without string`` () =
 #help List.map
 """
 
-// As of F# 10.0, warn directives are treated as trivia like #if, so argruments are not formatted
+// As of F# 10.0, warn directives are treated as trivia like #if, so arguments are not formatted
 [<Test>]
 let ``#nowarn with integer`` () =
     formatSourceString
