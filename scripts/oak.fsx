@@ -25,8 +25,9 @@ match Array.tryHead fsi.CommandLineArgs with
     let sourceFile = FileInfo(Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__))
 
     if scriptFile.FullName = sourceFile.FullName then
-        let sample = File.ReadAllText(fsi.CommandLineArgs.[fsi.CommandLineArgs.Length - 1])
-        let isSignature = sample.EndsWith(".fsi")
+        let inputPath = fsi.CommandLineArgs.[fsi.CommandLineArgs.Length - 1]
+        let sample = File.ReadAllText(inputPath)
+        let isSignature = inputPath.EndsWith(".fsi")
 
         parseOak sample isSignature
         |> Async.AwaitTask
