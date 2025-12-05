@@ -56,22 +56,25 @@ let implementationSyntaxTree =
               [ BindingNode(
                     None,
                     None,
-                    MultipleTextsNode([ SingleTextNode("let", Range.Zero) ], Range.Zero),
+                    MultipleTextsNode([ SingleTextNode("let", Range.range0) ], Range.range0),
                     false,
                     None,
                     None,
-                    Choice1Of2(IdentListNode([ IdentifierOrDot.Ident(SingleTextNode("a", Range.Zero)) ], Range.Zero)),
+                    Choice1Of2(
+                        IdentListNode([ IdentifierOrDot.Ident(SingleTextNode("a", Range.range0)) ], Range.range0)
+                    ),
                     None,
                     [],
                     None,
-                    SingleTextNode("=", Range.Zero),
-                    Expr.Constant(Constant.FromText(SingleTextNode("0", Range.Zero))),
-                    Range.Zero
+                    SingleTextNode("=", Range.range0),
+                    Expr.Constant(Constant.FromText(SingleTextNode("0", Range.range0))),
+                    None,
+                    Range.range0
                 )
                 |> ModuleDecl.TopLevelBinding ],
-              Range.Zero
+              Range.range0
           ) ],
-        Range.Zero
+        Range.range0
     )
 
 open Fantomas.Core
@@ -92,7 +95,7 @@ Let's deconstruct a couple of things:
 
 - The `functionName ` of binding contains the name or is a pattern. 
 - The `expr` ([Expr](../../reference/fantomas-core-syntaxoak-expr.html)) represents the F# syntax expression.
-- Because there is no actual source code, all ranges will be `Range.Zero`.  
+- Because there is no actual source code, all ranges will be `Range.range0`.  
 
 The more you interact with AST/Oak, the easier you pick up which node represents what.
 
@@ -141,10 +144,10 @@ Please make sure you construct the same Oak as Fantomas would.
 *)
 
 // You typically make some helper functions along the way
-let text v = SingleTextNode(v, Range.Zero)
+let text v = SingleTextNode(v, Range.range0)
 
 let mkCodeFromExpression (e: Expr) =
-    Oak([], [ ModuleOrNamespaceNode(None, [ ModuleDecl.DeclExpr e ], Range.Zero) ], Range.Zero)
+    Oak([], [ ModuleOrNamespaceNode(None, [ ModuleDecl.DeclExpr e ], Range.range0) ], Range.range0)
     |> CodeFormatter.FormatOakAsync
     |> Async.RunSynchronously
     |> printfn "%s"
@@ -152,7 +155,7 @@ let mkCodeFromExpression (e: Expr) =
 let numberExpr = Expr.Constant(Constant.FromText(text "7"))
 
 let wrappedNumber =
-    Expr.Paren(ExprParenNode(text "(", numberExpr, text ")", Range.Zero))
+    Expr.Paren(ExprParenNode(text "(", numberExpr, text ")", Range.range0))
 
 mkCodeFromExpression wrappedNumber
 (*** include-output  ***)
@@ -187,16 +190,16 @@ Oak (1,0-1,16)
 
 let lambdaExpr =
     let body: Expr =
-        ExprInfixAppNode(Expr.Ident(text "a"), text "+", Expr.Ident(text "b"), Range.Zero)
+        ExprInfixAppNode(Expr.Ident(text "a"), text "+", Expr.Ident(text "b"), Range.range0)
         |> Expr.InfixApp
 
     ExprLambdaNode(
         text "fun",
-        [ Pattern.Named(PatNamedNode(None, text "a", Range.Zero))
-          Pattern.Named(PatNamedNode(None, text "b", Range.Zero)) ],
+        [ Pattern.Named(PatNamedNode(None, text "a", Range.range0))
+          Pattern.Named(PatNamedNode(None, text "b", Range.range0)) ],
         text "->",
         body,
-        Range.Zero
+        Range.range0
     )
     |> Expr.Lambda
 
