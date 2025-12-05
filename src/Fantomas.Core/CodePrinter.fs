@@ -651,7 +651,12 @@ let genExpr (e: Expr) =
             |> colWithNlnWhenItemIsMultilineUsingConfig
             |> genNode node
 
-        genStatements
+        match node.Statements with
+        | [ ComputationExpressionStatement.BindingStatement bindingNode
+            ComputationExpressionStatement.OtherStatement otherNode ] when bindingNode.In.IsSome ->
+            let short = genBinding bindingNode +> sepSpace +> genExpr otherNode
+            expressionFitsOnRestOfLine short genStatements
+        | _ -> genStatements
     | Expr.JoinIn node ->
         genExpr node.LeftHandSide
         +> sepSpace
@@ -2197,30 +2202,48 @@ let genMultilineInfixExpr (node: ExprInfixAppNode) =
 let genExprInMultilineInfixExpr (e: Expr) =
     match e with
     | Expr.CompExprBody node ->
-        let areLetOrUseStatementsEndingWithOtherStatement =
+        // See https://github.com/fsprojects/fantomas/issues/1461
+        // If there are bindings, it is safer to include the `in` keyword artificially.
+
+        let hasBindings =
             node.Statements
-            |> List.mapWithLast
-                (function
+            |> List.exists (function
                 | ComputationExpressionStatement.BindingStatement _ -> true
                 | _ -> false)
-                (function
-                 | ComputationExpressionStatement.OtherStatement _ -> true
-                 | _ -> false)
-            |> List.reduce (&&)
 
-        if not areLetOrUseStatementsEndingWithOtherStatement then
+        if not hasBindings then
             genExpr e
         else
-            colWithNlnWhenMappedNodeIsMultiline
-                true
-                ComputationExpressionStatement.Node
-                (fun ces ->
-                    match ces with
-                    | ComputationExpressionStatement.BindingStatement bindingNode -> genBinding bindingNode
-                    | ComputationExpressionStatement.OtherStatement otherNode -> genExpr otherNode)
+            let statements =
                 node.Statements
-            |> atCurrentColumn
-            |> genNode node
+                |> List.map (fun statement ->
+                    match statement with
+                    | ComputationExpressionStatement.OtherStatement _ -> statement
+                    | ComputationExpressionStatement.BindingStatement bindingNode ->
+                        let inKeyword = Some(SingleTextNode("in", bindingNode.Range.EndRange))
+
+                        let updatedBindingNode =
+                            BindingNode(
+                                bindingNode.XmlDoc,
+                                bindingNode.Attributes,
+                                bindingNode.LeadingKeyword,
+                                bindingNode.IsMutable,
+                                bindingNode.Inline,
+                                bindingNode.Accessibility,
+                                bindingNode.FunctionName,
+                                bindingNode.GenericTypeParameters,
+                                bindingNode.Parameters,
+                                bindingNode.ReturnType,
+                                bindingNode.Equals,
+                                bindingNode.Expr,
+                                inKeyword,
+                                bindingNode.Range
+                            )
+
+                        ComputationExpressionStatement.BindingStatement updatedBindingNode)
+
+            let compExprBodyNode = ExprCompExprBodyNode(statements, node.Range)
+            atCurrentColumn (genExpr (Expr.CompExprBody compExprBodyNode))
     | Expr.Paren parenNode ->
         match parenNode.Expr with
         | Expr.Match _ as mex ->
