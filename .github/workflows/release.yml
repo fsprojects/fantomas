@@ -1,6 +1,9 @@
 name: Build main
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
