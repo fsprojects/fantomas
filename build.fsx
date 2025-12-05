@@ -431,6 +431,8 @@ let getCurrentAndLastReleaseFromChangelog () =
 
 pipeline "Release" {
     workingDir __SOURCE_DIRECTORY__
+    stage "Build" { run "dotnet build -c Release" }
+    stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
     stage "Release" {
         run (fun _ ->
             async {
