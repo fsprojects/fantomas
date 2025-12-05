@@ -55,7 +55,7 @@ Their interest was to have a tool that automatically format code according to th
 
 ## Recommendations
 
-To strengthen the message of unity we advice that you do not change the default settings.
+To strengthen the message of unity we advise that you do not change the default settings.
 The **out-of-the-box experience** should be a result of what the **brightest minds of the community** came up with.
 If you are _new_ to the F# language, this is what you want.
 
