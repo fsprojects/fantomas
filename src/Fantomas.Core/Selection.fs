@@ -192,7 +192,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprCompExprBodyNode as node ->
         let expr = Expr.CompExprBody node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    // TODO: we don't have ComputationExpressionStatement it seems
     | :? ExprJoinInNode as node ->
         let expr = Expr.JoinIn node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
