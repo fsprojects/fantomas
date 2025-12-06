@@ -1,5 +1,17 @@
 # Changelog
 
+## [7.0.5] - 2025-12-06
+
+### Fixed
+
+- Fixed automated GitHub releases. [#3205](https://github.com/fsprojects/fantomas/pull/3205)
+
+## [7.0.4] - 2025-12-05
+
+### Changed
+
+- Add trusted publishing. [#3204](https://github.com/fsprojects/fantomas/pull/3204)
+
 ## [7.0.3] - 2025-07-04
 
 ### Fixed
