@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <NoWarn>FS0988</NoWarn>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <IsPackable>false</IsPackable>
     <RollForward>Major</RollForward>

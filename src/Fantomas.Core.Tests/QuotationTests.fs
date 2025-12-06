@@ -170,3 +170,19 @@ test
                                      Pop = null } }
   @>
 """
+
+[<Test>]
+let ``quotation in anonymous record`` () =
+    formatSourceString
+        """
+{| A= <@ 1 + 1 @>|}
+{| A = <@@ 1 + 1 @@>|}
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| A = <@ 1 + 1 @> |}
+{| A = <@@ 1 + 1 @@> |}
+"""

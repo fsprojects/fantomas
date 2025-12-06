@@ -1,6 +1,7 @@
 module rec Fantomas.Core.SyntaxOak
 
 open System.Collections.Generic
+open System.Text
 open Fantomas.FCS.Text
 
 type TriviaContent =
@@ -14,6 +15,18 @@ type TriviaContent =
 type TriviaNode(content: TriviaContent, range: range) =
     member val Content = content
     member val Range = range
+
+    override x.ToString() =
+        let rangeStr = $"range: %A{x.Range}"
+
+        match x.Content with
+        | CommentOnSingleLine s -> $"CommentOnSingleLine(%s{rangeStr}, \"%s{s}\")"
+        | LineCommentAfterSourceCode s -> $"LineCommentAfterSourceCode(%s{rangeStr}, \"%s{s}\")"
+        | BlockComment(s, before, after) ->
+            $"BlockComment(%s{rangeStr}, \"%s{s}\", newlineBefore: %b{before}, newlineAfter: %b{after})"
+        | Newline -> $"Newline(%s{rangeStr})"
+        | Directive s -> $"Directive(%s{rangeStr}, \"%s{s}\")"
+        | Cursor -> $"Cursor(%s{rangeStr})"
 
 [<Interface>]
 type Node =
@@ -63,6 +76,48 @@ type NodeBase(range: range) =
     member _.AddCursor cursor = potentialCursor <- Some cursor
     member _.TryGetCursor = potentialCursor
 
+    member private x.AppendToStringWithIndent(sb: StringBuilder, depth: int) =
+        let indent = String.replicate depth "  "
+        let contentIndent = String.replicate (depth + 1) "  "
+
+        sb.Append(indent).Append(x.GetType().Name).Append("(").Append(x.Range) |> ignore
+
+        let hasContentBefore = not (Seq.isEmpty x.ContentBefore)
+        let hasChildren = not (Array.isEmpty x.Children)
+        let hasContentAfter = not (Seq.isEmpty x.ContentAfter)
+        let hasContent = hasContentBefore || hasChildren || hasContentAfter
+
+        if hasContent then
+            sb.AppendLine() |> ignore
+
+            if hasContentBefore then
+                for tn in x.ContentBefore do
+                    sb.Append(contentIndent).Append(tn.ToString()).AppendLine() |> ignore
+
+            if hasChildren then
+                for n in x.Children do
+                    match n with
+                    | :? SingleTextNode as stn -> sb.Append(contentIndent).Append(stn.ToString()).AppendLine() |> ignore
+                    | :? NodeBase as nb ->
+                        nb.AppendToStringWithIndent(sb, depth + 1)
+                        sb.AppendLine() |> ignore
+                    | _ -> sb.Append(contentIndent).Append(n.ToString()).AppendLine() |> ignore
+
+            if hasContentAfter then
+                for tn in x.ContentAfter do
+                    sb.Append(contentIndent).Append(tn.ToString()).AppendLine() |> ignore
+
+            sb.Append(indent).Append(")") |> ignore
+        else
+            sb.Append(")") |> ignore
+
+    member private x.ToStringWithIndent(depth: int) =
+        let sb = StringBuilder()
+        x.AppendToStringWithIndent(sb, depth)
+        sb.ToString()
+
+    override x.ToString() = x.ToStringWithIndent(0)
+
     interface Node with
         member x.ContentBefore = x.ContentBefore
         member x.HasContentBefore = x.HasContentBefore
@@ -91,7 +146,7 @@ let nodeRange (n: Node) = n.Range
 
 let combineRanges (ranges: range seq) =
     if Seq.isEmpty ranges then
-        Range.Zero
+        Range.range0
     else
         Seq.reduce Range.unionRanges ranges
 
@@ -111,7 +166,7 @@ type IdentListNode(content: IdentifierOrDot list, range) =
     inherit NodeBase(range)
     member val IsEmpty = content.IsEmpty
     member val Content = content
-    static member Empty = IdentListNode(List.empty, Range.Zero)
+    static member Empty = IdentListNode(List.empty, Range.range0)
 
     override x.Children =
         x.Content
@@ -125,6 +180,9 @@ type SingleTextNode(idText: string, range: range) =
     inherit NodeBase(range)
     member val Text = idText
     override val Children = Array.empty
+
+    override x.ToString() =
+        $"SingleTextNode(%A{x.Range}, \"%s{x.Text}\")"
 
 type MultipleTextsNode(content: SingleTextNode list, range) =
     inherit NodeBase(range)
@@ -477,10 +535,10 @@ type PatNamedNode(accessibility: SingleTextNode option, name: SingleTextNode, ra
     member val Name = name
     member val Accessibility = accessibility
 
-type NamePatPair(ident: SingleTextNode, equals: SingleTextNode, pat: Pattern, range) =
+type NamePatPairNode(fieldName: IdentListNode, equals: SingleTextNode, pat: Pattern, range) =
     inherit NodeBase(range)
-    override val Children: Node array = [| yield ident; yield equals; yield Pattern.Node pat |]
-    member val Ident = ident
+    override val Children: Node array = [| yield fieldName; yield equals; yield Pattern.Node pat |]
+    member val FieldName = fieldName
     member val Equals = equals
     member val Pattern = pat
 
@@ -489,7 +547,7 @@ type PatNamePatPairsNode
         identifier: IdentListNode,
         typarDecls: TyparDecls option,
         openingParen: SingleTextNode,
-        pairs: NamePatPair list,
+        pairs: NamePatPairNode list,
         closingParen: SingleTextNode,
         range
     ) =
@@ -564,18 +622,7 @@ type PatArrayOrListNode(openToken: SingleTextNode, pats: Pattern list, closeToke
     member val Patterns = pats
     member val CloseToken = closeToken
 
-type PatRecordField
-    (prefix: IdentListNode option, fieldName: SingleTextNode, equals: SingleTextNode, pat: Pattern, range) =
-    inherit NodeBase(range)
-
-    override val Children: Node array = [| yield! noa prefix; yield fieldName; yield equals; yield Pattern.Node pat |]
-
-    member val Prefix = prefix
-    member val FieldName = fieldName
-    member val Equals = equals
-    member val Pattern = pat
-
-type PatRecordNode(openingNode: SingleTextNode, fields: PatRecordField list, closingNode: SingleTextNode, range) =
+type PatRecordNode(openingNode: SingleTextNode, fields: NamePatPairNode list, closingNode: SingleTextNode, range) =
     inherit NodeBase(range)
 
     override val Children: Node array = [| yield openingNode; yield! nodes fields; yield closingNode |]
@@ -996,52 +1043,14 @@ type ExprComputationNode(openingBrace: SingleTextNode, bodyExpr: Expr, closingBr
     member val Body = bodyExpr
     member val ClosingBrace = closingBrace
 
-type ExprLetOrUseNode(binding: BindingNode, inKeyword: SingleTextNode option, range) =
-    inherit NodeBase(range)
-    override val Children: Node array = [| yield binding; yield! noa inKeyword |]
-    member val Binding = binding
-    member val In = inKeyword
-
-type ExprLetOrUseBangNode(leadingKeyword: SingleTextNode, pat: Pattern, equals: SingleTextNode, expr: Expr, range) =
-    inherit NodeBase(range)
-
-    override val Children: Node array =
-        [| yield leadingKeyword
-           yield Pattern.Node pat
-           yield equals
-           yield Expr.Node expr |]
-
-    member val LeadingKeyword = leadingKeyword
-    member val Pattern = pat
-    member val Equals = equals
-    member val Expression = expr
-
-type ExprAndBang(leadingKeyword: SingleTextNode, pat: Pattern, equals: SingleTextNode, expr: Expr, range) =
-    inherit NodeBase(range)
-
-    override val Children: Node array =
-        [| yield leadingKeyword
-           yield Pattern.Node pat
-           yield equals
-           yield Expr.Node expr |]
-
-    member val LeadingKeyword = leadingKeyword
-    member val Pattern = pat
-    member val Equals = equals
-    member val Expression = expr
-
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type ComputationExpressionStatement =
-    | LetOrUseStatement of ExprLetOrUseNode
-    | LetOrUseBangStatement of ExprLetOrUseBangNode
-    | AndBangStatement of ExprAndBang
+    | BindingStatement of BindingNode
     | OtherStatement of Expr
 
     static member Node(ces: ComputationExpressionStatement) : Node =
         match ces with
-        | LetOrUseStatement n -> n
-        | LetOrUseBangStatement n -> n
-        | AndBangStatement n -> n
+        | BindingStatement n -> n
         | OtherStatement o -> Expr.Node o
 
 type ExprCompExprBodyNode(statements: ComputationExpressionStatement list, range) =
@@ -2036,6 +2045,7 @@ type BindingNode
         returnType: BindingReturnInfoNode option,
         equals: SingleTextNode,
         expr: Expr,
+        inKeyword: SingleTextNode option,
         range
     ) =
     inherit NodeBase(range)
@@ -2051,6 +2061,7 @@ type BindingNode
     member val ReturnType = returnType
     member val Equals = equals
     member val Expr = expr
+    member val In = inKeyword
 
     override val Children: Node array =
         [| yield! noa xmlDoc
@@ -2066,7 +2077,8 @@ type BindingNode
            yield! nodes (List.map Pattern.Node parameters)
            yield! noa returnType
            yield equals
-           yield Expr.Node expr |]
+           yield Expr.Node expr
+           yield! noa inKeyword |]
 
 type BindingListNode(bindings: BindingNode list, range) =
     inherit NodeBase(range)

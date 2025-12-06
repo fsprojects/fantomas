@@ -27,6 +27,9 @@ module RangeHelpers =
 
         startRange, endRange
 
+    let absoluteZeroRange =
+        Range.mkRange Range.range0.FileName (Position.mkPos 0 0) (Position.mkPos 0 0)
+
 module RangePatterns =
     let (|StartEndRange|) (size: int) (range: range) =
         let o, c = RangeHelpers.mkStartEndRange size range

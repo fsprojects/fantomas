@@ -1627,6 +1627,20 @@ stepLog.LogInformation (
 """
 
 [<Test>]
+let ``short let binding with in keyword should not add newline`` () =
+    formatSourceString
+        """
+let _ = BlahBlah foo in a
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let _ = BlahBlah foo in a
+"""
+
+[<Test>]
 let ``in keyword in let binding should stay in one line, 1610`` () =
     formatSourceString
         """

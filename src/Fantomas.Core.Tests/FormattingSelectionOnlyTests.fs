@@ -303,3 +303,17 @@ and a    b  c    =    2
 """
         config
     |> should equal "and a b c = 2"
+
+[<Test>]
+let ``format and! binding inside computation expression`` () =
+    formatSelectionOnly
+        false
+        (mkSelection (3, 4) (3, 19))
+        """
+comp {
+    let! a  =  b in
+    ()
+}
+"""
+        config
+    |> should equal "let! a = b in"

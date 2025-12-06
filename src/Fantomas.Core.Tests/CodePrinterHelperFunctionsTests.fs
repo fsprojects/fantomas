@@ -209,7 +209,7 @@ let a =
 
     // Let's create a dummy Oak
     // In practise, a FCS Syntax tree will be transformed to an Oak
-    let zeroRange = Fantomas.FCS.Text.Range.Zero
+    let zeroRange = Fantomas.FCS.Text.Range.range0
     let stn text = SingleTextNode(text, zeroRange)
 
     let tree =
@@ -231,6 +231,7 @@ let a =
                             None,
                             stn "=",
                             Expr.Ident(stn "b"),
+                            None,
                             zeroRange
                         )
                     ) ],
@@ -321,7 +322,7 @@ let b = 2
 """
 
     // Imagine that we always want to print a new line between let bindings.
-    let zeroRange = Fantomas.FCS.Text.Range.Zero
+    let zeroRange = Fantomas.FCS.Text.Range.range0
     let stn text = SingleTextNode(text, zeroRange)
 
     let mkBinding name body =
@@ -338,6 +339,7 @@ let b = 2
             None,
             stn "=",
             Expr.Ident(stn body),
+            None,
             zeroRange
         )
 
