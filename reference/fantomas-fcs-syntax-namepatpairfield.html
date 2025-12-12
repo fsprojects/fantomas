@@ -7,15 +7,15 @@
     <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
     <!-- Opengraph properties (https://ogp.me/) -->
     <meta property="og:site_name" content="fantomas">
-    <meta property="og:title" content="ExprLetOrUseBangNode (fantomas)" />
+    <meta property="og:title" content="NamePatPairField (fantomas)" />
     <meta property="og:url" content="https://fsprojects.github.io/fantomas/{{fsdocs-source-basename}}.html">
     <meta property="og:type" content="website" />
     <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
-    <meta name="twitter:title" content="ExprLetOrUseBangNode (fantomas)">
+    <meta name="twitter:title" content="NamePatPairField (fantomas)">
     
-    <title>ExprLetOrUseBangNode (fantomas) | fantomas</title>
+    <title>NamePatPairField (fantomas) | fantomas</title>
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
@@ -284,38 +284,28 @@
     <div id="content">
         <div>
   <h2>
-    ExprLetOrUseBangNode Type
+    NamePatPairField Type
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
       Namespace: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core.html">
-        Fantomas.Core
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax.html">
+        Fantomas.FCS.Syntax
       </a>
     </dt>
     <dt>
-      Assembly: Fantomas.Core.dll
-    </dt>
-    <dt>
-      Parent Module: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak.html">
-        SyntaxOak
-      </a>
+      Assembly: Fantomas.FCS.dll
     </dt>
     <dt>
       Base Type: 
-      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-nodebase.html">NodeBase</a></code>
-    </dt>
-    <dt>
-      All Interfaces: 
-      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-node.html">Node</a></code>
+      <code>obj</code>
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
     <div>
       <div class="fsdocs-summary-contents">
         <p class="fsdocs-summary">
-          
+           Represents a single named argument pattern a pair of the form `name = pattern`.
         </p>
       </div>
     </div>
@@ -323,18 +313,15 @@
   <div></div>
   <div></div>
   <div></div>
-  <div></div>
-  <div></div>
-  <div></div>
   <div>
     <h3>
-      Constructors
+      Union cases
     </h3>
     <table class="table outer-list fsdocs-member-list">
       <thead>
         <tr>
           <td class="fsdocs-member-list-header">
-            Constructor
+            Union case
           </td>
           <td class="fsdocs-member-list-header">
             Description
@@ -346,53 +333,37 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '3579', 3579)" onmouseover="showTip(event, '3579', 3579)">
+              <code onmouseout="hideTip(event, '8479', 8479)" onmouseover="showTip(event, '8479', 8479)">
                 <p>
-                  <a id="``.ctor``">
-                    <a href="#``.ctor``">
-                      <code><span>ExprLetOrUseBangNode<span><span>(<span>leadingKeyword,&#32;pat,&#32;equals,&#32;expr,&#32;range</span>)</span></span></span></code>
+                  <a id="NamePatPairField">
+                    <a href="#NamePatPairField">
+                      <code><span>NamePatPairField(<span>fieldName,&#32;equalsRange,&#32;range,&#32;pat,&#32;blockSeparator</span>)</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="3579">
+              <div class="fsdocs-tip" id="8479">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>ExprLetOrUseBangNode<span><span>(<span>leadingKeyword,&#32;pat,&#32;equals,&#32;expr,&#32;range</span>)</span></span></span></code>
+                  <code><span>NamePatPairField(<span>fieldName,&#32;equalsRange,&#32;range,&#32;pat,&#32;blockSeparator</span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        leadingKeyword
+                        fieldName
                       </b>
                       :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synlongident.html">SynLongIdent</a></code>
                     </span>
                     <br/>
                     <span>
                       <b>
-                        pat
+                        equalsRange
                       </b>
                       :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-pattern.html">Pattern</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        equals
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        expr
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a>&#32;option</span></code>
                     </span>
                     <br/>
                     <span>
@@ -403,12 +374,23 @@
                       <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
                     </span>
                     <br/>
+                    <span>
+                      <b>
+                        pat
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synpat.html">SynPat</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        blockSeparator
+                      </b>
+                      :
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-blockseparator.html">BlockSeparator</a>&#32;option</span></code>
+                    </span>
+                    <br/>
                   </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprletorusebangnode.html">ExprLetOrUseBangNode</a></code>
-                  </span>
                   <br/>
                 </div>
               </div>
@@ -424,34 +406,18 @@
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
-                    leadingKeyword
+                    fieldName
                   </span>
                   :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synlongident.html">SynLongIdent</a></code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
-                    pat
+                    equalsRange
                   </span>
                   :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-pattern.html">Pattern</a></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    equals
-                  </span>
-                  :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    expr
-                  </span>
-                  :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a>&#32;option</span></code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
                 <dt class="fsdocs-param">
@@ -462,15 +428,22 @@
                   <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
-              </dl>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    pat
                   </span>
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprletorusebangnode.html">ExprLetOrUseBangNode</a></code>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synpat.html">SynPat</a></code>
                 </dt>
-                <dd class="fsdocs-return-docs"></dd>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    blockSeparator
+                  </span>
+                  :
+                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-blockseparator.html">BlockSeparator</a>&#32;option</span></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
               </dl>
             </div>
           </td>
@@ -478,6 +451,9 @@
       </tbody>
     </table>
   </div>
+  <div></div>
+  <div></div>
+  <div></div>
   <div>
     <h3>
       Instance members
@@ -498,24 +474,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '3580', 3580)" onmouseover="showTip(event, '3580', 3580)">
+              <code onmouseout="hideTip(event, '8480', 8480)" onmouseover="showTip(event, '8480', 8480)">
                 <p>
-                  <a id="Equals">
-                    <a href="#Equals">
-                      <code><span>this.Equals</span></code>
+                  <a id="FieldName">
+                    <a href="#FieldName">
+                      <code><span>this.FieldName</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="3580">
+              <div class="fsdocs-tip" id="8480">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.Equals</span></code>
+                  <code><span>this.FieldName</span></code>
                   <br/>
                   <br/>
                   <span>
                     Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synlongident.html">SynLongIdent</a></code>
                   </span>
                   <br/>
                 </div>
@@ -523,120 +499,43 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3581', 3581)" onmouseover="showTip(event, '3581', 3581)">
-                <p>
-                  <a id="Expression">
-                    <a href="#Expression">
-                      <code><span>this.Expression</span></code>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Gets the identifier of the named field/parameter.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
                     </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3581">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.Expression</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
-                  </span>
-                  <br/>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.FCS.Syntax.NamePatPairField.FieldName\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.FCS.Syntax.NamePatPairField.FieldName`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+              </summary>
               <dl class="fsdocs-returns">
                 <dt>
                   <span class="fsdocs-return-name">
                     Returns: 
                   </span>
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synlongident.html">SynLongIdent</a></code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '3582', 3582)" onmouseover="showTip(event, '3582', 3582)">
-                <p>
-                  <a id="LeadingKeyword">
-                    <a href="#LeadingKeyword">
-                      <code><span>this.LeadingKeyword</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3582">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.LeadingKeyword</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3583', 3583)" onmouseover="showTip(event, '3583', 3583)">
+              <code onmouseout="hideTip(event, '8481', 8481)" onmouseover="showTip(event, '8481', 8481)">
                 <p>
                   <a id="Pattern">
                     <a href="#Pattern">
@@ -645,7 +544,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="3583">
+              <div class="fsdocs-tip" id="8481">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.Pattern</span></code>
@@ -653,7 +552,7 @@
                   <br/>
                   <span>
                     Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-pattern.html">Pattern</a></code>
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synpat.html">SynPat</a></code>
                   </span>
                   <br/>
                 </div>
@@ -661,22 +560,98 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Gets the pattern associated with the named field.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.FCS.Syntax.NamePatPairField.Pattern\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.FCS.Syntax.NamePatPairField.Pattern`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-returns">
                 <dt>
                   <span class="fsdocs-return-name">
                     Returns: 
                   </span>
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-pattern.html">Pattern</a></code>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synpat.html">SynPat</a></code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '8482', 8482)" onmouseover="showTip(event, '8482', 8482)">
+                <p>
+                  <a id="Range">
+                    <a href="#Range">
+                      <code><span>this.Range</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="8482">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.Range</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
             </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Gets the overall range of this name–pattern pair, if available.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.FCS.Syntax.NamePatPairField.Range\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.FCS.Syntax.NamePatPairField.Range`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
           </td>
         </tr>
       </tbody>

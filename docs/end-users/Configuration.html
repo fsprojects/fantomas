@@ -293,7 +293,7 @@ These can be stored in an <a href="https://editorconfig.org/">.editorconfig</a> 
 commandline.<br />
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.</p>
-<table class="pre"><tr><td><pre><code>version: 7.0.5+57a1ad7e7c63eff56600f5c4a4474bd35e5f8174</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 7.0.5+b2aee70fde5de152dc852550aa5b5023ea0b3a22</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -1359,7 +1359,7 @@ from Fantomas</div>
 <div class="fsdocs-tip" id="fs9">val async: AsyncBuilder</div>
 <div class="fsdocs-tip" id="fs10">val config: FormatConfig</div>
 <div class="fsdocs-tip" id="fs11">val editorConfigProperties: Collections.Generic.IReadOnlyDictionary&lt;string,string&gt;</div>
-<div class="fsdocs-tip" id="fs12">String.Split([&lt;ParamArray&gt;] separator: char array) : string array<br />String.Split(separator: string array, options: StringSplitOptions) : string array<br />String.Split(separator: string, ?options: StringSplitOptions) : string array<br />String.Split(separator: char array, options: StringSplitOptions) : string array<br />String.Split(separator: char array, count: int) : string array<br />String.Split(separator: char, ?options: StringSplitOptions) : string array<br />String.Split(separator: string array, count: int, options: StringSplitOptions) : string array<br />String.Split(separator: string, count: int, ?options: StringSplitOptions) : string array<br />String.Split(separator: char array, count: int, options: StringSplitOptions) : string array<br />String.Split(separator: char, count: int, ?options: StringSplitOptions) : string array</div>
+<div class="fsdocs-tip" id="fs12">String.Split(separator: ReadOnlySpan&lt;char&gt;) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split([&lt;ParamArray&gt;] separator: char array) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string array, options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string, ?options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: char array, options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: char array, count: int) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: char, ?options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string array, count: int, options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string, count: int, ?options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: char array, count: int, options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em></div>
 <div class="fsdocs-tip" id="fs13">[&lt;Struct&gt;]
 type StringSplitOptions =
   | None = 0
@@ -1467,7 +1467,9 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
   | NumberOfItems
   member Equals: MultilineFormatterType * IEqualityComparer -&gt; bool
   static member OfConfigString: cfgString: string -&gt; MultilineFormatterType option
-  static member ToConfigString: cfg: MultilineFormatterType -&gt; string</div>
+  static member ToConfigString: cfg: MultilineFormatterType -&gt; string
+  member IsCharacterWidth: bool
+  member IsNumberOfItems: bool</div>
 <div class="fsdocs-tip" id="fs59">static member MultilineFormatterType.ToConfigString: cfg: MultilineFormatterType -&gt; string</div>
 <div class="fsdocs-tip" id="fs60">FormatConfig.MaxArrayOrListWidth: Num</div>
 <div class="fsdocs-tip" id="fs61">FormatConfig.MaxArrayOrListNumberOfItems: Num</div>
@@ -1481,7 +1483,10 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
   | Stroustrup
   member Equals: MultilineBracketStyle * IEqualityComparer -&gt; bool
   static member OfConfigString: cfgString: string -&gt; MultilineBracketStyle option
-  static member ToConfigString: cfg: MultilineBracketStyle -&gt; string</div>
+  static member ToConfigString: cfg: MultilineBracketStyle -&gt; string
+  member IsAligned: bool
+  member IsCramped: bool
+  member IsStroustrup: bool</div>
 <div class="fsdocs-tip" id="fs67">static member MultilineBracketStyle.ToConfigString: cfg: MultilineBracketStyle -&gt; string</div>
 <div class="fsdocs-tip" id="fs68">FormatConfig.NewlineBeforeMultilineComputationExpression: bool</div>
 <div class="fsdocs-tip" id="fs69">FormatConfig.NewlineBetweenTypeDefinitionAndMembers: bool</div>

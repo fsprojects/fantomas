@@ -7,15 +7,15 @@
     <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
     <!-- Opengraph properties (https://ogp.me/) -->
     <meta property="og:site_name" content="fantomas">
-    <meta property="og:title" content="SynExprLetOrUseTrivia (fantomas)" />
+    <meta property="og:title" content="CacheOptions<'Key> (fantomas)" />
     <meta property="og:url" content="https://fsprojects.github.io/fantomas/{{fsdocs-source-basename}}.html">
     <meta property="og:type" content="website" />
     <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
-    <meta name="twitter:title" content="SynExprLetOrUseTrivia (fantomas)">
+    <meta name="twitter:title" content="CacheOptions<'Key> (fantomas)">
     
-    <title>SynExprLetOrUseTrivia (fantomas) | fantomas</title>
+    <title>CacheOptions<'Key> (fantomas) | fantomas</title>
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
@@ -284,13 +284,13 @@
     <div id="content">
         <div>
   <h2>
-    SynExprLetOrUseTrivia Type
+    CacheOptions<'Key> Type
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
       Namespace: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia.html">
-        Fantomas.FCS.SyntaxTrivia
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-caches.html">
+        Fantomas.FCS.Caches
       </a>
     </dt>
     <dt>
@@ -298,14 +298,17 @@
     </dt>
     <dt>
       Base Type: 
-      <code>obj</code>
+      <code><a href="https://learn.microsoft.com/dotnet/api/system.valuetype">ValueType</a></code>
+    </dt>
+    <dt>
+      Kind: Struct
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
     <div>
       <div class="fsdocs-summary-contents">
         <p class="fsdocs-summary">
-           Represents additional information for SynExpr.LetOrUse
+          
         </p>
       </div>
     </div>
@@ -334,24 +337,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7164', 7164)" onmouseover="showTip(event, '7164', 7164)">
+              <code onmouseout="hideTip(event, '8274', 8274)" onmouseover="showTip(event, '8274', 8274)">
                 <p>
-                  <a id="InKeyword">
-                    <a href="#InKeyword">
-                      <code>InKeyword</code>
+                  <a id="Comparer">
+                    <a href="#Comparer">
+                      <code>Comparer</code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7164">
+              <div class="fsdocs-tip" id="8274">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code>InKeyword</code>
+                  <code>Comparer</code>
                   <br/>
                   <br/>
                   <span>
                     Field type: 
-                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a>&#32;option</span></code>
+                    <code><span><a href="https://learn.microsoft.com/dotnet/api/system.collections.generic.iequalitycomparer-1">IEqualityComparer</a>&lt;'Key&gt;</span></code>
                   </span>
                   <br/>
                 </div>
@@ -364,7 +367,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       The syntax range of the `in` keyword.
+                       Comparer to use for keys.
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -379,7 +382,172 @@
                   <span class="fsdocs-return-name">
                     Field type: 
                   </span>
-                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a>&#32;option</span></code>
+                  <code><span><a href="https://learn.microsoft.com/dotnet/api/system.collections.generic.iequalitycomparer-1">IEqualityComparer</a>&lt;'Key&gt;</span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '8275', 8275)" onmouseover="showTip(event, '8275', 8275)">
+                <p>
+                  <a id="EvictionMode">
+                    <a href="#EvictionMode">
+                      <code>EvictionMode</code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="8275">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code>EvictionMode</code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Field type: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-caches-evictionmode.html">EvictionMode</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Mechanism to use for evicting items from the cache.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Field type: 
+                  </span>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-caches-evictionmode.html">EvictionMode</a></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '8276', 8276)" onmouseover="showTip(event, '8276', 8276)">
+                <p>
+                  <a id="HeadroomPercentage">
+                    <a href="#HeadroomPercentage">
+                      <code>HeadroomPercentage</code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="8276">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code>HeadroomPercentage</code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Field type: 
+                    <code>int</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Safety margin size as a percentage of TotalCapacity.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Field type: 
+                  </span>
+                  <code>int</code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '8277', 8277)" onmouseover="showTip(event, '8277', 8277)">
+                <p>
+                  <a id="TotalCapacity">
+                    <a href="#TotalCapacity">
+                      <code>TotalCapacity</code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="8277">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code>TotalCapacity</code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Field type: 
+                    <code>int</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Total capacity, determines the size of the underlying store.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Field type: 
+                  </span>
+                  <code>int</code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
@@ -392,72 +560,7 @@
   <div></div>
   <div></div>
   <div></div>
-  <div>
-    <h3>
-      Static members
-    </h3>
-    <table class="table outer-list fsdocs-member-list">
-      <thead>
-        <tr>
-          <td class="fsdocs-member-list-header">
-            Static member
-          </td>
-          <td class="fsdocs-member-list-header">
-            Description
-            <fsdocs-details-toggle></fsdocs-details-toggle>
-          </td>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '7165', 7165)" onmouseover="showTip(event, '7165', 7165)">
-                <p>
-                  <a id="Zero">
-                    <a href="#Zero">
-                      <code><span>SynExprLetOrUseTrivia.Zero</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="7165">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>SynExprLetOrUseTrivia.Zero</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-synexprletorusetrivia.html">SynExprLetOrUseTrivia</a></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-synexprletorusetrivia.html">SynExprLetOrUseTrivia</a></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <div></div>
 </div>
         
     </div>

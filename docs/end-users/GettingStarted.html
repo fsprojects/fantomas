@@ -370,7 +370,7 @@ function Format-Changed(){
 <div class="fsdocs-tip" id="fs4">namespace System.IO</div>
 <div class="fsdocs-tip" id="fs5">type Path =
   static member ChangeExtension: path: string * extension: string -&gt; string
-  static member Combine: path1: string * path2: string -&gt; string + 3 overloads
+  static member Combine: path1: string * path2: string -&gt; string + 4 overloads
   static member EndsInDirectorySeparator: path: ReadOnlySpan&lt;char&gt; -&gt; bool + 1 overload
   static member Exists: path: string -&gt; bool
   static member GetDirectoryName: path: ReadOnlySpan&lt;char&gt; -&gt; ReadOnlySpan&lt;char&gt; + 1 overload
@@ -380,20 +380,20 @@ function Format-Changed(){
   static member GetFullPath: path: string -&gt; string + 1 overload
   static member GetInvalidFileNameChars: unit -&gt; char array
   ...<br /><em>&lt;summary&gt;Performs operations on &lt;see cref=&quot;T:System.String&quot; /&gt; instances that contain file or directory path information. These operations are performed in a cross-platform manner.&lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs6">System.IO.Path.Combine([&lt;System.ParamArray&gt;] paths: string array) : string<br />System.IO.Path.Combine(path1: string, path2: string) : string<br />System.IO.Path.Combine(path1: string, path2: string, path3: string) : string<br />System.IO.Path.Combine(path1: string, path2: string, path3: string, path4: string) : string</div>
+<div class="fsdocs-tip" id="fs6">System.IO.Path.Combine(paths: System.ReadOnlySpan&lt;string&gt;) : string<br />System.IO.Path.Combine([&lt;System.ParamArray&gt;] paths: string array) : string<br />System.IO.Path.Combine(path1: string, path2: string) : string<br />System.IO.Path.Combine(path1: string, path2: string, path3: string) : string<br />System.IO.Path.Combine(path1: string, path2: string, path3: string, path4: string) : string</div>
 <div class="fsdocs-tip" id="fs7">val output: string</div>
 <div class="fsdocs-tip" id="fs8">val psi: ProcessStartInfo</div>
 <div class="fsdocs-tip" id="fs9">Multiple items<br />type ProcessStartInfo =
   new: unit -&gt; unit + 3 overloads
   member ArgumentList: Collection&lt;string&gt;
   member Arguments: string
+  member CreateNewProcessGroup: bool
   member CreateNoWindow: bool
   member Domain: string
   member Environment: IDictionary&lt;string,string&gt;
   member EnvironmentVariables: StringDictionary
   member ErrorDialog: bool
   member ErrorDialogParentHandle: nativeint
-  member FileName: string
   ...<br /><em>&lt;summary&gt;Specifies a set of values that are used when you start a process.&lt;/summary&gt;</em><br /><br />--------------------<br />ProcessStartInfo() : ProcessStartInfo<br />ProcessStartInfo(fileName: string) : ProcessStartInfo<br />ProcessStartInfo(fileName: string, arguments: string) : ProcessStartInfo<br />ProcessStartInfo(fileName: string, arguments: System.Collections.Generic.IEnumerable&lt;string&gt;) : ProcessStartInfo</div>
 <div class="fsdocs-tip" id="fs10">property ProcessStartInfo.RedirectStandardOutput: bool with get, set<br /><em>&lt;summary&gt;Gets or sets a value that indicates whether the textual output of an application is written to the &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt; stream.&lt;/summary&gt;<br />&lt;returns&gt;&lt;see langword=&quot;true&quot; /&gt; if output should be written to &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt;; otherwise, &lt;see langword=&quot;false&quot; /&gt;. The default is &lt;see langword=&quot;false&quot; /&gt;.&lt;/returns&gt;</em></div>
 <div class="fsdocs-tip" id="fs11">property ProcessStartInfo.UseShellExecute: bool with get, set<br /><em>&lt;summary&gt;Gets or sets a value indicating whether to use the operating system shell to start the process.&lt;/summary&gt;<br />&lt;exception cref=&quot;T:System.PlatformNotSupportedException&quot;&gt;An attempt to set the value to &lt;see langword=&quot;true&quot; /&gt; on Universal Windows Platform (UWP) apps occurs.&lt;/exception&gt;<br />&lt;returns&gt;&lt;see langword=&quot;true&quot; /&gt; if the shell should be used when starting the process; &lt;see langword=&quot;false&quot; /&gt; if the process should be created directly from the executable file. The default is &lt;see langword=&quot;true&quot; /&gt; on .NET Framework apps and &lt;see langword=&quot;false&quot; /&gt; on .NET Core apps.&lt;/returns&gt;</em></div>

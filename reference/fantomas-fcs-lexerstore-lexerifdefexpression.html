@@ -7,15 +7,15 @@
     <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
     <!-- Opengraph properties (https://ogp.me/) -->
     <meta property="og:site_name" content="fantomas">
-    <meta property="og:title" content="LexbufCommentStore (fantomas)" />
+    <meta property="og:title" content="LexerIfdefExpression (fantomas)" />
     <meta property="og:url" content="https://fsprojects.github.io/fantomas/{{fsdocs-source-basename}}.html">
     <meta property="og:type" content="website" />
     <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
-    <meta name="twitter:title" content="LexbufCommentStore (fantomas)">
+    <meta name="twitter:title" content="LexerIfdefExpression (fantomas)">
     
-    <title>LexbufCommentStore (fantomas) | fantomas</title>
+    <title>LexerIfdefExpression (fantomas) | fantomas</title>
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
@@ -284,7 +284,7 @@
     <div id="content">
         <div>
   <h2>
-    LexbufCommentStore Module
+    LexerIfdefExpression Type
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
@@ -298,9 +298,23 @@
     </dt>
     <dt>
       Parent Module: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-parsehelpers.html">
-        ParseHelpers
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore.html">
+        LexerStore
       </a>
+    </dt>
+    <dt>
+      Base Type: 
+      <code>obj</code>
+    </dt>
+    <dt>
+      All Interfaces: 
+      <code><a href="https://learn.microsoft.com/dotnet/api/system.collections.istructuralequatable">IStructuralEquatable</a></code>
+      , 
+      <code><span><a href="https://learn.microsoft.com/dotnet/api/system.icomparable-1">IComparable</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a>&gt;</span></code>
+      , 
+      <code><a href="https://learn.microsoft.com/dotnet/api/system.icomparable">IComparable</a></code>
+      , 
+      <code><a href="https://learn.microsoft.com/dotnet/api/system.collections.istructuralcomparable">IStructuralComparable</a></code>
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
@@ -312,15 +326,18 @@
       </div>
     </div>
   </div>
+  <div></div>
+  <div></div>
+  <div></div>
   <div>
     <h3>
-      Functions and values
+      Union cases
     </h3>
     <table class="table outer-list fsdocs-member-list">
       <thead>
         <tr>
           <td class="fsdocs-member-list-header">
-            Function or value
+            Union case
           </td>
           <td class="fsdocs-member-list-header">
             Description
@@ -332,29 +349,37 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '359', 359)" onmouseover="showTip(event, '359', 359)">
+              <code onmouseout="hideTip(event, '4980', 4980)" onmouseover="showTip(event, '4980', 4980)">
                 <p>
-                  <a id="ClearComments">
-                    <a href="#ClearComments">
-                      <code><span>ClearComments&#32;<span>lexbuf</span></span></code>
+                  <a id="IfdefAnd">
+                    <a href="#IfdefAnd">
+                      <code><span>IfdefAnd(<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a>,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></span>)</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="359">
+              <div class="fsdocs-tip" id="4980">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>ClearComments&#32;<span>lexbuf</span></span></code>
+                  <code><span>IfdefAnd(<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a>,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        lexbuf
+                        Item1
                       </b>
                       :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-unicodelexing-lexbuf.html">Lexbuf</a></code>
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        Item2
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></code>
                     </span>
                     <br/>
                   </ul>
@@ -373,10 +398,18 @@
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
-                    lexbuf
+                    Item1
                   </span>
                   :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-unicodelexing-lexbuf.html">Lexbuf</a></code>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item2
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
               </dl>
@@ -386,113 +419,29 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '360', 360)" onmouseover="showTip(event, '360', 360)">
+              <code onmouseout="hideTip(event, '4981', 4981)" onmouseover="showTip(event, '4981', 4981)">
                 <p>
-                  <a id="GetComments">
-                    <a href="#GetComments">
-                      <code><span>GetComments&#32;<span>lexbuf</span></span></code>
+                  <a id="IfdefId">
+                    <a href="#IfdefId">
+                      <code><span>IfdefId&#32;string</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="360">
+              <div class="fsdocs-tip" id="4981">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>GetComments&#32;<span>lexbuf</span></span></code>
+                  <code><span>IfdefId&#32;string</span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        lexbuf
+                        Item
                       </b>
                       :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-unicodelexing-lexbuf.html">Lexbuf</a></code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-commenttrivia.html">CommentTrivia</a>&#32;list</span></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-params">
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    lexbuf
-                  </span>
-                  :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-unicodelexing-lexbuf.html">Lexbuf</a></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
-              </dl>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-commenttrivia.html">CommentTrivia</a>&#32;list</span></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '361', 361)" onmouseover="showTip(event, '361', 361)">
-                <p>
-                  <a id="SaveBlockComment">
-                    <a href="#SaveBlockComment">
-                      <code><span>SaveBlockComment&#32;<span><span>(<span>lexbuf,&#32;startRange,&#32;endRange</span>)</span></span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="361">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>SaveBlockComment&#32;<span><span>(<span>lexbuf,&#32;startRange,&#32;endRange</span>)</span></span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        lexbuf
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-unicodelexing-lexbuf.html">Lexbuf</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        startRange
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        endRange
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+                      <code>string</code>
                     </span>
                     <br/>
                   </ul>
@@ -511,26 +460,10 @@
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
-                    lexbuf
+                    Item
                   </span>
                   :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-unicodelexing-lexbuf.html">Lexbuf</a></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    startRange
-                  </span>
-                  :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    endRange
-                  </span>
-                  :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+                  <code>string</code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
               </dl>
@@ -540,45 +473,29 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '362', 362)" onmouseover="showTip(event, '362', 362)">
+              <code onmouseout="hideTip(event, '4982', 4982)" onmouseover="showTip(event, '4982', 4982)">
                 <p>
-                  <a id="SaveSingleLineComment">
-                    <a href="#SaveSingleLineComment">
-                      <code><span>SaveSingleLineComment&#32;<span><span>(<span>lexbuf,&#32;startRange,&#32;endRange</span>)</span></span></span></code>
+                  <a id="IfdefNot">
+                    <a href="#IfdefNot">
+                      <code><span>IfdefNot&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="362">
+              <div class="fsdocs-tip" id="4982">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>SaveSingleLineComment&#32;<span><span>(<span>lexbuf,&#32;startRange,&#32;endRange</span>)</span></span></span></code>
+                  <code><span>IfdefNot&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        lexbuf
+                        Item
                       </b>
                       :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-unicodelexing-lexbuf.html">Lexbuf</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        startRange
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        endRange
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></code>
                     </span>
                     <br/>
                   </ul>
@@ -597,26 +514,80 @@
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
-                    lexbuf
+                    Item
                   </span>
                   :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-unicodelexing-lexbuf.html">Lexbuf</a></code>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '4983', 4983)" onmouseover="showTip(event, '4983', 4983)">
+                <p>
+                  <a id="IfdefOr">
+                    <a href="#IfdefOr">
+                      <code><span>IfdefOr(<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a>,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></span>)</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="4983">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IfdefOr(<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a>,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></span>)</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item1
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        Item2
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    Item1
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
-                    startRange
+                    Item2
                   </span>
                   :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    endRange
-                  </span>
-                  :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-lexerifdefexpression.html">LexerIfdefExpression</a></code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
               </dl>
@@ -629,10 +600,210 @@
   <div></div>
   <div></div>
   <div></div>
-  <div></div>
-  <div></div>
-  <div></div>
-  <div></div>
+  <div>
+    <h3>
+      Instance members
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Instance member
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+            <fsdocs-details-toggle></fsdocs-details-toggle>
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '4984', 4984)" onmouseover="showTip(event, '4984', 4984)">
+                <p>
+                  <a id="IsIfdefAnd">
+                    <a href="#IsIfdefAnd">
+                      <code><span>this.IsIfdefAnd</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="4984">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsIfdefAnd</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code>bool</code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '4985', 4985)" onmouseover="showTip(event, '4985', 4985)">
+                <p>
+                  <a id="IsIfdefId">
+                    <a href="#IsIfdefId">
+                      <code><span>this.IsIfdefId</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="4985">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsIfdefId</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code>bool</code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '4986', 4986)" onmouseover="showTip(event, '4986', 4986)">
+                <p>
+                  <a id="IsIfdefNot">
+                    <a href="#IsIfdefNot">
+                      <code><span>this.IsIfdefNot</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="4986">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsIfdefNot</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code>bool</code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '4987', 4987)" onmouseover="showTip(event, '4987', 4987)">
+                <p>
+                  <a id="IsIfdefOr">
+                    <a href="#IsIfdefOr">
+                      <code><span>this.IsIfdefOr</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="4987">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsIfdefOr</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code>bool</code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <div></div>
 </div>
         
