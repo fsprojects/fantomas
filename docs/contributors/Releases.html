@@ -287,49 +287,81 @@
     <div id="content">
         
 <h1><a name="Releases" class="anchor" href="#Releases">Releases</a></h1>
-<p>Releases in Fantomas are not automated and require some manual steps by the maintainers.</p>
+<p>Releases in Fantomas are automated via GitHub Actions. When a new release entry is added to the <a href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">CHANGELOG.md</a> and pushed to the <code>main</code> branch, the release workflow will automatically:</p>
+<ol>
+<li>Build and test the project</li>
+<li>Create NuGet packages</li>
+<li>Publish packages to NuGet</li>
+<li>Create a GitHub release with release notes</li>
+</ol>
 <h2><a name="Preparation" class="anchor" href="#Preparation">Preparation</a></h2>
 <p>The <a href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">CHANGELOG.md</a> needs a new header with an official release tag:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="md">## [5.1.0] - 2022-11-04
 </code></pre></td></tr></table>
-<p>It is custom to have the next version merged into the <code>main</code> branch and locally publish from there.</p>
-<p>Verify that all recent PRs and closed issues are listed in the changelog. Normally, this should be ok as we require a changelog entry before we merge a PR.</p>
-<h2><a name="NuGet-push" class="anchor" href="#NuGet-push">NuGet push</a></h2>
-<p>To publish the new versions to NuGet:</p>
-<blockquote>
-<p>dotnet fsi build.fsx --push</p>
-</blockquote>
-<p>The <code>--push</code> will try and publish the <code>*.nupkg</code> files created by the build in the <code>bin</code> folder.
-<code>Fantomas.Client</code> will be excluded and requires a specific pipeline to publish.</p>
-<p>The pipeline does assume that the <code>NUGET_KEY</code> environment variable is set with a valid NuGet key.</p>
-<h2><a name="GitHub-release" class="anchor" href="#GitHub-release">GitHub release</a></h2>
-<p>A new GitHub release entry should be created for official versions. This will notify users who have subscribed to releases.<br />
-In the past some alpha or beta releases have had a GitHub release, it depends on the occasion.</p>
-<h3><a name="Tag" class="anchor" href="#Tag">Tag</a></h3>
-<p>Create a new tag based on the main branch. The assumption is that the <code>CHANGELOG</code> file contains the tag version you are about to create.</p>
-<h3><a name="Release-title" class="anchor" href="#Release-title">Release title</a></h3>
-<p>For a revision release you can use the current date (example: <code>October 13th Release</code>), for a minor or major releas pick the month name (example: <code>September</code>).</p>
-<h3><a name="Description" class="anchor" href="#Description">Description</a></h3>
-<p>Some parts of the description are fixed, some depend on the occasions:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="md"># Title
-
-&lt;!-- Optional intro paragraph  --&gt;
-
-&lt;!-- Copy the sections of the changelog --&gt;
-
-&lt;!-- Optional special thanks --&gt;
-Special thanks to @x, @y and @z!
-
-&lt;!-- Link to published version on NuGet --&gt;
-[https://www.nuget.org/packages/fantomas/5.0.4](https://www.nuget.org/packages/fantomas/5.0.4)
+<p>For prerelease versions, include the prerelease suffix:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="md">## [8.0.0-alpha-001] - 2024-12-12
 </code></pre></td></tr></table>
-<p>The format of the title is <code># version</code> (example: <code># 5.0.5</code>). This differs from the notation used in the changelog file!<br />
-For minors and majors a codename (inside a <code>&lt;sub&gt;</code> tag) is used. All codenames so far have been song titles by the band Ghost (example <code># 5.1.0 &lt;sub&gt;Kaisarion&lt;/sub&gt; - 11/2022</code>).<br />
-With the exception of <code>v5, "Get Back"</code>.</p>
-<p>The list of people to thank is compiled by cross referencing the changelog entries. The author of the GitHub release is omitted.<br />
-Don't be shy to include other names of people who have contributed in alternative ways when the occasion calls for it.</p>
-<h3><a name="Artifacts" class="anchor" href="#Artifacts">Artifacts</a></h3>
-<p>Upload the <code>*.nupkg</code> files to the release artifacts.</p>
+<p>Verify that all recent PRs and closed issues are listed in the changelog. Normally, this should be ok as we require a changelog entry before we merge a PR.</p>
+<p>Once the changelog entry is merged into <code>main</code>, the release workflow will automatically trigger and handle the release process.</p>
+<h2><a name="Testing-Releases-Locally" class="anchor" href="#Testing-Releases-Locally">Testing Releases Locally</a></h2>
+<p>You can test the release process locally using the <code>--dry-run</code> flag. This will perform all validation and generate release notes without actually publishing to NuGet or creating a GitHub release:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fsi build.fsx -- -p Release --dry-run
+</code></pre></td></tr></table>
+<p>This is useful for:
+- Verifying the release notes before publishing
+- Checking that the changelog is parsed correctly
+- Testing author attribution
+- Ensuring the release pipeline works as expected</p>
+<h2><a name="Automated-Release-Process" class="anchor" href="#Automated-Release-Process">Automated Release Process</a></h2>
+<p>The release pipeline (<code>build.fsx -p Release</code>) performs the following steps:</p>
+<ol>
+<li><strong>Parses the changelog</strong> to find the current and last release</li>
+<li><strong>Checks if the release already exists</strong> on GitHub (skips if already published)</li>
+<li><strong>Builds and tests</strong> the project</li>
+<li><strong>Creates NuGet packages</strong> for all projects (except <code>Fantomas.Client</code>)</li>
+<li><strong>Publishes packages to NuGet</strong></li>
+<li>
+<strong>Generates release notes</strong> including:
+<ul>
+<li>Changelog sections (Added, Changed, Fixed, etc.)</li>
+<li>Contributor attribution (from PR commits merged since the last release)</li>
+<li>Link to NuGet package</li>
+</ul>
+</li>
+<li>
+<strong>Creates GitHub release</strong>:
+<ul>
+<li>Draft releases for stable minor/major versions (patch = 0)</li>
+<li>Published releases for revisions (patch &gt; 0) and all prereleases</li>
+<li>Includes <code>--prerelease</code> flag for alpha/beta versions</li>
+</ul>
+</li>
+</ol>
+<h3><a name="Release-Types" class="anchor" href="#Release-Types">Release Types</a></h3>
+<ul>
+<li><strong>Stable minor/major</strong> (e.g., <code>7.0.0</code>, <code>8.0.0</code>): Created as draft releases, requiring manual publish</li>
+<li><strong>Stable revisions</strong> (e.g., <code>7.0.5</code>, <code>8.1.2</code>): Published immediately</li>
+<li><strong>Prereleases</strong> (e.g., <code>8.0.0-alpha-001</code>, <code>8.0.0-beta-001</code>): Always published immediately</li>
+</ul>
+<h3><a name="Author-Attribution" class="anchor" href="#Author-Attribution">Author Attribution</a></h3>
+<p>The release notes automatically include contributor attribution by:
+- Querying PRs merged since the last release
+- Extracting authors from all commits in those PRs
+- Filtering out bots (e.g., <code>dependabot[bot]</code>)
+- Generating a "Special thanks to..." message</p>
+<h2><a name="Manual-Steps" class="anchor" href="#Manual-Steps">Manual Steps</a></h2>
+<p>The only manual step required is for <strong>minor and major releases</strong>:</p>
+<h3><a name="Adding-Release-Nicknames" class="anchor" href="#Adding-Release-Nicknames">Adding Release Nicknames</a></h3>
+<p>Minor and major releases are created as <strong>draft releases</strong> on GitHub. This allows maintainers to add a cool nickname to the release title before publishing.</p>
+<p>The nickname is typically a song name from the band Ghost. For example:
+- <code># 5.1.0 &lt;sub&gt;Kaisarion&lt;/sub&gt; - 11/2022</code>
+- <code># 7.0.0 &lt;sub&gt;Year Zero&lt;/sub&gt; - 01/2025</code></p>
+<p>To add a nickname:
+1. Go to the draft release on GitHub
+2. Edit the release title to add the nickname in a <code>&lt;sub&gt;</code> tag
+3. Review the release notes (they're already generated automatically)
+4. Publish the release</p>
+<p><strong>Note</strong>: <code>Fantomas.Client</code> requires a separate pipeline (<code>build.fsx -p PushClient</code>) and is not included in the automated release.</p>
 <h2><a name="Spread-the-word" class="anchor" href="#Spread-the-word">Spread the word</a></h2>
 <p>Share the newly created release on our Discord server in the <code>#announcements</code> channel.<br />
 Optionally share (minor or major) releases on other social media.</p>
@@ -352,33 +384,33 @@ Optionally share (minor or major) releases on other social media.</p>
     </a>
   </li>
   <li class="level-2">
-    <a href="#NuGet-push">
-      NuGet push
+    <a href="#Testing-Releases-Locally">
+      Testing Releases Locally
     </a>
   </li>
   <li class="level-2">
-    <a href="#GitHub-release">
-      GitHub release
+    <a href="#Automated-Release-Process">
+      Automated Release Process
     </a>
   </li>
   <li class="level-3">
-    <a href="#Tag">
-      Tag
+    <a href="#Release-Types">
+      Release Types
     </a>
   </li>
   <li class="level-3">
-    <a href="#Release-title">
-      Release title
+    <a href="#Author-Attribution">
+      Author Attribution
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Manual-Steps">
+      Manual Steps
     </a>
   </li>
   <li class="level-3">
-    <a href="#Description">
-      Description
-    </a>
-  </li>
-  <li class="level-3">
-    <a href="#Artifacts">
-      Artifacts
+    <a href="#Adding-Release-Nicknames">
+      Adding Release Nicknames
     </a>
   </li>
   <li class="level-2">
