@@ -600,11 +600,20 @@ To avoid extreme indentation in our happy path, you can use <a href="https://fsp
             // Happy path at same indent
 
             return
-                [ { SourceDiagnostic = None
-                    Title = title
-                    File = codeActionParams.TextDocument
-                    Edits = [| { Range = fcsRangeToLsp expr.Range NewText = newText } |]
-                    Kind = FixKind.Fix } ]
+                [
+                    {
+                        SourceDiagnostic = None
+                        Title = title
+                        File = codeActionParams.TextDocument
+                        Edits =
+                            [|
+                                {
+                                    Range = fcsRangeToLsp expr.Range NewText = newText
+                                }
+                            |]
+                        Kind = FixKind.Fix
+                    }
+                ]
         })</code></pre></td></tr></table>
 <p>⚠️ The downside of this setting is that it only respects this style of formatting if it was already present in the original source.
 The problem with this approach is that the author of the original code decides whether this style is used.
@@ -671,7 +680,7 @@ type StringSplitOptions =
 <div class="fsdocs-tip" id="fs26">property FormatConfig.Default: FormatConfig with get</div>
 <div class="fsdocs-tip" id="fs27">val result: FormatResult</div>
 <div class="fsdocs-tip" id="fs28">type CodeFormatter =
-  static member FormatASTAsync: ast: ParsedInput -&gt; Async&lt;string&gt; + 2 overloads
+  static member FormatASTAsync: ast: ParsedInput -&gt; Async&lt;string&gt; + 3 overloads
   static member FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt; + 2 overloads
   static member FormatOakAsync: oak: Oak -&gt; Async&lt;string&gt; + 1 overload
   static member FormatSelectionAsync: isSignature: bool * source: string * selection: range -&gt; Async&lt;string * range&gt; + 1 overload

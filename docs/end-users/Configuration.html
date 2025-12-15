@@ -293,7 +293,7 @@ These can be stored in an <a href="https://editorconfig.org/">.editorconfig</a> 
 commandline.<br />
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.</p>
-<table class="pre"><tr><td><pre><code>version: 8.0.0-alpha-001+59b060d37e0627cfbf27fc9593a36d0aae20e86f</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 8.0.0-alpha-002+5ade168b6595edcd2f6f28475a21eecb91e48fd7</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -672,14 +672,18 @@ fsharp_max_record_width = 40</code></pre></td></tr></table>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>type MyRecord =
-    { X: int
-      Y: int
-      Length: int }
+    {
+        X: int
+        Y: int
+        Length: int
+    }
 
 let myInstance =
-    { X = 10
-      Y = 20
-      Length = 90 }</code></pre></td></tr></table>
+    {
+        X = 10
+        Y = 20
+        Length = 90
+    }</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_record_number_of_items" class="anchor" href="#fsharp_max_record_number_of_items">fsharp_max_record_number_of_items</a></h3>
 <copy-to-clipboard text="fsharp_max_record_number_of_items = 2"></copy-to-clipboard>
@@ -714,9 +718,11 @@ fsharp_max_record_number_of_items = 1</code></pre></td></tr></table>
 type S = { x: int; y: string }
 
 type T =
-    { x: int
-      y: string
-      z: float }
+    {
+        x: int
+        y: string
+        z: float
+    }
 
 let myRecord = { r = 3 }
 
@@ -728,7 +734,8 @@ let myRecord''' =
     { r with
         x = 3
         y = "hello"
-        z = 0.0 }</code></pre></td></tr></table>
+        z = 0.0
+    }</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_record_multiline_formatter" class="anchor" href="#fsharp_record_multiline_formatter">fsharp_record_multiline_formatter</a></h3>
 <copy-to-clipboard text="fsharp_record_multiline_formatter = number_of_items"></copy-to-clipboard>
@@ -757,8 +764,10 @@ fsharp_record_multiline_formatter = character_width</code></pre></td></tr></tabl
 <table class="pre"><tr><td><pre><code>type R = { x: int }
 
 type S =
-    { x: int
-      y: string }
+    {
+        x: int
+        y: string
+    }
 
 let myRecord = { r = 3 }
 
@@ -767,7 +776,8 @@ let myRecord' = { r with x = 3 }
 let myRecord'' =
     { r with
         x = 3
-        y = "hello" }</code></pre></td></tr></table>
+        y = "hello"
+    }</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_array_or_list_width" class="anchor" href="#fsharp_max_array_or_list_width">fsharp_max_array_or_list_width</a></h3>
 <copy-to-clipboard text="fsharp_max_array_or_list_width = 100"></copy-to-clipboard>
@@ -784,9 +794,11 @@ fsharp_max_array_or_list_width = 80</code></pre></td></tr></table>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>let myArray =
-    [| one
-       two
-       three |]</code></pre></td></tr></table>
+    [|
+        one
+        two
+        three
+    |]</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_array_or_list_number_of_items" class="anchor" href="#fsharp_max_array_or_list_number_of_items">fsharp_max_array_or_list_number_of_items</a></h3>
 <copy-to-clipboard text="fsharp_max_array_or_list_number_of_items = 2"></copy-to-clipboard>
@@ -807,9 +819,11 @@ fsharp_max_array_or_list_number_of_items = 1</code></pre></td></tr></table>
 <table class="pre"><tr><td><pre><code>let myList = [ one; two ]
 
 let myArray =
-    [| one
-       two
-       three |]</code></pre></td></tr></table>
+    [|
+        one
+        two
+        three
+    |]</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_array_or_list_multiline_formatter" class="anchor" href="#fsharp_array_or_list_multiline_formatter">fsharp_array_or_list_multiline_formatter</a></h3>
 <copy-to-clipboard text="fsharp_array_or_list_multiline_formatter = number_of_items"></copy-to-clipboard>
@@ -828,9 +842,11 @@ fsharp_array_or_list_multiline_formatter = character_width</code></pre></td></tr
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>let myArray =
-    [| one
-       two
-       three |]</code></pre></td></tr></table>
+    [|
+        one
+        two
+        three
+    |]</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_value_binding_width" class="anchor" href="#fsharp_max_value_binding_width">fsharp_max_value_binding_width</a></h3>
 <copy-to-clipboard text="fsharp_max_value_binding_width = 100"></copy-to-clipboard>
@@ -878,11 +894,11 @@ type MyType() =
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_multiline_bracket_style" class="anchor" href="#fsharp_multiline_bracket_style">fsharp_multiline_bracket_style</a></h3>
 <copy-to-clipboard text="fsharp_multiline_bracket_style = stroustrup"></copy-to-clipboard>
-<p><code>Cramped</code> The default way in F# to format brackets.<br />
-<code>Aligned</code> Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.<br />
+<p><code>Cramped</code> Alternative way in F# to format brackets.<br />
+<code>Aligned</code> The default way of formatting records, arrays and lists. This will align the braces at the same column level.<br />
 <code>Stroustrup</code> Allow for easier reordering of members and keeping the code succinct.</p>
 <table class="pre"><tr><td><pre><code># Default
-fsharp_multiline_bracket_style = cramped</code></pre></td></tr></table>
+fsharp_multiline_bracket_style = aligned</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 312)" onmouseover="showTip(event, 'fs5', 312)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myRecord =</span>
@@ -1030,8 +1046,10 @@ fsharp_newline_between_type_definition_and_members = true</code></pre></td></tr>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>type Range =
-    { From: float
-      To: float }
+    {
+        From: float
+        To: float
+    }
 
     member this.Length = this.To - this.From</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
@@ -1407,7 +1425,7 @@ type StringSplitOptions =
 <div class="fsdocs-tip" id="fs26">property FormatConfig.Default: FormatConfig with get</div>
 <div class="fsdocs-tip" id="fs27">val result: FormatResult</div>
 <div class="fsdocs-tip" id="fs28">type CodeFormatter =
-  static member FormatASTAsync: ast: ParsedInput -&gt; Async&lt;string&gt; + 2 overloads
+  static member FormatASTAsync: ast: ParsedInput -&gt; Async&lt;string&gt; + 3 overloads
   static member FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt; + 2 overloads
   static member FormatOakAsync: oak: Oak -&gt; Async&lt;string&gt; + 1 overload
   static member FormatSelectionAsync: isSignature: bool * source: string * selection: range -&gt; Async&lt;string * range&gt; + 1 overload
