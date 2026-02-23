@@ -1,0 +1,41 @@
+{
+  "last_run": "2026-02-23T13:57:23Z",
+  "tasks_run": {
+    "task1_triage": "2026-02-23T13:57:23Z",
+    "task6_stale_prs": "2026-02-23T13:57:23Z",
+    "task11_monthly_summary": "2026-02-23T13:57:23Z"
+  },
+  "tasks_never_run": ["task2_fix_issues", "task3_improvements", "task4_dependencies", "task5_maintain_prs", "task7_labels", "task8_release", "task9_welcome", "task10_forward"],
+  "issue_backlog_cursor": "Y3Vyc29yOnYyOpK0MjAyMS0xMS0wN1QyMjoxNDo0OVrOPmXfPg==",
+  "comments_made": [
+    {"issue": 636, "date": "2026-02-23", "type": "triage", "description": "Asked if #if indentation bug still reproducible with current version"},
+    {"pr": 3176, "date": "2026-02-23", "type": "stale_nudge", "description": "Nudged stale draft PR by tboby - no update since Aug 2025"}
+  ],
+  "monthly_summary_issue": {
+    "number": null,
+    "note": "Created 2026-02-23 as [Repo Assist] Monthly Activity 2026-02"
+  },
+  "pr_nudges_sent": [
+    {"pr": 3176, "date": "2026-02-23", "author": "tboby"}
+  ],
+  "issues_triage_noted": [
+    {"issue": 636, "date": "2026-02-23", "note": "Asked for repro verification"},
+    {"issue": 884, "date": "2026-02-23", "note": "Scanned - has maintainer engagement"},
+    {"issue": 1512, "date": "2026-02-23", "note": "Scanned - has maintainer engagement"},
+    {"issue": 1588, "date": "2026-02-23", "note": "Scanned - filed by maintainer"},
+    {"issue": 1903, "date": "2026-02-23", "note": "Scanned - filed by maintainer"},
+    {"issue": 1959, "date": "2026-02-23", "note": "Scanned - has detailed maintainer analysis"},
+    {"issue": 3200, "date": "2026-02-23", "note": "Scanned - active poll by maintainer, skip"}
+  ],
+  "open_prs_checked": {
+    "3189": {"title": "Fantomas MCP", "author": "nojaf", "date": "2025-10-03", "note": "Maintainer's own PR"},
+    "3176": {"title": "Avoid compacting attributes...", "author": "tboby", "date": "2025-08-02", "nudged": true},
+    "3085": {"title": "[WIP] Consistent Pattern Matching", "author": "isaacabraham", "date": "2024-05-17", "note": "Maintainer already nudged Nov 2025"}
+  },
+  "welcome_sent_to": [],
+  "fix_attempts": [],
+  "improvement_ideas_submitted": [],
+  "deps_last_checked": null,
+  "release_last_checked": null,
+  "checked_off_actions": []
+}
