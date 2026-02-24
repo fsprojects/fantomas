@@ -293,7 +293,7 @@ These can be stored in an <a href="https://editorconfig.org/">.editorconfig</a> 
 commandline.<br />
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.</p>
-<table class="pre"><tr><td><pre><code>version: 8.0.0-alpha-002+14972fa71cbeb563611c5c480bd1d5e955a70d76</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 8.0.0-alpha-002+6a1d8734e601f51d52994ceda8d2186355f10a2c</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -879,18 +879,21 @@ In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand 
 fsharp_max_function_binding_width = 40</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs5', 300)" onmouseover="showTip(event, 'fs5', 300)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
-<span class="s">    let title = &quot;Great title of project&quot;</span>
-<span class="s">    type MyType() =</span>
-<span class="s">        member this.HelpText = &quot;Some help text&quot;</span>
+<span class="s">    let printScore score total = printfn &quot;%i / %i&quot; score total</span>
+
+<span class="s">    type Triangle() =</span>
+<span class="s">        member this.CalculateSurface(width: int, height: int) = width * height / 2</span>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_max_function_binding_width = 10</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code>let title = "Great title of project"
+<table class="pre"><tr><td><pre><code>let printScore score total =
+    printfn "%i / %i" score total
 
-type MyType() =
-    member this.HelpText = "Some help text"</code></pre></td></tr></table>
+type Triangle() =
+    member this.CalculateSurface(width: int, height: int) =
+        width * height / 2</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_multiline_bracket_style" class="anchor" href="#fsharp_multiline_bracket_style">fsharp_multiline_bracket_style</a></h3>
 <copy-to-clipboard text="fsharp_multiline_bracket_style = stroustrup"></copy-to-clipboard>
