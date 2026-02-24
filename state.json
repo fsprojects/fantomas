@@ -1,12 +1,12 @@
 {
-  "last_run": "2026-02-24T04:05:19Z",
+  "last_run": "2026-02-24T07:56:00Z",
   "tasks_run": {
     "task1_triage": "2026-02-24T04:05:19Z",
     "task2_fix_issues": "2026-02-24T04:05:19Z",
     "task6_stale_prs": "2026-02-23T13:57:23Z",
     "task7_labels": "2026-02-23T14:30:49Z",
     "task11_curate_suggestions": "2026-02-23T14:30:49Z",
-    "task12_monthly_summary": "2026-02-24T04:05:19Z"
+    "task12_monthly_summary": "2026-02-24T07:56:00Z"
   },
   "tasks_never_run": ["task3_improvements", "task4_dependencies", "task5_maintain_prs", "task8_release", "task9_welcome", "task10_forward"],
   "issue_backlog_cursor": "Y3Vyc29yOnYyOpK0MjAyMi0wOS0wN1QwODo1ODozNVrOUVIHkA==",
@@ -14,12 +14,13 @@
     {"issue": 636, "date": "2026-02-23", "type": "triage", "description": "Asked if #if indentation bug still reproducible with current version"},
     {"pr": 3176, "date": "2026-02-23", "type": "stale_nudge", "description": "Nudged stale draft PR by tboby - no update since Aug 2025"},
     {"issue": 3192, "date": "2026-02-23", "type": "task11_suggestions", "description": "Explained project philosophy on new options; redirected to style guide repos"},
-    {"issue": 2912, "date": "2026-02-24", "type": "task2_fix", "description": "Posted comment linking to PR fix for docs example"}
+    {"issue": 2912, "date": "2026-02-24", "type": "task2_fix", "description": "Posted comment linking to PR fix for docs example"},
+    {"issue": 636, "date": "2026-02-24", "type": "command_response", "description": "Acknowledged nojaf confirmation that #if indentation bug is still present; noted codebase areas to investigate"}
   ],
   "monthly_summary_issue": {
     "number": 3213,
     "month": "2026-02",
-    "note": "Updated 2026-02-24 run 3 with Task 2 docs fix PR and Task 1 scanning"
+    "note": "Updated 2026-02-24 run 4 with confirmation of #636 still present"
   },
   "pr_nudges_sent": [
     {"pr": 3176, "date": "2026-02-23", "author": "tboby"}
@@ -37,6 +38,9 @@
       "branch": "repo-assist/fix-issue-2912-function-binding-width-docs-sample",
       "pr_status": "submitted_pending_number"
     }
+  ],
+  "confirmed_bugs": [
+    {"issue": 636, "confirmed_by": "nojaf", "date": "2026-02-24", "note": "Unconditional code mis-indented between two #if sections - confirmed still present in current version"}
   ],
   "issues_triage_noted": [
     {"issue": 636, "date": "2026-02-23", "note": "Asked for repro verification"},
