@@ -621,11 +621,11 @@ type Range =
   static member FormatOakAsync: oak: Oak -&gt; Async&lt;string&gt; + 1 overload
   static member FormatSelectionAsync: isSignature: bool * source: string * selection: range -&gt; Async&lt;string * range&gt; + 1 overload
   static member GetVersion: unit -&gt; string
+  static member GetWriterEventsAsync: isSignature: bool * source: string -&gt; Async&lt;WriterEvent array&gt; + 1 overload
   static member IsValidFSharpCodeAsync: isSignature: bool * source: string -&gt; Async&lt;bool&gt;
   static member MakePosition: line: int * column: int -&gt; pos
   static member MakeRange: fileName: string * startLine: int * startCol: int * endLine: int * endCol: int -&gt; range
   static member ParseAsync: isSignature: bool * source: string -&gt; Async&lt;(ParsedInput * string list) array&gt;
-  static member ParseOakAsync: isSignature: bool * source: string -&gt; Async&lt;(Oak * string list) array&gt;
   ...</div>
 <div class="fsdocs-tip" id="fs26">static member CodeFormatter.FormatOakAsync: oak: Oak -&gt; Async&lt;string&gt;<br />static member CodeFormatter.FormatOakAsync: oak: Oak * config: FormatConfig -&gt; Async&lt;string&gt;</div>
 <div class="fsdocs-tip" id="fs27">Multiple items<br />module Async
