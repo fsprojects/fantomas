@@ -680,7 +680,9 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
   override Children: Node array
   member LeftHandSide: Expr
   member Operator: SingleTextNode
-  member RightHandSide: Expr<br /><br />--------------------<br />new: lhs: Expr * operator: SingleTextNode * rhs: Expr * range: range -&gt; ExprInfixAppNode</div>
+  member RightHandSide: Expr<br /><em>&lt;summary&gt;
+ Example: `a + b` — a single binary infix application with two different operands or operators
+&lt;/summary&gt;</em><br /><br />--------------------<br />new: lhs: Expr * operator: SingleTextNode * rhs: Expr * range: range -&gt; ExprInfixAppNode</div>
 <div class="fsdocs-tip" id="fs46">union case Expr.Ident: SingleTextNode -&gt; Expr</div>
 <div class="fsdocs-tip" id="fs47">union case Expr.InfixApp: ExprInfixAppNode -&gt; Expr</div>
 <div class="fsdocs-tip" id="fs48">Multiple items<br />type ExprLambdaNode =
@@ -690,7 +692,9 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
   override Children: Node array
   member Expr: Expr
   member Fun: SingleTextNode
-  member Parameters: Pattern list<br /><br />--------------------<br />new: funNode: SingleTextNode * parameters: Pattern list * arrow: SingleTextNode * expr: Expr * range: range -&gt; ExprLambdaNode</div>
+  member Parameters: Pattern list<br /><em>&lt;summary&gt;
+ Example: `fun x y -&amp;gt; x + y`
+&lt;/summary&gt;</em><br /><br />--------------------<br />new: funNode: SingleTextNode * parameters: Pattern list * arrow: SingleTextNode * expr: Expr * range: range -&gt; ExprLambdaNode</div>
 <div class="fsdocs-tip" id="fs49">type Pattern =
   | OptionalVal of SingleTextNode
   | Or of PatLeftMiddleRight
