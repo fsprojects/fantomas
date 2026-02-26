@@ -1,29 +1,34 @@
 {
-  "last_run": "2026-02-25T04:06:58Z",
+  "last_run": "2026-02-26T15:09:46Z",
   "tasks_run": {
     "task1_triage": "2026-02-25T04:06:58Z",
-    "task2_fix_issues": "2026-02-24T04:05:19Z",
+    "task2_fix_issues": "2026-02-26T15:09:46Z",
     "task5_maintain_prs": "2026-02-25T04:06:58Z",
     "task6_stale_prs": "2026-02-23T13:57:23Z",
     "task7_labels": "2026-02-23T14:30:49Z",
     "task9_welcome": "2026-02-25T04:06:58Z",
     "task11_curate_suggestions": "2026-02-23T14:30:49Z",
-    "task12_monthly_summary": "2026-02-25T04:06:58Z"
+    "task12_monthly_summary": "2026-02-26T15:09:46Z"
   },
   "tasks_never_run": ["task3_improvements", "task4_dependencies", "task8_release", "task10_forward"],
   "issue_backlog_cursor": "Y3Vyc29yOnYyOpK0MjAyMy0wNC0wNlQwOTo0OTo0MFrOYsTS0A==",
   "comments_made": [
-    {"issue": 636, "date": "2026-02-23", "type": "triage", "description": "Asked if #if indentation bug still reproducible with current version"},
-    {"pr": 3176, "date": "2026-02-23", "type": "stale_nudge", "description": "Nudged stale draft PR by tboby - no update since Aug 2025"},
-    {"issue": 3192, "date": "2026-02-23", "type": "task11_suggestions", "description": "Explained project philosophy on new options; redirected to style guide repos"},
-    {"issue": 2912, "date": "2026-02-24", "type": "task2_fix", "description": "Posted comment linking to PR fix for docs example"},
-    {"issue": 636, "date": "2026-02-24", "type": "command_response", "description": "Acknowledged nojaf confirmation that #if indentation bug is still present; noted codebase areas to investigate"},
-    {"issue": 2610, "date": "2026-02-25", "type": "triage", "description": "Confirmed fluent-chain + = comparison soundness bug still present; provided root cause analysis pointing to noBreakInfixOps in CodePrinter.fs"}
+    {"issue": 636, "date": "2026-02-23", "type": "triage"},
+    {"pr": 3176, "date": "2026-02-23", "type": "stale_nudge"},
+    {"issue": 3192, "date": "2026-02-23", "type": "task11_suggestions"},
+    {"issue": 2912, "date": "2026-02-24", "type": "task2_fix"},
+    {"issue": 636, "date": "2026-02-24", "type": "command_response"},
+    {"issue": 2610, "date": "2026-02-25", "type": "triage"},
+    {"issue": 2610, "date": "2026-02-25", "type": "command_response"},
+    {"issue": 2861, "date": "2026-02-26", "type": "triage"},
+    {"issue": 2991, "date": "2026-02-26", "type": "task2_fix", "description": "Linked to Expr* doc comments PR"},
+    {"issue": 2358, "date": "2026-02-26", "type": "command_response"},
+    {"issue": 2991, "date": "2026-02-26", "type": "task2_fix", "description": "Linked to Pat* doc comments PR"}
   ],
   "monthly_summary_issue": {
     "number": 3213,
     "month": "2026-02",
-    "note": "Updated 2026-02-25 run 5. All previous maintainer-checked items removed from Suggested Actions."
+    "note": "Updated 2026-02-26 run 9 (command mode - patterns)"
   },
   "pr_nudges_sent": [
     {"pr": 3176, "date": "2026-02-23", "author": "tboby"}
@@ -36,91 +41,57 @@
     {
       "issue": 2912,
       "date": "2026-02-24",
-      "type": "docs_fix",
-      "description": "Replaced copied fsharp_max_value_binding_width example with proper function binding example in Configuration.fsx",
       "branch": "repo-assist/fix-issue-2912-function-binding-width-docs-sample",
       "pr_number": 3214,
       "pr_status": "merged",
       "merged_date": "2026-02-24"
+    },
+    {
+      "issue": 2991,
+      "date": "2026-02-26",
+      "description": "Added Expr*Node doc comments",
+      "branch": "repo-assist/fix-issue-2991-expr-doc-comments",
+      "pr_number": 3216,
+      "pr_status": "merged",
+      "merged_date": "2026-02-26"
+    },
+    {
+      "issue": 2991,
+      "date": "2026-02-26",
+      "description": "Added Pat*Node doc comments",
+      "branch": "repo-assist/fix-issue-2991-pattern-doc-comments",
+      "pr_status": "open"
     }
   ],
   "confirmed_bugs": [
-    {"issue": 636, "confirmed_by": "nojaf", "date": "2026-02-24", "note": "Unconditional code mis-indented between two #if sections - confirmed still present in current version"},
-    {"issue": 2610, "confirmed_by": "repo-assist", "date": "2026-02-25", "note": "Fluent chain + = comparison operator - still present in current version. noBreakInfixOps in CodePrinter.fs line 8 is root cause."},
-    {"issue": 2694, "confirmed_by": "repo-assist", "date": "2026-02-25", "note": "Comment in fluent call breaks indentation - Fantomas itself reports 'invalid F# code' error, confirming soundness bug still present"}
+    {"issue": 636, "confirmed_by": "nojaf", "date": "2026-02-24"},
+    {"issue": 2610, "confirmed_by": "repo-assist", "date": "2026-02-25"},
+    {"issue": 2694, "confirmed_by": "repo-assist", "date": "2026-02-25"}
   ],
   "issues_triage_noted": [
-    {"issue": 636, "date": "2026-02-23", "note": "Asked for repro verification"},
-    {"issue": 884, "date": "2026-02-23", "note": "Scanned - has maintainer engagement"},
-    {"issue": 1512, "date": "2026-02-23", "note": "Scanned - has maintainer engagement"},
-    {"issue": 1588, "date": "2026-02-23", "note": "Scanned - filed by maintainer"},
-    {"issue": 1903, "date": "2026-02-23", "note": "Scanned - filed by maintainer"},
-    {"issue": 1959, "date": "2026-02-23", "note": "Scanned - has detailed maintainer analysis"},
-    {"issue": 3200, "date": "2026-02-23", "note": "Scanned - active poll by maintainer, skip"},
-    {"issue": 1989, "date": "2026-02-23", "note": "Scanned - soundness bug by nojaf"},
-    {"issue": 2012, "date": "2026-02-23", "note": "Scanned - stylistic bug by nojaf"},
-    {"issue": 2042, "date": "2026-02-23", "note": "Scanned - has help wanted label"},
-    {"issue": 2101, "date": "2026-02-23", "note": "Scanned - style-guide-clarification-needed"},
-    {"issue": 2107, "date": "2026-02-23", "note": "Scanned - soundness bug"},
-    {"issue": 2170, "date": "2026-02-23", "note": "Scanned - benchmarks, help wanted"},
-    {"issue": 2209, "date": "2026-02-23", "note": "Scanned - discussion"},
-    {"issue": 2286, "date": "2026-02-23", "note": "Scanned - trivia bug"},
-    {"issue": 2287, "date": "2026-02-23", "note": "Scanned - soundness bug by dsyme, 1 comment"},
-    {"issue": 2299, "date": "2026-02-23", "note": "Scanned - feature request by dsyme"},
-    {"issue": 3192, "date": "2026-02-23", "note": "Commented - Task 11 philosophy explanation"},
-    {"issue": 3209, "date": "2026-02-23", "note": "Labelled as question - maintainer already responded"},
-    {"issue": 2315, "date": "2026-02-24", "note": "Scanned - maintainer tracking issue, still has open sub-items"},
-    {"issue": 2321, "date": "2026-02-24", "note": "Scanned - still open sub-item of #2315"},
-    {"issue": 2325, "date": "2026-02-24", "note": "Scanned - still open sub-item of #2315"},
-    {"issue": 2332, "date": "2026-02-24", "note": "Scanned - style-guide-clarification-needed, has comments"},
-    {"issue": 2348, "date": "2026-02-24", "note": "Scanned - discussion"},
-    {"issue": 2358, "date": "2026-02-24", "note": "Scanned - discussion"},
-    {"issue": 2362, "date": "2026-02-24", "note": "Scanned - trivia bug, maintainer explained technical difficulty"},
-    {"issue": 2380, "date": "2026-02-24", "note": "Scanned - OCaml operators, help wanted"},
-    {"issue": 2391, "date": "2026-02-24", "note": "Scanned - images 404 issue, appears mostly resolved by docs migration"},
-    {"issue": 2426, "date": "2026-02-24", "note": "Scanned - feature request discussion"},
-    {"issue": 2431, "date": "2026-02-24", "note": "Scanned - discussion"},
-    {"issue": 2468, "date": "2026-02-24", "note": "Scanned - delegates soundness bug, maintainer engaged"},
-    {"issue": 2471, "date": "2026-02-24", "note": "Scanned - release process discussion"},
-    {"issue": 2476, "date": "2026-02-24", "note": "Scanned - trivia/comment indentation bug"},
-    {"issue": 2482, "date": "2026-02-24", "note": "Scanned - trivia bug, help wanted"},
-    {"issue": 2912, "date": "2026-02-24", "note": "Fixed - submitted docs PR (merged)"},
-    {"issue": 2487, "date": "2026-02-25", "note": "Scanned - docs improvement idea by nojaf"},
-    {"issue": 2492, "date": "2026-02-25", "note": "Scanned - enhancement/discussion by nojaf"},
-    {"issue": 2499, "date": "2026-02-25", "note": "Scanned - trivia bug, nojaf commented (edge case with /// at end of file)"},
-    {"issue": 2519, "date": "2026-02-25", "note": "Scanned - soundness bug, nojaf suggested workaround"},
-    {"issue": 2526, "date": "2026-02-25", "note": "Scanned - when clause bug, has comments with F# version question"},
-    {"issue": 2529, "date": "2026-02-25", "note": "Scanned - indentation bug"},
-    {"issue": 2553, "date": "2026-02-25", "note": "Scanned - lambda bug by nojaf"},
-    {"issue": 2606, "date": "2026-02-25", "note": "Scanned - trivia bug"},
-    {"issue": 2610, "date": "2026-02-25", "note": "Commented - good first issue, confirmed still present, provided root cause analysis for noBreakInfixOps"},
-    {"issue": 2653, "date": "2026-02-25", "note": "Scanned - trivia bug"},
-    {"issue": 2670, "date": "2026-02-25", "note": "Scanned - no labels"},
-    {"issue": 2688, "date": "2026-02-25", "note": "Scanned - style guide clarification needed"},
-    {"issue": 2694, "date": "2026-02-25", "note": "Scanned - soundness trivia bug (comment in fluent call), confirmed still present (Fantomas reports invalid code), no comments yet"},
-    {"issue": 2740, "date": "2026-02-25", "note": "Scanned - idempotency bug, dawedawe pointed to contributor docs"},
-    {"issue": 2772, "date": "2026-02-25", "note": "Scanned - else if with #if directive, nojaf explained technical difficulty"},
-    {"issue": 2779, "date": "2026-02-25", "note": "Scanned - complex collections bug, 7 comments"},
-    {"issue": 2791, "date": "2026-02-25", "note": "Scanned - documentation"},
-    {"issue": 2816, "date": "2026-02-25", "note": "Scanned - soundness bug by nojaf, no comments"},
-    {"issue": 2827, "date": "2026-02-25", "note": "Scanned - trivia bug by nojaf"},
-    {"issue": 2832, "date": "2026-02-25", "note": "Scanned - computation expression bug"}
+    {"issue": 636, "date": "2026-02-23"},
+    {"issue": 2610, "date": "2026-02-25"},
+    {"issue": 2694, "date": "2026-02-25"},
+    {"issue": 2816, "date": "2026-02-25"},
+    {"issue": 2827, "date": "2026-02-25"},
+    {"issue": 2832, "date": "2026-02-25"},
+    {"issue": 2861, "date": "2026-02-26"},
+    {"issue": 2991, "date": "2026-02-26"},
+    {"issue": 3192, "date": "2026-02-23"},
+    {"issue": 3209, "date": "2026-02-23"}
   ],
   "open_prs_checked": {
-    "3215": {"title": "Add scripts to debug writer events and full format.", "author": "nojaf", "date": "2026-02-24", "note": "Maintainer PR, supersedes #3189"},
-    "3176": {"title": "Avoid compacting attributes...", "author": "tboby", "date": "2025-08-02", "nudged": true},
-    "3085": {"title": "[WIP] Consistent Pattern Matching", "author": "isaacabraham", "date": "2024-05-17", "note": "Maintainer already nudged Nov 2025"}
+    "3215": {"title": "Add scripts to debug writer events and full format.", "author": "nojaf", "date": "2026-02-24"},
+    "3176": {"title": "Avoid compacting attributes...", "author": "tboby", "nudged": true}
   },
   "welcome_sent_to": [],
-  "improvement_ideas_submitted": [],
-  "deps_last_checked": null,
-  "release_last_checked": null,
   "checked_off_actions": [
     "review_pr_3189",
     "review_pr_3214",
     "close_pr_3085_suggestion",
     "check_comment_3176",
     "check_comment_636_run4",
-    "check_comment_3192"
+    "check_comment_3192",
+    "review_pr_3216"
   ]
 }
