@@ -1,14 +1,14 @@
 {
-  "last_run": "2026-02-27T15:31:26Z",
+  "last_run": "2026-02-28T03:55:40Z",
   "tasks_run": {
-    "task1_triage": "2026-02-27T04:00:33Z",
+    "task1_triage": "2026-02-28T03:55:40Z",
     "task2_fix_issues": "2026-02-27T15:31:26Z",
-    "task5_maintain_prs": "2026-02-27T04:00:33Z",
+    "task5_maintain_prs": "2026-02-27T15:31:26Z",
     "task6_stale_prs": "2026-02-23T13:57:23Z",
-    "task7_labels": "2026-02-27T04:00:33Z",
+    "task7_labels": "2026-02-28T03:55:40Z",
     "task9_welcome": "2026-02-25T04:06:58Z",
     "task11_curate_suggestions": "2026-02-23T14:30:49Z",
-    "task12_monthly_summary": "2026-02-27T04:00:33Z"
+    "task12_monthly_summary": "2026-02-28T03:55:40Z"
   },
   "tasks_never_run": ["task3_improvements", "task4_dependencies", "task8_release", "task10_forward"],
   "issue_backlog_cursor": "Y3Vyc29yOnYyOpK0MjAyNC0wNC0wNVQwOTozMDozOVrOLklV",
@@ -26,12 +26,15 @@
     {"issue": 2991, "date": "2026-02-26", "type": "task2_fix", "description": "Linked to Pat* doc comments PR"},
     {"issue": 3073, "date": "2026-02-27", "type": "triage", "description": "Long parameter attribute bug analysis"},
     {"issue": 3033, "date": "2026-02-27", "type": "triage", "description": "Noted F# syntax deprecation, suggested wontfix"},
-    {"issue": 1740, "date": "2026-02-27", "type": "command_response", "description": "Linked to regression test PR"}
+    {"issue": 1740, "date": "2026-02-27", "type": "command_response", "description": "Linked to regression test PR"},
+    {"issue": 2944, "date": "2026-02-28", "type": "triage", "description": "Root cause: trivia indentation in ExprInfixAppNode"},
+    {"issue": 3110, "date": "2026-02-28", "type": "triage", "description": "Root cause: = vs <> line-break asymmetry"},
+    {"issue": 3130, "date": "2026-02-28", "type": "triage", "description": "Root cause: Stroustrup expands records that fit on one line"}
   ],
   "monthly_summary_issue": {
     "number": 3213,
     "month": "2026-02",
-    "note": "Updated 2026-02-27 run 10"
+    "note": "Updated 2026-02-28 run 11"
   },
   "pr_nudges_sent": [
     {"pr": 3176, "date": "2026-02-23", "author": "tboby"}
@@ -40,7 +43,9 @@
     {"issue": 3209, "labels": ["question"], "date": "2026-02-23"},
     {"issue": 3192, "labels": ["enhancement"], "date": "2026-02-23"},
     {"issue": 3073, "labels": ["bug"], "date": "2026-02-27"},
-    {"issue": 3033, "labels": ["needs investigation"], "date": "2026-02-27"}
+    {"issue": 3033, "labels": ["needs investigation"], "date": "2026-02-27"},
+    {"issue": 3110, "labels": ["bug", "needs investigation"], "date": "2026-02-28"},
+    {"issue": 3130, "labels": ["bug", "needs investigation"], "date": "2026-02-28"}
   ],
   "fix_attempts": [
     {
@@ -75,22 +80,16 @@
       "description": "Regression test for lambda closing paren (MultiLineLambdaClosingNewline)",
       "branch": "repo-assist/fix-issue-2553-lambda-closing-paren-7979fe1da3c62a56",
       "pr_number": 3228,
-      "pr_status": "open",
-      "note": "Maintainer requested changelog entry; created v2 branch with test+changelog, new PR pending"
-    },
-    {
-      "issue": 2553,
-      "date": "2026-02-27",
-      "description": "Regression test + changelog entry (v2, supersedes #3228)",
-      "branch": "repo-assist/fix-issue-2553-lambda-v2",
-      "pr_status": "open (pending creation)"
+      "pr_status": "merged",
+      "merged_date": "2026-02-27"
     },
     {
       "issue": 1740,
       "date": "2026-02-27",
-      "description": "Regression test for NUnit Assert.That idempotency bug",
+      "description": "Regression test for NUnit Assert.That idempotency bug + changelog",
       "branch": "repo-assist/fix-issue-1740-idempotency-regression-test",
-      "pr_status": "open (created via command response)"
+      "pr_number": 3232,
+      "pr_status": "open"
     }
   ],
   "confirmed_bugs": [
@@ -108,14 +107,19 @@
     {"issue": 2861, "date": "2026-02-26"},
     {"issue": 2991, "date": "2026-02-26"},
     {"issue": 3033, "date": "2026-02-27"},
+    {"issue": 3043, "date": "2026-02-27", "note": "closed by nojaf"},
     {"issue": 3073, "date": "2026-02-27"},
+    {"issue": 3098, "date": "2026-02-27", "note": "closed by nojaf"},
     {"issue": 3192, "date": "2026-02-23"},
-    {"issue": 3209, "date": "2026-02-23"}
+    {"issue": 3209, "date": "2026-02-23"},
+    {"issue": 2944, "date": "2026-02-28"},
+    {"issue": 3110, "date": "2026-02-28"},
+    {"issue": 3130, "date": "2026-02-28"}
   ],
   "open_prs_checked": {
-    "3228": {"title": "Regression test for lambda with MultiLineLambdaClosingNewline", "author": "repo-assist", "note": "awaiting v2 PR to supersede"},
+    "3232": {"title": "Regression test for NUnit Assert.That idempotency bug (#1740)", "author": "repo-assist", "note": "changelog added on 2026-02-27, CI pending"},
     "3176": {"title": "Avoid compacting attributes...", "author": "tboby", "nudged": true},
-    "3085": {"title": "[WIP] Add basic support for Consistent Pattern Matching", "author": "isaacabraham"}
+    "3233": {"title": "Remove docs-old and port content to contributor docs", "author": "nojaf", "note": "maintenance PR by maintainer"}
   },
   "welcome_sent_to": [],
   "checked_off_actions": [
@@ -126,7 +130,8 @@
     "check_comment_636_run4",
     "check_comment_3192",
     "review_pr_3216",
-    "review_pr_3229"
+    "review_pr_3229",
+    "review_pr_3228"
   ],
-  "notes": "Issues 2844, 2856, 2860, 2862, 2864, 2882, 2944, 2945, 2973, 2979, 2990, 3011, 3031, 3043, 3069, 3084, 3098, 3099 not yet triaged with RA comments. Priority: 2944 (soundness+help wanted), 3043 (soundness, may be fixed by nojaf PR 3225), 3098 (may be fixed by nojaf PR 3230). Next cursor should advance past #3099. PR for 2553 v2 (lambda-v2 branch) was never pushed - needs a new attempt. Issue 1740 regression test PR created 2026-02-27."
+  "notes": "Issues 2844, 2856, 2860, 2862, 2864, 2882, 2945, 2973, 2979, 2990, 3011, 3031, 3069, 3084, 3099, 3155, 3156, 3159, 3174, 3181, 3188 not yet triaged with RA comments. PR 3232 open - awaiting review (has test + changelog). Task3/4/8/10 not yet run this month."
 }
