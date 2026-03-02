@@ -2340,6 +2340,32 @@ aggregateResult {
 """
 
 [<Test>]
+let ``multiline ExprJoinIn does not use atCurrentColumn, 3156`` () =
+    formatSourceString
+        """
+query {
+    for persons in database do
+    join items in database2
+        on ((persons.LongIdName, persons.LongerIdName) = (items.LongIdName, items.LongerIdName))
+        into result
+    select (persons, result)
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+query {
+    for persons in database do
+    join items in database2
+        on ((persons.LongIdName, persons.LongerIdName) = (items.LongIdName, items.LongerIdName))
+        into result
+    select (persons, result)
+}
+"""
+
+[<Test>]
 let ``line comment above SynExpr.LetOrUseBang`` () =
     formatSourceString
         """

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Improve formatting of query expressions with join/on/into clauses. [#3156](https://github.com/fsprojects/fantomas/issues/3156)
+
 ### Fixed
 
 - End of line comments after infix operators are preserved correctly. [#2287](https://github.com/fsprojects/fantomas/issues/2287)
