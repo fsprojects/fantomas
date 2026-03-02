@@ -1,14 +1,14 @@
 {
-  "last_run": "2026-03-01T04:09:00Z",
+  "last_run": "2026-03-02T04:01:00Z",
   "tasks_run": {
-    "task1_triage": "2026-03-01T04:09:00Z",
+    "task1_triage": "2026-03-02T04:01:00Z",
     "task2_fix_issues": "2026-03-01T04:09:00Z",
     "task5_maintain_prs": "2026-02-27T15:31:26Z",
     "task6_stale_prs": "2026-02-23T13:57:23Z",
-    "task7_labels": "2026-02-28T03:55:40Z",
+    "task7_labels": "2026-03-02T04:01:00Z",
     "task9_welcome": "2026-02-25T04:06:58Z",
     "task11_curate_suggestions": "2026-02-23T14:30:49Z",
-    "task12_monthly_summary": "2026-03-01T04:09:00Z"
+    "task12_monthly_summary": "2026-03-02T04:01:00Z"
   },
   "tasks_never_run": ["task3_improvements", "task4_dependencies", "task8_release", "task10_forward"],
   "issue_backlog_cursor": "Y3Vyc29yOnYyOpK0MjAyNC0wNC0wNVQwOTozMDozOVrOLklV",
@@ -30,12 +30,14 @@
     {"issue": 2944, "date": "2026-02-28", "type": "triage", "description": "Root cause: trivia indentation in ExprInfixAppNode"},
     {"issue": 3110, "date": "2026-02-28", "type": "triage", "description": "Root cause: = vs <> line-break asymmetry"},
     {"issue": 3130, "date": "2026-02-28", "type": "triage", "description": "Root cause: Stroustrup expands records that fit on one line"},
-    {"issue": 3159, "date": "2026-03-01", "type": "task2_fix", "description": "Explained fix: Dynamic+ParenExpr case in sepSpaceBeforeParenInFuncInvocation"}
+    {"issue": 3159, "date": "2026-03-01", "type": "task2_fix", "description": "Explained fix: Dynamic+ParenExpr case in sepSpaceBeforeParenInFuncInvocation"},
+    {"issue": 3069, "date": "2026-03-02", "type": "triage", "description": "Root cause: colGenericTypeParameters ignores MultilineBracketStyle; ifAlignOrStroustrupBrackets treats Aligned/Stroustrup same"},
+    {"issue": 3155, "date": "2026-03-02", "type": "triage", "description": "Root cause: NewlineBeforeMultilineComputationExpression=false + multiline args causes parse error; suggested fallback"}
   ],
   "monthly_summary_issue": {
-    "number": 3213,
-    "month": "2026-02",
-    "note": "Updated 2026-02-28 run 11"
+    "number": null,
+    "note": "March 2026 issue created this run (aw_mar26 placeholder). February summary #3213 commented on for closure.",
+    "month": "2026-03"
   },
   "pr_nudges_sent": [
     {"pr": 3176, "date": "2026-02-23", "author": "tboby"}
@@ -46,7 +48,9 @@
     {"issue": 3073, "labels": ["bug"], "date": "2026-02-27"},
     {"issue": 3033, "labels": ["needs investigation"], "date": "2026-02-27"},
     {"issue": 3110, "labels": ["bug", "needs investigation"], "date": "2026-02-28"},
-    {"issue": 3130, "labels": ["bug", "needs investigation"], "date": "2026-02-28"}
+    {"issue": 3130, "labels": ["bug", "needs investigation"], "date": "2026-02-28"},
+    {"issue": 3069, "labels": ["needs investigation"], "date": "2026-03-02"},
+    {"issue": 3155, "labels": ["bug"], "date": "2026-03-02"}
   ],
   "fix_attempts": [
     {
@@ -96,9 +100,9 @@
     {
       "issue": 3159,
       "date": "2026-03-01",
-      "description": "Fix: no space before paren args in ? operator chains — Expr.Dynamic + ParenExpr case in sepSpaceBeforeParenInFuncInvocation",
+      "description": "Fix: no space before paren args in ? operator chains",
       "branch": "repo-assist/fix-issue-3159-no-space-before-dynamic-paren-args",
-      "pr_number": "pending",
+      "pr_number": 3236,
       "pr_status": "open"
     }
   ],
@@ -124,12 +128,14 @@
     {"issue": 3209, "date": "2026-02-23"},
     {"issue": 2944, "date": "2026-02-28"},
     {"issue": 3110, "date": "2026-02-28"},
-    {"issue": 3130, "date": "2026-02-28"}
+    {"issue": 3130, "date": "2026-02-28"},
+    {"issue": 3069, "date": "2026-03-02"},
+    {"issue": 3155, "date": "2026-03-02"},
+    {"issue": 3181, "date": "2026-02-26", "note": "commented via /repo-assist command from nojaf"}
   ],
   "open_prs_checked": {
-    "3159-fix": {"title": "[Repo Assist] Fix: no space before paren args in ? operator chains", "author": "repo-assist", "note": "pending PR number assignment, submitted 2026-03-01"},
-    "3176": {"title": "Avoid compacting attributes...", "author": "tboby", "nudged": true},
-    "3233": {"title": "Remove docs-old and port content to contributor docs", "author": "nojaf", "note": "maintenance PR by maintainer, likely merged"}
+    "3236": {"title": "[Repo Assist] Fix: no space before paren args in ? operator chains", "author": "github-actions[bot]", "pr_number": 3236, "note": "open, awaiting review"},
+    "3176": {"title": "Avoid compacting attributes...", "author": "tboby", "nudged": true}
   },
   "welcome_sent_to": [],
   "checked_off_actions": [
@@ -143,5 +149,5 @@
     "review_pr_3229",
     "review_pr_3228"
   ],
-  "notes": "Issues 2844, 2856, 2860, 2862, 2864, 2882, 2945, 2973, 2979, 2990, 3011, 3031, 3069, 3084, 3099, 3155, 3156, 3174, 3181 not yet triaged with RA comments. #3159 fixed (PR pending). #3188 closed by nojaf. #3232 merged by nojaf. Task3/4/8/10 not yet run this month."
+  "notes": "Issues 2856, 2860, 2862, 2864, 2882, 2973, 2979, 3011, 3031, 3084, 3099, 3174 not yet triaged with RA comments. #3159 fixed PR #3236 open. March 2026 monthly summary created (need actual issue number). Task3/4/8/10 not yet run."
 }
