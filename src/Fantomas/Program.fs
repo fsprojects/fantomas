@@ -386,7 +386,7 @@ Join our Discord community:      https://discord.gg/Cpq9vf8BJH
                     | :? DefineParseException as dpe ->
                         let combinations =
                             dpe.Combinations
-                            |> List.map (fun c -> if c = "no defines" then "no defines" else $"[{c}]")
+                            |> List.map (fun c -> if c = "no defines" then "no defines" else $"[%s{c}]")
                             |> String.concat ", "
 
                         $"When Fantomas encounters #if directives in a file, it tries to format all possible combinations of defines and will merge all different versions back into one.\nFor %s{combinations}, however, we were not able to parse the file.\nWhile you may not use this combination in your project, Fantomas requires it to produce valid code.\nConsider fixing the code or ignoring this file.\nFor more information see: https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html"
