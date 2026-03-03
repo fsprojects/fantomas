@@ -1,16 +1,17 @@
 {
-  "last_run": "2026-03-02T04:01:00Z",
+  "last_run": "2026-03-03T04:01:00Z",
   "tasks_run": {
-    "task1_triage": "2026-03-02T04:01:00Z",
+    "task1_triage": "2026-03-03T04:01:00Z",
     "task2_fix_issues": "2026-03-01T04:09:00Z",
     "task5_maintain_prs": "2026-02-27T15:31:26Z",
     "task6_stale_prs": "2026-02-23T13:57:23Z",
     "task7_labels": "2026-03-02T04:01:00Z",
+    "task8_release": "2026-03-03T04:01:00Z",
     "task9_welcome": "2026-02-25T04:06:58Z",
     "task11_curate_suggestions": "2026-02-23T14:30:49Z",
-    "task12_monthly_summary": "2026-03-02T04:01:00Z"
+    "task12_monthly_summary": "2026-03-03T04:01:00Z"
   },
-  "tasks_never_run": ["task3_improvements", "task4_dependencies", "task8_release", "task10_forward"],
+  "tasks_never_run": ["task3_improvements", "task4_dependencies", "task10_forward"],
   "issue_backlog_cursor": "Y3Vyc29yOnYyOpK0MjAyNC0wNC0wNVQwOTozMDozOVrOLklV",
   "comments_made": [
     {"issue": 636, "date": "2026-02-23", "type": "triage"},
@@ -32,12 +33,14 @@
     {"issue": 3130, "date": "2026-02-28", "type": "triage", "description": "Root cause: Stroustrup expands records that fit on one line"},
     {"issue": 3159, "date": "2026-03-01", "type": "task2_fix", "description": "Explained fix: Dynamic+ParenExpr case in sepSpaceBeforeParenInFuncInvocation"},
     {"issue": 3069, "date": "2026-03-02", "type": "triage", "description": "Root cause: colGenericTypeParameters ignores MultilineBracketStyle; ifAlignOrStroustrupBrackets treats Aligned/Stroustrup same"},
-    {"issue": 3155, "date": "2026-03-02", "type": "triage", "description": "Root cause: NewlineBeforeMultilineComputationExpression=false + multiline args causes parse error; suggested fallback"}
+    {"issue": 3155, "date": "2026-03-02", "type": "triage", "description": "Root cause: NewlineBeforeMultilineComputationExpression=false + multiline args causes parse error; suggested fallback"},
+    {"issue": 2856, "date": "2026-03-03", "type": "triage", "description": "Root cause: list items don't get blank lines between them; good first issue pointer"},
+    {"issue": 3011, "date": "2026-03-03", "type": "triage", "description": "Explained trivia-attribution challenge for comments between else if"}
   ],
   "monthly_summary_issue": {
-    "number": null,
-    "note": "March 2026 issue created this run (aw_mar26 placeholder). February summary #3213 commented on for closure.",
-    "month": "2026-03"
+    "number": 3238,
+    "month": "2026-03",
+    "note": "Updated 2026-03-03 run"
   },
   "pr_nudges_sent": [
     {"pr": 3176, "date": "2026-02-23", "author": "tboby"}
@@ -104,6 +107,13 @@
       "branch": "repo-assist/fix-issue-3159-no-space-before-dynamic-paren-args",
       "pr_number": 3236,
       "pr_status": "open"
+    },
+    {
+      "description": "Release v7.0.6 - CHANGELOG.md Unreleased -> 7.0.6, 12 bug fixes",
+      "date": "2026-03-03",
+      "branch": "repo-assist/release-v7.0.6",
+      "pr_number": 3239,
+      "pr_status": "open"
     }
   ],
   "confirmed_bugs": [
@@ -118,23 +128,25 @@
     {"issue": 2816, "date": "2026-02-25"},
     {"issue": 2827, "date": "2026-02-25"},
     {"issue": 2832, "date": "2026-02-25"},
+    {"issue": 2856, "date": "2026-03-03"},
     {"issue": 2861, "date": "2026-02-26"},
     {"issue": 2991, "date": "2026-02-26"},
+    {"issue": 3011, "date": "2026-03-03"},
     {"issue": 3033, "date": "2026-02-27"},
     {"issue": 3043, "date": "2026-02-27", "note": "closed by nojaf"},
+    {"issue": 3069, "date": "2026-03-02"},
     {"issue": 3073, "date": "2026-02-27"},
     {"issue": 3098, "date": "2026-02-27", "note": "closed by nojaf"},
-    {"issue": 3192, "date": "2026-02-23"},
-    {"issue": 3209, "date": "2026-02-23"},
-    {"issue": 2944, "date": "2026-02-28"},
     {"issue": 3110, "date": "2026-02-28"},
     {"issue": 3130, "date": "2026-02-28"},
-    {"issue": 3069, "date": "2026-03-02"},
     {"issue": 3155, "date": "2026-03-02"},
-    {"issue": 3181, "date": "2026-02-26", "note": "commented via /repo-assist command from nojaf"}
+    {"issue": 3181, "date": "2026-02-26", "note": "commented via /repo-assist command from nojaf"},
+    {"issue": 3192, "date": "2026-02-23"},
+    {"issue": 3209, "date": "2026-02-23"}
   ],
   "open_prs_checked": {
     "3236": {"title": "[Repo Assist] Fix: no space before paren args in ? operator chains", "author": "github-actions[bot]", "pr_number": 3236, "note": "open, awaiting review"},
+    "3239": {"title": "[Repo Assist] Release v7.0.6", "author": "github-actions[bot]", "pr_number": 3239, "note": "open, awaiting review and merge"},
     "3176": {"title": "Avoid compacting attributes...", "author": "tboby", "nudged": true}
   },
   "welcome_sent_to": [],
@@ -147,7 +159,9 @@
     "check_comment_3192",
     "review_pr_3216",
     "review_pr_3229",
-    "review_pr_3228"
+    "review_pr_3228",
+    "review_pr_3232",
+    "review_pr_3236_merged"
   ],
-  "notes": "Issues 2856, 2860, 2862, 2864, 2882, 2973, 2979, 3011, 3031, 3084, 3099, 3174 not yet triaged with RA comments. #3159 fixed PR #3236 open. March 2026 monthly summary created (need actual issue number). Task3/4/8/10 not yet run."
+  "notes": "Issues 2860, 2862, 2864, 2882, 2973, 2979, 3031, 3084, 3099, 3174 not yet triaged with RA comments. #3159 fixed PR #3236 open. #3239 release PR open. Task3/4/10 not yet run."
 }
