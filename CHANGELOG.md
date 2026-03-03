@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [7.0.6] - 2026-03-03
+
 ### Fixed
 
 - End of line comments after infix operators are preserved correctly. [#2287](https://github.com/fsprojects/fantomas/issues/2287)
