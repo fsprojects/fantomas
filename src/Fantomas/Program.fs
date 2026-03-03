@@ -382,7 +382,14 @@ Join our Discord community:      https://discord.gg/Cpq9vf8BJH
                 match verbosity with
                 | VerbosityLevel.Normal ->
                     match exn with
-                    | :? ParseException -> "Could not parse file."
+                    | :? ParseException -> "Could not parse the file."
+                    | :? DefineParseException as dpe ->
+                        let combinations =
+                            dpe.Combinations
+                            |> List.map (fun c -> if c = "no defines" then "no defines" else $"[{c}]")
+                            |> String.concat ", "
+
+                        $"When Fantomas encounters #if directives in a file, it tries to format all possible combinations of defines and will merge all different versions back into one.\nFor %s{combinations}, however, we were not able to parse the file.\nWhile you may not use this combination in your project, Fantomas requires it to produce valid code.\nConsider fixing the code or ignoring this file.\nFor more information see: https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html"
                     | :? FormatException as fe -> fe.Message
                     | _ -> ""
                 | VerbosityLevel.Detailed -> $"%A{exn}"

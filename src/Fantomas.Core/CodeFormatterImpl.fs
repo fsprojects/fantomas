@@ -33,22 +33,47 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
     | hashDirectives ->
         let defineCombinations = Defines.getDefineCombination hashDirectives
 
-        defineCombinations
-        |> List.map (fun defineCombination ->
-            async {
-                let untypedTree, diagnostics =
-                    Fantomas.FCS.Parse.parseFile isSignature source defineCombination.Value
+        async {
+            let! results =
+                defineCombinations
+                |> List.map (fun defineCombination ->
+                    async {
+                        let untypedTree, diagnostics =
+                            Fantomas.FCS.Parse.parseFile isSignature source defineCombination.Value
 
-                let errors =
-                    diagnostics
-                    |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
+                        let errors =
+                            diagnostics
+                            |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
 
-                if not errors.IsEmpty then
-                    raise (ParseException diagnostics)
+                        if errors.IsEmpty then
+                            return Ok(untypedTree, defineCombination)
+                        else
+                            let defineNames =
+                                if defineCombination.Value.IsEmpty then
+                                    "no defines"
+                                else
+                                    defineCombination.Value |> String.concat ", "
 
-                return (untypedTree, defineCombination)
-            })
-        |> Async.Parallel
+                            return Error defineNames
+                    })
+                |> Async.Parallel
+
+            let failures =
+                results
+                |> Array.choose (function
+                    | Error name -> Some name
+                    | _ -> None)
+                |> Array.toList
+
+            if not failures.IsEmpty then
+                raise (DefineParseException(failures))
+
+            return
+                results
+                |> Array.choose (function
+                    | Ok result -> Some result
+                    | _ -> None)
+        }
 
 /// Format an abstract syntax tree using given config
 let formatAST
