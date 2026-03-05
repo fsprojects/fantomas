@@ -2593,6 +2593,9 @@ let sepSpaceBeforeParenInFuncInvocation (functionExpr: Expr) (argExpr: Expr) ctx
     | Expr.DotLambda _, _ -> ctx
     | Expr.Constant _, _ -> sepSpace ctx
     | ParenExpr _, _ -> sepSpace ctx
+    // Never add space between a `?` operator result and its paren argument.
+    // Adding a space can generate invalid code, e.g. `x?a ("arg")?b (t)`. See #3159.
+    | Expr.Dynamic _, ParenExpr _ -> ctx
     | UppercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
     | LowercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
     | Expr.Ident _, Expr.Ident _ -> sepSpace ctx
