@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Lambda in non-last record field is now parenthesized when record is collapsed to single line to avoid producing invalid code. [#3246](https://github.com/fsprojects/fantomas/issues/3246)
+
 ## [8.0.0-alpha-003] - 2026-03-03
 
 ### Fixed
