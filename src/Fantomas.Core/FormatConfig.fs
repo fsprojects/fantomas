@@ -4,10 +4,23 @@ open System
 open System.ComponentModel
 open Fantomas.FCS.Parse
 
+/// Raised when the F# parser produces errors for source code without conditional directives.
 exception ParseException of diagnostics: FSharpParserDiagnostic list
 
+/// Raised when Fantomas encounters a problem during formatting.
 type FormatException(msg: string) =
     inherit Exception(msg)
+
+/// Raised when one or more conditional compilation define combinations produce invalid syntax trees.
+type DefineParseException(combinations: string list) =
+    inherit
+        FormatException(
+            let joined = combinations |> String.concat ", "
+            $"Parsing failed for define combination(s): %s{joined}."
+        )
+
+    /// The define combinations that failed to parse.
+    member _.Combinations = combinations
 
 type Num = int
 

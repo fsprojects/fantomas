@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Improved error message when conditional compilation directives produce invalid syntax for some define combinations. [#563](https://github.com/fsprojects/fantomas/issues/563)
+
 ### Fixed
 
 - Lambda in non-last record field is now parenthesized when record is collapsed to single line to avoid producing invalid code. [#3246](https://github.com/fsprojects/fantomas/issues/3246)
