@@ -502,3 +502,88 @@ let bv =
      >
         bf
 """
+
+[<Test>]
+let ``nested multiline type app should not produce invalid code, 3243`` () =
+    formatSourceString
+        """
+let f (x: Outer<Map<string, (A * B * C * D)>, Z>) = ()
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let f
+    (x:
+        Outer<
+            Map<
+                string,
+                (A * B * C * D)
+             >,
+            Z
+         >)
+    =
+    ()
+"""
+
+[<Test>]
+let ``nested multiline type app in function signature should not produce invalid code, 3243`` () =
+    formatSourceString
+        """
+let makePipeline''
+    (mode: ExecutionMode<Marker>)
+    (resolver: IResolver option Marker)
+    (args: Arguments Marker)
+    (logging: Marker<ExtraLogging>)
+    (processing:
+        (PipelineStep<
+            Map<string,
+                ((Table * IStepMetadata)
+                 * Operation seq
+                 * FileInfo ResultKind seq
+                 * (NodeInfo<string, string> * DayLogs) seq)>,
+            PipelineCrate>)
+            ->
+        (Map<string,
+            ((Table * IStepMetadata)
+             * Operation seq
+             * FileInfo ResultKind seq
+             * (NodeInfo<string, string> * DayLogs) seq)> Marker)
+            ->
+        PipelineStep<unit>)
+    =
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let makePipeline''
+    (mode: ExecutionMode<Marker>)
+    (resolver: IResolver option Marker)
+    (args: Arguments Marker)
+    (logging: Marker<ExtraLogging>)
+    (processing:
+        (PipelineStep<
+            Map<
+                string,
+                ((Table * IStepMetadata) *
+                Operation seq *
+                FileInfo ResultKind seq *
+                (NodeInfo<string, string> * DayLogs) seq)
+             >,
+            PipelineCrate
+          >)
+            -> (Map<
+                string,
+                ((Table * IStepMetadata) *
+                Operation seq *
+                FileInfo ResultKind seq *
+                (NodeInfo<string, string> * DayLogs) seq)
+                 > Marker)
+            -> PipelineStep<unit>)
+    =
+    ()
+"""
