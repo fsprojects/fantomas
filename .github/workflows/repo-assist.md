@@ -14,7 +14,7 @@ description: |
   Always polite, constructive, and mindful of the project's goals.
 
 on:
-  schedule: every 6h
+  schedule: every 12h
   workflow_dispatch:
   slash_command:
     name: repo-assist
@@ -77,6 +77,8 @@ tools:
 
 steps:
   - name: Fetch repo data for task weighting
+    env:
+      GH_TOKEN: ${{ github.token }}
     run: |
       mkdir -p /tmp/gh-aw
 
@@ -152,7 +154,7 @@ steps:
           json.dump(result, f, indent=2)
       EOF
 
-source: githubnext/agentics/workflows/repo-assist.md@69dc52f93e6abaaeb199c24e22b401f5bb1bac6f
+source: githubnext/agentics/workflows/repo-assist.md@8e6d7c86bba37371d2d0eee1a23563db3e561eb5
 ---
 
 # Repo Assist
