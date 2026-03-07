@@ -5195,7 +5195,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `{| Name: string; Age: int |}` or `struct {| X: float |}` — an anonymous record type.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5226,7 +5226,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `int list` or `string option` — a postfix type application where the type argument precedes the type name.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5257,7 +5257,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `List<int>` or `Dictionary<string, int>` — a prefix type application with angle-bracket type arguments.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5288,7 +5288,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `int[]` (rank 1) or `int[,]` (rank 2) — an array type with a base element type and a rank.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5846,7 +5846,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `int -> string -> bool` — a function type with one or more parameters and a return type.
+ Each parameter is paired with its arrow token; the final element is the return type.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5877,7 +5878,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `#IDisposable` — a flexible/hash constraint type that matches any subtype.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5908,7 +5909,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `IFoo & IBar` — an intersection type (F# 9+), combining multiple types with `&` separators.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5939,7 +5940,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `Map<int, string> SomeAlias` — a long identifier applied to a (possibly generic) type expression, used for type aliases or module-qualified types.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5970,7 +5971,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `m^2` — a measure type raised to a rational power (used in units of measure).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6032,7 +6033,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `A or B` — an F# 9+ type union (disjunction) used in type constraints and signatures.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6063,7 +6064,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `(int -> string)` — a parenthesised type, used to clarify precedence or wrap a type in parens.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6094,7 +6095,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `?x: int` or `[<Optional>] name: string` — a parameter type in a signature, optionally with attributes and an identifier label.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6125,7 +6126,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `const 42` — a static constant expression used as a type argument (e.g. in inline F# code or SRTP).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6156,7 +6157,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `N=3` — a named static constant type, pairing an identifier type with a value type (e.g. in SRTP constraints).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6187,7 +6188,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `struct (int * string)` — a struct tuple type, distinguishable from a reference tuple by the `struct` keyword.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6218,7 +6219,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `int * string * bool` — a tuple type. Path interleaves the component types with `*` separators.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6249,7 +6250,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `'T when 'T : equality` — a type paired with one or more type constraints that apply globally.
                 </p>
               </div>
               <div class="icon-button-row">
