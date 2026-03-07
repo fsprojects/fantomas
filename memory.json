@@ -1,15 +1,15 @@
 {
-  "last_run": "2026-03-03T04:01:00Z",
+  "last_run": "2026-03-07T12:24:06Z",
   "tasks_run": {
     "task1_triage": "2026-03-03T04:01:00Z",
     "task2_fix_issues": "2026-03-01T04:09:00Z",
-    "task5_maintain_prs": "2026-02-27T15:31:26Z",
-    "task6_stale_prs": "2026-02-23T13:57:23Z",
+    "task5_maintain_prs": "2026-03-07T12:24:06Z",
+    "task6_stale_prs": "2026-03-07T12:24:06Z",
     "task7_labels": "2026-03-02T04:01:00Z",
     "task8_release": "2026-03-03T04:01:00Z",
     "task9_welcome": "2026-02-25T04:06:58Z",
     "task11_curate_suggestions": "2026-02-23T14:30:49Z",
-    "task12_monthly_summary": "2026-03-03T04:01:00Z"
+    "task12_monthly_summary": "2026-03-07T12:24:06Z"
   },
   "tasks_never_run": ["task3_improvements", "task4_dependencies", "task10_forward"],
   "issue_backlog_cursor": "Y3Vyc29yOnYyOpK0MjAyNC0wNC0wNVQwOTozMDozOVrOLklV",
@@ -40,7 +40,7 @@
   "monthly_summary_issue": {
     "number": 3238,
     "month": "2026-03",
-    "note": "Updated 2026-03-03 run"
+    "note": "Updated 2026-03-07 run"
   },
   "pr_nudges_sent": [
     {"pr": 3176, "date": "2026-02-23", "author": "tboby"}
@@ -104,16 +104,16 @@
       "issue": 3159,
       "date": "2026-03-01",
       "description": "Fix: no space before paren args in ? operator chains",
-      "branch": "repo-assist/fix-issue-3159-no-space-before-dynamic-paren-args",
-      "pr_number": 3236,
+      "branch": "repo-assist/fix-issue-3159-no-space-v2-ac2485a3bb8a43ae",
+      "pr_number": 3245,
       "pr_status": "open"
     },
     {
-      "description": "Release v7.0.6 - CHANGELOG.md Unreleased -> 7.0.6, 12 bug fixes",
-      "date": "2026-03-03",
-      "branch": "repo-assist/release-v7.0.6",
-      "pr_number": 3239,
-      "pr_status": "open"
+      "description": "Add doc comments to Type*Node types in SyntaxOak.fs",
+      "date": "2026-03-07",
+      "branch": "repo-assist/improve-type-node-doc-comments",
+      "pr_status": "open",
+      "note": "PR number TBD - created this run"
     }
   ],
   "confirmed_bugs": [
@@ -145,9 +145,9 @@
     {"issue": 3209, "date": "2026-02-23"}
   ],
   "open_prs_checked": {
-    "3236": {"title": "[Repo Assist] Fix: no space before paren args in ? operator chains", "author": "github-actions[bot]", "pr_number": 3236, "note": "open, awaiting review"},
-    "3239": {"title": "[Repo Assist] Release v7.0.6", "author": "github-actions[bot]", "pr_number": 3239, "note": "open, awaiting review and merge"},
-    "3176": {"title": "Avoid compacting attributes...", "author": "tboby", "nudged": true}
+    "3245": {"title": "[Repo Assist] Fix: no space before paren args in ? operator chains", "author": "github-actions[bot]", "pr_number": 3245, "note": "open, awaiting review"},
+    "type_node_docs": {"title": "[Repo Assist] Add doc comments to Type*Node types in SyntaxOak.fs", "branch": "repo-assist/improve-type-node-doc-comments", "note": "created 2026-03-07, PR number TBD"},
+    "3176": {"title": "Avoid compacting attributes...", "author": "tboby", "nudged": true, "note": "maintainer already asked in Nov 2025, no response from author"}
   },
   "welcome_sent_to": [],
   "checked_off_actions": [
@@ -163,5 +163,5 @@
     "review_pr_3232",
     "review_pr_3236_merged"
   ],
-  "notes": "Issues 2860, 2862, 2864, 2882, 2973, 2979, 3031, 3084, 3099, 3174 not yet triaged with RA comments. #3159 fixed PR #3236 open. #3239 release PR open. Task3/4/10 not yet run."
+  "notes": "Issues 2862, 2945, 2973, 2979, 3031, 3084, 3099, 3174 not yet triaged with RA comments. #3159 fix PR #3245 open. Type*Node doc PR open (TBD#). PR #3085 stale but nojaf already commented Nov 2025 - no nudge needed. Task3/4/10 not yet run."
 }
