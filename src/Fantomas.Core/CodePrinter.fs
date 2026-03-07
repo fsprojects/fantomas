@@ -1686,23 +1686,26 @@ let genMultilineRecordFieldsExpr
 /// <param name="genExtra">Either the `expr with` or `inherit T`.</param>
 /// <param name="node">ExprRecordBaseNode</param>
 let genSmallRecordBaseExpr genExtra (node: ExprRecordBaseNode) =
+    let lastIndex = node.Fields.Length - 1
+
     genSingleTextNode node.OpeningBrace
     +> addSpaceIfSpaceAroundDelimiter
     +> genExtra
-    +> (let lastIndex = node.Fields.Length - 1
+    +> coli sepSemi node.Fields (fun i rf ->
+        // Parenthesize lambdas and if/then/else in non-last fields to prevent
+        // the body from extending to the end of the line and swallowing subsequent fields.
+        // e.g. { B = (fun x -> x + 1); C = 3 } instead of { B = fun x -> x + 1; C = 3 }
+        let genFieldExpr =
+            match rf.Expr with
+            | IsLambdaOrIfThenElse e when i <> lastIndex -> sepOpenT +> genExpr e +> sepCloseT
+            | _ -> genExpr rf.Expr
 
-        coli sepSemi node.Fields (fun i rf ->
-            let genFieldExpr =
-                match rf.Expr with
-                | IsLambdaOrIfThenElse e when i <> lastIndex -> sepOpenT +> genExpr e +> sepCloseT
-                | _ -> genExpr rf.Expr
-
-            genIdentListNode rf.FieldName
-            +> sepSpace
-            +> genSingleTextNode rf.Equals
-            +> sepSpace
-            +> genFieldExpr
-            |> genNode rf))
+        genIdentListNode rf.FieldName
+        +> sepSpace
+        +> genSingleTextNode rf.Equals
+        +> sepSpace
+        +> genFieldExpr
+        |> genNode rf)
     +> addSpaceIfSpaceAroundDelimiter
     +> genSingleTextNode node.ClosingBrace
 
