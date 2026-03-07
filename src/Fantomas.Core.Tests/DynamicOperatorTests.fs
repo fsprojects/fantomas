@@ -88,13 +88,27 @@ let doc = x?a("")?b(t)?b(t)
     |> should
         equal
         """
-let doc = x?a ("")?b (t)?b (t)
+let doc = x?a("")?b(t)?b(t)
+"""
+
+[<Test>]
+let ``no space before paren args in dynamic operator chain, 3159`` () =
+    formatSourceString
+        """
+x?a("")?b(t)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+x?a("")?b(t)
 """
 
 [<Test>]
 let ``case determination issue with ExprAppSingleParenArgNode uppercase with config lower, 3088`` () =
-    // We want to disobey SpaceBefore(Upper|Lower)caseInvocation inside of the ? chain because mixing it up can generate invalid code like x?a("arg")?B ("barg")?c("carg")
-    // The space config that is used (Upper or Lower) depends on the case of the dynamic object, here x
+    // Space before paren args of a `?` result is never added, regardless of SpaceBefore(Upper|Lower)caseInvocation.
+    // Adding a space can generate invalid code, e.g. `x?a("arg")?b (t)`. See #3159.
     formatSourceString
         """
 let doc1 = x?a("arg")?B("barg")?c("carg")
@@ -108,7 +122,7 @@ let doc2 = X?a("arg")?B("barg")?c("carg")
         equal
         """
 let doc1 = x?a("arg")?B("barg")?c("carg")
-let doc2 = X?a ("arg")?B ("barg")?c ("carg")
+let doc2 = X?a("arg")?B("barg")?c("carg")
 """
 
 [<Test>]
@@ -137,5 +151,5 @@ Jest.expect(json)?oMatchSnapshot ()
     |> should
         equal
         """
-Jest.expect(json)?oMatchSnapshot ()
+Jest.expect(json)?oMatchSnapshot()
 """
