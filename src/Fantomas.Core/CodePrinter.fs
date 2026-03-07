@@ -1689,13 +1689,20 @@ let genSmallRecordBaseExpr genExtra (node: ExprRecordBaseNode) =
     genSingleTextNode node.OpeningBrace
     +> addSpaceIfSpaceAroundDelimiter
     +> genExtra
-    +> col sepSemi node.Fields (fun rf ->
-        genIdentListNode rf.FieldName
-        +> sepSpace
-        +> genSingleTextNode rf.Equals
-        +> sepSpace
-        +> genExpr rf.Expr
-        |> genNode rf) //genRecordFieldNameAligned
+    +> (let lastIndex = node.Fields.Length - 1
+
+        coli sepSemi node.Fields (fun i rf ->
+            let genFieldExpr =
+                match rf.Expr with
+                | IsLambdaOrIfThenElse e when i <> lastIndex -> sepOpenT +> genExpr e +> sepCloseT
+                | _ -> genExpr rf.Expr
+
+            genIdentListNode rf.FieldName
+            +> sepSpace
+            +> genSingleTextNode rf.Equals
+            +> sepSpace
+            +> genFieldExpr
+            |> genNode rf))
     +> addSpaceIfSpaceAroundDelimiter
     +> genSingleTextNode node.ClosingBrace
 
