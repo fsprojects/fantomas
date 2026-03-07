@@ -1193,19 +1193,20 @@ let genExpr (e: Expr) =
                         else
                             indentSepNlnUnindent f ctx
 
-                    let genFuncExpr =
-                        match node.FunctionExpr with
-                        | Expr.TypeApp node -> genTypeApp true node
-                        | _ -> genExpr node.FunctionExpr
-
-                    (genFuncExpr
+                    (genExpr node.FunctionExpr
                      +> ensureArgumentsAreNotAlignedWithFunctionName (col sepNln node.Arguments genExpr))
                         ctx
 
                 expressionFitsOnRestOfLine shortExpression longExpression ctx
 
         |> genNode node
-    | Expr.TypeApp node -> expressionFitsOnRestOfLine (genTypeApp false node) (genTypeApp true node)
+    | Expr.TypeApp node ->
+        genPrefixApp
+            (genExpr node.Identifier)
+            node.LessThan
+            (colGenericTypeParameters node.TypeParameters)
+            node.GreaterThan
+        |> genNode node
     | Expr.TryWithSingleClause node ->
         let genClause =
             let clauseNode = node.Clause
@@ -2083,26 +2084,6 @@ let genAppSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppSingle
 
     expressionFitsOnRestOfLine short long |> genNode node
 
-/// When called from `SynExpr.App` we need to ensure the node.GreaterThan is placed one space further than the start column.
-/// This is to ensure the application remains an application.
-let genTypeApp (addAdditionalColumnOffset: bool) (node: ExprTypeAppNode) (ctx: Context) : Context =
-    genNode
-        node
-        (fun ctx ->
-            // Capture startColumn inside genNode (after leading trivia/newlines are written),
-            // so we get the column on the actual line, not a stale column from a previous line. See #3179.
-            let startColumn = ctx.Column + (if addAdditionalColumnOffset then 1 else 0)
-
-            (genExpr node.Identifier
-             +> genSingleTextNode node.LessThan
-             +> colGenericTypeParameters node.TypeParameters
-             // we need to make sure each expression in the function application has offset at least greater than
-             // See: https://github.com/fsprojects/fantomas/issues/1611
-             +> addFixedSpaces startColumn
-             +> genSingleTextNode node.GreaterThan)
-                ctx)
-        ctx
-
 let genClauses (clauses: MatchClauseNode list) =
     let lastIndex = clauses.Length - 1
 
@@ -2366,6 +2347,24 @@ let colGenericTypeParameters typeParameters =
     match typeParameters with
     | [ Type.StaticConstant(Constant.FromText textNode) ] when textNode.Text.Contains("\n") -> short
     | _ -> expressionFitsOnRestOfLine short long
+
+/// In F#, a closing `>` on a new line is ambiguous with the comparison operator.
+/// Formats `identifier< typeParameters >` while ensuring the closing `>` satisfies F#'s offside rule.
+let genPrefixApp
+    (identifier: Context -> Context)
+    (lessThan: SingleTextNode)
+    (typeParameters: Context -> Context)
+    (greaterThan: SingleTextNode)
+    (ctx: Context)
+    : Context =
+    let startColumn = ctx.Column
+
+    (identifier
+     +> genSingleTextNode lessThan
+     +> typeParameters
+     +> addFixedSpaces (startColumn + 1)
+     +> genSingleTextNode greaterThan)
+        ctx
 
 let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: IdentListNode) =
     match longIdent.Content with
@@ -3244,15 +3243,11 @@ let genType (t: Type) =
             | Type.Var node :: _ when String.startsWithOrdinal "^" node.Text -> sepSpace
             | t :: _ -> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
 
-        genType node.Identifier
-        +> optSingle genIdentListNodeWithDot node.PostIdentifier
-        +> genSingleTextNode node.LessThen
-        +> addExtraSpace
-        +> leadingExpressionIsMultiline (colGenericTypeParameters node.Arguments) (fun isMultiline ->
-            onlyIf isMultiline (!-" "))
-        +> addExtraSpace
-        // TODO: I think we need to add a space here
-        +> genSingleTextNode node.GreaterThan
+        genPrefixApp
+            (genType node.Identifier +> optSingle genIdentListNodeWithDot node.PostIdentifier)
+            node.LessThen
+            (addExtraSpace +> colGenericTypeParameters node.Arguments +> addExtraSpace)
+            node.GreaterThan
         |> genNode node
     | Type.StructTuple node ->
         genSingleTextNode node.Keyword

@@ -6,6 +6,10 @@
 
 - Improved error message when conditional compilation directives produce invalid syntax for some define combinations. [#563](https://github.com/fsprojects/fantomas/issues/563)
 
+### Fixed
+
+- Closing `>` in nested multiline generic type applications violates offside rule. [#3243](https://github.com/fsprojects/fantomas/issues/3243)
+
 ## [8.0.0-alpha-003] - 2026-03-03
 
 ### Fixed
