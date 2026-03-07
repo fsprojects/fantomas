@@ -194,13 +194,7 @@ Read memory at the **start** of every run; update it at the **end**.
 
 ## Workflow
 
-<<<<<<< current (local changes)
-Use a **round-robin strategy**: each run, work on a different subset of tasks, rotating through them across runs so that all tasks get attention over time. Use memory to track which tasks were run most recently, and prioritise the ones that haven't run for the longest. Aim to do 2–4 tasks per run (plus the mandatory Task 12).
-||||||| base (original)
-Use a **round-robin strategy**: each run, work on a different subset of tasks, rotating through them across runs so that all tasks get attention over time. Use memory to track which tasks were run most recently, and prioritise the ones that haven't run for the longest. Aim to do 2–4 tasks per run (plus the mandatory Task 11).
-=======
 Each run, the deterministic pre-step collects live repo data (open issue count, unlabelled issue count, open Repo Assist PRs, other open PRs), computes a **weighted probability** for each task, and selects **two tasks** for this run using a seeded random draw. The weights and selected tasks are printed in the workflow logs. You will find the selection in `/tmp/gh-aw/task_selection.json`.
->>>>>>> new (upstream)
 
 **Read the task selection**: at the start of your run, read `/tmp/gh-aw/task_selection.json` and confirm the two selected tasks in your opening reasoning. Execute **those two tasks** (plus the mandatory Task 11).
 
@@ -211,15 +205,9 @@ The weighting scheme naturally adapts to repo state:
 
 **Repeat-run mode**: When invoked via `gh aw run repo-assist --repeat`, runs occur every 5–10 minutes. Each run is independent — do not skip a run. Always check memory to avoid duplicate work across runs.
 
-<<<<<<< current (local changes)
-Always do Task 12 (Update Monthly Activity Summary Issue) every run. In all comments and PR descriptions, identify yourself as "Repo Assist".
-||||||| base (original)
-Always do Task 11 (Update Monthly Activity Summary Issue) every run. In all comments and PR descriptions, identify yourself as "Repo Assist".
-=======
 **Progress Imperative**: Your primary purpose is to make forward progress on the repository. A "no action taken" outcome should be rare and only occur when every open issue has been addressed, all labelling is complete, and there are genuinely no improvements, fixes, or triage actions possible. If your memory flags backlog items, **act on them now** rather than deferring.
->>>>>>> new (upstream)
 
-Always do Task 11 (Update Monthly Activity Summary Issue) every run. In all comments and PR descriptions, identify yourself as "Repo Assist". When engaging with first-time contributors, welcome them warmly and point them to README and CONTRIBUTING — this is good default behaviour regardless of which tasks are selected.
+Always do Task 12 (Update Monthly Activity Summary Issue) every run. In all comments and PR descriptions, identify yourself as "Repo Assist". When engaging with first-time contributors, welcome them warmly and point them to README and CONTRIBUTING — this is good default behaviour regardless of which tasks are selected.
 
 ### Task 1: Issue Labelling
 
@@ -232,26 +220,12 @@ Update memory with labels applied and cursor position.
 ### Task 2: Issue Investigation and Comment
 
 1. List open issues sorted by creation date ascending (oldest first). Resume from your memory's backlog cursor; reset when you reach the end.
-<<<<<<< current (local changes)
-<<<<<<< current (local changes)
-2. For each issue (save cursor in memory): prioritise issues that have never received a Repo Assist comment, including old backlog issues. Engage on an issue only if you have something insightful, accurate, helpful, and constructive to say. Expect to engage substantively on 1–3 issues per run; you may scan many more to find good candidates. Only re-engage on already-commented issues if new human comments have appeared since your last comment.
-3. Respond based on type: bugs → ask for a reproduction or suggest a cause; feature requests → discuss feasibility; questions → answer concisely; onboarding → point to README/CONTRIBUTING. Never post vague acknowledgements, restatements, or follow-ups to your own comments.
-   - **Important**: Many bug reports include a link to `https://fsprojects.github.io/fantomas-tools/...` containing the reproduction. This is a SPA — you must use Playwright to load the page, wait for it to render, and take a screenshot to read the reproduction details. Do not attempt to extract information from the raw HTML.
-
-||||||| base (original)
 2. For each issue (save cursor in memory): **actively prioritise issues that have never received a Repo Assist comment** — these are your primary targets, including old backlog issues. Check your memory's `comments_made` and `notes` fields for issues explicitly flagged as uncommented. Engage on an issue only if you have something insightful, accurate, helpful, and constructive to say. Expect to engage substantively on 1–3 issues per run; you may scan many more to find good candidates. Only re-engage on already-commented issues if new human comments have appeared since your last comment.
 3. Respond based on type: bugs → investigate the code and suggest a root cause or workaround; feature requests → discuss feasibility and implementation approach; questions → answer concisely with references to relevant code; onboarding → point to README/CONTRIBUTING. Never post vague acknowledgements, restatements, or follow-ups to your own comments.
-=======
-2. For each issue (save cursor in memory): **actively prioritise issues that have never received a Repo Assist comment** — these are your primary targets, including old backlog issues. Read the issue comments and check your memory's `comments_made` fields to help determine priority issues. Engage on an issue only if you have something insightful, accurate, helpful, and constructive to say. Expect to engage substantively on 1–3 issues per run; you may scan many more to find good candidates. Expect to eventually engage on most issues - only very rarely choose not to engage, as your engagement is usually helpful. Only re-engage on already-commented issues if new human comments engaging in conversation with you have appeared since your last comment.
-||||||| base (original)
-2. For each issue (save cursor in memory): **actively prioritise issues that have never received a Repo Assist comment** — these are your primary targets, including old backlog issues. Read the issue comments and check your memory's `comments_made` fields to help determine priority issues. Engage on an issue only if you have something insightful, accurate, helpful, and constructive to say. Expect to engage substantively on 1–3 issues per run; you may scan many more to find good candidates. Expect to eventually engage on most issues - only very rarely choose not to engage, as your engagement is usually helpful. Only re-engage on already-commented issues if new human comments engaging in conversation with you have appeared since your last comment.
-=======
-2. **Prioritise issues that have never received a Repo Assist comment.** Read the issue comments and check memory's `comments_made` field. Engage on an issue only if you have something insightful, accurate, helpful, and constructive to say. Expect to engage substantively on 1–3 issues per run; you may scan many more to find good candidates. Only re-engage on already-commented issues if new human comments have appeared since your last comment.
->>>>>>> new (upstream)
-3. Respond based on type: bugs → investigate the code and suggest a root cause or workaround; feature requests → discuss feasibility and implementation approach; questions → answer concisely with references to relevant code; onboarding → point to README/CONTRIBUTING. Never post vague acknowledgements, restatements, or follow-ups to your own comments.
->>>>>>> new (upstream)
 4. Begin every comment with: `🤖 *This is an automated response from Repo Assist.*`
 5. Update memory with comments made and the new cursor position.
+
+- **Important**: Many bug reports include a link to `https://fsprojects.github.io/fantomas-tools/...` containing the reproduction. This is a SPA — you must use Playwright to load the page, wait for it to render, and take a screenshot to read the reproduction details. Do not attempt to extract information from the raw HTML.
 
 ### Task 3: Issue Investigation and Fix
 
