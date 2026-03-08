@@ -115,7 +115,8 @@ let ``should break on . operator and keep indentation`` () =
     """
         { config with
             MaxLineLength = 80
-            MaxInfixOperatorExpression = 60 }
+            MaxInfixOperatorExpression = 60
+        }
     |> should
         equal
         """let pattern =
@@ -227,7 +228,8 @@ let ``should not add newline before = operator after |>`` () =
     formatSourceString
         """1 |> max 0 = 1"""
         { config with
-            MaxInfixOperatorExpression = 15 }
+            MaxInfixOperatorExpression = 15
+        }
     |> should
         equal
         """1 |> max 0 = 1
@@ -268,7 +270,8 @@ let ``line comment after infix function with parenthesis, 559`` () =
         }
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -342,7 +345,8 @@ let ``long expression with pipe should be multiline`` () =
     formatSourceString
         "let a = List.init 40 (fun i -> generateThing i a) |> List.map mapThingToOtherThing"
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -359,7 +363,8 @@ let ``giraffe sample`` () =
 let WebApp = route "/ping" >=> authorized >=> text "pong"
 """
         { config with
-            MaxInfixOperatorExpression = 20 }
+            MaxInfixOperatorExpression = 20
+        }
     |> prepend newline
     |> should
         equal
@@ -389,7 +394,8 @@ let ``pipe boolean expression`` () =
         """b && c |> someLongExpressionThatShouldMoveThePipeToTheNextLine
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -483,7 +489,8 @@ let ``modulo operator on same line, 780`` () =
         """let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -610,7 +617,8 @@ let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
         dist
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -672,7 +680,8 @@ Fooey
 \"\"\" |}
 "
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -694,7 +703,8 @@ let ``simple math`` () =
         """let myValue = a + b * c
 """
         { config with
-            MaxInfixOperatorExpression = 5 }
+            MaxInfixOperatorExpression = 5
+        }
     |> prepend newline
     |> should
         equal
@@ -710,7 +720,8 @@ let ``simple math in one line`` () =
         """let myValue = a + b * c
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -724,7 +735,8 @@ let ``simple math reversed`` () =
         """let myValue = a * b + c
 """
         { config with
-            MaxInfixOperatorExpression = 5 }
+            MaxInfixOperatorExpression = 5
+        }
     |> prepend newline
     |> should
         equal
@@ -740,7 +752,8 @@ let ``multiple sum operators`` () =
         """let myValue = a + b * c + d
 """
         { config with
-            MaxInfixOperatorExpression = 5 }
+            MaxInfixOperatorExpression = 5
+        }
     |> prepend newline
     |> should
         equal
@@ -763,7 +776,8 @@ let ``nested math sample`` () =
                * eeeeeeeeeeeeeeeeeeeeeee)
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1021,7 +1035,8 @@ module Foo =
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1169,7 +1184,8 @@ module TopLevelOpIsolation3 =
         <@ (.. ..) 1 2 3 4 @> |> decompile =! "TopLevelOpIsolation3.(.. ..) 1 2 3 4"
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1207,7 +1223,8 @@ type Test =
 """
         { config with
             NewlineBetweenTypeDefinitionAndMembers = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1323,7 +1340,8 @@ let ``multiple list concat operators, 2472`` () =
 let allDecls = inheritsL @ iimplsLs @ ctorLs @ instanceValLs @ methLs @ ilFieldsL @ propLs @ eventLs @ staticValLs @ nestedTypeLs
 """
         { config with
-            MaxInfixOperatorExpression = 0 }
+            MaxInfixOperatorExpression = 0
+        }
     |> prepend newline
     |> should
         equal
@@ -1348,7 +1366,8 @@ let ``multiple cons operators`` () =
 let allDecls = inheritsL :: iimplsLs :: ctorLs :: foo ::blah
 """
         { config with
-            MaxInfixOperatorExpression = 0 }
+            MaxInfixOperatorExpression = 0
+        }
     |> prepend newline
     |> should
         equal
@@ -1376,7 +1395,8 @@ let ``right placed operators`` () =
   let allDecls = inheritsL @+ iimplsLs @+ ctorLs 
 """
         { config with
-            MaxInfixOperatorExpression = 0 }
+            MaxInfixOperatorExpression = 0
+        }
     |> prepend newline
     |> should
         equal
@@ -1421,6 +1441,38 @@ let allDecls =
     inheritsL
     @+ iimplsLs
     @+ ctorLs
+"""
+
+[<Test>]
+let ``operator member definition should keep space before parenthesized parameter, 2864`` () =
+    formatSourceString
+        """
+type A() =
+    static member (^^.) (a, b) = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A() =
+    static member (^^.) (a, b) = ()
+"""
+
+[<Test>]
+let ``operator member definition should keep space before unit parameter, 2864`` () =
+    formatSourceString
+        """
+type A() =
+    static member (!) () = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A() =
+    static member (!) () = ()
 """
 
 [<Test>]

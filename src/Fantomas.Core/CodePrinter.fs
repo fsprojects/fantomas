@@ -109,7 +109,8 @@ let genTrivia (node: Node) (trivia: TriviaNode) (ctx: Context) =
                     Fantomas.FCS.Text.Position.mkPos ctx.WriterModel.Lines.Length (ctx.Column + originalColumnOffset)
 
                 { ctx with
-                    FormattedCursor = Some formattedCursor }
+                    FormattedCursor = Some formattedCursor
+                }
 
     gen ctx
 
@@ -129,7 +130,8 @@ let recordCursorNode f (node: Node) (ctx: Context) =
             Fantomas.FCS.Text.Position.mkPos currentStartLine (currentStartColumn + columnOffsetInSource)
 
         { ctxAfter with
-            FormattedCursor = Some formattedCursor }
+            FormattedCursor = Some formattedCursor
+        }
 
 let enterNode<'n when 'n :> Node> (n: 'n) =
     col sepNone n.ContentBefore (genTrivia n)
@@ -1535,7 +1537,8 @@ let genExpr (e: Expr) =
                         // this is to avoid scenarios where the long / multiline format of the expression will be used
                         // where the construct is this short
                         // see unit test ``construct url with Fable``
-                        MaxLineLength = ctx.WriterModel.Column + ctx.Config.MaxLineLength }
+                        MaxLineLength = ctx.WriterModel.Column + ctx.Config.MaxLineLength
+                    }
 
                 genExpr expr { ctx with Config = interpolatedConfig }
                 // Restore the existing configuration after printing the interpolated expression
@@ -2030,7 +2033,9 @@ let genLambdaAux (includeClosingParen: bool) (node: ExprLambdaNode) =
                 { ctx with
                     Config =
                         { ctx.Config with
-                            MaxLineLength = maxLineLength - 1 } }
+                            MaxLineLength = maxLineLength - 1
+                        }
+                }
             else
                 ctx
 
@@ -2043,7 +2048,9 @@ let genLambdaAux (includeClosingParen: bool) (node: ExprLambdaNode) =
             { ctx with
                 Config =
                     { ctx.Config with
-                        MaxLineLength = maxLineLength } })
+                        MaxLineLength = maxLineLength
+                    }
+            })
     |> genNode node
 
 let genLambda = genLambdaAux false
@@ -2904,6 +2911,12 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                         let addSpaceBeforeParensInFunDef =
                             match functionName.Content, p with
                             | [ IdentifierOrDot.Ident newIdent ], _ when newIdent.Text = "new" -> false
+                            | [ IdentifierOrDot.Ident ident ], (Pattern.Paren _ | Pattern.Unit _) when
+                                ident.Text.StartsWith("(")
+                                ->
+                                // Operator member names like `(^^.)` always need a space before parameters:
+                                // `static member (^^.) (a, b)` rather than `static member (^^.)(a, b)`
+                                true
                             | _, Pattern.Paren _
                             | _, Pattern.Unit _ -> spaceBefore
                             | _, Pattern.Named _
@@ -4085,7 +4098,9 @@ let addFinalNewline ctx =
                 WriterEvents = ctx.WriterEvents.Tail
                 WriterModel =
                     { ctx.WriterModel with
-                        Lines = List.tail ctx.WriterModel.Lines } }
+                        Lines = List.tail ctx.WriterModel.Lines
+                    }
+            }
     | _ -> onlyIf ctx.Config.InsertFinalNewline sepNln ctx
 
 let genFile (oak: Oak) =
