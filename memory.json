@@ -1,15 +1,15 @@
 {
-  "last_run": "2026-03-07T12:24:06Z",
+  "last_run": "2026-03-08T01:30:36Z",
   "tasks_run": {
-    "task1_triage": "2026-03-03T04:01:00Z",
-    "task2_fix_issues": "2026-03-01T04:09:00Z",
+    "task1_triage": "2026-03-08T01:30:36Z",
+    "task2_fix_issues": "2026-03-08T01:30:36Z",
     "task5_maintain_prs": "2026-03-07T12:24:06Z",
     "task6_stale_prs": "2026-03-07T12:24:06Z",
     "task7_labels": "2026-03-02T04:01:00Z",
     "task8_release": "2026-03-03T04:01:00Z",
     "task9_welcome": "2026-02-25T04:06:58Z",
     "task11_curate_suggestions": "2026-02-23T14:30:49Z",
-    "task12_monthly_summary": "2026-03-07T12:24:06Z"
+    "task12_monthly_summary": "2026-03-08T01:30:36Z"
   },
   "tasks_never_run": ["task3_improvements", "task4_dependencies", "task10_forward"],
   "issue_backlog_cursor": "Y3Vyc29yOnYyOpK0MjAyNC0wNC0wNVQwOTozMDozOVrOLklV",
@@ -35,12 +35,13 @@
     {"issue": 3069, "date": "2026-03-02", "type": "triage", "description": "Root cause: colGenericTypeParameters ignores MultilineBracketStyle; ifAlignOrStroustrupBrackets treats Aligned/Stroustrup same"},
     {"issue": 3155, "date": "2026-03-02", "type": "triage", "description": "Root cause: NewlineBeforeMultilineComputationExpression=false + multiline args causes parse error; suggested fallback"},
     {"issue": 2856, "date": "2026-03-03", "type": "triage", "description": "Root cause: list items don't get blank lines between them; good first issue pointer"},
-    {"issue": 3011, "date": "2026-03-03", "type": "triage", "description": "Explained trivia-attribution challenge for comments between else if"}
+    {"issue": 3011, "date": "2026-03-03", "type": "triage", "description": "Explained trivia-attribution challenge for comments between else if"},
+    {"issue": 2670, "date": "2026-03-08", "type": "triage", "description": "Labelled bug (stylistic); root cause: ) -> not checked against max line length in genClause"}
   ],
   "monthly_summary_issue": {
     "number": 3238,
     "month": "2026-03",
-    "note": "Updated 2026-03-07 run"
+    "note": "Updated 2026-03-08 run"
   },
   "pr_nudges_sent": [
     {"pr": 3176, "date": "2026-02-23", "author": "tboby"}
@@ -53,7 +54,8 @@
     {"issue": 3110, "labels": ["bug", "needs investigation"], "date": "2026-02-28"},
     {"issue": 3130, "labels": ["bug", "needs investigation"], "date": "2026-02-28"},
     {"issue": 3069, "labels": ["needs investigation"], "date": "2026-03-02"},
-    {"issue": 3155, "labels": ["bug"], "date": "2026-03-02"}
+    {"issue": 3155, "labels": ["bug"], "date": "2026-03-02"},
+    {"issue": 2670, "labels": ["bug (stylistic)"], "date": "2026-03-08"}
   ],
   "fix_attempts": [
     {
@@ -112,6 +114,14 @@
       "description": "Add doc comments to Type*Node types in SyntaxOak.fs",
       "date": "2026-03-07",
       "branch": "repo-assist/improve-type-node-doc-comments",
+      "pr_number": 3249,
+      "pr_status": "merged",
+      "merged_date": "2026-03-07"
+    },
+    {
+      "description": "Add doc comments to remaining 43 Expr*Node types in SyntaxOak.fs; fix ExprConstantNode.Children failwith todo -> [||]",
+      "date": "2026-03-08",
+      "branch": "repo-assist/improve-expr-node-doc-comments-remaining",
       "pr_status": "open",
       "note": "PR number TBD - created this run"
     }
@@ -124,6 +134,7 @@
   "issues_triage_noted": [
     {"issue": 636, "date": "2026-02-23"},
     {"issue": 2610, "date": "2026-02-25"},
+    {"issue": 2670, "date": "2026-03-08"},
     {"issue": 2694, "date": "2026-02-25"},
     {"issue": 2816, "date": "2026-02-25"},
     {"issue": 2827, "date": "2026-02-25"},
@@ -146,8 +157,10 @@
   ],
   "open_prs_checked": {
     "3245": {"title": "[Repo Assist] Fix: no space before paren args in ? operator chains", "author": "github-actions[bot]", "pr_number": 3245, "note": "open, awaiting review"},
-    "type_node_docs": {"title": "[Repo Assist] Add doc comments to Type*Node types in SyntaxOak.fs", "branch": "repo-assist/improve-type-node-doc-comments", "note": "created 2026-03-07, PR number TBD"},
-    "3176": {"title": "Avoid compacting attributes...", "author": "tboby", "nudged": true, "note": "maintainer already asked in Nov 2025, no response from author"}
+    "expr_node_docs": {"title": "[Repo Assist] Add doc comments to remaining Expr*Node types in SyntaxOak.fs", "branch": "repo-assist/improve-expr-node-doc-comments-remaining", "note": "created 2026-03-08, PR number TBD"},
+    "3176": {"title": "Avoid compacting attributes...", "author": "tboby", "nudged": true, "note": "maintainer already asked in Nov 2025, no response from author"},
+    "3244": {"title": "[Repo Assist] Fix superseded", "note": "should be closed - superseded by 3245"},
+    "3248": {"title": "Fix closing > in nested multiline generic type applications", "author": "nojaf", "note": "nojaf's own PR"}
   },
   "welcome_sent_to": [],
   "checked_off_actions": [
@@ -161,7 +174,9 @@
     "review_pr_3229",
     "review_pr_3228",
     "review_pr_3232",
-    "review_pr_3236_merged"
+    "review_pr_3236_merged",
+    "review_pr_3247_merged",
+    "review_pr_3249_merged"
   ],
-  "notes": "Issues 2862, 2945, 2973, 2979, 3031, 3084, 3099, 3174 not yet triaged with RA comments. #3159 fix PR #3245 open. Type*Node doc PR open (TBD#). PR #3085 stale but nojaf already commented Nov 2025 - no nudge needed. Task3/4/10 not yet run."
+  "notes": "Issues 2862, 2945, 3031, 3084, 3099 not yet triaged with RA comments (2973 closed, 3174 being worked on by tboby). #3159 fix PR #3245 open. Remaining Expr*Node doc PR open (TBD#). PR #3085 stale - nojaf commented Nov 2025. Task3/4/10 not yet run. PR #3244 should be closed (superseded). PR #3236 already closed."
 }
