@@ -8,6 +8,44 @@ open Microsoft.FSharp.Core.CompilerServices
 let noBreakInfixOps = set [| "="; ">"; "<"; "%" |]
 let newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
 
+[<return: Struct>]
+let (|IdentText|_|) (text: string) (e: Expr) =
+    match e with
+    | Expr.Ident stn when stn.Text = text -> ValueSome stn
+    | _ -> ValueNone
+
+/// Matches an ExprAppNode that follows the query join RHS pattern:
+/// source on condition [into name]
+[<return: Struct>]
+let (|QueryJoinRhs|_|) (expr: Expr) =
+    match expr with
+    | Expr.App appNode ->
+        match appNode.Arguments with
+        | [ IdentText "on" onNode; condition ] -> ValueSome(appNode.FunctionExpr, onNode, condition, None)
+        | [ IdentText "on" onNode; condition; IdentText "into" intoNode; target ] ->
+            ValueSome(appNode.FunctionExpr, onNode, condition, Some(intoNode, target))
+        | _ -> ValueNone
+    | _ -> ValueNone
+
+/// Matches a query expression application with an `into` clause:
+/// groupBy expr into name, groupValBy expr expr into name
+[<return: Struct>]
+let (|QueryGroupInto|_|) (expr: Expr) =
+    match expr with
+    | Expr.App appNode ->
+        let args = appNode.Arguments
+
+        let rec splitAtInto before =
+            function
+            | (IdentText "into" intoNode) :: rest -> ValueSome(List.rev before, intoNode, rest)
+            | arg :: rest -> splitAtInto (arg :: before) rest
+            | [] -> ValueNone
+
+        match splitAtInto [] args with
+        | ValueSome(beforeArgs, intoNode, afterArgs) -> ValueSome(appNode.FunctionExpr, beforeArgs, intoNode, afterArgs)
+        | ValueNone -> ValueNone
+    | _ -> ValueNone
+
 let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
     let upperOrLower (v: string) =
         let isUpper = Seq.tryHead v |> Option.map Char.IsUpper |> Option.defaultValue false
@@ -354,6 +392,93 @@ let isLambdaOrIfThenElse (e: Expr) =
 let (|IsLambdaOrIfThenElse|_|) (e: Expr) =
     if isLambdaOrIfThenElse e then Some e else None
 
+/// Generate an expression in a query computation expression context.
+/// Handles JoinIn, CompExprBody, and ForEach with query-aware formatting,
+/// delegating to genExpr for all other expression types.
+let genQueryExpr (e: Expr) =
+    match e with
+    | Expr.JoinIn node ->
+        let genQueryJoinInRhs =
+            match node.RightHandSide with
+            | QueryJoinRhs(sourceExpr, onNode, condition, intoClause) ->
+                sepSpace
+                +> genExpr sourceExpr
+                +> indent
+                +> sepNln
+                +> genSingleTextNode onNode
+                +> sepSpace
+                +> genExpr condition
+                +> opt sepNone intoClause (fun (intoNode, target) ->
+                    sepNln +> genSingleTextNode intoNode +> sepSpace +> genExpr target)
+                +> unindent
+            | _ -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.RightHandSide)
+
+        genExpr node.LeftHandSide
+        +> sepSpace
+        +> genSingleTextNode node.In
+        +> genQueryJoinInRhs
+        |> genNode node
+    | QueryGroupInto(funcExpr, beforeArgs, intoNode, afterArgs) ->
+        let genShort =
+            genExpr funcExpr
+            +> sepSpace
+            +> col sepSpace beforeArgs genExpr
+            +> sepSpace
+            +> genSingleTextNode intoNode
+            +> sepSpace
+            +> col sepSpace afterArgs genExpr
+
+        let genLong =
+            genExpr funcExpr
+            +> sepSpace
+            +> col sepSpace beforeArgs genExpr
+            +> indent
+            +> sepNln
+            +> genSingleTextNode intoNode
+            +> sepSpace
+            +> col sepSpace afterArgs genExpr
+            +> unindent
+
+        expressionFitsOnRestOfLine genShort genLong |> genNode (Expr.Node e)
+    | Expr.CompExprBody node ->
+        let genStatements =
+            node.Statements
+            |> List.mapi (fun i statement ->
+                let gen =
+                    match statement with
+                    | ComputationExpressionStatement.BindingStatement bindingNode -> genBinding bindingNode
+                    | ComputationExpressionStatement.OtherStatement e -> genQueryExpr e
+
+                if i = 0 then
+                    gen
+                else
+                    let node =
+                        match statement with
+                        | ComputationExpressionStatement.BindingStatement bindingNode -> bindingNode :> Node
+                        | ComputationExpressionStatement.OtherStatement e -> Expr.Node e
+
+                    sepNlnUnlessContentBefore node +> gen)
+            |> List.reduce (+>)
+            |> genNode node
+
+        match node.Statements with
+        | [ ComputationExpressionStatement.BindingStatement bindingNode
+            ComputationExpressionStatement.OtherStatement otherNode ] when bindingNode.In.IsSome ->
+            let short = genBinding bindingNode +> sepSpace +> genQueryExpr otherNode
+            expressionFitsOnRestOfLine short genStatements
+        | _ -> genStatements
+    | Expr.ForEach node ->
+        genSingleTextNode node.For
+        +> sepSpace
+        +> genPat node.Pattern
+        +> !-" in "
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.EnumExpr)
+        +> ifElse node.IsArrow sepArrow !-" do"
+        +> sepNln
+        +> genQueryExpr node.BodyExpr
+        |> genNode node
+    | _ -> genExpr e
+
 let genExpr (e: Expr) =
     match e with
     | Expr.Lazy node ->
@@ -619,6 +744,29 @@ let genExpr (e: Expr) =
                 (!-" do" +> indent +> sepNln +> genExpr node.BodyExpr +> unindent)
         )
         |> genNode node
+    | Expr.NamedComputation node when
+        (match node.Name with
+         | IdentText "query" _ -> true
+         | _ -> false)
+        ->
+        let short =
+            genExpr node.Name
+            +> sepSpace
+            +> genSingleTextNode node.OpeningBrace
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genQueryExpr node.Body
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genSingleTextNode node.ClosingBrace
+
+        let long =
+            genExpr node.Name
+            +> sepSpace
+            +> genSingleTextNode node.OpeningBrace
+            +> indentSepNlnUnindent (genQueryExpr node.Body)
+            +> sepNln
+            +> genSingleTextNode node.ClosingBrace
+
+        expressionFitsOnRestOfLine short long |> genNode node
     | Expr.NamedComputation node ->
         let short =
             genExpr node.Name
