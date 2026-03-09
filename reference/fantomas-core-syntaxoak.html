@@ -788,7 +788,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `struct {| Name = "Alice"; Age = 30 |}` — an anonymous struct record expression.
+ Extends `ExprRecordNode` by prepending the `struct` keyword.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -912,7 +913,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `List.map (fun x -> x + 1) xs` — a function applied to zero or more prefix arguments
+ followed by a parenthesised lambda or `function` expression as the last argument.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -974,7 +976,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `begin expr end` — explicit `begin`/`end` block delimiters (equivalent to parentheses).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1036,7 +1038,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   The body of a computation expression, consisting of an ordered list of binding statements
+ (e.g. `let! x = …`) and other expressions (e.g. `return x`, `do! f()`).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1067,7 +1070,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `{ let x = 1; yield x }` — an anonymous computation expression (no explicit builder name).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1098,7 +1101,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A constant (literal) expression leaf node such as `42`, `"hello"`, `true`, or `3.14`.
+ This node has no child nodes; all textual content is carried by the source range.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1129,7 +1133,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `arr.[i]` — indexed get using the older dot-bracket syntax (deprecated in F# 6).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1160,7 +1164,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `arr.[i] <- value` — indexed set using the older dot-bracket syntax (deprecated in F# 6).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1191,7 +1195,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `_.ToUpper()` or `_.Length` — a dot-lambda shorthand (F# 8+).
+ `Underscore` is the `_` placeholder, `Dot` is the `.`, and `Expr` is the member access or call.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1222,7 +1227,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `obj.Item[key] <- value` — sets a named indexed property accessed through a dotted expression.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1253,7 +1258,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `obj?Property` — dynamic member access using the `?` operator.
+ `FuncExpr` is the object; `ArgExpr` is the property name (often a string constant).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1316,7 +1322,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `for x in xs do printfn "%A" x` — a `for … in` loop over a sequence.
+ `IsArrow` is `true` when using arrow syntax (`for x in xs -> expr`) instead of `do`.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1347,7 +1354,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `for i = 1 to 10 do printfn "%d" i` or `for i = 10 downto 1 do …`.
+ `Direction` is `true` for ascending (`to`) and `false` for descending (`downto`).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1471,7 +1479,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `^1` or `^0` — an end-relative index expression (from-end indexer, F# 6+).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1502,7 +1510,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `0..10`, `..10`, `0..`, `..` — a two-part index range (used in slice expressions and list comprehensions).
+ Either `From` or `To` (or both) may be absent, producing an open-ended range.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1533,7 +1542,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `xs[i]` — index access using the new F# 6+ dot-free bracket syntax.
+ `Identifier` is the collection; `Index` is the index expression inside `[…]`.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1595,7 +1605,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `{ inherit Base(args); Field = value }` — a record with an `inherit` constructor call.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1626,7 +1636,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `$"hello {name}, you are {age} years old"` — an interpolated string expression.
+ `Parts` interleaves raw string `SingleTextNode` segments with `FillExprNode` interpolation holes.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1657,7 +1668,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `e1 in e2` — used in query-expression `join … in …` clauses; represents the `in` operator.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1750,7 +1761,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Internal compiler node for static optimisation hints (library/compiler use only, not user-facing).
+ Emits an expression with attached `StaticOptimizationConstraint` conditions.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1781,7 +1793,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `Module.mutableValue <- newValue` — mutation via a long (dotted) identifier.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1874,7 +1886,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `task { … }` or `async { … }` — a named computation expression with an explicit builder.
+ The builder expression (`Name`) precedes the braces of the computation body.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1905,7 +1918,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `myProp[key] <- value` — sets a named indexed property on a type.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1936,7 +1949,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `xs[i] arg` — an indexed expression (`xs[i]`) immediately applied to an argument.
+ Used for cases like `arr[0] + 1` where the index result is itself called or applied.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1998,7 +2012,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `{ new IDisposable with member _.Dispose() = () }` — an object expression that implements an interface or inherits a base class inline.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2029,7 +2043,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `?name` in a function call — a named optional argument passed explicitly.
+ `IsOptional` is `true` when the `?` prefix is present; `Identifier` is the argument name.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2060,7 +2075,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `( * )` or `( + )` — an operator name wrapped in parentheses, used as a first-class function value.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2091,7 +2106,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `(fun x -> x + 1)` — a lambda expression wrapped in parentheses.
+ Distinct from `ExprLambdaNode` in that the parens are explicit and tracked as nodes.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2122,7 +2138,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `(expr)` — an expression explicitly wrapped in parentheses for grouping or disambiguation.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2153,7 +2169,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `!x`, `-x`, `~~~x` — a prefix (unary) operator applied to an expression.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2184,7 +2200,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `<@ expr @>` — a typed quotation; `<@@ expr @@>` — an untyped quotation.
+ The opening and closing tokens capture the bracket pair; `Expr` is the quoted expression.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2215,7 +2232,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Abstract base for all record expression nodes, providing shared access to the braces and fields.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2308,7 +2325,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `x <- newValue` — an imperative assignment (mutation) expression.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2339,7 +2356,9 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A single expression prefixed by a keyword, e.g. `assert condition`, `yield value`, `return result`,
+ `upcast expr`, `downcast expr`, `do expr`, `do! asyncExpr`, `return! asyncExpr`.
+ `AddSpace` controls whether a space is emitted between the keyword and the expression.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2370,7 +2389,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `struct (a, b, c)` — a struct tuple expression.
+ Wraps an `ExprTupleNode` and adds the `struct` keyword and a closing parenthesis.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2401,7 +2421,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `(^T : (member Get : unit -> int) t)` — a statically-resolved type parameter (SRTP) trait call.
+ Invokes `MemberDefn` on value `Expr` constrained to type `Type` at compile time.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2432,7 +2453,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `0..2..10` — a three-part numeric range with start, step, and end values (used in slice expressions).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2463,7 +2484,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `try riskyOp() finally cleanup()` — a try/finally expression that always runs `FinallyExpr`.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2494,7 +2515,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `try riskyOp() with | :? IOException -> "IO" | ex -> sprintf "other: %O" ex` — a try/with with multiple match clauses.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2525,7 +2546,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `try riskyOp() with :? IOException -> "IO error"` — a try/with with exactly one match clause.
+ Used as an optimised form when a single pattern covers all exception cases.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2587,7 +2609,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `id<int>` or `List.empty<string>` — a generic type application using angle-bracket syntax.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2618,7 +2640,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `expr : Type` (type annotation), `expr :? Type` (type test / downcast), `expr :>> Type` (upcast).
+ `Operator` holds the specific type operator string (`:`, `:?`, `:>`, `:>>`).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2649,7 +2672,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `while i < 10 do printfn "%d" i; i <- i + 1` — a while loop.
                 </p>
               </div>
               <div class="icon-button-row">
