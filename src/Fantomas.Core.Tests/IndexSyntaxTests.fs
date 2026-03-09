@@ -273,3 +273,45 @@ inventory["Oranges"] // raises an exception if not found
 inventory.["Apples"] // raises an exception if not found
 nestedInventory["Oranges"][23] // raises an exception if not found
 """
+
+[<Test>]
+let ``index without dot followed by application argument`` () =
+    formatSourceString
+        """
+prepConfigs[1] host
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+prepConfigs[1] host
+"""
+
+[<Test>]
+let ``index without dot followed by multiple application arguments`` () =
+    formatSourceString
+        """
+prepConfigs[1] host port
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+prepConfigs[1] host port
+"""
+
+[<Test>]
+let ``index without dot with spaces followed by multiple application arguments`` () =
+    formatSourceString
+        """
+prepConfigs[ 1 ] host days
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+prepConfigs[1] host days
+"""
