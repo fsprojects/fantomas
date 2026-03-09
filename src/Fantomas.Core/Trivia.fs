@@ -146,7 +146,7 @@ let internal collectTriviaFromDirectiveRanges
         if not (RangeHelpers.rangeContainsRange codeRange directiveRange) then
             None
         else
-            let text = (source.GetSubTextFromRange directiveRange).TrimEnd()
+            let text = (source.GetSubTextFromRange directiveRange).Trim()
             let content = Directive text
             Some(TriviaNode(content, directiveRange)))
 

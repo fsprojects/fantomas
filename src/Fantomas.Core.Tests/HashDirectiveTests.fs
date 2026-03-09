@@ -264,3 +264,28 @@ let ``#nowarn with integer`` () =
         """
 #nowarn  1182
 """
+
+[<Test>]
+let ``#nowarn and #warnon inside list expression are formatted idempotently, 3258`` () =
+    formatSourceString
+        """
+let x = [
+#nowarn 25
+    1
+    2
+#warnon 25
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    [
+        #nowarn 25
+        1
+        2
+    #warnon 25
+    ]
+"""
