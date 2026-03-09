@@ -1,11 +1,5 @@
 {
   "last_run": "2026-03-09",
-  "cursor": "Y3Vyc29yOnYyOpK0MjAyNC0wNC0wNVQwOTozMDozOVrOLklV",
   "summary_issue": 3238,
-  "open_prs": [3245,3252,3253,"3155fix","ci_cache"],
-  "close_3244": true,
-  "commented": [3155,2864,2816,2670,3011,2856,3069,3073,3033,3110,3130,2991,3159,2861,2610,2912,636,3192,3209],
-  "needs_comment": [2827,2945,3031,3084,3099],
-  "checked_off": ["3189","3214","3216","3229","3228","3232","3236","3247","3249"],
-  "notes": "Fixed #3155 CE multiline name. CI NuGet PR. Branches: fix-3155-fallback, eng-nuget-cache."
+  "notes": "PRs #3252,#3255 merged. Fixed #3258 (warn directive .Trim). Doc comments Oak. Both PRs staged."
 }
