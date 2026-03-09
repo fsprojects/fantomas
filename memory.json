@@ -1,5 +1,1 @@
-{
-  "last_run": "2026-03-09",
-  "summary_issue": 3238,
-  "notes": "PRs #3252,#3255 merged. Fixed #3258 (warn directive .Trim). Doc comments Oak. Both PRs staged."
-}
+{"last_run":"2026-03-09","summary_issue":3238}
