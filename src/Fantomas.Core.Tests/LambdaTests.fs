@@ -1455,3 +1455,30 @@ f
     // some comment
     fun x -> x)
 """
+
+[<Test>]
+let ``lambda in non-last record field should be parenthesized on single line, 3246`` () =
+    formatSourceString
+        """
+type Rec = {
+    A: int
+    B: int -> int
+    C: int
+}
+
+let test () : Rec =
+    {
+        A = 1
+        B = fun x -> x + 1
+        C = 3
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Rec = { A: int; B: int -> int; C: int }
+
+let test () : Rec = { A = 1; B = (fun x -> x + 1); C = 3 }
+"""

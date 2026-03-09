@@ -256,6 +256,8 @@ type ModuleOrNamespaceNode(header: ModuleOrNamespaceHeaderNode option, decls: Mo
     override val Children: Node array = [| yield! noa header; yield! List.map ModuleDecl.Node decls |]
     member val Header = header
 
+/// Example: `int -> string -> bool` — a function type with one or more parameters and a return type.
+/// Each parameter is paired with its arrow token; the final element is the return type.
 type TypeFunsNode(parameters: (Type * SingleTextNode) list, returnType: Type, range) =
     inherit NodeBase(range)
 
@@ -267,6 +269,7 @@ type TypeFunsNode(parameters: (Type * SingleTextNode) list, returnType: Type, ra
     member val Parameters = parameters
     member val ReturnType = returnType
 
+/// Example: `int * string * bool` — a tuple type. Path interleaves the component types with `*` separators.
 type TypeTupleNode(path: Choice<Type, SingleTextNode> list, range) =
     inherit NodeBase(range)
 
@@ -280,6 +283,7 @@ type TypeTupleNode(path: Choice<Type, SingleTextNode> list, range) =
 
     member val Path = path
 
+/// Example: `#IDisposable` — a flexible/hash constraint type that matches any subtype.
 type TypeHashConstraintNode(hash: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
 
@@ -287,12 +291,14 @@ type TypeHashConstraintNode(hash: SingleTextNode, t: Type, range) =
     member val Hash = hash
     member val Type = t
 
+/// Example: `m^2` — a measure type raised to a rational power (used in units of measure).
 type TypeMeasurePowerNode(baseMeasure: Type, exponent: RationalConstNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Type.Node baseMeasure |]
     member val BaseMeasure = baseMeasure
     member val Exponent = exponent
 
+/// Example: `const 42` — a static constant expression used as a type argument (e.g. in inline F# code or SRTP).
 type TypeStaticConstantExprNode(constNode: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
@@ -300,12 +306,14 @@ type TypeStaticConstantExprNode(constNode: SingleTextNode, expr: Expr, range) =
     member val Const = constNode
     member val Expr = expr
 
+/// Example: `N=3` — a named static constant type, pairing an identifier type with a value type (e.g. in SRTP constraints).
 type TypeStaticConstantNamedNode(identifier: Type, value: Type, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Type.Node identifier; yield Type.Node value |]
     member val Identifier = identifier
     member val Value = value
 
+/// Example: `int[]` (rank 1) or `int[,]` (rank 2) — an array type with a base element type and a rank.
 type TypeArrayNode(t: Type, rank: int, range) =
     inherit NodeBase(range)
 
@@ -313,12 +321,14 @@ type TypeArrayNode(t: Type, rank: int, range) =
     member val Type = t
     member val Rank = rank
 
+/// Example: `int list` or `string option` — a postfix type application where the type argument precedes the type name.
 type TypeAppPostFixNode(first: Type, last: Type, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Type.Node first; yield Type.Node last |]
     member val First = first
     member val Last = last
 
+/// Example: `List<int>` or `Dictionary<string, int>` — a prefix type application with angle-bracket type arguments.
 type TypeAppPrefixNode
     (
         identifier: Type,
@@ -343,6 +353,7 @@ type TypeAppPrefixNode
     member val Arguments = arguments
     member val LessThen = lessThan
 
+/// Example: `struct (int * string)` — a struct tuple type, distinguishable from a reference tuple by the `struct` keyword.
 type TypeStructTupleNode
     (keyword: SingleTextNode, path: Choice<Type, SingleTextNode> list, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
@@ -361,6 +372,7 @@ type TypeStructTupleNode
     member val Path = path
     member val ClosingParen = closingParen
 
+/// Example: `'T when 'T : equality` — a type paired with one or more type constraints that apply globally.
 type TypeWithGlobalConstraintsNode(t: Type, constraints: TypeConstraint list, range) =
     inherit NodeBase(range)
 
@@ -369,6 +381,7 @@ type TypeWithGlobalConstraintsNode(t: Type, constraints: TypeConstraint list, ra
     member val Type = t
     member val TypeConstraints = constraints
 
+/// Example: `{| Name: string; Age: int |}` or `struct {| X: float |}` — an anonymous record type.
 type TypeAnonRecordNode
     (
         structNode: SingleTextNode option,
@@ -390,6 +403,7 @@ type TypeAnonRecordNode
     member val Fields = fields
     member val Closing = closingToken
 
+/// Example: `(int -> string)` — a parenthesised type, used to clarify precedence or wrap a type in parens.
 type TypeParenNode(openingParen: SingleTextNode, t: Type, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield openingParen; yield Type.Node t; yield closingParen |]
@@ -397,6 +411,7 @@ type TypeParenNode(openingParen: SingleTextNode, t: Type, closingParen: SingleTe
     member val Type = t
     member val ClosingParen = closingParen
 
+/// Example: `?x: int` or `[<Optional>] name: string` — a parameter type in a signature, optionally with attributes and an identifier label.
 type TypeSignatureParameterNode
     (attributes: MultipleAttributeListNode option, identifier: SingleTextNode option, t: Type, range) =
     inherit NodeBase(range)
@@ -407,6 +422,7 @@ type TypeSignatureParameterNode
     member val Identifier = identifier
     member val Type = t
 
+/// Example: `A or B` — an F# 9+ type union (disjunction) used in type constraints and signatures.
 type TypeOrNode(lhs: Type, orNode: SingleTextNode, rhs: Type, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Type.Node lhs; yield orNode; yield Type.Node rhs |]
@@ -414,12 +430,14 @@ type TypeOrNode(lhs: Type, orNode: SingleTextNode, rhs: Type, range) =
     member val Or = orNode
     member val RightHandSide = rhs
 
+/// Example: `Map<int, string> SomeAlias` — a long identifier applied to a (possibly generic) type expression, used for type aliases or module-qualified types.
 type TypeLongIdentAppNode(appType: Type, longIdent: IdentListNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Type.Node appType; yield longIdent |]
     member val AppType = appType
     member val LongIdent = longIdent
 
+/// Example: `IFoo & IBar` — an intersection type (F# 9+), combining multiple types with `&` separators.
 type TypeIntersectionNode(typesAndSeparators: Choice<Type, SingleTextNode> list, range) =
     inherit NodeBase(range)
 
