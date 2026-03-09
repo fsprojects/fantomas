@@ -691,3 +691,30 @@ fun _ ->
         ()
     }
 """
+
+[<Test>]
+let ``multiline name expression falls back to indent-and-newline to avoid offside violation, 3155`` () =
+    // When NewlineBeforeMultilineComputationExpression = false, if the builder invocation's
+    // argument list wraps to multiple lines the closing ')' would end up at the global indent
+    // level (violating the offside rule for the let binding).  Fantomas should fall back to
+    // the indent+newline form to produce valid code.
+    formatSourceString
+        """
+let a = Builder.build ("a long enough str") {
+    let b = 1
+    return b
+}
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    Builder.build (
+        "a long enough str"
+    ) {
+        let b = 1
+        return b
+    }
+"""

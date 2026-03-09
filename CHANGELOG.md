@@ -9,6 +9,7 @@
 ### Fixed
 
 - Lambda in non-last record field is now parenthesized when record is collapsed to single line to avoid producing invalid code. [#3246](https://github.com/fsprojects/fantomas/issues/3246)
+- `fsharp_newline_before_multiline_computation_expression = false` no longer produces invalid code when the CE builder's argument list wraps to multiple lines. [#3155](https://github.com/fsprojects/fantomas/issues/3155)
 
 ## [8.0.0-alpha-003] - 2026-03-03
 
