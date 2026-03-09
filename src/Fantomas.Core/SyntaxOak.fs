@@ -738,6 +738,9 @@ type ExprLazyNode(lazyWord: SingleTextNode, expr: Expr, range) =
         | :? InfixApp -> true
         | _ -> false
 
+/// A single expression prefixed by a keyword, e.g. `assert condition`, `yield value`, `return result`,
+/// `upcast expr`, `downcast expr`, `do expr`, `do! asyncExpr`, `return! asyncExpr`.
+/// `AddSpace` controls whether a space is emitted between the keyword and the expression.
 type ExprSingleNode(leading: SingleTextNode, addSpace: bool, supportsStroustrup: bool, expr: Expr, range) =
     inherit NodeBase(range)
 
@@ -748,11 +751,15 @@ type ExprSingleNode(leading: SingleTextNode, addSpace: bool, supportsStroustrup:
     member val SupportsStroustrup = supportsStroustrup
     member val Expr = expr
 
+/// A constant (literal) expression leaf node such as `42`, `"hello"`, `true`, or `3.14`.
+/// This node has no child nodes; all textual content is carried by the source range.
 type ExprConstantNode(range) =
     inherit NodeBase(range)
 
-    override val Children: Node array = failwith "todo"
+    override val Children: Node array = [||]
 
+/// Example: `<@ expr @>` — a typed quotation; `<@@ expr @@>` — an untyped quotation.
+/// The opening and closing tokens capture the bracket pair; `Expr` is the quoted expression.
 type ExprQuoteNode(openToken: SingleTextNode, expr, closeToken: SingleTextNode, range) =
     inherit NodeBase(range)
 
@@ -761,6 +768,8 @@ type ExprQuoteNode(openToken: SingleTextNode, expr, closeToken: SingleTextNode, 
     member val Expr = expr
     member val CloseToken = closeToken
 
+/// Example: `expr : Type` (type annotation), `expr :? Type` (type test / downcast), `expr :>> Type` (upcast).
+/// `Operator` holds the specific type operator string (`:`, `:?`, `:>`, `:>>`).
 type ExprTypedNode(expr: Expr, operator: string, t: Type, range) =
     inherit NodeBase(range)
 
@@ -792,6 +801,8 @@ type ExprTupleNode(items: Choice<Expr, SingleTextNode> list, range) =
 
     member val Items = items
 
+/// Example: `struct (a, b, c)` — a struct tuple expression.
+/// Wraps an `ExprTupleNode` and adds the `struct` keyword and a closing parenthesis.
 type ExprStructTupleNode(structNode: SingleTextNode, tuple: ExprTupleNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
@@ -879,6 +890,7 @@ type RecordFieldNode(fieldName: IdentListNode, equals: SingleTextNode, expr: Exp
     member val Equals = equals
     member val Expr = expr
 
+/// Abstract base for all record expression nodes, providing shared access to the braces and fields.
 [<AbstractClass>]
 type ExprRecordBaseNode(openingBrace: SingleTextNode, fields: RecordFieldNode list, closingBrace: SingleTextNode, range)
     =
@@ -913,6 +925,8 @@ type ExprRecordNode
 
     member x.HasFields = List.isNotEmpty x.Fields
 
+/// Example: `struct {| Name = "Alice"; Age = 30 |}` — an anonymous struct record expression.
+/// Extends `ExprRecordNode` by prepending the `struct` keyword.
 type ExprAnonStructRecordNode
     (
         structNode: SingleTextNode,
@@ -932,6 +946,7 @@ type ExprAnonStructRecordNode
            yield! nodes fields
            yield closingBrace |]
 
+/// Example: `{ inherit Base(args); Field = value }` — a record with an `inherit` constructor call.
 type ExprInheritRecordNode
     (
         openingBrace: SingleTextNode,
@@ -975,6 +990,7 @@ type InterfaceImplNode
     member val Bindings = bindings
     member val Members = members
 
+/// Example: `{ new IDisposable with member _.Dispose() = () }` — an object expression that implements an interface or inherits a base class inline.
 type ExprObjExprNode
     (
         openingBrace: SingleTextNode,
@@ -1011,6 +1027,7 @@ type ExprObjExprNode
     member val Interfaces = interfaces
     member val ClosingBrace = closingBrace
 
+/// Example: `while i < 10 do printfn "%d" i; i <- i + 1` — a while loop.
 type ExprWhileNode(whileNode: SingleTextNode, whileExpr: Expr, doExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1020,6 +1037,8 @@ type ExprWhileNode(whileNode: SingleTextNode, whileExpr: Expr, doExpr: Expr, ran
     member val WhileExpr = whileExpr
     member val DoExpr = doExpr
 
+/// Example: `for i = 1 to 10 do printfn "%d" i` or `for i = 10 downto 1 do …`.
+/// `Direction` is `true` for ascending (`to`) and `false` for descending (`downto`).
 type ExprForNode
     (
         forNode: SingleTextNode,
@@ -1049,6 +1068,8 @@ type ExprForNode
     member val ToBody = toBody
     member val DoBody = doBody
 
+/// Example: `for x in xs do printfn "%A" x` — a `for … in` loop over a sequence.
+/// `IsArrow` is `true` when using arrow syntax (`for x in xs -> expr`) instead of `do`.
 type ExprForEachNode(forNode: SingleTextNode, pat: Pattern, enumExpr: Expr, isArrow: bool, bodyExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1064,6 +1085,8 @@ type ExprForEachNode(forNode: SingleTextNode, pat: Pattern, enumExpr: Expr, isAr
     member val IsArrow = isArrow
     member val BodyExpr = bodyExpr
 
+/// Example: `task { … }` or `async { … }` — a named computation expression with an explicit builder.
+/// The builder expression (`Name`) precedes the braces of the computation body.
 type ExprNamedComputationNode
     (nameExpr: Expr, openingBrace: SingleTextNode, bodyExpr: Expr, closingBrace: SingleTextNode, range) =
     inherit NodeBase(range)
@@ -1079,6 +1102,7 @@ type ExprNamedComputationNode
     member val Body = bodyExpr
     member val ClosingBrace = closingBrace
 
+/// Example: `{ let x = 1; yield x }` — an anonymous computation expression (no explicit builder name).
 type ExprComputationNode(openingBrace: SingleTextNode, bodyExpr: Expr, closingBrace: SingleTextNode, range) =
     inherit NodeBase(range)
 
@@ -1098,6 +1122,8 @@ type ComputationExpressionStatement =
         | BindingStatement n -> n
         | OtherStatement o -> Expr.Node o
 
+/// The body of a computation expression, consisting of an ordered list of binding statements
+/// (e.g. `let! x = …`) and other expressions (e.g. `return x`, `do! f()`).
 type ExprCompExprBodyNode(statements: ComputationExpressionStatement list, range) =
     inherit NodeBase(range)
 
@@ -1105,6 +1131,7 @@ type ExprCompExprBodyNode(statements: ComputationExpressionStatement list, range
 
     member val Statements = statements
 
+/// Example: `e1 in e2` — used in query-expression `join … in …` clauses; represents the `in` operator.
 type ExprJoinInNode(lhs: Expr, inNode: SingleTextNode, rhs: Expr, range) =
     inherit NodeBase(range)
 
@@ -1113,6 +1140,8 @@ type ExprJoinInNode(lhs: Expr, inNode: SingleTextNode, rhs: Expr, range) =
     member val In = inNode
     member val RightHandSide = rhs
 
+/// Example: `(fun x -> x + 1)` — a lambda expression wrapped in parentheses.
+/// Distinct from `ExprLambdaNode` in that the parens are explicit and tracked as nodes.
 type ExprParenLambdaNode(openingParen: SingleTextNode, lambda: ExprLambdaNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield openingParen; yield lambda; yield closingParen |]
@@ -1177,6 +1206,8 @@ type ExprMatchNode
     member val With = withNode
     member val Clauses = clauses
 
+/// Example: `(^T : (member Get : unit -> int) t)` — a statically-resolved type parameter (SRTP) trait call.
+/// Invokes `MemberDefn` on value `Expr` constrained to type `Type` at compile time.
 type ExprTraitCallNode(t: Type, md: MemberDefn, expr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1186,6 +1217,7 @@ type ExprTraitCallNode(t: Type, md: MemberDefn, expr: Expr, range) =
     member val MemberDefn = md
     member val Expr = expr
 
+/// Example: `( * )` or `( + )` — an operator name wrapped in parentheses, used as a first-class function value.
 type ExprParenFunctionNameWithStarNode
     (openingParen: SingleTextNode, functionName: SingleTextNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
@@ -1195,6 +1227,7 @@ type ExprParenFunctionNameWithStarNode
     member val FunctionName = functionName
     member val ClosingParen = closingParen
 
+/// Example: `(expr)` — an expression explicitly wrapped in parentheses for grouping or disambiguation.
 type ExprParenNode(openingParen: SingleTextNode, expr: Expr, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
@@ -1204,12 +1237,15 @@ type ExprParenNode(openingParen: SingleTextNode, expr: Expr, closingParen: Singl
     member val Expr = expr
     member val ClosingParen = closingParen
 
+/// Example: `obj?Property` — dynamic member access using the `?` operator.
+/// `FuncExpr` is the object; `ArgExpr` is the property name (often a string constant).
 type ExprDynamicNode(funcExpr: Expr, argExpr: Expr, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Expr.Node funcExpr; yield Expr.Node argExpr |]
     member val FuncExpr = funcExpr
     member val ArgExpr = argExpr
 
+/// Example: `!x`, `-x`, `~~~x` — a prefix (unary) operator applied to an expression.
 type ExprPrefixAppNode(operator: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield operator; yield Expr.Node expr |]
@@ -1242,6 +1278,8 @@ type ExprInfixAppNode(lhs: Expr, operator: SingleTextNode, rhs: Expr, range) =
     member val RightHandSide: Expr = rhs
     member val Operator = operator
 
+/// Example: `xs[i]` — index access using the new F# 6+ dot-free bracket syntax.
+/// `Identifier` is the collection; `Index` is the index expression inside `[…]`.
 type ExprIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1303,6 +1341,8 @@ type ExprAppSingleParenArgNode(functionExpr: Expr, argExpr: Expr, range) =
     member val FunctionExpr = functionExpr
     member val ArgExpr = argExpr
 
+/// Example: `List.map (fun x -> x + 1) xs` — a function applied to zero or more prefix arguments
+/// followed by a parenthesised lambda or `function` expression as the last argument.
 type ExprAppWithLambdaNode
     (
         functionName: Expr,
@@ -1332,6 +1372,8 @@ type ExprAppWithLambdaNode
     member val Lambda = lambda
     member val ClosingParen = closingParen
 
+/// Example: `xs[i] arg` — an indexed expression (`xs[i]`) immediately applied to an argument.
+/// Used for cases like `arr[0] + 1` where the index result is itself called or applied.
 type ExprNestedIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, argumentExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1353,6 +1395,7 @@ type ExprAppNode(functionExpr: Expr, arguments: Expr list, range) =
     member val FunctionExpr: Expr = functionExpr
     member val Arguments: Expr list = arguments
 
+/// Example: `id<int>` or `List.empty<string>` — a generic type application using angle-bracket syntax.
 type ExprTypeAppNode
     (identifierExpr: Expr, lessThan: SingleTextNode, typeParameters: Type list, greaterThan: SingleTextNode, range) =
     inherit NodeBase(range)
@@ -1368,6 +1411,8 @@ type ExprTypeAppNode
     member val TypeParameters = typeParameters
     member val GreaterThan = greaterThan
 
+/// Example: `try riskyOp() with :? IOException -> "IO error"` — a try/with with exactly one match clause.
+/// Used as an optimised form when a single pattern covers all exception cases.
 type ExprTryWithSingleClauseNode
     (tryNode: SingleTextNode, tryExpr: Expr, withNode: SingleTextNode, clause: MatchClauseNode, range) =
     inherit NodeBase(range)
@@ -1379,6 +1424,7 @@ type ExprTryWithSingleClauseNode
     member val With = withNode
     member val Clause = clause
 
+/// Example: `try riskyOp() with | :? IOException -> "IO" | ex -> sprintf "other: %O" ex` — a try/with with multiple match clauses.
 type ExprTryWithNode
     (tryNode: SingleTextNode, tryExpr: Expr, withNode: SingleTextNode, clauses: MatchClauseNode list, range) =
     inherit NodeBase(range)
@@ -1394,6 +1440,7 @@ type ExprTryWithNode
     member val With = withNode
     member val Clauses = clauses
 
+/// Example: `try riskyOp() finally cleanup()` — a try/finally expression that always runs `FinallyExpr`.
 type ExprTryFinallyNode(tryNode: SingleTextNode, tryExpr: Expr, finallyNode: SingleTextNode, finallyExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1553,12 +1600,15 @@ type ExprIfThenElifNode(branches: ExprIfThenNode list, elseBranch: (SingleTextNo
     member val Branches = branches
     member val Else = elseBranch
 
+/// Example: `?name` in a function call — a named optional argument passed explicitly.
+/// `IsOptional` is `true` when the `?` prefix is present; `Identifier` is the argument name.
 type ExprOptVarNode(isOptional: bool, identifier: IdentListNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield identifier |]
     member val IsOptional = isOptional
     member val Identifier = identifier
 
+/// Example: `Module.mutableValue <- newValue` — mutation via a long (dotted) identifier.
 type ExprLongIdentSetNode(identifier: IdentListNode, rhs: Expr, range) =
     inherit NodeBase(range)
 
@@ -1566,12 +1616,14 @@ type ExprLongIdentSetNode(identifier: IdentListNode, rhs: Expr, range) =
     member val Identifier = identifier
     member val Expr = rhs
 
+/// Example: `arr.[i]` — indexed get using the older dot-bracket syntax (deprecated in F# 6).
 type ExprDotIndexedGetNode(objectExpr: Expr, indexExpr: Expr, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Expr.Node objectExpr; yield Expr.Node indexExpr |]
     member val ObjectExpr = objectExpr
     member val IndexExpr = indexExpr
 
+/// Example: `arr.[i] <- value` — indexed set using the older dot-bracket syntax (deprecated in F# 6).
 type ExprDotIndexedSetNode(objectExpr: Expr, indexExpr: Expr, valueExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1584,6 +1636,7 @@ type ExprDotIndexedSetNode(objectExpr: Expr, indexExpr: Expr, valueExpr: Expr, r
     member val Index = indexExpr
     member val Value = valueExpr
 
+/// Example: `myProp[key] <- value` — sets a named indexed property on a type.
 type ExprNamedIndexedPropertySetNode(identifier: IdentListNode, indexExpr: Expr, valueExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1593,6 +1646,7 @@ type ExprNamedIndexedPropertySetNode(identifier: IdentListNode, indexExpr: Expr,
     member val Index = indexExpr
     member val Value = valueExpr
 
+/// Example: `obj.Item[key] <- value` — sets a named indexed property accessed through a dotted expression.
 type ExprDotNamedIndexedPropertySetNode
     (identifierExpr: Expr, name: IdentListNode, propertyExpr: Expr, setExpr: Expr, range) =
     inherit NodeBase(range)
@@ -1608,6 +1662,7 @@ type ExprDotNamedIndexedPropertySetNode
     member val Property = propertyExpr
     member val Set = setExpr
 
+/// Example: `x <- newValue` — an imperative assignment (mutation) expression.
 type ExprSetNode(identifier: Expr, setExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1632,6 +1687,8 @@ type StaticOptimizationConstraint =
         | WhenTyparTyconEqualsTycon n -> n
         | WhenTyparIsStruct n -> n
 
+/// Internal compiler node for static optimisation hints (library/compiler use only, not user-facing).
+/// Emits an expression with attached `StaticOptimizationConstraint` conditions.
 type ExprLibraryOnlyStaticOptimizationNode
     (optimizedExpr: Expr, constraints: StaticOptimizationConstraint list, expr: Expr, range) =
     inherit NodeBase(range)
@@ -1651,6 +1708,8 @@ type FillExprNode(expr: Expr, ident: SingleTextNode option, range) =
     member val Expr = expr
     member val Ident = ident
 
+/// Example: `$"hello {name}, you are {age} years old"` — an interpolated string expression.
+/// `Parts` interleaves raw string `SingleTextNode` segments with `FillExprNode` interpolation holes.
 type ExprInterpolatedStringExprNode(parts: Choice<SingleTextNode, FillExprNode> list, range) =
     inherit NodeBase(range)
 
@@ -1664,6 +1723,7 @@ type ExprInterpolatedStringExprNode(parts: Choice<SingleTextNode, FillExprNode> 
 
     member val Parts = parts
 
+/// Example: `0..2..10` — a three-part numeric range with start, step, and end values (used in slice expressions).
 type ExprTripleNumberIndexRangeNode
     (
         startNode: SingleTextNode,
@@ -1688,6 +1748,8 @@ type ExprTripleNumberIndexRangeNode
     member val EndDots = endDots
     member val End = endNode
 
+/// Example: `0..10`, `..10`, `0..`, `..` — a two-part index range (used in slice expressions and list comprehensions).
+/// Either `From` or `To` (or both) may be absent, producing an open-ended range.
 type ExprIndexRangeNode(fromExpr: Expr option, dots: SingleTextNode, toExpr: Expr option, range) =
     inherit NodeBase(range)
 
@@ -1700,11 +1762,14 @@ type ExprIndexRangeNode(fromExpr: Expr option, dots: SingleTextNode, toExpr: Exp
     member val Dots = dots
     member val To = toExpr
 
+/// Example: `^1` or `^0` — an end-relative index expression (from-end indexer, F# 6+).
 type ExprIndexFromEndNode(expr: Expr, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| Expr.Node expr |]
     member val Expr = expr
 
+/// Example: `_.ToUpper()` or `_.Length` — a dot-lambda shorthand (F# 8+).
+/// `Underscore` is the `_` placeholder, `Dot` is the `.`, and `Expr` is the member access or call.
 type ExprDotLambda(underscore: SingleTextNode, dot: SingleTextNode, expr: Expr, range: range) =
     inherit NodeBase(range)
     override val Children: Node array = [| underscore; dot; Expr.Node expr |]
@@ -1712,6 +1777,7 @@ type ExprDotLambda(underscore: SingleTextNode, dot: SingleTextNode, expr: Expr, 
     member val Dot = dot
     member val Expr = expr
 
+/// Example: `begin expr end` — explicit `begin`/`end` block delimiters (equivalent to parentheses).
 type ExprBeginEndNode(beginNode: SingleTextNode, expr: Expr, endNode: SingleTextNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield beginNode; yield Expr.Node expr; yield endNode |]
