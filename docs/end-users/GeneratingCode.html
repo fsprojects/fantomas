@@ -688,7 +688,9 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
   override Children: Node array
   member ClosingParen: SingleTextNode
   member Expr: Expr
-  member OpeningParen: SingleTextNode<br /><br />--------------------<br />new: openingParen: SingleTextNode * expr: Expr * closingParen: SingleTextNode * range: range -&gt; ExprParenNode</div>
+  member OpeningParen: SingleTextNode<br /><em>&lt;summary&gt;
+ Example: `(expr)` — an expression explicitly wrapped in parentheses for grouping or disambiguation.
+&lt;/summary&gt;</em><br /><br />--------------------<br />new: openingParen: SingleTextNode * expr: Expr * closingParen: SingleTextNode * range: range -&gt; ExprParenNode</div>
 <div class="fsdocs-tip" id="fs43">val lambdaExpr: Expr</div>
 <div class="fsdocs-tip" id="fs44">val body: Expr</div>
 <div class="fsdocs-tip" id="fs45">Multiple items<br />type ExprInfixAppNode =
