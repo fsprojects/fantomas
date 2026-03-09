@@ -61,6 +61,7 @@ let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
     | Expr.AppSingleParenArg node -> (|UppercaseExpr|LowercaseExpr|) node.FunctionExpr
     | Expr.Paren node -> (|UppercaseExpr|LowercaseExpr|) node.Expr
     | Expr.App node -> (|UppercaseExpr|LowercaseExpr|) node.FunctionExpr
+    | Expr.IndexWithoutDot node -> (|UppercaseExpr|LowercaseExpr|) node.Identifier
     | _ -> failwithf "cannot determine if Expr %A is uppercase or lowercase" expr
 
 let (|ParenExpr|_|) (e: Expr) =
@@ -1034,6 +1035,12 @@ let genExpr (e: Expr) =
 
         genAppLongIdentAndSingleParenArgExpr addSpace node
     // fn (a, b, c)
+    | Expr.AppSingleParenArg node when
+        (match node.FunctionExpr with
+         | Expr.IndexWithoutDot _ -> true
+         | _ -> false)
+        ->
+        (genExpr node.FunctionExpr +> genExpr node.ArgExpr) |> genNode node
     | Expr.AppSingleParenArg node ->
         let addSpace = sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
         genAppSingleParenArgExpr addSpace node
@@ -2600,6 +2607,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
 let sepSpaceBeforeParenInFuncInvocation (functionExpr: Expr) (argExpr: Expr) ctx =
     match functionExpr, argExpr with
     | Expr.DotLambda _, _ -> ctx
+    | Expr.IndexWithoutDot _, ParenExpr _ -> ctx
     | Expr.Constant _, _ -> sepSpace ctx
     | ParenExpr _, _ -> sepSpace ctx
     | UppercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
@@ -2906,7 +2914,8 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                             | _, Pattern.Paren _
                             | _, Pattern.Unit _ -> spaceBefore
                             | _, Pattern.Named _
-                            | _, Pattern.Wild _ -> true
+                            | _, Pattern.Wild _
+                            | _, Pattern.LongIdent _ -> true
                             | content, _ ->
                                 match List.tryLast content with
                                 | None -> false

@@ -2324,3 +2324,13 @@ let processSnippetLine
     let lineStr = lines.[line]
     ()
 """
+
+[<Test>]
+let ``uppercase function name with uppercase parameter should preserve space`` () =
+    formatSourceString "let F P = 1" config
+    |> prepend newline
+    |> should
+        equal
+        """
+let F P = 1
+"""

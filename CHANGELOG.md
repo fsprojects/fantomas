@@ -1,5 +1,18 @@
 # Changelog
 
+## [8.0.0-alpha-006] - 2026-03-09
+
+### Fixed
+
+- Space between uppercase function name and uppercase parameter was dropped. [#3264](https://github.com/fsprojects/fantomas/pull/3264)
+
+## [8.0.0-alpha-005] - 2026-03-09
+
+### Fixed
+
+- Closing `>` in nested multiline generic type applications violates offside rule. [#3243](https://github.com/fsprojects/fantomas/issues/3243)
+- Index-without-dot syntax followed by application arguments was inconsistently formatted. [#3259](https://github.com/fsprojects/fantomas/pull/3259)
+
 ## [8.0.0-alpha-004] - 2026-03-07
 
 ### Changed
@@ -8,7 +21,6 @@
 
 ### Fixed
 
-- Closing `>` in nested multiline generic type applications violates offside rule. [#3243](https://github.com/fsprojects/fantomas/issues/3243)
 - Lambda in non-last record field is now parenthesized when record is collapsed to single line to avoid producing invalid code. [#3246](https://github.com/fsprojects/fantomas/issues/3246)
 - `fsharp_newline_before_multiline_computation_expression = false` no longer produces invalid code when the CE builder's argument list wraps to multiple lines. [#3155](https://github.com/fsprojects/fantomas/issues/3155)
 
