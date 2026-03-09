@@ -8,7 +8,16 @@ let format (input: string) (isSignature: bool) (config: FormatConfig) =
     async {
         try
             let! result = CodeFormatter.FormatDocumentAsync(isSignature, input, config)
-            return result.Code
+            let formattedCode = result.Code
+
+            // Check for diagnostics in the formatted output
+            let sourceText = Fantomas.FCS.Text.SourceText.ofString formattedCode
+            let _, diagnostics = Fantomas.FCS.Parse.parseFile isSignature sourceText []
+
+            for d in diagnostics do
+                eprintfn "Diagnostic: %A %A %s %A" d.Severity d.ErrorNumber d.Message d.Range
+
+            return formattedCode
         with ex ->
             return $"Error while formatting: %A{ex}"
     }

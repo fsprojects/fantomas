@@ -134,7 +134,7 @@ type CancellableTaskResultBuilderBase with
                             'TOverall,
                             'Error,
                             'TResult2
-                         >)
+                            >)
         ) : bool =
         true
 """
