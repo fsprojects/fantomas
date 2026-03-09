@@ -2914,7 +2914,8 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                             | _, Pattern.Paren _
                             | _, Pattern.Unit _ -> spaceBefore
                             | _, Pattern.Named _
-                            | _, Pattern.Wild _ -> true
+                            | _, Pattern.Wild _
+                            | _, Pattern.LongIdent _ -> true
                             | content, _ ->
                                 match List.tryLast content with
                                 | None -> false

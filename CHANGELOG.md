@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.0-alpha-006] - 2026-03-09
+
+### Fixed
+
+- Space between uppercase function name and uppercase parameter was dropped. [#3264](https://github.com/fsprojects/fantomas/pull/3264)
+
 ## [8.0.0-alpha-005] - 2026-03-09
 
 ### Fixed
