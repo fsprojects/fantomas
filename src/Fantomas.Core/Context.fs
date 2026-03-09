@@ -942,9 +942,20 @@ let indentSepNlnUnindentUnlessStroustrup f (e: Expr) (ctx: Context) =
                     | _ -> true)
             | _ -> true
 
+        let namedComputationNameFitsOnOneLine () =
+            // When NewlineBeforeMultilineComputationExpression = false, the CE is treated as Stroustrup-style:
+            // the opening brace stays on the same line as the name expression.
+            // But if the name expression itself is multiline (e.g. its argument list wraps), the closing
+            // ')' lands at the global indent level (e.g. column 0), violating the offside rule for the
+            // surrounding let binding.  In that case we must fall back to indent + newline. See #3155.
+            match e with
+            | Expr.NamedComputation node -> not (futureNlnCheck (f node.Name) ctx)
+            | _ -> true
+
         isStroustrupStyleExpr ctx.Config e
         && canSafelyUseStroustrup (Expr.Node e) ctx
         && isArrayOrListWithHashDirectiveBeforeClosingBracket ()
+        && namedComputationNameFitsOnOneLine ()
 
     if shouldUseStroustrup then
         f e ctx
