@@ -631,6 +631,7 @@ let (|ConstNumberExpr|_|) =
 let (|App|_|) e =
     let rec visit expr continuation =
         match expr with
+        | IndexWithoutDot _ -> continuation (expr, Queue())
         | SynExpr.App(funcExpr = funcExpr; argExpr = argExpr) ->
             visit funcExpr (fun (head, xs: Queue<SynExpr>) ->
                 xs.Enqueue(argExpr)
@@ -1362,38 +1363,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
         ExprAppWithLambdaNode(mkExpr creationAide fe, [], stn "(" lpr, Choice2Of2 lambdaNode, stn ")" rpr, exprRange)
         |> Expr.AppWithLambda
-    | SynExpr.App(ExprAtomicFlag.NonAtomic,
-                  false,
-                  SynExpr.App(ExprAtomicFlag.Atomic,
-                              false,
-                              identifierExpr,
-                              SynExpr.ArrayOrListComputed(false, indexExpr, _),
-                              _),
-                  argExpr,
-                  _) ->
-        ExprNestedIndexWithoutDotNode(
-            mkExpr creationAide identifierExpr,
-            mkExpr creationAide indexExpr,
-            mkExpr creationAide argExpr,
-            exprRange
-        )
-        |> Expr.NestedIndexWithoutDot
-    | SynExpr.App(ExprAtomicFlag.NonAtomic,
-                  false,
-                  SynExpr.App(ExprAtomicFlag.NonAtomic,
-                              false,
-                              identifierExpr,
-                              (SynExpr.ArrayOrListComputed(isArray = false; expr = indexExpr) as indexArgExpr),
-                              _),
-                  argExpr,
-                  _) when (RangeHelpers.isAdjacentTo identifierExpr.Range indexArgExpr.Range) ->
-        ExprNestedIndexWithoutDotNode(
-            mkExpr creationAide identifierExpr,
-            mkExpr creationAide indexExpr,
-            mkExpr creationAide argExpr,
-            exprRange
-        )
-        |> Expr.NestedIndexWithoutDot
 
     | App(fe, args) ->
         ExprAppNode(mkExpr creationAide fe, List.map (mkExpr creationAide) args, exprRange)
