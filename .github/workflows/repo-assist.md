@@ -33,6 +33,9 @@ network:
   - rust
   - fsprojects.github.io
   - java
+  - docs.microsoft.com
+  - learn.microsoft.com
+  - fsharp.github.io
 
 safe-outputs:
   add-comment:
