@@ -28,6 +28,6 @@ match Array.tryHead fsi.CommandLineArgs with
     let sourceFile = FileInfo(Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__))
 
     if scriptFile.FullName = sourceFile.FullName then
-        let sample, isSignature, config = parseArgs fsi.CommandLineArgs.[1..]
+        let sample, isSignature, config, _ = parseArgs fsi.CommandLineArgs.[1..]
         format sample isSignature config |> Async.RunSynchronously |> printfn "%s"
 | _ -> printfn "Usage: dotnet fsi format.fsx [--editorconfig <content>] <input file>"

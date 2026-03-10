@@ -27,15 +27,26 @@ let parseEditorConfigContent (content: string) : FormatConfig =
 let parseArgs (args: string array) =
     let editorConfigIdx = args |> Array.tryFindIndex (fun a -> a = "--editorconfig")
     let hasSignatureFlag = args |> Array.exists (fun a -> a = "--signature")
+    let defineIdx = args |> Array.tryFindIndex (fun a -> a = "--define")
 
     let config =
         match editorConfigIdx with
         | Some idx -> parseEditorConfigContent args.[idx + 1]
         | None -> FormatConfig.Default
 
+    let defines =
+        match defineIdx with
+        | Some idx -> args.[idx + 1].Split(',') |> Array.toList
+        | None -> []
+
     // Collect flag indices to determine which arg (if any) is the input file
     let flagIndices =
         [| match editorConfigIdx with
+           | Some idx ->
+               yield idx
+               yield idx + 1
+           | None -> ()
+           match defineIdx with
            | Some idx ->
                yield idx
                yield idx + 1
@@ -55,7 +66,7 @@ let parseArgs (args: string array) =
     | Some path when File.Exists(path) ->
         let sample = File.ReadAllText(path)
         let isSignature = hasSignatureFlag || path.EndsWith(".fsi")
-        sample, isSignature, config
+        sample, isSignature, config, defines
     | _ ->
         let sample = stdin.ReadToEnd()
-        sample, hasSignatureFlag, config
+        sample, hasSignatureFlag, config, defines

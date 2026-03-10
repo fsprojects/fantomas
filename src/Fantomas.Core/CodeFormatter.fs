@@ -103,11 +103,22 @@ type CodeFormatter =
         CodeFormatter.GetWriterEventsAsync(isSignature, source, FormatConfig.Default)
 
     static member GetWriterEventsAsync(isSignature, source, config) : Async<WriterEvent array> =
+        CodeFormatter.GetWriterEventsAsync(isSignature, source, config, [])
+
+    static member GetWriterEventsAsync(isSignature, source, config, defines) : Async<WriterEvent array> =
         async {
             let sourceText = CodeFormatterImpl.getSourceText source
             let! asts = CodeFormatterImpl.parse isSignature sourceText
 
-            let ast, _ = asts.[0]
+            let ast, _ =
+                if List.isEmpty defines then
+                    asts.[0]
+                else
+                    let sortedDefines = List.sort defines
+
+                    asts
+                    |> Array.find (fun (_, DefineCombination(d)) -> List.sort d = sortedDefines)
+
             let oak = ASTTransformer.mkOak (Some sourceText) ast
             let oak = Trivia.enrichTree config sourceText ast oak
 
