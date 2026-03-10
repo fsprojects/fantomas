@@ -156,12 +156,26 @@ let QualFileNameOfImpls filename specs =
 
 let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) =
     let tripleSlashComments = XmlDocStore.ReportInvalidXmlDocPositions lexbuf
+    let comments = CommentStore.GetComments(lexbuf)
 
-    [ yield! CommentStore.GetComments(lexbuf)
-      yield! List.map CommentTrivia.LineComment tripleSlashComments ]
-    |> List.distinctBy (function
-        | CommentTrivia.LineComment r
-        | CommentTrivia.BlockComment r -> r.StartLine, r.StartColumn)
+    // At EOF the lexer may record a /// comment in both CommentStore and XmlDocStore,
+    // producing a duplicate. Only pay the dedup cost when orphan /// comments exist.
+    let uniqueTripleSlash =
+        if List.isEmpty tripleSlashComments then
+            []
+        else
+            let existingPositions =
+                comments
+                |> List.choose (function
+                    | CommentTrivia.LineComment r -> Some(r.StartLine, r.StartColumn)
+                    | CommentTrivia.BlockComment _ -> None)
+                |> Set.ofList
+
+            tripleSlashComments
+            |> List.filter (fun r -> not (Set.contains (r.StartLine, r.StartColumn) existingPositions))
+            |> List.map CommentTrivia.LineComment
+
+    [ yield! comments; yield! uniqueTripleSlash ]
     |> List.sortBy (function
         | CommentTrivia.LineComment r
         | CommentTrivia.BlockComment r -> r.StartLine, r.StartColumn)

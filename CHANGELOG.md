@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- `///` doc comment without associated declaration (e.g. at end of file) was duplicated when formatting. [#2499](https://github.com/fsprojects/fantomas/issues/2499)
+
 ## [8.0.0-alpha-006] - 2026-03-09
 
 ### Fixed
