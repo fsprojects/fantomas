@@ -2,11 +2,6 @@
 
 ## [Unreleased]
 
-<<<<<<< repo-assist/fix-issue-2499-duplicate-doc-comment-10e89c3f45a0db9c
-### Fixed
-
-- `///` doc comment without associated declaration (e.g. at end of file) was duplicated when formatting. [#2499](https://github.com/fsprojects/fantomas/issues/2499)
-=======
 ### Added
 
 - Support for `#elif` preprocessor directive. [#3268](https://github.com/fsprojects/fantomas/issues/3268)
@@ -14,7 +9,7 @@
 ### Fixed
 
 - Multiline `val` body in signature files was not indented correctly. [#3269](https://github.com/fsprojects/fantomas/pull/3269)
->>>>>>> main
+- `///` doc comment without associated declaration (e.g. at end of file) was duplicated when formatting. [#2499](https://github.com/fsprojects/fantomas/issues/2499)
 
 ## [8.0.0-alpha-007] - 2026-03-10
 
