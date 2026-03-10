@@ -3653,6 +3653,7 @@ let includeTrivia (baseRange: range) (trivia: ParsedInputTrivia) : range =
                   (function
                   | ConditionalDirectiveTrivia.If(range = range)
                   | ConditionalDirectiveTrivia.Else(range = range)
+                  | ConditionalDirectiveTrivia.Elif(range = range)
                   | ConditionalDirectiveTrivia.EndIf(range = range) -> range)
                   trivia.ConditionalDirectives
 

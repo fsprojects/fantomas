@@ -26,8 +26,6 @@ open Fantomas.FCS.ParseHelpers
 
 let FSharpSigFileSuffixes = [ ".mli"; ".fsi" ]
 
-let mlCompatSuffixes = [ ".mli"; ".ml" ]
-
 let FSharpImplFileSuffixes = [ ".ml"; ".fs"; ".fsscript"; ".fsx" ]
 
 let FSharpScriptFileSuffixes = [ ".fsscript"; ".fsx" ]
@@ -302,12 +300,6 @@ let ParseInput
     use _ = UseBuildPhase BuildPhase.Parse
 
     try
-        if mlCompatSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
-            if lexbuf.SupportsFeature LanguageFeature.MLCompatRevisions then
-                errorR (Error(FSComp.SR.buildInvalidSourceFileExtensionML filename, rangeStartup))
-            else
-                mlCompatWarning (FSComp.SR.buildCompilingExtensionIsForML ()) rangeStartup
-
         // Call the appropriate parser - for signature files or implementation files
         if FSharpImplFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
             let impl = Parser.implementationFile lexer lexbuf
@@ -315,10 +307,8 @@ let ParseInput
         elif FSharpSigFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
             let intfs = Parser.signatureFile lexer lexbuf
             PostParseModuleSpecs(defaultNamespace, filename, isLastCompiland, intfs, lexbuf)
-        else if lexbuf.SupportsFeature LanguageFeature.MLCompatRevisions then
-            error (Error(FSComp.SR.buildInvalidSourceFileExtensionUpdated filename, rangeStartup))
         else
-            error (Error(FSComp.SR.buildInvalidSourceFileExtension filename, rangeStartup))
+            error (Error(FSComp.SR.buildInvalidSourceFileExtensionUpdated filename, rangeStartup))
     finally
         // OK, now commit the errors, since the ScopedPragmas will (hopefully) have been scraped
         let filteringErrorLogger = errorLogger // TODO: does this matter? //GetErrorLoggerFilteringByScopedPragmas(false, scopedPragmas, diagnosticOptions, errorLogger)
@@ -349,13 +339,11 @@ let createLexbuf langVersion sourceText =
     UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), Some true, sourceText)
 
 let createLexerFunction (defines: string list) lexbuf (errorLogger: CapturingDiagnosticsLogger) =
-    let lightStatus = IndentationAwareSyntaxStatus(true, true)
-
     // Note: we don't really attempt to intern strings across a large scope.
     let lexResourceManager = LexResourceManager()
 
     let lexargs =
-        mkLexargs (defines, lightStatus, lexResourceManager, [], errorLogger, PathMap.empty, false)
+        mkLexargs (defines, lexResourceManager, [], errorLogger, PathMap.empty, false)
 
     let lexargs =
         { lexargs with
@@ -364,7 +352,7 @@ let createLexerFunction (defines: string list) lexbuf (errorLogger: CapturingDia
     let compilingFsLib = false
 
     let tokenizer =
-        LexFilter.LexFilter(lightStatus, compilingFsLib, Lexer.token lexargs true, lexbuf, false)
+        LexFilter.LexFilter(compilingFsLib, Lexer.token lexargs true, lexbuf, false)
 
     (fun _ -> tokenizer.GetToken())
 
@@ -696,7 +684,6 @@ let getSyntaxErrorMessage ctxt =
         | Parser.TOKEN_HIGH_PRECEDENCE_BRACK_APP -> getErrorString "Parser.TOKEN.HIGH.PRECEDENCE.BRACK.APP"
         | Parser.TOKEN_BEGIN -> getErrorString "Parser.TOKEN.BEGIN"
         | Parser.TOKEN_END -> getErrorString "Parser.TOKEN.END"
-        | Parser.TOKEN_HASH_LIGHT
         | Parser.TOKEN_HASH_LINE
         | Parser.TOKEN_HASH_IF
         | Parser.TOKEN_HASH_ELSE
@@ -987,7 +974,7 @@ let parseFile
 
     let diagnostics =
         List.map
-            (fun (p, severity) ->
+            (fun (p) ->
                 // See https://github.com/dotnet/fsharp/blob/2a25184293e39a635217670652b00680de04472a/src/Compiler/Driver/CompilerDiagnostics.fs#L214
                 // for the error codes
                 let range, message, errorNumber =
@@ -999,7 +986,7 @@ let parseFile
                     | :? ReservedKeyword as rkw -> Some rkw.Data1, rkw.Data0, Some 46
                     | _ -> None, p.Exception.Message, None
 
-                { Severity = severity
+                { Severity = p.Severity
                   SubCategory = "parse"
                   Range = range
                   ErrorNumber = errorNumber

@@ -238,7 +238,7 @@ pipeline "Init" {
         run (fun _ ->
             [| "src/Compiler/FSComp.txt"
                "src/Compiler/FSStrings.resx"
-               "src/Compiler/Utilities/NullnessShims.fs"
+               "src/Compiler/Utilities/NullHelpers.fs"
                "src/Compiler/Utilities/Activity.fsi"
                "src/Compiler/Utilities/Activity.fs"
                "src/Compiler/Utilities/Caches.fsi"
