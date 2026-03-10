@@ -177,9 +177,11 @@ let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) =
                 | Some st ->
                     let lineIdx = r.StartLine - 1 // StartLine is 1-based; GetLineString is 0-based
                     let col = r.StartColumn
+
                     lineIdx >= 0
                     && lineIdx < st.GetLineCount()
                     && let line = st.GetLineString(lineIdx) in
+
                        line.Length > col + 2
                        && line[col] = '/'
                        && line[col + 1] = '/'
