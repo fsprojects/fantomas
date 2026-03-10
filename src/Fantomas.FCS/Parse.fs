@@ -159,6 +159,9 @@ let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) =
 
     [ yield! CommentStore.GetComments(lexbuf)
       yield! List.map CommentTrivia.LineComment tripleSlashComments ]
+    |> List.distinctBy (function
+        | CommentTrivia.LineComment r
+        | CommentTrivia.BlockComment r -> r.StartLine, r.StartColumn)
     |> List.sortBy (function
         | CommentTrivia.LineComment r
         | CommentTrivia.BlockComment r -> r.StartLine, r.StartColumn)

@@ -2611,3 +2611,14 @@ let IsMangledInfixOperator mangled = (* where mangled is assumed to be a compile
         || // INFIX_AT_HAT_OP
         s = "**") // INFIX_STAR_STAR_OP
 """
+
+[<Test>]
+let ``doc comment without associated declaration should not be duplicated, 2499`` () =
+    formatSourceString
+        """/// Returns `unit` if validation was successful otherwise will throw an `Exception`.
+"""
+        config
+    |> should
+        equal
+        """/// Returns `unit` if validation was successful otherwise will throw an `Exception`.
+"""
