@@ -134,6 +134,7 @@ type ConditionalDirectiveTrivia with
         match x with
         | ConditionalDirectiveTrivia.If(_, m)
         | ConditionalDirectiveTrivia.Else m
+        | ConditionalDirectiveTrivia.Elif(_, m)
         | ConditionalDirectiveTrivia.EndIf m -> m
 
 let internal collectTriviaFromDirectiveRanges
