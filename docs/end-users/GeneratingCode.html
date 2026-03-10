@@ -511,7 +511,10 @@ from Fantomas.Core</div>
   override Children: Node array
   member Declarations: ModuleDecl list
   member Header: ModuleOrNamespaceHeaderNode option
-  member IsNamed: bool<br /><br />--------------------<br />new: header: ModuleOrNamespaceHeaderNode option * decls: ModuleDecl list * range: range -&gt; ModuleOrNamespaceNode</div>
+  member IsNamed: bool<br /><em>&lt;summary&gt;
+ A top-level module or namespace containing an optional header and a list of declarations.
+ Corresponds to a `SynModuleOrNamespace` in the FCS untyped AST.
+&lt;/summary&gt;</em><br /><br />--------------------<br />new: header: ModuleOrNamespaceHeaderNode option * decls: ModuleDecl list * range: range -&gt; ModuleOrNamespaceNode</div>
 <div class="fsdocs-tip" id="fs9">union case Option.None: Option&lt;&#39;T&gt;</div>
 <div class="fsdocs-tip" id="fs10">Multiple items<br />type BindingNode =
   inherit NodeBase
@@ -524,18 +527,27 @@ from Fantomas.Core</div>
   member FunctionName: Choice&lt;IdentListNode,Pattern&gt;
   member GenericTypeParameters: TyparDecls option
   member In: SingleTextNode option
-  ...<br /><br />--------------------<br />new: xmlDoc: XmlDocNode option * attributes: MultipleAttributeListNode option * leadingKeyword: MultipleTextsNode * isMutable: bool * inlineNode: SingleTextNode option * accessibility: SingleTextNode option * functionName: Choice&lt;IdentListNode,Pattern&gt; * genericTypeParameters: TyparDecls option * parameters: Pattern list * returnType: BindingReturnInfoNode option * equals: SingleTextNode * expr: Expr * inKeyword: SingleTextNode option * range: range -&gt; BindingNode</div>
+  ...<br /><em>&lt;summary&gt;
+ Example: `let inline private f&amp;lt;&#39;T&amp;gt; (x: &#39;T) : int = ...` — a value/function/member binding.
+ Covers `let`, `use`, `and`, `member`, `static member`, etc. depending on &amp;lt;c&amp;gt;LeadingKeyword&amp;lt;/c&amp;gt;.
+&lt;/summary&gt;</em><br /><br />--------------------<br />new: xmlDoc: XmlDocNode option * attributes: MultipleAttributeListNode option * leadingKeyword: MultipleTextsNode * isMutable: bool * inlineNode: SingleTextNode option * accessibility: SingleTextNode option * functionName: Choice&lt;IdentListNode,Pattern&gt; * genericTypeParameters: TyparDecls option * parameters: Pattern list * returnType: BindingReturnInfoNode option * equals: SingleTextNode * expr: Expr * inKeyword: SingleTextNode option * range: range -&gt; BindingNode</div>
 <div class="fsdocs-tip" id="fs11">Multiple items<br />type MultipleTextsNode =
   inherit NodeBase
   new: content: SingleTextNode list * range: range -&gt; MultipleTextsNode
   override Children: Node array
-  member Content: SingleTextNode list<br /><br />--------------------<br />new: content: SingleTextNode list * range: range -&gt; MultipleTextsNode</div>
+  member Content: SingleTextNode list<br /><em>&lt;summary&gt;
+ A node holding two or more adjacent text tokens that logically form one keyword or modifier sequence.
+ Example: `static member` (two tokens), `abstract default` (access + keyword).
+&lt;/summary&gt;</em><br /><br />--------------------<br />new: content: SingleTextNode list * range: range -&gt; MultipleTextsNode</div>
 <div class="fsdocs-tip" id="fs12">Multiple items<br />type SingleTextNode =
   inherit NodeBase
   new: idText: string * range: range -&gt; SingleTextNode
   override ToString: unit -&gt; string
   override Children: Node array
-  member Text: string<br /><br />--------------------<br />new: idText: string * range: range -&gt; SingleTextNode</div>
+  member Text: string<br /><em>&lt;summary&gt;
+ The most fundamental leaf node — a single token of source text (keyword, operator, identifier, punctuation, etc.).
+ Examples: `let`, `=`, `-&amp;gt;`, `(`, `myVar`.
+&lt;/summary&gt;</em><br /><br />--------------------<br />new: idText: string * range: range -&gt; SingleTextNode</div>
 <div class="fsdocs-tip" id="fs13">Multiple items<br />module Range
 
 from Fantomas.FCS.Text<br /><br />--------------------<br />[&lt;Struct&gt;]
@@ -563,7 +575,10 @@ type Range =
   override Children: Node array
   member Content: IdentifierOrDot list
   member IsEmpty: bool
-  static member Empty: IdentListNode<br /><br />--------------------<br />new: content: IdentifierOrDot list * range: range -&gt; IdentListNode</div>
+  static member Empty: IdentListNode<br /><em>&lt;summary&gt;
+ Example: `A.B.C` or `A` — a qualified identifier (sequence of idents and dots).
+ Used wherever a dotted name appears: module names, type names, open statements, etc.
+&lt;/summary&gt;</em><br /><br />--------------------<br />new: content: IdentifierOrDot list * range: range -&gt; IdentListNode</div>
 <div class="fsdocs-tip" id="fs17">type IdentifierOrDot =
   | Ident of SingleTextNode
   | KnownDot of SingleTextNode

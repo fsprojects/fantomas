@@ -354,7 +354,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `as self` — the self-identifier binding at the end of an implicit constructor parameter list.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -416,7 +416,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `[<MyAttr(42)>]` — a single attribute inside an attribute list.
+ <c>Target</c> is the optional `return:`, `assembly:`, etc. prefix.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -447,7 +448,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A `let … and …` group of mutually recursive bindings, or a sequence of `use` bindings.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -478,7 +479,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `let inline private f<'T> (x: 'T) : int = ...` — a value/function/member binding.
+ Covers `let`, `use`, `and`, `member`, `static member`, etc. depending on <c>LeadingKeyword</c>.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -509,7 +511,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `: int` — the explicit return type annotation on a binding (the colon token + type).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -633,7 +635,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `1.0<m/s>` — a numeric constant annotated with a unit of measure.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -664,7 +666,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   An `else if` pair — the `else` and `if` keywords are stored as separate ranges so trivia can be attached correctly.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -695,7 +697,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `| Red = 0` — a single enum case declaration.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -726,7 +728,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `exception MyError of string` — an exception type definition with an optional member block.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2703,7 +2705,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `[<DllImport("lib.dll")>] extern int myFunc(int a, string b)` — a P/Invoke extern binding.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2734,7 +2736,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A single parameter in an `extern` binding: optional attributes, an optional type, and an optional pattern name.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2765,7 +2767,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `val mutable private name: int` — a field declaration inside a type definition.
+ Used for record fields, union-case fields, and `val`-style class fields.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2796,7 +2799,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   An interpolated-string fill hole: an expression together with an optional format identifier (e.g., `{x:N2}`).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2827,7 +2830,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A group of consecutive hash directives (e.g. `#r "..."` followed by `#load "..."`) treated as a single declaration.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2889,7 +2892,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `A.B.C` or `A` — a qualified identifier (sequence of idents and dots).
+ Used wherever a dotted name appears: module names, type names, open statements, etc.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2951,7 +2955,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   The leading keyword of an `if` expression: either a simple `if` token or an `else if` pair (see <see cref="ElseIfNode"/>).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -2982,7 +2986,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `(x: int, y: string) as self` — the primary constructor definition directly following the type name.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3075,7 +3079,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `inherit Base arg1 arg2` — inherits from a type with non-parenthesised constructor arguments.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3106,7 +3110,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `inherit Base(arg)` — inherits from a type with a single parenthesised constructor argument.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3137,7 +3141,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `inherit Base` — inherits from a type with no constructor arguments.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3168,7 +3172,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `inherit Base()` — inherits from a type with an explicit unit constructor.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3199,7 +3203,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `interface IDisposable with member _.Dispose() = ()` — an interface implementation clause inside an object expression or type definition.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3230,7 +3234,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A chain link where a function is applied to a parenthesised argument, e.g. `foo(x)` in `a.foo(x).bar`.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3261,7 +3265,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A chain link where a function is applied to a unit argument, e.g. `Dispose()` in `x.Dispose()`.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3292,7 +3296,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `| pat when guard -> body` — a single arm of a `match` or `try…with` expression.
+ The leading bar, guard (`when` clause), and arrow are all optional depending on context.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3354,7 +3359,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `m / s` or `1 / s` (when <c>LeftHandSide</c> is <c>None</c>, represents the reciprocal `/ s`).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3385,7 +3390,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `m * s` or `m / s` — a binary operator expression between two unit-of-measure terms.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3416,7 +3421,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `(m * s)` — a parenthesised unit-of-measure expression for grouping.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3447,7 +3452,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `m^2` — a unit-of-measure raised to a rational power.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3478,7 +3483,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `m s` — a sequence of juxtaposed unit-of-measure terms (implicit multiplication).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3540,7 +3545,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `abstract member Area: float` — an abstract member declaration specifying a name and type signature.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3571,7 +3576,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `member val Name = "" with get, set` — an auto-implemented property that generates a backing field automatically.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3634,7 +3639,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `inherit Base()` — an `inherit` member declaration inside a class body that specifies the base class.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3665,7 +3670,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `interface IDisposable with member _.Dispose() = ()` — an `interface` implementation clause inside a class or struct definition.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3696,7 +3701,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `member x.Prop with get() = … and set v = …` — a property member with explicit `get` and/or `set` accessor bodies.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3727,7 +3732,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `abstract member Name: string with get, set` — a `val` declaration in a signature used as an abstract or interface member.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3758,7 +3763,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `module M = Ns.OtherModule` — a module abbreviation that creates a short alias for a qualified module.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3820,7 +3825,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Top-level attributes with an optional `do` expression (e.g., `[<assembly: AssemblyVersion("1.0")>]`) — module-level attribute declarations.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3851,7 +3856,9 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   The header of a module or namespace declaration: optional doc, attributes, leading keyword (`module`/`namespace`),
+ optional accessibility, optional recursive flag, and the qualified name.
+ Example: `module rec MyApp.Utils` or `namespace global`.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3882,7 +3889,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A top-level module or namespace containing an optional header and a list of declarations.
+ Corresponds to a `SynModuleOrNamespace` in the FCS untyped AST.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3913,7 +3921,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   All attribute lists on a declaration: zero or more <c>[&lt; ... &gt;]</c> blocks each containing one or more attributes.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3944,7 +3952,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A node holding two or more adjacent text tokens that logically form one keyword or modifier sequence.
+ Example: `static member` (two tokens), `abstract default` (access + keyword).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -3975,7 +3984,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `field1 = x` — a named field–pattern pair used in union-case destructuring (e.g. `Point(x = px; y = py)`).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4006,7 +4015,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `-2` or `-(3/2)` — a negated rational constant used as a unit-of-measure exponent.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4037,7 +4046,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `module rec Utils = …` — a nested module definition (non-top-level) with its declarations.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4192,7 +4201,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A group of consecutive `open` statements (module/namespace opens and type-directed opens).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4223,7 +4232,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `open System.IO` — an `open` declaration that brings a module or namespace into scope by qualified name.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4254,7 +4263,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `open type System.Math` — an `open type` declaration that brings static members and nested types into scope.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4285,7 +4294,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `#r "nuget: Newtonsoft.Json"` or `#load "Utils.fs"` — a hash directive at the file level.
+ <c>Ident</c> is the directive keyword (e.g. `r`, `load`, `nowarn`); <c>Args</c> are its arguments.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4753,7 +4763,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A single `get` or `set` accessor body inside a `member … with get/set` property declaration.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4815,7 +4825,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `(3/2)` — a rational-number exponent in a unit-of-measure power expression such as `m^(3/2)`.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4846,7 +4856,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `Name = expr` — a single record field assignment inside a record expression or update.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4877,7 +4887,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   The most fundamental leaf node — a single token of source text (keyword, operator, identifier, punctuation, etc.).
+ Examples: `let`, `=`, `->`, `(`, `myVar`.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4939,7 +4950,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `when 'T = int` — a static optimisation constraint that requires a type parameter to equal a specific type constructor.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -4970,7 +4981,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A leaf node holding a plain string value with no sub-nodes (e.g. a verbatim string token or source text fragment).
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5032,7 +5043,9 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A node carrying trivia content (comment, blank line, directive, or cursor) and its source range.
+ Trivia nodes are attached to <see cref="Node"/> instances as <c>ContentBefore</c> or <c>ContentAfter</c>
+ and are emitted by the code printer around the owning node's output.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5063,7 +5076,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `'T` or `[<SomeAttr>] 'T & IDisposable` — a type parameter declaration with optional attributes
+ and optional intersection constraints (F# 8+). Used in `<'T>` or `('T)` postfix/prefix type parameter lists.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5125,7 +5139,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `<'T, 'U when 'T: equality>` — a postfix (angle-bracket) list of type parameter declarations with constraints.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5156,7 +5170,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `('T, 'U)` — a prefix (parenthesised) list of type parameter declarations.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5373,7 +5387,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `default 'T: int` — a default type constraint used in statically-resolved type parameters.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5404,7 +5418,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `'T: enum<int>` or `'T: delegate<int, string>` — an enum or delegate constraint on a type parameter.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5435,7 +5449,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `'T: comparison` or `'T: null` — a simple single-token type constraint.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5466,7 +5480,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `'T :> IDisposable` — a subtype constraint.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5497,7 +5511,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `'T: (member Foo: int)` — a member constraint on a statically resolved type parameter.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5590,7 +5604,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `type Alias = OtherType` — a type abbreviation.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5621,7 +5635,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `type MyClass with` — a type augmentation (intrinsic extension) adding members to an existing type.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5652,7 +5666,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `type MyDelegate = delegate of int * string -> bool` — a delegate type declaration.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5683,7 +5697,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `type Color = Red | Green | Blue` — an enum-style type definition with integer-valued cases.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5714,7 +5728,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   The body of a `class … end` / `struct … end` / `interface … end` explicit type definition block.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5745,7 +5759,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `type MyClass() = class … end` — a type definition using an explicit `class`/`struct`/`interface` block.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5776,7 +5790,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `type Point = { X: float; Y: float }` — a record type definition.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5807,7 +5821,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A regular type definition (class, interface, or abstract class without an explicit `class … end` block).
+ Example: `type MyClass() =\n    member _.Foo() = …`
                 </p>
               </div>
               <div class="icon-button-row">
@@ -5838,7 +5853,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `type Result<'T> = Ok of 'T | Error of string` — a discriminated union type definition.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6025,7 +6040,9 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   The shared header of a type definition: `type` / `and` keyword, optional doc, attributes, name, type parameters,
+ constraints, optional implicit constructor, and `=` / `with` tokens.
+ Example: `type private MyType<'T when 'T: equality>(x: int) =`
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6304,7 +6321,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `| MyCase of int * string` — a discriminated union case declaration.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6335,7 +6352,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `()` — a unit value consisting of an opening and closing parenthesis.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6366,7 +6383,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `<m/s^2>` — a unit-of-measure annotation enclosed in angle brackets, used in type annotations.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6397,7 +6414,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `val mutable x: int` — a value declaration in a class or signature file, optionally mutable and with an initial expression.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -6428,7 +6445,8 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   Example: `/// Summary line.\n/// More detail.` — an XML documentation comment block.
+ Each element of <c>Lines</c> is one raw source line of the doc comment.
                 </p>
               </div>
               <div class="icon-button-row">
