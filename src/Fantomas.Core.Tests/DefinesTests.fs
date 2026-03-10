@@ -276,3 +276,18 @@ let isUnix =
         "
 
     getDefines source == [ "NETSTANDARD1_6"; "NETSTANDARD2_0" ]
+
+[<Test>]
+let ``elif directive`` () =
+    let source =
+        """
+#if FOO
+let x = 1
+#elif BAR
+let x = 2
+#else
+let x = 3
+#endif
+"""
+
+    getDefines source == [ "BAR"; "FOO" ]

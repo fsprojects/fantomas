@@ -2,7 +2,6 @@
 
 open System
 open System.Text
-open System.Text.RegularExpressions
 open Microsoft.FSharp.Core.CompilerServices
 open Fantomas.FCS.Text
 
@@ -139,7 +138,13 @@ type FragmentWeaverState =
 
 let stringBuilderResult (builder: StringBuilder) = builder.ToString()
 
-let hashRegex = Regex(@"^\s*#(if|elseif|else|endif).*")
+let isHashDirective (line: string) =
+    let trimmed = line.TrimStart()
+
+    trimmed.StartsWith("#if", StringComparison.Ordinal)
+    || trimmed.StartsWith("#elif", StringComparison.Ordinal)
+    || trimmed.StartsWith("#else", StringComparison.Ordinal)
+    || trimmed.StartsWith("#endif", StringComparison.Ordinal)
 
 /// Split the given `source` into the matching `CodeFragments`.
 let splitWhenHash (defines: DefineCombination) (newline: string) (source: string) : CodeFragment list =
@@ -154,7 +159,7 @@ let splitWhenHash (defines: DefineCombination) (newline: string) (source: string
 
     (SplitHashState.Zero, lines)
     ||> Array.fold (fun acc line ->
-        if hashRegex.IsMatch line then
+        if isHashDirective line then
             // Only add the previous fragment if it had content
             match acc.LastLineInfo with
             | LastLineInfo.None -> ()
