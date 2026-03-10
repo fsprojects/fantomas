@@ -251,6 +251,60 @@ let ``#help without string`` () =
 """
 
 // As of F# 10.0, warn directives are treated as trivia like #if, so arguments are not formatted
+
+[<Test>]
+let ``nowarn and warnon in arbitrary places, 3263`` () =
+    formatSourceString
+        """
+let SingleChoiceTextValueType =
+    Define.Object<CustomValue> (
+        name = "SingleChoiceTextValue",
+        fields = [
+#nowarn 25 // Incomplete pattern match
+            Define.Field ("options", ListOf StringType, fun _ (SingleChoiceTextValue sctv) -> sctv.Options)
+            Define.Field (
+                "optionsTranslations",
+                ListOf SelectTypeOptionsTranslationsType,
+                fun _ (SingleChoiceTextValue sctv) -> sctv.OptionsTranslations
+            )
+            Define.Field ("value", StructNullable StringType, fun _ (SingleChoiceTextValue sctv) -> sctv.Value)
+            Define.Field (
+                "renderType",
+                StructNullable CustomFieldRenderTypeType,
+                fun _ (SingleChoiceTextValue sctv) -> sctv.RenderType
+#warnon 25 // Incomplete pattern match
+            )
+        ]
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let SingleChoiceTextValueType =
+    Define.Object<CustomValue>(
+        name = "SingleChoiceTextValue",
+        fields =
+            [
+                #nowarn 25 // Incomplete pattern match
+                Define.Field("options", ListOf StringType, fun _ (SingleChoiceTextValue sctv) -> sctv.Options)
+                Define.Field(
+                    "optionsTranslations",
+                    ListOf SelectTypeOptionsTranslationsType,
+                    fun _ (SingleChoiceTextValue sctv) -> sctv.OptionsTranslations
+                )
+                Define.Field("value", StructNullable StringType, fun _ (SingleChoiceTextValue sctv) -> sctv.Value)
+                Define.Field(
+                    "renderType",
+                    StructNullable CustomFieldRenderTypeType,
+                    fun _ (SingleChoiceTextValue sctv) -> sctv.RenderType
+                #warnon 25 // Incomplete pattern match
+                )
+            ]
+    )
+"""
+
 [<Test>]
 let ``#nowarn with integer`` () =
     formatSourceString

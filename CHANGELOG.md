@@ -1,5 +1,15 @@
 # Changelog
 
+## [8.0.0-alpha-007] - 2026-03-10
+
+### Fixed
+
+- `#nowarn` in arbitrary places produces a parsing failure. [#3263](https://github.com/fsprojects/fantomas/issues/3263)
+
+### Changed
+
+- Update FCS to 'Treat warn directives as trivia', commit ab1f6ceaaec997d2854ac1c07a6c0f107675d95c [#3263](https://github.com/fsprojects/fantomas/issues/3263)
+
 ## [8.0.0-alpha-006] - 2026-03-09
 
 ### Fixed

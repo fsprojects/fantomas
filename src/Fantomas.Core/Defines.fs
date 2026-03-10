@@ -246,6 +246,7 @@ module Defines =
 
                 match hashLine with
                 | ConditionalDirectiveTrivia.If(expr, _) -> expr :: contextExprs, contextExpr expr :: exprAcc
+                | ConditionalDirectiveTrivia.Elif _ -> failwith "ConditionalDirectiveTrivia.Elif is not yet support"
                 | ConditionalDirectiveTrivia.Else _ ->
                     contextExprs,
                     IfDirectiveExpression.Not(contextExprs |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y)))

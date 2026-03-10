@@ -24,8 +24,8 @@
       <Link>FSStrings.resx</Link>
       <LogicalName>FSStrings.resources</LogicalName>
     </EmbeddedResource>
-    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\NullnessShims.fs">
-      <Link>Utilities\NullnessShims.fs</Link>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\NullHelpers.fs">
+      <Link>Utilities\NullHelpers.fs</Link>
     </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\Activity.fsi">
       <Link>Utilities\Activity.fsi</Link>

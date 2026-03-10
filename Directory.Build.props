@@ -42,12 +42,12 @@ Some common use cases include:
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen --strict-indentation+ --realsig+</OtherFlags>
     </PropertyGroup>
-    
+
     <!-- Versions -->
     <PropertyGroup>
-        <FCSCommitHash>43932b4c7984d6562e91e5f1484868cd4f5befcf</FCSCommitHash>
+        <FCSCommitHash>ab1f6ceaaec997d2854ac1c07a6c0f107675d95c</FCSCommitHash>
     </PropertyGroup>
-    
+
     <PropertyGroup>
         <FsDocsLicenseLink>https://github.com/fsprojects/fantomas/blob/main/LICENSE.md</FsDocsLicenseLink>
         <FsDocsReleaseNotesLink>https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md</FsDocsReleaseNotesLink>
@@ -55,7 +55,7 @@ Some common use cases include:
         <FsDocsFaviconSource>images/favicon.ico</FsDocsFaviconSource>
         <RepositoryUrl>https://github.com/fsprojects/fantomas</RepositoryUrl>
     </PropertyGroup>
-    
+
    <ItemGroup>
         <PackageReference Include="G-Research.FSharp.Analyzers">
             <PrivateAssets>all</PrivateAssets>
