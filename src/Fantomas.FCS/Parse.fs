@@ -180,7 +180,7 @@ let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) =
                     lineIdx >= 0
                     && lineIdx < st.GetLineCount()
                     && let line = st.GetLineString(lineIdx) in
-                       col + 2 < line.Length
+                       line.Length > col + 2
                        && line[col] = '/'
                        && line[col + 1] = '/'
                        && line[col + 2] = '/'
@@ -193,8 +193,11 @@ let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) =
                 |> Set.ofList
 
             tripleSlashComments
-            |> List.filter (fun r -> not (Set.contains (r.StartLine, r.StartColumn) existingPositions))
-            |> List.map CommentTrivia.LineComment
+            |> List.choose (fun r ->
+                if Set.contains (r.StartLine, r.StartColumn) existingPositions then
+                    None
+                else
+                    Some(CommentTrivia.LineComment r))
 
     [ yield! comments; yield! uniqueTripleSlash ]
     |> List.sortBy (function
