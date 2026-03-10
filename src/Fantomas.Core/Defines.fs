@@ -232,7 +232,8 @@ module Defines =
 
         hashDirectives
         |> List.collect (function
-            | ConditionalDirectiveTrivia.If(expr, _r) -> visit expr
+            | ConditionalDirectiveTrivia.If(expr, _r)
+            | ConditionalDirectiveTrivia.Elif(expr, _r) -> visit expr
             | _ -> [])
         |> List.distinct
         |> List.map List.singleton
@@ -246,7 +247,19 @@ module Defines =
 
                 match hashLine with
                 | ConditionalDirectiveTrivia.If(expr, _) -> expr :: contextExprs, contextExpr expr :: exprAcc
-                | ConditionalDirectiveTrivia.Elif _ -> failwith "ConditionalDirectiveTrivia.Elif is not yet support"
+                | ConditionalDirectiveTrivia.Elif(expr, _) ->
+                    // #elif B after #if A: branch condition is NOT(A) AND B
+                    // Update head to Or(A, B) so subsequent #else negates all previous branches.
+                    let head = List.head contextExprs
+                    let rest = List.tail contextExprs
+
+                    let elifExpr = IfDirectiveExpression.And(IfDirectiveExpression.Not(head), expr)
+
+                    let branchExpr =
+                        elifExpr :: rest |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y))
+
+                    let newHead = IfDirectiveExpression.Or(head, expr)
+                    newHead :: rest, branchExpr :: exprAcc
                 | ConditionalDirectiveTrivia.Else _ ->
                     contextExprs,
                     IfDirectiveExpression.Not(contextExprs |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y)))

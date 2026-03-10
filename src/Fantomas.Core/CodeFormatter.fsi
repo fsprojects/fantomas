@@ -88,3 +88,7 @@ type CodeFormatter =
     /// Debug only: returns the writer events produced during formatting of a source string.
     static member GetWriterEventsAsync:
         isSignature: bool * source: string * config: FormatConfig -> Async<WriterEvent array>
+
+    /// Debug only: returns the writer events produced during formatting of a source string with specific defines.
+    static member GetWriterEventsAsync:
+        isSignature: bool * source: string * config: FormatConfig * defines: string list -> Async<WriterEvent array>

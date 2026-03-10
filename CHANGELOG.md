@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Support for `#elif` preprocessor directive. [#3268](https://github.com/fsprojects/fantomas/issues/3268)
+
+### Fixed
+
+- Multiline `val` body in signature files was not indented correctly. [#3269](https://github.com/fsprojects/fantomas/pull/3269)
+
 ## [8.0.0-alpha-007] - 2026-03-10
 
 ### Fixed

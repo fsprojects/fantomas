@@ -3283,3 +3283,174 @@ Program.statefulWithCmdMsg
                 ))
     })
 """
+
+[<Test>]
+let ``elif directive, 3268`` () =
+    formatSourceString
+        """
+let x =
+#if FOO
+    1
+#elif BAR
+    2
+#else
+    3
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+#if FOO
+    1
+#elif BAR
+    2
+#else
+    3
+#endif
+"""
+
+[<Test>]
+let ``elif directive with FOO defined, 3268`` () =
+    formatSourceStringWithDefines
+        [ "FOO" ]
+        """
+let x =
+#if FOO
+    1
+#elif BAR
+    2
+#else
+    3
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+#if FOO
+    1
+#elif BAR
+#else
+#endif
+"""
+
+[<Test>]
+let ``elif directive with BAR defined, 3268`` () =
+    formatSourceStringWithDefines
+        [ "BAR" ]
+        """
+let x =
+#if FOO
+    1
+#elif BAR
+    2
+#else
+    3
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+#if FOO
+#elif BAR
+    2
+#else
+#endif
+"""
+
+[<Test>]
+let ``elif directive in val body signature file, 3268`` () =
+    formatSignatureString
+        """
+namespace Foobar
+
+val x: int =
+    #if DEBUG
+    1
+    #elif RELEASE
+    2
+    #else
+    3
+    #endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foobar
+
+val x: int =
+#if DEBUG
+    1
+#elif RELEASE
+    2
+#else
+    3
+#endif
+"""
+
+[<Test>]
+let ``elif directive in signature file, 3268`` () =
+    formatSignatureString
+        """
+namespace Foobar
+
+#if DEBUG
+val x: int
+#elif RELEASE
+val y: int
+#else
+val z: int
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foobar
+
+#if DEBUG
+val x: int
+#elif RELEASE
+val y: int
+#else
+val z: int
+#endif
+"""
+
+[<Test>]
+let ``elif directive with no defines, 3268`` () =
+    formatSourceStringWithDefines
+        []
+        """
+let x =
+#if FOO
+    1
+#elif BAR
+    2
+#else
+    3
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+#if FOO
+#elif BAR
+#else
+    3
+#endif
+"""

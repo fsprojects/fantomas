@@ -3831,7 +3831,10 @@ let genInlineOpt (inlineNode: SingleTextNode option) =
 let genVal (node: ValNode) (optGetSet: MultipleTextsNode option) =
     let genOptExpr =
         match node.Equals, node.Expr with
-        | Some eq, Some e -> sepSpace +> genSingleTextNode eq +> sepSpace +> genExpr e
+        | Some eq, Some e ->
+            sepSpace
+            +> genSingleTextNode eq
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
         | _ -> sepNone
 
     genXml node.XmlDoc
