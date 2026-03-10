@@ -164,11 +164,34 @@ let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) =
         if List.isEmpty tripleSlashComments then
             []
         else
+            // Retrieve the source text stored by createLexbuf so we can verify that a
+            // LineComment from CommentStore at the same position genuinely starts with
+            // "///". This guards against accidentally suppressing a triple-slash entry
+            // that happens to share coordinates with an unrelated line comment.
+            let sourceText =
+                match lexbuf.BufferLocalStore.TryGetValue("SourceText") with
+                | true, (:? ISourceText as st) -> Some st
+                | _ -> None
+
+            let isTripleSlashComment (r: range) =
+                match sourceText with
+                | None -> true // conservative: assume it may be /// if we can't verify
+                | Some st ->
+                    let lineIdx = r.StartLine - 1 // StartLine is 1-based; GetLineString is 0-based
+                    let col = r.StartColumn
+                    lineIdx >= 0
+                    && lineIdx < st.GetLineCount()
+                    && let line = st.GetLineString(lineIdx) in
+                       col + 2 < line.Length
+                       && line[col] = '/'
+                       && line[col + 1] = '/'
+                       && line[col + 2] = '/'
+
             let existingPositions =
                 comments
                 |> List.choose (function
-                    | CommentTrivia.LineComment r -> Some(r.StartLine, r.StartColumn)
-                    | CommentTrivia.BlockComment _ -> None)
+                    | CommentTrivia.LineComment r when isTripleSlashComment r -> Some(r.StartLine, r.StartColumn)
+                    | _ -> None)
                 |> Set.ofList
 
             tripleSlashComments
@@ -362,8 +385,12 @@ let EmptyParsedInput (filename, isLastCompiland) =
             )
         )
 
-let createLexbuf langVersion sourceText =
-    UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), Some true, sourceText)
+let createLexbuf langVersion (sourceText: ISourceText) =
+    let lexbuf =
+        UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), Some true, sourceText)
+
+    lexbuf.BufferLocalStore["SourceText"] <- (sourceText :> obj)
+    lexbuf
 
 let createLexerFunction (defines: string list) lexbuf (errorLogger: CapturingDiagnosticsLogger) =
     let lightStatus = IndentationAwareSyntaxStatus(true, true)
