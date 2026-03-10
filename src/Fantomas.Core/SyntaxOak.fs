@@ -12,6 +12,9 @@ type TriviaContent =
     | Directive of string
     | Cursor
 
+/// A node carrying trivia content (comment, blank line, directive, or cursor) and its source range.
+/// Trivia nodes are attached to <see cref="Node"/> instances as <c>ContentBefore</c> or <c>ContentAfter</c>
+/// and are emitted by the code printer around the owning node's output.
 type TriviaNode(content: TriviaContent, range: range) =
     member val Content = content
     member val Range = range
@@ -137,6 +140,7 @@ type NodeBase(range: range) =
         member x.AddCursor cursor = x.AddCursor cursor
         member x.TryGetCursor = x.TryGetCursor
 
+/// A leaf node holding a plain string value with no sub-nodes (e.g. a verbatim string token or source text fragment).
 type StringNode(content: string, range: range) =
     inherit NodeBase(range)
     member val Content = content
@@ -169,6 +173,8 @@ type IdentifierOrDot =
         | KnownDot n -> Some n.Range
         | UnknownDot -> None
 
+/// Example: `A.B.C` or `A` — a qualified identifier (sequence of idents and dots).
+/// Used wherever a dotted name appears: module names, type names, open statements, etc.
 type IdentListNode(content: IdentifierOrDot list, range) =
     inherit NodeBase(range)
     member val IsEmpty = content.IsEmpty
@@ -183,6 +189,8 @@ type IdentListNode(content: IdentifierOrDot list, range) =
             | _ -> None)
         |> Array.ofList
 
+/// The most fundamental leaf node — a single token of source text (keyword, operator, identifier, punctuation, etc.).
+/// Examples: `let`, `=`, `->`, `(`, `myVar`.
 type SingleTextNode(idText: string, range: range) =
     inherit NodeBase(range)
     member val Text = idText
@@ -191,11 +199,15 @@ type SingleTextNode(idText: string, range: range) =
     override x.ToString() =
         $"SingleTextNode(%A{x.Range}, \"%s{x.Text}\")"
 
+/// A node holding two or more adjacent text tokens that logically form one keyword or modifier sequence.
+/// Example: `static member` (two tokens), `abstract default` (access + keyword).
 type MultipleTextsNode(content: SingleTextNode list, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield! nodes content |]
     member val Content = content
 
+/// Example: `/// Summary line.\n/// More detail.` — an XML documentation comment block.
+/// Each element of <c>Lines</c> is one raw source line of the doc comment.
 type XmlDocNode(lines: string array, range) =
 
     inherit NodeBase(range)
@@ -211,6 +223,8 @@ type Oak(parsedHashDirectives: ParsedHashDirectiveNode list, modulesOrNamespaces
 
     override val Children: Node array = [| yield! nodes parsedHashDirectives; yield! nodes modulesOrNamespaces |]
 
+/// Example: `#r "nuget: Newtonsoft.Json"` or `#load "Utils.fs"` — a hash directive at the file level.
+/// <c>Ident</c> is the directive keyword (e.g. `r`, `load`, `nowarn`); <c>Args</c> are its arguments.
 type ParsedHashDirectiveNode(ident: string, args: Choice<SingleTextNode, IdentListNode> list, range) =
     inherit NodeBase(range)
     member val Ident = ident
@@ -222,6 +236,9 @@ type ParsedHashDirectiveNode(ident: string, args: Choice<SingleTextNode, IdentLi
                | Choice1Of2(node) -> node
                | Choice2Of2(node) -> node |]
 
+/// The header of a module or namespace declaration: optional doc, attributes, leading keyword (`module`/`namespace`),
+/// optional accessibility, optional recursive flag, and the qualified name.
+/// Example: `module rec MyApp.Utils` or `namespace global`.
 type ModuleOrNamespaceHeaderNode
     (
         xmlDoc: XmlDocNode option,
@@ -248,6 +265,8 @@ type ModuleOrNamespaceHeaderNode
     member val IsRecursive = isRecursive
     member val Name = name
 
+/// A top-level module or namespace containing an optional header and a list of declarations.
+/// Corresponds to a `SynModuleOrNamespace` in the FCS untyped AST.
 type ModuleOrNamespaceNode(header: ModuleOrNamespaceHeaderNode option, decls: ModuleDecl list, range) =
     inherit NodeBase(range)
     member val Declarations = decls
@@ -567,6 +586,7 @@ type PatNamedNode(accessibility: SingleTextNode option, name: SingleTextNode, ra
     member val Name = name
     member val Accessibility = accessibility
 
+/// Example: `field1 = x` — a named field–pattern pair used in union-case destructuring (e.g. `Point(x = px; y = py)`).
 type NamePatPairNode(fieldName: IdentListNode, equals: SingleTextNode, pat: Pattern, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield fieldName; yield equals; yield Pattern.Node pat |]
@@ -821,6 +841,7 @@ type ExprArrayOrListNode(openingToken: SingleTextNode, elements: Expr list, clos
     member val Elements = elements
     member val Closing = closingToken
 
+/// Example: `inherit Base` — inherits from a type with no constructor arguments.
 type InheritConstructorTypeOnlyNode(inheritKeyword: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
 
@@ -828,6 +849,7 @@ type InheritConstructorTypeOnlyNode(inheritKeyword: SingleTextNode, t: Type, ran
     member val InheritKeyword = inheritKeyword
     member val Type = t
 
+/// Example: `inherit Base()` — inherits from a type with an explicit unit constructor.
 type InheritConstructorUnitNode
     (inheritKeyword: SingleTextNode, t: Type, openingParen: SingleTextNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
@@ -843,6 +865,7 @@ type InheritConstructorUnitNode
     member val OpeningParen = openingParen
     member val ClosingParen = closingParen
 
+/// Example: `inherit Base(arg)` — inherits from a type with a single parenthesised constructor argument.
 type InheritConstructorParenNode(inheritKeyword: SingleTextNode, t: Type, expr: Expr, range) =
     inherit NodeBase(range)
 
@@ -852,6 +875,7 @@ type InheritConstructorParenNode(inheritKeyword: SingleTextNode, t: Type, expr: 
     member val Type = t
     member val Expr = expr
 
+/// Example: `inherit Base arg1 arg2` — inherits from a type with non-parenthesised constructor arguments.
 type InheritConstructorOtherNode(inheritKeyword: SingleTextNode, t: Type, expr: Expr, range) =
     inherit NodeBase(range)
 
@@ -882,6 +906,7 @@ type InheritConstructor =
         | Paren n -> n.InheritKeyword
         | Other n -> n.InheritKeyword
 
+/// Example: `Name = expr` — a single record field assignment inside a record expression or update.
 type RecordFieldNode(fieldName: IdentListNode, equals: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
@@ -965,6 +990,7 @@ type ExprInheritRecordNode
            yield! nodes fields
            yield closingBrace |]
 
+/// Example: `interface IDisposable with member _.Dispose() = ()` — an interface implementation clause inside an object expression or type definition.
 type InterfaceImplNode
     (
         interfaceNode: SingleTextNode,
@@ -1164,6 +1190,8 @@ type ExprLambdaNode(funNode: SingleTextNode, parameters: Pattern list, arrow: Si
     member val Arrow = arrow
     member val Expr = expr
 
+/// Example: `| pat when guard -> body` — a single arm of a `match` or `try…with` expression.
+/// The leading bar, guard (`when` clause), and arrow are all optional depending on context.
 type MatchClauseNode
     (bar: SingleTextNode option, pattern: Pattern, whenExpr: Expr option, arrow: SingleTextNode, bodyExpr: Expr, range)
     =
@@ -1287,12 +1315,14 @@ type ExprIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, range) =
     member val Identifier = identifierExpr
     member val Index = indexExpr
 
+/// A chain link where a function is applied to a parenthesised argument, e.g. `foo(x)` in `a.foo(x).bar`.
 type LinkSingleAppParen(functionName: Expr, parenExpr: ExprParenNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Expr.Node functionName; yield parenExpr |]
     member val FunctionName = functionName
     member val Paren = parenExpr
 
+/// A chain link where a function is applied to a unit argument, e.g. `Dispose()` in `x.Dispose()`.
 type LinkSingleAppUnit(functionName: Expr, unit: UnitNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Expr.Node functionName; yield unit |]
@@ -1455,6 +1485,7 @@ type ExprTryFinallyNode(tryNode: SingleTextNode, tryExpr: Expr, finallyNode: Sin
     member val Finally = finallyNode
     member val FinallyExpr = finallyExpr
 
+/// An `else if` pair — the `else` and `if` keywords are stored as separate ranges so trivia can be attached correctly.
 type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode =
     let mutable elseCursor = None
     let mutable ifCursor = None
@@ -1530,6 +1561,7 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
         member _.AddCursor _ = ()
         member _.TryGetCursor = None
 
+/// The leading keyword of an `if` expression: either a simple `if` token or an `else if` pair (see <see cref="ElseIfNode"/>).
 [<RequireQualifiedAccess; NoComparison>]
 type IfKeywordNode =
     | SingleWord of SingleTextNode
@@ -1670,6 +1702,7 @@ type ExprSetNode(identifier: Expr, setExpr: Expr, range) =
     member val Identifier = identifier
     member val Set = setExpr
 
+/// Example: `when 'T = int` — a static optimisation constraint that requires a type parameter to equal a specific type constructor.
 type StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode(typar: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
 
@@ -1702,6 +1735,7 @@ type ExprLibraryOnlyStaticOptimizationNode
     member val Constraints = constraints
     member val Expr = expr
 
+/// An interpolated-string fill hole: an expression together with an optional format identifier (e.g., `{x:N2}`).
 type FillExprNode(expr: Expr, ident: SingleTextNode option, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Expr.Node expr; yield! noa ident |]
@@ -1935,12 +1969,14 @@ type Expr =
         | Expr.Paren _ -> true
         | _ -> false
 
+/// Example: `open System.IO` — an `open` declaration that brings a module or namespace into scope by qualified name.
 type OpenModuleOrNamespaceNode(identListNode: IdentListNode, range) =
     inherit NodeBase(range)
 
     override val Children = Array.empty
     member val Name = identListNode
 
+/// Example: `open type System.Math` — an `open type` declaration that brings static members and nested types into scope.
 type OpenTargetNode(target: Type, range) =
     inherit NodeBase(range)
 
@@ -1957,18 +1993,22 @@ type Open =
         | ModuleOrNamespace n -> n
         | Target n -> n
 
+/// A group of consecutive `open` statements (module/namespace opens and type-directed opens).
 type OpenListNode(opens: Open list) =
     inherit NodeBase(List.map (Open.Node >> nodeRange) opens |> combineRanges)
 
     override val Children: Node array = [| yield! (List.map Open.Node opens) |]
     member val Opens = opens
 
+/// A group of consecutive hash directives (e.g. `#r "..."` followed by `#load "..."`) treated as a single declaration.
 type HashDirectiveListNode(hashDirectives: ParsedHashDirectiveNode list) =
     inherit NodeBase(hashDirectives |> List.map (fun n -> n.Range) |> combineRanges)
 
     override val Children: Node array = [| yield! nodes hashDirectives |]
     member val HashDirectives = hashDirectives
 
+/// Example: `[<MyAttr(42)>]` — a single attribute inside an attribute list.
+/// <c>Target</c> is the optional `return:`, `assembly:`, etc. prefix.
 type AttributeNode(typeName: IdentListNode, expr: Expr option, target: SingleTextNode option, range) =
     inherit NodeBase(range)
 
@@ -1989,18 +2029,21 @@ type AttributeListNode
     member val Attributes = attributesNodes
     member val Closing = closingToken
 
+/// All attribute lists on a declaration: zero or more <c>[&lt; ... &gt;]</c> blocks each containing one or more attributes.
 type MultipleAttributeListNode(attributeLists: AttributeListNode list, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield! nodes attributeLists |]
     member val AttributeLists = attributeLists
     member val IsEmpty = attributeLists.IsEmpty
 
+/// Top-level attributes with an optional `do` expression (e.g., `[<assembly: AssemblyVersion("1.0")>]`) — module-level attribute declarations.
 type ModuleDeclAttributesNode(attributes: MultipleAttributeListNode option, doExpr: Expr, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield! noa attributes; yield Expr.Node doExpr |]
     member val Attributes = attributes
     member val Expr = doExpr
 
+/// Example: `exception MyError of string` — an exception type definition with an optional member block.
 type ExceptionDefnNode
     (
         xmlDoc: XmlDocNode option,
@@ -2028,6 +2071,7 @@ type ExceptionDefnNode
     member val WithKeyword = withKeyword
     member val Members = ms
 
+/// A single parameter in an `extern` binding: optional attributes, an optional type, and an optional pattern name.
 type ExternBindingPatternNode
     (attributes: MultipleAttributeListNode option, t: Type option, pat: Pattern option, range: range) =
     inherit NodeBase(range)
@@ -2041,6 +2085,7 @@ type ExternBindingPatternNode
     member val Type = t
     member val Pattern = pat
 
+/// Example: `[<DllImport("lib.dll")>] extern int myFunc(int a, string b)` — a P/Invoke extern binding.
 type ExternBindingNode
     (
         xmlDoc: XmlDocNode option,
@@ -2080,6 +2125,7 @@ type ExternBindingNode
     member val Parameters = parameters
     member val ClosingParen = closingParen
 
+/// Example: `module M = Ns.OtherModule` — a module abbreviation that creates a short alias for a qualified module.
 type ModuleAbbrevNode(moduleNode: SingleTextNode, name: SingleTextNode, alias: IdentListNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield moduleNode; yield name; yield alias |]
@@ -2087,6 +2133,7 @@ type ModuleAbbrevNode(moduleNode: SingleTextNode, name: SingleTextNode, alias: I
     member val Name = name
     member val Alias = alias
 
+/// Example: `module rec Utils = …` — a nested module definition (non-top-level) with its declarations.
 type NestedModuleNode
     (
         xmlDoc: XmlDocNode option,
@@ -2148,12 +2195,15 @@ type ModuleDecl =
         | TypeDefn t -> TypeDefn.Node t
         | Val n -> n
 
+/// Example: `: int` — the explicit return type annotation on a binding (the colon token + type).
 type BindingReturnInfoNode(colon: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield colon; yield Type.Node t |]
     member val Colon = colon
     member val Type = t
 
+/// Example: `let inline private f<'T> (x: 'T) : int = ...` — a value/function/member binding.
+/// Covers `let`, `use`, `and`, `member`, `static member`, etc. depending on <c>LeadingKeyword</c>.
 type BindingNode
     (
         xmlDoc: XmlDocNode option,
@@ -2203,11 +2253,14 @@ type BindingNode
            yield Expr.Node expr
            yield! noa inKeyword |]
 
+/// A `let … and …` group of mutually recursive bindings, or a sequence of `use` bindings.
 type BindingListNode(bindings: BindingNode list, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield! nodes bindings |]
     member val Bindings = bindings
 
+/// Example: `val mutable private name: int` — a field declaration inside a type definition.
+/// Used for record fields, union-case fields, and `val`-style class fields.
 type FieldNode
     (
         xmlDoc: XmlDocNode option,
@@ -2238,6 +2291,7 @@ type FieldNode
     member val Name = name
     member val Type = t
 
+/// Example: `| MyCase of int * string` — a discriminated union case declaration.
 type UnionCaseNode
     (
         xmlDoc: XmlDocNode option,
@@ -2262,6 +2316,9 @@ type UnionCaseNode
     member val Identifier = identifier
     member val Fields = fields
 
+/// The shared header of a type definition: `type` / `and` keyword, optional doc, attributes, name, type parameters,
+/// constraints, optional implicit constructor, and `=` / `with` tokens.
+/// Example: `type private MyType<'T when 'T: equality>(x: int) =`
 type TypeNameNode
     (
         xmlDoc: XmlDocNode option,
@@ -2306,6 +2363,7 @@ type ITypeDefn =
     abstract member TypeName: TypeNameNode
     abstract member Members: MemberDefn list
 
+/// Example: `| Red = 0` — a single enum case declaration.
 type EnumCaseNode
     (
         xmlDoc: XmlDocNode option,
@@ -2332,6 +2390,7 @@ type EnumCaseNode
     member val Equals = equals
     member val Constant = constant
 
+/// Example: `type Color = Red | Green | Blue` — an enum-style type definition with integer-valued cases.
 type TypeDefnEnumNode(typeNameNode, enumCases: EnumCaseNode list, members: MemberDefn list, range) =
     inherit NodeBase(range)
 
@@ -2346,6 +2405,7 @@ type TypeDefnEnumNode(typeNameNode, enumCases: EnumCaseNode list, members: Membe
         member val TypeName = typeNameNode
         member val Members = members
 
+/// Example: `type Result<'T> = Ok of 'T | Error of string` — a discriminated union type definition.
 type TypeDefnUnionNode
     (typeNameNode, accessibility: SingleTextNode option, unionCases: UnionCaseNode list, members: MemberDefn list, range)
     =
@@ -2364,6 +2424,7 @@ type TypeDefnUnionNode
         member val TypeName = typeNameNode
         member val Members = members
 
+/// Example: `type Point = { X: float; Y: float }` — a record type definition.
 type TypeDefnRecordNode
     (
         typeNameNode,
@@ -2393,6 +2454,7 @@ type TypeDefnRecordNode
         member val TypeName = typeNameNode
         member val Members = members
 
+/// Example: `type Alias = OtherType` — a type abbreviation.
 type TypeDefnAbbrevNode(typeNameNode, t: Type, members, range) =
     inherit NodeBase(range)
 
@@ -2407,12 +2469,14 @@ type TypeDefnAbbrevNode(typeNameNode, t: Type, members, range) =
         member val TypeName = typeNameNode
         member val Members = members
 
+/// Example: `as self` — the self-identifier binding at the end of an implicit constructor parameter list.
 type AsSelfIdentifierNode(asNode: SingleTextNode, self: SingleTextNode, range) =
     inherit NodeBase(range)
     override val Children = [| yield (asNode :> Node); yield self |]
     member val As = asNode
     member val Self = self
 
+/// Example: `(x: int, y: string) as self` — the primary constructor definition directly following the type name.
 type ImplicitConstructorNode
     (
         xmlDoc: XmlDocNode option,
@@ -2437,6 +2501,7 @@ type ImplicitConstructorNode
     member val Pattern = pat
     member val Self = self
 
+/// The body of a `class … end` / `struct … end` / `interface … end` explicit type definition block.
 type TypeDefnExplicitBodyNode(kind: SingleTextNode, members: MemberDefn list, endNode: SingleTextNode, range) =
     inherit NodeBase(range)
 
@@ -2446,6 +2511,7 @@ type TypeDefnExplicitBodyNode(kind: SingleTextNode, members: MemberDefn list, en
     member val Members = members
     member val End = endNode
 
+/// Example: `type MyClass() = class … end` — a type definition using an explicit `class`/`struct`/`interface` block.
 type TypeDefnExplicitNode(typeNameNode, body: TypeDefnExplicitBodyNode, members, range) =
     inherit NodeBase(range)
 
@@ -2460,6 +2526,7 @@ type TypeDefnExplicitNode(typeNameNode, body: TypeDefnExplicitBodyNode, members,
         member val TypeName = typeNameNode
         member val Members = members
 
+/// Example: `type MyClass with` — a type augmentation (intrinsic extension) adding members to an existing type.
 type TypeDefnAugmentationNode(typeNameNode, members, range) =
     inherit NodeBase(range)
 
@@ -2469,6 +2536,7 @@ type TypeDefnAugmentationNode(typeNameNode, members, range) =
         member val TypeName = typeNameNode
         member val Members = members
 
+/// Example: `type MyDelegate = delegate of int * string -> bool` — a delegate type declaration.
 type TypeDefnDelegateNode(typeNameNode, delegateNode: SingleTextNode, typeList: TypeFunsNode, range) =
     inherit NodeBase(range)
 
@@ -2481,6 +2549,8 @@ type TypeDefnDelegateNode(typeNameNode, delegateNode: SingleTextNode, typeList: 
         member val TypeName = typeNameNode
         member val Members = List.empty
 
+/// A regular type definition (class, interface, or abstract class without an explicit `class … end` block).
+/// Example: `type MyClass() =\n    member _.Foo() = …`
 type TypeDefnRegularNode(typeNameNode, members, range) =
     inherit NodeBase(range)
 
@@ -2529,6 +2599,7 @@ type TypeDefn =
         | Delegate n -> n
         | Regular n -> n
 
+/// Example: `inherit Base()` — an `inherit` member declaration inside a class body that specifies the base class.
 type MemberDefnInheritNode(inheritKeyword: SingleTextNode, baseType: Type, range) =
     inherit NodeBase(range)
 
@@ -2572,6 +2643,7 @@ type MemberDefnExplicitCtorNode
     member val Equals = equals
     member val Expr = expr
 
+/// Example: `interface IDisposable with member _.Dispose() = ()` — an `interface` implementation clause inside a class or struct definition.
 type MemberDefnInterfaceNode
     (interfaceNode: SingleTextNode, t: Type, withNode: SingleTextNode option, members: MemberDefn list, range) =
     inherit NodeBase(range)
@@ -2587,6 +2659,7 @@ type MemberDefnInterfaceNode
     member val With = withNode
     member val Members = members
 
+/// Example: `member val Name = "" with get, set` — an auto-implemented property that generates a backing field automatically.
 type MemberDefnAutoPropertyNode
     (
         xmlDoc: XmlDocNode option,
@@ -2623,6 +2696,7 @@ type MemberDefnAutoPropertyNode
     member val Expr = expr
     member val WithGetSet = withGetSet
 
+/// Example: `abstract member Area: float` — an abstract member declaration specifying a name and type signature.
 type MemberDefnAbstractSlotNode
     (
         xmlDoc: XmlDocNode option,
@@ -2653,6 +2727,7 @@ type MemberDefnAbstractSlotNode
     member val Type = t
     member val WithGetSet = withGetSet
 
+/// A single `get` or `set` accessor body inside a `member … with get/set` property declaration.
 type PropertyGetSetBindingNode
     (
         inlineNode: SingleTextNode option,
@@ -2686,6 +2761,7 @@ type PropertyGetSetBindingNode
     member val Equals = equals
     member val Expr = expr
 
+/// Example: `member x.Prop with get() = … and set v = …` — a property member with explicit `get` and/or `set` accessor bodies.
 type MemberDefnPropertyGetSetNode
     (
         xmlDoc: XmlDocNode option,
@@ -2724,6 +2800,7 @@ type MemberDefnPropertyGetSetNode
     member val AndKeyword = andKeyword
     member val LastBinding = lastBinding
 
+/// Example: `val mutable x: int` — a value declaration in a class or signature file, optionally mutable and with an initial expression.
 type ValNode
     (
         xmlDoc: XmlDocNode option,
@@ -2764,6 +2841,7 @@ type ValNode
     member val Equals = equals
     member val Expr = eo
 
+/// Example: `abstract member Name: string with get, set` — a `val` declaration in a signature used as an abstract or interface member.
 type MemberDefnSigMemberNode(valNode: ValNode, withGetSet: MultipleTextsNode option, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield valNode; yield! noa withGetSet |]
@@ -2802,12 +2880,14 @@ type MemberDefn =
         | PropertyGetSet n -> n
         | SigMember n -> n
 
+/// Example: `()` — a unit value consisting of an opening and closing parenthesis.
 type UnitNode(openingParen: SingleTextNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield openingParen; yield closingParen |]
     member val OpeningParen = openingParen
     member val ClosingParen = closingParen
 
+/// Example: `1.0<m/s>` — a numeric constant annotated with a unit of measure.
 type ConstantMeasureNode(constant: Constant, measure: UnitOfMeasureNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Constant.Node constant; yield measure |]
@@ -2826,6 +2906,8 @@ type Constant =
         | Unit n -> n
         | Measure n -> n
 
+/// Example: `'T` or `[<SomeAttr>] 'T & IDisposable` — a type parameter declaration with optional attributes
+/// and optional intersection constraints (F# 8+). Used in `<'T>` or `('T)` postfix/prefix type parameter lists.
 type TyparDeclNode
     (
         attributes: MultipleAttributeListNode option,
@@ -2849,6 +2931,7 @@ type TyparDeclNode
     member val TypeParameter = typar
     member val IntersectionConstraints = intersectionConstraints
 
+/// Example: `<'T, 'U when 'T: equality>` — a postfix (angle-bracket) list of type parameter declarations with constraints.
 type TyparDeclsPostfixListNode
     (
         lessThan: SingleTextNode,
@@ -2870,6 +2953,7 @@ type TyparDeclsPostfixListNode
     member val Constraints = constraints
     member val GreaterThan = greaterThan
 
+/// Example: `('T, 'U)` — a prefix (parenthesised) list of type parameter declarations.
 type TyparDeclsPrefixListNode
     (openingParen: SingleTextNode, decls: TyparDeclNode list, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
@@ -2890,12 +2974,14 @@ type TyparDecls =
         | PrefixList n -> n
         | SinglePrefix n -> n
 
+/// Example: `'T: comparison` or `'T: null` — a simple single-token type constraint.
 type TypeConstraintSingleNode(typar: SingleTextNode, kind: SingleTextNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield typar; yield kind |]
     member val Typar = typar
     member val Kind = kind
 
+/// Example: `default 'T: int` — a default type constraint used in statically-resolved type parameters.
 type TypeConstraintDefaultsToTypeNode(defaultNode: SingleTextNode, typar: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield defaultNode; yield typar; yield Type.Node t |]
@@ -2903,18 +2989,21 @@ type TypeConstraintDefaultsToTypeNode(defaultNode: SingleTextNode, typar: Single
     member val Typar = typar
     member val Type = t
 
+/// Example: `'T :> IDisposable` — a subtype constraint.
 type TypeConstraintSubtypeOfTypeNode(typar: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield typar; yield Type.Node t |]
     member val Typar = typar
     member val Type = t
 
+/// Example: `'T: (member Foo: int)` — a member constraint on a statically resolved type parameter.
 type TypeConstraintSupportsMemberNode(t: Type, memberSig: MemberDefn, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Type.Node t |]
     member val Type = t
     member val MemberSig = memberSig
 
+/// Example: `'T: enum<int>` or `'T: delegate<int, string>` — an enum or delegate constraint on a type parameter.
 type TypeConstraintEnumOrDelegateNode(typar: SingleTextNode, verb: string, ts: Type list, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield typar; yield! List.map Type.Node ts |]
@@ -2953,6 +3042,7 @@ type TypeConstraint =
         | WhereSelfConstrained t -> Type.Node t
         | WhereNotSupportsNull n -> n
 
+/// Example: `<m/s^2>` — a unit-of-measure annotation enclosed in angle brackets, used in type annotations.
 type UnitOfMeasureNode(lessThan: SingleTextNode, measure: Measure, greaterThan: SingleTextNode, range) =
     inherit NodeBase(range)
 
@@ -2962,6 +3052,7 @@ type UnitOfMeasureNode(lessThan: SingleTextNode, measure: Measure, greaterThan: 
     member val Measure = measure
     member val GreaterThan = greaterThan
 
+/// Example: `m * s` or `m / s` — a binary operator expression between two unit-of-measure terms.
 type MeasureOperatorNode(lhs: Measure, operator: SingleTextNode, rhs: Measure, range) =
     inherit NodeBase(range)
 
@@ -2971,6 +3062,7 @@ type MeasureOperatorNode(lhs: Measure, operator: SingleTextNode, rhs: Measure, r
     member val Operator = operator
     member val RightHandSide = rhs
 
+/// Example: `m / s` or `1 / s` (when <c>LeftHandSide</c> is <c>None</c>, represents the reciprocal `/ s`).
 type MeasureDivideNode(lhs: Measure option, operator: SingleTextNode, rhs: Measure, range) =
     inherit NodeBase(range)
 
@@ -2985,6 +3077,7 @@ type MeasureDivideNode(lhs: Measure option, operator: SingleTextNode, rhs: Measu
     member val Operator = operator
     member val RightHandSide = rhs
 
+/// Example: `m^2` — a unit-of-measure raised to a rational power.
 type MeasurePowerNode(measure: Measure, caret: SingleTextNode, exponent: RationalConstNode, range) =
     inherit NodeBase(range)
 
@@ -2997,11 +3090,13 @@ type MeasurePowerNode(measure: Measure, caret: SingleTextNode, exponent: Rationa
     member val Caret = caret
     member val Exponent = exponent
 
+/// Example: `m s` — a sequence of juxtaposed unit-of-measure terms (implicit multiplication).
 type MeasureSequenceNode(measures: Measure list, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield! List.map Measure.Node measures |]
     member val Measures = measures
 
+/// Example: `(m * s)` — a parenthesised unit-of-measure expression for grouping.
 type MeasureParenNode(openingParen: SingleTextNode, measure: Measure, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
@@ -3011,6 +3106,7 @@ type MeasureParenNode(openingParen: SingleTextNode, measure: Measure, closingPar
     member val Measure = measure
     member val ClosingParen = closingParen
 
+/// Example: `(3/2)` — a rational-number exponent in a unit-of-measure power expression such as `m^(3/2)`.
 type RationalNode
     (
         openingParen: SingleTextNode,
@@ -3035,6 +3131,7 @@ type RationalNode
     member val Denominator = denominator
     member val ClosingParen = closingParen
 
+/// Example: `-2` or `-(3/2)` — a negated rational constant used as a unit-of-measure exponent.
 type NegateRationalNode(minus: SingleTextNode, rationalConst: RationalConstNode, range: range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield minus; yield RationalConstNode.Node rationalConst |]
