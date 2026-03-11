@@ -1329,6 +1329,37 @@ type X() =
 """
 
 [<Test>]
+let ``comment after colon in property return type stays on same line as equals, 2827`` () =
+    formatSourceString
+        """
+type SomeType() =
+
+    let mutable v: string = ""
+
+    member this.MyProperty
+        with get (): // comment
+                     string =
+                     "foobarry"
+        and set (value: string): //comment
+                                 unit = v <- value
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type SomeType() =
+
+    let mutable v: string = ""
+
+    member this.MyProperty
+        with get (): string = // comment
+            "foobarry"
+        and set (value: string): unit = //comment
+            v <- value
+"""
+
+[<Test>]
 let ``long tuple on single line, 3124`` () =
     formatSourceString
         """
