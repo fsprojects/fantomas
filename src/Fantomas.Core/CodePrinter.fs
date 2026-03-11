@@ -1500,7 +1500,8 @@ let genExpr (e: Expr) =
             let sep =
                 match node.Index with
                 | Expr.Constant _
-                | Expr.Ident _ -> sepSpace
+                | Expr.Ident _
+                | Expr.OptVar _ -> sepSpace
                 | _ -> sepNone
 
             genIdentListNode node.Identifier

@@ -268,6 +268,24 @@ Log.Logger <- LoggerConfiguration<Foo>().Destructure.FSharpTypes().WriteTo.Conso
 """
 
 [<Test>]
+let ``long ident index in NamedIndexedPropertySet preserves space, 3273`` () =
+    formatSourceString
+        """
+a.B c.DE <- 0
+a.B c <- 0
+B c.DE <- 0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a.B c.DE <- 0
+a.B c <- 0
+B c.DE <- 0
+"""
+
+[<Test>]
 let ``const in NamedIndexedPropertySet, 2498`` () =
     formatSourceString
         """
