@@ -7,7 +7,7 @@ open NUnit.Framework
 open System.IO
 
 let private (==) (actual: 'T) (expected: 'T) =
-    Assert.That(actual, Is.EqualTo expected)
+    Assert.That(actual, Is.EqualTo(expected :> obj))
 
 let private defaultConfig = FormatConfig.Default
 let tempName () = Guid.NewGuid().ToString("N")
