@@ -154,9 +154,54 @@ let QualFileNameOfImpls filename specs =
 
 let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) =
     let tripleSlashComments = XmlDocStore.ReportInvalidXmlDocPositions lexbuf
+    let comments = CommentStore.GetComments(lexbuf)
 
-    [ yield! CommentStore.GetComments(lexbuf)
-      yield! List.map CommentTrivia.LineComment tripleSlashComments ]
+    // At EOF the lexer may record a /// comment in both CommentStore and XmlDocStore,
+    // producing a duplicate. Only pay the dedup cost when orphan /// comments exist.
+    let uniqueTripleSlash =
+        if List.isEmpty tripleSlashComments then
+            []
+        else
+            // Retrieve the source text stored by createLexbuf so we can verify that a
+            // LineComment from CommentStore at the same position genuinely starts with
+            // "///". This guards against accidentally suppressing a triple-slash entry
+            // that happens to share coordinates with an unrelated line comment.
+            let sourceText =
+                match lexbuf.BufferLocalStore.TryGetValue("SourceText") with
+                | true, (:? ISourceText as st) -> Some st
+                | _ -> None
+
+            let isTripleSlashComment (r: range) =
+                match sourceText with
+                | None -> true // conservative: assume it may be /// if we can't verify
+                | Some st ->
+                    let lineIdx = r.StartLine - 1 // StartLine is 1-based; GetLineString is 0-based
+                    let col = r.StartColumn
+
+                    lineIdx >= 0
+                    && lineIdx < st.GetLineCount()
+                    && let line = st.GetLineString(lineIdx) in
+
+                       line.Length > col + 2
+                       && line[col] = '/'
+                       && line[col + 1] = '/'
+                       && line[col + 2] = '/'
+
+            let existingPositions =
+                comments
+                |> List.choose (function
+                    | CommentTrivia.LineComment r when isTripleSlashComment r -> Some(r.StartLine, r.StartColumn)
+                    | _ -> None)
+                |> Set.ofList
+
+            tripleSlashComments
+            |> List.choose (fun r ->
+                if Set.contains (r.StartLine, r.StartColumn) existingPositions then
+                    None
+                else
+                    Some(CommentTrivia.LineComment r))
+
+    [ yield! comments; yield! uniqueTripleSlash ]
     |> List.sortBy (function
         | CommentTrivia.LineComment r
         | CommentTrivia.BlockComment r -> r.StartLine, r.StartColumn)
@@ -335,8 +380,12 @@ let EmptyParsedInput (filename, isLastCompiland) =
             )
         )
 
-let createLexbuf langVersion sourceText =
-    UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), Some true, sourceText)
+let createLexbuf langVersion (sourceText: ISourceText) =
+    let lexbuf =
+        UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), Some true, sourceText)
+
+    lexbuf.BufferLocalStore["SourceText"] <- (sourceText :> obj)
+    lexbuf
 
 let createLexerFunction (defines: string list) lexbuf (errorLogger: CapturingDiagnosticsLogger) =
     // Note: we don't really attempt to intern strings across a large scope.
