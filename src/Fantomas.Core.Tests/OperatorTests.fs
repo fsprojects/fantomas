@@ -1440,3 +1440,19 @@ let ``comment between lines breaks indentation, 2944`` () =
   // a comment
   5
 """
+
+[<Test>]
+let ``lambda on LHS of custom infix operator is parenthesised to preserve semantics, 3274`` () =
+    formatSourceString
+        """
+let a =
+    fun x -> {| X = x |}
+    <*| op
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = (fun x -> {| X = x |}) <*| op
+"""

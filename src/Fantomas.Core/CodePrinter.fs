@@ -819,8 +819,18 @@ let genExpr (e: Expr) =
             | Expr.AnonStructRecord _ -> atCurrentColumnIndent (genExpr e)
             | _ -> genExpr e
 
+        // When the LHS is a lambda or if/then/else, it must be parenthesised in the
+        // single-line form. Without parens, `fun x -> body <op> rhs` would be parsed
+        // as `fun x -> (body <op> rhs)` rather than `(fun x -> body) <op> rhs`, which
+        // changes semantics. See #3274.
+        let genLhsExpr =
+            if isLambdaOrIfThenElse node.LeftHandSide then
+                sepOpenT +> genExpr node.LeftHandSide +> sepCloseT
+            else
+                genExpr node.LeftHandSide
+
         let genShortInfixExpr =
-            genExpr node.LeftHandSide
+            genLhsExpr
             +> sepSpace
             +> genSingleTextNode node.Operator
             +> sepNlnWhenWriteBeforeNewlineNotEmpty
