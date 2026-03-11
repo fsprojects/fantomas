@@ -284,3 +284,17 @@ let xs = [| 42 |]
 
 xs.Items.Item 0 <- 20
 """
+
+[<Test>]
+let ``namedIndexedPropertySet with two SynLongIdent removes space, 3273`` () =
+    formatSourceString
+        """
+a.B c.DE <- 0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a.B c.DE <- 0
+"""
