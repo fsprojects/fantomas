@@ -329,7 +329,9 @@
     <div>
       <div class="fsdocs-summary-contents">
         <p class="fsdocs-summary">
-          
+           Discriminated union of all F# type-definition forms in the Oak representation.
+ <c>None</c> is used for a bare type name with no body (e.g. <c>type T</c> in a signature);
+ all other cases wrap a dedicated node type that also implements <see cref="ITypeDefn"/>.
         </p>
       </div>
     </div>

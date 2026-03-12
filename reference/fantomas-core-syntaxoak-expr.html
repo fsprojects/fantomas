@@ -329,7 +329,10 @@
     <div>
       <div class="fsdocs-summary-contents">
         <p class="fsdocs-summary">
-          
+           Discriminated union of all F# expressions in the Oak intermediate representation.
+ Each case wraps a strongly-typed node that captures the exact sub-structure needed
+ for formatting. Use <c>Expr.Node</c> to obtain the underlying <see cref="Node"/>
+ for printer dispatch, and <c>Expr.NodeRange</c> for range queries.
         </p>
       </div>
     </div>

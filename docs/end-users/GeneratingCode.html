@@ -587,7 +587,11 @@ type Range =
   member IsIdent: bool
   member IsKnownDot: bool
   member IsUnknownDot: bool
-  member Range: range option</div>
+  member Range: range option<br /><em>&lt;summary&gt;
+ A single element of a dotted identifier path, either an identifier token or a dot separator.
+ &amp;lt;c&amp;gt;KnownDot&amp;lt;/c&amp;gt; carries the source range of the &amp;lt;c&amp;gt;.&amp;lt;/c&amp;gt; when it is present in the source;
+ &amp;lt;c&amp;gt;UnknownDot&amp;lt;/c&amp;gt; is used as a synthetic separator when the original range is unavailable.
+&lt;/summary&gt;</em></div>
 <div class="fsdocs-tip" id="fs18">union case IdentifierOrDot.Ident: SingleTextNode -&gt; IdentifierOrDot</div>
 <div class="fsdocs-tip" id="fs19">type Expr =
   | Lazy of ExprLazyNode
@@ -611,7 +615,12 @@ type Range =
   member IsArrayOrList: bool
   member IsBeginEnd: bool
   member IsChain: bool
-  ...</div>
+  ...<br /><em>&lt;summary&gt;
+ Discriminated union of all F# expressions in the Oak intermediate representation.
+ Each case wraps a strongly-typed node that captures the exact sub-structure needed
+ for formatting. Use &amp;lt;c&amp;gt;Expr.Node&amp;lt;/c&amp;gt; to obtain the underlying &amp;lt;see cref=&quot;Node&quot;/&amp;gt;
+ for printer dispatch, and &amp;lt;c&amp;gt;Expr.NodeRange&amp;lt;/c&amp;gt; for range queries.
+&lt;/summary&gt;</em></div>
 <div class="fsdocs-tip" id="fs20">union case Expr.Constant: Constant -&gt; Expr</div>
 <div class="fsdocs-tip" id="fs21">type Constant =
   | FromText of SingleTextNode
@@ -620,7 +629,11 @@ type Range =
   static member Node: c: Constant -&gt; NodeBase
   member IsFromText: bool
   member IsMeasure: bool
-  member IsUnit: bool</div>
+  member IsUnit: bool<br /><em>&lt;summary&gt;
+ Discriminated union for the three forms of constant literal in the Oak representation.
+ &amp;lt;c&amp;gt;FromText&amp;lt;/c&amp;gt; covers all ordinary literals (integers, strings, booleans, etc.);
+ &amp;lt;c&amp;gt;Unit&amp;lt;/c&amp;gt; is the &amp;lt;c&amp;gt;()&amp;lt;/c&amp;gt; literal; &amp;lt;c&amp;gt;Measure&amp;lt;/c&amp;gt; is a numeric literal with a unit annotation.
+&lt;/summary&gt;</em></div>
 <div class="fsdocs-tip" id="fs22">union case Constant.FromText: SingleTextNode -&gt; Constant</div>
 <div class="fsdocs-tip" id="fs23">type ModuleDecl =
   | OpenList of OpenListNode
@@ -752,7 +765,10 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
   member IsLongIdent: bool
   member IsNamePatPairs: bool
   member IsNamed: bool
-  ...</div>
+  ...<br /><em>&lt;summary&gt;
+ Discriminated union of all F# patterns in the Oak intermediate representation.
+ Each case wraps a strongly-typed node. Use &amp;lt;c&amp;gt;Pattern.Node&amp;lt;/c&amp;gt; for printer dispatch.
+&lt;/summary&gt;</em></div>
 <div class="fsdocs-tip" id="fs50">union case Pattern.Named: PatNamedNode -&gt; Pattern</div>
 <div class="fsdocs-tip" id="fs51">Multiple items<br />type PatNamedNode =
   inherit NodeBase

@@ -333,7 +333,10 @@
     <div>
       <div class="fsdocs-summary-contents">
         <p class="fsdocs-summary">
-          
+           Base implementation of <see cref="Node"/> shared by all concrete Oak node types.
+ Manages the mutable trivia queues (<c>ContentBefore</c> / <c>ContentAfter</c>) and
+ the optional in-editor cursor position.  Concrete node types inherit from this class
+ and supply their <c>Children</c> override.
         </p>
       </div>
     </div>

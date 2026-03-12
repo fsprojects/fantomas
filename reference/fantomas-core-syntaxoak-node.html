@@ -333,7 +333,11 @@
     <div>
       <div class="fsdocs-summary-contents">
         <p class="fsdocs-summary">
-          
+           The core interface implemented by every node in the Oak intermediate representation.
+ Each node carries trivia (comments, blank lines, directives) that were attached to
+ it during the AST → Oak transformation, together with its source range and child nodes.
+ The printer reads <c>ContentBefore</c> / <c>ContentAfter</c> when emitting each node
+ so that all non-code content is reproduced in the output.
         </p>
       </div>
     </div>
