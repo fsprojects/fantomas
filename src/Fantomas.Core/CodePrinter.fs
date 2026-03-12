@@ -1878,8 +1878,30 @@ let genArrayOrList (preferMultilineCramped: bool) (node: ExprArrayOrListNode) =
                     | Expr.IfThenElse _ -> true
                     | _ -> false
 
-                List.exists isIfThenElse node.Elements
-                || List.forall isLambdaOrIfThenElse node.Elements
+                // Returns true when an expression, if placed as a non-last element
+                // of a single-line list (followed by ";"), would have its lambda or
+                // if/then/else body swallow the subsequent list items.
+                // E.g. `1, fun () -> 1` in `[1, fun () -> 1; 1, fun () -> 1]` —
+                // the lambda captures the ";" and the following element as its body,
+                // changing the list from two elements to one. See #3278.
+                let wouldSwallowNextListItem (e: Expr) =
+                    match e with
+                    | IsLambdaOrIfThenElse _ -> true
+                    | Expr.Tuple tupleNode ->
+                        tupleNode.Items
+                        |> List.choose (function
+                            | Choice1Of2 e -> Some e
+                            | _ -> None)
+                        |> List.tryLast
+                        |> Option.exists isLambdaOrIfThenElse
+                    | _ -> false
+
+                let elements = node.Elements
+
+                List.exists isIfThenElse elements
+                || List.forall isLambdaOrIfThenElse elements
+                || (elements.Length > 1
+                    && List.take (elements.Length - 1) elements |> List.exists wouldSwallowNextListItem)
 
             if alwaysMultiline then
                 multilineExpression ctx

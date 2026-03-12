@@ -1482,3 +1482,29 @@ type Rec = { A: int; B: int -> int; C: int }
 
 let test () : Rec = { A = 1; B = (fun x -> x + 1); C = 3 }
 """
+
+[<Test>]
+let ``lambda in non-last tuple position in list stays multiline to preserve semantics, 3278`` () =
+    formatSourceString
+        """
+module A
+
+let x =
+    [
+        1, fun () -> 1
+        1, fun () -> 1
+    ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module A
+
+let x =
+    [
+        1, fun () -> 1
+        1, fun () -> 1
+    ]
+"""
