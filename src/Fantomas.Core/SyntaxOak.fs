@@ -4,6 +4,11 @@ open System.Collections.Generic
 open System.Text
 open Fantomas.FCS.Text
 
+/// The kind of non-code content that can be attached to a node as trivia.
+/// Single-line and line-after-source-code comments carry their text; block comments
+/// also record whether blank lines should surround them. <c>Directive</c> covers
+/// preprocessor directives and <c>Cursor</c> is used by editor tooling to track the
+/// caret position during formatting.
 type TriviaContent =
     | CommentOnSingleLine of string
     | LineCommentAfterSourceCode of comment: string
@@ -31,6 +36,11 @@ type TriviaNode(content: TriviaContent, range: range) =
         | Directive s -> $"Directive(%s{rangeStr}, \"%s{s}\")"
         | Cursor -> $"Cursor(%s{rangeStr})"
 
+/// The core interface implemented by every node in the Oak intermediate representation.
+/// Each node carries trivia (comments, blank lines, directives) that were attached to
+/// it during the AST → Oak transformation, together with its source range and child nodes.
+/// The printer reads <c>ContentBefore</c> / <c>ContentAfter</c> when emitting each node
+/// so that all non-code content is reproduced in the output.
 [<Interface>]
 type Node =
     abstract ContentBefore: TriviaNode seq
@@ -44,6 +54,10 @@ type Node =
     abstract AddCursor: pos -> unit
     abstract TryGetCursor: pos option
 
+/// Base implementation of <see cref="Node"/> shared by all concrete Oak node types.
+/// Manages the mutable trivia queues (<c>ContentBefore</c> / <c>ContentAfter</c>) and
+/// the optional in-editor cursor position.  Concrete node types inherit from this class
+/// and supply their <c>Children</c> override.
 [<AbstractClass>]
 type NodeBase(range: range) =
     let mutable potentialCursor = None
@@ -161,6 +175,9 @@ let combineRanges (ranges: range seq) =
     else
         Seq.reduce Range.unionRanges ranges
 
+/// A single element of a dotted identifier path, either an identifier token or a dot separator.
+/// <c>KnownDot</c> carries the source range of the <c>.</c> when it is present in the source;
+/// <c>UnknownDot</c> is used as a synthetic separator when the original range is unavailable.
 [<RequireQualifiedAccess; NoComparison>]
 type IdentifierOrDot =
     | Ident of SingleTextNode
@@ -468,6 +485,9 @@ type TypeIntersectionNode(typesAndSeparators: Choice<Type, SingleTextNode> list,
 
     member val TypesAndSeparators = typesAndSeparators
 
+/// Discriminated union of all F# type expressions in the Oak intermediate representation.
+/// Each case wraps a strongly-typed node that carries the substructure of that type form.
+/// Use <c>Type.Node</c> to obtain the underlying <see cref="Node"/> for printer dispatch.
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Type =
     | Funs of TypeFunsNode
@@ -696,6 +716,8 @@ type PatIsInstNode(token: SingleTextNode, t: Type, range) =
     member val Token = token
     member val Type = t
 
+/// Discriminated union of all F# patterns in the Oak intermediate representation.
+/// Each case wraps a strongly-typed node. Use <c>Pattern.Node</c> for printer dispatch.
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Pattern =
     | OptionalVal of SingleTextNode
@@ -885,6 +907,9 @@ type InheritConstructorOtherNode(inheritKeyword: SingleTextNode, t: Type, expr: 
     member val Type = t
     member val Expr = expr
 
+/// Discriminated union for the argument form following an <c>inherit</c> declaration.
+/// Covers the four constructor syntax variants: bare type, unit <c>()</c>, parenthesised
+/// argument list, and any other expression argument form.
 [<RequireQualifiedAccess; NoComparison>]
 type InheritConstructor =
     | TypeOnly of InheritConstructorTypeOnlyNode
@@ -1138,6 +1163,9 @@ type ExprComputationNode(openingBrace: SingleTextNode, bodyExpr: Expr, closingBr
     member val Body = bodyExpr
     member val ClosingBrace = closingBrace
 
+/// A single statement inside a computation-expression body.
+/// <c>BindingStatement</c> covers <c>let!</c>, <c>let</c>, <c>use!</c> etc. bindings;
+/// <c>OtherStatement</c> covers any other expression (e.g. <c>return</c>, <c>do!</c>, <c>yield</c>).
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type ComputationExpressionStatement =
     | BindingStatement of BindingNode
@@ -1280,6 +1308,9 @@ type ExprPrefixAppNode(operator: SingleTextNode, expr: Expr, range) =
     member val Operator = operator
     member val Expr = expr
 
+/// Marker interface implemented by <see cref="ExprSameInfixAppsNode"/> and
+/// <see cref="ExprInfixAppNode"/> to allow the printer to treat both infix-application
+/// forms uniformly when deciding layout (e.g. newline-infix formatting).
 type InfixApp = interface end
 
 /// Example: `a + b + c` — a sequence of the *same* operator applied repeatedly (avoids redundant nesting)
@@ -1329,6 +1360,9 @@ type LinkSingleAppUnit(functionName: Expr, unit: UnitNode, range) =
     member val FunctionName = functionName
     member val Unit = unit
 
+/// A single link in a method-call or property-access chain (e.g. <c>a.b().c[0]</c>).
+/// The chain is represented as an ordered list of <c>ChainLink</c> values so that the
+/// printer can decide whether to keep the chain on one line or break at each dot.
 [<RequireQualifiedAccess; NoComparison; NoEquality>]
 type ChainLink =
     | Identifier of Expr
@@ -1710,6 +1744,10 @@ type StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode(typar: SingleText
     member val TypeParameter = typar
     member val Type = t
 
+/// A static optimisation constraint attached to an <c>Expr.LibraryOnlyStaticOptimization</c>
+/// node (internal compiler use, not user-facing F# syntax).
+/// <c>WhenTyparTyconEqualsTycon</c> represents <c>when 'T = SomeType</c>;
+/// <c>WhenTyparIsStruct</c> represents <c>when 'T: struct</c>.
 [<NoComparison>]
 type StaticOptimizationConstraint =
     | WhenTyparTyconEqualsTycon of StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode
@@ -1828,6 +1866,10 @@ type ExprExplicitConstructorThenExpr(thenNode: SingleTextNode, expr: Expr, range
     member val Then = thenNode
     member val Expr = expr
 
+/// Discriminated union of all F# expressions in the Oak intermediate representation.
+/// Each case wraps a strongly-typed node that captures the exact sub-structure needed
+/// for formatting. Use <c>Expr.Node</c> to obtain the underlying <see cref="Node"/>
+/// for printer dispatch, and <c>Expr.NodeRange</c> for range queries.
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Expr =
     | Lazy of ExprLazyNode
@@ -1983,6 +2025,9 @@ type OpenTargetNode(target: Type, range) =
     override val Children: Node array = [| yield Type.Node target |]
     member val Target = target
 
+/// Discriminated union for the two forms of <c>open</c> declaration.
+/// <c>ModuleOrNamespace</c> represents <c>open System.IO</c>;
+/// <c>Target</c> represents <c>open type System.Math</c>.
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Open =
     | ModuleOrNamespace of OpenModuleOrNamespaceNode
@@ -2359,6 +2404,9 @@ type TypeNameNode
     member val EqualsToken = equalsToken
     member val WithKeyword = withKeyword
 
+/// Interface implemented by all type-definition node types that carry a type name and a
+/// member list. Used to access the common parts of a type definition (its header and
+/// members) without matching on every <see cref="TypeDefn"/> case.
 type ITypeDefn =
     abstract member TypeName: TypeNameNode
     abstract member Members: MemberDefn list
@@ -2560,6 +2608,9 @@ type TypeDefnRegularNode(typeNameNode, members, range) =
         member val TypeName = typeNameNode
         member val Members = members
 
+/// Discriminated union of all F# type-definition forms in the Oak representation.
+/// <c>None</c> is used for a bare type name with no body (e.g. <c>type T</c> in a signature);
+/// all other cases wrap a dedicated node type that also implements <see cref="ITypeDefn"/>.
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type TypeDefn =
     | Enum of TypeDefnEnumNode
@@ -2848,6 +2899,9 @@ type MemberDefnSigMemberNode(valNode: ValNode, withGetSet: MultipleTextsNode opt
     member val Val = valNode
     member val WithGetSet = withGetSet
 
+/// Discriminated union of all member definitions that can appear inside a type body.
+/// Covers everything from <c>inherit</c> and <c>val</c> fields to explicit constructors,
+/// abstract slots, auto-properties, and interface implementations.
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type MemberDefn =
     | ImplicitInherit of InheritConstructor
@@ -2894,6 +2948,9 @@ type ConstantMeasureNode(constant: Constant, measure: UnitOfMeasureNode, range) 
     member val Constant = constant
     member val Measure = measure
 
+/// Discriminated union for the three forms of constant literal in the Oak representation.
+/// <c>FromText</c> covers all ordinary literals (integers, strings, booleans, etc.);
+/// <c>Unit</c> is the <c>()</c> literal; <c>Measure</c> is a numeric literal with a unit annotation.
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Constant =
     | FromText of SingleTextNode
@@ -2962,6 +3019,9 @@ type TyparDeclsPrefixListNode
     member val Decls = decls
     member val ClosingParen = closingParen
 
+/// Discriminated union for the three syntactic forms of type-parameter declaration.
+/// <c>PostfixList</c> is the <c>{'T, 'U}</c> style; <c>PrefixList</c> is <c>('T, 'U)</c>;
+/// <c>SinglePrefix</c> is a bare <c>'T</c> in contexts where only one parameter is present.
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type TyparDecls =
     | PostfixList of TyparDeclsPostfixListNode
@@ -3022,6 +3082,9 @@ type TypeConstraintWhereNotSupportsNull
     member val Not = notNode
     member val Null = nullNode
 
+/// Discriminated union of all type-constraint forms that can appear in <c>when</c> clauses.
+/// Covers simple constraints (<c>'T: comparison</c>), subtype constraints (<c>'T :> T</c>),
+/// member constraints, enum/delegate constraints, and F# 9 null-related constraints.
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type TypeConstraint =
     | Single of TypeConstraintSingleNode
@@ -3139,6 +3202,9 @@ type NegateRationalNode(minus: SingleTextNode, rationalConst: RationalConstNode,
     member val Minus = minus
     member val Rational = rationalConst
 
+/// Discriminated union for the three forms of a rational-number exponent in a unit-of-measure
+/// type annotation (e.g. <c>m/s^2</c>). An exponent can be a plain integer, a rational
+/// fraction <c>3/2</c>, or a negated form of either.
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type RationalConstNode =
     | Integer of SingleTextNode
