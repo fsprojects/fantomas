@@ -2851,7 +2851,27 @@ let genReturnTypeBinding (node: BindingReturnInfoNode option) =
         onlyIfCtx (fun ctx -> ctx.Config.SpaceBeforeColon) sepSpace
         +> genSingleTextNode node.Colon
         +> sepSpace
-        +> genType node.Type
+        +> (fun ctx ->
+            // A line comment attached to the colon (e.g. `(): // comment\n T`) is buffered in
+            // WriteBeforeNewline. genIdentListNodeAux calls sepNlnWhenWriteBeforeNewlineNotEmpty
+            // after each ident, so if the buffer is non-empty, it would insert a newline between
+            // the return type and the following `=`, producing invalid F#.
+            // Fix: clear the buffer before rendering the type, then restore it so the comment
+            // is flushed after the next token (typically `=`).
+            let pending = ctx.WriterModel.WriteBeforeNewline
+
+            let ctx' =
+                if String.isNotNullOrEmpty pending then
+                    { ctx with WriterModel = { ctx.WriterModel with WriteBeforeNewline = "" } }
+                else
+                    ctx
+
+            let ctxAfter = genType node.Type ctx'
+
+            if String.isNotNullOrEmpty pending then
+                writerEvent (WriteBeforeNewline pending) ctxAfter
+            else
+                ctxAfter)
 
 let genBinding (b: BindingNode) (ctx: Context) : Context =
     let spaceBefore, alternativeSyntax =
