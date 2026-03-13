@@ -346,6 +346,7 @@ let isIfThenElse (e: Expr) =
 
 let (|IsIfThenElse|_|) (e: Expr) = if isIfThenElse e then Some e else None
 
+// TODO: eventually replace fully with isOpenEndedExpression
 let isLambdaOrIfThenElse (e: Expr) =
     match e with
     | Expr.Lambda _
@@ -354,6 +355,25 @@ let isLambdaOrIfThenElse (e: Expr) =
 
 let (|IsLambdaOrIfThenElse|_|) (e: Expr) =
     if isLambdaOrIfThenElse e then Some e else None
+
+/// Does this expression end with a construct whose body extends
+/// unboundedly to the right (lambda, if-then-else, tuple, ...)?
+let rec isOpenEndedExpression (e: Expr) =
+    match e with
+    | Expr.Lambda _
+    | Expr.IfThen _
+    | Expr.IfThenElse _
+    | Expr.IfThenElif _ -> true
+    | Expr.InfixApp node -> isOpenEndedExpression node.RightHandSide
+    | Expr.SameInfixApps node ->
+        match List.tryLast node.SubsequentExpressions with
+        | Some(_, rhs) -> isOpenEndedExpression rhs
+        | None -> isOpenEndedExpression node.LeadingExpr
+    | Expr.Tuple node ->
+        match List.tryLast node.Items with
+        | Some(Choice1Of2 lastExpr) -> isOpenEndedExpression lastExpr
+        | _ -> false
+    | _ -> false
 
 let genExpr (e: Expr) =
     match e with
@@ -827,13 +847,12 @@ let genExpr (e: Expr) =
             +> sepSpace
             +> genRhsExpr node.RightHandSide
 
-        let isNewLineInfixOp = newLineInfixOps.Contains node.Operator.Text
         let isNoBreakInfixOp = noBreakInfixOps.Contains node.Operator.Text
 
-        // Lambdas or if/then/else on the LHS of pipe-like operators (|>, ||>, >>)
-        // always use the multiline layout to avoid confusing indentation.
-        if isLambdaOrIfThenElse node.LeftHandSide && isNewLineInfixOp then
-            genNode node (genMultilineInfixExpr node)
+        // Open-ended expressions (lambda, if-then-else, etc.) on the left-hand side of an infix operator should
+        // always use the multiline layout to avoid any change in semantics.
+        if isOpenEndedExpression node.LeftHandSide then
+            genMultilineInfixExpr node |> genNode node
         // No-break operators (=, >, <, %) keep the operator on the same line as the LHS.
         // When the expression doesn't fit on one line, indent the RHS to preserve
         // correct indentation when trivia (comments) precedes it. See #2944.

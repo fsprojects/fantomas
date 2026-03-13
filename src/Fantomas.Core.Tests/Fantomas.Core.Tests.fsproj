@@ -136,6 +136,7 @@
     <Compile Include="NullnessTests.fs" />
     <Compile Include="AutoPropertiesTests.fs" />
     <Compile Include="PrefixTests.fs" />
+    <Compile Include="RequiresMultilineToPreserveSemanticsTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
