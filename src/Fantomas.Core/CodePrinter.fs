@@ -355,6 +355,26 @@ let isLambdaOrIfThenElse (e: Expr) =
 let (|IsLambdaOrIfThenElse|_|) (e: Expr) =
     if isLambdaOrIfThenElse e then Some e else None
 
+/// Returns true if the expression "ends with" a lambda or if/then/else — i.e., the
+/// rightmost syntactic position is inside a lambda or conditional body.
+/// When a list element ends this way and is not the last element, collapsing the list
+/// to a single line would cause the semicolon separator to be captured inside that body,
+/// changing the semantics of the code. See issue #3278.
+let rec endsWithLambdaOrIfThenElse (e: Expr) =
+    match e with
+    | Expr.Lambda _
+    | IsIfThenElse _ -> true
+    | Expr.Tuple node ->
+        node.Items
+        |> List.choose (function
+            | Choice1Of2 e -> Some e
+            | Choice2Of2 _ -> None)
+        |> List.tryLast
+        |> Option.map endsWithLambdaOrIfThenElse
+        |> Option.defaultValue false
+    | Expr.InfixApp node -> endsWithLambdaOrIfThenElse node.RightHandSide
+    | _ -> false
+
 let genExpr (e: Expr) =
     match e with
     | Expr.Lazy node ->
@@ -1878,8 +1898,15 @@ let genArrayOrList (preferMultilineCramped: bool) (node: ExprArrayOrListNode) =
                     | Expr.IfThenElse _ -> true
                     | _ -> false
 
+                // If any non-last element ends with a lambda or if/then/else, collapsing to a
+                // single line would cause that expression's body to capture the semicolon
+                // separator, changing the semantics of the code (see #3278).
+                let nonLastElements =
+                    List.take (max 0 (List.length node.Elements - 1)) node.Elements
+
                 List.exists isIfThenElse node.Elements
                 || List.forall isLambdaOrIfThenElse node.Elements
+                || List.exists endsWithLambdaOrIfThenElse nonLastElements
 
             if alwaysMultiline then
                 multilineExpression ctx
