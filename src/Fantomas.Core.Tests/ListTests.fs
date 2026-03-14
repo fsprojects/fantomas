@@ -2346,3 +2346,23 @@ let ``negative numbers in range operator, 3105`` () =
         """
 [| -24.0 .. -1.0 .. -30.0 |]
 """
+
+[<Test>]
+let ``list with tuple elements containing lambdas in non-last position stays multiline, 3278`` () =
+    formatSourceString
+        """
+let xs =
+    [ 1, fun () -> 1
+      1, fun () -> 1 ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let xs =
+    [
+        1, fun () -> 1
+        1, fun () -> 1
+    ]
+"""
