@@ -3,11 +3,12 @@
   "s": 3238,
   "c": [
     2827, 2816, 2856, 3011, 3069, 3243, 2694, 2499, 3273, 3274, 3278,
-    3103, 3150, 3110, 3073, 3130, 2779, 3156, 2519
+    3103, 3150, 3110, 3073, 3130, 2779, 3156, 2519, 2610, 3192
   ],
   "p": {
-    "3270": "open",
-    "3282": "open"
+    "3270": "superseded-by-v2",
+    "3282": "open",
+    "3284": "open"
   },
-  "m": "PR#3270 open(fix#2827). PR#3282 open(isFirstCharUppercase). #3278/#3274: nojaf said larger refactor(PR#3280,#3276 both closed)-DO NOT attempt. #3159 3PRs closed-skip. RFC#3279 Option B. #2519 bug confirmed fixed in main. PR#3281 MERGED."
+  "m": "PR#3270 superseded(fix#2827). New PR on branch repo-assist/fix-issue-2827-v2 created this run with withDeferredWriteBeforeNewline approach. PR#3282 open(isFirstCharUppercase). PR#3284 open(fix#3278 lambda-tuple-in-list). #3278/#3274: nojaf said larger refactor-DO NOT attempt. #3159 3PRs closed-skip. RFC#3279 Option B. #2519 bug confirmed fixed in main. Need to find new PR# for fix-issue-2827-v2 in next run and close #3270."
 }
