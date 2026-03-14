@@ -247,6 +247,7 @@ val sepNlnWhenWriteBeforeNewlineNotEmptyOr: fallback: (Context -> Context) -> ct
 val sepNlnWhenWriteBeforeNewlineNotEmpty: (Context -> Context)
 val sepSpaceUnlessWriteBeforeNewlineNotEmpty: ctx: Context -> Context
 val autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty: f: (Context -> Context) -> ctx: Context -> Context
+val withDeferredWriteBeforeNewline: f: (Context -> Context) -> ctx: Context -> Context
 val addParenIfAutoNln: expr: Expr -> f: (Expr -> Context -> Context) -> (Context -> Context)
 
 val indentSepNlnUnindentUnlessStroustrup: f: (Expr -> Context -> Context) -> e: Expr -> ctx: Context -> Context

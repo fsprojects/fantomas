@@ -917,6 +917,29 @@ let autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (f: Context -> Context) (ctx:
     else
         f ctx
 
+/// Runs <c>f</c> while temporarily suppressing the <c>WriteBeforeNewline</c> buffer.
+/// Prevents <see cref="sepNlnWhenWriteBeforeNewlineNotEmpty"/> from inserting a premature newline
+/// inside <c>f</c>. After <c>f</c> completes, the saved content is restored so it is flushed
+/// at the next real newline — typically the one that follows the surrounding expression.
+let withDeferredWriteBeforeNewline (f: Context -> Context) (ctx: Context) : Context =
+    if not (hasWriteBeforeNewlineContent ctx) then
+        f ctx
+    else
+        let savedContent = ctx.WriterModel.WriteBeforeNewline
+
+        let ctx1 =
+            { ctx with
+                WriterModel =
+                    { ctx.WriterModel with
+                        WriteBeforeNewline = "" } }
+
+        let ctx2 = f ctx1
+        // Only restore the saved content if f itself didn't set a new WriteBeforeNewline value.
+        if hasWriteBeforeNewlineContent ctx2 then
+            ctx2
+        else
+            writerEvent (WriteBeforeNewline savedContent) ctx2
+
 let addParenIfAutoNln expr f =
     let hasParenthesis =
         match expr with
