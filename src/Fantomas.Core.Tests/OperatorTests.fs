@@ -494,6 +494,29 @@ let hasUnEvenAmount regex line =
 """
 
 [<Test>]
+let ``custom double-percent operator stays on same line as lhs when expression is too long, 2107`` () =
+    formatSourceString
+        """
+let inline (%%) x y = ((x % y) + y) % y
+let aVeryLongVariableNameThatForceLineBreaking = 0
+let a = (if aVeryLongVariableNameThatForceLineBreaking = 0 then 1 else -1) %% 4
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inline (%%) x y = ((x % y) + y) % y
+let aVeryLongVariableNameThatForceLineBreaking = 0
+
+let a =
+    (if aVeryLongVariableNameThatForceLineBreaking = 0 then
+         1
+     else
+         -1) %% 4
+"""
+
+[<Test>]
 let ``parameter after multiline string, 783`` () =
     formatSourceString
         "
