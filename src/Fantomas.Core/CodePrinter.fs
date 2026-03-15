@@ -5,7 +5,7 @@ open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak
 open Microsoft.FSharp.Core.CompilerServices
 
-let noBreakInfixOps = set [| "="; ">"; "<"; "%" |]
+let noBreakInfixOps = set [| "="; ">"; "<"; "%"; "%%" |]
 let newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
 
 let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
