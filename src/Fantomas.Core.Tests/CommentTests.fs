@@ -2378,7 +2378,7 @@ module M
 
 module A =
     type ProviderGeneratedType =
-        | ProviderGeneratedType (*ilOrigTyRef*) of ILTypeRef (*ilRenamedTyRef*) * ILTypeRef * ProviderGeneratedType list
+        | ProviderGeneratedType of (*ilOrigTyRef*) ILTypeRef (*ilRenamedTyRef*) * ILTypeRef * ProviderGeneratedType list
 """
 
 [<Test>]
@@ -2621,4 +2621,33 @@ let ``doc comment without associated declaration should not be duplicated, 2499`
     |> should
         equal
         """/// Returns `unit` if validation was successful otherwise will throw an `Exception`.
+"""
+
+[<Test>]
+let ``block comment between 'of' and field type in exception stays after 'of', 1959`` () =
+    formatSourceString
+        """
+exception LoadedSourceNotFoundIgnoring of (*filename*) string * range
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+exception LoadedSourceNotFoundIgnoring of (*filename*) string * range
+"""
+
+[<Test>]
+let ``block comment between 'of' and field type in union case stays after 'of', 1959`` () =
+    formatSourceString
+        """
+type T =
+    | Foo of (*label*) int * string
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type T = Foo of (*label*) int * string
 """

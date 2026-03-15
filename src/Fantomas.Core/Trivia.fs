@@ -283,7 +283,19 @@ let blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) :
     | Some nb, Some na ->
         if nb.Range.EndLine = trivia.Range.StartLine then
             // before (* comment *) after
-            nb.AddAfter(triviaWith false false)
+            // Special case: in a UnionCaseNode the identifier is followed by an implicit "of" keyword
+            // (not represented as a separate node). A block comment between the identifier and the first
+            // field belongs after "of", so attach it before the first field node rather than after the
+            // identifier.
+            let attachToNodeAfter =
+                match containerNode with
+                | :? UnionCaseNode -> nb :? SingleTextNode
+                | _ -> false
+
+            if attachToNodeAfter then
+                na.AddBefore(triviaWith false false)
+            else
+                nb.AddAfter(triviaWith false false)
         elif
             (nb.Range.EndLine < trivia.Range.StartLine
              && trivia.Range.EndLine = na.Range.StartLine)
