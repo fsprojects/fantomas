@@ -1,14 +1,1 @@
-{
-  "r": "2026-03-14",
-  "s": 3238,
-  "c": [
-    2827, 2816, 2856, 3011, 3069, 3243, 2694, 2499, 3273, 3274, 3278,
-    3103, 3150, 3110, 3073, 3130, 2779, 3156, 2519, 2610, 3192
-  ],
-  "p": {
-    "3270": "superseded-by-v2",
-    "3282": "open",
-    "3284": "open"
-  },
-  "m": "PR#3270 superseded(fix#2827). New PR on branch repo-assist/fix-issue-2827-v2 created this run with withDeferredWriteBeforeNewline approach. PR#3282 open(isFirstCharUppercase). PR#3284 open(fix#3278 lambda-tuple-in-list). #3278/#3274: nojaf said larger refactor-DO NOT attempt. #3159 3PRs closed-skip. RFC#3279 Option B. #2519 bug confirmed fixed in main. Need to find new PR# for fix-issue-2827-v2 in next run and close #3270."
-}
+{"r":"2026-03-15","s":3238,"c":[2827,2816,2856,3011,3069,3243,2694,2499,3273,3274,3278,3103,3150,3110,3073,3130,2779,3156,2519,2610,3192,1959],"p":{"3270":"superseded-by-3285","3282":"open","3284":"open","3285":"open","fix1959":"branch-repo-assist/fix-issue-1959-block-comment-after-of"},"m":"PR#3285(fix#2827 v2). PR#3282(isFirstCharUppercase). PR#3284(fix#3278 lambda-tuple). PR#3270 superseded->comment posted. New PR branch fix#1959 block-comment-before-of trivia fix. #3278/#3274 DO NOT attempt. #3159 skip. #2519 fixed. Need PR# for #1959 next run."}
