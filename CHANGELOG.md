@@ -8,10 +8,10 @@
 
 ### Fixed
 
-- `%%` (double-percent) infix operator moved to new line, producing invalid F#. [#2107](https://github.com/fsprojects/fantomas/issues/2107)
 - Multiline `val` body in signature files was not indented correctly. [#3269](https://github.com/fsprojects/fantomas/pull/3269)
 - `///` doc comment without associated declaration (e.g. at end of file) was duplicated when formatting. [#2499](https://github.com/fsprojects/fantomas/issues/2499)
 - NamedIndexedPropertySet with two SynLongIdent removed space. [#3273](https://github.com/fsprojects/fantomas/issues/3273)
+- `%%` (double-percent) infix operator moved to new line, producing invalid F#. [#2107](https://github.com/fsprojects/fantomas/issues/2107)
 
 ## [8.0.0-alpha-007] - 2026-03-10
 
