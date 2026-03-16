@@ -8,10 +8,17 @@ open Microsoft.FSharp.Core.CompilerServices
 let noBreakInfixOps = set [| "="; ">"; "<"; "%"; "%%" |]
 let newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
 
+let isFirstCharUppercase (v: string) =
+    match Seq.tryHead v with
+    | Some c -> Char.IsUpper c
+    | None -> false
+
 let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
     let upperOrLower (v: string) =
-        let isUpper = Seq.tryHead v |> Option.map Char.IsUpper |> Option.defaultValue false
-        if isUpper then UppercaseType else LowercaseType
+        if isFirstCharUppercase v then
+            UppercaseType
+        else
+            LowercaseType
 
     match t with
     | Type.LongIdent node ->
@@ -32,8 +39,10 @@ let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
 
 let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
     let upperOrLower (v: string) =
-        let isUpper = Seq.tryHead v |> Option.map Char.IsUpper |> Option.defaultValue false
-        if isUpper then UppercaseExpr else LowercaseExpr
+        if isFirstCharUppercase v then
+            UppercaseExpr
+        else
+            LowercaseExpr
 
     let lastFragmentInList (identList: IdentListNode) =
         match List.tryLast identList.Content with
