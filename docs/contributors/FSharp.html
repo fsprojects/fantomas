@@ -41,12 +41,12 @@
             <input type="checkbox" name="mobile-menu" />
             <ul class="menu">
                 <li class="nav-header">Links</li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
                 </li>
-                <li class="nav-item"><a class="nav-link"
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                         href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
                     Notes</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
@@ -164,7 +164,7 @@
             </ul>
         </div>
         <a href="https://fsprojects.github.io/fantomas/">
-            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <img alt="Logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
             <strong>fantomas</strong>
         </a>
     </div>
@@ -179,12 +179,12 @@
 <aside id="fsdocs-main-menu">
     <ul class="menu">
         <li class="nav-header">Links</li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
         </li>
-        <li class="nav-item"><a class="nav-link"
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                 href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
             Notes</a></li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
@@ -325,31 +325,31 @@ In short, we use the <code>Untyped Abstract Syntax Tree</code> created by the F#
 </li>
 </ul>
 <p>For example <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synexpr.html#For">SynExpr.For</a>, the definition looks like:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="rt">SynExpr</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="rt">SynExpr</span> <span class="o">=</span>
     <span class="o">..</span><span class="pn">.</span>
     <span class="c">/// F# syntax: expr; expr</span>
     <span class="c">///</span>
     <span class="c">///  isTrueSeq: false indicates &quot;let v = a in b; v&quot;</span>
     <span class="pn">|</span> <span class="id">Sequential</span> <span class="k">of</span>
         <span class="id">debugPoint</span><span class="pn">:</span> <span class="id">DebugPointAtSequential</span> <span class="pn">*</span>
-        <span class="id">isTrueSeq</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">bool</span> <span class="pn">*</span>
-        <span class="id">expr1</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs1', 3)" onmouseover="showTip(event, 'fs1', 3)" class="id">SynExpr</span> <span class="pn">*</span>
-        <span class="id">expr2</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs1', 4)" onmouseover="showTip(event, 'fs1', 4)" class="id">SynExpr</span> <span class="pn">*</span>
+        <span class="id">isTrueSeq</span><span class="pn">:</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">bool</span> <span class="pn">*</span>
+        <span class="id">expr1</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="3" class="id">SynExpr</span> <span class="pn">*</span>
+        <span class="id">expr2</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="4" class="id">SynExpr</span> <span class="pn">*</span>
         <span class="id">range</span><span class="pn">:</span> <span class="id">range</span>
 </code></pre>
 <p>However, in Fantomas we have a partial active pattern that we use to easily grab the information we need from the AST.
 These partial actives are mostly used and defined in <code>ASTTransformer.fs</code>.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="pn">(</span><span class="pn">|</span><span class="id">Sequentials</span><span class="pn">|</span><span class="id">_</span><span class="pn">|</span><span class="pn">)</span> <span class="id">e</span> <span class="o">=</span>
-    <span class="k">let</span> <span class="k">rec</span> <span class="id">visit</span> <span class="pn">(</span><span class="id">e</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs1', 5)" onmouseover="showTip(event, 'fs1', 5)" class="id">SynExpr</span><span class="pn">)</span> <span class="pn">(</span><span class="id">finalContinuation</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs1', 6)" onmouseover="showTip(event, 'fs1', 6)" class="id">SynExpr</span> <span onmouseout="hideTip(event, 'fs3', 7)" onmouseover="showTip(event, 'fs3', 7)" class="id">list</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs1', 8)" onmouseover="showTip(event, 'fs1', 8)" class="id">SynExpr</span> <span onmouseout="hideTip(event, 'fs3', 9)" onmouseover="showTip(event, 'fs3', 9)" class="id">list</span><span class="pn">)</span> <span class="pn">:</span> <span onmouseout="hideTip(event, 'fs1', 10)" onmouseover="showTip(event, 'fs1', 10)" class="id">SynExpr</span> <span onmouseout="hideTip(event, 'fs3', 11)" onmouseover="showTip(event, 'fs3', 11)" class="id">list</span> <span class="o">=</span>
+    <span class="k">let</span> <span class="k">rec</span> <span class="id">visit</span> <span class="pn">(</span><span class="id">e</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="5" class="id">SynExpr</span><span class="pn">)</span> <span class="pn">(</span><span class="id">finalContinuation</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="6" class="id">SynExpr</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="7" class="id">list</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="8" class="id">SynExpr</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="9" class="id">list</span><span class="pn">)</span> <span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="10" class="id">SynExpr</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="11" class="id">list</span> <span class="o">=</span>
         <span class="k">match</span> <span class="id">e</span> <span class="k">with</span>
-        <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs1', 12)" onmouseover="showTip(event, 'fs1', 12)" class="id">SynExpr</span><span class="pn">.</span><span class="id">Sequential</span><span class="pn">(</span><span class="id">_</span><span class="pn">,</span> <span class="id">_</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">_</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="id">visit</span> <span class="id">e2</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">xs</span> <span class="k">-&gt;</span> <span class="id">e1</span> <span class="o">::</span> <span class="id">xs</span> <span class="o">|&gt;</span> <span class="id">finalContinuation</span><span class="pn">)</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="12" class="id">SynExpr</span><span class="pn">.</span><span class="id">Sequential</span><span class="pn">(</span><span class="id">_</span><span class="pn">,</span> <span class="id">_</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">_</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="id">visit</span> <span class="id">e2</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">xs</span> <span class="k">-&gt;</span> <span class="id">e1</span> <span class="o">::</span> <span class="id">xs</span> <span class="o">|&gt;</span> <span class="id">finalContinuation</span><span class="pn">)</span>
         <span class="pn">|</span> <span class="id">e</span> <span class="k">-&gt;</span> <span class="id">finalContinuation</span> <span class="pn">[</span> <span class="id">e</span> <span class="pn">]</span>
 
     <span class="k">match</span> <span class="id">e</span> <span class="k">with</span>
-    <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs1', 13)" onmouseover="showTip(event, 'fs1', 13)" class="id">SynExpr</span><span class="pn">.</span><span class="id">Sequential</span><span class="pn">(</span><span class="id">_</span><span class="pn">,</span> <span class="id">_</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">_</span><span class="pn">)</span> <span class="k">-&gt;</span>
-        <span class="k">let</span> <span class="id">xs</span> <span class="o">=</span> <span class="id">visit</span> <span class="id">e2</span> <span onmouseout="hideTip(event, 'fs4', 14)" onmouseover="showTip(event, 'fs4', 14)" class="id">id</span>
-        <span onmouseout="hideTip(event, 'fs5', 15)" onmouseover="showTip(event, 'fs5', 15)" class="id">Some</span><span class="pn">(</span><span class="id">e1</span> <span class="o">::</span> <span class="id">xs</span><span class="pn">)</span>
-    <span class="pn">|</span> <span class="id">_</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs6', 16)" onmouseover="showTip(event, 'fs6', 16)" class="id">None</span>
+    <span class="pn">|</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="13" class="id">SynExpr</span><span class="pn">.</span><span class="id">Sequential</span><span class="pn">(</span><span class="id">_</span><span class="pn">,</span> <span class="id">_</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">_</span><span class="pn">)</span> <span class="k">-&gt;</span>
+        <span class="k">let</span> <span class="id">xs</span> <span class="o">=</span> <span class="id">visit</span> <span class="id">e2</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="14" class="id">id</span>
+        <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="15" class="id">Some</span><span class="pn">(</span><span class="id">e1</span> <span class="o">::</span> <span class="id">xs</span><span class="pn">)</span>
+    <span class="pn">|</span> <span class="id">_</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="16" class="id">None</span>
 </code></pre>
 <p>Notice the underscores, we don't use the <code>DebugPointAtSequential</code> info and <code>range</code>, so we drop that information in the result of the partial active pattern.</p>
 <ul>
@@ -399,12 +399,12 @@ We first rehearse what we want to say, then we write the letter. Not write evey 
 These events are used to achieve this.</p>
 <fantomas-nav previous="Index.html" next="Getting%20Started.html"></fantomas-nav>
 
-        <div class="fsdocs-tip" id="fs1">type SynExpr</div>
-<div class="fsdocs-tip" id="fs2">type bool = System.Boolean</div>
-<div class="fsdocs-tip" id="fs3">type &#39;T list = List&lt;&#39;T&gt;</div>
-<div class="fsdocs-tip" id="fs4">val id: x: &#39;T -&gt; &#39;T</div>
-<div class="fsdocs-tip" id="fs5">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
-<div class="fsdocs-tip" id="fs6">union case Option.None: Option&lt;&#39;T&gt;</div>
+        <div popover class="fsdocs-tip" id="fs1">type SynExpr</div>
+<div popover class="fsdocs-tip" id="fs2">type bool = System.Boolean</div>
+<div popover class="fsdocs-tip" id="fs3">type &#39;T list = List&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs4">val id: x: &#39;T -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs5">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs6">union case Option.None: Option&lt;&#39;T&gt;</div>
 
     </div>
 </main>
@@ -440,6 +440,15 @@ These events are used to achieve this.</p>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-copy-button.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
 <script type="module">
     import mermaid from "https://esm.sh/mermaid@9.2.2";
     mermaid.initialize({
@@ -451,13 +460,6 @@ These events are used to achieve this.</p>
             primaryBorderColor: '#5aacd6'
         }
     });
-
-    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
-    menuHeaders.forEach(nv => {
-        nv.addEventListener("click", () => {
-            nv.classList.toggle("active");
-        })
-    })
 </script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
 </body>

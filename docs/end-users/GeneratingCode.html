@@ -41,12 +41,12 @@
             <input type="checkbox" name="mobile-menu" />
             <ul class="menu">
                 <li class="nav-header">Links</li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
                 </li>
-                <li class="nav-item"><a class="nav-link"
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                         href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
                     Notes</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
@@ -164,7 +164,7 @@
             </ul>
         </div>
         <a href="https://fsprojects.github.io/fantomas/">
-            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <img alt="Logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
             <strong>fantomas</strong>
         </a>
     </div>
@@ -179,12 +179,12 @@
 <aside id="fsdocs-main-menu">
     <ul class="menu">
         <li class="nav-header">Links</li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
         </li>
-        <li class="nav-item"><a class="nav-link"
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                 href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
             Notes</a></li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
@@ -328,43 +328,43 @@ It offers a concise and easier-to-use API compared to constructing Oak nodes dir
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pp">#r</span> <span class="s">&quot;../../../artifacts/bin/Fantomas.FCS/release/Fantomas.FCS.dll&quot;</span>
 <span class="pp">#r</span> <span class="s">&quot;../../../artifacts/bin/Fantomas.Core/release/Fantomas.Core.dll&quot;</span> <span class="c">// In production use #r &quot;nuget: Fantomas.Core, 6.*&quot;</span>
 
-<span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="id">Fantomas</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">FCS</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="id">Text</span>
-<span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 4)" onmouseover="showTip(event, 'fs1', 4)" class="id">Fantomas</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs4', 5)" onmouseover="showTip(event, 'fs4', 5)" class="id">Core</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs5', 6)" onmouseover="showTip(event, 'fs5', 6)" class="m">SyntaxOak</span>
+<span class="k">open</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">Fantomas</span><span class="pn">.</span><span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">FCS</span><span class="pn">.</span><span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="3" class="id">Text</span>
+<span class="k">open</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="4" class="id">Fantomas</span><span class="pn">.</span><span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="5" class="id">Core</span><span class="pn">.</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="6" class="m">SyntaxOak</span>
 
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs6', 7)" onmouseover="showTip(event, 'fs6', 7)" class="id">implementationSyntaxTree</span> <span class="o">=</span>
-    <span onmouseout="hideTip(event, 'fs7', 8)" onmouseover="showTip(event, 'fs7', 8)" class="fn">Oak</span><span class="pn">(</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="7" class="id">implementationSyntaxTree</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="8" class="fn">Oak</span><span class="pn">(</span>
         <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span>
-        <span class="pn">[</span> <span onmouseout="hideTip(event, 'fs8', 9)" onmouseover="showTip(event, 'fs8', 9)" class="fn">ModuleOrNamespaceNode</span><span class="pn">(</span>
-              <span onmouseout="hideTip(event, 'fs9', 10)" onmouseover="showTip(event, 'fs9', 10)" class="uc">None</span><span class="pn">,</span>
-              <span class="pn">[</span> <span onmouseout="hideTip(event, 'fs10', 11)" onmouseover="showTip(event, 'fs10', 11)" class="fn">BindingNode</span><span class="pn">(</span>
-                    <span onmouseout="hideTip(event, 'fs9', 12)" onmouseover="showTip(event, 'fs9', 12)" class="uc">None</span><span class="pn">,</span>
-                    <span onmouseout="hideTip(event, 'fs9', 13)" onmouseover="showTip(event, 'fs9', 13)" class="uc">None</span><span class="pn">,</span>
-                    <span onmouseout="hideTip(event, 'fs11', 14)" onmouseover="showTip(event, 'fs11', 14)" class="fn">MultipleTextsNode</span><span class="pn">(</span><span class="pn">[</span> <span onmouseout="hideTip(event, 'fs12', 15)" onmouseover="showTip(event, 'fs12', 15)" class="fn">SingleTextNode</span><span class="pn">(</span><span class="s">&quot;let&quot;</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 16)" onmouseover="showTip(event, 'fs13', 16)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 17)" onmouseover="showTip(event, 'fs14', 17)" class="id">range0</span><span class="pn">)</span> <span class="pn">]</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 18)" onmouseover="showTip(event, 'fs13', 18)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 19)" onmouseover="showTip(event, 'fs14', 19)" class="id">range0</span><span class="pn">)</span><span class="pn">,</span>
+        <span class="pn">[</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="9" class="fn">ModuleOrNamespaceNode</span><span class="pn">(</span>
+              <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="10" class="uc">None</span><span class="pn">,</span>
+              <span class="pn">[</span> <span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="11" class="fn">BindingNode</span><span class="pn">(</span>
+                    <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="12" class="uc">None</span><span class="pn">,</span>
+                    <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="13" class="uc">None</span><span class="pn">,</span>
+                    <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="14" class="fn">MultipleTextsNode</span><span class="pn">(</span><span class="pn">[</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="15" class="fn">SingleTextNode</span><span class="pn">(</span><span class="s">&quot;let&quot;</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="16" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="17" class="id">range0</span><span class="pn">)</span> <span class="pn">]</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="18" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="19" class="id">range0</span><span class="pn">)</span><span class="pn">,</span>
                     <span class="k">false</span><span class="pn">,</span>
-                    <span onmouseout="hideTip(event, 'fs9', 20)" onmouseover="showTip(event, 'fs9', 20)" class="uc">None</span><span class="pn">,</span>
-                    <span onmouseout="hideTip(event, 'fs9', 21)" onmouseover="showTip(event, 'fs9', 21)" class="uc">None</span><span class="pn">,</span>
-                    <span onmouseout="hideTip(event, 'fs15', 22)" onmouseover="showTip(event, 'fs15', 22)" class="uc">Choice1Of2</span><span class="pn">(</span>
-                        <span onmouseout="hideTip(event, 'fs16', 23)" onmouseover="showTip(event, 'fs16', 23)" class="fn">IdentListNode</span><span class="pn">(</span><span class="pn">[</span> <span onmouseout="hideTip(event, 'fs17', 24)" onmouseover="showTip(event, 'fs17', 24)" class="rt">IdentifierOrDot</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs18', 25)" onmouseover="showTip(event, 'fs18', 25)" class="id">Ident</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs12', 26)" onmouseover="showTip(event, 'fs12', 26)" class="fn">SingleTextNode</span><span class="pn">(</span><span class="s">&quot;a&quot;</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 27)" onmouseover="showTip(event, 'fs13', 27)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 28)" onmouseover="showTip(event, 'fs14', 28)" class="id">range0</span><span class="pn">)</span><span class="pn">)</span> <span class="pn">]</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 29)" onmouseover="showTip(event, 'fs13', 29)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 30)" onmouseover="showTip(event, 'fs14', 30)" class="id">range0</span><span class="pn">)</span>
+                    <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="20" class="uc">None</span><span class="pn">,</span>
+                    <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="21" class="uc">None</span><span class="pn">,</span>
+                    <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="22" class="uc">Choice1Of2</span><span class="pn">(</span>
+                        <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="23" class="fn">IdentListNode</span><span class="pn">(</span><span class="pn">[</span> <span data-fsdocs-tip="fs17" data-fsdocs-tip-unique="24" class="rt">IdentifierOrDot</span><span class="pn">.</span><span data-fsdocs-tip="fs18" data-fsdocs-tip-unique="25" class="id">Ident</span><span class="pn">(</span><span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="26" class="fn">SingleTextNode</span><span class="pn">(</span><span class="s">&quot;a&quot;</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="27" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="28" class="id">range0</span><span class="pn">)</span><span class="pn">)</span> <span class="pn">]</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="29" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="30" class="id">range0</span><span class="pn">)</span>
                     <span class="pn">)</span><span class="pn">,</span>
-                    <span onmouseout="hideTip(event, 'fs9', 31)" onmouseover="showTip(event, 'fs9', 31)" class="uc">None</span><span class="pn">,</span>
+                    <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="31" class="uc">None</span><span class="pn">,</span>
                     <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span>
-                    <span onmouseout="hideTip(event, 'fs9', 32)" onmouseover="showTip(event, 'fs9', 32)" class="uc">None</span><span class="pn">,</span>
-                    <span onmouseout="hideTip(event, 'fs12', 33)" onmouseover="showTip(event, 'fs12', 33)" class="fn">SingleTextNode</span><span class="pn">(</span><span class="s">&quot;=&quot;</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 34)" onmouseover="showTip(event, 'fs13', 34)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 35)" onmouseover="showTip(event, 'fs14', 35)" class="id">range0</span><span class="pn">)</span><span class="pn">,</span>
-                    <span onmouseout="hideTip(event, 'fs19', 36)" onmouseover="showTip(event, 'fs19', 36)" class="rt">Expr</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs20', 37)" onmouseover="showTip(event, 'fs20', 37)" class="id">Constant</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs21', 38)" onmouseover="showTip(event, 'fs21', 38)" class="rt">Constant</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs22', 39)" onmouseover="showTip(event, 'fs22', 39)" class="id">FromText</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs12', 40)" onmouseover="showTip(event, 'fs12', 40)" class="fn">SingleTextNode</span><span class="pn">(</span><span class="s">&quot;0&quot;</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 41)" onmouseover="showTip(event, 'fs13', 41)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 42)" onmouseover="showTip(event, 'fs14', 42)" class="id">range0</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span><span class="pn">,</span>
-                    <span onmouseout="hideTip(event, 'fs9', 43)" onmouseover="showTip(event, 'fs9', 43)" class="uc">None</span><span class="pn">,</span>
-                    <span onmouseout="hideTip(event, 'fs13', 44)" onmouseover="showTip(event, 'fs13', 44)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 45)" onmouseover="showTip(event, 'fs14', 45)" class="id">range0</span>
+                    <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="32" class="uc">None</span><span class="pn">,</span>
+                    <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="33" class="fn">SingleTextNode</span><span class="pn">(</span><span class="s">&quot;=&quot;</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="34" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="35" class="id">range0</span><span class="pn">)</span><span class="pn">,</span>
+                    <span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="36" class="rt">Expr</span><span class="pn">.</span><span data-fsdocs-tip="fs20" data-fsdocs-tip-unique="37" class="id">Constant</span><span class="pn">(</span><span data-fsdocs-tip="fs21" data-fsdocs-tip-unique="38" class="rt">Constant</span><span class="pn">.</span><span data-fsdocs-tip="fs22" data-fsdocs-tip-unique="39" class="id">FromText</span><span class="pn">(</span><span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="40" class="fn">SingleTextNode</span><span class="pn">(</span><span class="s">&quot;0&quot;</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="41" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="42" class="id">range0</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span><span class="pn">,</span>
+                    <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="43" class="uc">None</span><span class="pn">,</span>
+                    <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="44" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="45" class="id">range0</span>
                 <span class="pn">)</span>
-                <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs23', 46)" onmouseover="showTip(event, 'fs23', 46)" class="rt">ModuleDecl</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs24', 47)" onmouseover="showTip(event, 'fs24', 47)" class="id">TopLevelBinding</span> <span class="pn">]</span><span class="pn">,</span>
-              <span onmouseout="hideTip(event, 'fs13', 48)" onmouseover="showTip(event, 'fs13', 48)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 49)" onmouseover="showTip(event, 'fs14', 49)" class="id">range0</span>
+                <span class="o">|&gt;</span> <span data-fsdocs-tip="fs23" data-fsdocs-tip-unique="46" class="rt">ModuleDecl</span><span class="pn">.</span><span data-fsdocs-tip="fs24" data-fsdocs-tip-unique="47" class="id">TopLevelBinding</span> <span class="pn">]</span><span class="pn">,</span>
+              <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="48" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="49" class="id">range0</span>
           <span class="pn">)</span> <span class="pn">]</span><span class="pn">,</span>
-        <span onmouseout="hideTip(event, 'fs13', 50)" onmouseover="showTip(event, 'fs13', 50)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 51)" onmouseover="showTip(event, 'fs14', 51)" class="id">range0</span>
+        <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="50" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="51" class="id">range0</span>
     <span class="pn">)</span>
 
-<span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 52)" onmouseover="showTip(event, 'fs1', 52)" class="id">Fantomas</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs4', 53)" onmouseover="showTip(event, 'fs4', 53)" class="id">Core</span>
+<span class="k">open</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="52" class="id">Fantomas</span><span class="pn">.</span><span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="53" class="id">Core</span>
 
-<span onmouseout="hideTip(event, 'fs25', 54)" onmouseover="showTip(event, 'fs25', 54)" class="rt">CodeFormatter</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs26', 55)" onmouseover="showTip(event, 'fs26', 55)" class="id">FormatOakAsync</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs6', 56)" onmouseover="showTip(event, 'fs6', 56)" class="id">implementationSyntaxTree</span><span class="pn">)</span>
-<span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs27', 57)" onmouseover="showTip(event, 'fs27', 57)" class="m">Async</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs28', 58)" onmouseover="showTip(event, 'fs28', 58)" class="id">RunSynchronously</span>
-<span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs29', 59)" onmouseover="showTip(event, 'fs29', 59)" class="fn">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
+<span data-fsdocs-tip="fs25" data-fsdocs-tip-unique="54" class="rt">CodeFormatter</span><span class="pn">.</span><span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="55" class="id">FormatOakAsync</span><span class="pn">(</span><span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="56" class="id">implementationSyntaxTree</span><span class="pn">)</span>
+<span class="o">|&gt;</span> <span data-fsdocs-tip="fs27" data-fsdocs-tip-unique="57" class="rt">Async</span><span class="pn">.</span><span data-fsdocs-tip="fs28" data-fsdocs-tip-unique="58" class="id">RunSynchronously</span>
+<span class="o">|&gt;</span> <span data-fsdocs-tip="fs29" data-fsdocs-tip-unique="59" class="fn">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>let a = 0</code></pre></td></tr></table>
 <p>Constructing the entire syntax tree can be a bit overwhelming at first. There is a lot of information to provide and a lot to unpack if you have never seen any of this before.</p>
@@ -385,9 +385,9 @@ The key difference is that <code>Fantomas.FCS</code> will most likely contain a 
 You can read the <a href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">CHANGELOG</a> to see what git commit was used to build <code>Fantomas.FCS</code>.</p>
 <p>You can use <code>Fantomas.FCS</code> in your own projects, but be aware that it is <strong>not binary compatible</strong> with <code>FSharp.Compiler.Service</code>.<br />
 Example usage:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 60)" onmouseover="showTip(event, 'fs1', 60)" class="id">Fantomas</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs2', 61)" onmouseover="showTip(event, 'fs2', 61)" class="id">FCS</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">open</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="60" class="id">Fantomas</span><span class="pn">.</span><span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="61" class="id">FCS</span>
 
-<span onmouseout="hideTip(event, 'fs30', 62)" onmouseover="showTip(event, 'fs30', 62)" class="m">Parse</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs31', 63)" onmouseover="showTip(event, 'fs31', 63)" class="id">parseFile</span> <span class="k">false</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs32', 64)" onmouseover="showTip(event, 'fs32', 64)" class="m">SourceText</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs33', 65)" onmouseover="showTip(event, 'fs33', 65)" class="id">ofString</span> <span class="s">&quot;let a = 1&quot;</span><span class="pn">)</span> <span class="pn">[</span><span class="pn">]</span>
+<span data-fsdocs-tip="fs30" data-fsdocs-tip-unique="62" class="m">Parse</span><span class="pn">.</span><span data-fsdocs-tip="fs31" data-fsdocs-tip-unique="63" class="id">parseFile</span> <span class="k">false</span> <span class="pn">(</span><span data-fsdocs-tip="fs32" data-fsdocs-tip-unique="64" class="m">SourceText</span><span class="pn">.</span><span data-fsdocs-tip="fs33" data-fsdocs-tip-unique="65" class="id">ofString</span> <span class="s">&quot;let a = 1&quot;</span><span class="pn">)</span> <span class="pn">[</span><span class="pn">]</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>(ImplFile
    (ParsedImplFileInput
@@ -426,20 +426,20 @@ From there on you can use our search bar to find the corresponding documentation
 <p>Fantomas will very selectively use information from the AST to construct the Oak.
 Please make sure you construct the same Oak as Fantomas would.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// You typically make some helper functions along the way</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs34', 66)" onmouseover="showTip(event, 'fs34', 66)" class="fn">text</span> <span onmouseout="hideTip(event, 'fs35', 67)" onmouseover="showTip(event, 'fs35', 67)" class="fn">v</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs12', 68)" onmouseover="showTip(event, 'fs12', 68)" class="fn">SingleTextNode</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs35', 69)" onmouseover="showTip(event, 'fs35', 69)" class="fn">v</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 70)" onmouseover="showTip(event, 'fs13', 70)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 71)" onmouseover="showTip(event, 'fs14', 71)" class="id">range0</span><span class="pn">)</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="66" class="fn">text</span> <span data-fsdocs-tip="fs35" data-fsdocs-tip-unique="67" class="fn">v</span> <span class="o">=</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="68" class="fn">SingleTextNode</span><span class="pn">(</span><span data-fsdocs-tip="fs35" data-fsdocs-tip-unique="69" class="fn">v</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="70" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="71" class="id">range0</span><span class="pn">)</span>
 
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs36', 72)" onmouseover="showTip(event, 'fs36', 72)" class="fn">mkCodeFromExpression</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs37', 73)" onmouseover="showTip(event, 'fs37', 73)" class="fn">e</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs19', 74)" onmouseover="showTip(event, 'fs19', 74)" class="rt">Expr</span><span class="pn">)</span> <span class="o">=</span>
-    <span onmouseout="hideTip(event, 'fs7', 75)" onmouseover="showTip(event, 'fs7', 75)" class="fn">Oak</span><span class="pn">(</span><span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span> <span onmouseout="hideTip(event, 'fs8', 76)" onmouseover="showTip(event, 'fs8', 76)" class="fn">ModuleOrNamespaceNode</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs9', 77)" onmouseover="showTip(event, 'fs9', 77)" class="uc">None</span><span class="pn">,</span> <span class="pn">[</span> <span onmouseout="hideTip(event, 'fs23', 78)" onmouseover="showTip(event, 'fs23', 78)" class="rt">ModuleDecl</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs38', 79)" onmouseover="showTip(event, 'fs38', 79)" class="id">DeclExpr</span> <span onmouseout="hideTip(event, 'fs37', 80)" onmouseover="showTip(event, 'fs37', 80)" class="fn">e</span> <span class="pn">]</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 81)" onmouseover="showTip(event, 'fs13', 81)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 82)" onmouseover="showTip(event, 'fs14', 82)" class="id">range0</span><span class="pn">)</span> <span class="pn">]</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 83)" onmouseover="showTip(event, 'fs13', 83)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 84)" onmouseover="showTip(event, 'fs14', 84)" class="id">range0</span><span class="pn">)</span>
-    <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs25', 85)" onmouseover="showTip(event, 'fs25', 85)" class="rt">CodeFormatter</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs26', 86)" onmouseover="showTip(event, 'fs26', 86)" class="id">FormatOakAsync</span>
-    <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs27', 87)" onmouseover="showTip(event, 'fs27', 87)" class="m">Async</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs28', 88)" onmouseover="showTip(event, 'fs28', 88)" class="id">RunSynchronously</span>
-    <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs29', 89)" onmouseover="showTip(event, 'fs29', 89)" class="fn">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs36" data-fsdocs-tip-unique="72" class="fn">mkCodeFromExpression</span> <span class="pn">(</span><span data-fsdocs-tip="fs37" data-fsdocs-tip-unique="73" class="fn">e</span><span class="pn">:</span> <span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="74" class="rt">Expr</span><span class="pn">)</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="75" class="fn">Oak</span><span class="pn">(</span><span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="76" class="fn">ModuleOrNamespaceNode</span><span class="pn">(</span><span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="77" class="uc">None</span><span class="pn">,</span> <span class="pn">[</span> <span data-fsdocs-tip="fs23" data-fsdocs-tip-unique="78" class="rt">ModuleDecl</span><span class="pn">.</span><span data-fsdocs-tip="fs38" data-fsdocs-tip-unique="79" class="id">DeclExpr</span> <span data-fsdocs-tip="fs37" data-fsdocs-tip-unique="80" class="fn">e</span> <span class="pn">]</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="81" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="82" class="id">range0</span><span class="pn">)</span> <span class="pn">]</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="83" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="84" class="id">range0</span><span class="pn">)</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs25" data-fsdocs-tip-unique="85" class="rt">CodeFormatter</span><span class="pn">.</span><span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="86" class="id">FormatOakAsync</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs27" data-fsdocs-tip-unique="87" class="rt">Async</span><span class="pn">.</span><span data-fsdocs-tip="fs28" data-fsdocs-tip-unique="88" class="id">RunSynchronously</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs29" data-fsdocs-tip-unique="89" class="fn">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
 
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs39', 90)" onmouseover="showTip(event, 'fs39', 90)" class="id">numberExpr</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs19', 91)" onmouseover="showTip(event, 'fs19', 91)" class="rt">Expr</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs20', 92)" onmouseover="showTip(event, 'fs20', 92)" class="id">Constant</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs21', 93)" onmouseover="showTip(event, 'fs21', 93)" class="rt">Constant</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs22', 94)" onmouseover="showTip(event, 'fs22', 94)" class="id">FromText</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs34', 95)" onmouseover="showTip(event, 'fs34', 95)" class="fn">text</span> <span class="s">&quot;7&quot;</span><span class="pn">)</span><span class="pn">)</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs39" data-fsdocs-tip-unique="90" class="id">numberExpr</span> <span class="o">=</span> <span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="91" class="rt">Expr</span><span class="pn">.</span><span data-fsdocs-tip="fs20" data-fsdocs-tip-unique="92" class="id">Constant</span><span class="pn">(</span><span data-fsdocs-tip="fs21" data-fsdocs-tip-unique="93" class="rt">Constant</span><span class="pn">.</span><span data-fsdocs-tip="fs22" data-fsdocs-tip-unique="94" class="id">FromText</span><span class="pn">(</span><span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="95" class="fn">text</span> <span class="s">&quot;7&quot;</span><span class="pn">)</span><span class="pn">)</span>
 
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs40', 96)" onmouseover="showTip(event, 'fs40', 96)" class="id">wrappedNumber</span> <span class="o">=</span>
-    <span onmouseout="hideTip(event, 'fs19', 97)" onmouseover="showTip(event, 'fs19', 97)" class="rt">Expr</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs41', 98)" onmouseover="showTip(event, 'fs41', 98)" class="id">Paren</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs42', 99)" onmouseover="showTip(event, 'fs42', 99)" class="fn">ExprParenNode</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs34', 100)" onmouseover="showTip(event, 'fs34', 100)" class="fn">text</span> <span class="s">&quot;(&quot;</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs39', 101)" onmouseover="showTip(event, 'fs39', 101)" class="id">numberExpr</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs34', 102)" onmouseover="showTip(event, 'fs34', 102)" class="fn">text</span> <span class="s">&quot;)&quot;</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 103)" onmouseover="showTip(event, 'fs13', 103)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 104)" onmouseover="showTip(event, 'fs14', 104)" class="id">range0</span><span class="pn">)</span><span class="pn">)</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs40" data-fsdocs-tip-unique="96" class="id">wrappedNumber</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="97" class="rt">Expr</span><span class="pn">.</span><span data-fsdocs-tip="fs41" data-fsdocs-tip-unique="98" class="id">Paren</span><span class="pn">(</span><span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="99" class="fn">ExprParenNode</span><span class="pn">(</span><span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="100" class="fn">text</span> <span class="s">&quot;(&quot;</span><span class="pn">,</span> <span data-fsdocs-tip="fs39" data-fsdocs-tip-unique="101" class="id">numberExpr</span><span class="pn">,</span> <span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="102" class="fn">text</span> <span class="s">&quot;)&quot;</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="103" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="104" class="id">range0</span><span class="pn">)</span><span class="pn">)</span>
 
-<span onmouseout="hideTip(event, 'fs36', 105)" onmouseover="showTip(event, 'fs36', 105)" class="fn">mkCodeFromExpression</span> <span onmouseout="hideTip(event, 'fs40', 106)" onmouseover="showTip(event, 'fs40', 106)" class="id">wrappedNumber</span>
+<span data-fsdocs-tip="fs36" data-fsdocs-tip-unique="105" class="fn">mkCodeFromExpression</span> <span data-fsdocs-tip="fs40" data-fsdocs-tip-unique="106" class="id">wrappedNumber</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>(7)</code></pre></td></tr></table>
 <p>As a rule of thumb: <strong>create what the parser creates, use the online tool!</strong><br />
@@ -462,22 +462,22 @@ For example creating <a href="../../reference/fsharp-compiler-syntax-synexpr.htm
         <span class="s">&quot;+&quot;</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">13</span><span class="o">-</span><span class="n">1</span><span class="pn">,</span><span class="n">14</span><span class="pn">)</span>
         <span class="s">&quot;b&quot;</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">15</span><span class="o">-</span><span class="n">1</span><span class="pn">,</span><span class="n">16</span><span class="pn">)</span>
 </code></pre>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs43', 107)" onmouseover="showTip(event, 'fs43', 107)" class="id">lambdaExpr</span> <span class="o">=</span>
-    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs44', 108)" onmouseover="showTip(event, 'fs44', 108)" class="fn">body</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs19', 109)" onmouseover="showTip(event, 'fs19', 109)" class="rt">Expr</span> <span class="o">=</span>
-        <span onmouseout="hideTip(event, 'fs45', 110)" onmouseover="showTip(event, 'fs45', 110)" class="fn">ExprInfixAppNode</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs19', 111)" onmouseover="showTip(event, 'fs19', 111)" class="rt">Expr</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs46', 112)" onmouseover="showTip(event, 'fs46', 112)" class="id">Ident</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs34', 113)" onmouseover="showTip(event, 'fs34', 113)" class="fn">text</span> <span class="s">&quot;a&quot;</span><span class="pn">)</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs34', 114)" onmouseover="showTip(event, 'fs34', 114)" class="fn">text</span> <span class="s">&quot;+&quot;</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs19', 115)" onmouseover="showTip(event, 'fs19', 115)" class="rt">Expr</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs46', 116)" onmouseover="showTip(event, 'fs46', 116)" class="id">Ident</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs34', 117)" onmouseover="showTip(event, 'fs34', 117)" class="fn">text</span> <span class="s">&quot;b&quot;</span><span class="pn">)</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 118)" onmouseover="showTip(event, 'fs13', 118)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 119)" onmouseover="showTip(event, 'fs14', 119)" class="id">range0</span><span class="pn">)</span>
-        <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs19', 120)" onmouseover="showTip(event, 'fs19', 120)" class="rt">Expr</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs47', 121)" onmouseover="showTip(event, 'fs47', 121)" class="id">InfixApp</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs43" data-fsdocs-tip-unique="107" class="id">lambdaExpr</span> <span class="o">=</span>
+    <span class="k">let</span> <span data-fsdocs-tip="fs44" data-fsdocs-tip-unique="108" class="fn">body</span><span class="pn">:</span> <span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="109" class="rt">Expr</span> <span class="o">=</span>
+        <span data-fsdocs-tip="fs45" data-fsdocs-tip-unique="110" class="fn">ExprInfixAppNode</span><span class="pn">(</span><span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="111" class="rt">Expr</span><span class="pn">.</span><span data-fsdocs-tip="fs46" data-fsdocs-tip-unique="112" class="id">Ident</span><span class="pn">(</span><span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="113" class="fn">text</span> <span class="s">&quot;a&quot;</span><span class="pn">)</span><span class="pn">,</span> <span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="114" class="fn">text</span> <span class="s">&quot;+&quot;</span><span class="pn">,</span> <span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="115" class="rt">Expr</span><span class="pn">.</span><span data-fsdocs-tip="fs46" data-fsdocs-tip-unique="116" class="id">Ident</span><span class="pn">(</span><span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="117" class="fn">text</span> <span class="s">&quot;b&quot;</span><span class="pn">)</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="118" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="119" class="id">range0</span><span class="pn">)</span>
+        <span class="o">|&gt;</span> <span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="120" class="rt">Expr</span><span class="pn">.</span><span data-fsdocs-tip="fs47" data-fsdocs-tip-unique="121" class="id">InfixApp</span>
 
-    <span onmouseout="hideTip(event, 'fs48', 122)" onmouseover="showTip(event, 'fs48', 122)" class="fn">ExprLambdaNode</span><span class="pn">(</span>
-        <span onmouseout="hideTip(event, 'fs34', 123)" onmouseover="showTip(event, 'fs34', 123)" class="fn">text</span> <span class="s">&quot;fun&quot;</span><span class="pn">,</span>
-        <span class="pn">[</span> <span onmouseout="hideTip(event, 'fs49', 124)" onmouseover="showTip(event, 'fs49', 124)" class="rt">Pattern</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs50', 125)" onmouseover="showTip(event, 'fs50', 125)" class="id">Named</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs51', 126)" onmouseover="showTip(event, 'fs51', 126)" class="fn">PatNamedNode</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs9', 127)" onmouseover="showTip(event, 'fs9', 127)" class="uc">None</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs34', 128)" onmouseover="showTip(event, 'fs34', 128)" class="fn">text</span> <span class="s">&quot;a&quot;</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 129)" onmouseover="showTip(event, 'fs13', 129)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 130)" onmouseover="showTip(event, 'fs14', 130)" class="id">range0</span><span class="pn">)</span><span class="pn">)</span>
-          <span onmouseout="hideTip(event, 'fs49', 131)" onmouseover="showTip(event, 'fs49', 131)" class="rt">Pattern</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs50', 132)" onmouseover="showTip(event, 'fs50', 132)" class="id">Named</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs51', 133)" onmouseover="showTip(event, 'fs51', 133)" class="fn">PatNamedNode</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs9', 134)" onmouseover="showTip(event, 'fs9', 134)" class="uc">None</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs34', 135)" onmouseover="showTip(event, 'fs34', 135)" class="fn">text</span> <span class="s">&quot;b&quot;</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs13', 136)" onmouseover="showTip(event, 'fs13', 136)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 137)" onmouseover="showTip(event, 'fs14', 137)" class="id">range0</span><span class="pn">)</span><span class="pn">)</span> <span class="pn">]</span><span class="pn">,</span>
-        <span onmouseout="hideTip(event, 'fs34', 138)" onmouseover="showTip(event, 'fs34', 138)" class="fn">text</span> <span class="s">&quot;-&gt;&quot;</span><span class="pn">,</span>
-        <span onmouseout="hideTip(event, 'fs44', 139)" onmouseover="showTip(event, 'fs44', 139)" class="fn">body</span><span class="pn">,</span>
-        <span onmouseout="hideTip(event, 'fs13', 140)" onmouseover="showTip(event, 'fs13', 140)" class="m">Range</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 141)" onmouseover="showTip(event, 'fs14', 141)" class="id">range0</span>
+    <span data-fsdocs-tip="fs48" data-fsdocs-tip-unique="122" class="fn">ExprLambdaNode</span><span class="pn">(</span>
+        <span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="123" class="fn">text</span> <span class="s">&quot;fun&quot;</span><span class="pn">,</span>
+        <span class="pn">[</span> <span data-fsdocs-tip="fs49" data-fsdocs-tip-unique="124" class="rt">Pattern</span><span class="pn">.</span><span data-fsdocs-tip="fs50" data-fsdocs-tip-unique="125" class="id">Named</span><span class="pn">(</span><span data-fsdocs-tip="fs51" data-fsdocs-tip-unique="126" class="fn">PatNamedNode</span><span class="pn">(</span><span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="127" class="uc">None</span><span class="pn">,</span> <span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="128" class="fn">text</span> <span class="s">&quot;a&quot;</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="129" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="130" class="id">range0</span><span class="pn">)</span><span class="pn">)</span>
+          <span data-fsdocs-tip="fs49" data-fsdocs-tip-unique="131" class="rt">Pattern</span><span class="pn">.</span><span data-fsdocs-tip="fs50" data-fsdocs-tip-unique="132" class="id">Named</span><span class="pn">(</span><span data-fsdocs-tip="fs51" data-fsdocs-tip-unique="133" class="fn">PatNamedNode</span><span class="pn">(</span><span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="134" class="uc">None</span><span class="pn">,</span> <span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="135" class="fn">text</span> <span class="s">&quot;b&quot;</span><span class="pn">,</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="136" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="137" class="id">range0</span><span class="pn">)</span><span class="pn">)</span> <span class="pn">]</span><span class="pn">,</span>
+        <span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="138" class="fn">text</span> <span class="s">&quot;-&gt;&quot;</span><span class="pn">,</span>
+        <span data-fsdocs-tip="fs44" data-fsdocs-tip-unique="139" class="fn">body</span><span class="pn">,</span>
+        <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="140" class="m">Range</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="141" class="id">range0</span>
     <span class="pn">)</span>
-    <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs19', 142)" onmouseover="showTip(event, 'fs19', 142)" class="rt">Expr</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs52', 143)" onmouseover="showTip(event, 'fs52', 143)" class="id">Lambda</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="142" class="rt">Expr</span><span class="pn">.</span><span data-fsdocs-tip="fs52" data-fsdocs-tip-unique="143" class="id">Lambda</span>
 
-<span onmouseout="hideTip(event, 'fs36', 144)" onmouseover="showTip(event, 'fs36', 144)" class="fn">mkCodeFromExpression</span> <span onmouseout="hideTip(event, 'fs43', 145)" onmouseover="showTip(event, 'fs43', 145)" class="id">lambdaExpr</span>
+<span data-fsdocs-tip="fs36" data-fsdocs-tip-unique="144" class="fn">mkCodeFromExpression</span> <span data-fsdocs-tip="fs43" data-fsdocs-tip-unique="145" class="id">lambdaExpr</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>fun a b -&gt; a + b</code></pre></td></tr></table>
 <p>How to know which nodes to include? Take a look at <code>CodePrinter.fs</code>!</p>
@@ -491,21 +491,21 @@ Our recommendation is that you include a set of regression tests  to meet your o
 As none of our versions are compatible it is advised to take a very strict dependency on <code>Fantomas.Core</code>. Using constraints like <code>(&gt;= 6.0.0)</code> will inevitably lead to unexpected problems.</p>
 <fantomas-nav previous="VSCode.html" next="UpgradeGuide.html"></fantomas-nav>
 
-        <div class="fsdocs-tip" id="fs1">namespace Fantomas</div>
-<div class="fsdocs-tip" id="fs2">namespace Fantomas.FCS</div>
-<div class="fsdocs-tip" id="fs3">namespace Fantomas.FCS.Text</div>
-<div class="fsdocs-tip" id="fs4">namespace Fantomas.Core</div>
-<div class="fsdocs-tip" id="fs5">module SyntaxOak
+        <div popover class="fsdocs-tip" id="fs1">namespace Fantomas</div>
+<div popover class="fsdocs-tip" id="fs2">namespace Fantomas.FCS</div>
+<div popover class="fsdocs-tip" id="fs3">namespace Fantomas.FCS.Text</div>
+<div popover class="fsdocs-tip" id="fs4">namespace Fantomas.Core</div>
+<div popover class="fsdocs-tip" id="fs5">module SyntaxOak
 
 from Fantomas.Core</div>
-<div class="fsdocs-tip" id="fs6">val implementationSyntaxTree: Oak</div>
-<div class="fsdocs-tip" id="fs7">Multiple items<br />type Oak =
+<div popover class="fsdocs-tip" id="fs6">val implementationSyntaxTree: Oak</div>
+<div popover class="fsdocs-tip" id="fs7">Multiple items<br />type Oak =
   inherit NodeBase
   new: parsedHashDirectives: ParsedHashDirectiveNode list * modulesOrNamespaces: ModuleOrNamespaceNode list * m: range -&gt; Oak
   override Children: Node array
   member ModulesOrNamespaces: ModuleOrNamespaceNode list
   member ParsedHashDirectives: ParsedHashDirectiveNode list<br /><br />--------------------<br />new: parsedHashDirectives: ParsedHashDirectiveNode list * modulesOrNamespaces: ModuleOrNamespaceNode list * m: range -&gt; Oak</div>
-<div class="fsdocs-tip" id="fs8">Multiple items<br />type ModuleOrNamespaceNode =
+<div popover class="fsdocs-tip" id="fs8">Multiple items<br />type ModuleOrNamespaceNode =
   inherit NodeBase
   new: header: ModuleOrNamespaceHeaderNode option * decls: ModuleDecl list * range: range -&gt; ModuleOrNamespaceNode
   override Children: Node array
@@ -515,8 +515,8 @@ from Fantomas.Core</div>
  A top-level module or namespace containing an optional header and a list of declarations.
  Corresponds to a `SynModuleOrNamespace` in the FCS untyped AST.
 &lt;/summary&gt;</em><br /><br />--------------------<br />new: header: ModuleOrNamespaceHeaderNode option * decls: ModuleDecl list * range: range -&gt; ModuleOrNamespaceNode</div>
-<div class="fsdocs-tip" id="fs9">union case Option.None: Option&lt;&#39;T&gt;</div>
-<div class="fsdocs-tip" id="fs10">Multiple items<br />type BindingNode =
+<div popover class="fsdocs-tip" id="fs9">union case Option.None: Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs10">Multiple items<br />type BindingNode =
   inherit NodeBase
   new: xmlDoc: XmlDocNode option * attributes: MultipleAttributeListNode option * leadingKeyword: MultipleTextsNode * isMutable: bool * inlineNode: SingleTextNode option * accessibility: SingleTextNode option * functionName: Choice&lt;IdentListNode,Pattern&gt; * genericTypeParameters: TyparDecls option * parameters: Pattern list * returnType: BindingReturnInfoNode option * equals: SingleTextNode * expr: Expr * inKeyword: SingleTextNode option * range: range -&gt; BindingNode
   member Accessibility: SingleTextNode option
@@ -531,7 +531,7 @@ from Fantomas.Core</div>
  Example: `let inline private f&amp;lt;&#39;T&amp;gt; (x: &#39;T) : int = ...` — a value/function/member binding.
  Covers `let`, `use`, `and`, `member`, `static member`, etc. depending on &amp;lt;c&amp;gt;LeadingKeyword&amp;lt;/c&amp;gt;.
 &lt;/summary&gt;</em><br /><br />--------------------<br />new: xmlDoc: XmlDocNode option * attributes: MultipleAttributeListNode option * leadingKeyword: MultipleTextsNode * isMutable: bool * inlineNode: SingleTextNode option * accessibility: SingleTextNode option * functionName: Choice&lt;IdentListNode,Pattern&gt; * genericTypeParameters: TyparDecls option * parameters: Pattern list * returnType: BindingReturnInfoNode option * equals: SingleTextNode * expr: Expr * inKeyword: SingleTextNode option * range: range -&gt; BindingNode</div>
-<div class="fsdocs-tip" id="fs11">Multiple items<br />type MultipleTextsNode =
+<div popover class="fsdocs-tip" id="fs11">Multiple items<br />type MultipleTextsNode =
   inherit NodeBase
   new: content: SingleTextNode list * range: range -&gt; MultipleTextsNode
   override Children: Node array
@@ -539,7 +539,7 @@ from Fantomas.Core</div>
  A node holding two or more adjacent text tokens that logically form one keyword or modifier sequence.
  Example: `static member` (two tokens), `abstract default` (access + keyword).
 &lt;/summary&gt;</em><br /><br />--------------------<br />new: content: SingleTextNode list * range: range -&gt; MultipleTextsNode</div>
-<div class="fsdocs-tip" id="fs12">Multiple items<br />type SingleTextNode =
+<div popover class="fsdocs-tip" id="fs12">Multiple items<br />type SingleTextNode =
   inherit NodeBase
   new: idText: string * range: range -&gt; SingleTextNode
   override ToString: unit -&gt; string
@@ -548,9 +548,9 @@ from Fantomas.Core</div>
  The most fundamental leaf node — a single token of source text (keyword, operator, identifier, punctuation, etc.).
  Examples: `let`, `=`, `-&amp;gt;`, `(`, `myVar`.
 &lt;/summary&gt;</em><br /><br />--------------------<br />new: idText: string * range: range -&gt; SingleTextNode</div>
-<div class="fsdocs-tip" id="fs13">Multiple items<br />module Range
+<div popover class="fsdocs-tip" id="fs13">Multiple items<br />module Range
 
-from Fantomas.FCS.Text<br /><br />--------------------<br />[&lt;Struct&gt;]
+from Fantomas.FCS.Text<br /><br />--------------------<br />
 type Range =
   member ApplyLineDirectives: unit -&gt; range
   member End: pos
@@ -565,11 +565,11 @@ type Range =
   ...<br /><em>&lt;summary&gt;
  Represents a range within a file
 &lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs14">val range0: range<br /><em>&lt;summary&gt;
+<div popover class="fsdocs-tip" id="fs14">val range0: range<br /><em>&lt;summary&gt;
  The zero range
 &lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs15">union case Choice.Choice1Of2: &#39;T1 -&gt; Choice&lt;&#39;T1,&#39;T2&gt;</div>
-<div class="fsdocs-tip" id="fs16">Multiple items<br />type IdentListNode =
+<div popover class="fsdocs-tip" id="fs15">union case Choice.Choice1Of2: &#39;T1 -&gt; Choice&lt;&#39;T1,&#39;T2&gt;</div>
+<div popover class="fsdocs-tip" id="fs16">Multiple items<br />type IdentListNode =
   inherit NodeBase
   new: content: IdentifierOrDot list * range: range -&gt; IdentListNode
   override Children: Node array
@@ -579,21 +579,17 @@ type Range =
  Example: `A.B.C` or `A` — a qualified identifier (sequence of idents and dots).
  Used wherever a dotted name appears: module names, type names, open statements, etc.
 &lt;/summary&gt;</em><br /><br />--------------------<br />new: content: IdentifierOrDot list * range: range -&gt; IdentListNode</div>
-<div class="fsdocs-tip" id="fs17">type IdentifierOrDot =
+<div popover class="fsdocs-tip" id="fs17">type IdentifierOrDot =
   | Ident of SingleTextNode
   | KnownDot of SingleTextNode
   | UnknownDot
-  member Equals: IdentifierOrDot * IEqualityComparer -&gt; bool
-  member IsIdent: bool
-  member IsKnownDot: bool
-  member IsUnknownDot: bool
   member Range: range option<br /><em>&lt;summary&gt;
  A single element of a dotted identifier path, either an identifier token or a dot separator.
  &amp;lt;c&amp;gt;KnownDot&amp;lt;/c&amp;gt; carries the source range of the &amp;lt;c&amp;gt;.&amp;lt;/c&amp;gt; when it is present in the source;
  &amp;lt;c&amp;gt;UnknownDot&amp;lt;/c&amp;gt; is used as a synthetic separator when the original range is unavailable.
 &lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs18">union case IdentifierOrDot.Ident: SingleTextNode -&gt; IdentifierOrDot</div>
-<div class="fsdocs-tip" id="fs19">type Expr =
+<div popover class="fsdocs-tip" id="fs18">union case IdentifierOrDot.Ident: SingleTextNode -&gt; IdentifierOrDot</div>
+<div popover class="fsdocs-tip" id="fs19">type Expr =
   | Lazy of ExprLazyNode
   | Single of ExprSingleNode
   | Constant of Constant
@@ -606,36 +602,24 @@ type Range =
   | ArrayOrList of ExprArrayOrListNode
   ...
   static member Node: x: Expr -&gt; Node
-  member HasParentheses: bool
-  member IsAnonStructRecord: bool
-  member IsApp: bool
-  member IsAppLongIdentAndSingleParenArg: bool
-  member IsAppSingleParenArg: bool
-  member IsAppWithLambda: bool
-  member IsArrayOrList: bool
-  member IsBeginEnd: bool
-  member IsChain: bool
-  ...<br /><em>&lt;summary&gt;
+  member HasParentheses: bool<br /><em>&lt;summary&gt;
  Discriminated union of all F# expressions in the Oak intermediate representation.
  Each case wraps a strongly-typed node that captures the exact sub-structure needed
  for formatting. Use &amp;lt;c&amp;gt;Expr.Node&amp;lt;/c&amp;gt; to obtain the underlying &amp;lt;see cref=&quot;Node&quot;/&amp;gt;
  for printer dispatch, and &amp;lt;c&amp;gt;Expr.NodeRange&amp;lt;/c&amp;gt; for range queries.
 &lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs20">union case Expr.Constant: Constant -&gt; Expr</div>
-<div class="fsdocs-tip" id="fs21">type Constant =
+<div popover class="fsdocs-tip" id="fs20">union case Expr.Constant: Constant -&gt; Expr</div>
+<div popover class="fsdocs-tip" id="fs21">type Constant =
   | FromText of SingleTextNode
   | Unit of UnitNode
   | Measure of ConstantMeasureNode
-  static member Node: c: Constant -&gt; NodeBase
-  member IsFromText: bool
-  member IsMeasure: bool
-  member IsUnit: bool<br /><em>&lt;summary&gt;
+  static member Node: c: Constant -&gt; NodeBase<br /><em>&lt;summary&gt;
  Discriminated union for the three forms of constant literal in the Oak representation.
  &amp;lt;c&amp;gt;FromText&amp;lt;/c&amp;gt; covers all ordinary literals (integers, strings, booleans, etc.);
  &amp;lt;c&amp;gt;Unit&amp;lt;/c&amp;gt; is the &amp;lt;c&amp;gt;()&amp;lt;/c&amp;gt; literal; &amp;lt;c&amp;gt;Measure&amp;lt;/c&amp;gt; is a numeric literal with a unit annotation.
 &lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs22">union case Constant.FromText: SingleTextNode -&gt; Constant</div>
-<div class="fsdocs-tip" id="fs23">type ModuleDecl =
+<div popover class="fsdocs-tip" id="fs22">union case Constant.FromText: SingleTextNode -&gt; Constant</div>
+<div popover class="fsdocs-tip" id="fs23">type ModuleDecl =
   | OpenList of OpenListNode
   | HashDirectiveList of HashDirectiveListNode
   | Attributes of ModuleDeclAttributesNode
@@ -647,21 +631,11 @@ type Range =
   | NestedModule of NestedModuleNode
   | TypeDefn of TypeDefn
   ...
-  static member Node: x: ModuleDecl -&gt; Node
-  member IsAttributes: bool
-  member IsDeclExpr: bool
-  member IsException: bool
-  member IsExternBinding: bool
-  member IsHashDirectiveList: bool
-  member IsModuleAbbrev: bool
-  member IsNestedModule: bool
-  member IsOpenList: bool
-  member IsTopLevelBinding: bool
-  ...<br /><em>&lt;summary&gt;
+  static member Node: x: ModuleDecl -&gt; Node<br /><em>&lt;summary&gt;
  Each case in this DU should have a container node
 &lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs24">union case ModuleDecl.TopLevelBinding: BindingNode -&gt; ModuleDecl</div>
-<div class="fsdocs-tip" id="fs25">type CodeFormatter =
+<div popover class="fsdocs-tip" id="fs24">union case ModuleDecl.TopLevelBinding: BindingNode -&gt; ModuleDecl</div>
+<div popover class="fsdocs-tip" id="fs25">type CodeFormatter =
   static member FormatASTAsync: ast: ParsedInput -&gt; Async&lt;string&gt; + 3 overloads
   static member FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt; + 2 overloads
   static member FormatOakAsync: oak: Oak -&gt; Async&lt;string&gt; + 1 overload
@@ -673,11 +647,11 @@ type Range =
   static member MakeRange: fileName: string * startLine: int * startCol: int * endLine: int * endCol: int -&gt; range
   static member ParseAsync: isSignature: bool * source: string -&gt; Async&lt;(ParsedInput * string list) array&gt;
   ...</div>
-<div class="fsdocs-tip" id="fs26">static member CodeFormatter.FormatOakAsync: oak: Oak -&gt; Async&lt;string&gt;<br />static member CodeFormatter.FormatOakAsync: oak: Oak * config: FormatConfig -&gt; Async&lt;string&gt;</div>
-<div class="fsdocs-tip" id="fs27">Multiple items<br />module Async
+<div popover class="fsdocs-tip" id="fs26">static member CodeFormatter.FormatOakAsync: oak: Oak -&gt; Async&lt;string&gt;<br />static member CodeFormatter.FormatOakAsync: oak: Oak * config: FormatConfig -&gt; Async&lt;string&gt;</div>
+<div popover class="fsdocs-tip" id="fs27">Multiple items<br />module Async
 
 from Fantomas.Core<br /><br />--------------------<br />type Async =
-  static member AsBeginEnd: computation: (&#39;Arg -&gt; Async&lt;&#39;T&gt;) -&gt; (&#39;Arg * AsyncCallback * obj -&gt; IAsyncResult) * (IAsyncResult -&gt; &#39;T) * (IAsyncResult -&gt; unit)
+  static member AsBeginEnd: computation: (&#39;Arg -&gt; Async&lt;&#39;T&gt;) -&gt; (&#39;Arg * AsyncCallback * objnull -&gt; IAsyncResult) * (IAsyncResult -&gt; &#39;T) * (IAsyncResult -&gt; unit)
   static member AwaitEvent: event: IEvent&lt;&#39;Del,&#39;T&gt; * ?cancelAction: (unit -&gt; unit) -&gt; Async&lt;&#39;T&gt; (requires delegate and &#39;Del :&gt; Delegate)
   static member AwaitIAsyncResult: iar: IAsyncResult * ?millisecondsTimeout: int -&gt; Async&lt;bool&gt;
   static member AwaitTask: task: Task&lt;&#39;T&gt; -&gt; Async&lt;&#39;T&gt; + 1 overload
@@ -685,32 +659,32 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
   static member CancelDefaultToken: unit -&gt; unit
   static member Catch: computation: Async&lt;&#39;T&gt; -&gt; Async&lt;Choice&lt;&#39;T,exn&gt;&gt;
   static member Choice: computations: Async&lt;&#39;T option&gt; seq -&gt; Async&lt;&#39;T option&gt;
-  static member FromBeginEnd: beginAction: (AsyncCallback * obj -&gt; IAsyncResult) * endAction: (IAsyncResult -&gt; &#39;T) * ?cancelAction: (unit -&gt; unit) -&gt; Async&lt;&#39;T&gt; + 3 overloads
+  static member FromBeginEnd: beginAction: (AsyncCallback * objnull -&gt; IAsyncResult) * endAction: (IAsyncResult -&gt; &#39;T) * ?cancelAction: (unit -&gt; unit) -&gt; Async&lt;&#39;T&gt; + 3 overloads
   static member FromContinuations: callback: ((&#39;T -&gt; unit) * (exn -&gt; unit) * (OperationCanceledException -&gt; unit) -&gt; unit) -&gt; Async&lt;&#39;T&gt;
   ...<br /><br />--------------------<br />type Async&lt;&#39;T&gt;</div>
-<div class="fsdocs-tip" id="fs28">static member Async.RunSynchronously: computation: Async&lt;&#39;T&gt; * ?timeout: int * ?cancellationToken: System.Threading.CancellationToken -&gt; &#39;T</div>
-<div class="fsdocs-tip" id="fs29">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
-<div class="fsdocs-tip" id="fs30">module Parse
+<div popover class="fsdocs-tip" id="fs28">static member Async.RunSynchronously: computation: Async&lt;&#39;T&gt; * ?timeout: int * ?cancellationToken: System.Threading.CancellationToken -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs29">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs30">module Parse
 
 from Fantomas.FCS</div>
-<div class="fsdocs-tip" id="fs31">val parseFile: isSignature: bool -&gt; sourceText: ISourceText -&gt; defines: string list -&gt; Syntax.ParsedInput * Parse.FSharpParserDiagnostic list</div>
-<div class="fsdocs-tip" id="fs32">module SourceText
+<div popover class="fsdocs-tip" id="fs31">val parseFile: isSignature: bool -&gt; sourceText: ISourceText -&gt; defines: string list -&gt; Syntax.ParsedInput * Parse.FSharpParserDiagnostic list</div>
+<div popover class="fsdocs-tip" id="fs32">module SourceText
 
 from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
  Functions related to ISourceText objects
 &lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs33">val ofString: string -&gt; ISourceText<br /><em>&lt;summary&gt;
+<div popover class="fsdocs-tip" id="fs33">val ofString: string -&gt; ISourceText<br /><em>&lt;summary&gt;
  Creates an ISourceText object from the given string
 &lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs34">val text: v: string -&gt; SingleTextNode</div>
-<div class="fsdocs-tip" id="fs35">val v: string</div>
-<div class="fsdocs-tip" id="fs36">val mkCodeFromExpression: e: Expr -&gt; unit</div>
-<div class="fsdocs-tip" id="fs37">val e: Expr</div>
-<div class="fsdocs-tip" id="fs38">union case ModuleDecl.DeclExpr: Expr -&gt; ModuleDecl</div>
-<div class="fsdocs-tip" id="fs39">val numberExpr: Expr</div>
-<div class="fsdocs-tip" id="fs40">val wrappedNumber: Expr</div>
-<div class="fsdocs-tip" id="fs41">union case Expr.Paren: ExprParenNode -&gt; Expr</div>
-<div class="fsdocs-tip" id="fs42">Multiple items<br />type ExprParenNode =
+<div popover class="fsdocs-tip" id="fs34">val text: v: string -&gt; SingleTextNode</div>
+<div popover class="fsdocs-tip" id="fs35">val v: string</div>
+<div popover class="fsdocs-tip" id="fs36">val mkCodeFromExpression: e: Expr -&gt; unit</div>
+<div popover class="fsdocs-tip" id="fs37">val e: Expr</div>
+<div popover class="fsdocs-tip" id="fs38">union case ModuleDecl.DeclExpr: Expr -&gt; ModuleDecl</div>
+<div popover class="fsdocs-tip" id="fs39">val numberExpr: Expr</div>
+<div popover class="fsdocs-tip" id="fs40">val wrappedNumber: Expr</div>
+<div popover class="fsdocs-tip" id="fs41">union case Expr.Paren: ExprParenNode -&gt; Expr</div>
+<div popover class="fsdocs-tip" id="fs42">Multiple items<br />type ExprParenNode =
   inherit NodeBase
   new: openingParen: SingleTextNode * expr: Expr * closingParen: SingleTextNode * range: range -&gt; ExprParenNode
   override Children: Node array
@@ -719,9 +693,9 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
   member OpeningParen: SingleTextNode<br /><em>&lt;summary&gt;
  Example: `(expr)` — an expression explicitly wrapped in parentheses for grouping or disambiguation.
 &lt;/summary&gt;</em><br /><br />--------------------<br />new: openingParen: SingleTextNode * expr: Expr * closingParen: SingleTextNode * range: range -&gt; ExprParenNode</div>
-<div class="fsdocs-tip" id="fs43">val lambdaExpr: Expr</div>
-<div class="fsdocs-tip" id="fs44">val body: Expr</div>
-<div class="fsdocs-tip" id="fs45">Multiple items<br />type ExprInfixAppNode =
+<div popover class="fsdocs-tip" id="fs43">val lambdaExpr: Expr</div>
+<div popover class="fsdocs-tip" id="fs44">val body: Expr</div>
+<div popover class="fsdocs-tip" id="fs45">Multiple items<br />type ExprInfixAppNode =
   inherit NodeBase
   interface InfixApp
   new: lhs: Expr * operator: SingleTextNode * rhs: Expr * range: range -&gt; ExprInfixAppNode
@@ -731,9 +705,9 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
   member RightHandSide: Expr<br /><em>&lt;summary&gt;
  Example: `a + b` — a single binary infix application with two different operands or operators
 &lt;/summary&gt;</em><br /><br />--------------------<br />new: lhs: Expr * operator: SingleTextNode * rhs: Expr * range: range -&gt; ExprInfixAppNode</div>
-<div class="fsdocs-tip" id="fs46">union case Expr.Ident: SingleTextNode -&gt; Expr</div>
-<div class="fsdocs-tip" id="fs47">union case Expr.InfixApp: ExprInfixAppNode -&gt; Expr</div>
-<div class="fsdocs-tip" id="fs48">Multiple items<br />type ExprLambdaNode =
+<div popover class="fsdocs-tip" id="fs46">union case Expr.Ident: SingleTextNode -&gt; Expr</div>
+<div popover class="fsdocs-tip" id="fs47">union case Expr.InfixApp: ExprInfixAppNode -&gt; Expr</div>
+<div popover class="fsdocs-tip" id="fs48">Multiple items<br />type ExprLambdaNode =
   inherit NodeBase
   new: funNode: SingleTextNode * parameters: Pattern list * arrow: SingleTextNode * expr: Expr * range: range -&gt; ExprLambdaNode
   member Arrow: SingleTextNode
@@ -743,7 +717,7 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
   member Parameters: Pattern list<br /><em>&lt;summary&gt;
  Example: `fun x y -&amp;gt; x + y`
 &lt;/summary&gt;</em><br /><br />--------------------<br />new: funNode: SingleTextNode * parameters: Pattern list * arrow: SingleTextNode * expr: Expr * range: range -&gt; ExprLambdaNode</div>
-<div class="fsdocs-tip" id="fs49">type Pattern =
+<div popover class="fsdocs-tip" id="fs49">type Pattern =
   | OptionalVal of SingleTextNode
   | Or of PatLeftMiddleRight
   | Ands of PatAndsNode
@@ -755,22 +729,12 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
   | As of PatLeftMiddleRight
   | ListCons of PatLeftMiddleRight
   ...
-  static member Node: x: Pattern -&gt; Node
-  member IsAnds: bool
-  member IsArrayOrList: bool
-  member IsAs: bool
-  member IsConst: bool
-  member IsIsInst: bool
-  member IsListCons: bool
-  member IsLongIdent: bool
-  member IsNamePatPairs: bool
-  member IsNamed: bool
-  ...<br /><em>&lt;summary&gt;
+  static member Node: x: Pattern -&gt; Node<br /><em>&lt;summary&gt;
  Discriminated union of all F# patterns in the Oak intermediate representation.
  Each case wraps a strongly-typed node. Use &amp;lt;c&amp;gt;Pattern.Node&amp;lt;/c&amp;gt; for printer dispatch.
 &lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs50">union case Pattern.Named: PatNamedNode -&gt; Pattern</div>
-<div class="fsdocs-tip" id="fs51">Multiple items<br />type PatNamedNode =
+<div popover class="fsdocs-tip" id="fs50">union case Pattern.Named: PatNamedNode -&gt; Pattern</div>
+<div popover class="fsdocs-tip" id="fs51">Multiple items<br />type PatNamedNode =
   inherit NodeBase
   new: accessibility: SingleTextNode option * name: SingleTextNode * range: range -&gt; PatNamedNode
   member Accessibility: SingleTextNode option
@@ -778,7 +742,7 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
   member Name: SingleTextNode<br /><em>&lt;summary&gt;
  Example: `x` or `private x` (a simple named binding pattern)
 &lt;/summary&gt;</em><br /><br />--------------------<br />new: accessibility: SingleTextNode option * name: SingleTextNode * range: range -&gt; PatNamedNode</div>
-<div class="fsdocs-tip" id="fs52">union case Expr.Lambda: ExprLambdaNode -&gt; Expr</div>
+<div popover class="fsdocs-tip" id="fs52">union case Expr.Lambda: ExprLambdaNode -&gt; Expr</div>
 
     </div>
 </main>
@@ -859,6 +823,15 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-copy-button.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
 <script type="module">
     import mermaid from "https://esm.sh/mermaid@9.2.2";
     mermaid.initialize({
@@ -870,13 +843,6 @@ from Fantomas.FCS.Text<br /><em>&lt;summary&gt;
             primaryBorderColor: '#5aacd6'
         }
     });
-
-    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
-    menuHeaders.forEach(nv => {
-        nv.addEventListener("click", () => {
-            nv.classList.toggle("active");
-        })
-    })
 </script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
 </body>

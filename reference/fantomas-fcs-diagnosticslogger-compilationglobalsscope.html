@@ -38,12 +38,12 @@
             <input type="checkbox" name="mobile-menu" />
             <ul class="menu">
                 <li class="nav-header">Links</li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
                 </li>
-                <li class="nav-item"><a class="nav-link"
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                         href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
                     Notes</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
@@ -161,7 +161,7 @@
             </ul>
         </div>
         <a href="https://fsprojects.github.io/fantomas/">
-            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <img alt="Logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
             <strong>fantomas</strong>
         </a>
     </div>
@@ -176,12 +176,12 @@
 <aside id="fsdocs-main-menu">
     <ul class="menu">
         <li class="nav-header">Links</li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
         </li>
-        <li class="nav-item"><a class="nav-link"
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                 href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
             Notes</a></li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
@@ -366,7 +366,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '4697', 4697)" onmouseover="showTip(event, '4697', 4697)">
+              <code data-fsdocs-tip="6764" data-fsdocs-tip-unique="6764">
                 <p>
                   <a id="``.ctor``">
                     <a href="#``.ctor``">
@@ -375,7 +375,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="4697">
+              <div popover="" class="fsdocs-tip" id="6764">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CompilationGlobalsScope<span>()</span></span></code>
@@ -427,7 +427,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '4698', 4698)" onmouseover="showTip(event, '4698', 4698)">
+              <code data-fsdocs-tip="6765" data-fsdocs-tip-unique="6765">
                 <p>
                   <a id="``.ctor``">
                     <a href="#``.ctor``">
@@ -436,7 +436,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="4698">
+              <div popover="" class="fsdocs-tip" id="6765">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CompilationGlobalsScope<span><span>(<span>diagnosticsLogger,&#32;buildPhase</span>)</span></span></span></code>
@@ -531,7 +531,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '4699', 4699)" onmouseover="showTip(event, '4699', 4699)">
+              <code data-fsdocs-tip="6766" data-fsdocs-tip-unique="6766">
                 <p>
                   <a id="BuildPhase">
                     <a href="#BuildPhase">
@@ -540,7 +540,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="4699">
+              <div popover="" class="fsdocs-tip" id="6766">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.BuildPhase</span></code>
@@ -577,7 +577,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '4700', 4700)" onmouseover="showTip(event, '4700', 4700)">
+              <code data-fsdocs-tip="6767" data-fsdocs-tip-unique="6767">
                 <p>
                   <a id="DiagnosticsLogger">
                     <a href="#DiagnosticsLogger">
@@ -586,7 +586,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="4700">
+              <div popover="" class="fsdocs-tip" id="6767">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.DiagnosticsLogger</span></code>
@@ -644,6 +644,15 @@
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-copy-button.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
 <script type="module">
     import mermaid from "https://esm.sh/mermaid@9.2.2";
     mermaid.initialize({
@@ -655,13 +664,6 @@
             primaryBorderColor: '#5aacd6'
         }
     });
-
-    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
-    menuHeaders.forEach(nv => {
-        nv.addEventListener("click", () => {
-            nv.classList.toggle("active");
-        })
-    })
 </script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
 </body>

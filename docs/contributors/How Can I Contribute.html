@@ -41,12 +41,12 @@
             <input type="checkbox" name="mobile-menu" />
             <ul class="menu">
                 <li class="nav-header">Links</li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
                 </li>
-                <li class="nav-item"><a class="nav-link"
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                         href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
                     Notes</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
@@ -164,7 +164,7 @@
             </ul>
         </div>
         <a href="https://fsprojects.github.io/fantomas/">
-            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <img alt="Logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
             <strong>fantomas</strong>
         </a>
     </div>
@@ -179,12 +179,12 @@
 <aside id="fsdocs-main-menu">
     <ul class="menu">
         <li class="nav-header">Links</li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
         </li>
-        <li class="nav-item"><a class="nav-link"
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                 href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
             Notes</a></li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
@@ -387,24 +387,24 @@ If this information was available in <a href="../../reference/fsharp-compiler-sy
 <p>Sometimes the existing shape of the syntax tree doesn't quite cover the syntax perfectly.</p>
 <p>For example, in issue <a href="https://github.com/fsprojects/fantomas/issues/2264">#2264</a>, the measure was represented as</p>
 <p>Code:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="rt">Measure</span><span class="pn">&gt;]</span> <span class="k">type</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="rt">herth</span> <span class="o">=</span> <span class="o">/</span> <span class="id">second</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="rt">Measure</span><span class="pn">&gt;]</span> <span class="k">type</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="rt">herth</span> <span class="o">=</span> <span class="o">/</span> <span class="id">second</span>
 </code></pre>
 <p>Old AST:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Types</span>
    <span class="pn">(</span><span class="pn">[</span><span class="id">SynTypeDefn</span>
        <span class="pn">(</span><span class="id">SynComponentInfo</span>
-          <span class="pn">(</span><span class="pn">[</span><span class="pn">{</span> <span class="id">Attributes</span> <span class="o">=</span> <span class="pn">[</span> <span class="o">..</span><span class="pn">.</span> <span class="pn">]</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="id">None</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span onmouseout="hideTip(event, 'fs2', 4)" onmouseover="showTip(event, 'fs2', 4)" class="id">herth</span><span class="pn">]</span><span class="pn">,</span>
-           <span class="id">PreXmlDoc</span> <span class="pn">(</span><span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="pn">)</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs4', 5)" onmouseover="showTip(event, 'fs4', 5)" class="id">FSharp</span><span class="pn">.</span><span class="id">Compiler</span><span class="pn">.</span><span class="id">Xml</span><span class="pn">.</span><span class="id">XmlDocCollector</span><span class="pn">)</span><span class="pn">,</span>
-           <span class="k">false</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs3', 6)" onmouseover="showTip(event, 'fs3', 6)" class="id">None</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">17</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">22</span><span class="pn">)</span><span class="pn">)</span><span class="pn">,</span>
+          <span class="pn">(</span><span class="pn">[</span><span class="pn">{</span> <span class="id">Attributes</span> <span class="o">=</span> <span class="pn">[</span> <span class="o">..</span><span class="pn">.</span> <span class="pn">]</span><span class="pn">,</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="3" class="id">None</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="4" class="id">herth</span><span class="pn">]</span><span class="pn">,</span>
+           <span class="id">PreXmlDoc</span> <span class="pn">(</span><span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="pn">)</span><span class="pn">,</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="5" class="id">FSharp</span><span class="pn">.</span><span class="id">Compiler</span><span class="pn">.</span><span class="id">Xml</span><span class="pn">.</span><span class="id">XmlDocCollector</span><span class="pn">)</span><span class="pn">,</span>
+           <span class="k">false</span><span class="pn">,</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="6" class="id">None</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">17</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">22</span><span class="pn">)</span><span class="pn">)</span><span class="pn">,</span>
         <span class="id">Simple</span>
           <span class="pn">(</span><span class="id">TypeAbbrev</span>
-             <span class="pn">(</span><span onmouseout="hideTip(event, 'fs5', 7)" onmouseover="showTip(event, 'fs5', 7)" class="id">Ok</span><span class="pn">,</span>
+             <span class="pn">(</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="7" class="id">Ok</span><span class="pn">,</span>
               <span class="id">Tuple</span>
                 <span class="pn">(</span><span class="k">false</span><span class="pn">,</span>
                  <span class="pn">[</span><span class="pn">(</span><span class="k">true</span><span class="pn">,</span>
                    <span class="id">StaticConstant</span> <span class="pn">(</span><span class="id">Int32</span> <span class="n">1</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">25</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">33</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span><span class="pn">;</span>
                   <span class="pn">(</span><span class="k">false</span><span class="pn">,</span>
-                   <span class="id">LongIdent</span> <span class="pn">(</span><span class="id">SynLongIdent</span> <span class="pn">(</span><span class="pn">[</span><span class="id">second</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span onmouseout="hideTip(event, 'fs3', 8)" onmouseover="showTip(event, 'fs3', 8)" class="id">None</span><span class="pn">]</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="o">..</span><span class="pn">.</span><span class="pn">]</span>
+                   <span class="id">LongIdent</span> <span class="pn">(</span><span class="id">SynLongIdent</span> <span class="pn">(</span><span class="pn">[</span><span class="id">second</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="8" class="id">None</span><span class="pn">]</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="o">..</span><span class="pn">.</span><span class="pn">]</span>
 </code></pre>
 <p>Notice <code>StaticConstant (Int32 1, ...)</code>, the source code doesn't contain any <code>1</code> at all.</p>
 <p>After <a href="https://github.com/dotnet/fsharp/pull/13440">dotnet/fsharp#13440</a>,</p>
@@ -413,36 +413,36 @@ If this information was available in <a href="../../reference/fsharp-compiler-sy
              <span class="pn">(</span><span class="pn">[</span><span class="id">SynTypeDefn</span>
                  <span class="pn">(</span><span class="id">SynComponentInfo</span>
                     <span class="pn">(</span><span class="pn">[</span><span class="pn">{</span> <span class="id">Attributes</span> <span class="o">=</span>
-                         <span class="pn">[</span><span class="pn">{</span> <span class="id">TypeName</span> <span class="o">=</span> <span class="id">SynLongIdent</span> <span class="pn">(</span><span class="pn">[</span><span onmouseout="hideTip(event, 'fs1', 9)" onmouseover="showTip(event, 'fs1', 9)" class="id">Measure</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span onmouseout="hideTip(event, 'fs3', 10)" onmouseover="showTip(event, 'fs3', 10)" class="id">None</span><span class="pn">]</span><span class="pn">)</span>
+                         <span class="pn">[</span><span class="pn">{</span> <span class="id">TypeName</span> <span class="o">=</span> <span class="id">SynLongIdent</span> <span class="pn">(</span><span class="pn">[</span><span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="9" class="id">Measure</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="10" class="id">None</span><span class="pn">]</span><span class="pn">)</span>
                             <span class="id">ArgExpr</span> <span class="o">=</span> <span class="id">Const</span> <span class="pn">(</span><span class="id">Unit</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">2</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">9</span><span class="pn">)</span><span class="pn">)</span>
-                            <span class="id">Target</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs3', 11)" onmouseover="showTip(event, 'fs3', 11)" class="id">None</span>
+                            <span class="id">Target</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="11" class="id">None</span>
                             <span class="id">AppliesToGetterAndSetter</span> <span class="o">=</span> <span class="k">false</span>
                             <span class="id">Range</span> <span class="o">=</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">2</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">9</span><span class="pn">)</span> <span class="pn">}</span><span class="pn">]</span>
-                        <span class="id">Range</span> <span class="o">=</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">11</span><span class="pn">)</span> <span class="pn">}</span><span class="pn">]</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs3', 12)" onmouseover="showTip(event, 'fs3', 12)" class="id">None</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span onmouseout="hideTip(event, 'fs2', 13)" onmouseover="showTip(event, 'fs2', 13)" class="id">herth</span><span class="pn">]</span><span class="pn">,</span>
-                     <span class="id">PreXmlDoc</span> <span class="pn">(</span><span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="pn">)</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs4', 14)" onmouseover="showTip(event, 'fs4', 14)" class="id">FSharp</span><span class="pn">.</span><span class="id">Compiler</span><span class="pn">.</span><span class="id">Xml</span><span class="pn">.</span><span class="id">XmlDocCollector</span><span class="pn">)</span><span class="pn">,</span>
-                     <span class="k">false</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs3', 15)" onmouseover="showTip(event, 'fs3', 15)" class="id">None</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">17</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">22</span><span class="pn">)</span><span class="pn">)</span><span class="pn">,</span>
+                        <span class="id">Range</span> <span class="o">=</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">11</span><span class="pn">)</span> <span class="pn">}</span><span class="pn">]</span><span class="pn">,</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="12" class="id">None</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="13" class="id">herth</span><span class="pn">]</span><span class="pn">,</span>
+                     <span class="id">PreXmlDoc</span> <span class="pn">(</span><span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="pn">)</span><span class="pn">,</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="14" class="id">FSharp</span><span class="pn">.</span><span class="id">Compiler</span><span class="pn">.</span><span class="id">Xml</span><span class="pn">.</span><span class="id">XmlDocCollector</span><span class="pn">)</span><span class="pn">,</span>
+                     <span class="k">false</span><span class="pn">,</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="15" class="id">None</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">17</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">22</span><span class="pn">)</span><span class="pn">)</span><span class="pn">,</span>
                   <span class="id">Simple</span>
                     <span class="pn">(</span><span class="id">TypeAbbrev</span>
-                       <span class="pn">(</span><span onmouseout="hideTip(event, 'fs5', 16)" onmouseover="showTip(event, 'fs5', 16)" class="id">Ok</span><span class="pn">,</span>
+                       <span class="pn">(</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="16" class="id">Ok</span><span class="pn">,</span>
                         <span class="id">Tuple</span>
                           <span class="pn">(</span><span class="k">false</span><span class="pn">,</span>
                            <span class="pn">[</span><span class="id">Slash</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">25</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">26</span><span class="pn">)</span><span class="pn">;</span>
                             <span class="id">Type</span>
-                              <span class="pn">(</span><span class="id">LongIdent</span> <span class="pn">(</span><span class="id">SynLongIdent</span> <span class="pn">(</span><span class="pn">[</span><span class="id">second</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span onmouseout="hideTip(event, 'fs3', 17)" onmouseover="showTip(event, 'fs3', 17)" class="id">None</span><span class="pn">]</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span>
+                              <span class="pn">(</span><span class="id">LongIdent</span> <span class="pn">(</span><span class="id">SynLongIdent</span> <span class="pn">(</span><span class="pn">[</span><span class="id">second</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="17" class="id">None</span><span class="pn">]</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span>
                            <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">25</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">33</span><span class="pn">)</span><span class="pn">)</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">25</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">33</span><span class="pn">)</span><span class="pn">)</span><span class="pn">,</span> <span class="o">..</span><span class="pn">.</span> <span class="pn">]</span>
 </code></pre>
 <p>This update to the tree made it very straightforward to fix the original bug in Fantomas.</p>
 <p>Another example of code that could benefit from a better representation is <a href="https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+extern">extern</a>.</p>
 <fantomas-nav previous="Conditional%20Compilation%20Directives.html" next="The%20Missing%20Comment.html"></fantomas-nav>
 
-        <div class="fsdocs-tip" id="fs1">Multiple items<br />type MeasureAttribute =
+        <div popover class="fsdocs-tip" id="fs1">Multiple items<br />type MeasureAttribute =
   inherit Attribute
   new: unit -&gt; MeasureAttribute<br /><br />--------------------<br />new: unit -&gt; MeasureAttribute</div>
-<div class="fsdocs-tip" id="fs2">[&lt;Measure&gt;]
+<div popover class="fsdocs-tip" id="fs2">
 type herth = 1</div>
-<div class="fsdocs-tip" id="fs3">union case Option.None: Option&lt;&#39;T&gt;</div>
-<div class="fsdocs-tip" id="fs4">namespace Microsoft.FSharp</div>
-<div class="fsdocs-tip" id="fs5">union case Result.Ok: ResultValue: &#39;T -&gt; Result&lt;&#39;T,&#39;TError&gt;</div>
+<div popover class="fsdocs-tip" id="fs3">union case Option.None: Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs4">namespace Microsoft.FSharp</div>
+<div popover class="fsdocs-tip" id="fs5">union case Result.Ok: ResultValue: &#39;T -&gt; Result&lt;&#39;T,&#39;TError&gt;</div>
 
     </div>
 </main>
@@ -568,6 +568,15 @@ type herth = 1</div>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-copy-button.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
 <script type="module">
     import mermaid from "https://esm.sh/mermaid@9.2.2";
     mermaid.initialize({
@@ -579,13 +588,6 @@ type herth = 1</div>
             primaryBorderColor: '#5aacd6'
         }
     });
-
-    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
-    menuHeaders.forEach(nv => {
-        nv.addEventListener("click", () => {
-            nv.classList.toggle("active");
-        })
-    })
 </script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
 </body>

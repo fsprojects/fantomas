@@ -41,12 +41,12 @@
             <input type="checkbox" name="mobile-menu" />
             <ul class="menu">
                 <li class="nav-header">Links</li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
                 </li>
-                <li class="nav-item"><a class="nav-link"
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                         href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
                     Notes</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
@@ -164,7 +164,7 @@
             </ul>
         </div>
         <a href="https://fsprojects.github.io/fantomas/">
-            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <img alt="Logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
             <strong>fantomas</strong>
         </a>
     </div>
@@ -179,12 +179,12 @@
 <aside id="fsdocs-main-menu">
     <ul class="menu">
         <li class="nav-header">Links</li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
         </li>
-        <li class="nav-item"><a class="nav-link"
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                 href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
             Notes</a></li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
@@ -320,8 +320,8 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
 <h2><a name="The-limitation-all-define-combinations-must-produce-valid-syntax" class="anchor" href="#The-limitation-all-define-combinations-must-produce-valid-syntax">The limitation: all define combinations must produce valid syntax</a></h2>
 <p>Because Fantomas parses your code under <strong>every</strong> define combination, <strong>each combination must result in a valid syntax tree</strong>.</p>
 <p>For example, the following code <strong>cannot</strong> be formatted:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="m">F</span> <span class="o">=</span>
-    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">a</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="rt">string</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="m">F</span> <span class="o">=</span>
+    <span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">a</span><span class="pn">:</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="3" class="rt">string</span> <span class="o">=</span>
         <span class="pp">#if</span> <span class="id">FOO</span>
 <span class="inactive">        </span><span class="inactive">&quot;&quot;</span>
         <span class="pp">#endif</span>
@@ -329,39 +329,39 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
 <span class="inactive">        </span><span class="inactive">&quot;a&quot;</span>
         <span class="pp">#endif</span>
 
-    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs4', 4)" onmouseover="showTip(event, 'fs4', 4)" class="id">baz</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs5', 5)" onmouseover="showTip(event, 'fs5', 5)" class="rt">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
+    <span class="k">let</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="4" class="id">baz</span><span class="pn">:</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="5" class="rt">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
 <p>When neither <code>FOO</code> nor <code>BAR</code> is defined, the code becomes:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span onmouseout="hideTip(event, 'fs1', 6)" onmouseover="showTip(event, 'fs1', 6)" class="id">F</span> <span class="o">=</span>
-    <span class="k">let</span> <span class="id">a</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs3', 7)" onmouseover="showTip(event, 'fs3', 7)" class="id">string</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="6" class="id">F</span> <span class="o">=</span>
+    <span class="k">let</span> <span class="id">a</span><span class="pn">:</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="7" class="id">string</span> <span class="o">=</span>
 
-    <span class="k">let</span> <span class="id">baz</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs5', 8)" onmouseover="showTip(event, 'fs5', 8)" class="id">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
+    <span class="k">let</span> <span class="id">baz</span><span class="pn">:</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="8" class="id">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
 <p>This is not valid F# — <code>let a</code> has no body — so the parser raises an error and Fantomas cannot proceed.</p>
 <h2><a name="How-to-fix-it" class="anchor" href="#How-to-fix-it">How to fix it</a></h2>
 <p>Make sure that every combination of defines still produces valid F# code. The most common fix is to add an <code>#else</code> branch:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span onmouseout="hideTip(event, 'fs1', 9)" onmouseover="showTip(event, 'fs1', 9)" class="id">F</span> <span class="o">=</span>
-    <span class="k">let</span> <span class="id">a</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs3', 10)" onmouseover="showTip(event, 'fs3', 10)" class="id">string</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="9" class="id">F</span> <span class="o">=</span>
+    <span class="k">let</span> <span class="id">a</span><span class="pn">:</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="10" class="id">string</span> <span class="o">=</span>
         <span class="pp">#if</span> <span class="id">FOO</span>
 <span class="inactive">        </span><span class="inactive">&quot;&quot;</span>
         <span class="pp">#else</span>
         <span class="s">&quot;a&quot;</span>
         <span class="pp">#endif</span>
 
-    <span class="k">let</span> <span class="id">baz</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs5', 11)" onmouseover="showTip(event, 'fs5', 11)" class="id">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
+    <span class="k">let</span> <span class="id">baz</span><span class="pn">:</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="11" class="id">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
 <p>Now, regardless of whether <code>FOO</code> is defined, the parser always sees a complete <code>let</code> binding.</p>
 <h2><a name="Using" class="anchor" href="#Using">Using <code>.fantomasignore</code></a></h2>
 <p>If you cannot restructure the directives (e.g. because the code is generated or must match a particular pattern), you can exclude the file from formatting using a <a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html"><code>.fantomasignore</code></a> file.</p>
 <fantomas-nav previous="Recipes.html" next="FAQ.html"></fantomas-nav>
 
-        <div class="fsdocs-tip" id="fs1">module F
+        <div popover class="fsdocs-tip" id="fs1">module F
 
 from ConditionalCompilationDirectives</div>
-<div class="fsdocs-tip" id="fs2">val a: string</div>
-<div class="fsdocs-tip" id="fs3">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
-<div class="fsdocs-tip" id="fs4">val baz: unit</div>
-<div class="fsdocs-tip" id="fs5">type unit = Unit</div>
+<div popover class="fsdocs-tip" id="fs2">val a: string</div>
+<div popover class="fsdocs-tip" id="fs3">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
+<div popover class="fsdocs-tip" id="fs4">val baz: unit</div>
+<div popover class="fsdocs-tip" id="fs5">type unit = Unit</div>
 
     </div>
 </main>
@@ -402,6 +402,15 @@ from ConditionalCompilationDirectives</div>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-copy-button.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
 <script type="module">
     import mermaid from "https://esm.sh/mermaid@9.2.2";
     mermaid.initialize({
@@ -413,13 +422,6 @@ from ConditionalCompilationDirectives</div>
             primaryBorderColor: '#5aacd6'
         }
     });
-
-    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
-    menuHeaders.forEach(nv => {
-        nv.addEventListener("click", () => {
-            nv.classList.toggle("active");
-        })
-    })
 </script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
 </body>

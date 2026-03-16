@@ -41,12 +41,12 @@
             <input type="checkbox" name="mobile-menu" />
             <ul class="menu">
                 <li class="nav-header">Links</li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
                 </li>
-                <li class="nav-item"><a class="nav-link"
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                         href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
                     Notes</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
@@ -164,7 +164,7 @@
             </ul>
         </div>
         <a href="https://fsprojects.github.io/fantomas/">
-            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <img alt="Logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
             <strong>fantomas</strong>
         </a>
     </div>
@@ -179,12 +179,12 @@
 <aside id="fsdocs-main-menu">
     <ul class="menu">
         <li class="nav-header">Links</li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
         </li>
-        <li class="nav-item"><a class="nav-link"
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                 href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
             Notes</a></li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
@@ -325,11 +325,11 @@ This project is very well suited for <a href="https://en.wikipedia.org/wiki/Test
 <p>The vast majority of the tests use the template listed above. Only deviate from this when necessary.
 Try and find a suitable file in <code>Fantomas.Core.Tests</code>, or introduce a new file.</p>
 <p>A new test file should look like:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span class="id">Fantomas</span><span class="pn">.</span><span class="id">Core</span><span class="pn">.</span><span class="id">Tests</span><span class="pn">.</span><span class="id">MyNewConceptTests</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span class="m">Fantomas</span><span class="pn">.</span><span class="id">Core</span><span class="pn">.</span><span class="id">Tests</span><span class="pn">.</span><span class="id">MyNewConceptTests</span>
 
 <span class="k">open</span> <span class="id">NUnit</span><span class="pn">.</span><span class="id">Framework</span>
 <span class="k">open</span> <span class="id">FsUnit</span>
-<span class="k">open</span> <span class="id">Fantomas</span><span class="pn">.</span><span class="id">Core</span><span class="pn">.</span><span class="id">Tests</span><span class="pn">.</span><span class="id">TestHelpers</span>
+<span class="k">open</span> <span class="m">Fantomas</span><span class="pn">.</span><span class="id">Core</span><span class="pn">.</span><span class="id">Tests</span><span class="pn">.</span><span class="id">TestHelpers</span>
 
 <span class="c">// add tests here...</span>
 </code></pre>
@@ -406,33 +406,26 @@ Add an entry to the <code>CHANGELOG.md</code> in the <code>Unreleased</code> sec
 <p>If there's not an <code>Unreleased</code> section in the <code>CHANGELOG.md</code>, create one at the top above the most recent version like so:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="markdown">## [Unreleased]
 
-### Changed</code></pre></td></tr></table>
-<ul>
-<li>
-<p>Your new feature goes here</p>
-<h2><a name="2022-02-10" class="anchor" href="#2022-02-10">[4.7.4] - 2022-02-10</a></h2>
-<h3><a name="Added" class="anchor" href="#Added">Added</a></h3>
-</li>
-<li>
-<p>Awesome feature number one</p>
-<pre class="fssnip highlighted"><code lang="fsharp"></code></pre>
+### Changed
+* Your new feature goes here
+
+## [4.7.4] - 2022-02-10
+
+### Added
+* Awesome feature number one
+</code></pre></td></tr></table>
 </li>
 </ul>
 </li>
-<li>
-When fixing a <code>bug (soundness)</code>, add a line in the following format to <code>Fixed</code>:
-<code>* &lt;Original GitHub issue title&gt; [#issue-number](https://github.com/fsprojects/fantomas/issues/issue-number)</code>.
-For example, <code>* Spaces are lost in multi range expression. [#2071](https://github.com/fsprojects/fantomas/issues/2071)</code>.
-Do the same, if you fixed a <code>bug (stylistic)</code> that is not related to any style guide.
-</li>
-<li>
-When fixing a <code>bug (stylistic)</code>, add a line in the following format to <code>Changed</code>
-<code>Update style of xyz. [#issue-number](https://github.com/fsprojects/fantomas/issues/issue-number)</code>
-</li>
-<li>For example, <code>* Update style of lambda argument. [#1871](https://github.com/fsprojects/fantomas/issues/1871)</code>.</li>
 </ul>
-</li>
-</ul>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="o">-</span> <span class="id">When</span> <span class="id">fixing</span> <span class="id">a</span> <span class="id">`</span><span class="id">bug</span> <span class="pn">(</span><span class="id">soundness</span><span class="pn">)</span><span class="id">`</span><span class="pn">,</span> <span class="id">add</span> <span class="id">a</span> <span class="id">line</span> <span class="k">in</span> <span class="id">the</span> <span class="id">following</span> <span class="id">format</span> <span class="k">to</span> <span class="id">`</span><span class="id">Fixed</span><span class="id">`</span><span class="pn">:</span>
+  <span class="id">`</span><span class="pn">*</span> <span class="pn">&lt;</span><span class="id">Original</span> <span class="id">GitHub</span> <span class="id">issue</span> <span class="id">title</span><span class="pn">&gt;</span> <span class="pn">[</span><span class="pn">#</span><span class="id">issue</span><span class="o">-</span><span class="id">number</span><span class="pn">]</span><span class="pn">(</span><span class="id">https</span><span class="pn">:</span><span class="c">//github.com/fsprojects/fantomas/issues/issue-number)`.</span>
+  <span class="id">For</span> <span class="id">example</span><span class="pn">,</span> <span class="id">`</span><span class="pn">*</span> <span class="id">Spaces</span> <span class="id">are</span> <span class="id">lost</span> <span class="k">in</span> <span class="id">multi</span> <span class="id">range</span> <span class="id">expression</span><span class="pn">.</span> <span class="pn">[</span><span class="pn">#</span><span class="n">2071</span><span class="pn">]</span><span class="pn">(</span><span class="id">https</span><span class="pn">:</span><span class="c">//github.com/fsprojects/fantomas/issues/2071)`.</span>
+  <span class="id">Do</span> <span class="id">the</span> <span class="id">same</span><span class="pn">,</span> <span class="k">if</span> <span class="id">you</span> <span class="k">fixed</span> <span class="id">a</span> <span class="id">`</span><span class="id">bug</span> <span class="pn">(</span><span class="id">stylistic</span><span class="pn">)</span><span class="id">`</span> <span class="id">that</span> <span class="id">is</span> <span class="id">not</span> <span class="id">related</span> <span class="k">to</span> <span class="id">any</span> <span class="id">style</span> <span class="id">guide</span><span class="pn">.</span>
+<span class="o">-</span> <span class="id">When</span> <span class="id">fixing</span> <span class="id">a</span> <span class="id">`</span><span class="id">bug</span> <span class="pn">(</span><span class="id">stylistic</span><span class="pn">)</span><span class="id">`</span><span class="pn">,</span> <span class="id">add</span> <span class="id">a</span> <span class="id">line</span> <span class="k">in</span> <span class="id">the</span> <span class="id">following</span> <span class="id">format</span> <span class="k">to</span> <span class="id">`</span><span class="id">Changed</span><span class="id">`</span>
+  <span class="id">`</span><span class="id">Update</span> <span class="id">style</span> <span class="k">of</span> <span class="id">xyz</span><span class="pn">.</span> <span class="pn">[</span><span class="pn">#</span><span class="id">issue</span><span class="o">-</span><span class="id">number</span><span class="pn">]</span><span class="pn">(</span><span class="id">https</span><span class="pn">:</span><span class="c">//github.com/fsprojects/fantomas/issues/issue-number)`</span>
+<span class="o">-</span> <span class="id">For</span> <span class="id">example</span><span class="pn">,</span> <span class="id">`</span><span class="pn">*</span> <span class="id">Update</span> <span class="id">style</span> <span class="k">of</span> <span class="id">lambda</span> <span class="id">argument</span><span class="pn">.</span> <span class="pn">[</span><span class="pn">#</span><span class="n">1871</span><span class="pn">]</span><span class="pn">(</span><span class="id">https</span><span class="pn">:</span><span class="c">//github.com/fsprojects/fantomas/issues/1871)`.</span>
+</code></pre>
 <h3><a name="Run-a-local-build" class="anchor" href="#Run-a-local-build">Run a local build</a></h3>
 <p>Finally, make sure to run <code>dotnet fsi build.fsx</code>. Among other things, this will check the format of the code and will tell you, if
 your changes caused any tests to fail.</p>
@@ -447,20 +440,20 @@ It's often better to check <em>before</em> contributing that you're setting off 
 <ul>
 <li>Use <code>x</code> as the the <code>self-identifier</code> if you need it.</li>
 </ul>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="rt">Foo</span><span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
-    <span class="k">member</span> <span class="id">_</span><span class="pn">.</span><span class="prop">Children</span> <span class="o">=</span> <span class="pn">[</span><span class="pn">]</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">Foo</span><span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
+    <span class="k">member</span> <span class="id">_</span><span class="pn">.</span><span class="id">Children</span> <span class="o">=</span> <span class="pn">[</span><span class="pn">]</span>
     
     <span class="c">// ✔️ OK</span>
-    <span class="k">member</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="fn">x</span><span class="pn">.</span><span class="prop">Length</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs2', 3)" onmouseover="showTip(event, 'fs2', 3)" class="fn">x</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs3', 4)" onmouseover="showTip(event, 'fs3', 4)" class="prop">Children</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs4', 5)" onmouseover="showTip(event, 'fs4', 5)" class="id">Length</span>
+    <span class="k">member</span> <span class="id">x</span><span class="pn">.</span><span class="id">Length</span> <span class="o">=</span> <span class="id">x</span><span class="pn">.</span><span class="id">Children</span><span class="pn">.</span><span class="id">Length</span>
     
     <span class="c">// ❌ Not preferred, we use `x`</span>
-    <span class="k">member</span> <span onmouseout="hideTip(event, 'fs5', 6)" onmouseover="showTip(event, 'fs5', 6)" class="fn">this</span><span class="pn">.</span><span class="prop">WrongLength</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs5', 7)" onmouseover="showTip(event, 'fs5', 7)" class="fn">this</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs3', 8)" onmouseover="showTip(event, 'fs3', 8)" class="prop">Children</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs4', 9)" onmouseover="showTip(event, 'fs4', 9)" class="id">Length</span> <span class="o">-</span> <span class="n">1</span>
+    <span class="k">member</span> <span class="id">this</span><span class="pn">.</span><span class="id">WrongLength</span> <span class="o">=</span> <span class="id">this</span><span class="pn">.</span><span class="id">Children</span><span class="pn">.</span><span class="id">Length</span> <span class="o">-</span> <span class="n">1</span>
 </code></pre>
 <ul>
 <li>Use <code>_</code> when you don't need the <code>self-identifier</code>.</li>
 <li>Use <code>member val</code> when possible.</li>
 </ul>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs1', 10)" onmouseover="showTip(event, 'fs1', 10)" class="id">Foo</span><span class="pn">(</span><span class="id">v</span><span class="pn">:</span> <span class="id">Value</span><span class="pn">)</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">Foo</span><span class="pn">(</span><span class="id">v</span><span class="pn">:</span> <span class="id">Value</span><span class="pn">)</span> <span class="o">=</span>
     <span class="c">// ✔️ OK</span>
     <span class="k">member</span> <span class="k">val</span> <span class="id">Value</span> <span class="o">=</span> <span class="id">v</span>
     
@@ -481,16 +474,7 @@ In case no major or minor branch was created yet, please reach out to the mainta
 The maintainers will frequently rebase this branch on top of the main branch and release alpha/beta packages accordingly.</p>
 <fantomas-nav previous="Multiple%20Times.html" next="Updating%20the%20compiler.html"></fantomas-nav>
 
-        <div class="fsdocs-tip" id="fs1">Multiple items<br />type Foo =
-  new: unit -&gt; Foo
-  member Children: obj list
-  member Length: int
-  member WrongLength: int<br /><br />--------------------<br />new: unit -&gt; Foo</div>
-<div class="fsdocs-tip" id="fs2">val x: Foo</div>
-<div class="fsdocs-tip" id="fs3">property Foo.Children: obj list with get</div>
-<div class="fsdocs-tip" id="fs4">property List.Length: int with get</div>
-<div class="fsdocs-tip" id="fs5">val this: Foo</div>
-
+        
     </div>
 </main>
 <aside id="fsdocs-page-menu">
@@ -546,16 +530,6 @@ The maintainers will frequently rebase this branch on top of the main branch and
       Changelog
     </a>
   </li>
-  <li class="level-2">
-    <a href="#2022-02-10">
-      [4.7.4] - 2022-02-10
-    </a>
-  </li>
-  <li class="level-3">
-    <a href="#Added">
-      Added
-    </a>
-  </li>
   <li class="level-3">
     <a href="#Run-a-local-build">
       Run a local build
@@ -600,6 +574,15 @@ The maintainers will frequently rebase this branch on top of the main branch and
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-copy-button.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
 <script type="module">
     import mermaid from "https://esm.sh/mermaid@9.2.2";
     mermaid.initialize({
@@ -611,13 +594,6 @@ The maintainers will frequently rebase this branch on top of the main branch and
             primaryBorderColor: '#5aacd6'
         }
     });
-
-    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
-    menuHeaders.forEach(nv => {
-        nv.addEventListener("click", () => {
-            nv.classList.toggle("active");
-        })
-    })
 </script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
 </body>

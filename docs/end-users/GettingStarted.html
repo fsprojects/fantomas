@@ -41,12 +41,12 @@
             <input type="checkbox" name="mobile-menu" />
             <ul class="menu">
                 <li class="nav-header">Links</li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
                 </li>
-                <li class="nav-item"><a class="nav-link"
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                         href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
                     Notes</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
@@ -164,7 +164,7 @@
             </ul>
         </div>
         <a href="https://fsprojects.github.io/fantomas/">
-            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <img alt="Logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
             <strong>fantomas</strong>
         </a>
     </div>
@@ -179,12 +179,12 @@
 <aside id="fsdocs-main-menu">
     <ul class="menu">
         <li class="nav-header">Links</li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
         </li>
-        <li class="nav-item"><a class="nav-link"
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                 href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
             Notes</a></li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
@@ -355,7 +355,7 @@ OPTIONS:
     --help                display this list of options.</code></pre></td></tr></table>
 <p>You have to specify an input path and optionally an output path.
 The output path is prompted by <code>--out</code> e.g.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">.</span><span class="o">/</span><span class="id">input</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs21', 31)" onmouseover="showTip(event, 'fs21', 31)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> <span class="o">--</span><span class="id">out</span> <span class="pn">.</span><span class="o">/</span><span class="id">output</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs21', 32)" onmouseover="showTip(event, 'fs21', 32)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> 
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">.</span><span class="o">/</span><span class="id">input</span><span class="o">/</span><span data-fsdocs-tip="fs21" data-fsdocs-tip-unique="31" class="id">array</span><span class="pn">.</span><span class="id">fs</span> <span class="o">--</span><span class="id">out</span> <span class="pn">.</span><span class="o">/</span><span class="id">output</span><span class="o">/</span><span data-fsdocs-tip="fs21" data-fsdocs-tip-unique="32" class="id">array</span><span class="pn">.</span><span class="id">fs</span> 
 </code></pre>
 <p>Both paths have to be files or folders at the same time.
 If they are folders, the structure of input folder will be reflected in the output one.
@@ -382,11 +382,11 @@ function Format-Changed(){
 </code></pre></td></tr></table>
 <fantomas-nav previous="../index.html" next="StyleGuide.html"></fantomas-nav>
 
-        <div class="fsdocs-tip" id="fs1">namespace System</div>
-<div class="fsdocs-tip" id="fs2">namespace System.Diagnostics</div>
-<div class="fsdocs-tip" id="fs3">val fantomasDll: string</div>
-<div class="fsdocs-tip" id="fs4">namespace System.IO</div>
-<div class="fsdocs-tip" id="fs5">type Path =
+        <div popover class="fsdocs-tip" id="fs1">namespace System</div>
+<div popover class="fsdocs-tip" id="fs2">namespace System.Diagnostics</div>
+<div popover class="fsdocs-tip" id="fs3">val fantomasDll: string</div>
+<div popover class="fsdocs-tip" id="fs4">namespace System.IO</div>
+<div popover class="fsdocs-tip" id="fs5">type Path =
   static member ChangeExtension: path: string * extension: string -&gt; string
   static member Combine: path1: string * path2: string -&gt; string + 4 overloads
   static member EndsInDirectorySeparator: path: ReadOnlySpan&lt;char&gt; -&gt; bool + 1 overload
@@ -398,10 +398,10 @@ function Format-Changed(){
   static member GetFullPath: path: string -&gt; string + 1 overload
   static member GetInvalidFileNameChars: unit -&gt; char array
   ...<br /><em>&lt;summary&gt;Performs operations on &lt;see cref=&quot;T:System.String&quot; /&gt; instances that contain file or directory path information. These operations are performed in a cross-platform manner.&lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs6">System.IO.Path.Combine(paths: System.ReadOnlySpan&lt;string&gt;) : string<br />System.IO.Path.Combine([&lt;System.ParamArray&gt;] paths: string array) : string<br />System.IO.Path.Combine(path1: string, path2: string) : string<br />System.IO.Path.Combine(path1: string, path2: string, path3: string) : string<br />System.IO.Path.Combine(path1: string, path2: string, path3: string, path4: string) : string</div>
-<div class="fsdocs-tip" id="fs7">val output: string</div>
-<div class="fsdocs-tip" id="fs8">val psi: ProcessStartInfo</div>
-<div class="fsdocs-tip" id="fs9">Multiple items<br />type ProcessStartInfo =
+<div popover class="fsdocs-tip" id="fs6">System.IO.Path.Combine(paths: System.ReadOnlySpan&lt;string&gt;) : string<br />System.IO.Path.Combine( paths: string array) : string<br />System.IO.Path.Combine(path1: string, path2: string) : string<br />System.IO.Path.Combine(path1: string, path2: string, path3: string) : string<br />System.IO.Path.Combine(path1: string, path2: string, path3: string, path4: string) : string</div>
+<div popover class="fsdocs-tip" id="fs7">val output: string</div>
+<div popover class="fsdocs-tip" id="fs8">val psi: ProcessStartInfo</div>
+<div popover class="fsdocs-tip" id="fs9">Multiple items<br />type ProcessStartInfo =
   new: unit -&gt; unit + 3 overloads
   member ArgumentList: Collection&lt;string&gt;
   member Arguments: string
@@ -412,11 +412,11 @@ function Format-Changed(){
   member EnvironmentVariables: StringDictionary
   member ErrorDialog: bool
   member ErrorDialogParentHandle: nativeint
-  ...<br /><em>&lt;summary&gt;Specifies a set of values that are used when you start a process.&lt;/summary&gt;</em><br /><br />--------------------<br />ProcessStartInfo() : ProcessStartInfo<br />ProcessStartInfo(fileName: string) : ProcessStartInfo<br />ProcessStartInfo(fileName: string, arguments: string) : ProcessStartInfo<br />ProcessStartInfo(fileName: string, arguments: System.Collections.Generic.IEnumerable&lt;string&gt;) : ProcessStartInfo</div>
-<div class="fsdocs-tip" id="fs10">property ProcessStartInfo.RedirectStandardOutput: bool with get, set<br /><em>&lt;summary&gt;Gets or sets a value that indicates whether the textual output of an application is written to the &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt; stream.&lt;/summary&gt;<br />&lt;returns&gt;&lt;see langword=&quot;true&quot; /&gt; if output should be written to &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt;; otherwise, &lt;see langword=&quot;false&quot; /&gt;. The default is &lt;see langword=&quot;false&quot; /&gt;.&lt;/returns&gt;</em></div>
-<div class="fsdocs-tip" id="fs11">property ProcessStartInfo.UseShellExecute: bool with get, set<br /><em>&lt;summary&gt;Gets or sets a value indicating whether to use the operating system shell to start the process.&lt;/summary&gt;<br />&lt;exception cref=&quot;T:System.PlatformNotSupportedException&quot;&gt;An attempt to set the value to &lt;see langword=&quot;true&quot; /&gt; on Universal Windows Platform (UWP) apps occurs.&lt;/exception&gt;<br />&lt;returns&gt;&lt;see langword=&quot;true&quot; /&gt; if the shell should be used when starting the process; &lt;see langword=&quot;false&quot; /&gt; if the process should be created directly from the executable file. The default is &lt;see langword=&quot;true&quot; /&gt; on .NET Framework apps and &lt;see langword=&quot;false&quot; /&gt; on .NET Core apps.&lt;/returns&gt;</em></div>
-<div class="fsdocs-tip" id="fs12">val p: Process</div>
-<div class="fsdocs-tip" id="fs13">Multiple items<br />type Process =
+  ...<br /><em>&lt;summary&gt;Specifies a set of values that are used when you start a process.&lt;/summary&gt;</em><br /><br />--------------------<br />ProcessStartInfo() : ProcessStartInfo<br />ProcessStartInfo(fileName: string) : ProcessStartInfo<br />ProcessStartInfo(fileName: string, arguments: string) : ProcessStartInfo<br />ProcessStartInfo(fileName: string, arguments: string seq) : ProcessStartInfo</div>
+<div popover class="fsdocs-tip" id="fs10">property ProcessStartInfo.RedirectStandardOutput: bool with get, set<br /><em>&lt;summary&gt;Gets or sets a value that indicates whether the textual output of an application is written to the &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt; stream.&lt;/summary&gt;<br />&lt;returns&gt;&lt;see langword=&quot;true&quot; /&gt; if output should be written to &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt;; otherwise, &lt;see langword=&quot;false&quot; /&gt;. The default is &lt;see langword=&quot;false&quot; /&gt;.&lt;/returns&gt;</em></div>
+<div popover class="fsdocs-tip" id="fs11">property ProcessStartInfo.UseShellExecute: bool with get, set<br /><em>&lt;summary&gt;Gets or sets a value indicating whether to use the operating system shell to start the process.&lt;/summary&gt;<br />&lt;exception cref=&quot;T:System.PlatformNotSupportedException&quot;&gt;An attempt to set the value to &lt;see langword=&quot;true&quot; /&gt; on Universal Windows Platform (UWP) apps occurs.&lt;/exception&gt;<br />&lt;returns&gt;&lt;see langword=&quot;true&quot; /&gt; if the shell should be used when starting the process; &lt;see langword=&quot;false&quot; /&gt; if the process should be created directly from the executable file. The default is &lt;see langword=&quot;true&quot; /&gt; on .NET Framework apps and &lt;see langword=&quot;false&quot; /&gt; on .NET Core apps.&lt;/returns&gt;</em></div>
+<div popover class="fsdocs-tip" id="fs12">val p: Process</div>
+<div popover class="fsdocs-tip" id="fs13">Multiple items<br />type Process =
   inherit Component
   interface IDisposable
   new: unit -&gt; unit
@@ -428,18 +428,18 @@ function Format-Changed(){
   member CloseMainWindow: unit -&gt; bool
   member Kill: unit -&gt; unit + 1 overload
   ...<br /><em>&lt;summary&gt;Provides access to local and remote processes and enables you to start and stop local system processes.&lt;/summary&gt;</em><br /><br />--------------------<br />Process() : Process</div>
-<div class="fsdocs-tip" id="fs14">Process.Start(fileName: string) : Process<br />Process.Start(startInfo: ProcessStartInfo) : Process<br />Process.Start(fileName: string, arguments: System.Collections.Generic.IEnumerable&lt;string&gt;) : Process<br />Process.Start(fileName: string, arguments: string) : Process<br />Process.Start(fileName: string, userName: string, password: System.Security.SecureString, domain: string) : Process<br />Process.Start(fileName: string, arguments: string, userName: string, password: System.Security.SecureString, domain: string) : Process</div>
-<div class="fsdocs-tip" id="fs15">val reader: System.IO.StreamReader</div>
-<div class="fsdocs-tip" id="fs16">property Process.StandardOutput: System.IO.StreamReader with get<br /><em>&lt;summary&gt;Gets a stream used to read the textual output of the application.&lt;/summary&gt;<br />&lt;exception cref=&quot;T:System.InvalidOperationException&quot;&gt;The &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt; stream has not been defined for redirection; ensure &lt;see cref=&quot;P:System.Diagnostics.ProcessStartInfo.RedirectStandardOutput&quot; /&gt; is set to &lt;see langword=&quot;true&quot; /&gt; and &lt;see cref=&quot;P:System.Diagnostics.ProcessStartInfo.UseShellExecute&quot; /&gt; is set to &lt;see langword=&quot;false&quot; /&gt;.
+<div popover class="fsdocs-tip" id="fs14">Process.Start(fileName: string) : Process<br />Process.Start(startInfo: ProcessStartInfo) : Process<br />Process.Start(fileName: string, arguments: string seq) : Process<br />Process.Start(fileName: string, arguments: string) : Process<br />Process.Start(fileName: string, userName: string, password: System.Security.SecureString, domain: string) : Process<br />Process.Start(fileName: string, arguments: string, userName: string, password: System.Security.SecureString, domain: string) : Process</div>
+<div popover class="fsdocs-tip" id="fs15">val reader: System.IO.StreamReader</div>
+<div popover class="fsdocs-tip" id="fs16">property Process.StandardOutput: System.IO.StreamReader with get<br /><em>&lt;summary&gt;Gets a stream used to read the textual output of the application.&lt;/summary&gt;<br />&lt;exception cref=&quot;T:System.InvalidOperationException&quot;&gt;The &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt; stream has not been defined for redirection; ensure &lt;see cref=&quot;P:System.Diagnostics.ProcessStartInfo.RedirectStandardOutput&quot; /&gt; is set to &lt;see langword=&quot;true&quot; /&gt; and &lt;see cref=&quot;P:System.Diagnostics.ProcessStartInfo.UseShellExecute&quot; /&gt; is set to &lt;see langword=&quot;false&quot; /&gt;.
 
 -or-
 
  The &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt; stream has been opened for asynchronous read operations with &lt;see cref=&quot;M:System.Diagnostics.Process.BeginOutputReadLine&quot; /&gt;.&lt;/exception&gt;<br />&lt;returns&gt;A &lt;see cref=&quot;T:System.IO.StreamReader&quot; /&gt; that can be used to read the standard output stream of the application.&lt;/returns&gt;</em></div>
-<div class="fsdocs-tip" id="fs17">val result: string</div>
-<div class="fsdocs-tip" id="fs18">System.IO.StreamReader.ReadToEnd() : string</div>
-<div class="fsdocs-tip" id="fs19">Process.WaitForExit() : unit<br />Process.WaitForExit(timeout: System.TimeSpan) : bool<br />Process.WaitForExit(milliseconds: int) : bool</div>
-<div class="fsdocs-tip" id="fs20">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
-<div class="fsdocs-tip" id="fs21">type &#39;T array = &#39;T array</div>
+<div popover class="fsdocs-tip" id="fs17">val result: string</div>
+<div popover class="fsdocs-tip" id="fs18">System.IO.StreamReader.ReadToEnd() : string</div>
+<div popover class="fsdocs-tip" id="fs19">Process.WaitForExit() : unit<br />Process.WaitForExit(timeout: System.TimeSpan) : bool<br />Process.WaitForExit(milliseconds: int) : bool</div>
+<div popover class="fsdocs-tip" id="fs20">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs21">type &#39;T array = &#39;T array</div>
 
     </div>
 </main>
@@ -480,6 +480,15 @@ function Format-Changed(){
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-copy-button.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
 <script type="module">
     import mermaid from "https://esm.sh/mermaid@9.2.2";
     mermaid.initialize({
@@ -491,13 +500,6 @@ function Format-Changed(){
             primaryBorderColor: '#5aacd6'
         }
     });
-
-    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
-    menuHeaders.forEach(nv => {
-        nv.addEventListener("click", () => {
-            nv.classList.toggle("active");
-        })
-    })
 </script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
 </body>

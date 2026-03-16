@@ -41,12 +41,12 @@
             <input type="checkbox" name="mobile-menu" />
             <ul class="menu">
                 <li class="nav-header">Links</li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
                 </li>
-                <li class="nav-item"><a class="nav-link"
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                         href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
                     Notes</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
@@ -164,7 +164,7 @@
             </ul>
         </div>
         <a href="https://fsprojects.github.io/fantomas/">
-            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <img alt="Logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
             <strong>fantomas</strong>
         </a>
     </div>
@@ -179,12 +179,12 @@
 <aside id="fsdocs-main-menu">
     <ul class="menu">
         <li class="nav-header">Links</li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
         </li>
-        <li class="nav-item"><a class="nav-link"
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                 href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
             Notes</a></li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
@@ -329,7 +329,7 @@ graph TD
 The diagnostic information is used to report errors and warnings. When we have errors, we stop processing the file.</p>
 <p><strong>Fantomas requires a valid source code to format.</strong></p>
 <p>If your code has errors, the parser cannot return a complete AST which is a strict requirement to run the remaining phases.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="id">a</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">a</span> <span class="o">=</span>
 </code></pre>
 <p>Returns a parsing error <code>Incomplete structured construct at or before this point in binding</code>.
 This has <code>FSharpDiagnosticSeverity.Error</code> and Fantomas will not process any code that has those.</p>
@@ -345,7 +345,7 @@ This has <code>FSharpDiagnosticSeverity.Error</code> and Fantomas will not proce
 <li><code>defines: string list</code></li>
 </ul>
 <p>Conditional compilation defines are passed to the parser. These can have an influence on the parsing process, resulting in different ASTs.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">a</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">a</span> <span class="o">=</span>
     <span class="pp">#if</span> <span class="id">DEBUG</span>
 <span class="inactive">    </span><span class="inactive">0</span>
     <span class="pp">#else</span>
@@ -397,7 +397,7 @@ However, there are three items that are either missing all together or require f
 <p>Trivia can however be easily detected in Fantomas. Both code comments and conditional directives are present in the AST.
 These are stored on the file level (in <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedimplfileinput.html">ParsedImplFileInput</a> and  <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedsigfileinput.html">ParsedSigFileInput</a> in the <code>trivia</code> node).</p>
 <p>In both <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-parsedimplfileinputtrivia.html">ParsedImplFileInputTrivia</a> and <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-parsedsigfileinputtrivia.html">ParsedSigFileInputTrivia</a> we can see comments and conditional directives.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs2', 3)" onmouseover="showTip(event, 'fs2', 3)" class="id">a</span> <span class="o">=</span> 
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="3" class="id">a</span> <span class="o">=</span> 
    <span class="c">// comment b</span>
    <span class="id">c</span>
 </code></pre>
@@ -410,9 +410,9 @@ These are stored on the file level (in <a href="https://fsprojects.github.io/fan
           <span class="pn">[</span><span class="id">Let</span>
              <span class="pn">(</span><span class="k">false</span><span class="pn">,</span>
               <span class="pn">[</span><span class="id">SynBinding</span><span class="pn">(</span><span class="o">..</span><span class="pn">.</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span>
-              <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">3</span><span class="pn">,</span><span class="n">4</span><span class="pn">)</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="id">PreXmlDocEmpty</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs3', 4)" onmouseover="showTip(event, 'fs3', 4)" class="id">None</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">3</span><span class="pn">,</span><span class="n">4</span><span class="pn">)</span><span class="pn">,</span>
-          <span class="pn">{</span> <span class="id">ModuleKeyword</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs3', 5)" onmouseover="showTip(event, 'fs3', 5)" class="id">None</span>
-            <span class="id">NamespaceKeyword</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs3', 6)" onmouseover="showTip(event, 'fs3', 6)" class="id">None</span> <span class="pn">}</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">(</span><span class="k">false</span><span class="pn">,</span> <span class="k">false</span><span class="pn">)</span><span class="pn">,</span>
+              <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">3</span><span class="pn">,</span><span class="n">4</span><span class="pn">)</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="id">PreXmlDocEmpty</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="4" class="id">None</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">3</span><span class="pn">,</span><span class="n">4</span><span class="pn">)</span><span class="pn">,</span>
+          <span class="pn">{</span> <span class="id">ModuleKeyword</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="5" class="id">None</span>
+            <span class="id">NamespaceKeyword</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="6" class="id">None</span> <span class="pn">}</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">(</span><span class="k">false</span><span class="pn">,</span> <span class="k">false</span><span class="pn">)</span><span class="pn">,</span>
       <span class="pn">{</span> <span class="id">ConditionalDirectives</span> <span class="o">=</span> <span class="pn">[</span><span class="pn">]</span>
         <span class="id">CodeComments</span> <span class="o">=</span> <span class="pn">[</span><span class="id">LineComment</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">2</span><span class="pn">,</span><span class="n">3</span><span class="o">--</span><span class="n">2</span><span class="pn">,</span><span class="n">15</span><span class="pn">)</span><span class="pn">]</span> <span class="pn">}</span><span class="pn">)</span><span class="pn">)</span>
 </code></pre>
@@ -432,9 +432,9 @@ graph TD
  </div>
 <fantomas-nav previous="Solution%20Structure.html" next="Traverse.html"></fantomas-nav>
 
-        <div class="fsdocs-tip" id="fs1">val a: &#39;a</div>
-<div class="fsdocs-tip" id="fs2">val a: int</div>
-<div class="fsdocs-tip" id="fs3">union case Option.None: Option&lt;&#39;T&gt;</div>
+        <div popover class="fsdocs-tip" id="fs1">val a: &#39;a</div>
+<div popover class="fsdocs-tip" id="fs2">val a: int</div>
+<div popover class="fsdocs-tip" id="fs3">union case Option.None: Option&lt;&#39;T&gt;</div>
 
     </div>
 </main>
@@ -490,6 +490,15 @@ graph TD
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-copy-button.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
 <script type="module">
     import mermaid from "https://esm.sh/mermaid@9.2.2";
     mermaid.initialize({
@@ -501,13 +510,6 @@ graph TD
             primaryBorderColor: '#5aacd6'
         }
     });
-
-    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
-    menuHeaders.forEach(nv => {
-        nv.addEventListener("click", () => {
-            nv.classList.toggle("active");
-        })
-    })
 </script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
 </body>

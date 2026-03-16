@@ -41,12 +41,12 @@
             <input type="checkbox" name="mobile-menu" />
             <ul class="menu">
                 <li class="nav-header">Links</li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
                 </li>
-                <li class="nav-item"><a class="nav-link"
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                         href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
                     Notes</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
@@ -164,7 +164,7 @@
             </ul>
         </div>
         <a href="https://fsprojects.github.io/fantomas/">
-            <img alt="Header menu logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <img alt="Logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
             <strong>fantomas</strong>
         </a>
     </div>
@@ -179,12 +179,12 @@
 <aside id="fsdocs-main-menu">
     <ul class="menu">
         <li class="nav-header">Links</li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
         </li>
-        <li class="nav-item"><a class="nav-link"
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
                                 href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
             Notes</a></li>
-        <li class="nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
@@ -401,41 +401,41 @@ Although I also use 4 spaces as the indentation standard, all the rules are equa
 <h3><a name="Type-definitions" class="anchor" href="#Type-definitions">Type definitions</a></h3>
 <p>Indent <code>|</code> in type definition by 4 spaces:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// OK</span>
-<span class="k">type</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="rt">Volume</span> <span class="o">=</span>
-    <span class="pn">|</span> <span class="uc">Liter</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="vt">float</span>
-    <span class="pn">|</span> <span class="uc">USPint</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs2', 3)" onmouseover="showTip(event, 'fs2', 3)" class="vt">float</span>
-    <span class="pn">|</span> <span class="uc">ImperialPint</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs2', 4)" onmouseover="showTip(event, 'fs2', 4)" class="vt">float</span>
+<span class="k">type</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="rt">Volume</span> <span class="o">=</span>
+    <span class="pn">|</span> <span class="uc">Liter</span> <span class="k">of</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="vt">float</span>
+    <span class="pn">|</span> <span class="uc">USPint</span> <span class="k">of</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="3" class="vt">float</span>
+    <span class="pn">|</span> <span class="uc">ImperialPint</span> <span class="k">of</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="4" class="vt">float</span>
 
 <span class="c">// Not OK</span>
-<span class="k">type</span> <span onmouseout="hideTip(event, 'fs1', 5)" onmouseover="showTip(event, 'fs1', 5)" class="id">Volume</span> <span class="o">=</span>
-<span class="pn">|</span> <span class="id">Liter</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs2', 6)" onmouseover="showTip(event, 'fs2', 6)" class="id">float</span>
-<span class="pn">|</span> <span class="id">USPint</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs2', 7)" onmouseover="showTip(event, 'fs2', 7)" class="id">float</span>
-<span class="pn">|</span> <span class="id">ImperialPint</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs2', 8)" onmouseover="showTip(event, 'fs2', 8)" class="id">float</span>
+<span class="k">type</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="5" class="id">Volume</span> <span class="o">=</span>
+<span class="pn">|</span> <span class="id">Liter</span> <span class="k">of</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="6" class="id">float</span>
+<span class="pn">|</span> <span class="id">USPint</span> <span class="k">of</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="7" class="id">float</span>
+<span class="pn">|</span> <span class="id">ImperialPint</span> <span class="k">of</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="8" class="id">float</span>
 </code></pre>
 <h3><a name="Value-declarations" class="anchor" href="#Value-declarations">Value declarations</a></h3>
 <h4><a name="Tuples" class="anchor" href="#Tuples">Tuples</a></h4>
 <p>A tuple is parenthesized and the commas therein (delimiters) are each followed by a space e.g. <code>(1, 2)</code>, <code>(x, y, z)</code>.</p>
 <p>A <em>commonly accepted exception</em> is to omit parentheses in pattern matching of tuples.
 The justification is to match multiple values, not construct new tuples.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs3', 9)" onmouseover="showTip(event, 'fs3', 9)" class="id">x</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs4', 10)" onmouseover="showTip(event, 'fs4', 10)" class="id">y</span> <span class="o">=</span> <span class="id">z</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="9" class="id">x</span><span class="pn">,</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="10" class="id">y</span> <span class="o">=</span> <span class="id">z</span>
 
-<span class="k">match</span> <span onmouseout="hideTip(event, 'fs3', 11)" onmouseover="showTip(event, 'fs3', 11)" class="id">x</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs4', 12)" onmouseover="showTip(event, 'fs4', 12)" class="id">y</span> <span class="k">with</span>
+<span class="k">match</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="11" class="id">x</span><span class="pn">,</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="12" class="id">y</span> <span class="k">with</span>
 <span class="pn">|</span> <span class="n">1</span><span class="pn">,</span> <span class="id">_</span> <span class="k">-&gt;</span> <span class="n">0</span>
-<span class="pn">|</span> <span onmouseout="hideTip(event, 'fs3', 13)" onmouseover="showTip(event, 'fs3', 13)" class="fn">x</span><span class="pn">,</span> <span class="n">1</span> <span class="k">-&gt;</span> <span class="n">0</span>
-<span class="pn">|</span> <span onmouseout="hideTip(event, 'fs3', 14)" onmouseover="showTip(event, 'fs3', 14)" class="fn">x</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs4', 15)" onmouseover="showTip(event, 'fs4', 15)" class="fn">y</span> <span class="k">-&gt;</span> <span class="n">1</span>
+<span class="pn">|</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="13" class="fn">x</span><span class="pn">,</span> <span class="n">1</span> <span class="k">-&gt;</span> <span class="n">0</span>
+<span class="pn">|</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="14" class="fn">x</span><span class="pn">,</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="15" class="fn">y</span> <span class="k">-&gt;</span> <span class="n">1</span>
 </code></pre>
 <h4><a name="Records" class="anchor" href="#Records">Records</a></h4>
 <p>Short records can be written in one line:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs5', 16)" onmouseover="showTip(event, 'fs5', 16)" class="id">point</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">X</span> <span class="o">=</span> <span class="n">1.0</span><span class="pn">;</span> <span class="id">Y</span> <span class="o">=</span> <span class="n">0.0</span> <span class="pn">}</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="16" class="id">point</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">X</span> <span class="o">=</span> <span class="n">1.0</span><span class="pn">;</span> <span class="id">Y</span> <span class="o">=</span> <span class="n">0.0</span> <span class="pn">}</span>
 </code></pre>
 <p>Opening token for records starts in a new line. Closing token is normally on the end of line of last construct:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs6', 17)" onmouseover="showTip(event, 'fs6', 17)" class="id">rainbow</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="17" class="id">rainbow</span> <span class="o">=</span>
     <span class="pn">{</span> <span class="id">boss</span> <span class="o">=</span> <span class="s">&quot;Jeffrey&quot;</span>
       <span class="id">lackeys</span> <span class="o">=</span> <span class="pn">[</span><span class="s">&quot;Zippy&quot;</span><span class="pn">;</span> <span class="s">&quot;George&quot;</span><span class="pn">;</span> <span class="s">&quot;Bungle&quot;</span><span class="pn">]</span> <span class="pn">}</span>
 </code></pre>
 <p>Not everyone likes this style, and variation is ok.
 For large constructs (&gt; 6 lines) the closing token can be on a fresh line:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs6', 18)" onmouseover="showTip(event, 'fs6', 18)" class="id">rainbow</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="18" class="id">rainbow</span> <span class="o">=</span>
     <span class="pn">{</span> <span class="id">boss1</span> <span class="o">=</span> <span class="s">&quot;Jeffrey&quot;</span>
       <span class="id">boss2</span> <span class="o">=</span> <span class="s">&quot;Jeffrey&quot;</span>
       <span class="id">boss3</span> <span class="o">=</span> <span class="s">&quot;Jeffrey&quot;</span>
@@ -468,7 +468,7 @@ The same rule applies for list and array elements.</p>
  <span class="pn">{</span> <span class="id">IngredientName</span> <span class="o">=</span> <span class="s">&quot;Lemon&quot;</span><span class="pn">;</span> <span class="id">Quantity</span> <span class="o">=</span> <span class="n">1</span> <span class="pn">}</span><span class="pn">]</span>
 </code></pre>
 <p>Lists and arrays that split across multiple lines follow a similar rule as records do:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs7', 19)" onmouseover="showTip(event, 'fs7', 19)" class="id">pascalsTriangle</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="19" class="id">pascalsTriangle</span> <span class="o">=</span>
     <span class="pn">[|</span> <span class="pn">[|</span><span class="n">1</span><span class="pn">|]</span>
        <span class="pn">[|</span><span class="n">1</span><span class="pn">;</span> <span class="n">1</span><span class="pn">|]</span>
        <span class="pn">[|</span><span class="n">1</span><span class="pn">;</span> <span class="n">2</span><span class="pn">;</span> <span class="n">1</span><span class="pn">|]</span>
@@ -482,13 +482,13 @@ The same rule applies for list and array elements.</p>
 </code></pre>
 <h4><a name="Discriminated-unions" class="anchor" href="#Discriminated-unions">Discriminated unions</a></h4>
 <p>DUs that split across multiple lines follow a similar rule:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs8', 20)" onmouseover="showTip(event, 'fs8', 20)" class="id">tree1</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="20" class="id">tree1</span> <span class="o">=</span>
     <span class="id">BinaryNode</span>
         <span class="pn">(</span><span class="id">BinaryNode</span><span class="pn">(</span><span class="id">BinaryValue</span> <span class="n">1</span><span class="pn">,</span> <span class="id">BinaryValue</span> <span class="n">2</span><span class="pn">)</span><span class="pn">,</span>
          <span class="id">BinaryNode</span><span class="pn">(</span><span class="id">BinaryValue</span> <span class="n">3</span><span class="pn">,</span> <span class="id">BinaryValue</span> <span class="n">4</span><span class="pn">)</span><span class="pn">)</span>
 </code></pre>
 <p>However, the following way is also acceptable:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs8', 21)" onmouseover="showTip(event, 'fs8', 21)" class="id">tree1</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="21" class="id">tree1</span> <span class="o">=</span>
     <span class="id">BinaryNode</span><span class="pn">(</span>
         <span class="id">BinaryNode</span><span class="pn">(</span><span class="id">BinaryValue</span> <span class="n">1</span><span class="pn">,</span> <span class="id">BinaryValue</span> <span class="n">2</span><span class="pn">)</span><span class="pn">,</span>
         <span class="id">BinaryNode</span><span class="pn">(</span><span class="id">BinaryValue</span> <span class="n">3</span><span class="pn">,</span> <span class="id">BinaryValue</span> <span class="n">4</span><span class="pn">)</span>
@@ -526,79 +526,79 @@ If <code>cond</code>, <code>e1</code> and <code>e2</code> are small, simply writ
 <h3><a name="Pattern-matching-constructs" class="anchor" href="#Pattern-matching-constructs">Pattern matching constructs</a></h3>
 <p>Rules of a <code>with</code> in a <code>try/with</code> can be <em>optionally</em> 4-space indented e.g.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">try</span>
-    <span class="k">if</span> <span onmouseout="hideTip(event, 'fs9', 22)" onmouseover="showTip(event, 'fs9', 22)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs10', 23)" onmouseover="showTip(event, 'fs10', 23)" class="vt">DateTime</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs11', 24)" onmouseover="showTip(event, 'fs11', 24)" class="id">Now</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 25)" onmouseover="showTip(event, 'fs12', 25)" class="id">Second</span> <span class="o">%</span> <span class="n">3</span> <span class="o">=</span> <span class="n">0</span> <span class="k">then</span>
-        <span onmouseout="hideTip(event, 'fs13', 26)" onmouseover="showTip(event, 'fs13', 26)" class="k">raise</span> <span class="pn">(</span><span class="k">new</span> <span onmouseout="hideTip(event, 'fs9', 27)" onmouseover="showTip(event, 'fs9', 27)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 28)" onmouseover="showTip(event, 'fs14', 28)" class="id">Exception</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+    <span class="k">if</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="22" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="23" class="vt">DateTime</span><span class="pn">.</span><span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="24" class="id">Now</span><span class="pn">.</span><span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="25" class="id">Second</span> <span class="o">%</span> <span class="n">3</span> <span class="o">=</span> <span class="n">0</span> <span class="k">then</span>
+        <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="26" class="k">raise</span> <span class="pn">(</span><span class="k">new</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="27" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="28" class="id">Exception</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
     <span class="k">else</span>
-        <span onmouseout="hideTip(event, 'fs13', 29)" onmouseover="showTip(event, 'fs13', 29)" class="k">raise</span> <span class="pn">(</span><span class="k">new</span> <span onmouseout="hideTip(event, 'fs9', 30)" onmouseover="showTip(event, 'fs9', 30)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs15', 31)" onmouseover="showTip(event, 'fs15', 31)" class="id">ApplicationException</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+        <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="29" class="k">raise</span> <span class="pn">(</span><span class="k">new</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="30" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="31" class="id">ApplicationException</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
 <span class="k">with</span>
-<span class="pn">|</span> <span class="o">:?</span> <span onmouseout="hideTip(event, 'fs9', 32)" onmouseover="showTip(event, 'fs9', 32)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs15', 33)" onmouseover="showTip(event, 'fs15', 33)" class="id">ApplicationException</span> <span class="k">-&gt;</span>
-    <span onmouseout="hideTip(event, 'fs16', 34)" onmouseover="showTip(event, 'fs16', 34)" class="fn">printfn</span> <span class="s">&quot;A second that was not a multiple of 3&quot;</span>
+<span class="pn">|</span> <span class="o">:?</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="32" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="33" class="id">ApplicationException</span> <span class="k">-&gt;</span>
+    <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="34" class="fn">printfn</span> <span class="s">&quot;A second that was not a multiple of 3&quot;</span>
 <span class="pn">|</span> <span class="id">_</span> <span class="k">-&gt;</span>
-    <span onmouseout="hideTip(event, 'fs16', 35)" onmouseover="showTip(event, 'fs16', 35)" class="fn">printfn</span> <span class="s">&quot;A second that was a multiple of 3&quot;</span>
+    <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="35" class="fn">printfn</span> <span class="s">&quot;A second that was a multiple of 3&quot;</span>
 </code></pre>
 <p>but this is also OK:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">try</span>
-    <span class="k">if</span> <span onmouseout="hideTip(event, 'fs9', 36)" onmouseover="showTip(event, 'fs9', 36)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs10', 37)" onmouseover="showTip(event, 'fs10', 37)" class="vt">DateTime</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs11', 38)" onmouseover="showTip(event, 'fs11', 38)" class="id">Now</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 39)" onmouseover="showTip(event, 'fs12', 39)" class="id">Second</span> <span class="o">%</span> <span class="n">3</span> <span class="o">=</span> <span class="n">0</span> <span class="k">then</span>
-        <span onmouseout="hideTip(event, 'fs13', 40)" onmouseover="showTip(event, 'fs13', 40)" class="k">raise</span> <span class="pn">(</span><span class="k">new</span> <span onmouseout="hideTip(event, 'fs9', 41)" onmouseover="showTip(event, 'fs9', 41)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 42)" onmouseover="showTip(event, 'fs14', 42)" class="id">Exception</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+    <span class="k">if</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="36" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="37" class="vt">DateTime</span><span class="pn">.</span><span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="38" class="id">Now</span><span class="pn">.</span><span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="39" class="id">Second</span> <span class="o">%</span> <span class="n">3</span> <span class="o">=</span> <span class="n">0</span> <span class="k">then</span>
+        <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="40" class="k">raise</span> <span class="pn">(</span><span class="k">new</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="41" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="42" class="id">Exception</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
     <span class="k">else</span>
-        <span onmouseout="hideTip(event, 'fs13', 43)" onmouseover="showTip(event, 'fs13', 43)" class="k">raise</span> <span class="pn">(</span><span class="k">new</span> <span onmouseout="hideTip(event, 'fs9', 44)" onmouseover="showTip(event, 'fs9', 44)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs15', 45)" onmouseover="showTip(event, 'fs15', 45)" class="id">ApplicationException</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+        <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="43" class="k">raise</span> <span class="pn">(</span><span class="k">new</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="44" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="45" class="id">ApplicationException</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
 <span class="k">with</span>
-    <span class="pn">|</span> <span class="o">:?</span> <span onmouseout="hideTip(event, 'fs9', 46)" onmouseover="showTip(event, 'fs9', 46)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs15', 47)" onmouseover="showTip(event, 'fs15', 47)" class="id">ApplicationException</span> <span class="k">-&gt;</span>
-        <span onmouseout="hideTip(event, 'fs16', 48)" onmouseover="showTip(event, 'fs16', 48)" class="fn">printfn</span> <span class="s">&quot;A second that was not a multiple of 3&quot;</span>
+    <span class="pn">|</span> <span class="o">:?</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="46" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="47" class="id">ApplicationException</span> <span class="k">-&gt;</span>
+        <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="48" class="fn">printfn</span> <span class="s">&quot;A second that was not a multiple of 3&quot;</span>
     <span class="pn">|</span> <span class="id">_</span> <span class="k">-&gt;</span>
-        <span onmouseout="hideTip(event, 'fs16', 49)" onmouseover="showTip(event, 'fs16', 49)" class="fn">printfn</span> <span class="s">&quot;A second that was a multiple of 3&quot;</span>
+        <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="49" class="fn">printfn</span> <span class="s">&quot;A second that was a multiple of 3&quot;</span>
 </code></pre>
 <p>Use a <code>|</code> for each clause of a match (strictly speaking it is optional for the first), except when the match is all on one line.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// OK</span>
 <span class="k">match</span> <span class="id">l</span> <span class="k">with</span>
-<span class="pn">|</span> <span class="pn">{</span> <span class="id">him</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs3', 50)" onmouseover="showTip(event, 'fs3', 50)" class="id">x</span><span class="pn">;</span> <span class="id">her</span> <span class="o">=</span> <span class="s">&quot;Posh&quot;</span> <span class="pn">}</span> <span class="uc">::</span> <span onmouseout="hideTip(event, 'fs17', 51)" onmouseover="showTip(event, 'fs17', 51)" class="fn">tail</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs3', 52)" onmouseover="showTip(event, 'fs3', 52)" class="id">x</span>
-<span class="pn">|</span> <span class="id">_</span> <span class="uc">::</span> <span onmouseout="hideTip(event, 'fs17', 53)" onmouseover="showTip(event, 'fs17', 53)" class="fn">tail</span> <span class="k">-&gt;</span> <span class="id">findDavid</span> <span onmouseout="hideTip(event, 'fs17', 54)" onmouseover="showTip(event, 'fs17', 54)" class="id">tail</span>
-<span class="pn">|</span> <span class="pn">[</span><span class="pn">]</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs18', 55)" onmouseover="showTip(event, 'fs18', 55)" class="fn">failwith</span> <span class="s">&quot;Couldn&#39;t find David&quot;</span>
+<span class="pn">|</span> <span class="pn">{</span> <span class="id">him</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="50" class="id">x</span><span class="pn">;</span> <span class="id">her</span> <span class="o">=</span> <span class="s">&quot;Posh&quot;</span> <span class="pn">}</span> <span class="uc">::</span> <span data-fsdocs-tip="fs17" data-fsdocs-tip-unique="51" class="fn">tail</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="52" class="id">x</span>
+<span class="pn">|</span> <span class="id">_</span> <span class="uc">::</span> <span data-fsdocs-tip="fs17" data-fsdocs-tip-unique="53" class="fn">tail</span> <span class="k">-&gt;</span> <span class="id">findDavid</span> <span data-fsdocs-tip="fs17" data-fsdocs-tip-unique="54" class="id">tail</span>
+<span class="pn">|</span> <span class="pn">[</span><span class="pn">]</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs18" data-fsdocs-tip-unique="55" class="fn">failwith</span> <span class="s">&quot;Couldn&#39;t find David&quot;</span>
 
 <span class="c">// Not OK</span>
 <span class="k">match</span> <span class="id">l</span> <span class="k">with</span>
-    <span class="pn">|</span> <span class="pn">{</span> <span class="id">him</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs3', 56)" onmouseover="showTip(event, 'fs3', 56)" class="id">x</span><span class="pn">;</span> <span class="id">her</span> <span class="o">=</span> <span class="s">&quot;Posh&quot;</span> <span class="pn">}</span> <span class="uc">::</span> <span onmouseout="hideTip(event, 'fs17', 57)" onmouseover="showTip(event, 'fs17', 57)" class="fn">tail</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs3', 58)" onmouseover="showTip(event, 'fs3', 58)" class="id">x</span>
-    <span class="pn">|</span> <span class="id">_</span> <span class="uc">::</span> <span onmouseout="hideTip(event, 'fs17', 59)" onmouseover="showTip(event, 'fs17', 59)" class="fn">tail</span> <span class="k">-&gt;</span> <span class="id">findDavid</span> <span onmouseout="hideTip(event, 'fs17', 60)" onmouseover="showTip(event, 'fs17', 60)" class="id">tail</span>
-    <span class="pn">|</span> <span class="pn">[</span><span class="pn">]</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs18', 61)" onmouseover="showTip(event, 'fs18', 61)" class="fn">failwith</span> <span class="s">&quot;Couldn&#39;t find David&quot;</span>
+    <span class="pn">|</span> <span class="pn">{</span> <span class="id">him</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="56" class="id">x</span><span class="pn">;</span> <span class="id">her</span> <span class="o">=</span> <span class="s">&quot;Posh&quot;</span> <span class="pn">}</span> <span class="uc">::</span> <span data-fsdocs-tip="fs17" data-fsdocs-tip-unique="57" class="fn">tail</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="58" class="id">x</span>
+    <span class="pn">|</span> <span class="id">_</span> <span class="uc">::</span> <span data-fsdocs-tip="fs17" data-fsdocs-tip-unique="59" class="fn">tail</span> <span class="k">-&gt;</span> <span class="id">findDavid</span> <span data-fsdocs-tip="fs17" data-fsdocs-tip-unique="60" class="id">tail</span>
+    <span class="pn">|</span> <span class="pn">[</span><span class="pn">]</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs18" data-fsdocs-tip-unique="61" class="fn">failwith</span> <span class="s">&quot;Couldn&#39;t find David&quot;</span>
 
 <span class="c">// OK</span>
 <span class="k">match</span> <span class="id">l</span> <span class="k">with</span> <span class="pn">[</span><span class="pn">]</span> <span class="k">-&gt;</span> <span class="k">false</span> <span class="pn">|</span> <span class="id">_</span> <span class="uc">::</span> <span class="id">_</span> <span class="k">-&gt;</span> <span class="k">true</span>
 </code></pre>
 <p>If the expression on the right of the pattern matching arrow is too large, cut the line after the arrow.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">match</span> <span class="id">lam</span> <span class="k">with</span>
-<span class="pn">|</span> <span class="id">Abs</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs19', 62)" onmouseover="showTip(event, 'fs19', 62)" class="fn">x</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs20', 63)" onmouseover="showTip(event, 'fs20', 63)" class="fn">body</span><span class="pn">)</span> <span class="k">-&gt;</span>
-   <span class="n">1</span> <span class="o">+</span> <span class="id">sizeLambda</span> <span onmouseout="hideTip(event, 'fs20', 64)" onmouseover="showTip(event, 'fs20', 64)" class="id">body</span>
-<span class="pn">|</span> <span class="id">App</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs21', 65)" onmouseover="showTip(event, 'fs21', 65)" class="fn">lam1</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs22', 66)" onmouseover="showTip(event, 'fs22', 66)" class="fn">lam2</span><span class="pn">)</span> <span class="k">-&gt;</span>
-   <span class="id">sizeLambda</span> <span onmouseout="hideTip(event, 'fs21', 67)" onmouseover="showTip(event, 'fs21', 67)" class="id">lam1</span> <span class="o">+</span> <span class="id">sizeLambda</span> <span onmouseout="hideTip(event, 'fs22', 68)" onmouseover="showTip(event, 'fs22', 68)" class="id">lam2</span>
-<span class="pn">|</span> <span class="id">Var</span> <span onmouseout="hideTip(event, 'fs23', 69)" onmouseover="showTip(event, 'fs23', 69)" class="fn">v</span> <span class="k">-&gt;</span> <span class="n">1</span>
+<span class="pn">|</span> <span class="id">Abs</span><span class="pn">(</span><span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="62" class="fn">x</span><span class="pn">,</span> <span data-fsdocs-tip="fs20" data-fsdocs-tip-unique="63" class="fn">body</span><span class="pn">)</span> <span class="k">-&gt;</span>
+   <span class="n">1</span> <span class="o">+</span> <span class="id">sizeLambda</span> <span data-fsdocs-tip="fs20" data-fsdocs-tip-unique="64" class="id">body</span>
+<span class="pn">|</span> <span class="id">App</span><span class="pn">(</span><span data-fsdocs-tip="fs21" data-fsdocs-tip-unique="65" class="fn">lam1</span><span class="pn">,</span> <span data-fsdocs-tip="fs22" data-fsdocs-tip-unique="66" class="fn">lam2</span><span class="pn">)</span> <span class="k">-&gt;</span>
+   <span class="id">sizeLambda</span> <span data-fsdocs-tip="fs21" data-fsdocs-tip-unique="67" class="id">lam1</span> <span class="o">+</span> <span class="id">sizeLambda</span> <span data-fsdocs-tip="fs22" data-fsdocs-tip-unique="68" class="id">lam2</span>
+<span class="pn">|</span> <span class="id">Var</span> <span data-fsdocs-tip="fs23" data-fsdocs-tip-unique="69" class="fn">v</span> <span class="k">-&gt;</span> <span class="n">1</span>
 </code></pre>
 <p>Some programmers apply this rule systematically to any clause of any pattern matching.
 This does not add any good to readability hence <strong>is not recommended</strong>.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// Not OK</span>
-<span class="k">let</span> <span class="k">rec</span> <span onmouseout="hideTip(event, 'fs24', 70)" onmouseover="showTip(event, 'fs24', 70)" class="fn">fib</span> <span class="o">=</span> <span class="k">function</span>
+<span class="k">let</span> <span class="k">rec</span> <span data-fsdocs-tip="fs24" data-fsdocs-tip-unique="70" class="fn">fib</span> <span class="o">=</span> <span class="k">function</span>
     <span class="pn">|</span> <span class="n">0</span> <span class="k">-&gt;</span>
         <span class="n">1</span>
     <span class="pn">|</span> <span class="n">1</span> <span class="k">-&gt;</span>
         <span class="n">1</span>
-    <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs25', 71)" onmouseover="showTip(event, 'fs25', 71)" class="fn">n</span> <span class="k">-&gt;</span>
-        <span onmouseout="hideTip(event, 'fs24', 72)" onmouseover="showTip(event, 'fs24', 72)" class="fn">fib</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs25', 73)" onmouseover="showTip(event, 'fs25', 73)" class="fn">n</span> <span class="o">-</span> <span class="n">1</span><span class="pn">)</span> <span class="o">+</span> <span onmouseout="hideTip(event, 'fs24', 74)" onmouseover="showTip(event, 'fs24', 74)" class="fn">fib</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs25', 75)" onmouseover="showTip(event, 'fs25', 75)" class="fn">n</span> <span class="o">-</span> <span class="n">2</span><span class="pn">)</span>
+    <span class="pn">|</span> <span data-fsdocs-tip="fs25" data-fsdocs-tip-unique="71" class="fn">n</span> <span class="k">-&gt;</span>
+        <span data-fsdocs-tip="fs24" data-fsdocs-tip-unique="72" class="fn">fib</span> <span class="pn">(</span><span data-fsdocs-tip="fs25" data-fsdocs-tip-unique="73" class="fn">n</span> <span class="o">-</span> <span class="n">1</span><span class="pn">)</span> <span class="o">+</span> <span data-fsdocs-tip="fs24" data-fsdocs-tip-unique="74" class="fn">fib</span> <span class="pn">(</span><span data-fsdocs-tip="fs25" data-fsdocs-tip-unique="75" class="fn">n</span> <span class="o">-</span> <span class="n">2</span><span class="pn">)</span>
 </code></pre>
 <p>Pattern matching of anonymous functions, starting by <code>function</code>, are indented with respect to the <code>function</code> keyword:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs26', 76)" onmouseover="showTip(event, 'fs26', 76)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs27', 77)" onmouseover="showTip(event, 'fs27', 77)" class="id">map</span> <span class="pn">(</span><span class="k">function</span>
-          <span class="pn">|</span> <span class="id">Abs</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs19', 78)" onmouseover="showTip(event, 'fs19', 78)" class="fn">x</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs20', 79)" onmouseover="showTip(event, 'fs20', 79)" class="fn">body</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="n">1</span> <span class="o">+</span> <span class="id">sizeLambda</span> <span class="n">0</span> <span onmouseout="hideTip(event, 'fs20', 80)" onmouseover="showTip(event, 'fs20', 80)" class="id">body</span>
-          <span class="pn">|</span> <span class="id">App</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs21', 81)" onmouseover="showTip(event, 'fs21', 81)" class="fn">lam1</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs22', 82)" onmouseover="showTip(event, 'fs22', 82)" class="fn">lam2</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="id">sizeLambda</span> <span class="pn">(</span><span class="id">sizeLambda</span> <span class="n">0</span> <span onmouseout="hideTip(event, 'fs21', 83)" onmouseover="showTip(event, 'fs21', 83)" class="id">lam1</span><span class="pn">)</span> <span onmouseout="hideTip(event, 'fs22', 84)" onmouseover="showTip(event, 'fs22', 84)" class="id">lam2</span>
-          <span class="pn">|</span> <span class="id">Var</span> <span onmouseout="hideTip(event, 'fs23', 85)" onmouseover="showTip(event, 'fs23', 85)" class="fn">v</span> <span class="k">-&gt;</span> <span class="n">1</span><span class="pn">)</span> <span class="id">lambdaList</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="76" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs27" data-fsdocs-tip-unique="77" class="id">map</span> <span class="pn">(</span><span class="k">function</span>
+          <span class="pn">|</span> <span class="id">Abs</span><span class="pn">(</span><span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="78" class="fn">x</span><span class="pn">,</span> <span data-fsdocs-tip="fs20" data-fsdocs-tip-unique="79" class="fn">body</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="n">1</span> <span class="o">+</span> <span class="id">sizeLambda</span> <span class="n">0</span> <span data-fsdocs-tip="fs20" data-fsdocs-tip-unique="80" class="id">body</span>
+          <span class="pn">|</span> <span class="id">App</span><span class="pn">(</span><span data-fsdocs-tip="fs21" data-fsdocs-tip-unique="81" class="fn">lam1</span><span class="pn">,</span> <span data-fsdocs-tip="fs22" data-fsdocs-tip-unique="82" class="fn">lam2</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="id">sizeLambda</span> <span class="pn">(</span><span class="id">sizeLambda</span> <span class="n">0</span> <span data-fsdocs-tip="fs21" data-fsdocs-tip-unique="83" class="id">lam1</span><span class="pn">)</span> <span data-fsdocs-tip="fs22" data-fsdocs-tip-unique="84" class="id">lam2</span>
+          <span class="pn">|</span> <span class="id">Var</span> <span data-fsdocs-tip="fs23" data-fsdocs-tip-unique="85" class="fn">v</span> <span class="k">-&gt;</span> <span class="n">1</span><span class="pn">)</span> <span class="id">lambdaList</span>
 </code></pre>
 <p>Pattern matching in functions defined by <code>let</code> or <code>let rec</code> are indented 4 spaces after starting of <code>let</code> although <code>function</code> keyword may be used:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="k">rec</span> <span onmouseout="hideTip(event, 'fs28', 86)" onmouseover="showTip(event, 'fs28', 86)" class="fn">sizeLambda</span> <span onmouseout="hideTip(event, 'fs29', 87)" onmouseover="showTip(event, 'fs29', 87)" class="fn">acc</span> <span class="o">=</span> <span class="k">function</span>
-    <span class="pn">|</span> <span class="id">Abs</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs19', 88)" onmouseover="showTip(event, 'fs19', 88)" class="fn">x</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs30', 89)" onmouseover="showTip(event, 'fs30', 89)" class="fn">body</span><span class="pn">)</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs28', 90)" onmouseover="showTip(event, 'fs28', 90)" class="fn">sizeLambda</span> <span class="pn">(</span><span class="id">succ</span> <span onmouseout="hideTip(event, 'fs29', 91)" onmouseover="showTip(event, 'fs29', 91)" class="id">acc</span><span class="pn">)</span> <span onmouseout="hideTip(event, 'fs30', 92)" onmouseover="showTip(event, 'fs30', 92)" class="fn">body</span>
-    <span class="pn">|</span> <span class="id">App</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs31', 93)" onmouseover="showTip(event, 'fs31', 93)" class="fn">lam1</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs32', 94)" onmouseover="showTip(event, 'fs32', 94)" class="fn">lam2</span><span class="pn">)</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs28', 95)" onmouseover="showTip(event, 'fs28', 95)" class="fn">sizeLambda</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs28', 96)" onmouseover="showTip(event, 'fs28', 96)" class="fn">sizeLambda</span> <span onmouseout="hideTip(event, 'fs29', 97)" onmouseover="showTip(event, 'fs29', 97)" class="fn">acc</span> <span onmouseout="hideTip(event, 'fs31', 98)" onmouseover="showTip(event, 'fs31', 98)" class="fn">lam1</span><span class="pn">)</span> <span onmouseout="hideTip(event, 'fs32', 99)" onmouseover="showTip(event, 'fs32', 99)" class="fn">lam2</span>
-    <span class="pn">|</span> <span class="id">Var</span> <span onmouseout="hideTip(event, 'fs23', 100)" onmouseover="showTip(event, 'fs23', 100)" class="fn">v</span> <span class="k">-&gt;</span> <span class="id">succ</span> <span onmouseout="hideTip(event, 'fs29', 101)" onmouseover="showTip(event, 'fs29', 101)" class="id">acc</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="k">rec</span> <span data-fsdocs-tip="fs28" data-fsdocs-tip-unique="86" class="fn">sizeLambda</span> <span data-fsdocs-tip="fs29" data-fsdocs-tip-unique="87" class="fn">acc</span> <span class="o">=</span> <span class="k">function</span>
+    <span class="pn">|</span> <span class="id">Abs</span><span class="pn">(</span><span data-fsdocs-tip="fs19" data-fsdocs-tip-unique="88" class="fn">x</span><span class="pn">,</span> <span data-fsdocs-tip="fs30" data-fsdocs-tip-unique="89" class="fn">body</span><span class="pn">)</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs28" data-fsdocs-tip-unique="90" class="fn">sizeLambda</span> <span class="pn">(</span><span class="id">succ</span> <span data-fsdocs-tip="fs29" data-fsdocs-tip-unique="91" class="id">acc</span><span class="pn">)</span> <span data-fsdocs-tip="fs30" data-fsdocs-tip-unique="92" class="fn">body</span>
+    <span class="pn">|</span> <span class="id">App</span><span class="pn">(</span><span data-fsdocs-tip="fs31" data-fsdocs-tip-unique="93" class="fn">lam1</span><span class="pn">,</span> <span data-fsdocs-tip="fs32" data-fsdocs-tip-unique="94" class="fn">lam2</span><span class="pn">)</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs28" data-fsdocs-tip-unique="95" class="fn">sizeLambda</span> <span class="pn">(</span><span data-fsdocs-tip="fs28" data-fsdocs-tip-unique="96" class="fn">sizeLambda</span> <span data-fsdocs-tip="fs29" data-fsdocs-tip-unique="97" class="fn">acc</span> <span data-fsdocs-tip="fs31" data-fsdocs-tip-unique="98" class="fn">lam1</span><span class="pn">)</span> <span data-fsdocs-tip="fs32" data-fsdocs-tip-unique="99" class="fn">lam2</span>
+    <span class="pn">|</span> <span class="id">Var</span> <span data-fsdocs-tip="fs23" data-fsdocs-tip-unique="100" class="fn">v</span> <span class="k">-&gt;</span> <span class="id">succ</span> <span data-fsdocs-tip="fs29" data-fsdocs-tip-unique="101" class="id">acc</span>
 </code></pre>
 <p><strong>Careful alignment of the arrows</strong> of a pattern matching is considered <strong>bad practice</strong>, as exemplify in the following fragment:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// Not OK</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs33', 102)" onmouseover="showTip(event, 'fs33', 102)" class="fn">f</span> <span class="o">=</span> <span class="k">function</span>
-    <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs34', 103)" onmouseover="showTip(event, 'fs34', 103)" class="fn">C1</span>          <span class="k">-&gt;</span> <span class="n">1</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs33" data-fsdocs-tip-unique="102" class="fn">f</span> <span class="o">=</span> <span class="k">function</span>
+    <span class="pn">|</span> <span data-fsdocs-tip="fs34" data-fsdocs-tip-unique="103" class="fn">C1</span>          <span class="k">-&gt;</span> <span class="n">1</span>
     <span class="pn">|</span> <span class="id">LongName</span> <span class="id">_</span>  <span class="k">-&gt;</span> <span class="n">2</span>
     <span class="pn">|</span> <span class="id">_</span>           <span class="k">-&gt;</span> <span class="n">3</span>
 </code></pre>
@@ -607,43 +607,43 @@ Adding a new case may screw up indentation and we often give up alignment at tha
 <h3><a name="Function-applications" class="anchor" href="#Function-applications">Function applications</a></h3>
 <p>Arguments are always indented from functions:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// OK</span>
-<span onmouseout="hideTip(event, 'fs35', 104)" onmouseover="showTip(event, 'fs35', 104)" class="m">Printf</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs36', 105)" onmouseover="showTip(event, 'fs36', 105)" class="id">sprintf</span> <span class="s">&quot;\t</span><span class="pf">%s</span><span class="s"> - </span><span class="pf">%i</span><span class="s">\n\r&quot;</span>
-     <span onmouseout="hideTip(event, 'fs3', 106)" onmouseover="showTip(event, 'fs3', 106)" class="id">x</span><span class="pn">.</span><span class="id">IngredientName</span> <span onmouseout="hideTip(event, 'fs3', 107)" onmouseover="showTip(event, 'fs3', 107)" class="id">x</span><span class="pn">.</span><span class="id">Quantity</span>
+<span data-fsdocs-tip="fs35" data-fsdocs-tip-unique="104" class="m">Printf</span><span class="pn">.</span><span data-fsdocs-tip="fs36" data-fsdocs-tip-unique="105" class="id">sprintf</span> <span class="s">&quot;\t</span><span class="pf">%s</span><span class="s"> - </span><span class="pf">%i</span><span class="s">\n\r&quot;</span>
+     <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="106" class="id">x</span><span class="pn">.</span><span class="id">IngredientName</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="107" class="id">x</span><span class="pn">.</span><span class="id">Quantity</span>
 
 <span class="c">// OK</span>
-<span onmouseout="hideTip(event, 'fs35', 108)" onmouseover="showTip(event, 'fs35', 108)" class="m">Printf</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs36', 109)" onmouseover="showTip(event, 'fs36', 109)" class="id">sprintf</span>
+<span data-fsdocs-tip="fs35" data-fsdocs-tip-unique="108" class="m">Printf</span><span class="pn">.</span><span data-fsdocs-tip="fs36" data-fsdocs-tip-unique="109" class="id">sprintf</span>
      <span class="s">&quot;\t</span><span class="pf">%s</span><span class="s"> - </span><span class="pf">%i</span><span class="s">\n\r&quot;</span>
-     <span onmouseout="hideTip(event, 'fs3', 110)" onmouseover="showTip(event, 'fs3', 110)" class="id">x</span><span class="pn">.</span><span class="id">IngredientName</span> <span onmouseout="hideTip(event, 'fs3', 111)" onmouseover="showTip(event, 'fs3', 111)" class="id">x</span><span class="pn">.</span><span class="id">Quantity</span>
+     <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="110" class="id">x</span><span class="pn">.</span><span class="id">IngredientName</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="111" class="id">x</span><span class="pn">.</span><span class="id">Quantity</span>
 
 <span class="c">// OK</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs37', 112)" onmouseover="showTip(event, 'fs37', 112)" class="fn">printVolumes</span> <span onmouseout="hideTip(event, 'fs38', 113)" onmouseover="showTip(event, 'fs38', 113)" class="fn">x</span> <span class="o">=</span>
-    <span onmouseout="hideTip(event, 'fs35', 114)" onmouseover="showTip(event, 'fs35', 114)" class="m">Printf</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs39', 115)" onmouseover="showTip(event, 'fs39', 115)" class="id">printf</span> <span class="s">&quot;Volume in liters = </span><span class="pf">%f</span><span class="s">, in us pints = </span><span class="pf">%f</span><span class="s">, in imperial = </span><span class="pf">%f</span><span class="s">&quot;</span>
-        <span class="pn">(</span><span class="id">convertVolumeToLiter</span> <span onmouseout="hideTip(event, 'fs38', 116)" onmouseover="showTip(event, 'fs38', 116)" class="id">x</span><span class="pn">)</span>
-        <span class="pn">(</span><span class="id">convertVolumeUSPint</span> <span onmouseout="hideTip(event, 'fs38', 117)" onmouseover="showTip(event, 'fs38', 117)" class="id">x</span><span class="pn">)</span>
-        <span class="pn">(</span><span class="id">convertVolumeImperialPint</span> <span onmouseout="hideTip(event, 'fs38', 118)" onmouseover="showTip(event, 'fs38', 118)" class="id">x</span><span class="pn">)</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs37" data-fsdocs-tip-unique="112" class="fn">printVolumes</span> <span data-fsdocs-tip="fs38" data-fsdocs-tip-unique="113" class="fn">x</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs35" data-fsdocs-tip-unique="114" class="m">Printf</span><span class="pn">.</span><span data-fsdocs-tip="fs39" data-fsdocs-tip-unique="115" class="id">printf</span> <span class="s">&quot;Volume in liters = </span><span class="pf">%f</span><span class="s">, in us pints = </span><span class="pf">%f</span><span class="s">, in imperial = </span><span class="pf">%f</span><span class="s">&quot;</span>
+        <span class="pn">(</span><span class="id">convertVolumeToLiter</span> <span data-fsdocs-tip="fs38" data-fsdocs-tip-unique="116" class="id">x</span><span class="pn">)</span>
+        <span class="pn">(</span><span class="id">convertVolumeUSPint</span> <span data-fsdocs-tip="fs38" data-fsdocs-tip-unique="117" class="id">x</span><span class="pn">)</span>
+        <span class="pn">(</span><span class="id">convertVolumeImperialPint</span> <span data-fsdocs-tip="fs38" data-fsdocs-tip-unique="118" class="id">x</span><span class="pn">)</span>
 
 <span class="c">// Not OK</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs40', 119)" onmouseover="showTip(event, 'fs40', 119)" class="fn">printVolumes</span> <span onmouseout="hideTip(event, 'fs38', 120)" onmouseover="showTip(event, 'fs38', 120)" class="fn">x</span> <span class="o">=</span>
-    <span onmouseout="hideTip(event, 'fs35', 121)" onmouseover="showTip(event, 'fs35', 121)" class="m">Printf</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs39', 122)" onmouseover="showTip(event, 'fs39', 122)" class="id">printf</span> <span class="s">&quot;Volume in liters = </span><span class="pf">%f</span><span class="s">, in us pints = </span><span class="pf">%f</span><span class="s">, in imperial = </span><span class="pf">%f</span><span class="s">&quot;</span>
-    <span class="pn">(</span><span class="id">convertVolumeToLiter</span> <span onmouseout="hideTip(event, 'fs38', 123)" onmouseover="showTip(event, 'fs38', 123)" class="id">x</span><span class="pn">)</span>
-    <span class="pn">(</span><span class="id">convertVolumeUSPint</span> <span onmouseout="hideTip(event, 'fs38', 124)" onmouseover="showTip(event, 'fs38', 124)" class="id">x</span><span class="pn">)</span>
-    <span class="pn">(</span><span class="id">convertVolumeImperialPint</span> <span onmouseout="hideTip(event, 'fs38', 125)" onmouseover="showTip(event, 'fs38', 125)" class="id">x</span><span class="pn">)</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs40" data-fsdocs-tip-unique="119" class="fn">printVolumes</span> <span data-fsdocs-tip="fs38" data-fsdocs-tip-unique="120" class="fn">x</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs35" data-fsdocs-tip-unique="121" class="m">Printf</span><span class="pn">.</span><span data-fsdocs-tip="fs39" data-fsdocs-tip-unique="122" class="id">printf</span> <span class="s">&quot;Volume in liters = </span><span class="pf">%f</span><span class="s">, in us pints = </span><span class="pf">%f</span><span class="s">, in imperial = </span><span class="pf">%f</span><span class="s">&quot;</span>
+    <span class="pn">(</span><span class="id">convertVolumeToLiter</span> <span data-fsdocs-tip="fs38" data-fsdocs-tip-unique="123" class="id">x</span><span class="pn">)</span>
+    <span class="pn">(</span><span class="id">convertVolumeUSPint</span> <span data-fsdocs-tip="fs38" data-fsdocs-tip-unique="124" class="id">x</span><span class="pn">)</span>
+    <span class="pn">(</span><span class="id">convertVolumeImperialPint</span> <span data-fsdocs-tip="fs38" data-fsdocs-tip-unique="125" class="id">x</span><span class="pn">)</span>
 
 <span class="c">// Not OK</span>
-<span onmouseout="hideTip(event, 'fs35', 126)" onmouseover="showTip(event, 'fs35', 126)" class="m">Printf</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs36', 127)" onmouseover="showTip(event, 'fs36', 127)" class="id">sprintf</span> <span class="s">&quot;\t</span><span class="pf">%s</span><span class="s"> - </span><span class="pf">%i</span><span class="s">\n\r&quot;</span>
-<span onmouseout="hideTip(event, 'fs3', 128)" onmouseover="showTip(event, 'fs3', 128)" class="id">x</span><span class="pn">.</span><span class="id">IngredientName</span> <span onmouseout="hideTip(event, 'fs3', 129)" onmouseover="showTip(event, 'fs3', 129)" class="id">x</span><span class="pn">.</span><span class="id">Quantity</span>
+<span data-fsdocs-tip="fs35" data-fsdocs-tip-unique="126" class="m">Printf</span><span class="pn">.</span><span data-fsdocs-tip="fs36" data-fsdocs-tip-unique="127" class="id">sprintf</span> <span class="s">&quot;\t</span><span class="pf">%s</span><span class="s"> - </span><span class="pf">%i</span><span class="s">\n\r&quot;</span>
+<span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="128" class="id">x</span><span class="pn">.</span><span class="id">IngredientName</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="129" class="id">x</span><span class="pn">.</span><span class="id">Quantity</span>
 </code></pre>
 <p>Anonymous function arguments can be either on next line or with a dangling <code>fun</code> on the argument line:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// OK</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs41', 130)" onmouseover="showTip(event, 'fs41', 130)" class="fn">printListWithOffset</span> <span onmouseout="hideTip(event, 'fs42', 131)" onmouseover="showTip(event, 'fs42', 131)" class="fn">a</span> <span onmouseout="hideTip(event, 'fs43', 132)" onmouseover="showTip(event, 'fs43', 132)" class="fn">list1</span> <span class="o">=</span>
-    <span onmouseout="hideTip(event, 'fs26', 133)" onmouseover="showTip(event, 'fs26', 133)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs44', 134)" onmouseover="showTip(event, 'fs44', 134)" class="id">iter</span> <span class="pn">(</span><span class="k">fun</span> <span onmouseout="hideTip(event, 'fs45', 135)" onmouseover="showTip(event, 'fs45', 135)" class="fn">elem</span> <span class="k">-&gt;</span>
-        <span onmouseout="hideTip(event, 'fs16', 136)" onmouseover="showTip(event, 'fs16', 136)" class="fn">printfn</span> <span class="s">&quot;</span><span class="pf">%d</span><span class="s">&quot;</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs42', 137)" onmouseover="showTip(event, 'fs42', 137)" class="fn">a</span> <span class="o">+</span> <span onmouseout="hideTip(event, 'fs45', 138)" onmouseover="showTip(event, 'fs45', 138)" class="fn">elem</span><span class="pn">)</span><span class="pn">)</span> <span onmouseout="hideTip(event, 'fs43', 139)" onmouseover="showTip(event, 'fs43', 139)" class="fn">list1</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs41" data-fsdocs-tip-unique="130" class="fn">printListWithOffset</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="131" class="fn">a</span> <span data-fsdocs-tip="fs43" data-fsdocs-tip-unique="132" class="fn">list1</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="133" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs44" data-fsdocs-tip-unique="134" class="id">iter</span> <span class="pn">(</span><span class="k">fun</span> <span data-fsdocs-tip="fs45" data-fsdocs-tip-unique="135" class="fn">elem</span> <span class="k">-&gt;</span>
+        <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="136" class="fn">printfn</span> <span class="s">&quot;</span><span class="pf">%d</span><span class="s">&quot;</span> <span class="pn">(</span><span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="137" class="fn">a</span> <span class="o">+</span> <span data-fsdocs-tip="fs45" data-fsdocs-tip-unique="138" class="fn">elem</span><span class="pn">)</span><span class="pn">)</span> <span data-fsdocs-tip="fs43" data-fsdocs-tip-unique="139" class="fn">list1</span>
 
 <span class="c">// Tolerable</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs41', 140)" onmouseover="showTip(event, 'fs41', 140)" class="fn">printListWithOffset</span> <span onmouseout="hideTip(event, 'fs42', 141)" onmouseover="showTip(event, 'fs42', 141)" class="fn">a</span> <span onmouseout="hideTip(event, 'fs43', 142)" onmouseover="showTip(event, 'fs43', 142)" class="fn">list1</span> <span class="o">=</span>
-    <span onmouseout="hideTip(event, 'fs26', 143)" onmouseover="showTip(event, 'fs26', 143)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs44', 144)" onmouseover="showTip(event, 'fs44', 144)" class="id">iter</span> <span class="pn">(</span>
-        <span class="k">fun</span> <span onmouseout="hideTip(event, 'fs45', 145)" onmouseover="showTip(event, 'fs45', 145)" class="fn">elem</span> <span class="k">-&gt;</span>
-            <span onmouseout="hideTip(event, 'fs16', 146)" onmouseover="showTip(event, 'fs16', 146)" class="fn">printfn</span> <span class="s">&quot;</span><span class="pf">%d</span><span class="s">&quot;</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs42', 147)" onmouseover="showTip(event, 'fs42', 147)" class="fn">a</span> <span class="o">+</span> <span onmouseout="hideTip(event, 'fs45', 148)" onmouseover="showTip(event, 'fs45', 148)" class="fn">elem</span><span class="pn">)</span><span class="pn">)</span> <span onmouseout="hideTip(event, 'fs43', 149)" onmouseover="showTip(event, 'fs43', 149)" class="fn">list1</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs41" data-fsdocs-tip-unique="140" class="fn">printListWithOffset</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="141" class="fn">a</span> <span data-fsdocs-tip="fs43" data-fsdocs-tip-unique="142" class="fn">list1</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="143" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs44" data-fsdocs-tip-unique="144" class="id">iter</span> <span class="pn">(</span>
+        <span class="k">fun</span> <span data-fsdocs-tip="fs45" data-fsdocs-tip-unique="145" class="fn">elem</span> <span class="k">-&gt;</span>
+            <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="146" class="fn">printfn</span> <span class="s">&quot;</span><span class="pf">%d</span><span class="s">&quot;</span> <span class="pn">(</span><span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="147" class="fn">a</span> <span class="o">+</span> <span data-fsdocs-tip="fs45" data-fsdocs-tip-unique="148" class="fn">elem</span><span class="pn">)</span><span class="pn">)</span> <span data-fsdocs-tip="fs43" data-fsdocs-tip-unique="149" class="fn">list1</span>
 </code></pre>
 <h3><a name="Infix-operators" class="anchor" href="#Infix-operators">Infix operators</a></h3>
 <p>Be careful to <em>keep operator symbols well separated by spaces</em>; not only will your formulas be more readable, but you will avoid confusion with multi-character operators.
@@ -651,107 +651,106 @@ Obvious exceptions to this rule are the <code>!</code> and <code>.</code> symbol
 They are not separated from their arguments.
 Moreover, infix expressions are OK to lineup on same column:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">acc</span> <span class="o">+</span>
-<span class="pn">(</span><span onmouseout="hideTip(event, 'fs35', 150)" onmouseover="showTip(event, 'fs35', 150)" class="m">Printf</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs36', 151)" onmouseover="showTip(event, 'fs36', 151)" class="id">sprintf</span> <span class="s">&quot;\t</span><span class="pf">%s</span><span class="s"> - </span><span class="pf">%i</span><span class="s">\n\r&quot;</span>
-     <span onmouseout="hideTip(event, 'fs3', 152)" onmouseover="showTip(event, 'fs3', 152)" class="id">x</span><span class="pn">.</span><span class="id">IngredientName</span> <span onmouseout="hideTip(event, 'fs3', 153)" onmouseover="showTip(event, 'fs3', 153)" class="id">x</span><span class="pn">.</span><span class="id">Quantity</span><span class="pn">)</span>
+<span class="pn">(</span><span data-fsdocs-tip="fs35" data-fsdocs-tip-unique="150" class="m">Printf</span><span class="pn">.</span><span data-fsdocs-tip="fs36" data-fsdocs-tip-unique="151" class="id">sprintf</span> <span class="s">&quot;\t</span><span class="pf">%s</span><span class="s"> - </span><span class="pf">%i</span><span class="s">\n\r&quot;</span>
+     <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="152" class="id">x</span><span class="pn">.</span><span class="id">IngredientName</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="153" class="id">x</span><span class="pn">.</span><span class="id">Quantity</span><span class="pn">)</span>
 
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs46', 154)" onmouseover="showTip(event, 'fs46', 154)" class="fn">function1</span> <span onmouseout="hideTip(event, 'fs47', 155)" onmouseover="showTip(event, 'fs47', 155)" class="fn">arg1</span> <span onmouseout="hideTip(event, 'fs48', 156)" onmouseover="showTip(event, 'fs48', 156)" class="fn">arg2</span> <span onmouseout="hideTip(event, 'fs49', 157)" onmouseover="showTip(event, 'fs49', 157)" class="fn">arg3</span> <span onmouseout="hideTip(event, 'fs50', 158)" onmouseover="showTip(event, 'fs50', 158)" class="fn">arg4</span> <span class="o">=</span>
-    <span onmouseout="hideTip(event, 'fs47', 159)" onmouseover="showTip(event, 'fs47', 159)" class="fn">arg1</span> <span class="o">+</span> <span onmouseout="hideTip(event, 'fs48', 160)" onmouseover="showTip(event, 'fs48', 160)" class="fn">arg2</span>
-  <span class="o">+</span> <span onmouseout="hideTip(event, 'fs49', 161)" onmouseover="showTip(event, 'fs49', 161)" class="fn">arg3</span> <span class="o">+</span> <span onmouseout="hideTip(event, 'fs50', 162)" onmouseover="showTip(event, 'fs50', 162)" class="fn">arg4</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs46" data-fsdocs-tip-unique="154" class="fn">function1</span> <span data-fsdocs-tip="fs47" data-fsdocs-tip-unique="155" class="fn">arg1</span> <span data-fsdocs-tip="fs48" data-fsdocs-tip-unique="156" class="fn">arg2</span> <span data-fsdocs-tip="fs49" data-fsdocs-tip-unique="157" class="fn">arg3</span> <span data-fsdocs-tip="fs50" data-fsdocs-tip-unique="158" class="fn">arg4</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs47" data-fsdocs-tip-unique="159" class="fn">arg1</span> <span class="o">+</span> <span data-fsdocs-tip="fs48" data-fsdocs-tip-unique="160" class="fn">arg2</span>
+  <span class="o">+</span> <span data-fsdocs-tip="fs49" data-fsdocs-tip-unique="161" class="fn">arg3</span> <span class="o">+</span> <span data-fsdocs-tip="fs50" data-fsdocs-tip-unique="162" class="fn">arg4</span>
 </code></pre>
 <h3><a name="Pipeline-operators" class="anchor" href="#Pipeline-operators">Pipeline operators</a></h3>
 <p>Pipeline <code>|&gt;</code> should go at the start of a line immediately under the expression being operated on:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// OK</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs51', 163)" onmouseover="showTip(event, 'fs51', 163)" class="id">methods2</span> <span class="o">=</span>
-    <span onmouseout="hideTip(event, 'fs9', 164)" onmouseover="showTip(event, 'fs9', 164)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs52', 165)" onmouseover="showTip(event, 'fs52', 165)" class="rt">AppDomain</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs53', 166)" onmouseover="showTip(event, 'fs53', 166)" class="id">CurrentDomain</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs54', 167)" onmouseover="showTip(event, 'fs54', 167)" class="id">GetAssemblies</span><span class="pn">(</span><span class="pn">)</span>
-    <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 168)" onmouseover="showTip(event, 'fs26', 168)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs55', 169)" onmouseover="showTip(event, 'fs55', 169)" class="id">ofArray</span>
-    <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 170)" onmouseover="showTip(event, 'fs26', 170)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs27', 171)" onmouseover="showTip(event, 'fs27', 171)" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span onmouseout="hideTip(event, 'fs56', 172)" onmouseover="showTip(event, 'fs56', 172)" class="fn">assm</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs56', 173)" onmouseover="showTip(event, 'fs56', 173)" class="fn">assm</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs57', 174)" onmouseover="showTip(event, 'fs57', 174)" class="id">GetTypes</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
-    <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs58', 175)" onmouseover="showTip(event, 'fs58', 175)" class="m">Array</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs59', 176)" onmouseover="showTip(event, 'fs59', 176)" class="id">concat</span>
-    <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 177)" onmouseover="showTip(event, 'fs26', 177)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs55', 178)" onmouseover="showTip(event, 'fs55', 178)" class="id">ofArray</span>
-    <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 179)" onmouseover="showTip(event, 'fs26', 179)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs27', 180)" onmouseover="showTip(event, 'fs27', 180)" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span onmouseout="hideTip(event, 'fs60', 181)" onmouseover="showTip(event, 'fs60', 181)" class="fn">t</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs60', 182)" onmouseover="showTip(event, 'fs60', 182)" class="fn">t</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs61', 183)" onmouseover="showTip(event, 'fs61', 183)" class="id">GetMethods</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
-    <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs58', 184)" onmouseover="showTip(event, 'fs58', 184)" class="m">Array</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs59', 185)" onmouseover="showTip(event, 'fs59', 185)" class="id">concat</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs51" data-fsdocs-tip-unique="163" class="id">methods2</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="164" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs52" data-fsdocs-tip-unique="165" class="rt">AppDomain</span><span class="pn">.</span><span data-fsdocs-tip="fs53" data-fsdocs-tip-unique="166" class="id">CurrentDomain</span><span class="pn">.</span><span data-fsdocs-tip="fs54" data-fsdocs-tip-unique="167" class="id">GetAssemblies</span><span class="pn">(</span><span class="pn">)</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="168" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs55" data-fsdocs-tip-unique="169" class="id">ofArray</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="170" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs27" data-fsdocs-tip-unique="171" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span data-fsdocs-tip="fs56" data-fsdocs-tip-unique="172" class="fn">assm</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs56" data-fsdocs-tip-unique="173" class="fn">assm</span><span class="pn">.</span><span data-fsdocs-tip="fs57" data-fsdocs-tip-unique="174" class="id">GetTypes</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs58" data-fsdocs-tip-unique="175" class="m">Array</span><span class="pn">.</span><span data-fsdocs-tip="fs59" data-fsdocs-tip-unique="176" class="id">concat</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="177" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs55" data-fsdocs-tip-unique="178" class="id">ofArray</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="179" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs27" data-fsdocs-tip-unique="180" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span data-fsdocs-tip="fs60" data-fsdocs-tip-unique="181" class="fn">t</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs60" data-fsdocs-tip-unique="182" class="fn">t</span><span class="pn">.</span><span data-fsdocs-tip="fs61" data-fsdocs-tip-unique="183" class="id">GetMethods</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs58" data-fsdocs-tip-unique="184" class="m">Array</span><span class="pn">.</span><span data-fsdocs-tip="fs59" data-fsdocs-tip-unique="185" class="id">concat</span>
 
 <span class="c">// OK</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs51', 186)" onmouseover="showTip(event, 'fs51', 186)" class="id">methods2</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs9', 187)" onmouseover="showTip(event, 'fs9', 187)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs52', 188)" onmouseover="showTip(event, 'fs52', 188)" class="rt">AppDomain</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs53', 189)" onmouseover="showTip(event, 'fs53', 189)" class="id">CurrentDomain</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs54', 190)" onmouseover="showTip(event, 'fs54', 190)" class="id">GetAssemblies</span><span class="pn">(</span><span class="pn">)</span>
-               <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 191)" onmouseover="showTip(event, 'fs26', 191)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs55', 192)" onmouseover="showTip(event, 'fs55', 192)" class="id">ofArray</span>
-               <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 193)" onmouseover="showTip(event, 'fs26', 193)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs27', 194)" onmouseover="showTip(event, 'fs27', 194)" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span onmouseout="hideTip(event, 'fs56', 195)" onmouseover="showTip(event, 'fs56', 195)" class="fn">assm</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs56', 196)" onmouseover="showTip(event, 'fs56', 196)" class="fn">assm</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs57', 197)" onmouseover="showTip(event, 'fs57', 197)" class="id">GetTypes</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
-               <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs58', 198)" onmouseover="showTip(event, 'fs58', 198)" class="m">Array</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs59', 199)" onmouseover="showTip(event, 'fs59', 199)" class="id">concat</span>
-               <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 200)" onmouseover="showTip(event, 'fs26', 200)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs55', 201)" onmouseover="showTip(event, 'fs55', 201)" class="id">ofArray</span>
-               <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 202)" onmouseover="showTip(event, 'fs26', 202)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs27', 203)" onmouseover="showTip(event, 'fs27', 203)" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span onmouseout="hideTip(event, 'fs60', 204)" onmouseover="showTip(event, 'fs60', 204)" class="fn">t</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs60', 205)" onmouseover="showTip(event, 'fs60', 205)" class="fn">t</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs61', 206)" onmouseover="showTip(event, 'fs61', 206)" class="id">GetMethods</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
-               <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs58', 207)" onmouseover="showTip(event, 'fs58', 207)" class="m">Array</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs59', 208)" onmouseover="showTip(event, 'fs59', 208)" class="id">concat</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs51" data-fsdocs-tip-unique="186" class="id">methods2</span> <span class="o">=</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="187" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs52" data-fsdocs-tip-unique="188" class="rt">AppDomain</span><span class="pn">.</span><span data-fsdocs-tip="fs53" data-fsdocs-tip-unique="189" class="id">CurrentDomain</span><span class="pn">.</span><span data-fsdocs-tip="fs54" data-fsdocs-tip-unique="190" class="id">GetAssemblies</span><span class="pn">(</span><span class="pn">)</span>
+               <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="191" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs55" data-fsdocs-tip-unique="192" class="id">ofArray</span>
+               <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="193" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs27" data-fsdocs-tip-unique="194" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span data-fsdocs-tip="fs56" data-fsdocs-tip-unique="195" class="fn">assm</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs56" data-fsdocs-tip-unique="196" class="fn">assm</span><span class="pn">.</span><span data-fsdocs-tip="fs57" data-fsdocs-tip-unique="197" class="id">GetTypes</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+               <span class="o">|&gt;</span> <span data-fsdocs-tip="fs58" data-fsdocs-tip-unique="198" class="m">Array</span><span class="pn">.</span><span data-fsdocs-tip="fs59" data-fsdocs-tip-unique="199" class="id">concat</span>
+               <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="200" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs55" data-fsdocs-tip-unique="201" class="id">ofArray</span>
+               <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="202" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs27" data-fsdocs-tip-unique="203" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span data-fsdocs-tip="fs60" data-fsdocs-tip-unique="204" class="fn">t</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs60" data-fsdocs-tip-unique="205" class="fn">t</span><span class="pn">.</span><span data-fsdocs-tip="fs61" data-fsdocs-tip-unique="206" class="id">GetMethods</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+               <span class="o">|&gt;</span> <span data-fsdocs-tip="fs58" data-fsdocs-tip-unique="207" class="m">Array</span><span class="pn">.</span><span data-fsdocs-tip="fs59" data-fsdocs-tip-unique="208" class="id">concat</span>
 
 <span class="c">// Not OK</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs51', 209)" onmouseover="showTip(event, 'fs51', 209)" class="id">methods2</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs9', 210)" onmouseover="showTip(event, 'fs9', 210)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs52', 211)" onmouseover="showTip(event, 'fs52', 211)" class="rt">AppDomain</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs53', 212)" onmouseover="showTip(event, 'fs53', 212)" class="id">CurrentDomain</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs54', 213)" onmouseover="showTip(event, 'fs54', 213)" class="id">GetAssemblies</span><span class="pn">(</span><span class="pn">)</span>
-            <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 214)" onmouseover="showTip(event, 'fs26', 214)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs55', 215)" onmouseover="showTip(event, 'fs55', 215)" class="id">ofArray</span>
-            <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 216)" onmouseover="showTip(event, 'fs26', 216)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs27', 217)" onmouseover="showTip(event, 'fs27', 217)" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span onmouseout="hideTip(event, 'fs56', 218)" onmouseover="showTip(event, 'fs56', 218)" class="fn">assm</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs56', 219)" onmouseover="showTip(event, 'fs56', 219)" class="fn">assm</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs57', 220)" onmouseover="showTip(event, 'fs57', 220)" class="id">GetTypes</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
-            <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs58', 221)" onmouseover="showTip(event, 'fs58', 221)" class="m">Array</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs59', 222)" onmouseover="showTip(event, 'fs59', 222)" class="id">concat</span>
-            <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 223)" onmouseover="showTip(event, 'fs26', 223)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs55', 224)" onmouseover="showTip(event, 'fs55', 224)" class="id">ofArray</span>
-            <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs26', 225)" onmouseover="showTip(event, 'fs26', 225)" class="m">List</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs27', 226)" onmouseover="showTip(event, 'fs27', 226)" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span onmouseout="hideTip(event, 'fs60', 227)" onmouseover="showTip(event, 'fs60', 227)" class="fn">t</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs60', 228)" onmouseover="showTip(event, 'fs60', 228)" class="fn">t</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs61', 229)" onmouseover="showTip(event, 'fs61', 229)" class="id">GetMethods</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
-            <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs58', 230)" onmouseover="showTip(event, 'fs58', 230)" class="m">Array</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs59', 231)" onmouseover="showTip(event, 'fs59', 231)" class="id">concat</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs51" data-fsdocs-tip-unique="209" class="id">methods2</span> <span class="o">=</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="210" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs52" data-fsdocs-tip-unique="211" class="rt">AppDomain</span><span class="pn">.</span><span data-fsdocs-tip="fs53" data-fsdocs-tip-unique="212" class="id">CurrentDomain</span><span class="pn">.</span><span data-fsdocs-tip="fs54" data-fsdocs-tip-unique="213" class="id">GetAssemblies</span><span class="pn">(</span><span class="pn">)</span>
+            <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="214" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs55" data-fsdocs-tip-unique="215" class="id">ofArray</span>
+            <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="216" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs27" data-fsdocs-tip-unique="217" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span data-fsdocs-tip="fs56" data-fsdocs-tip-unique="218" class="fn">assm</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs56" data-fsdocs-tip-unique="219" class="fn">assm</span><span class="pn">.</span><span data-fsdocs-tip="fs57" data-fsdocs-tip-unique="220" class="id">GetTypes</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+            <span class="o">|&gt;</span> <span data-fsdocs-tip="fs58" data-fsdocs-tip-unique="221" class="m">Array</span><span class="pn">.</span><span data-fsdocs-tip="fs59" data-fsdocs-tip-unique="222" class="id">concat</span>
+            <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="223" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs55" data-fsdocs-tip-unique="224" class="id">ofArray</span>
+            <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="225" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs27" data-fsdocs-tip-unique="226" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span data-fsdocs-tip="fs60" data-fsdocs-tip-unique="227" class="fn">t</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs60" data-fsdocs-tip-unique="228" class="fn">t</span><span class="pn">.</span><span data-fsdocs-tip="fs61" data-fsdocs-tip-unique="229" class="id">GetMethods</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+            <span class="o">|&gt;</span> <span data-fsdocs-tip="fs58" data-fsdocs-tip-unique="230" class="m">Array</span><span class="pn">.</span><span data-fsdocs-tip="fs59" data-fsdocs-tip-unique="231" class="id">concat</span>
 </code></pre>
 <h3><a name="Modules" class="anchor" href="#Modules">Modules</a></h3>
 <p>Code in a local module must be indented relative to the module, but code in a top-level module does not have to be indented.
 Namespace elements do not have to be indented.
 The following code examples illustrate this.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// A is a top-level module.</span>
-<span class="k">module</span> <span onmouseout="hideTip(event, 'fs62', 232)" onmouseover="showTip(event, 'fs62', 232)" class="m">A</span>
+<span class="k">module</span> <span data-fsdocs-tip="fs62" data-fsdocs-tip-unique="232" class="m">A</span>
 
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs63', 233)" onmouseover="showTip(event, 'fs63', 233)" class="fn">function1</span> <span onmouseout="hideTip(event, 'fs42', 234)" onmouseover="showTip(event, 'fs42', 234)" class="fn">a</span> <span onmouseout="hideTip(event, 'fs64', 235)" onmouseover="showTip(event, 'fs64', 235)" class="fn">b</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs42', 236)" onmouseover="showTip(event, 'fs42', 236)" class="fn">a</span> <span class="o">-</span> <span onmouseout="hideTip(event, 'fs64', 237)" onmouseover="showTip(event, 'fs64', 237)" class="fn">b</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs64', 238)" onmouseover="showTip(event, 'fs64', 238)" class="fn">b</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs63" data-fsdocs-tip-unique="233" class="fn">function1</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="234" class="fn">a</span> <span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="235" class="fn">b</span> <span class="o">=</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="236" class="fn">a</span> <span class="o">-</span> <span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="237" class="fn">b</span> <span class="o">*</span> <span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="238" class="fn">b</span>
 </code></pre>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// A1 and A2 are local modules.</span>
 <span class="k">module</span> <span class="m">A1</span> <span class="o">=</span>
-    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs63', 239)" onmouseover="showTip(event, 'fs63', 239)" class="fn">function1</span> <span onmouseout="hideTip(event, 'fs42', 240)" onmouseover="showTip(event, 'fs42', 240)" class="fn">a</span> <span onmouseout="hideTip(event, 'fs64', 241)" onmouseover="showTip(event, 'fs64', 241)" class="fn">b</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs42', 242)" onmouseover="showTip(event, 'fs42', 242)" class="fn">a</span><span class="o">*</span><span onmouseout="hideTip(event, 'fs42', 243)" onmouseover="showTip(event, 'fs42', 243)" class="fn">a</span> <span class="o">+</span> <span onmouseout="hideTip(event, 'fs64', 244)" onmouseover="showTip(event, 'fs64', 244)" class="fn">b</span><span class="o">*</span><span onmouseout="hideTip(event, 'fs64', 245)" onmouseover="showTip(event, 'fs64', 245)" class="fn">b</span>
+    <span class="k">let</span> <span data-fsdocs-tip="fs63" data-fsdocs-tip-unique="239" class="fn">function1</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="240" class="fn">a</span> <span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="241" class="fn">b</span> <span class="o">=</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="242" class="fn">a</span><span class="o">*</span><span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="243" class="fn">a</span> <span class="o">+</span> <span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="244" class="fn">b</span><span class="o">*</span><span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="245" class="fn">b</span>
 
 <span class="k">module</span> <span class="m">A2</span> <span class="o">=</span>
-    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs65', 246)" onmouseover="showTip(event, 'fs65', 246)" class="fn">function2</span> <span onmouseout="hideTip(event, 'fs42', 247)" onmouseover="showTip(event, 'fs42', 247)" class="fn">a</span> <span onmouseout="hideTip(event, 'fs64', 248)" onmouseover="showTip(event, 'fs64', 248)" class="fn">b</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs42', 249)" onmouseover="showTip(event, 'fs42', 249)" class="fn">a</span><span class="o">*</span><span onmouseout="hideTip(event, 'fs42', 250)" onmouseover="showTip(event, 'fs42', 250)" class="fn">a</span> <span class="o">-</span> <span onmouseout="hideTip(event, 'fs64', 251)" onmouseover="showTip(event, 'fs64', 251)" class="fn">b</span><span class="o">*</span><span onmouseout="hideTip(event, 'fs64', 252)" onmouseover="showTip(event, 'fs64', 252)" class="fn">b</span>
+    <span class="k">let</span> <span data-fsdocs-tip="fs65" data-fsdocs-tip-unique="246" class="fn">function2</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="247" class="fn">a</span> <span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="248" class="fn">b</span> <span class="o">=</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="249" class="fn">a</span><span class="o">*</span><span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="250" class="fn">a</span> <span class="o">-</span> <span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="251" class="fn">b</span><span class="o">*</span><span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="252" class="fn">b</span>
 </code></pre>
 <h3><a name="Object-expressions-and-interfaces" class="anchor" href="#Object-expressions-and-interfaces">Object expressions and interfaces</a></h3>
 <p>Object expressions and interfaces are aligned in the same way with <code>member</code> being indented after 4 spaces.
 For example, this is recommended:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs66', 253)" onmouseover="showTip(event, 'fs66', 253)" class="id">comparer</span> <span class="o">=</span>
-    <span class="pn">{</span> <span class="k">new</span> <span class="id">IComparer</span><span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs67', 254)" onmouseover="showTip(event, 'fs67', 254)" class="id">string</span><span class="pn">&gt;</span> <span class="k">with</span>
-          <span class="k">member</span> <span onmouseout="hideTip(event, 'fs3', 255)" onmouseover="showTip(event, 'fs3', 255)" class="id">x</span><span class="pn">.</span><span class="id">Compare</span><span class="pn">(</span><span class="id">s1</span><span class="pn">,</span> <span class="id">s2</span><span class="pn">)</span> <span class="o">=</span>
-              <span class="k">let</span> <span class="id">rev</span> <span class="pn">(</span><span class="id">s</span> <span class="pn">:</span> <span onmouseout="hideTip(event, 'fs68', 256)" onmouseover="showTip(event, 'fs68', 256)" class="id">String</span><span class="pn">)</span> <span class="o">=</span>
-                  <span class="k">new</span> <span onmouseout="hideTip(event, 'fs68', 257)" onmouseover="showTip(event, 'fs68', 257)" class="id">String</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs58', 258)" onmouseover="showTip(event, 'fs58', 258)" class="id">Array</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs69', 259)" onmouseover="showTip(event, 'fs69', 259)" class="id">rev</span> <span class="pn">(</span><span class="id">s</span><span class="pn">.</span><span class="id">ToCharArray</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs66" data-fsdocs-tip-unique="253" class="id">comparer</span> <span class="o">=</span>
+    <span class="pn">{</span> <span class="k">new</span> <span class="id">IComparer</span><span class="pn">&lt;</span><span data-fsdocs-tip="fs67" data-fsdocs-tip-unique="254" class="id">string</span><span class="pn">&gt;</span> <span class="k">with</span>
+          <span class="k">member</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="255" class="id">x</span><span class="pn">.</span><span class="id">Compare</span><span class="pn">(</span><span class="id">s1</span><span class="pn">,</span> <span class="id">s2</span><span class="pn">)</span> <span class="o">=</span>
+              <span class="k">let</span> <span class="id">rev</span> <span class="pn">(</span><span class="id">s</span> <span class="pn">:</span> <span data-fsdocs-tip="fs68" data-fsdocs-tip-unique="256" class="id">String</span><span class="pn">)</span> <span class="o">=</span>
+                  <span class="k">new</span> <span data-fsdocs-tip="fs68" data-fsdocs-tip-unique="257" class="id">String</span> <span class="pn">(</span><span data-fsdocs-tip="fs58" data-fsdocs-tip-unique="258" class="id">Array</span><span class="pn">.</span><span data-fsdocs-tip="fs69" data-fsdocs-tip-unique="259" class="id">rev</span> <span class="pn">(</span><span class="id">s</span><span class="pn">.</span><span class="id">ToCharArray</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span>
               <span class="k">let</span> <span class="id">reversed</span> <span class="o">=</span> <span class="id">rev</span> <span class="id">s1</span> <span class="id">i</span>
               <span class="id">reversed</span><span class="pn">.</span><span class="id">CompareTo</span> <span class="pn">(</span><span class="id">rev</span> <span class="id">s2</span><span class="pn">)</span> <span class="pn">}</span>
 </code></pre>
 <p>but this is not advocated:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// Not OK</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs66', 260)" onmouseover="showTip(event, 'fs66', 260)" class="id">comparer</span> <span class="o">=</span>
-    <span class="pn">{</span> <span class="k">new</span> <span class="id">IComparer</span><span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs67', 261)" onmouseover="showTip(event, 'fs67', 261)" class="id">string</span><span class="pn">&gt;</span> <span class="k">with</span>
-      <span class="k">member</span> <span onmouseout="hideTip(event, 'fs3', 262)" onmouseover="showTip(event, 'fs3', 262)" class="id">x</span><span class="pn">.</span><span class="id">Compare</span><span class="pn">(</span><span class="id">s1</span><span class="pn">,</span> <span class="id">s2</span><span class="pn">)</span> <span class="o">=</span>
-          <span class="k">let</span> <span class="id">rev</span> <span class="pn">(</span><span class="id">s</span> <span class="pn">:</span> <span onmouseout="hideTip(event, 'fs68', 263)" onmouseover="showTip(event, 'fs68', 263)" class="id">String</span><span class="pn">)</span> <span class="o">=</span>
-              <span class="k">new</span> <span onmouseout="hideTip(event, 'fs68', 264)" onmouseover="showTip(event, 'fs68', 264)" class="id">String</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs58', 265)" onmouseover="showTip(event, 'fs58', 265)" class="id">Array</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs69', 266)" onmouseover="showTip(event, 'fs69', 266)" class="id">rev</span> <span class="pn">(</span><span class="id">s</span><span class="pn">.</span><span class="id">ToCharArray</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span> <span class="k">in</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs66" data-fsdocs-tip-unique="260" class="id">comparer</span> <span class="o">=</span>
+    <span class="pn">{</span> <span class="k">new</span> <span class="id">IComparer</span><span class="pn">&lt;</span><span data-fsdocs-tip="fs67" data-fsdocs-tip-unique="261" class="id">string</span><span class="pn">&gt;</span> <span class="k">with</span>
+      <span class="k">member</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="262" class="id">x</span><span class="pn">.</span><span class="id">Compare</span><span class="pn">(</span><span class="id">s1</span><span class="pn">,</span> <span class="id">s2</span><span class="pn">)</span> <span class="o">=</span>
+          <span class="k">let</span> <span class="id">rev</span> <span class="pn">(</span><span class="id">s</span> <span class="pn">:</span> <span data-fsdocs-tip="fs68" data-fsdocs-tip-unique="263" class="id">String</span><span class="pn">)</span> <span class="o">=</span>
+              <span class="k">new</span> <span data-fsdocs-tip="fs68" data-fsdocs-tip-unique="264" class="id">String</span> <span class="pn">(</span><span data-fsdocs-tip="fs58" data-fsdocs-tip-unique="265" class="id">Array</span><span class="pn">.</span><span data-fsdocs-tip="fs69" data-fsdocs-tip-unique="266" class="id">rev</span> <span class="pn">(</span><span class="id">s</span><span class="pn">.</span><span class="id">ToCharArray</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span> <span class="k">in</span>
               <span class="k">let</span> <span class="id">reversed</span> <span class="o">=</span> <span class="id">rev</span> <span class="id">s1</span> <span class="k">in</span>
               <span class="id">reversed</span><span class="pn">.</span><span class="id">CompareTo</span> <span class="pn">(</span><span class="id">rev</span> <span class="id">s2</span><span class="pn">)</span> <span class="pn">}</span>
 </code></pre>
 <p>Bodies of modules, classes, interfaces, and structures delimited by <code>begin...end</code>, <code>{...}</code>, <code>class...end</code>, or <code>interface...end</code>.
 This allows for a style in which the opening keyword of a type definition can be on the same line as the type name without forcing the whole body to be indented further than the opening keyword.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs70', 267)" onmouseover="showTip(event, 'fs70', 267)" class="if">IMyInterface</span> <span class="o">=</span> <span class="k">interface</span>
-    <span class="k">abstract</span> <span class="fn">Function1</span> <span class="pn">:</span> <span onmouseout="hideTip(event, 'fs71', 268)" onmouseover="showTip(event, 'fs71', 268)" class="vt">int</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs71', 269)" onmouseover="showTip(event, 'fs71', 269)" class="vt">int</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span data-fsdocs-tip="fs70" data-fsdocs-tip-unique="267" class="if">IMyInterface</span> <span class="o">=</span> <span class="k">interface</span>
+    <span class="k">abstract</span> <span class="fn">Function1</span> <span class="pn">:</span> <span data-fsdocs-tip="fs71" data-fsdocs-tip-unique="268" class="vt">int</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs71" data-fsdocs-tip-unique="269" class="vt">int</span>
 <span class="k">end</span>
 </code></pre>
 <h3><a name="Whitespaces" class="anchor" href="#Whitespaces">Whitespaces</a></h3>
 <p>Avoid extraneous whitespace in the following situations:</p>
 <ul>
 <li>
-<p>Immediately inside parentheses and brackets.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// OK</span>
-<span class="id">spam</span> <span class="pn">(</span><span class="id">ham</span><span class="pn">.</span><span class="pn">[</span><span class="n">1</span><span class="pn">]</span><span class="pn">)</span>
+Immediately inside parentheses and brackets.
 
-<span class="c">// Not OK</span>
-<span class="id">spam</span> <span class="pn">(</span> <span class="id">ham</span><span class="pn">.</span><span class="pn">[</span> <span class="n">1</span> <span class="pn">]</span> <span class="pn">)</span>
-</code></pre>
-</li>
-<li>Immediately before a comma and semicolon.</li>
-<li>
-<p>Around the <code>=</code> sign when used to indicate a named argument.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// OK</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs72', 270)" onmouseover="showTip(event, 'fs72', 270)" class="fn">makeStreamReader</span> <span onmouseout="hideTip(event, 'fs73', 271)" onmouseover="showTip(event, 'fs73', 271)" class="fn">x</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs9', 272)" onmouseover="showTip(event, 'fs9', 272)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs74', 273)" onmouseover="showTip(event, 'fs74', 273)" class="id">IO</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs75', 274)" onmouseover="showTip(event, 'fs75', 274)" class="id">StreamReader</span><span class="pn">(</span><span class="fn">path</span><span class="o">=</span><span onmouseout="hideTip(event, 'fs73', 275)" onmouseover="showTip(event, 'fs73', 275)" class="fn">x</span><span class="pn">)</span>
+<code>fsharp
+// OK
+spam (ham.[1])
 
-<span class="c">// Not OK</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs72', 276)" onmouseover="showTip(event, 'fs72', 276)" class="fn">makeStreamReader</span> <span onmouseout="hideTip(event, 'fs73', 277)" onmouseover="showTip(event, 'fs73', 277)" class="fn">x</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs9', 278)" onmouseover="showTip(event, 'fs9', 278)" class="id">System</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs74', 279)" onmouseover="showTip(event, 'fs74', 279)" class="id">IO</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs75', 280)" onmouseover="showTip(event, 'fs75', 280)" class="id">StreamReader</span><span class="pn">(</span><span class="fn">path</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs73', 281)" onmouseover="showTip(event, 'fs73', 281)" class="fn">x</span><span class="pn">)</span>
-</code></pre>
+// Not OK
+spam ( ham.[ 1 ] )</code>
+- Immediately before a comma and semicolon.
+- Around the <code>=</code> sign when used to indicate a named argument.
+<code>fsharp
+// OK
+let makeStreamReader x = new System.IO.StreamReader(path=x)
+
+// Not OK
+let makeStreamReader x = new System.IO.StreamReader(path = x)</code>
 </li>
 </ul>
 <h3><a name="Blank-lines" class="anchor" href="#Blank-lines">Blank lines</a></h3>
@@ -763,14 +762,14 @@ This allows for a style in which the opening keyword of a type definition can be
 </ul>
 <h4><a name="2020-Revision" class="anchor" href="#2020-Revision">2020 Revision</a></h4>
 <p>Blank lines are introduces around any multiline code constructs:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs42', 282)" onmouseover="showTip(event, 'fs42', 282)" class="id">a</span> <span class="o">=</span> <span class="n">9</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="270" class="id">a</span> <span class="o">=</span> <span class="n">9</span>
 
 <span class="k">if</span> <span class="id">someCondition</span> <span class="k">then</span>
-    <span onmouseout="hideTip(event, 'fs16', 283)" onmouseover="showTip(event, 'fs16', 283)" class="fn">printfn</span> <span class="s">&quot;meh&quot;</span>
+    <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="271" class="fn">printfn</span> <span class="s">&quot;meh&quot;</span>
     <span class="pn">(</span><span class="pn">)</span>
 
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs64', 284)" onmouseover="showTip(event, 'fs64', 284)" class="id">b</span> <span class="o">=</span> <span class="n">10</span>
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs76', 285)" onmouseover="showTip(event, 'fs76', 285)" class="id">c</span> <span class="o">=</span> <span class="n">10</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="272" class="id">b</span> <span class="o">=</span> <span class="n">10</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs72" data-fsdocs-tip-unique="273" class="id">c</span> <span class="o">=</span> <span class="n">10</span>
 </code></pre>
 <p>The <code>SynExpr.IfThenElse</code> expression is multiline so a blank line between <code>let a</code> and <code>if someCondition</code> and between <code>if someCondition</code> and <code>let b</code> is fitting.
 Single line statements are combined without any additional blank lines, see <code>let b</code> and <code>let c</code>.</p>
@@ -795,20 +794,20 @@ A few conventions for syntactic constructs are adapted from <a href="http://caml
 Other whitespace-significant rules are taken from <a href="http://www.python.org/dev/peps/pep-0008/">"PEP 8 -- Style Guide for Python Code"</a>.</p>
 <fantomas-nav previous="Releases.html" next="History.html"></fantomas-nav>
 
-        <div class="fsdocs-tip" id="fs1">type Volume =
+        <div popover class="fsdocs-tip" id="fs1">type Volume =
   | Liter of float
   | USPint of float
   | ImperialPint of float</div>
-<div class="fsdocs-tip" id="fs2">Multiple items<br />val float: value: &#39;T -&gt; float (requires member op_Explicit)<br /><br />--------------------<br />type float = System.Double<br /><br />--------------------<br />type float&lt;&#39;Measure&gt; =
+<div popover class="fsdocs-tip" id="fs2">Multiple items<br />val float: value: &#39;T -&gt; float (requires member op_Explicit)<br /><br />--------------------<br />type float = System.Double<br /><br />--------------------<br />type float&lt;&#39;Measure&gt; =
   float</div>
-<div class="fsdocs-tip" id="fs3">val x: int</div>
-<div class="fsdocs-tip" id="fs4">val y: int</div>
-<div class="fsdocs-tip" id="fs5">val point: &#39;a</div>
-<div class="fsdocs-tip" id="fs6">val rainbow: &#39;a</div>
-<div class="fsdocs-tip" id="fs7">val pascalsTriangle: int array array</div>
-<div class="fsdocs-tip" id="fs8">val tree1: obj</div>
-<div class="fsdocs-tip" id="fs9">namespace System</div>
-<div class="fsdocs-tip" id="fs10">Multiple items<br />[&lt;Struct&gt;]
+<div popover class="fsdocs-tip" id="fs3">val x: int</div>
+<div popover class="fsdocs-tip" id="fs4">val y: int</div>
+<div popover class="fsdocs-tip" id="fs5">val point: &#39;a</div>
+<div popover class="fsdocs-tip" id="fs6">val rainbow: &#39;a</div>
+<div popover class="fsdocs-tip" id="fs7">val pascalsTriangle: int array array</div>
+<div popover class="fsdocs-tip" id="fs8">val tree1: obj</div>
+<div popover class="fsdocs-tip" id="fs9">namespace System</div>
+<div popover class="fsdocs-tip" id="fs10">Multiple items<br />
 type DateTime =
   new: date: DateOnly * time: TimeOnly -&gt; unit + 16 overloads
   member Add: value: TimeSpan -&gt; DateTime
@@ -821,10 +820,10 @@ type DateTime =
   member AddSeconds: value: float -&gt; DateTime
   member AddTicks: value: int64 -&gt; DateTime
   ...<br /><em>&lt;summary&gt;Represents an instant in time, typically expressed as a date and time of day.&lt;/summary&gt;</em><br /><br />--------------------<br />System.DateTime ()<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.DateTime(ticks: int64) : System.DateTime<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.DateTime(date: System.DateOnly, time: System.TimeOnly) : System.DateTime<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.DateTime(ticks: int64, kind: System.DateTimeKind) : System.DateTime<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.DateTime(date: System.DateOnly, time: System.TimeOnly, kind: System.DateTimeKind) : System.DateTime<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.DateTime(year: int, month: int, day: int) : System.DateTime<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.DateTime(year: int, month: int, day: int, calendar: System.Globalization.Calendar) : System.DateTime<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.DateTime(year: int, month: int, day: int, hour: int, minute: int, second: int) : System.DateTime<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.DateTime(year: int, month: int, day: int, hour: int, minute: int, second: int, kind: System.DateTimeKind) : System.DateTime<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.DateTime(year: int, month: int, day: int, hour: int, minute: int, second: int, calendar: System.Globalization.Calendar) : System.DateTime<br />&#160;&#160;&#160;<em>(+0 other overloads)</em></div>
-<div class="fsdocs-tip" id="fs11">property System.DateTime.Now: System.DateTime with get<br /><em>&lt;summary&gt;Gets a &lt;see cref=&quot;T:System.DateTime&quot; /&gt; object that is set to the current date and time on this computer, expressed as the local time.&lt;/summary&gt;<br />&lt;returns&gt;An object whose value is the current local date and time.&lt;/returns&gt;</em></div>
-<div class="fsdocs-tip" id="fs12">property System.DateTime.Second: int with get<br /><em>&lt;summary&gt;Gets the seconds component of the date represented by this instance.&lt;/summary&gt;<br />&lt;returns&gt;The seconds component, expressed as a value between 0 and 59.&lt;/returns&gt;</em></div>
-<div class="fsdocs-tip" id="fs13">val raise: exn: System.Exception -&gt; &#39;T</div>
-<div class="fsdocs-tip" id="fs14">Multiple items<br />type Exception =
+<div popover class="fsdocs-tip" id="fs11">property System.DateTime.Now: System.DateTime with get<br /><em>&lt;summary&gt;Gets a &lt;see cref=&quot;T:System.DateTime&quot; /&gt; object that is set to the current date and time on this computer, expressed as the local time.&lt;/summary&gt;<br />&lt;returns&gt;An object whose value is the current local date and time.&lt;/returns&gt;</em></div>
+<div popover class="fsdocs-tip" id="fs12">property System.DateTime.Second: int with get<br /><em>&lt;summary&gt;Gets the seconds component of the date represented by this instance.&lt;/summary&gt;<br />&lt;returns&gt;The seconds component, expressed as a value between 0 and 59.&lt;/returns&gt;</em></div>
+<div popover class="fsdocs-tip" id="fs13">val raise: exn: System.Exception -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs14">Multiple items<br />type Exception =
   interface ISerializable
   new: unit -&gt; unit + 2 overloads
   member GetBaseException: unit -&gt; exn
@@ -836,20 +835,20 @@ type DateTime =
   member HelpLink: string
   member InnerException: exn
   ...<br /><em>&lt;summary&gt;Represents errors that occur during application execution.&lt;/summary&gt;</em><br /><br />--------------------<br />System.Exception() : System.Exception<br />System.Exception(message: string) : System.Exception<br />System.Exception(message: string, innerException: exn) : System.Exception</div>
-<div class="fsdocs-tip" id="fs15">Multiple items<br />type ApplicationException =
+<div popover class="fsdocs-tip" id="fs15">Multiple items<br />type ApplicationException =
   inherit exn
   new: unit -&gt; unit + 2 overloads<br /><em>&lt;summary&gt;Serves as the base class for application-defined exceptions.&lt;/summary&gt;</em><br /><br />--------------------<br />System.ApplicationException() : System.ApplicationException<br />System.ApplicationException(message: string) : System.ApplicationException<br />System.ApplicationException(message: string, innerException: exn) : System.ApplicationException</div>
-<div class="fsdocs-tip" id="fs16">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
-<div class="fsdocs-tip" id="fs17">val tail: obj list</div>
-<div class="fsdocs-tip" id="fs18">val failwith: message: string -&gt; &#39;T</div>
-<div class="fsdocs-tip" id="fs19">val x: obj</div>
-<div class="fsdocs-tip" id="fs20">val body: obj</div>
-<div class="fsdocs-tip" id="fs21">val lam1: obj</div>
-<div class="fsdocs-tip" id="fs22">val lam2: obj</div>
-<div class="fsdocs-tip" id="fs23">val v: obj</div>
-<div class="fsdocs-tip" id="fs24">val fib: _arg1: int -&gt; int</div>
-<div class="fsdocs-tip" id="fs25">val n: int</div>
-<div class="fsdocs-tip" id="fs26">Multiple items<br />module List
+<div popover class="fsdocs-tip" id="fs16">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs17">val tail: obj list</div>
+<div popover class="fsdocs-tip" id="fs18">val failwith: message: string -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs19">val x: obj</div>
+<div popover class="fsdocs-tip" id="fs20">val body: obj</div>
+<div popover class="fsdocs-tip" id="fs21">val lam1: obj</div>
+<div popover class="fsdocs-tip" id="fs22">val lam2: obj</div>
+<div popover class="fsdocs-tip" id="fs23">val v: obj</div>
+<div popover class="fsdocs-tip" id="fs24">val fib: _arg1: int -&gt; int</div>
+<div popover class="fsdocs-tip" id="fs25">val n: int</div>
+<div popover class="fsdocs-tip" id="fs26">Multiple items<br />module List
 
 from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List&lt;&#39;T&gt; =
   | op_Nil
@@ -865,34 +864,34 @@ from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List
   member IsEmpty: bool
   member Item: index: int -&gt; &#39;T with get
   ...</div>
-<div class="fsdocs-tip" id="fs27">val map: mapping: (&#39;T -&gt; &#39;U) -&gt; list: &#39;T list -&gt; &#39;U list</div>
-<div class="fsdocs-tip" id="fs28">val sizeLambda: acc: &#39;a -&gt; _arg1: &#39;b -&gt; &#39;a</div>
-<div class="fsdocs-tip" id="fs29">val acc: &#39;a</div>
-<div class="fsdocs-tip" id="fs30">val body: &#39;b</div>
-<div class="fsdocs-tip" id="fs31">val lam1: &#39;b</div>
-<div class="fsdocs-tip" id="fs32">val lam2: &#39;b</div>
-<div class="fsdocs-tip" id="fs33">val f: _arg1: &#39;a -&gt; int</div>
-<div class="fsdocs-tip" id="fs34">val C1: &#39;a</div>
-<div class="fsdocs-tip" id="fs35">module Printf
+<div popover class="fsdocs-tip" id="fs27">val map: mapping: (&#39;T -&gt; &#39;U) -&gt; list: &#39;T list -&gt; &#39;U list</div>
+<div popover class="fsdocs-tip" id="fs28">val sizeLambda: acc: &#39;a -&gt; _arg1: &#39;b -&gt; &#39;a</div>
+<div popover class="fsdocs-tip" id="fs29">val acc: &#39;a</div>
+<div popover class="fsdocs-tip" id="fs30">val body: &#39;b</div>
+<div popover class="fsdocs-tip" id="fs31">val lam1: &#39;b</div>
+<div popover class="fsdocs-tip" id="fs32">val lam2: &#39;b</div>
+<div popover class="fsdocs-tip" id="fs33">val f: _arg1: &#39;a -&gt; int</div>
+<div popover class="fsdocs-tip" id="fs34">val C1: &#39;a</div>
+<div popover class="fsdocs-tip" id="fs35">module Printf
 
 from Microsoft.FSharp.Core</div>
-<div class="fsdocs-tip" id="fs36">val sprintf: format: Printf.StringFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
-<div class="fsdocs-tip" id="fs37">val printVolumes: x: &#39;a -&gt; unit</div>
-<div class="fsdocs-tip" id="fs38">val x: &#39;a</div>
-<div class="fsdocs-tip" id="fs39">val printf: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
-<div class="fsdocs-tip" id="fs40">val printVolumes: x: &#39;a -&gt; &#39;b</div>
-<div class="fsdocs-tip" id="fs41">val printListWithOffset: a: int -&gt; list1: int list -&gt; unit</div>
-<div class="fsdocs-tip" id="fs42">val a: int</div>
-<div class="fsdocs-tip" id="fs43">val list1: int list</div>
-<div class="fsdocs-tip" id="fs44">val iter: action: (&#39;T -&gt; unit) -&gt; list: &#39;T list -&gt; unit</div>
-<div class="fsdocs-tip" id="fs45">val elem: int</div>
-<div class="fsdocs-tip" id="fs46">val function1: arg1: int -&gt; arg2: int -&gt; arg3: int -&gt; arg4: int -&gt; int</div>
-<div class="fsdocs-tip" id="fs47">val arg1: int</div>
-<div class="fsdocs-tip" id="fs48">val arg2: int</div>
-<div class="fsdocs-tip" id="fs49">val arg3: int</div>
-<div class="fsdocs-tip" id="fs50">val arg4: int</div>
-<div class="fsdocs-tip" id="fs51">val methods2: System.Reflection.MethodInfo array</div>
-<div class="fsdocs-tip" id="fs52">type AppDomain =
+<div popover class="fsdocs-tip" id="fs36">val sprintf: format: Printf.StringFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs37">val printVolumes: x: &#39;a -&gt; unit</div>
+<div popover class="fsdocs-tip" id="fs38">val x: &#39;a</div>
+<div popover class="fsdocs-tip" id="fs39">val printf: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs40">val printVolumes: x: &#39;a -&gt; &#39;b</div>
+<div popover class="fsdocs-tip" id="fs41">val printListWithOffset: a: int -&gt; list1: int list -&gt; unit</div>
+<div popover class="fsdocs-tip" id="fs42">val a: int</div>
+<div popover class="fsdocs-tip" id="fs43">val list1: int list</div>
+<div popover class="fsdocs-tip" id="fs44">val iter: action: (&#39;T -&gt; unit) -&gt; list: &#39;T list -&gt; unit</div>
+<div popover class="fsdocs-tip" id="fs45">val elem: int</div>
+<div popover class="fsdocs-tip" id="fs46">val function1: arg1: int -&gt; arg2: int -&gt; arg3: int -&gt; arg4: int -&gt; int</div>
+<div popover class="fsdocs-tip" id="fs47">val arg1: int</div>
+<div popover class="fsdocs-tip" id="fs48">val arg2: int</div>
+<div popover class="fsdocs-tip" id="fs49">val arg3: int</div>
+<div popover class="fsdocs-tip" id="fs50">val arg4: int</div>
+<div popover class="fsdocs-tip" id="fs51">val methods2: System.Reflection.MethodInfo array</div>
+<div popover class="fsdocs-tip" id="fs52">type AppDomain =
   inherit MarshalByRefObject
   member AppendPrivatePath: path: string -&gt; unit
   member ApplyPolicy: assemblyName: string -&gt; string
@@ -904,49 +903,37 @@ from Microsoft.FSharp.Core</div>
   member CreateInstanceFromAndUnwrap: assemblyFile: string * typeName: string -&gt; obj + 2 overloads
   member ExecuteAssembly: assemblyFile: string -&gt; int + 2 overloads
   ...<br /><em>&lt;summary&gt;Represents an application domain, which is an isolated environment where applications execute. This class cannot be inherited.&lt;/summary&gt;</em></div>
-<div class="fsdocs-tip" id="fs53">property System.AppDomain.CurrentDomain: System.AppDomain with get<br /><em>&lt;summary&gt;Gets the current application domain for the current &lt;see cref=&quot;T:System.Threading.Thread&quot; /&gt;.&lt;/summary&gt;<br />&lt;returns&gt;The current application domain.&lt;/returns&gt;</em></div>
-<div class="fsdocs-tip" id="fs54">System.AppDomain.GetAssemblies() : System.Reflection.Assembly array</div>
-<div class="fsdocs-tip" id="fs55">val ofArray: array: &#39;T array -&gt; &#39;T list</div>
-<div class="fsdocs-tip" id="fs56">val assm: System.Reflection.Assembly</div>
-<div class="fsdocs-tip" id="fs57">System.Reflection.Assembly.GetTypes() : System.Type array</div>
-<div class="fsdocs-tip" id="fs58">module Array
+<div popover class="fsdocs-tip" id="fs53">property System.AppDomain.CurrentDomain: System.AppDomain with get<br /><em>&lt;summary&gt;Gets the current application domain for the current &lt;see cref=&quot;T:System.Threading.Thread&quot; /&gt;.&lt;/summary&gt;<br />&lt;returns&gt;The current application domain.&lt;/returns&gt;</em></div>
+<div popover class="fsdocs-tip" id="fs54">System.AppDomain.GetAssemblies() : System.Reflection.Assembly array</div>
+<div popover class="fsdocs-tip" id="fs55">val ofArray: array: &#39;T array -&gt; &#39;T list</div>
+<div popover class="fsdocs-tip" id="fs56">val assm: System.Reflection.Assembly</div>
+<div popover class="fsdocs-tip" id="fs57">
+System.Reflection.Assembly.GetTypes() : System.Type array</div>
+<div popover class="fsdocs-tip" id="fs58">module Array
 
 from Microsoft.FSharp.Collections</div>
-<div class="fsdocs-tip" id="fs59">val concat: arrays: &#39;T array seq -&gt; &#39;T array</div>
-<div class="fsdocs-tip" id="fs60">val t: System.Type</div>
-<div class="fsdocs-tip" id="fs61">System.Type.GetMethods() : System.Reflection.MethodInfo array<br />System.Type.GetMethods(bindingAttr: System.Reflection.BindingFlags) : System.Reflection.MethodInfo array</div>
-<div class="fsdocs-tip" id="fs62">module A
+<div popover class="fsdocs-tip" id="fs59">val concat: arrays: &#39;T array seq -&gt; &#39;T array</div>
+<div popover class="fsdocs-tip" id="fs60">val t: System.Type</div>
+<div popover class="fsdocs-tip" id="fs61">
+System.Type.GetMethods() : System.Reflection.MethodInfo array<br />
+System.Type.GetMethods(bindingAttr: System.Reflection.BindingFlags) : System.Reflection.MethodInfo array</div>
+<div popover class="fsdocs-tip" id="fs62">module A
 
 from FormattingConventions</div>
-<div class="fsdocs-tip" id="fs63">val function1: a: int -&gt; b: int -&gt; int</div>
-<div class="fsdocs-tip" id="fs64">val b: int</div>
-<div class="fsdocs-tip" id="fs65">val function2: a: int -&gt; b: int -&gt; int</div>
-<div class="fsdocs-tip" id="fs66">val comparer: obj</div>
-<div class="fsdocs-tip" id="fs67">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
-<div class="fsdocs-tip" id="fs68">module String
+<div popover class="fsdocs-tip" id="fs63">val function1: a: int -&gt; b: int -&gt; int</div>
+<div popover class="fsdocs-tip" id="fs64">val b: int</div>
+<div popover class="fsdocs-tip" id="fs65">val function2: a: int -&gt; b: int -&gt; int</div>
+<div popover class="fsdocs-tip" id="fs66">val comparer: obj</div>
+<div popover class="fsdocs-tip" id="fs67">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
+<div popover class="fsdocs-tip" id="fs68">module String
 
 from Microsoft.FSharp.Core</div>
-<div class="fsdocs-tip" id="fs69">val rev: array: &#39;T array -&gt; &#39;T array</div>
-<div class="fsdocs-tip" id="fs70">type IMyInterface =
+<div popover class="fsdocs-tip" id="fs69">val rev: array: &#39;T array -&gt; &#39;T array</div>
+<div popover class="fsdocs-tip" id="fs70">type IMyInterface =
   abstract Function1: int -&gt; int</div>
-<div class="fsdocs-tip" id="fs71">Multiple items<br />val int: value: &#39;T -&gt; int (requires member op_Explicit)<br /><br />--------------------<br />type int = int32<br /><br />--------------------<br />type int&lt;&#39;Measure&gt; =
+<div popover class="fsdocs-tip" id="fs71">Multiple items<br />val int: value: &#39;T -&gt; int (requires member op_Explicit)<br /><br />--------------------<br />type int = int32<br /><br />--------------------<br />type int&lt;&#39;Measure&gt; =
   int</div>
-<div class="fsdocs-tip" id="fs72">val makeStreamReader: x: string -&gt; System.IO.StreamReader</div>
-<div class="fsdocs-tip" id="fs73">val x: string</div>
-<div class="fsdocs-tip" id="fs74">namespace System.IO</div>
-<div class="fsdocs-tip" id="fs75">Multiple items<br />type StreamReader =
-  inherit TextReader
-  new: stream: Stream -&gt; unit + 12 overloads
-  member Close: unit -&gt; unit
-  member DiscardBufferedData: unit -&gt; unit
-  member Peek: unit -&gt; int
-  member Read: unit -&gt; int + 2 overloads
-  member ReadAsync: buffer: char array * index: int * count: int -&gt; Task&lt;int&gt; + 1 overload
-  member ReadBlock: buffer: char array * index: int * count: int -&gt; int + 1 overload
-  member ReadBlockAsync: buffer: char array * index: int * count: int -&gt; Task&lt;int&gt; + 1 overload
-  member ReadLine: unit -&gt; string
-  ...<br /><em>&lt;summary&gt;Implements a &lt;see cref=&quot;T:System.IO.TextReader&quot; /&gt; that reads characters from a byte stream in a particular encoding.&lt;/summary&gt;</em><br /><br />--------------------<br />System.IO.StreamReader(stream: System.IO.Stream) : System.IO.StreamReader<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.IO.StreamReader(path: string) : System.IO.StreamReader<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.IO.StreamReader(stream: System.IO.Stream, detectEncodingFromByteOrderMarks: bool) : System.IO.StreamReader<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.IO.StreamReader(stream: System.IO.Stream, encoding: System.Text.Encoding) : System.IO.StreamReader<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.IO.StreamReader(path: string, detectEncodingFromByteOrderMarks: bool) : System.IO.StreamReader<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.IO.StreamReader(path: string, options: System.IO.FileStreamOptions) : System.IO.StreamReader<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.IO.StreamReader(path: string, encoding: System.Text.Encoding) : System.IO.StreamReader<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.IO.StreamReader(stream: System.IO.Stream, encoding: System.Text.Encoding, detectEncodingFromByteOrderMarks: bool) : System.IO.StreamReader<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.IO.StreamReader(path: string, encoding: System.Text.Encoding, detectEncodingFromByteOrderMarks: bool) : System.IO.StreamReader<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />System.IO.StreamReader(stream: System.IO.Stream, encoding: System.Text.Encoding, detectEncodingFromByteOrderMarks: bool, bufferSize: int) : System.IO.StreamReader<br />&#160;&#160;&#160;<em>(+0 other overloads)</em></div>
-<div class="fsdocs-tip" id="fs76">val c: int</div>
+<div popover class="fsdocs-tip" id="fs72">val c: int</div>
 
     </div>
 </main>
@@ -1097,6 +1084,15 @@ from Microsoft.FSharp.Core</div>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-copy-button.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
 <script type="module">
     import mermaid from "https://esm.sh/mermaid@9.2.2";
     mermaid.initialize({
@@ -1108,13 +1104,6 @@ from Microsoft.FSharp.Core</div>
             primaryBorderColor: '#5aacd6'
         }
     });
-
-    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
-    menuHeaders.forEach(nv => {
-        nv.addEventListener("click", () => {
-            nv.classList.toggle("active");
-        })
-    })
 </script>
 <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
 </body>
