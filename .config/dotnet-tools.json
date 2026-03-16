@@ -17,7 +17,7 @@
       "rollForward": false
     },
     "fsdocs-tool": {
-      "version": "21.0.0-beta-002",
+      "version": "22.0.0-alpha.2",
       "commands": [
         "fsdocs"
       ],

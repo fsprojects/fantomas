@@ -15,17 +15,18 @@
     --fantomas-900: #1d435d;
     --fantomas-950: #142c3d;
 
-    --header-background: var(--white);
+    --header-background: light-dark(var(--white), var(--fantomas-700));
     --primary: var(--fantomas-500);
-    --aside-background: var(--primary);
+    --aside-background: light-dark(var(--primary), var(--fantomas-700));
     --menu-color: var(--white);
     --link-hover: #2FBADC;
     --page-menu-width: 400px;
     --configuration-icon-size: 24px;
-    --mobile-menu-background: var(--fantomas-400);
-    --fsdocs-theme-toggle-light-color: var(--fantomas-600);
-    --header-link-color: var(--fantomas-600);
-    --fsdocs-theme-toggle-dark-color: var(--fantomas-300);
+    --mobile-menu-background: light-dark(var(--fantomas-400), var(--fantomas-700));
+    --header-link-color: light-dark(var(--fantomas-600), var(--fantomas-200));
+    --heading-color: light-dark(var(--black), var(--white));
+    --text-color: light-dark(var(--black), var(--white));
+    --background: light-dark(var(--pearl), var(--fantomas-900));
 
     --system-font: 'Poppins', sans-serif;
 }
@@ -107,16 +108,16 @@ h1,h2,h3,h4,h5,h6 {
 
 #fsdocs-page-menu ul li {
     & a {
-        color: var(--fantomas-600);
+        color: light-dark(var(--fantomas-600), var(--fantomas-100));
     }
-    
+
     .level-2 {
         margin-top: var(--spacing-100);
     }
-    
+
     .level-3 a {
-        color: var(--fantomas-700);
-    }    
+        color: light-dark(var(--fantomas-700), var(--fantomas-300));
+    }
 }
 
 .mermaid {
@@ -126,23 +127,3 @@ h1,h2,h3,h4,h5,h6 {
     }
 }
 
-[data-theme="dark"] {
-    --header-background: var(--fantomas-700);
-    --mobile-menu-background: var(--fantomas-700);
-    --background: var(--fantomas-900);
-    --header-link-color: var(--fantomas-200);
-    --fsdocs-theme-toggle-dark-color:  var(--fantomas-200);
-    --heading-color: var(--white);
-    --text-color: var(--white);
-    --aside-background: var(--fantomas-700);
-
-    #fsdocs-page-menu {
-        & a {
-            color: var(--fantomas-100);
-        }
-        
-        .level-3 a {
-            color: var(--fantomas-300);
-        }
-    }
-}
