@@ -286,24 +286,58 @@ let genOnelinerAttributes (n: MultipleAttributeListNode option) =
     match n with
     | None -> sepNone
     | Some n ->
-        let ats =
-            List.collect (fun (al: AttributeListNode) -> al.Attributes) n.AttributeLists
+        // If any attribute list after the first has a compiler directive in its trivia
+        // (e.g. #endif from a surrounding #if block), render each AttributeListNode
+        // individually via genNode so that ContentBefore directives are preserved.
+        // Without this, the per-list ContentBefore directives are silently dropped,
+        // causing mergeMultipleFormatResults to receive different hash-fragment counts
+        // per define variant and throw a FormatException.
+        // Unlike genAttributes, we do NOT add a trailing newline after the last list
+        // so that the type name (e.g. for `and` definitions) follows on the same line.
+        let hasDirectiveBetweenLists =
+            n.AttributeLists
+            |> List.skip (min 1 n.AttributeLists.Length)
+            |> List.exists (fun (al: AttributeListNode) ->
+                al.ContentBefore
+                |> Seq.exists (fun t ->
+                    match t.Content with
+                    | TriviaContent.Directive _ -> true
+                    | _ -> false))
 
-        let openingToken =
-            List.tryHead n.AttributeLists
-            |> Option.map (fun (a: AttributeListNode) -> a.Opening)
+        if hasDirectiveBetweenLists then
+            let lastIdx = n.AttributeLists.Length - 1
 
-        let closingToken =
-            List.tryLast n.AttributeLists
-            |> Option.map (fun (a: AttributeListNode) -> a.Closing)
+            let genLists =
+                coli sepNone n.AttributeLists (fun idx al ->
+                    let attrContent =
+                        genSingleTextNode al.Opening
+                        +> genAttributesCore al.Attributes
+                        +> genSingleTextNode al.Closing
 
-        let genAttrs =
-            optSingle genSingleTextNode openingToken
-            +> genAttributesCore ats
-            +> optSingle genSingleTextNode closingToken
-            |> genNode n
+                    let suffix = if idx < lastIdx then sepNln else sepSpace
+                    (attrContent |> genNode al) +> suffix)
 
-        ifElse ats.IsEmpty sepNone (genAttrs +> sepSpace)
+            genLists |> genNode n
+        else
+
+            let ats =
+                List.collect (fun (al: AttributeListNode) -> al.Attributes) n.AttributeLists
+
+            let openingToken =
+                List.tryHead n.AttributeLists
+                |> Option.map (fun (a: AttributeListNode) -> a.Opening)
+
+            let closingToken =
+                List.tryLast n.AttributeLists
+                |> Option.map (fun (a: AttributeListNode) -> a.Closing)
+
+            let genAttrs =
+                optSingle genSingleTextNode openingToken
+                +> genAttributesCore ats
+                +> optSingle genSingleTextNode closingToken
+                |> genNode n
+
+            ifElse ats.IsEmpty sepNone (genAttrs +> sepSpace)
 
 let genAttributes (node: MultipleAttributeListNode option) =
     match node with
@@ -3483,16 +3517,42 @@ let genTypeDefn (td: TypeDefn) =
         let hasTriviaAfterLeadingKeyword =
             hasTriviaAfterLeadingKeyword typeName.Identifier typeName.Accessibility
 
+        // For `and` type definitions whose attribute lists contain compiler directives
+        // (e.g. `#if`/`#endif` between attribute lists), we must indent the attributes
+        // and type name so that the formatted output is valid F# in both define variants.
+        // Without indentation, `and\n[<Attr>] Y = int` at column 0 is a parse error.
+        let hasAttributeDirectivesForAndDefinition =
+            hasAndKeyword
+            && (match typeName.Attributes with
+                | None -> false
+                | Some n ->
+                    n.ContentBefore
+                    |> Seq.exists (fun t ->
+                        match t.Content with
+                        | TriviaContent.Directive _ -> true
+                        | _ -> false)
+                    || n.AttributeLists
+                       |> List.skip (min 1 n.AttributeLists.Length)
+                       |> List.exists (fun (al: AttributeListNode) ->
+                           al.ContentBefore
+                           |> Seq.exists (fun t ->
+                               match t.Content with
+                               | TriviaContent.Directive _ -> true
+                               | _ -> false)))
+
+        let shouldIndentAfterKeyword =
+            hasTriviaAfterLeadingKeyword || hasAttributeDirectivesForAndDefinition
+
         genXml typeName.XmlDoc
         +> onlyIfNot hasAndKeyword (genAttributes typeName.Attributes)
         +> genSingleTextNode typeName.LeadingKeyword
-        +> onlyIf hasTriviaAfterLeadingKeyword indent
+        +> onlyIf shouldIndentAfterKeyword indent
         +> onlyIf hasAndKeyword (sepSpace +> genOnelinerAttributes typeName.Attributes)
         +> sepSpace
         +> genAccessOpt typeName.Accessibility
         +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
         +> onlyIfNot typeName.Constraints.IsEmpty (sepSpace +> genTypeConstraints typeName.Constraints)
-        +> onlyIf hasTriviaAfterLeadingKeyword unindent
+        +> onlyIf shouldIndentAfterKeyword unindent
         +> leadingExpressionIsMultiline
             (optSingle
                 (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor)
