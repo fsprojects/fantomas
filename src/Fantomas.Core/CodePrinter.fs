@@ -15,7 +15,10 @@ let isFirstCharUppercase (v: string) =
 
 let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
     let upperOrLower (v: string) =
-        if isFirstCharUppercase v then UppercaseType else LowercaseType
+        if isFirstCharUppercase v then
+            UppercaseType
+        else
+            LowercaseType
 
     match t with
     | Type.LongIdent node ->
@@ -36,7 +39,10 @@ let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
 
 let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
     let upperOrLower (v: string) =
-        if isFirstCharUppercase v then UppercaseExpr else LowercaseExpr
+        if isFirstCharUppercase v then
+            UppercaseExpr
+        else
+            LowercaseExpr
 
     let lastFragmentInList (identList: IdentListNode) =
         match List.tryLast identList.Content with
