@@ -2339,3 +2339,59 @@ let v, x =
         & Assumenda assumenda -> libero, []
     | _ -> saepe, delectus
 """
+
+[<Test>]
+let ``match on long anonymous record type discriminant does not cause indentation warning, 1903`` () =
+    let config60 = { config with MaxLineLength = 60 }
+
+    formatSourceString
+        """
+match
+    (unbox<{| __proto__: {| ChooseAsync: (('T -> Async<_ option>) -> AsyncSeq<_>) option |} option |}> (
+        source'
+    ))
+    .__proto__ with
+| Some proto when proto.ChooseAsync.IsSome ->
+    source'.ChooseAsync f
+| _ ->
+    asyncSeq {
+        for itm in source do
+            let! v = f itm
+
+            match v with
+            | Some v -> yield v
+            | _ -> ()
+    }
+"""
+        config60
+    |> prepend newline
+    |> should
+        equal
+        """
+match
+    (unbox<
+        {|
+            __proto__:
+                {|
+                    ChooseAsync:
+                        (('T -> Async<_ option>)
+                                -> AsyncSeq<_>) option
+                |} option
+        |}
+      > (
+        source'
+    ))
+        .__proto__
+with
+| Some proto when proto.ChooseAsync.IsSome ->
+    source'.ChooseAsync f
+| _ ->
+    asyncSeq {
+        for itm in source do
+            let! v = f itm
+
+            match v with
+            | Some v -> yield v
+            | _ -> ()
+    }
+"""
