@@ -9,6 +9,7 @@
 ### Fixed
 
 - Multiline `val` body in signature files was not indented correctly. [#3269](https://github.com/fsprojects/fantomas/pull/3269)
+- Indentation warning when formatting `match` with long anonymous record discriminant. [#1903](https://github.com/fsprojects/fantomas/issues/1903)
 - `///` doc comment without associated declaration (e.g. at end of file) was duplicated when formatting. [#2499](https://github.com/fsprojects/fantomas/issues/2499)
 - NamedIndexedPropertySet with two SynLongIdent removed space. [#3273](https://github.com/fsprojects/fantomas/issues/3273)
 - `%%` (double-percent) infix operator moved to new line, producing invalid F#. [#2107](https://github.com/fsprojects/fantomas/issues/2107)
