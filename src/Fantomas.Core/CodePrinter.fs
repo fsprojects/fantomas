@@ -1651,14 +1651,28 @@ let genQuoteExpr (node: ExprQuoteNode) =
 /// <param name="fieldsExpr">Record fields.</param>
 /// <param name="copyExpr">Expression before the `with` keyword.</param>
 let genMultilineRecordCopyExpr (addAdditionalIndent: bool) fieldsExpr copyExpr =
-    atCurrentColumnIndent (genExpr copyExpr)
-    +> !-" with"
-    +> indent
-    +> onlyIf addAdditionalIndent indent
-    +> sepNln
-    +> fieldsExpr
-    +> onlyIf addAdditionalIndent unindent
-    +> unindent
+    fun (ctx: Context) ->
+        // Capture the column where the copy-expression identifier will be written.
+        // Fields must be strictly indented past this column to avoid F# offside errors,
+        // which can occur when the record is nested inside parentheses.
+        let copyExprStartColumn = ctx.Column
+        let oldIndent = ctx.WriterModel.Indent
+
+        (atCurrentColumnIndent (genExpr copyExpr)
+         +> !-" with"
+         +> indent
+         +> onlyIf addAdditionalIndent indent
+         +> (fun ctx ->
+             // If the resulting indent would place fields at or before the copy-expression
+             // column, bump the indent to ensure fields are indented past it.
+             if ctx.WriterModel.Indent <= copyExprStartColumn then
+                 writerEvent (SetIndent (copyExprStartColumn + ctx.Config.IndentSize)) ctx
+             else
+                 ctx)
+         +> sepNln
+         +> fieldsExpr
+         +> writerEvent (RestoreIndent oldIndent))
+            ctx
 
 /// Special case for record fields in Cramped mode.
 /// The caller should have already verified that the settings do indeed specify Cramped.
