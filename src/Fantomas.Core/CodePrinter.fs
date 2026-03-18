@@ -727,10 +727,32 @@ let genExpr (e: Expr) =
             +> atCurrentColumn (genExpr node.Expr)
             +> genSingleTextNode node.ClosingParen
         | _ ->
-            genSingleTextNode node.OpeningParen
-            +> sepNlnWhenWriteBeforeNewlineNotEmpty
-            +> genExpr node.Expr
-            +> genSingleTextNode node.ClosingParen
+            fun ctx ->
+                let afterOpenParen = genSingleTextNode node.OpeningParen ctx
+                // Record where '(' was so we can align ')' with it when needed.
+                let parenColumn = afterOpenParen.Column - 1
+
+                let afterInner =
+                    (sepNlnWhenWriteBeforeNewlineNotEmpty +> genExpr node.Expr) afterOpenParen
+
+                // If the inner expression (e.g. a triple-quoted string) ends at a column
+                // less than the opening '(' column, placing ')' there would violate F#'s
+                // offside rule and produce invalid code.  Move ')' to the '(' column instead.
+                //
+                // The additional check on `headLine` ensures we only fix "raw" lines (e.g.
+                // lines produced by WriteLineInsideStringConst that have no leading whitespace).
+                // Lines that already start with spaces are properly indented by the formatter
+                // and the closing ')' position there is intentional.
+                let aligned =
+                    let headLine = List.head afterInner.WriterModel.Lines
+                    let currentLineIsRaw = headLine.Length > 0 && headLine.[0] <> ' '
+
+                    if afterInner.Column < parenColumn && currentLineIsRaw then
+                        (sepNln +> addFixedSpaces parenColumn) afterInner
+                    else
+                        afterInner
+
+                genSingleTextNode node.ClosingParen aligned
         |> genNode node
     | Expr.Dynamic node ->
         // Use sepNone for AppLongIdentAndSingleParenArg to preserve atomic application (no space before paren).
