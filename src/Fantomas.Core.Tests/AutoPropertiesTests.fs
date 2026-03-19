@@ -5,6 +5,40 @@ open FsUnit
 open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
+let ``auto-property with attribute`` () =
+    formatSourceString
+        """
+type X() =
+    [<DefaultValue>]
+    member val Y: int = 0 with get, set
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X() =
+    [<DefaultValue>]
+    member val Y: int = 0 with get, set
+"""
+
+[<Test>]
+let ``static auto-property with explicit type`` () =
+    formatSourceString
+        """
+type X() =
+    static member val Count: int = 0 with get, set
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X() =
+    static member val Count: int = 0 with get, set
+"""
+
+[<Test>]
 let ``public get, private set`` () =
     formatSourceString
         """
