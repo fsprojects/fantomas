@@ -339,3 +339,12 @@ let ``unicode null character should be recognized as a trivia item, 2050`` () =
 [<Test>]
 let ``character quotes should be preserved, 3076`` () =
     formatAST false "let s = 'A'" config |> should equal "let s = 'A'\n"
+
+[<Test>]
+let ``paren closing token aligned with opening when triple-quoted string ends at column zero, 2816`` () =
+    formatSourceString
+        "let usageFile =\n    (FsSource\n        \"\"\"\nmodule B\n\nlet otherGenericFunction _ _ _ =\n    A.someGenericFunction 1\n\"\"\" )\n        .WithFileName(\"B.fs\")\n"
+        config
+    |> should
+        equal
+        "let usageFile =\n    (FsSource\n        \"\"\"\nmodule B\n\nlet otherGenericFunction _ _ _ =\n    A.someGenericFunction 1\n\"\"\"\n    )\n        .WithFileName(\"B.fs\")\n"
