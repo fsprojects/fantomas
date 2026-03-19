@@ -3454,3 +3454,28 @@ let x =
     3
 #endif
 """
+
+[<Test>]
+let ``hash directive between attribute lists in mutually recursive type definition should not throw, 3174`` () =
+    formatSourceString
+        """
+type X = int
+and
+#if NET5_0_OR_GREATER
+    [<Interface>]
+#endif
+    [<Class>] Y = int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = int
+
+and
+#if NET5_0_OR_GREATER
+    [<Interface>]
+#endif
+    [<Class>] Y = int
+"""
