@@ -3580,10 +3580,34 @@ let genTypeDefn (td: TypeDefn) =
 
         let multilineExpression (ctx: Context) =
             let genRecordFields =
+                let closingBrace = node.ClosingBrace
+
                 genSingleTextNode node.OpeningBrace
-                +> indentSepNlnUnindent (atCurrentColumn (col sepNln node.Fields genField))
+                +> indent
                 +> sepNln
-                +> genSingleTextNode node.ClosingBrace
+                +> atCurrentColumn (col sepNln node.Fields genField)
+                // Write any ContentBefore trivia (e.g., commented-out fields) inside the
+                // indent block so they align with the record fields rather than the braces.
+                +> enterNode closingBrace
+                +> unindent
+                +> (fun ctx ->
+                    // After writing ContentBefore inside the indent block, the last trivia's
+                    // trailing newline pre-commits a blank line at field-level indent. After
+                    // unindent we fix that blank line to use brace-level indent so that the
+                    // closing brace lands at the correct column.
+                    match ctx.WriterModel.Lines with
+                    | head :: rest when head.Trim() = "" ->
+                        let targetIndent = ctx.WriterModel.Indent
+
+                        { ctx with
+                            WriterModel =
+                                { ctx.WriterModel with
+                                    Lines = String.replicate targetIndent " " :: rest
+                                    Column = targetIndent } }
+                    | _ -> ctx)
+                +> sepNlnUnlessLastEventIsNewline
+                +> recordCursorNode (!-closingBrace.Text) closingBrace
+                +> leaveNode closingBrace
 
             let genMembers =
                 onlyIf hasMembers (sepNln +> sepNlnBetweenTypeAndMembers typeDefnNode +> genMemberDefnList members)

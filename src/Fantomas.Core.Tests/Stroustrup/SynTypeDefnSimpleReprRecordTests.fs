@@ -360,3 +360,27 @@ type Event =
         Metadata: AssessmentMetadata
     }
 """
+
+[<Test>]
+let ``commented-out fields inside record type are indented at field level in Stroustrup mode, 2482`` () =
+    formatSourceString
+        """
+type UserInfo = {
+    UserId: int
+    AcsId: int
+    // Roles: Role list
+    // NetworkStatus: UserStatus
+}
+    """
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type UserInfo = {
+    UserId: int
+    AcsId: int
+    // Roles: Role list
+    // NetworkStatus: UserStatus
+}
+"""
