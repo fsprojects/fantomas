@@ -37,6 +37,18 @@ network:
   - learn.microsoft.com
   - fsharp.github.io
 
+tools:
+  web-fetch:
+  github:
+    toolsets: [all]
+    min-integrity: none # This workflow is allowed to examine and comment on any issues or PRs
+    repos: all
+  bash: true
+  repo-memory: true
+  playwright:
+    #allowed_domains: ["defaults", "github", "*.custom.com", "fsprojects.github.io"]
+    version: "1.56.1"  # Optional: defaults to 1.56.1, use "latest" for newest
+
 safe-outputs:
   add-comment:
     max: 10
@@ -68,16 +80,6 @@ safe-outputs:
     allowed: ["bug (soundness)", "bug (stylistic)", enhancement, "help wanted", "good first issue", documentation, question, duplicate, wontfix, discussion, "needs investigation", "needs-community-interest", "waiting-on-author", tooling, "style-guide-clarification-needed", clitool]
     max: 5
     target: "*"
-
-tools:
-  web-fetch:
-  github:
-    toolsets: [all]
-  bash: true
-  repo-memory: true
-  playwright:
-    #allowed_domains: ["defaults", "github", "*.custom.com", "fsprojects.github.io"]
-    version: "1.56.1"  # Optional: defaults to 1.56.1, use "latest" for newest
 
 steps:
   - name: Fetch repo data for task weighting
@@ -172,7 +174,7 @@ steps:
           json.dump(result, f, indent=2)
       EOF
 
-source: githubnext/agentics/workflows/repo-assist.md@d7e73661688ef2fdea152135a791e28008f73ebd
+source: githubnext/agentics/workflows/repo-assist.md@4d3e9114a41286c2ccaae143f2ac542470e9686e
 ---
 
 # Repo Assist
