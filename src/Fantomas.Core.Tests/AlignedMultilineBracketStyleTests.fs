@@ -1569,3 +1569,27 @@ let handlerFormattedRangeDoc (lines : NamedText, formatted : string, range : For
 
   [| { Range = range ; NewText = formatted } |]
 """
+
+// https://github.com/fsprojects/fantomas/issues/2529
+[<Test>]
+let ``record copy expression nested in parentheses should not produce offside errors`` () =
+    formatSourceString
+        """
+type R = { Z: int; X: string }
+let r = { Z = 0; X = "" }
+let b = (({ r with Z = 1; X = "longstring value here" }))
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type R = { Z : int ; X : string }
+let r = { Z = 0 ; X = "" }
+
+let b =
+    (({ r with
+            Z = 1
+            X = "longstring value here"
+    }))
+"""
