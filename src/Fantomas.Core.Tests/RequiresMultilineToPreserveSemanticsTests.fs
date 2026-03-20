@@ -141,3 +141,91 @@ x = fun y -> y
 |> g
 |> h
 """
+
+[<Test>]
+let ``open-ended expression in middle of chained pipe stays multiline`` () =
+    formatSourceString
+        """
+a
+|> fun x -> x + 1
+|> h
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a
+|> fun x -> x + 1
+|> h
+"""
+
+// Expr.Tuple (open-ended non-last element)
+
+[<Test>]
+let ``lambda as non-last tuple element stays multiline`` () =
+    formatSourceString
+        """
+fun x -> x
+, y
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun x -> x
+, y
+"""
+
+[<Test>]
+let ``nested open-ended as non-last tuple element stays multiline`` () =
+    formatSourceString
+        """
+x = fun y -> y
+, z
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+x = fun y -> y
+, z
+"""
+
+[<Test>]
+let ``if-then-else as non-last tuple element stays multiline`` () =
+    formatSourceString
+        """
+if a then b else c
+, y
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if a then b else c
+, y
+"""
+
+[<Test>]
+let ``match as non-last tuple element stays multiline`` () =
+    formatSourceString
+        """
+match x with
+| true -> 1
+| false -> 2
+, y
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| true -> 1
+| false -> 2
+, y
+"""

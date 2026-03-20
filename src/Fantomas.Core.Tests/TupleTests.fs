@@ -6,7 +6,7 @@ open FsUnit
 open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
-let ``tuple with lambda should add parenthesis`` () =
+let ``tuple with lambda stays multiline to preserve semantics`` () =
     formatSourceString
         """
 let private carouselSample =
@@ -19,7 +19,10 @@ let private carouselSample =
     |> should
         equal
         """let private carouselSample =
-    FunctionComponent.Of<obj>((fun _ -> fragment [] []), "CarouselSample")
+    FunctionComponent.Of<obj>(
+        fun _ -> fragment [] []
+        , "CarouselSample"
+    )
 """
 
 [<Test>]
@@ -231,7 +234,7 @@ let (var1withAVeryLongLongLongLongLongLongName,
 """
 
 [<Test>]
-let ``tuple with if/then/else, 1319`` () =
+let ``tuple with if/then/else uses comma-leading layout, 1319`` () =
     formatSourceString
         """
 let y =
@@ -248,18 +251,18 @@ let y =
         equal
         """
 let y =
-    (if String.IsNullOrWhiteSpace(args) then
-         ""
-     elif args.StartsWith("(") then
-         args
-     elif
-         v.CurriedParameterGroups.Count > 1
-         && (not verboseMode)
-     then
-         " " + args
-     else
-         sprintf "(%s)" args),
-    namesWithIndices
+    if String.IsNullOrWhiteSpace(args) then
+        ""
+    elif args.StartsWith("(") then
+        args
+    elif
+        v.CurriedParameterGroups.Count > 1
+        && (not verboseMode)
+    then
+        " " + args
+    else
+        sprintf "(%s)" args
+    , namesWithIndices
 """
 
 [<Test>]
@@ -406,7 +409,7 @@ let shiftTimes localDate (start: Utc, duration) =
 """
 
 [<Test>]
-let ``if then expression inside object instantiation breaks when formatted, 2819`` () =
+let ``if then expression in object instantiation uses comma-leading layout, 2819`` () =
     formatSourceString
         """
 type Chapter() =
@@ -433,11 +436,15 @@ type Chapter() =
     member val Title: string option = Unchecked.defaultof<_> with get, set
     member val Url: string = Unchecked.defaultof<_> with get, set
 
-let c = Chapter(Title = (if true then Some "" else None), Url = "")
+let c =
+    Chapter(
+        Title = if true then Some "" else None
+        , Url = ""
+    )
 """
 
 [<Test>]
-let ``object instantiation with ifthenelse in tuple`` () =
+let ``object instantiation with ifthenelse in tuple uses comma-leading layout`` () =
     formatSourceString
         """
 type Chapter() =
@@ -463,11 +470,15 @@ type Chapter() =
     member val Title: string option = Unchecked.defaultof<_> with get, set
     member val Url: string = Unchecked.defaultof<_> with get, set
 
-let c = Chapter((if true then Some "" else None), "")
+let c =
+    Chapter(
+        if true then Some "" else None
+        , ""
+    )
 """
 
 [<Test>]
-let ``infixapp with ifthen rhs in tuple`` () =
+let ``infixapp with ifthen rhs in tuple uses comma-leading layout to preserve semantics`` () =
     formatSourceString
         """
 let a = 0
@@ -495,13 +506,14 @@ let d = 2
 
 let _ =
     try
-        a <> (if b then c else d), b
+        a <> if b then c else d
+        , b
     with ex ->
         false, false
 """
 
 [<Test>]
-let ``infixapp with lambda rhs in tuple`` () =
+let ``infixapp with lambda rhs in tuple uses comma-leading layout to preserve semantics`` () =
     formatSourceString
         """
 a |> fun b -> if b then 0 else 1
@@ -513,7 +525,8 @@ a |> fun b -> if b then 0 else 1
     |> should
         equal
         """
-a |> (fun b -> if b then 0 else 1), 2
+a |> fun b -> if b then 0 else 1
+, 2
 """
 
 [<Test>]

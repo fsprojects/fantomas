@@ -417,7 +417,7 @@ elif true then ()
 """
 
 [<Test>]
-let ``multiline if in tuple`` () =
+let ``multiline if in tuple uses comma-leading layout`` () =
     formatSourceString
         """
 (if true then 1 else 2
@@ -428,7 +428,8 @@ let ``multiline if in tuple`` () =
     |> should
         equal
         """
-((if true then 1 else 2), 3)
+(if true then 1 else 2
+ , 3)
 """
 
 // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
