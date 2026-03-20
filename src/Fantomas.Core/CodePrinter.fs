@@ -355,6 +355,7 @@ let isIfThenElse (e: Expr) =
 
 let (|IsIfThenElse|_|) (e: Expr) = if isIfThenElse e then Some e else None
 
+// TODO: eventually replace fully with isOpenEndedExpression
 let isLambdaOrIfThenElse (e: Expr) =
     match e with
     | Expr.Lambda _
@@ -363,6 +364,42 @@ let isLambdaOrIfThenElse (e: Expr) =
 
 let (|IsLambdaOrIfThenElse|_|) (e: Expr) =
     if isLambdaOrIfThenElse e then Some e else None
+
+/// Does this expression end with a construct whose body extends
+/// unboundedly to the right (lambda, if-then-else, tuple, ...)?
+let rec isOpenEndedExpression (e: Expr) =
+    match e with
+    | Expr.Lambda _
+    | Expr.IfThen _
+    | Expr.IfThenElse _
+    | Expr.IfThenElif _
+    | Expr.Match _
+    | Expr.MatchLambda _
+    | Expr.TryWith _
+    | Expr.TryWithSingleClause _
+    | Expr.TryFinally _ -> true
+    | Expr.InfixApp node -> isOpenEndedExpression node.RightHandSide
+    | Expr.SameInfixApps node ->
+        match List.tryLast node.SubsequentExpressions with
+        | Some(_, rhs) -> isOpenEndedExpression rhs
+        | None -> isOpenEndedExpression node.LeadingExpr
+    | Expr.Tuple node ->
+        match List.tryLast node.Items with
+        | Some(Choice1Of2 lastExpr) -> isOpenEndedExpression lastExpr
+        | _ -> false
+    | _ -> false
+
+/// Returns true when putting all expressions on a single line would change semantics.
+/// The last expression in the list is always safe (nothing follows it to be "swallowed"),
+/// so we only check all items except the last.
+let requiresMultilineToPreserveSemantics (exprs: Expr list) =
+    match exprs with
+    | []
+    | [ _ ] -> false
+    | _ ->
+        exprs
+        |> List.take (exprs.Length - 1) // skip the last item: it can't swallow anything to its right
+        |> List.exists isOpenEndedExpression
 
 let genExpr (e: Expr) =
     match e with
@@ -779,19 +816,11 @@ let genExpr (e: Expr) =
         | _ -> genWithoutSpace
         |> genNode node
     | Expr.SameInfixApps node ->
-        let headIsSynExprLambdaOrIfThenElse = isLambdaOrIfThenElse node.LeadingExpr
-
         let shortExpr =
-            onlyIf headIsSynExprLambdaOrIfThenElse sepOpenT
-            +> genExpr node.LeadingExpr
-            +> onlyIf headIsSynExprLambdaOrIfThenElse sepCloseT
+            genExpr node.LeadingExpr
             +> sepSpace
             +> col sepSpace node.SubsequentExpressions (fun (operator, rhs) ->
-                genSingleTextNode operator
-                +> sepSpace
-                +> onlyIf (isLambdaOrIfThenElse rhs) sepOpenT
-                +> genExpr rhs
-                +> onlyIf (isLambdaOrIfThenElse rhs) sepCloseT)
+                genSingleTextNode operator +> sepSpace +> genExpr rhs)
 
         let multilineExpr =
             match node.SubsequentExpressions with
@@ -815,11 +844,16 @@ let genExpr (e: Expr) =
                             (indent +> genExprInMultilineInfixExpr e +> unindent) ctx
                         | _ -> genExprInMultilineInfixExpr e ctx))
 
-        fun ctx ->
-            genNode
-                node
-                (atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr))
-                ctx
+        let allExprs = node.LeadingExpr :: List.map snd node.SubsequentExpressions
+
+        if requiresMultilineToPreserveSemantics allExprs then
+            atCurrentColumn multilineExpr |> genNode node
+        else
+            fun ctx ->
+                genNode
+                    node
+                    (atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr))
+                    ctx
 
     | Expr.InfixApp node ->
         let genRhsExpr e =
@@ -836,13 +870,12 @@ let genExpr (e: Expr) =
             +> sepSpace
             +> genRhsExpr node.RightHandSide
 
-        let isNewLineInfixOp = newLineInfixOps.Contains node.Operator.Text
         let isNoBreakInfixOp = noBreakInfixOps.Contains node.Operator.Text
 
-        // Lambdas or if/then/else on the LHS of pipe-like operators (|>, ||>, >>)
-        // always use the multiline layout to avoid confusing indentation.
-        if isLambdaOrIfThenElse node.LeftHandSide && isNewLineInfixOp then
-            genNode node (genMultilineInfixExpr node)
+        // Open-ended expressions (lambda, if-then-else, etc.) on the left-hand side of an infix operator should
+        // always use the multiline layout to avoid any change in semantics.
+        if isOpenEndedExpression node.LeftHandSide then
+            genMultilineInfixExpr node |> genNode node
         // No-break operators (=, >, <, %) keep the operator on the same line as the LHS.
         // When the expression doesn't fit on one line, indent the RHS to preserve
         // correct indentation when trivia (comments) precedes it. See #2944.
@@ -1921,81 +1954,45 @@ let genMultilineFunctionApplicationArguments (argExpr: Expr) =
     | _ -> genExpr argExpr
 
 let genTupleExpr (node: ExprTupleNode) =
-    // if a tuple element is an InfixApp with a lambda or if-then-else expression on the rhs,
-    // we need to wrap the rhs in parenthesis to avoid a parse error caused by the higher precedence of "," over the rhs expression.
-    // see 2819
-    let wrapInfixAppRhsInParenIfNeeded expr =
-        match expr with
-        | Expr.InfixApp exprInfixAppNode ->
-            match exprInfixAppNode.RightHandSide with
-            | IsLambdaOrIfThenElse e ->
-                let parenNode =
-                    mkExprParenNode
-                        (SingleTextNode("(", Fantomas.FCS.Text.Range.range0))
-                        e
-                        (SingleTextNode(")", Fantomas.FCS.Text.Range.range0))
-                        Fantomas.FCS.Text.Range.range0
-
-                ExprInfixAppNode(
-                    exprInfixAppNode.LeftHandSide,
-                    exprInfixAppNode.Operator,
-                    parenNode,
-                    Fantomas.FCS.Text.Range.range0
-                )
-                |> Expr.InfixApp
-            | _ -> expr
-        | _ -> expr
-
     let shortExpression =
-        let lastIndex = Array.length node.Children - 1
-
-        coli sepNone node.Items (fun i c ->
+        coli sepNone node.Items (fun _i c ->
             match c with
-            | Choice1Of2 e ->
-                match e with
-                | IsLambdaOrIfThenElse e when i <> lastIndex -> sepOpenT +> genExpr e +> sepCloseT
-                | e -> genExpr (wrapInfixAppRhsInParenIfNeeded e)
+            | Choice1Of2 e -> genExpr e
             | Choice2Of2 comma -> genSingleTextNode comma +> addSpaceIfSpaceAfterComma)
 
     let longExpression = genTupleMultiline node
 
-    atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
-    |> genNode node
+    let exprs =
+        node.Items
+        |> List.choose (function
+            | Choice1Of2 e -> Some e
+            | _ -> None)
+
+    if requiresMultilineToPreserveSemantics exprs then
+        atCurrentColumn longExpression |> genNode node
+    else
+        atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
+        |> genNode node
 
 let genTupleMultiline (node: ExprTupleNode) =
-    let containsLambdaOrMatchExpr =
-        // If the any items (expect the last) is a match/lambda
+    let exprs =
         node.Items
-        |> List.chunkBySize 2
-        |> List.exists (fun pair ->
-            match pair with
-            | [ Choice1Of2 e; Choice2Of2 _ ] ->
-                match e with
-                | Expr.Match _
-                | Expr.Lambda _ -> true
-                | Expr.InfixApp node ->
-                    match node.RightHandSide with
-                    | Expr.Match _
-                    | Expr.Lambda _ -> true
-                    | _ -> false
-                | Expr.SameInfixApps node ->
-                    match List.last node.SubsequentExpressions with
-                    | _, Expr.Lambda _ -> true
-                    | _ -> false
-                | _ -> false
-            | _ -> false)
+        |> List.choose (function
+            | Choice1Of2 e -> Some e
+            | _ -> None)
 
-    let lastIndex = List.length node.Items - 1
+    // When a non-last element is open-ended (lambda, if-then-else, match, ...),
+    // the comma must start a new line so that it isn't swallowed by the preceding expression.
+    let commaLeading = requiresMultilineToPreserveSemantics exprs
 
-    let genItem idx =
+    let genItem _idx =
         function
         | Choice1Of2 e ->
             match e with
-            | IsIfThenElse _ when (idx < lastIndex) -> autoParenthesisIfExpressionExceedsPageWidth (genExpr e)
             | Expr.InfixApp node when (node.Operator.Text = "=") -> genNamedArgumentExpr node
             | _ -> genExpr e
         | Choice2Of2 comma ->
-            if containsLambdaOrMatchExpr then
+            if commaLeading then
                 sepNln +> genSingleTextNode comma +> sepSpace
             else
                 genSingleTextNode comma +> sepNln

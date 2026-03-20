@@ -1173,7 +1173,7 @@ let dayOfWeekToNum (d: DayOfWeek) =
 """
 
 [<Test>]
-let ``piped lambda with if-then-else, short, 2196`` () =
+let ``piped lambda with if-then-else stays multiline to preserve semantics, 2196`` () =
     formatSourceString
         """
 let foo () =
@@ -1187,7 +1187,9 @@ let foo () =
         equal
         """
 let foo () =
-    f () |> (fun x -> if x then 1 else 2) |> g
+    f ()
+    |> fun x -> if x then 1 else 2
+    |> g
 """
 
 [<Test>]
