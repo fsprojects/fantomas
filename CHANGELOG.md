@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [8.0.0-alpha-008] - 2026-03-20
+
 ### Added
 
 - Support for `#elif` preprocessor directive. [#3268](https://github.com/fsprojects/fantomas/issues/3268)
