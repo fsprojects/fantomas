@@ -1232,7 +1232,7 @@ let ( */ ) = (+)
 """
 
 [<Test>]
-let ``piped lambda on a single line`` () =
+let ``piped lambda stays multiline to preserve semantics`` () =
     formatSourceString
         """
 let a : (unit -> int) list =
@@ -1245,11 +1245,14 @@ let a : (unit -> int) list =
     |> should
         equal
         """
-let a: (unit -> int) list = (fun () -> failwith "": int) |> List.singleton |> id
+let a: (unit -> int) list =
+    fun () -> failwith "": int
+    |> List.singleton
+    |> id
 """
 
 [<Test>]
-let ``piped tuple on a single line`` () =
+let ``piped tuple stays multiline to preserve semantics`` () =
     formatSourceString
         """
 fun i -> sprintf "%i" i, fun () -> i
@@ -1261,11 +1264,13 @@ fun i -> sprintf "%i" i, fun () -> i
     |> should
         equal
         """
-(fun i -> sprintf "%i" i, fun () -> i) |> List.init foo |> Map.ofList
+fun i -> sprintf "%i" i, fun () -> i
+|> List.init foo
+|> Map.ofList
 """
 
 [<Test>]
-let ``lambda piped into non newlineInfixApp`` () =
+let ``lambda piped into non newlineInfixApp stays multiline to preserve semantics`` () =
     formatSourceString
         """
 fun sum count -> sum / float count
@@ -1277,7 +1282,9 @@ fun sum count -> sum / float count
     |> should
         equal
         """
-(fun sum count -> sum / float count) <*| sum xs <*| count
+fun sum count -> sum / float count
+<*| sum xs
+<*| count
 """
 
 [<Test>]

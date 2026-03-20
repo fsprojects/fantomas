@@ -375,6 +375,18 @@ let rec isOpenEndedExpression (e: Expr) =
         | _ -> false
     | _ -> false
 
+/// Returns true when putting all expressions on a single line would change semantics.
+/// The last expression in the list is always safe (nothing follows it to be "swallowed"),
+/// so we only check all items except the last.
+let requiresMultilineToPreserveSemantics (exprs: Expr list) =
+    match exprs with
+    | []
+    | [ _ ] -> false
+    | _ ->
+        exprs
+        |> List.take (exprs.Length - 1) // skip the last item: it can't swallow anything to its right
+        |> List.exists isOpenEndedExpression
+
 let genExpr (e: Expr) =
     match e with
     | Expr.Lazy node ->
@@ -790,19 +802,11 @@ let genExpr (e: Expr) =
         | _ -> genWithoutSpace
         |> genNode node
     | Expr.SameInfixApps node ->
-        let headIsSynExprLambdaOrIfThenElse = isLambdaOrIfThenElse node.LeadingExpr
-
         let shortExpr =
-            onlyIf headIsSynExprLambdaOrIfThenElse sepOpenT
-            +> genExpr node.LeadingExpr
-            +> onlyIf headIsSynExprLambdaOrIfThenElse sepCloseT
+            genExpr node.LeadingExpr
             +> sepSpace
             +> col sepSpace node.SubsequentExpressions (fun (operator, rhs) ->
-                genSingleTextNode operator
-                +> sepSpace
-                +> onlyIf (isLambdaOrIfThenElse rhs) sepOpenT
-                +> genExpr rhs
-                +> onlyIf (isLambdaOrIfThenElse rhs) sepCloseT)
+                genSingleTextNode operator +> sepSpace +> genExpr rhs)
 
         let multilineExpr =
             match node.SubsequentExpressions with
@@ -826,11 +830,16 @@ let genExpr (e: Expr) =
                             (indent +> genExprInMultilineInfixExpr e +> unindent) ctx
                         | _ -> genExprInMultilineInfixExpr e ctx))
 
-        fun ctx ->
-            genNode
-                node
-                (atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr))
-                ctx
+        let allExprs = node.LeadingExpr :: List.map snd node.SubsequentExpressions
+
+        if requiresMultilineToPreserveSemantics allExprs then
+            atCurrentColumn multilineExpr |> genNode node
+        else
+            fun ctx ->
+                genNode
+                    node
+                    (atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr))
+                    ctx
 
     | Expr.InfixApp node ->
         let genRhsExpr e =
