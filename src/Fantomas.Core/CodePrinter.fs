@@ -3423,6 +3423,8 @@ let inline (|ParameterWithTupleTypePattern|_|) (pat: Pattern) =
 
 /// Format a long parentheses parameter pattern in a binding or constructor.
 /// Alternate formatting will applied when a paren tuple does not fit on the remainder of the line.
+/// When a parameter has attributes that push the line over the page width, the attribute is placed
+/// on its own indented line rather than breaking between the parameter name and its type annotation.
 let genLongParenPatParameter (pat: Pattern) =
     match pat with
     | Pattern.Paren patParen ->
@@ -3435,6 +3437,49 @@ let genLongParenPatParameter (pat: Pattern) =
                 (indentSepNlnUnindent (genPat patParen.Pattern) +> sepNln)
             +> genSingleTextNode patParen.ClosingParen
             |> genNode patParen
+        | Pattern.Parameter paramNode when paramNode.Attributes.IsSome ->
+            fun (ctx: Context) ->
+                // Only expand the paren to multiline when:
+                // 1. The attribute itself fits on one line (short attribute), AND
+                // 2. The full inline content (attr + name + type) does not fit on one line.
+                //
+                // When the attribute is inherently long (e.g. [<HttpTrigger(...)>]) it wraps
+                // internally — forcing a paren expansion would change stable existing behaviour.
+                //
+                // We use futureNlnCheck with content-only generators (no trivia) to avoid
+                // trailing comments triggering a false "doesn't fit" result.
+                let attrsAreShort =
+                    not (futureNlnCheck (genOnelinerAttributes paramNode.Attributes) ctx)
+
+                let inlineContentFits =
+                    let genContent =
+                        genSingleTextNode patParen.OpeningParen
+                        +> genOnelinerAttributes paramNode.Attributes
+                        +> genPat paramNode.Pattern
+                        +> optSingle (fun t -> sepColon +> genType t) paramNode.Type
+                        +> genSingleTextNode patParen.ClosingParen
+
+                    not (futureNlnCheck genContent ctx)
+
+                if attrsAreShort && not inlineContentFits then
+                    (genSingleTextNode patParen.OpeningParen
+                     +> indentSepNlnUnindent (
+                         genAttributes paramNode.Attributes
+                         +> genPat paramNode.Pattern
+                         +> optSingle
+                             (fun t ->
+                                 sepColon
+                                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (atCurrentColumnIndent (genType t)))
+                             paramNode.Type
+                         |> genNode paramNode
+                     )
+                     +> sepNln
+                     +> genSingleTextNode patParen.ClosingParen
+                     |> genNode patParen)
+                        ctx
+                else
+                    // Either the attribute is long (wraps internally) or everything fits inline.
+                    genPat pat ctx
         | _ -> genPat pat
     | _ -> genPat pat
 

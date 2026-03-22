@@ -8,6 +8,7 @@
 
 ### Fixed
 
+- Long parameter attribute now expands paren to multiline with attribute on own line instead of breaking between parameter name and type annotation. [#3073](https://github.com/fsprojects/fantomas/issues/3073)
 - Multiline `val` body in signature files was not indented correctly. [#3269](https://github.com/fsprojects/fantomas/pull/3269)
 - `///` doc comment without associated declaration (e.g. at end of file) was duplicated when formatting. [#2499](https://github.com/fsprojects/fantomas/issues/2499)
 - NamedIndexedPropertySet with two SynLongIdent removed space. [#3273](https://github.com/fsprojects/fantomas/issues/3273)
