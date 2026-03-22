@@ -1309,3 +1309,29 @@ let inline func
     =
     0
 """
+
+[<Test>]
+let ``long parameter attribute expands paren to multiline with attribute on own line, 3073`` () =
+    formatSourceString
+        """
+type Query() =
+
+    member _.SearchOrders
+        ([<EndpointName("SearchOrders12345678901234567890")>] sortParam: SearchOrdersSortItemVeryLongTypeName list option) =
+        ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Query() =
+
+    member _.SearchOrders
+        (
+            [<EndpointName("SearchOrders12345678901234567890")>]
+            sortParam: SearchOrdersSortItemVeryLongTypeName list option
+        )
+        =
+        ()
+"""
