@@ -244,12 +244,35 @@ let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia:
         let node = visitLastChildNode node
         node.AddAfter(trivia))
 
+/// Find the shallowest node in the tree that ends on the given line and starts at the given column.
+/// "Shallowest" means the largest-scope structural node (e.g. a match clause rather than its bar token).
+/// Used to attach trailing indented single-line comments to the correct structural context.
+let rec private findNodeEndingOnLine (containerNode: Node) (line: int) (column: int) : Node option =
+    // Check the current node first — if it matches, return it without going deeper.
+    // This gives us the shallowest (largest-scope) match, which is the structural node we want.
+    if containerNode.Range.EndLine = line && containerNode.Range.StartColumn = column then
+        Some containerNode
+    else
+        containerNode.Children |> Array.tryPick (fun c -> findNodeEndingOnLine c line column)
+
 let simpleTriviaToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
-    containerNode.Children
-    |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
-    |> Option.map (fun n -> n.AddBefore)
-    |> Option.orElseWith (fun () -> Array.tryLast containerNode.Children |> Option.map (fun n -> n.AddAfter))
-    |> Option.iter (fun f -> f trivia)
+    match containerNode.Children |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine) with
+    | Some n -> n.AddBefore(trivia)
+    | None ->
+        // No child starts after the trivia. For indented single-line comments, try to find a more
+        // specific attachment point: a node that ends on the line just before the comment and starts
+        // at the same column. This preserves the comment's intended indentation level (e.g. a
+        // trailing commented-out match clause should stay at match-clause indentation, not fall to
+        // column 0 because it is attached to a module-level node).
+        let specificNode =
+            match trivia.Content with
+            | CommentOnSingleLine _ when trivia.Range.StartColumn > 0 ->
+                findNodeEndingOnLine containerNode (trivia.Range.StartLine - 1) trivia.Range.StartColumn
+            | _ -> None
+
+        match specificNode with
+        | Some node -> node.AddAfter(trivia)
+        | None -> containerNode.Children |> Array.tryLast |> Option.iter (fun n -> n.AddAfter(trivia))
 
 let blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
     let nodeAfter =

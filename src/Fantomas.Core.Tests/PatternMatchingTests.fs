@@ -2341,6 +2341,28 @@ let v, x =
 """
 
 [<Test>]
+let ``trailing indented comment after last match clause preserves indentation, 2653`` () =
+    formatSourceString
+        """
+let foo =
+    match bar with
+    | Value1 -> 1
+    | Value2 -> 2
+    // | Value3 -> 3
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo =
+    match bar with
+    | Value1 -> 1
+    | Value2 -> 2
+    // | Value3 -> 3
+"""
+
+[<Test>]
 let ``match on long anonymous record type discriminant does not cause indentation warning, 1903`` () =
     let config60 = { config with MaxLineLength = 60 }
 
