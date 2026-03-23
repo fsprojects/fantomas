@@ -4090,9 +4090,24 @@ let genModule (m: ModuleOrNamespaceNode) =
     |> genNode m
 
 let addFinalNewline ctx =
-    let lastEvent = ctx.WriterEvents.TryHead
+    // Skip non-content events (indent restoration, etc.) to find the last "real" write event.
+    // A trailing comment inside an `atCurrentColumn` block emits RestoreAtColumn/RestoreIndent
+    // after its trailing WriteLineBecauseOfTrivia, so we must look past those.
+    let isNonContentEvent e =
+        match e with
+        | RestoreIndent _
+        | RestoreAtColumn _
+        | UnIndentBy _ -> true
+        | Write v -> String.IsNullOrWhiteSpace v
+        | _ -> false
 
-    match lastEvent with
+    let lastContentEvent =
+        ctx.WriterEvents
+        |> Queue.rev
+        |> Seq.skipWhile isNonContentEvent
+        |> Seq.tryHead
+
+    match lastContentEvent with
     | Some WriteLineBecauseOfTrivia ->
         if ctx.Config.InsertFinalNewline then
             ctx

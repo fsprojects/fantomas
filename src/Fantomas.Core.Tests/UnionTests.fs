@@ -1091,6 +1091,26 @@ type Foo =
 """
 
 [<Test>]
+let ``trailing indented comment after last union case preserves indentation, 2606`` () =
+    formatSourceString
+        """
+type Foo =
+    | A
+    | B
+    // | C
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo =
+    | A
+    | B
+    // | C
+"""
+
+[<Test>]
 let ``anonymous types in a DU formats correctly, 2621`` () =
     formatSourceString
         """
