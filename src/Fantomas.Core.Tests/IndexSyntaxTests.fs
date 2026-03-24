@@ -315,3 +315,22 @@ prepConfigs[ 1 ] host days
         """
 prepConfigs[1] host days
 """
+
+[<Test>]
+let ``index without dot with variable key followed by two unit arguments, 2519`` () =
+    formatSourceString
+        """
+let test (dict: System.Collections.Generic.IDictionary<string, unit -> unit -> unit>) =
+    let key = "foo"
+    dict[key] () ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let test (dict: System.Collections.Generic.IDictionary<string, unit -> unit -> unit>) =
+    let key = "foo"
+    dict[key] () ()
+"""
+
