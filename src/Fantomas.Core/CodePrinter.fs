@@ -2367,7 +2367,15 @@ let colGenericTypeParameters typeParameters =
 
             leadingSpace +> genType t)
 
-    let long = indentSepNlnUnindent (genParameters (sepComma +> sepNln)) +> sepNln
+    // In Stroustrup style with a single anonymous record type parameter, the `|}` already
+    // provides a natural closing delimiter. Adding an extra newline produces `|}` + newline + `>`
+    // (a space before `>`), when Stroustrup-style formatting should yield `|}>` instead.
+    let trailingSepNln =
+        match typeParameters with
+        | [ Type.AnonRecord _ ] -> ifElseCtx (fun ctx -> ctx.Config.IsStroustrupStyle) sepNone sepNln
+        | _ -> sepNln
+
+    let long = indentSepNlnUnindent (genParameters (sepComma +> sepNln)) +> trailingSepNln
     let short = genParameters sepComma
 
     // Multiline text type params should be unmodified

@@ -153,6 +153,34 @@ let private asJson (arm: IArmResource) =
         >
 """
 
+[<Test>]
+let ``stroustrup bracket style in single anonymous record type parameter has no space before closing angle bracket, 2860``
+    ()
+    =
+    formatSourceString
+        """
+{| payload with reason = reason |}
+|> Json.serialize<{|
+    reason: string
+    old: bool
+    ``new``: bool
+|}>
+"""
+        { config with
+            MultilineBracketStyle = Stroustrup }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| payload with reason = reason |}
+|> Json.serialize<
+    {|
+        reason: string
+        old: bool
+        ``new``: bool
+    |}>
+"""
+
 let alignedMaxLine30 =
     { config with
         MaxLineLength = 30
