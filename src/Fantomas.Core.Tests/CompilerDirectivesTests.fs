@@ -3454,3 +3454,28 @@ let x =
     3
 #endif
 """
+
+[<Test>]
+let ``#if in mutually recursive type definition does not throw FormatException, 3174`` () =
+    formatSourceString
+        """
+type X = int
+and
+#if NET5_0_OR_GREATER
+    [<NotAValue>]
+#endif
+    [<Attribute>] Y = int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = int
+
+and
+#if NET5_0_OR_GREATER
+    [<NotAValue>]
+#endif
+    [<Attribute>] Y = int
+"""

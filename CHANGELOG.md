@@ -17,6 +17,7 @@
 - Open-ended expressions (lambda, if-then-else, match, ...) in non-last positions of infix, tuple, list/array, and record expressions now stay multiline to preserve semantics. [#3279](https://github.com/fsprojects/fantomas/issues/3279)
 - Lambda in tuple in list on single line changes code meaning. [#3278](https://github.com/fsprojects/fantomas/issues/3278)
 - Custom operator applied to lambda collapses to single line changing semantics. [#3274](https://github.com/fsprojects/fantomas/issues/3274)
+- `#if` directive in mutually recursive type definition threw `FormatException`. [#3174](https://github.com/fsprojects/fantomas/issues/3174)
 
 ## [8.0.0-alpha-007] - 2026-03-10
 
