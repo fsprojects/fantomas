@@ -429,6 +429,7 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
     | ShortExpression infos when infos |> List.exists (fun x -> x.ConfirmedMultiline) -> y
     | _ -> f y
 
+/// Writes <paramref name="str"/> as a raw Write event to the current context.
 let (!-) (str: string) = writerEvent (Write str)
 
 /// Similar to col, and supply index as well
@@ -511,15 +512,19 @@ let getRecordSize ctx fields =
 /// b is true, apply f1 otherwise apply f2
 let ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else f2 ctx
 
+/// Like <see cref="ifElse"/> but the condition is a function of the current <see cref="Context"/>.
 let ifElseCtx cond (f1: Context -> Context) f2 (ctx: Context) = if cond ctx then f1 ctx else f2 ctx
 
 /// apply f only when cond is true
 let onlyIf cond f ctx = if cond then f ctx else ctx
 
+/// Like <see cref="onlyIf"/> but the condition is a function of the current <see cref="Context"/>.
 let onlyIfCtx cond f ctx = if cond ctx then f ctx else ctx
 
+/// Apply f only when cond is false. Inverse of <see cref="onlyIf"/>.
 let onlyIfNot cond f ctx = if cond then ctx else f ctx
 
+/// Apply f only when the configured indent size is less than 3.
 let whenShortIndent f ctx =
     onlyIf (ctx.Config.IndentSize < 3) f ctx
 
@@ -528,9 +533,12 @@ let rep n (f: Context -> Context) (ctx: Context) =
     [ 1..n ] |> List.fold (fun c _ -> f c) ctx
 
 // Separator functions
+/// No-op separator; leaves the context unchanged.
 let sepNone = id
+/// Writes a literal <c>.</c> character (used for member access and qualified names).
 let sepDot = !-"."
 
+/// Writes a single space, unless the last written character is already a space or newline.
 let sepSpace (ctx: Context) =
     if ctx.WriterModel.IsDummy then
         (!-" ") ctx
@@ -540,52 +548,67 @@ let sepSpace (ctx: Context) =
         | None -> ctx
         | _ -> (!-" ") ctx
 
-// add actual spaces until the target column is reached, regardless of previous content
-// use with care
+/// Writes literal spaces until the output column reaches <paramref name="targetColumn"/>.
+/// Use with care — bypasses normal indentation logic.
 let addFixedSpaces (targetColumn: int) (ctx: Context) : Context =
     let delta = targetColumn - ctx.Column
     onlyIf (delta > 0) (rep delta (!-" ")) ctx
 
+/// Writes a newline (WriteLine event).
 let sepNln = writerEvent WriteLine
 
-// Use a different WriteLine event to indicate that the newline was introduces due to trivia
-// This is later useful when checking if an expression was multiline when checking for ColMultilineItem
+/// Writes a newline using <c>WriteLineBecauseOfTrivia</c>; used when the newline originates from a trivia node.
+/// The distinction allows later checks (e.g. <c>ColMultilineItem</c>) to detect whether an expression spans multiple lines.
 let sepNlnForTrivia = writerEvent WriteLineBecauseOfTrivia
 
+/// Writes a newline unless the last writer event was already a newline.
 let sepNlnUnlessLastEventIsNewline (ctx: Context) =
     if lastWriteEventIsNewline ctx then ctx else sepNln ctx
 
+/// Writes <c>* </c> (with a leading space), used in XML doc comment and multiplication contexts.
 let sepStar = sepSpace +> !-"* "
+/// Writes <c> =</c> (with a leading space), used for bindings and assignment.
 let sepEq = !-" ="
+/// Writes <c>=</c> without surrounding spaces.
 let sepEqFixed = !-"="
+/// Writes <c> -&gt; </c>, used for lambda arrows and match arms.
 let sepArrow = !-" -> "
+/// Writes <c> &lt;- </c>, used for mutable assignment.
 let sepArrowRev = !-" <- "
+/// Writes <c>| </c> (with a trailing space), used before discriminated union cases and match arms.
 let sepBar = !-"| "
 
+/// Writes a space when <c>SpaceAroundDelimiter</c> is enabled in the config; otherwise does nothing.
 let addSpaceIfSpaceAroundDelimiter (ctx: Context) =
     onlyIf ctx.Config.SpaceAroundDelimiter sepSpace ctx
 
+/// Writes a space when <c>SpaceAfterComma</c> is enabled in the config; otherwise does nothing.
 let addSpaceIfSpaceAfterComma (ctx: Context) =
     onlyIf ctx.Config.SpaceAfterComma sepSpace ctx
 
-/// opening token of list
+/// Opening token of list: <c>[</c>.
 let sepOpenLFixed = !-"["
 
-/// closing token of list
+/// Closing token of list: <c>]</c>.
 let sepCloseLFixed = !-"]"
 
-/// opening token of anon record
+/// Opening token of anonymous record: <c>{|</c>.
 let sepOpenAnonRecdFixed = !-"{|"
-/// opening token of tuple
+/// Opening token of tuple or parenthesised expression: <c>(</c>.
 let sepOpenT = !-"("
 
-/// closing token of tuple
+/// Closing token of tuple or parenthesised expression: <c>)</c>.
 let sepCloseT = !-")"
 
+/// Writes <c> and </c> (with surrounding spaces), used between mutually recursive bindings/types.
 let wordAnd = sepSpace +> !-"and "
+/// Writes <c>and</c> without surrounding spaces.
 let wordAndFixed = !-"and"
+/// Writes <c> of </c> (with surrounding spaces), used in discriminated union cases and type constraints.
 let wordOf = sepSpace +> !-"of "
 
+/// Shorthand for the common pattern <c>indent +&gt; sepNln +&gt; f +&gt; unindent</c>:
+/// increases the indent level, emits a newline, applies <paramref name="f"/>, then restores the indent.
 let indentSepNlnUnindent f = indent +> sepNln +> f +> unindent
 
 let shortExpressionWithFallback
