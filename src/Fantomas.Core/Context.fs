@@ -735,6 +735,8 @@ let autoIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
         expr
         ctx
 
+/// If <paramref name="expr"/> fits on the current line, writes a space then formats it inline.
+/// Otherwise, indents, emits a newline, formats <paramref name="expr"/>, then unindents.
 let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepSpace
@@ -744,6 +746,8 @@ let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
         expr
         ctx
 
+/// Like <see cref="sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth"/>, but uses a double indent for
+/// the multi-line case (used for long function arguments that need extra indentation).
 let sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepSpace
@@ -847,12 +851,15 @@ let colAutoNlnSkip0i f' (c: 'T seq) f (ctx: Context) =
 /// Similar to col, skip auto newline for index 0
 let colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
 
+/// Writes a space before the class constructor if <c>SpaceBeforeClassConstructor</c> is enabled.
 let sepSpaceBeforeClassConstructor ctx =
     if ctx.Config.SpaceBeforeClassConstructor then
         sepSpace ctx
     else
         ctx
 
+/// Writes <c>:</c> or <c> : </c> according to the <c>SpaceBeforeColon</c> config.
+/// Collapses leading whitespace when the preceding token already ends with a space.
 let sepColon (ctx: Context) =
     let defaultExpr = if ctx.Config.SpaceBeforeColon then !-" : " else !-": "
 
@@ -864,16 +871,21 @@ let sepColon (ctx: Context) =
         | None -> !- ": " ctx
         | _ -> defaultExpr ctx
 
+/// Writes a literal <c>:</c> with no surrounding spaces.
 let sepColonFixed = !-":"
 
+/// Writes <c> : </c> with surrounding spaces.
 let sepColonWithSpacesFixed = !-" : "
 
+/// Writes <c>,</c> or <c>, </c> according to the <c>SpaceAfterComma</c> config.
 let sepComma (ctx: Context) =
     if ctx.Config.SpaceAfterComma then
         !- ", " ctx
     else
         !- "," ctx
 
+/// Writes <c>;</c>, <c> ;</c>, <c>; </c> or <c> ; </c> according to the
+/// <c>SpaceBeforeSemicolon</c> and <c>SpaceAfterSemicolon</c> config options.
 let sepSemi (ctx: Context) =
     let { Config = { SpaceBeforeSemicolon = before
                      SpaceAfterSemicolon = after } } =
@@ -886,6 +898,7 @@ let sepSemi (ctx: Context) =
     | true, true -> !-" ; "
     <| ctx
 
+/// Applies <paramref name="f"/> when the bracket style is Aligned or Stroustrup; otherwise applies <paramref name="g"/>.
 let ifAlignOrStroustrupBrackets f g =
     ifElseCtx
         (fun ctx ->
@@ -896,15 +909,18 @@ let ifAlignOrStroustrupBrackets f g =
         f
         g
 
+/// If there is pending "write-before-newline" content, emits a newline to flush it; otherwise applies <paramref name="fallback"/>.
 let sepNlnWhenWriteBeforeNewlineNotEmptyOr fallback (ctx: Context) =
     if hasWriteBeforeNewlineContent ctx then
         sepNln ctx
     else
         fallback ctx
 
+/// If there is pending "write-before-newline" content, emits a newline to flush it; otherwise a no-op.
 let sepNlnWhenWriteBeforeNewlineNotEmpty =
     sepNlnWhenWriteBeforeNewlineNotEmptyOr sepNone
 
+/// Writes a space, unless there is pending "write-before-newline" content (in which case the content will be flushed by the next newline).
 let sepSpaceUnlessWriteBeforeNewlineNotEmpty (ctx: Context) =
     if hasWriteBeforeNewlineContent ctx then
         ctx
