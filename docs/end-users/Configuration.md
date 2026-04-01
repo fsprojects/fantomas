@@ -8,7 +8,7 @@ Your IDE should respect your settings, however the implementation of that is edi
 UI might be available depending on the IDE.
 
 ```
-version: 8.0.0-alpha-008+7c3cbbc56cbc26a2fa61b611abc5bead7826fc38
+version: 8.0.0-alpha-008+f5749a58f8ecbec0dadd70b2ad811ac6fe4d911f
 ```
 
 ## Usage
