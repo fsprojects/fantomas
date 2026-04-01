@@ -5,6 +5,14 @@ open Fantomas.FCS.Text
 open Fantomas.Core
 open Fantomas.Core.SyntaxOak
 
+/// Cache of indent strings to avoid allocating a new string on every newline.
+/// Covers the typical indent range (0–128 spaces); falls back to String.replicate for larger values.
+let private indentCache = Array.init 129 (fun i -> String.replicate i " ")
+
+let private getIndentString n =
+    if n < indentCache.Length then indentCache.[n]
+    else String.replicate n " "
+
 let (|CommentOrDefineEvent|_|) we =
     match we with
     | Write w when (String.startsWithOrdinal "//" w) -> Some we
@@ -73,7 +81,7 @@ module WriterModel =
                 { m with
                     Indent = max m.Indent m.AtColumn }
 
-            let nextLine = String.replicate m.Indent " "
+            let nextLine = getIndentString m.Indent
             let currentLine = String.Concat(List.head m.Lines, m.WriteBeforeNewline).TrimEnd()
             let otherLines = List.tail m.Lines
 
@@ -147,22 +155,6 @@ module WriterModel =
                 updateCmd cmd
 
 module WriterEvents =
-    let normalize ev =
-        match ev with
-        | Write s when s.Contains("\n") ->
-            let writeLine =
-                match ev with
-                | CommentOrDefineEvent _ -> WriteLineInsideTrivia
-                | _ -> WriteLineInsideStringConst
-
-            // Trustworthy multiline string in the original AST can contain \r
-            // Internally we process everything with \n and at the end we respect the .editorconfig end_of_line setting.
-            s.Replace("\r", "").Split('\n')
-            |> Seq.map (fun x -> [ Write x ])
-            |> Seq.reduce (fun x y -> x @ [ writeLine ] @ y)
-            |> Seq.toList
-        | _ -> [ ev ]
-
     let isMultiline evs =
         evs
         |> Queue.toSeq
@@ -200,7 +192,7 @@ type Context =
         let mkModel m =
             { m with
                 Mode = Dummy
-                Lines = [ String.replicate x.WriterModel.Column " " ]
+                Lines = [ getIndentString x.WriterModel.Column ]
                 WriteBeforeNewline = "" }
         // Use infinite column width to encounter worst-case scenario
         let config =
@@ -243,18 +235,33 @@ type Context =
 /// One event could potentially be split up into multiple events.
 /// The event is also being processed in the WriterModel of the Context.
 let writerEvent (e: WriterEvent) (ctx: Context) : Context =
-    // One event could contain a multiline string or code comments.
-    // These need to be split up in multiple events.
-    let evs = WriterEvents.normalize e
+    match e with
+    | Write s when s.Contains("\n") ->
+        // Multiline write: split at newlines and emit separate events.
+        // Trustworthy multiline string in the original AST can contain \r
+        // Internally we process everything with \n and at the end we respect the .editorconfig end_of_line setting.
+        let writeLine =
+            match e with
+            | CommentOrDefineEvent _ -> WriteLineInsideTrivia
+            | _ -> WriteLineInsideStringConst
 
-    let ctx' =
+        let evs =
+            s.Replace("\r", "").Split('\n')
+            |> Seq.map (fun x -> [ Write x ])
+            |> Seq.reduce (fun x y -> x @ [ writeLine ] @ y)
+            |> Seq.toList
+
         { ctx with
             WriterEvents = Queue.append ctx.WriterEvents evs
             WriterModel =
                 (ctx.WriterModel, evs)
                 ||> List.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m) }
-
-    ctx'
+    | _ ->
+        // Fast path: single event (the overwhelmingly common case). Avoids allocating a
+        // single-element list and converting it back to an array in Queue.append.
+        { ctx with
+            WriterEvents = Queue.appendOne ctx.WriterEvents e
+            WriterModel = WriterModel.update ctx.Config.MaxLineLength e ctx.WriterModel }
 
 let hasWriteBeforeNewlineContent ctx =
     String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline

@@ -58,6 +58,9 @@ type Queue<'T>(data: 'T array list, length: int) =
     member x.Append xs =
         Queue(Array.ofList xs :: data, length + List.length xs)
 
+    member x.AppendOne(item: 'T) =
+        Queue([| item |] :: data, length + 1)
+
     /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.skipWhile p |> Seq.exists f, optimized for speed
     member x.SkipExists n f p =
         if n >= length then
@@ -126,6 +129,8 @@ module Queue =
     let inline toSeq (q: Queue<'T>) = q :> 'T seq
 
     let inline append (q: Queue<'T>) xs = q.Append xs
+
+    let inline appendOne (q: Queue<'T>) (item: 'T) = q.AppendOne item
 
     /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.skipWhile p |> Seq.exists f
     let inline skipExists (n: int) (f: 'T -> bool) (p: 'T array -> bool) (q: Queue<'T>) : bool = q.SkipExists n f p
