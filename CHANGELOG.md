@@ -18,6 +18,7 @@
 - Lambda in tuple in list on single line changes code meaning. [#3278](https://github.com/fsprojects/fantomas/issues/3278)
 - Custom operator applied to lambda collapses to single line changing semantics. [#3274](https://github.com/fsprojects/fantomas/issues/3274)
 - Unrecognized `.editorconfig` property values now emit a warning to stderr instead of being silently ignored. [#1236](https://github.com/fsprojects/fantomas/issues/1236)
+- `#if` directive in mutually recursive type definition threw `FormatException`. [#3174](https://github.com/fsprojects/fantomas/issues/3174)
 
 ## [8.0.0-alpha-007] - 2026-03-10
 
