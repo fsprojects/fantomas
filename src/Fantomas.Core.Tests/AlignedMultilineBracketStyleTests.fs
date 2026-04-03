@@ -1569,3 +1569,30 @@ let handlerFormattedRangeDoc (lines : NamedText, formatted : string, range : For
 
   [| { Range = range ; NewText = formatted } |]
 """
+
+[<Test>]
+let ``record copy expression nested in parentheses indents fields correctly, fixes 2529`` () =
+    formatSourceString
+        """
+type R = { Z: int; X: string }
+let r: R = { Z = 0; X = "" }
+
+let b =
+    (({ r with
+            Z = 1
+            X = "longstring value here" }))
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type R = { Z : int ; X : string }
+let r : R = { Z = 0 ; X = "" }
+
+let b =
+    (({ r with
+            Z = 1
+            X = "longstring value here"
+    }))
+"""

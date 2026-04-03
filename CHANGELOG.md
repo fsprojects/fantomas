@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Record copy expression nested in parentheses produced an offside error due to incorrect indentation of record fields. [#2529](https://github.com/fsprojects/fantomas/issues/2529)
+
 ## [8.0.0-alpha-008] - 2026-03-25
 
 ### Added

@@ -1676,14 +1676,29 @@ let genQuoteExpr (node: ExprQuoteNode) =
 /// <param name="fieldsExpr">Record fields.</param>
 /// <param name="copyExpr">Expression before the `with` keyword.</param>
 let genMultilineRecordCopyExpr (addAdditionalIndent: bool) fieldsExpr copyExpr =
-    atCurrentColumnIndent (genExpr copyExpr)
-    +> !-" with"
-    +> indent
-    +> onlyIf addAdditionalIndent indent
-    +> sepNln
-    +> fieldsExpr
-    +> onlyIf addAdditionalIndent unindent
-    +> unindent
+    fun (ctx: Context) ->
+        // Capture the column and indent level before the copy expression is written.
+        // When the record is nested inside parentheses, the copy expression (e.g. `r` in
+        // `(({ r with ...`) may sit at a column higher than the current indent level.
+        // In that case, the normal `indent` would place fields at the same column as `r`,
+        // violating F#'s offside rule and producing compiler errors. We detect this and
+        // bump the indent so fields are always strictly to the right of `r`.
+        let copyExprStartColumn = ctx.Column
+        let oldIndent = ctx.WriterModel.Indent
+
+        (atCurrentColumnIndent (genExpr copyExpr)
+         +> !-" with"
+         +> indent
+         +> onlyIf addAdditionalIndent indent
+         +> (fun ctx ->
+             if ctx.WriterModel.Indent <= copyExprStartColumn then
+                 writerEvent (SetIndent(copyExprStartColumn + ctx.Config.IndentSize)) ctx
+             else
+                 ctx)
+         +> sepNln
+         +> fieldsExpr
+         +> writerEvent (RestoreIndent oldIndent))
+            ctx
 
 /// Special case for record fields in Cramped mode.
 /// The caller should have already verified that the settings do indeed specify Cramped.
