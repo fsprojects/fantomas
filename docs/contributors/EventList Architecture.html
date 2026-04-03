@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en" data-root="https://fsprojects.github.io/fantomas/">
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
+    <!-- Opengraph properties (https://ogp.me/) -->
+    <meta property="og:site_name" content="fantomas">
+    <meta property="og:title" content="Writer Events and the EventList
+" />
+    <meta property="og:url" content="https://fsprojects.github.io/fantomas/docs/contributors/EventList Architecture.html">
+    <meta property="og:type" content="website" />
+    <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
+    <meta name="twitter:title" content="Writer Events and the EventList
+">
+    
+    <title>Writer Events and the EventList
+ | fantomas</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fsprojects.github.io/fantomas/images/favicon.ico" rel="icon" sizes="32x32" type="image/png"/>
+    <script type="application/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-set-dark.js"></script>
+    <script type="application/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-set-expanded.js"></script>
+    <link href="https://fsprojects.github.io/fantomas/content/fsdocs-default.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fsprojects.github.io/fantomas/content/fsdocs-theme.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+
+    
+</head>
+<body class="content">
+<header>
+    <div class="start">
+        <div id="menu-toggle">
+            <iconify-icon class="icon closed" height="22" icon="eva:menu-fill" width="22"></iconify-icon>
+            <iconify-icon class="icon open" height="22" icon="mi:close" width="22"></iconify-icon>
+            <input type="checkbox" name="mobile-menu" />
+            <ul class="menu">
+                <li class="nav-header">Links</li>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                </li>
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
+                                        href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+                    Notes</a></li>
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                    Repository</a></li>
+                <li class="nav-header " id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link" > Style guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link" > Upgrade guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Recipes.html" class="nav-link" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header active" id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link" > F#
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Multiple Times.html" class="nav-link" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.html" class="nav-link" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link" > Releases
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatting Conventions.html" class="nav-link" > Formatting Conventions
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/History.html" class="nav-link" > History
+</a></li>
+
+<li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/docs/contributors/EventList Architecture.html" class="nav-link" > Writer Events and the EventList
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
+</a></li>
+
+</div>
+                <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link" > All Namespaces</a></li>
+
+</div>
+            </ul>
+        </div>
+        <a href="https://fsprojects.github.io/fantomas/">
+            <img alt="Logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <strong>fantomas</strong>
+        </a>
+    </div>
+    <div class="end">
+        <a href="https://github.com/fsprojects/fantomas/" target="_blank">
+            <iconify-icon icon="uil:github" width="26" height="26"></iconify-icon>
+        </a>
+        <iconify-icon id="search-btn" icon="carbon:search" class="search" width="24" height="24"></iconify-icon>
+        <fsdocs-theme-toggle></fsdocs-theme-toggle>
+    </div>
+</header>
+<aside id="fsdocs-main-menu">
+    <ul class="menu">
+        <li class="nav-header">Links</li>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        </li>
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
+                                href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+            Notes</a></li>
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+            Repository</a></li>
+        <li class="nav-header " id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link" > Style guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link" > Upgrade guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Recipes.html" class="nav-link" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header active" id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link" > F#
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Multiple Times.html" class="nav-link" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.html" class="nav-link" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link" > Releases
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatting Conventions.html" class="nav-link" > Formatting Conventions
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/History.html" class="nav-link" > History
+</a></li>
+
+<li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/docs/contributors/EventList Architecture.html" class="nav-link" > Writer Events and the EventList
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
+</a></li>
+
+</div>
+        <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link" > All Namespaces</a></li>
+
+</div>
+    </ul>
+</aside>
+<main>
+    <div id="content">
+        
+<h1><a name="Writer-Events-and-the-EventList" class="anchor" href="#Writer-Events-and-the-EventList">Writer Events and the EventList</a></h1>
+<h2><a name="Overview" class="anchor" href="#Overview">Overview</a></h2>
+<p>Fantomas formats code in two phases:</p>
+<ol>
+<li><strong>Event generation</strong>: The code printer traverses the Oak tree and appends <code>WriterEvent</code> values to an <code>EventList</code> — a mutable doubly-linked list. During this phase, only lightweight metadata is tracked (line count, column, indent level). No strings are built.</li>
+<li><strong>String materialization</strong>: The <code>dump</code> function walks the EventList head-to-tail with a <code>StringBuilder</code>, producing the final formatted string.</li>
+</ol>
+<h2><a name="EventList" class="anchor" href="#EventList">EventList</a></h2>
+<p><code>EventList</code> (<code>EventList.fs</code>) is a mutable doubly-linked list of <code>EventNode</code> values. Each node holds a <code>WriterEvent</code> and pointers to <code>Prev</code>/<code>Next</code>.</p>
+<p>Key operations:</p>
+<table>
+<thead>
+<tr class="header">
+<th><p>Operation</p></th>
+<th><p>Complexity</p></th>
+<th><p>Used for</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><p><code>Append</code></p></td>
+<td><p>O(1)</p></td>
+<td><p>Adding events during formatting</p></td>
+</tr>
+<tr class="even">
+<td><p><code>InsertBefore</code> / <code>InsertAfter</code></p></td>
+<td><p>O(1)</p></td>
+<td><p>Splicing indent/unindent before trivia</p></td>
+</tr>
+<tr class="odd">
+<td><p><code>Remove</code></p></td>
+<td><p>O(1)</p></td>
+<td><p>Removing events (e.g. trailing newline in <code>addFinalNewline</code>)</p></td>
+</tr>
+<tr class="even">
+<td><p><code>CreateBackupPoint</code></p></td>
+<td><p>O(1)</p></td>
+<td><p>Saving the tail position before speculative formatting</p></td>
+</tr>
+<tr class="odd">
+<td><p><code>RollbackTo</code></p></td>
+<td><p>O(1)</p></td>
+<td><p>Discarding events appended after a backup point</p></td>
+</tr>
+<tr class="even">
+<td><p><code>ToSeq</code> / <code>ToRevSeq</code></p></td>
+<td><p>O(n)</p></td>
+<td><p>Iterating forward/backward for inspection</p></td>
+</tr>
+<tr class="odd">
+<td><p><code>CurrentLineContent</code></p></td>
+<td><p>O(k)</p></td>
+<td><p>Walking backward to collect text on the current line</p></td>
+</tr>
+</tbody>
+</table>
+
+<p><code>EventNode</code> uses <code>[&lt;AllowNullLiteral&gt;]</code> instead of <code>option</code> for <code>Prev</code>/<code>Next</code> links because this is a hot path — every formatting operation appends nodes.</p>
+<h2><a name="WriterEvent-cases" class="anchor" href="#WriterEvent-cases">WriterEvent cases</a></h2>
+<table>
+<thead>
+<tr class="header">
+<th><p>Event</p></th>
+<th><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><p><code>Write</code></p></td>
+<td><p>Append literal code text</p></td>
+</tr>
+<tr class="even">
+<td><p><code>WriteTrivia</code></p></td>
+<td><p>Append trivia text (comments, directives, XML docs). Same as <code>Write</code> in output, but allows the engine to distinguish trivia from code without string-prefix checks</p></td>
+</tr>
+<tr class="odd">
+<td><p><code>WriteLine</code></p></td>
+<td><p>End current line, start new line at current indentation</p></td>
+</tr>
+<tr class="even">
+<td><p><code>WriteLineBecauseOfTrivia</code></p></td>
+<td><p>Newline introduced by trivia. Distinguished from <code>WriteLine</code> so multiline detection can ignore trivia-induced newlines</p></td>
+</tr>
+<tr class="odd">
+<td><p><code>WriteLineInsideStringConst</code></p></td>
+<td><p>Raw newline inside a multiline string — no indentation applied</p></td>
+</tr>
+<tr class="even">
+<td><p><code>WriteLineInsideTrivia</code></p></td>
+<td><p>Raw newline inside a trivia block (e.g. block comment)</p></td>
+</tr>
+<tr class="odd">
+<td><p><code>WriteBeforeNewline</code></p></td>
+<td><p>Queue text to appear just before the next newline (trailing line comments)</p></td>
+</tr>
+<tr class="even">
+<td><p><code>IndentBy</code> / <code>UnIndentBy</code></p></td>
+<td><p>Adjust indentation level. Takes effect on the next newline</p></td>
+</tr>
+<tr class="odd">
+<td><p><code>SetIndent</code> / <code>RestoreIndent</code></p></td>
+<td><p>Absolute indent control</p></td>
+</tr>
+<tr class="even">
+<td><p><code>SetAtColumn</code> / <code>RestoreAtColumn</code></p></td>
+<td><p>Indentation floor (<code>atCurrentColumn</code>)</p></td>
+</tr>
+<tr class="odd">
+<td><p><code>Start</code> / <code>Placeholder</code></p></td>
+<td><p>Position markers for future <code>colWithNlnWhenItemIsMultiline</code> rework</p></td>
+</tr>
+</tbody>
+</table>
+
+<h2><a name="Speculative-formatting" class="anchor" href="#Speculative-formatting">Speculative formatting</a></h2>
+<p>Several functions try a short layout and fall back to a long one:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">CreateBackupPoint</span>  
+                                            
+                                        <span class="id">RollbackTo</span>  
+</code></pre>
+<ul>
+<li><code>expressionFitsOnRestOfLine</code> / <code>isShortExpression</code>: Uses <code>ShortExpression</code> mode to detect overflow</li>
+<li><code>expressionExceedsPageWidth</code>: Same, with <code>LongExpressionLayout</code> DU for the long path</li>
+<li><code>colWithNlnWhenItemIsMultiline</code>: Optimistic blank-line separator, rolls back if both items are single-line</li>
+<li><code>WithDummy</code>: Encapsulates probe functions — creates backup, runs probe, reads metadata, rolls back automatically</li>
+</ul>
+<h2><a name="Trivia-aware-indentation" class="anchor" href="#Trivia-aware-indentation">Trivia-aware indentation</a></h2>
+<p><code>indentSepNlnUnindent</code> is the most common formatting pattern (66+ call sites). It indents, adds a newline, runs the content, then unindents:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">indent</span> <span class="o">+&gt;</span> <span class="id">sepNln</span> <span class="o">+&gt;</span> <span class="id">content</span> <span class="o">+&gt;</span> <span class="id">unindent</span>
+</code></pre>
+<p>Both sides are trivia-aware:</p>
+<ul>
+<li>*<em><code>indentSepNlnWithTriviaAwareness</code>*</em>: If trailing trivia exists before the indent point, splices <code>IndentBy</code> before the trivia block so the comment appears at the indented level. The trivia's own newline replaces <code>sepNln</code>.</li>
+<li>*<em><code>unindentWithTriviaAwareness</code>*</em>: If trailing trivia exists after the content, splices <code>UnIndentBy</code> before the trailing trivia newline so the newline uses the reduced indent level.</li>
+</ul>
+<p>Both use <code>findTrailingTriviaNewline</code> which walks backward from the DLL tail, skipping <code>RestoreIndent</code>/<code>RestoreAtColumn</code>/<code>UnIndentBy</code>/<code>IndentBy</code>/<code>WriteLine</code> events, then verifies a <code>WriteLineBecauseOfTrivia</code> preceded by <code>WriteTrivia</code>.</p>
+<h2><a name="LongExpressionLayout" class="anchor" href="#LongExpressionLayout">LongExpressionLayout</a></h2>
+<p>The <code>LongExpressionLayout</code> DU describes how to lay out an expression that doesn't fit on one line:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">LongExpressionLayout</span> <span class="o">=</span>
+    <span class="pn">|</span> <span class="id">IndentAndUnindent</span>          <span class="c">// indent +&gt; sepNln +&gt; expr +&gt; unindent</span>
+    <span class="pn">|</span> <span class="id">DoubleIndentAndUnindent</span>    <span class="c">// indent +&gt; indent +&gt; sepNln +&gt; expr +&gt; unindent +&gt; unindent</span>
+    <span class="pn">|</span> <span class="id">NewlineOnly</span>                <span class="c">// sepNln +&gt; expr</span>
+</code></pre>
+<p><code>expressionExceedsPageWidthWithLayout</code> translates the DU to before/after functions, with <code>unindentWithTriviaAwareness</code> on the trailing side for indent layouts.</p>
+<p>The wrapper functions <code>autoIndentAndNlnIfExpressionExceedsPageWidth</code>, <code>sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth</code>, etc. all delegate to this.</p>
+<h2><a name="WriterModel" class="anchor" href="#WriterModel">WriterModel</a></h2>
+<p><code>WriterModel</code> tracks formatting metadata without building strings:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">{</span> <span class="id">LineCount</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">int</span>          <span class="c">// number of lines produced</span>
+  <span class="id">Column</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="2" class="id">int</span>             <span class="c">// current position on the line</span>
+  <span class="id">Indent</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="3" class="id">int</span>             <span class="c">// current indentation level</span>
+  <span class="id">AtColumn</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="4" class="id">int</span>           <span class="c">// indentation floor (from atCurrentColumn)</span>
+  <span class="id">WriteBeforeNewline</span><span class="pn">:</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="5" class="id">string</span>
+  <span class="id">Mode</span><span class="pn">:</span> <span class="id">WriteModelMode</span> <span class="pn">}</span>  <span class="c">// Standard, Dummy, or ShortExpression</span>
+</code></pre>
+<p><code>WriterModel.update</code> processes each event and updates these fields. The same function is used both during normal formatting and when splicing events (to keep the model in sync after an <code>InsertBefore</code>).</p>
+
+        <div popover class="fsdocs-tip" id="fs1">Multiple items<br />val int: value: &#39;T -&gt; int (requires member op_Explicit)<br /><br />--------------------<br />type int = int32<br /><br />--------------------<br />type int&lt;&#39;Measure&gt; =
+  int</div>
+<div popover class="fsdocs-tip" id="fs2">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
+
+    </div>
+</main>
+<aside id="fsdocs-page-menu">
+    <p id="on-this-page">On this page</p>
+    <ul>
+  <li class="level-1">
+    <a href="#Writer-Events-and-the-EventList">
+      Writer Events and the EventList
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Overview">
+      Overview
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#EventList">
+      EventList
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#WriterEvent-cases">
+      WriterEvent cases
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Speculative-formatting">
+      Speculative formatting
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Trivia-aware-indentation">
+      Trivia-aware indentation
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#LongExpressionLayout">
+      LongExpressionLayout
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#WriterModel">
+      WriterModel
+    </a>
+  </li>
+</ul>
+</aside>
+<dialog>
+    <input type="search" placeholder="Search docs" />
+    <div class="results">
+        <ul></ul>
+        <p class="empty">Type something to start searching.</p>
+    </div>
+</dialog>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-tips.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-toggle.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-copy-button.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
+<script type="module">
+    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        themeVariables: {
+            primaryColor: '#338cbb',
+            primaryTextColor: '#FFF',
+            primaryBorderColor: '#5aacd6'
+        }
+    });
+</script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
+</body>
+</html>

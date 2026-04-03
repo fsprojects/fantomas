@@ -146,6 +146,12 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/History.html" class="nav-link" > History
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/EventList Architecture.html" class="nav-link" > Writer Events and the EventList
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -282,6 +288,12 @@
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/History.html" class="nav-link" > History
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/EventList Architecture.html" class="nav-link" > Writer Events and the EventList
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
@@ -683,6 +695,73 @@
                 <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
               </div>
               <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.EndOfLineStyle`')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="EventList">
+              <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-eventlist.html">
+                EventList
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-summary-contents">
+              <p class="fsdocs-summary">
+                 Mutable doubly-linked list of WriterEvents.
+ Supports O(1) append, insert, remove, and truncation.
+              </p>
+            </div>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.EventList\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.EventList`')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="EventNode">
+              <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-eventnode.html">
+                EventNode
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-summary-contents">
+              <p class="fsdocs-summary">
+                 A node in the mutable doubly-linked list of WriterEvents.
+ We use [<AllowNullLiteral>] instead of option for Prev/Next links because this is a hot path —
+ every formatting operation appends nodes. Option would allocate a Some wrapper on every link assignment,
+ adding GC pressure for no functional benefit. The null checks are contained within EventList's methods;
+ callers work with non-null EventNode references returned by Append/InsertAfter/InsertBefore.
+              </p>
+            </div>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.EventNode\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.EventNode`')">
                 <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
               </div>
             </div>

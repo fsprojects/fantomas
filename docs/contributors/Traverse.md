@@ -18,16 +18,15 @@ This is a more advanced version of a `StringBuilder` and we wrote the formatted 
 The key problem with this approach was that we couldn't easily revert code that was written to the buffer.
 For example, if the formatted code was crossing the `max_line_length`, we couldn't easily revert the code and try an alternative.
 
-That is why we first capture a collection of `WriterEvent`s and then reconstruct the formatted code.
-If the code is too long, we can drop the last events and try an alternative.
+That is why we first capture a collection of `WriterEvent`s in a mutable doubly-linked list (`EventList`) and then reconstruct the formatted code.
+If the code is too long, we roll back to a saved backup point and try an alternative. See [EventList Architecture](./EventList%20Architecture.html) for details.
 
 ### WriterModel
 
-When we capture new events we also want to capture the current state of the result.
-This happens in the `WriterModel` record. There we store the result of each event as if it were finalized.
-By doing this, we can assert the result of the output. For example if our code is too long or not.
+When we capture new events we also want to track the current state of the formatting.
+This happens in the `WriterModel` record. It tracks lightweight metadata — line count, column position, indentation level — without building strings.
+By doing this, we can check whether the output exceeds the page width or is multiline, and decide on layout.
 
-`WriterEvents` and `WriterModel` are very stable in the code base.
 When solving a bug, you typically need to change the collected series of events by using a different helper function inside `CodePrinter`.
 
 ### CodePrinter
@@ -76,7 +75,7 @@ If we want to debug when the `Context` is traveling through the format function,
 
 ![Breakpoint in Context -> Context](../../images/debugging-code-printer-2.png)
 
-The `dumpAndContinue` helper function can be used to inspect the `Context`.
-Please remove all usages when submitting a PR 😸.
+You can use the writer events script to inspect the event stream: `dotnet fsi scripts/writer-events.fsx <file>`.
+The Oak script shows the tree with trivia markers: `dotnet fsi scripts/oak.fsx <file>`.
 
 <fantomas-nav previous="Transforming.md" next="Formatted%20Code.md"></fantomas-nav>

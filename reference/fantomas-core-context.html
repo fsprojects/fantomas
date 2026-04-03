@@ -146,6 +146,12 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/History.html" class="nav-link" > History
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/EventList Architecture.html" class="nav-link" > Writer Events and the EventList
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -284,6 +290,12 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/History.html" class="nav-link" > History
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/EventList Architecture.html" class="nav-link" > Writer Events and the EventList
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -396,6 +408,38 @@
                   <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
                 </div>
                 <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.Context.Context`')">
+                  <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-entity-name">
+            <p>
+              <a name="LongExpressionLayout">
+                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-longexpressionlayout.html">
+                  LongExpressionLayout
+                </a>
+              </a>
+            </p>
+          </td>
+          <td class="fsdocs-entity-xmldoc">
+            <div>
+              <div class="fsdocs-summary-contents">
+                <p class="fsdocs-summary">
+                   Describes how an expression should be laid out when it doesn't fit on a single line.
+ Used by expressionExceedsPageWidth to centralize indentation and unindentation logic.
+                </p>
+              </div>
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.Context.LongExpressionLayout\'/>')">
+                  <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                </div>
+                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.Context.LongExpressionLayout`')">
                   <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
                 </div>
               </div>
@@ -1084,11 +1128,13 @@
             <details>
               <summary>
                 <div class="fsdocs-summary">
-                  <div class="fsdocs-summary-contents">
-                    <p class="fsdocs-summary">
-                       `atCurrentColumn` was called on `X`, then `indent` was called, but "some long string" have indent only 4, because it is bigger than `atColumn` (2).
-                    </p>
-                  </div>
+                  <pre> Set minimal indentation (`atColumn`) at current column position - next newline will be indented on `max indent atColumn`
+ Example:
+ { X = // indent=0, atColumn=2
+     "some long string" // indent=4, atColumn=2
+   Y = 1 // indent=0, atColumn=2
+ }
+ `atCurrentColumn` was called on `X`, then `indent` was called, but "some long string" have indent only 4, because it is bigger than `atColumn` (2).</pre>
                   <div class="icon-button-row">
                     <a href="" class="fsdocs-source-link" title="Source on GitHub">
                       <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
@@ -1184,7 +1230,7 @@
               <summary>
                 <div class="fsdocs-summary">
                   <pre> Write everything at current column indentation, set `indent` and `atColumn` on current column position
- /// Example (same as above):
+ Example (same as above):
  { X = // indent=2, atColumn=2
        "some long string" // indent=6, atColumn=2
    Y = 1 // indent=2, atColumn=2
@@ -1297,12 +1343,27 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Apply function f at an absolute indent level (use with care)
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.Context.atIndentLevel\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.Context.atIndentLevel`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
@@ -1346,7 +1407,7 @@
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
         <tr>
@@ -2909,74 +2970,6 @@
             <div>
               <code data-fsdocs-tip="38" data-fsdocs-tip-unique="38">
                 <p>
-                  <a id="dumpAndContinue">
-                    <a href="#dumpAndContinue">
-                      <code><span>dumpAndContinue&#32;<span>ctx</span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="38">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>dumpAndContinue&#32;<span>ctx</span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        ctx
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-params">
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    ctx
-                  </span>
-                  :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
-              </dl>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="39" data-fsdocs-tip-unique="39">
-                <p>
                   <a id="dumpEvents">
                     <a href="#dumpEvents">
                       <code><span>dumpEvents&#32;<span>ctx</span></span></code>
@@ -2984,7 +2977,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="39">
+              <div popover="" class="fsdocs-tip" id="38">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>dumpEvents&#32;<span>ctx</span></span></code>
@@ -3043,7 +3036,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="40" data-fsdocs-tip-unique="40">
+              <code data-fsdocs-tip="39" data-fsdocs-tip-unique="39">
                 <p>
                   <a id="exceedsWidth">
                     <a href="#exceedsWidth">
@@ -3052,7 +3045,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="40">
+              <div popover="" class="fsdocs-tip" id="39">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>exceedsWidth&#32;<span>maxWidth&#32;f&#32;ctx</span></span></code>
@@ -3101,7 +3094,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       similar to futureNlnCheck but validates whether the expression is going over the max page width
+                       similar to futureNlnCheck but // validates whether the expression is going over the max page width
  This functions is does not use any caching
                     </p>
                   </div>
@@ -3150,6 +3143,139 @@
                     Returns: 
                   </span>
                   <code>bool</code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="40" data-fsdocs-tip-unique="40">
+                <p>
+                  <a id="expressionExceedsPageWidthWithLayout">
+                    <a href="#expressionExceedsPageWidthWithLayout">
+                      <code><span>expressionExceedsPageWidthWithLayout&#32;<span>layout&#32;addSpaceBefore&#32;expr&#32;ctx</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="40">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>expressionExceedsPageWidthWithLayout&#32;<span>layout&#32;addSpaceBefore&#32;expr&#32;ctx</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        layout
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-longexpressionlayout.html">LongExpressionLayout</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        addSpaceBefore
+                      </b>
+                      :
+                      <code>bool</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        expr
+                      </b>
+                      :
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        ctx
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Try to write the expression on a single line.
+ If it doesn't fit, fall back to the given long layout.
+ `addSpaceBefore`: when true, adds a space before the expression on the short path.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.Context.expressionExceedsPageWidthWithLayout\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.Context.expressionExceedsPageWidthWithLayout`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    layout
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-longexpressionlayout.html">LongExpressionLayout</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    addSpaceBefore
+                  </span>
+                  :
+                  <code>bool</code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    expr
+                  </span>
+                  :
+                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></span></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    ctx
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
@@ -4628,7 +4754,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       A leading expression is not consider multiline if it has a comment before it.
+                       A leading expression is not considered multiline if it has a comment before it.
  For example
  let a = 7
  // foo
@@ -4752,7 +4878,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       provide the line and column before and after the leadingExpression to to the continuation expression
+                       provide the line and column before and after the leadingExpression to the continuation expression
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -4865,12 +4991,27 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       apply f only when cond is true
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.Context.onlyIf``1\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('```cref:M:Fantomas.Core.Context.onlyIf``1```')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
@@ -4906,7 +5047,7 @@
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
         <tr>
@@ -5187,7 +5328,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       If there is a value, apply f and f' accordingly, otherwise do nothing
+                       If there is a // value, apply f and f' accordingly, otherwise do nothing
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -5329,7 +5470,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       Similar to opt, but apply f2 at the beginning if there is a value
+                       Similar to opt, but apply f2 at the beginning if there is a // value
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -5463,7 +5604,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       similar to opt, only takes a single function f to apply when there is a value
+                       similar to opt, only takes a single function f to apply when there is a // value
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -7554,9 +7695,9 @@
             <div>
               <code data-fsdocs-tip="96" data-fsdocs-tip-unique="96">
                 <p>
-                  <a id="whenShortIndent">
-                    <a href="#whenShortIndent">
-                      <code><span>whenShortIndent&#32;<span>f&#32;ctx</span></span></code>
+                  <a id="unindentWithTriviaAwareness">
+                    <a href="#unindentWithTriviaAwareness">
+                      <code><span>unindentWithTriviaAwareness&#32;<span>ctx</span></span></code>
                     </a>
                   </a>
                 </p>
@@ -7564,19 +7705,11 @@
               <div popover="" class="fsdocs-tip" id="96">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>whenShortIndent&#32;<span>f&#32;ctx</span></span></code>
+                  <code><span>unindentWithTriviaAwareness&#32;<span>ctx</span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
-                    <span>
-                      <b>
-                        f
-                      </b>
-                      :
-                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></span></code>
-                    </span>
-                    <br/>
                     <span>
                       <b>
                         ctx
@@ -7597,21 +7730,30 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Unindent that is aware of trailing trivia (comments before closing brackets).
+ If the DLL tail ends with a comment followed by WriteLineBecauseOfTrivia,
+ splice the UnIndentBy before that trailing newline. Otherwise, fall back to normal unindent.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.Context.unindentWithTriviaAwareness\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.Context.unindentWithTriviaAwareness`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-params">
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    f
-                  </span>
-                  :
-                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></span></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
                     ctx
@@ -7630,7 +7772,7 @@
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
         <tr>
@@ -7776,6 +7918,74 @@
             <div>
               <code data-fsdocs-tip="100" data-fsdocs-tip-unique="100">
                 <p>
+                  <a id="writeTrivia">
+                    <a href="#writeTrivia">
+                      <code><span>writeTrivia&#32;<span>s</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="100">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>writeTrivia&#32;<span>s</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        s
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    s
+                  </span>
+                  :
+                  <code>string</code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-context-context.html">Context</a></span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="101" data-fsdocs-tip-unique="101">
+                <p>
                   <a id="writerEvent">
                     <a href="#writerEvent">
                       <code><span>writerEvent&#32;<span>e&#32;ctx</span></span></code>
@@ -7783,7 +7993,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="100">
+              <div popover="" class="fsdocs-tip" id="101">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>writerEvent&#32;<span>e&#32;ctx</span></span></code>

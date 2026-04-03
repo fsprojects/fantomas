@@ -54,4 +54,4 @@ The AST from the FCS used by Fantomas.
 It represents the source code as it was processed by the F# compiler. The **Untyped Syntax Tree** doesn't carry any information regarding the validity of the source code or semantics.
 In a later compilation stage, the **Untyped Syntax Tree** is transformed into the **Typed Syntax Tree**.
 
-<fantomas-nav previous="History.md"></fantomas-nav>
+<fantomas-nav previous="Trivia%20Assignment.md"></fantomas-nav>
