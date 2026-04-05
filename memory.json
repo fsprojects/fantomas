@@ -1,6 +1,6 @@
 {
-    "r": "2026-04-10",
-    "s": 23967479913,
+    "r": "2026-04-05",
+    "s": 23990982391,
     "c": [
         2945, 3011, 3069, 3073, 3103, 3110, 3130, 3136, 3150, 3155, 3156,
         3174, 3181, 3192, 3243, 3258, 3273, 3274, 3278, 2688, 2476, 2362,
@@ -21,18 +21,19 @@
         "3326": "closed",
         "3329": "closed",
         "3330": "closed",
-        "fix-3174-v4": {
-            "branch": "repo-assist/fix-issue-3174-directive-between-and-attrs-20260410",
-            "issue": 3174,
-            "status": "pending-pr-creation",
-            "note": "Fix committed locally; safeoutputs session errors prevented PR push. Branch exists in local git. Needs PR creation on next run."
+        "fix-3174-v4": "abandoned-branch-not-found",
+        "fix-2529-v2-20260403": "abandoned-session-reset",
+        "test-utils-coverage-20260405": {
+            "branch": "repo-assist/test-utils-coverage-20260405",
+            "status": "pr-submitted",
+            "description": "Task9: added property-based tests for List.moreThanOne, isNotEmpty, mapWithLast, cutOffLast, foldWithLast, chooseState"
         },
-        "fix-2529-v2-20260403": {
-            "branch": "repo-assist/fix-issue-2529-record-copy-v2-20260403",
-            "issue": 2529,
-            "status": "abandoned-session-reset"
+        "improve-utils-docs-20260405": {
+            "branch": "repo-assist/improve-utils-docs-20260405",
+            "status": "pr-submitted",
+            "description": "Task5: added doc comments to List.chooseState, partitionWhile, mapWithLast in Utils.fsi"
         }
     },
-    "m": "Run23967479913 (2026-04-10): Task3-fixed #3174 FormatException (directive between and-type attribute lists). Two-part fix: (1) genOnelinerAttributes detects Directive in AttributeListNode.ContentBefore, falls back to per-list genNode rendering. (2) genTypeDefn adds indent/unindent for and-definitions with attribute directive trivia (indentForAndAttributes flag, only when hasTriviaAfterLeadingKeyword is false). All 2836 tests pass. Branch: repo-assist/fix-issue-3174-directive-between-and-attrs-20260410. PR creation FAILED due to safeoutputs session not found errors. Task2 and Task12 not completed due to both GitHub MCP and safeoutputs being unavailable.",
-    "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2779 still open. Issue #2827 PR closed by maintainer. Issue #2990 Stroustrup ObjExpr - tested, consistent in main. Issue #2526 RA comment exists. Issue #1863 fixed by PR#3138. PR#3315 superseded by new fix attempt.\n\nACTION NEEDED NEXT RUN: Create PR for branch repo-assist/fix-issue-3174-directive-between-and-attrs-20260410 fixing issue #3174. Branch is committed locally. Also comment on #3174 and update Monthly Activity Summary #3327.\n\nIssues NOT yet commented on: #636, #1512, #1989, #2526, #2694, #2740, #2779, #2816, #2827. Monthly Activity Summary is issue #3327 (2026-04)."
+    "m": "Run23990982391 (2026-04-05): Task9-added 17 property tests for List utilities (moreThanOne, isNotEmpty, mapWithLast, cutOffLast, foldWithLast, chooseState). All 2852 tests pass. Task5-added doc comments to Utils.fsi for chooseState, partitionWhile, mapWithLast. GitHub MCP was unavailable (WASM trap) - could not read issues or PRs. Monthly Activity issue #3327 updated via comment only.",
+    "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2779 still open. Issue #2827 PR closed by maintainer. Issue #2990 Stroustrup ObjExpr - tested, consistent in main. Issue #2526 RA comment exists. Issue #1863 fixed by PR#3138. PR#3315 superseded.\n\nFix attempt for #3174 (directive between and-type attrs) was committed locally in previous run but branch no longer exists. Would need to redo from scratch if still relevant.\n\nMonthly Activity Summary is issue #3327 (2026-04). GitHub MCP unavailable (WASM trap) - could not read or update issue body this run.\n\nIssues NOT yet commented on: #636, #1512, #1989, #2526 (comment exists per notes?), #2694, #2740, #2779, #2816, #2827.\n\nOpen Repo Assist PRs needing review: test-utils-coverage-20260405, improve-utils-docs-20260405 (created this run)."
 }
