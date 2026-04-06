@@ -6,3 +6,12 @@ updates:
     schedule:
       interval: "weekly"
 
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    ignore:
+      # Exclude major-version bumps to avoid breaking changes
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
