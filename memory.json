@@ -1,11 +1,12 @@
 {
-    "r": "2026-04-05",
-    "s": 23990982391,
+    "r": "2026-04-06",
+    "s": 24014210740,
     "c": [
         2945, 3011, 3069, 3073, 3103, 3110, 3130, 3136, 3150, 3155, 3156,
         3174, 3181, 3192, 3243, 3258, 3273, 3274, 3278, 2688, 2476, 2362,
         2860, 1588, 2772, 2653, 2606, 1236, 1303, 1716, 2286, 1594, 2610,
-        1864, 1507, 3278, 3274, 2990, 1863, 3279, 2529
+        1864, 1507, 3278, 3274, 2990, 1863, 3279, 2529, 1351, 1989, 2694,
+        2740, 2779, 2816, 2827, 1512
     ],
     "p": {
         "3290": "closed",
@@ -19,21 +20,22 @@
         "3325": "closed",
         "3238": "closed",
         "3326": "closed",
-        "3329": "closed",
+        "3328": "closed-or-merged",
+        "3329": "closed-or-merged",
         "3330": "closed",
-        "fix-3174-v4": "abandoned-branch-not-found",
-        "fix-2529-v2-20260403": "abandoned-session-reset",
         "test-utils-coverage-20260405": {
-            "branch": "repo-assist/test-utils-coverage-20260405",
+            "branch": "repo-assist/test-utils-coverage-20260405-3935d964e8aa673d",
             "status": "pr-submitted",
+            "pr": 3334,
             "description": "Task9: added property-based tests for List.moreThanOne, isNotEmpty, mapWithLast, cutOffLast, foldWithLast, chooseState"
         },
         "improve-utils-docs-20260405": {
-            "branch": "repo-assist/improve-utils-docs-20260405",
+            "branch": "repo-assist/improve-utils-docs-20260405-d524a13d6fee413b",
             "status": "pr-submitted",
+            "pr": 3335,
             "description": "Task5: added doc comments to List.chooseState, partitionWhile, mapWithLast in Utils.fsi"
         }
     },
-    "m": "Run23990982391 (2026-04-05): Task9-added 17 property tests for List utilities (moreThanOne, isNotEmpty, mapWithLast, cutOffLast, foldWithLast, chooseState). All 2852 tests pass. Task5-added doc comments to Utils.fsi for chooseState, partitionWhile, mapWithLast. GitHub MCP was unavailable (WASM trap) - could not read issues or PRs. Monthly Activity issue #3327 updated via comment only.",
-    "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2779 still open. Issue #2827 PR closed by maintainer. Issue #2990 Stroustrup ObjExpr - tested, consistent in main. Issue #2526 RA comment exists. Issue #1863 fixed by PR#3138. PR#3315 superseded.\n\nFix attempt for #3174 (directive between and-type attrs) was committed locally in previous run but branch no longer exists. Would need to redo from scratch if still relevant.\n\nMonthly Activity Summary is issue #3327 (2026-04). GitHub MCP unavailable (WASM trap) - could not read or update issue body this run.\n\nIssues NOT yet commented on: #636, #1512, #1989, #2526 (comment exists per notes?), #2694, #2740, #2779, #2816, #2827.\n\nOpen Repo Assist PRs needing review: test-utils-coverage-20260405, improve-utils-docs-20260405 (created this run)."
+    "m": "Run24014210740 (2026-04-06): Task2-commented on #1351 (5yr old pattern match page width issue, 0 prior comments). Task4-investigated adding NuGet to Dependabot, blocked: project has packages.lock.json and maintainer previously reverted this in PR #3062. Monthly Activity issue #3327 body updated successfully.",
+    "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2527 closed. Issue #2827 PR closed by maintainer. Issue #2990 Stroustrup ObjExpr-tested, consistent in main.\n\nPRs #3328 and #3329 were open in monthly activity summary but are NOT in the open PR list-likely closed/merged.\n\nNuGet Dependabot: DO NOT retry. Project has packages.lock.json files and maintainer explicitly reverted PR #3062 with note 'Dependabot doesn't do lock files.'\n\nMonthly Activity Summary is issue #3327 (2026-04). Body updated this run.\n\nIssues commented on this run: #1351 (pattern match page width, 5yr old, 0 comments before).\n\nAll issues in backlog have been commented on. Main remaining issues: #1351 (just done), #636 (done), #1507 (done), all others addressed.\n\nOpen Repo Assist PRs: #3334 (test coverage), #3335 (docs).\nOther open PRs: #3223 (nojaf query expressions), #3176 (tboby recursive types WIP)."
 }
