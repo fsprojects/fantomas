@@ -14,6 +14,7 @@
 - Comments lost the indented after formatting. [#2362](https://github.com/fsprojects/fantomas/issues/2362)
 - Comments can be lost or shifted when at the end of expressions. [#932](https://github.com/fsprojects/fantomas/issues/932)
 - Should not move the starting point of a single-line comment. [#1233](https://github.com/fsprojects/fantomas/issues/1233)
+- Spurious trailing space before `>` in generic type arguments with verbatim string literals. [#2101](https://github.com/fsprojects/fantomas/issues/2101)
 
 ## [8.0.0-alpha-008] - 2026-03-25
 

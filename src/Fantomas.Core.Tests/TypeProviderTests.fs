@@ -28,7 +28,22 @@ type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >"""
     |> should
         equal
         """
-type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >
+type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)">
+"""
+
+[<Test>]
+let ``no trailing space after verbatim string in generic type arg, 2101`` () =
+    formatSourceString
+        """
+type T = Provider< @"...">
+type T2 = Provider< @"a", @"b">"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type T = Provider< @"...">
+type T2 = Provider< @"a", @"b">
 """
 
 [<Test>]

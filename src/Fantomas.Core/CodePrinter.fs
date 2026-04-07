@@ -3243,16 +3243,25 @@ let genType (t: Type) =
     | Type.Var node -> genSingleTextNode node
     | Type.AppPostfix node -> genType node.First +> sepSpace +> genType node.Last |> genNode node
     | Type.AppPrefix node ->
-        let addExtraSpace =
+        let addLeadingSpace =
             match node.Arguments with
             | [] -> sepNone
             | Type.Var node :: _ when String.startsWithOrdinal "^" node.Text -> sepSpace
             | t :: _ -> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
 
+        // Trailing space before `>` is only needed for SRTP `^T` params.
+        // Verbatim string literals (`@"..."`) only need the leading space to avoid `<@` being
+        // parsed as a quotation — no trailing space is required before `>`.
+        let addTrailingSpace =
+            match List.tryLast node.Arguments with
+            | None -> sepNone
+            | Some(Type.Var node) when String.startsWithOrdinal "^" node.Text -> sepSpace
+            | Some _ -> sepNone
+
         genPrefixApp
             (genType node.Identifier +> optSingle genIdentListNodeWithDot node.PostIdentifier)
             node.LessThen
-            (addExtraSpace +> colGenericTypeParameters node.Arguments +> addExtraSpace)
+            (addLeadingSpace +> colGenericTypeParameters node.Arguments +> addTrailingSpace)
             node.GreaterThan
         |> genNode node
     | Type.StructTuple node ->
