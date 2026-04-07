@@ -1,12 +1,12 @@
 {
-    "r": "2026-04-06",
-    "s": 24014210740,
+    "r": "2026-04-07",
+    "s": 24058484656,
     "c": [
         2945, 3011, 3069, 3073, 3103, 3110, 3130, 3136, 3150, 3155, 3156,
         3174, 3181, 3192, 3243, 3258, 3273, 3274, 3278, 2688, 2476, 2362,
         2860, 1588, 2772, 2653, 2606, 1236, 1303, 1716, 2286, 1594, 2610,
         1864, 1507, 3278, 3274, 2990, 1863, 3279, 2529, 1351, 1989, 2694,
-        2740, 2779, 2816, 2827, 1512
+        2740, 2779, 2816, 2827, 1512, 2101, 2042
     ],
     "p": {
         "3290": "closed",
@@ -34,8 +34,13 @@
             "status": "pr-submitted",
             "pr": 3335,
             "description": "Task5: added doc comments to List.chooseState, partitionWhile, mapWithLast in Utils.fsi"
+        },
+        "fix-2101-trailing-space": {
+            "branch": "repo-assist/fix-issue-2101-trailing-space-verbatim-type-arg",
+            "status": "pr-submitted",
+            "description": "Task3: fix spurious trailing space before > in generic type args with verbatim strings. Split addExtraSpace into addLeadingSpace+addTrailingSpace in CodePrinter.fs Type.AppPrefix case. 2836 tests pass."
         }
     },
-    "m": "Run24014210740 (2026-04-06): Task2-commented on #1351 (5yr old pattern match page width issue, 0 prior comments). Task4-investigated adding NuGet to Dependabot, blocked: project has packages.lock.json and maintainer previously reverted this in PR #3062. Monthly Activity issue #3327 body updated successfully.",
-    "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2527 closed. Issue #2827 PR closed by maintainer. Issue #2990 Stroustrup ObjExpr-tested, consistent in main.\n\nPRs #3328 and #3329 were open in monthly activity summary but are NOT in the open PR list-likely closed/merged.\n\nNuGet Dependabot: DO NOT retry. Project has packages.lock.json files and maintainer explicitly reverted PR #3062 with note 'Dependabot doesn't do lock files.'\n\nMonthly Activity Summary is issue #3327 (2026-04). Body updated this run.\n\nIssues commented on this run: #1351 (pattern match page width, 5yr old, 0 comments before).\n\nAll issues in backlog have been commented on. Main remaining issues: #1351 (just done), #636 (done), #1507 (done), all others addressed.\n\nOpen Repo Assist PRs: #3334 (test coverage), #3335 (docs).\nOther open PRs: #3223 (nojaf query expressions), #3176 (tboby recursive types WIP)."
+    "m": "Run24058484656 (2026-04-07): Task2-commented on #2101 (trailing space fix) and #2042 (name-sensitive alignment now improved). Task3-fixed spurious trailing space bug #2101 in Type.AppPrefix in CodePrinter.fs, updated TypeProviderTests, added CHANGELOG entry, 2836 tests pass. Monthly Activity issue #3327 updated.",
+    "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2527 closed. Issue #2827 PR closed by maintainer. Issue #2990 Stroustrup ObjExpr-tested, consistent in main.\n\nPRs #3328 and #3329 were open in monthly activity summary but are NOT in the open PR list-likely closed/merged.\n\nNuGet Dependabot: DO NOT retry. Project has packages.lock.json files and maintainer explicitly reverted PR #3062 with note 'Dependabot doesn't do lock files.'\n\nMonthly Activity Summary is issue #3327 (2026-04). Body updated this run.\n\nIssues commented on this run: #2101 (trailing space fix), #2042 (name-sensitive alignment update).\n\nOpen Repo Assist PRs: #3334 (test coverage), #3335 (docs), fix-2101-trailing-space (pending PR number).\nOther open PRs: #3223 (nojaf query expressions), #3176 (tboby recursive types WIP).\n\nIssue #2042 behavior has changed significantly: long type args now break after < with fixed-indent. Reported to reporter.\nIssue #2101 FIXED: trailing space in verbatim string type args removed. PR submitted.\n\nIssue #636 (conditional code mis-indentation) still open, confirmed still present by nojaf.\nIssue #1959 (comment position) tried and failed (PR #3286 closed-needs parser fix)."
 }
