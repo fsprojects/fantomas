@@ -1,12 +1,12 @@
 {
     "r": "2026-04-07",
-    "s": 24058484656,
+    "s": 24111543777,
     "c": [
         2945, 3011, 3069, 3073, 3103, 3110, 3130, 3136, 3150, 3155, 3156,
         3174, 3181, 3192, 3243, 3258, 3273, 3274, 3278, 2688, 2476, 2362,
         2860, 1588, 2772, 2653, 2606, 1236, 1303, 1716, 2286, 1594, 2610,
         1864, 1507, 3278, 3274, 2990, 1863, 3279, 2529, 1351, 1989, 2694,
-        2740, 2779, 2816, 2827, 1512, 2101, 2042
+        2740, 2779, 2816, 2827, 1512, 2101, 2042, 2670
     ],
     "p": {
         "3290": "closed",
@@ -23,9 +23,10 @@
         "3328": "closed-or-merged",
         "3329": "closed-or-merged",
         "3330": "closed",
+        "3334": "closed",
         "test-utils-coverage-20260405": {
             "branch": "repo-assist/test-utils-coverage-20260405-3935d964e8aa673d",
-            "status": "pr-submitted",
+            "status": "closed",
             "pr": 3334,
             "description": "Task9: added property-based tests for List.moreThanOne, isNotEmpty, mapWithLast, cutOffLast, foldWithLast, chooseState"
         },
@@ -38,9 +39,15 @@
         "fix-2101-trailing-space": {
             "branch": "repo-assist/fix-issue-2101-trailing-space-verbatim-type-arg",
             "status": "pr-submitted",
+            "pr": 3338,
             "description": "Task3: fix spurious trailing space before > in generic type args with verbatim strings. Split addExtraSpace into addLeadingSpace+addTrailingSpace in CodePrinter.fs Type.AppPrefix case. 2836 tests pass."
+        },
+        "fix-2670-arrow-overflow": {
+            "branch": "repo-assist/fix-issue-2670-arrow-overflow",
+            "status": "COMMITTED-NEEDS-PUSH",
+            "description": "Task10: fix match clause arrow overflowing MaxLineLength when pattern is multiline. In genPatAndBody, compare WriterModel.LineCount before/after genPatInClause to detect multiline patterns, then move arrow to new indented line when ctxAfterPat.Column + arrowLen > MaxLineLength. All 2836 tests pass. NEXT RUN: push branch and create PR, comment on issue #2670."
         }
     },
-    "m": "Run24058484656 (2026-04-07): Task2-commented on #2101 (trailing space fix) and #2042 (name-sensitive alignment now improved). Task3-fixed spurious trailing space bug #2101 in Type.AppPrefix in CodePrinter.fs, updated TypeProviderTests, added CHANGELOG entry, 2836 tests pass. Monthly Activity issue #3327 updated.",
-    "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2527 closed. Issue #2827 PR closed by maintainer. Issue #2990 Stroustrup ObjExpr-tested, consistent in main.\n\nPRs #3328 and #3329 were open in monthly activity summary but are NOT in the open PR list-likely closed/merged.\n\nNuGet Dependabot: DO NOT retry. Project has packages.lock.json files and maintainer explicitly reverted PR #3062 with note 'Dependabot doesn't do lock files.'\n\nMonthly Activity Summary is issue #3327 (2026-04). Body updated this run.\n\nIssues commented on this run: #2101 (trailing space fix), #2042 (name-sensitive alignment update).\n\nOpen Repo Assist PRs: #3334 (test coverage), #3335 (docs), fix-2101-trailing-space (pending PR number).\nOther open PRs: #3223 (nojaf query expressions), #3176 (tboby recursive types WIP).\n\nIssue #2042 behavior has changed significantly: long type args now break after < with fixed-indent. Reported to reporter.\nIssue #2101 FIXED: trailing space in verbatim string type args removed. PR submitted.\n\nIssue #636 (conditional code mis-indentation) still open, confirmed still present by nojaf.\nIssue #1959 (comment position) tried and failed (PR #3286 closed-needs parser fix)."
+    "m": "Run24111543777 (2026-04-07): Task10-implemented fix for issue #2670 (match clause arrow overflow). Branch repo-assist/fix-issue-2670-arrow-overflow committed locally. MCP server unavailable this run (session expired) - could not push PR or update monthly summary. NEXT RUN: push fix-2670 branch, create PR, comment on #2670, update monthly summary #3327.",
+    "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2527 closed. Issue #2827 PR closed by maintainer. Issue #2990 Stroustrup ObjExpr-tested, consistent in main.\n\nPRs #3328 and #3329 were open in monthly activity summary but are NOT in the open PR list-likely closed/merged.\n\nNuGet Dependabot: DO NOT retry. Project has packages.lock.json files and maintainer explicitly reverted PR #3062 with note 'Dependabot doesn't do lock files.'\n\nMonthly Activity Summary is issue #3327 (2026-04). Body NOT updated this run (MCP unavailable).\n\nIssue #2101 FIXED: trailing space in verbatim string type args removed. PR #3338 open.\nIssue #2670 FIXED: match clause arrow overflow. Branch committed, NOT yet pushed (MCP down).\n\nOpen Repo Assist PRs: #3335 (docs), #3338 (fix-2101).\nOther open PRs: #3223 (nojaf query expressions), #3176 (tboby recursive types WIP).\n\nIssue #636 (conditional code mis-indentation) still open, confirmed still present by nojaf.\nIssue #1959 (comment position) tried and failed (PR #3286 closed-needs parser fix).\n\nFIX-2670 DETAILS: In genPatAndBody (CodePrinter.fs ~line 2137), compare WriterModel.LineCount before/after genPatInClause. If increased (pattern multiline) AND WhenExpr.IsNone AND not Arrow.HasContentBefore AND ctxAfterPat.Column + arrowLen > MaxLineLength, then use sepSpace +> indentSepNlnUnindent(arrow+newline+body). 2836 tests pass. Branch: repo-assist/fix-issue-2670-arrow-overflow. NEXT RUN MUST: push branch, create PR, comment issue #2670, update monthly summary."
 }
