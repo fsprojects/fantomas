@@ -2395,3 +2395,22 @@ with
             | _ -> ()
     }
 """
+
+[<Test>]
+let ``match clause arrow overflows max line length when pattern is multiline, 2670`` () =
+    formatSourceString
+        """match x with
+| SynExpr.ObjExpr(
+    objType = objType; argOptions = argOptions; bindings = bindings; members = members; extraImpls = extraImpls123456780) -> body
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| SynExpr.ObjExpr(
+    objType = objType; argOptions = argOptions; bindings = bindings; members = members; extraImpls = extraImpls123456780)
+    ->
+    body
+"""

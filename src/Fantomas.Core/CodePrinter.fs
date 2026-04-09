@@ -2139,7 +2139,23 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
             let startColumn = ctx.Column
             (genPatInClause node.Pattern +> atIndentLevel false startColumn genWhenAndBody) ctx
         else
-            (genPatInClause node.Pattern +> genWhenAndBody) ctx
+            leadingExpressionIsMultiline
+                (genPatInClause node.Pattern)
+                (fun isPatMultiline ctx ->
+                    if
+                        isPatMultiline
+                        && node.WhenExpr.IsNone
+                        && not node.Arrow.HasContentBefore
+                        && ctx.Column + node.Arrow.Text.Length + 1 > ctx.Config.MaxLineLength
+                    then
+                        // Pattern is multiline and the arrow would overflow max line length.
+                        // Move the arrow to a new indented line to avoid exceeding the page width.
+                        indentSepNlnUnindent
+                            (genSingleTextNode node.Arrow +> sepNln +> genExpr node.BodyExpr)
+                            ctx
+                    else
+                        genWhenAndBody ctx)
+                ctx
 
     genBar +> genPatAndBody |> genNode node
 
