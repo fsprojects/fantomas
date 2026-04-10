@@ -1,0 +1,103 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index c4da86386..93dd38cb1 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -14,6 +14,7 @@
+ - Comments lost the indented after formatting. [#2362](https://github.com/fsprojects/fantomas/issues/2362)
+ - Comments can be lost or shifted when at the end of expressions. [#932](https://github.com/fsprojects/fantomas/issues/932)
+ - Should not move the starting point of a single-line comment. [#1233](https://github.com/fsprojects/fantomas/issues/1233)
++- Unicode strings with combining characters caused incorrect column tracking, leading to wrong indentation decisions. [#2945](https://github.com/fsprojects/fantomas/issues/2945)
+ 
+ ## [8.0.0-alpha-008] - 2026-03-25
+ 
+diff --git a/src/Fantomas.Core.Tests/StringTests.fs b/src/Fantomas.Core.Tests/StringTests.fs
+index 239013c5c..0e44ef7f0 100644
+--- a/src/Fantomas.Core.Tests/StringTests.fs
++++ b/src/Fantomas.Core.Tests/StringTests.fs
+@@ -339,3 +339,15 @@ let ``unicode null character should be recognized as a trivia item, 2050`` () =
+ [<Test>]
+ let ``character quotes should be preserved, 3076`` () =
+     formatAST false "let s = 'A'" config |> should equal "let s = 'A'\n"
++
++[<Test>]
++let ``string with Unicode combining characters should not cause excessive indentation, 2945`` () =
++    // Combining characters (e.g. U+036E, U+0312, U+036B) have no visual width of their own.
++    // The column counter must count grapheme clusters, not UTF-16 code units, to avoid
++    // over-estimating line length when deciding whether to break expressions.
++    formatSourceString
++        "let x = String.toList \"Zal\u036e\u0312\u036bgoZal\u036e\u0312\u036bgo\" = [ c \"Z\"; c \"a\"; c \"l\u036e\u0312\u036b\"; c \"g\"; c \"o\" ]"
++        config
++    |> should
++        equal
++        "let x = String.toList \"Zal\u036e\u0312\u036bgoZal\u036e\u0312\u036bgo\" = [ c \"Z\"; c \"a\"; c \"l\u036e\u0312\u036b\"; c \"g\"; c \"o\" ]\n"
+diff --git a/src/Fantomas.Core.Tests/UtilsTests.fs b/src/Fantomas.Core.Tests/UtilsTests.fs
+index 47c296822..ad1c567b6 100644
+--- a/src/Fantomas.Core.Tests/UtilsTests.fs
++++ b/src/Fantomas.Core.Tests/UtilsTests.fs
+@@ -1,6 +1,7 @@
+ module Fantomas.Core.Tests.UtilsTests
+ 
+ open NUnit.Framework
++open FsUnit
+ open Fantomas.Core
+ open FsCheck
+ 
+@@ -49,3 +50,16 @@ let ``when predicate returns true until certain index`` () =
+         }
+ 
+     property |> Prop.forAll (Arb.fromGen gen) |> Check.QuickThrowOnFailure
++
++[<Test>]
++let ``String.visualWidth counts grapheme clusters not UTF-16 code units, 2945`` () =
++    // ASCII: visual width equals String.length
++    String.visualWidth "hello" |> should equal 5
++    // Combining characters attach to the preceding base character with no visual advance.
++    // U+036E, U+0312, U+036B are all combining marks.
++    let combining = "l\u036e\u0312\u036b" // "l" + 3 combining marks = 1 grapheme cluster
++    String.visualWidth combining |> should equal 1
++    // String.length counts UTF-16 code units, not grapheme clusters
++    String.length combining |> should equal 4
++    // Empty string
++    String.visualWidth "" |> should equal 0
+diff --git a/src/Fantomas.Core/Context.fs b/src/Fantomas.Core/Context.fs
+index 75111eade..f42700341 100644
+--- a/src/Fantomas.Core/Context.fs
++++ b/src/Fantomas.Core/Context.fs
+@@ -93,7 +93,7 @@ module WriterModel =
+             | Write s
+             | WriteTrivia s ->
+                 { m with
+-                    Column = m.Column + (String.length s) }
++                    Column = m.Column + (String.visualWidth s) }
+             | WriteBeforeNewline s -> { m with WriteBeforeNewline = s }
+             | IndentBy x ->
+                 { m with
+diff --git a/src/Fantomas.Core/Utils.fs b/src/Fantomas.Core/Utils.fs
+index 9e17f4dd7..96a5754b3 100644
+--- a/src/Fantomas.Core/Utils.fs
++++ b/src/Fantomas.Core/Utils.fs
+@@ -16,6 +16,9 @@ module String =
+     let isNotNullOrEmpty = String.IsNullOrEmpty >> not
+     let isNotNullOrWhitespace = String.IsNullOrWhiteSpace >> not
+ 
++    let visualWidth (s: string) =
++        Globalization.StringInfo(s).LengthInTextElements
++
+ module List =
+     let chooseState f state l =
+         let mutable s = state
+diff --git a/src/Fantomas.Core/Utils.fsi b/src/Fantomas.Core/Utils.fsi
+index 1bf4d55ff..77664a30e 100644
+--- a/src/Fantomas.Core/Utils.fsi
++++ b/src/Fantomas.Core/Utils.fsi
+@@ -7,6 +7,10 @@ module String =
+     val empty: string
+     val isNotNullOrEmpty: (string -> bool)
+     val isNotNullOrWhitespace: (string -> bool)
++    /// Returns the visual column width of a string, counting Unicode grapheme clusters.
++    /// Unlike String.length, this correctly handles combining characters (e.g. diacritics)
++    /// which attach to a preceding character and do not advance the visual column.
++    val visualWidth: s: string -> int
+ 
+ module List =
+     val chooseState: f: ('a -> 'b -> 'a * 'c option) -> state: 'a -> l: 'b list -> 'c list
