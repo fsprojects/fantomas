@@ -1,6 +1,6 @@
 {
-  "r": "2026-04-07",
-  "s": 24111543777,
+  "r": "2026-04-11",
+  "s": 24270557166,
   "c": [
     2945,
     3011,
@@ -37,7 +37,6 @@
     2610,
     1864,
     1507,
-    3278,
     3274,
     2990,
     1863,
@@ -84,25 +83,27 @@
       "description": "Task5: added doc comments to List.chooseState, partitionWhile, mapWithLast in Utils.fsi"
     },
     "fix-2101-trailing-space": {
-      "branch": "repo-assist/fix-issue-2101-trailing-space-verbatim-type-arg",
+      "branch": "repo-assist/fix-issue-2101-trailing-space-verbatim-type-arg-e40d03594bbdd5dd",
       "status": "pr-submitted",
       "pr": 3338,
       "description": "Task3: fix spurious trailing space before > in generic type args with verbatim strings. Split addExtraSpace into addLeadingSpace+addTrailingSpace in CodePrinter.fs Type.AppPrefix case. 2836 tests pass."
     },
     "fix-2670-arrow-overflow": {
-      "branch": "repo-assist/fix-issue-2670-arrow-overflow",
-      "status": "COMMITTED-NEEDS-PUSH",
-      "description": "Task10: fix match clause arrow overflowing MaxLineLength when pattern is multiline. In genPatAndBody, compare WriterModel.LineCount before/after genPatInClause to detect multiline patterns, then move arrow to new indented line when ctxAfterPat.Column + arrowLen > MaxLineLength. All 2836 tests pass. NEXT RUN: push branch and create PR, comment on issue #2670."
+      "branch": "repo-assist/fix-issue-2670-arrow-overflow-multiline-pat-d3348dec9ddf5593",
+      "status": "pr-submitted",
+      "pr": 3340,
+      "description": "Task10: fix match clause arrow overflowing MaxLineLength when pattern is multiline."
     },
-    "2945": {
-      "status": "patch-saved",
-      "branch": "repo-assist/fix-issue-2945-unicode-column-tracking",
-      "commit": "5a02328e3",
-      "desc": "Fix incorrect column tracking for Unicode strings with combining characters",
-      "note": "MCP safeoutputs tools not available - branch is local only, needs push and PR creation",
-      "patch_file": "fix-2945.txt"
+    "fix-2945-unicode-column-tracking": {
+      "branch": "repo-assist/fix-issue-2945-unicode-column-tracking-v2",
+      "status": "pr-submitted",
+      "pr": "TBD-submitted-2026-04-11",
+      "description": "Fix Unicode combining character column tracking. Added String.visualWidth using StringInfo.LengthInTextElements with fast ASCII path. Context.fs WriterModel.update uses visualWidth instead of String.length. 2838 tests pass."
     }
   },
-  "m": "2026-04-10T01:19:25.848667",
-  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2527 closed. Issue #2827 PR closed by maintainer. NuGet Dependabot: DO NOT retry. Project has packages.lock.json files. Monthly Activity Summary issue #3327 is CLOSED - need new one for 2026-04. Open Repo Assist PRs: #3335 (docs), #3338 (fix-2101), #3340 (fix-2670). Issue #2945 FIXED: Unicode column tracking using String.visualWidth. Branch committed locally as repo-assist/fix-issue-2945-unicode-column-tracking. NEXT RUN MUST: push branch (push_to_pull_request_branch), create PR, comment issue #2945. Issue #636 still open. Patch saved to fix-2945.txt in repo-memory. NEXT RUN: apply patch with git apply, push branch, create PR, comment issue #2945, create new Monthly Activity 2026-04 issue."
+  "m": "2026-04-11T00:55:00.000000",
+  "monthly_activity": {
+    "2026-04": "created - issue TBD"
+  },
+  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2527 closed. Issue #2827 PR closed by maintainer. NuGet Dependabot: DO NOT retry. Project has packages.lock.json files. Monthly Activity Summary 2026-04 CREATED. Open Repo Assist PRs: #3335 (docs), #3338 (fix-2101), #3340 (fix-2670), +new fix-2945. Issue #636 still open. Issue #2945 FIXED AND PR SUBMITTED in branch repo-assist/fix-issue-2945-unicode-column-tracking-v2. Uses String.visualWidth with fast ASCII path."
 }
