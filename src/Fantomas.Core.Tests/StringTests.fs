@@ -339,3 +339,10 @@ let ``unicode null character should be recognized as a trivia item, 2050`` () =
 [<Test>]
 let ``character quotes should be preserved, 3076`` () =
     formatAST false "let s = 'A'" config |> should equal "let s = 'A'\n"
+
+[<Test>]
+let ``string with Unicode combining characters should not affect formatting decisions, 2945`` () =
+    // Combining characters (e.g. U+036E, U+0312, U+036B) have no visual width of their own.
+    // Column tracking must use grapheme clusters, not UTF-16 code units.
+    formatSourceString "let x = \"Zal\u036e\u0312\u036bgo\"" config
+    |> should equal "let x = \"Zal\u036e\u0312\u036bgo\"\n"

@@ -7,6 +7,11 @@ module String =
     val empty: string
     val isNotNullOrEmpty: (string -> bool)
     val isNotNullOrWhitespace: (string -> bool)
+    /// Returns the visual column width of a string, counting Unicode grapheme clusters.
+    /// Unlike String.length, this correctly handles combining characters (e.g. diacritics)
+    /// which attach to a preceding character and do not advance the visual column.
+    /// Uses a fast path for pure-ASCII strings (no allocation).
+    val visualWidth: s: string -> int
 
 module List =
     val chooseState: f: ('a -> 'b -> 'a * 'c option) -> state: 'a -> l: 'b list -> 'c list

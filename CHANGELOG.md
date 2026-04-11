@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Unicode strings with combining characters caused incorrect column tracking, leading to wrong indentation decisions. [#2945](https://github.com/fsprojects/fantomas/issues/2945)
+
 ## [8.0.0-alpha-009] - 2026-04-03
 
 ### Fixed

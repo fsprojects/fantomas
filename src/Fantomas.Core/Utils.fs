@@ -16,6 +16,20 @@ module String =
     let isNotNullOrEmpty = String.IsNullOrEmpty >> not
     let isNotNullOrWhitespace = String.IsNullOrWhiteSpace >> not
 
+    let visualWidth (s: string) =
+        // Fast path: most F# source tokens are pure ASCII, avoid allocating StringInfo.
+        let mutable hasNonAscii = false
+        let mutable i = 0
+
+        while not hasNonAscii && i < s.Length do
+            if s.[i] > '\u007F' then hasNonAscii <- true
+            i <- i + 1
+
+        if hasNonAscii then
+            Globalization.StringInfo(s).LengthInTextElements
+        else
+            s.Length
+
 module List =
     let chooseState f state l =
         let mutable s = state

@@ -1,6 +1,7 @@
 module Fantomas.Core.Tests.UtilsTests
 
 open NUnit.Framework
+open FsUnit
 open Fantomas.Core
 open FsCheck
 
@@ -49,3 +50,17 @@ let ``when predicate returns true until certain index`` () =
         }
 
     property |> Prop.forAll (Arb.fromGen gen) |> Check.QuickThrowOnFailure
+
+[<Test>]
+let ``String.visualWidth counts grapheme clusters not UTF-16 code units, 2945`` () =
+    // ASCII: visual width equals String.length
+    String.visualWidth "hello" |> should equal 5
+    // Combining characters attach to the preceding base character with no visual advance.
+    // U+036E, U+0312, U+036B are all combining marks.
+    // "l" + 3 combining marks = 1 grapheme cluster
+    let combining = "l\u036e\u0312\u036b"
+    String.visualWidth combining |> should equal 1
+    // String.length counts UTF-16 code units, not grapheme clusters
+    String.length combining |> should equal 4
+    // Empty string
+    String.visualWidth "" |> should equal 0

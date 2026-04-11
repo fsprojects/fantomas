@@ -93,7 +93,7 @@ module WriterModel =
             | Write s
             | WriteTrivia s ->
                 { m with
-                    Column = m.Column + (String.length s) }
+                    Column = m.Column + (String.visualWidth s) }
             | WriteBeforeNewline s -> { m with WriteBeforeNewline = s }
             | IndentBy x ->
                 { m with
