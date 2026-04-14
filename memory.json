@@ -7,6 +7,7 @@
     1351,
     1507,
     1512,
+    1536,
     1588,
     1594,
     1716,
@@ -105,11 +106,21 @@
       "status": "committed-locally-not-pushed",
       "pr": null,
       "description": "Task9: expanded TryWithTests.fs from 1 to 8 tests. PR not created due to MCP registry issue."
+    },
+    "3335": "closed",
+    "3338": "closed",
+    "3340": "closed",
+    "test-try-with-coverage-20260414": {
+      "branch": "repo-assist/test-try-with-coverage-20260414",
+      "status": "pr-submitted",
+      "pr": "TBD",
+      "description": "Task5: expanded TryWithTests.fs from 1 to 8 tests covering: multiple typed exception patterns, single clause, when guard, try-finally, named exception binding, nested try-with, multiline body"
     }
   },
   "m": "2026-04-11T00:55:00.000000",
   "monthly_activity": {
     "2026-04": "created - issue TBD"
   },
-  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2527 closed. Issue #2827 PR closed by maintainer. NuGet Dependabot: DO NOT retry. Project has packages.lock.json files. Monthly Activity Summary 2026-04 CREATED as issue #3343. Open Repo Assist PRs: #3335 (docs), #3338 (fix-2101), #3340 (fix-2670), #3342 and #3344 (BOTH fix-2945 - duplicates, one should be closed), test PR local branch test-try-with-coverage-20260412 COMMITTED LOCALLY but not pushed (MCP blocked). Issue #2526 already commented by Repo Assist. Issue #1536 SRTP formatting still broken - needs comment. TASK9: TryWithTests.fs expanded from 1 to 8 tests, committed to local branch but not pushed due to MCP registry issue. SAFEOUTPUTS BLOCKED THIS RUN - due to MCP registry 401 error."
+  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. Issue #2527 closed. Issue #2827 PR closed by maintainer. NuGet Dependabot: DO NOT retry. Project has packages.lock.json files. Monthly Activity Summary 2026-04 CREATED as issue #3343. Open Repo Assist PRs: #3344 (fix-2945). PRs #3335(docs),#3338(fix-2101),#3340(fix-2670) ALL CLOSED by maintainer 2026-04-13 with no comments - be cautious about re-submitting. Issue #1536 SRTP vanity alignment - commented with root cause (atCurrentColumn in genTupleExpr). Fix non-trivial. test-try-with-coverage-20260414: TryWithTests.fs expanded from 1 to 8 tests, PR submitted 2026-04-14.",
+  "last_run": "2026-04-14"
 }
