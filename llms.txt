@@ -138,6 +138,8 @@
 - [ExprDotIndexedSetNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotindexedsetnode.html)
 - [ExprDotLambda](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotlambda.html)
 - [ExprDotNamedIndexedPropertySetNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotnamedindexedpropertysetnode.html)
+- [ExprDynamicChainItemNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdynamicchainitemnode.html)
+- [ExprDynamicChainNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdynamicchainnode.html)
 - [ExprDynamicNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdynamicnode.html)
 - [ExprExplicitConstructorThenExpr](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprexplicitconstructorthenexpr.html)
 - [ExprForEachNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprforeachnode.html)
