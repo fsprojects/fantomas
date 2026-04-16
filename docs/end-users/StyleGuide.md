@@ -15,7 +15,7 @@ It does not modify the original text. This approach ensures complete consistency
 ## Let it go
 
 If you are not used to having a code formatter, you might struggle a bit at first. A part of using a code formatter is about letting go how you wrote things and accept a common consistent style instead.
-When embraced, this can truly be **a liberation feeling**. You can play **jazz** while typing the code, focus on the task at hand and have the same output as if anyone in your team would have written it.
+When embraced, this can truly be **a liberation feeling**. You can play *jazz* while typing the code, focus on the task at hand and have the same output as if anyone in your team would have written it.
 
 ## A cautionary tale
 
@@ -23,7 +23,7 @@ The responsibility of the coding style is also a shared one. The maintainers of 
 Instead, conversations are held over at [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide).
 
 Over the years, a lot of consumers of Fantomas have requested numerous features. These often go against the philosophy of being consistent amongst the community.
-If there were a **gazillion of settings** to please everybody it would be a **missed opportunity** to see all F# code bases in the same style.
+If there were a *gazillion of settings* to please everybody it would be a *missed opportunity* to see all F# code bases in the same style.
 
 And more importantly the maintenance cost of each setting is always carried by only a handful of people. **The hardship of having a setting is so high that in almost all cases it is not worth having it**.
 Even when someone proposes to contribute the setting, it always leads to lament and sorrow for the maintainers to carry.
@@ -47,13 +47,13 @@ At the end of the day, if some new idea is validated on `fsharp/fslang-design`, 
 
 ## G-Research Style
 
-[G-Research](https://www.gresearch.co.uk/) has been our **single enterprise sponsor** for the last five years. **Fantomas would not exist** in it's current form if it were **not for their support**.
-Their interest was to have a tool that automatically format code according to their **internal guidelines**. These have been made available publicly and can be turned on via [various settings](https://github.com/G-Research/fsharp-formatting-conventions/blob/master/.editorconfig).
+[G-Research](https://www.gresearch.co.uk/) has been our *single enterprise sponsor* for the last five years. **Fantomas would not exist** in it's current form if it were **not for their support**.
+Their interest was to have a tool that automatically format code according to their *internal guidelines*. These have been made available publicly and can be turned on via [various settings](https://github.com/G-Research/fsharp-formatting-conventions/blob/master/.editorconfig).
 
 ## Recommendations
 
 To strengthen the message of unity we advise that you do not change the default settings.
 The **out-of-the-box experience** should be a result of what the **brightest minds of the community** came up with.
-If you are **new** to the F# language, this is what you want.
+If you are *new* to the F# language, this is what you want.
 
 <fantomas-nav previous="GettingStarted.md" next="Configuration.md"></fantomas-nav>

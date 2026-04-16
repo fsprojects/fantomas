@@ -1,7 +1,7 @@
 # History
 
 This page provides architectural history and context for key decisions in the Fantomas project.
-Understanding **why** things are the way they are can help new contributors navigate the codebase.
+Understanding *why* things are the way they are can help new contributors navigate the codebase.
 
 ## The FCS coupling problem
 

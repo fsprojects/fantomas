@@ -92,12 +92,12 @@ You can find instructions on how to run the documentation locally in the [docs/.
   
 
   For example:
-**"Fix bug 1404"** is a poor title as it does not tell the maintainers what changed in the codebase.
-**"Don't double unindent when record has an access modifier"** is better as it informs us what exactly has changed.
+*"Fix bug 1404"* is a poor title as it does not tell the maintainers what changed in the codebase.
+*"Don't double unindent when record has an access modifier"* is better as it informs us what exactly has changed.
   
 
 * Add a link to the issue you are solving by using [a keyword](https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) in the PR description.
-**"Fixes #1404"** does the trick quite well. GitHub will automatically close the issue if you used the correct wording.
+*"Fixes #1404"* does the trick quite well. GitHub will automatically close the issue if you used the correct wording.
   
 
   ![Linked issue](../../images/github-linked-issue.png)
@@ -158,7 +158,7 @@ your changes caused any tests to fail.
 It is better to create a draft pull request with some initial small changes, and engage conversation, than to spend a lot of effort on a large pull request that was never discussed.
 Someone might be able to warn you in advance that your change will have wide implications for the rest of Fantomas, or might be able to point you in the right direction.
 However, this can only happen if you discuss your proposed changes early and often.
-It's often better to check **before** contributing that you're setting off on the right path.
+It's often better to check *before* contributing that you're setting off on the right path.
 
 ## Coding conventions
 

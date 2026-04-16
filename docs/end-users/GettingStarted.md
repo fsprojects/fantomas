@@ -85,7 +85,7 @@ If you omit the output path, Fantomas will overwrite the input files unless the 
 
 ### Multiple paths
 
-**starting version 4.5**
+*starting version 4.5*
 
 Multiple paths can be passed as last argument, these can be both files and folders.
 This cannot be combined with the `--out` flag.

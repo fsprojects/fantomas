@@ -1,7 +1,7 @@
 # Formatting Check
 
 Formatting source code is a habit, a step in your developer workflow.
-The benefits of consistently formatting is that **your delta** (**typically the changes in the files of a pull request**) will be the **smallest set possible** if every previous change was formatted.
+The benefits of consistently formatting is that **your delta** (*typically the changes in the files of a pull request*) will be the **smallest set possible** if every previous change was formatted.
 
 ## The tragedy of the ancient Greek developers
 
@@ -33,7 +33,7 @@ The moral of this story is that there are two things that could have saved Odyss
 
 ## --check
 
-**starting version 3.3**
+*starting version 3.3*
 
 Verify that a single file or folder was formatted correctly.
 

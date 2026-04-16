@@ -4,9 +4,9 @@
 
 Fantomas formats code in two phases:
 
-0 **Event generation**: The code printer traverses the Oak tree and appends `WriterEvent` values to an `EventList` — a mutable doubly-linked list. During this phase, only lightweight metadata is tracked (line count, column, indent level). No strings are built.
+1. **Event generation**: The code printer traverses the Oak tree and appends `WriterEvent` values to an `EventList` — a mutable doubly-linked list. During this phase, only lightweight metadata is tracked (line count, column, indent level). No strings are built.
 
-1 **String materialization**: The `dump` function walks the EventList head-to-tail with a `StringBuilder`, producing the final formatted string.
+2. **String materialization**: The `dump` function walks the EventList head-to-tail with a `StringBuilder`, producing the final formatted string.
 
 ## EventList
 
@@ -72,9 +72,9 @@ indent +> sepNln +> content +> unindent
 
 Both sides are trivia-aware:
 
-* ***`indentSepNlnWithTriviaAwareness`***: If trailing trivia exists before the indent point, splices `IndentBy` before the trivia block so the comment appears at the indented level. The trivia's own newline replaces `sepNln`.
+* **`indentSepNlnWithTriviaAwareness`**: If trailing trivia exists before the indent point, splices `IndentBy` before the trivia block so the comment appears at the indented level. The trivia's own newline replaces `sepNln`.
 
-* ***`unindentWithTriviaAwareness`***: If trailing trivia exists after the content, splices `UnIndentBy` before the trailing trivia newline so the newline uses the reduced indent level.
+* **`unindentWithTriviaAwareness`**: If trailing trivia exists after the content, splices `UnIndentBy` before the trailing trivia newline so the newline uses the reduced indent level.
 
 Both use `findTrailingTriviaNewline` which walks backward from the DLL tail, skipping `RestoreIndent`/`RestoreAtColumn`/`UnIndentBy`/`IndentBy`/`WriteLine` events, then verifies a `WriteLineBecauseOfTrivia` preceded by `WriteTrivia`.
 

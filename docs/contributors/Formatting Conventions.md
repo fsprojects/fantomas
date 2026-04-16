@@ -70,7 +70,7 @@ When indentation is required, you must use spaces, not tabs.
 At least one space is required.
 Your organization can create coding standards to specify the number of spaces to use for indentation; two, three or four spaces of indentation at each level where indentation occurs is typical.
 That said, indentation of programs is a subjective matter.
-Variations are OK, but the first rule you should follow is **consistency of indentation**:
+Variations are OK, but the first rule you should follow is *consistency of indentation*:
 
 > Choose a generally accepted style of indentation, then use it systematically throughout the whole application.
 > 
@@ -88,9 +88,9 @@ Indentation is one way to signal the end of a level and pop the internal stack, 
 A page is often 80 columns wide.
 Code in a multiline construct, such as a type definition, function definition, `try...with` construct, and looping constructs, must be indented relative to the opening line of the construct.
 The first indented line establishes a column position for subsequent code in the same construct.
-The indentation level is called a **context**. The column position sets a minimum column, referred to as an **offside line**, for subsequent lines of code that are in the same context.
+The indentation level is called a *context*. The column position sets a minimum column, referred to as an *offside line*, for subsequent lines of code that are in the same context.
 When a line of code is encountered that is indented less than this established column position, the compiler assumes that the context has ended and that you are now coding at the next level up, in the previous context.
-The term **offside** is used to describe the condition in which a line of code triggers the end of a construct because it is not indented far enough.
+The term *offside* is used to describe the condition in which a line of code triggers the end of a construct because it is not indented far enough.
 In other words, code to the left of an offside line is offside.
 In correctly indented code, you take advantage of the offside rule in order to delineate the end of constructs.
 If you use indentation improperly, an offside condition can cause the compiler to issue a warning or can lead to the incorrect interpretation of your code.
@@ -105,7 +105,7 @@ Offside lines are determined as follows.
 
 ## Formatting rules for syntactic constructs
 
-Keep in mind that **code is read much more often than it is written**.
+Keep in mind that *code is read much more often than it is written*.
 This section introduces a set of recommendations to improve the readability of code.
 Consistency with the recommendations is important.
 However, sometimes these formatting conventions do not apply.
@@ -139,7 +139,7 @@ type Volume =
 
 A tuple is parenthesized and the commas therein (delimiters) are each followed by a space e.g. `(1, 2)`, `(x, y, z)`.
 
-A **commonly accepted exception** is to omit parentheses in pattern matching of tuples.
+A *commonly accepted exception* is to omit parentheses in pattern matching of tuples.
 The justification is to match multiple values, not construct new tuples.
 
 ```fsharp
@@ -292,7 +292,7 @@ else
 
 ### Pattern matching constructs
 
-Rules of a `with` in a `try/with` can be **optionally** 4-space indented e.g.
+Rules of a `with` in a `try/with` can be *optionally* 4-space indented e.g.
 
 ```fsharp
 try
@@ -444,7 +444,7 @@ let printListWithOffset a list1 =
 
 ### Infix operators
 
-Be careful to **keep operator symbols well separated by spaces**; not only will your formulas be more readable, but you will avoid confusion with multi-character operators.
+Be careful to *keep operator symbols well separated by spaces*; not only will your formulas be more readable, but you will avoid confusion with multi-character operators.
 Obvious exceptions to this rule are the `!` and `.` symbols.
 They are not separated from their arguments.
 Moreover, infix expressions are OK to lineup on same column:
@@ -615,7 +615,7 @@ They should start with a `//` and a single space.
 
 This guideline is still far from complete.
 Many syntactic constructs have not had any defined rule yet.
-In those cases, please keep in mind **consistency of indentation** rule and extrapolate from rules of similar constructs.
+In those cases, please keep in mind *consistency of indentation* rule and extrapolate from rules of similar constructs.
 Although I tried to keep a neutral position, there are mistakes and inconsistencies here and there.
 Feedbacks and suggestions for improving the article are always welcome.
 

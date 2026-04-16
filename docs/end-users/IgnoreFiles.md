@@ -1,6 +1,6 @@
 # Ignore Files
 
-**starting version 4.1**
+*starting version 4.1*
 
 To exclude files from formatting, create a `.fantomasignore` file in the root of your project.
 `.fantomasignore` uses [gitignore](https://git-scm.com/docs/gitignore) syntax (processed via [Ignore](https://github.com/goelhardik/ignore)).
@@ -32,6 +32,6 @@ A good example of this is [dotnet/fsharp](https://github.com/dotnet/fsharp/blob/
 
 Fantomas is not perfect, there are open issues and depending on what shenanigans you have in your code you might at some point encounter a bug 😅🙈.
 Before you've decided that Fantomas is not for you, you might want to use a `.fantomasignore` file to overcome that one problem.
-In the past people have been quick to judge that the tool cannot be used, however, through a different looking glass Fantomas maybe did format **99%** of your code correctly.
+In the past people have been quick to judge that the tool cannot be used, however, through a different looking glass Fantomas maybe did format *99%* of your code correctly.
 
 <fantomas-nav previous="Configuration.md" next="FormattingCheck.md"></fantomas-nav>

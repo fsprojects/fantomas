@@ -9,13 +9,13 @@ Do note that the extension might not be up to date with the latest version of Fa
 
 ### Visual Studio for Mac
 
-0 Install [fantomas](https://www.nuget.org/packages/fantomas) locally with `dotnet tool install fantomas` and configure it as an External Tool.
+1. Install [fantomas](https://www.nuget.org/packages/fantomas) locally with `dotnet tool install fantomas` and configure it as an External Tool.
 
-1 Open the external tool window by going to Tools -&gt; Edit custom tools
+2. Open the external tool window by going to Tools -&gt; Edit custom tools
 
-2 Click Add and fill in the information
+3. Click Add and fill in the information
 
-3 Run fantomas inside Tools -&gt; fantomas
+4. Run fantomas inside Tools -&gt; fantomas
 
 <img src="https://fsprojects.github.io/fantomas//images/vsmac-external-tool.png" alt="drawing" width="70%"/>
 <fantomas-nav previous="Rider.md" next="VSCode.md"></fantomas-nav>

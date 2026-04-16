@@ -2,13 +2,13 @@
 
 Releases in Fantomas are automated via GitHub Actions. When a new release entry is added to the [CHANGELOG.md](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md) and pushed to the `main` branch, the release workflow will automatically:
 
-0 Build and test the project
+1. Build and test the project
 
-1 Create NuGet packages
+2. Create NuGet packages
 
-2 Publish packages to NuGet
+3. Publish packages to NuGet
 
-3 Create a GitHub release with release notes
+4. Create a GitHub release with release notes
 
 ## Preparation
 
@@ -46,17 +46,17 @@ This is useful for:
 
 The release pipeline (`build.fsx -p Release`) performs the following steps:
 
-0 **Parses the changelog** to find the current and last release
+1. **Parses the changelog** to find the current and last release
 
-1 **Checks if the release already exists** on GitHub (skips if already published)
+2. **Checks if the release already exists** on GitHub (skips if already published)
 
-2 **Builds and tests** the project
+3. **Builds and tests** the project
 
-3 **Creates NuGet packages** for all projects (except `Fantomas.Client`)
+4. **Creates NuGet packages** for all projects (except `Fantomas.Client`)
 
-4 **Publishes packages to NuGet**
+5. **Publishes packages to NuGet**
 
-5 **Generates release notes** including:
+6. **Generates release notes** including:
 
   * Changelog sections (Added, Changed, Fixed, etc.)
   
@@ -65,7 +65,7 @@ The release pipeline (`build.fsx -p Release`) performs the following steps:
   * Link to NuGet package
   
 
-6 **Creates GitHub release**:
+7. **Creates GitHub release**:
 
   * Draft releases for stable minor/major versions (patch = 0)
   
