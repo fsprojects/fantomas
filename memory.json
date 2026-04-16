@@ -1,6 +1,6 @@
 {
-  "r": "2026-04-12",
-  "s": 24295223907,
+  "r": "2026-04-15",
+  "s": 24485992822,
   "c": [
     1236,
     1303,
@@ -72,62 +72,39 @@
     "3329": "closed-or-merged",
     "3330": "closed",
     "3334": "closed",
-    "test-utils-coverage-20260405": {
-      "branch": "repo-assist/test-utils-coverage-20260405-3935d964e8aa673d",
-      "status": "closed",
-      "pr": 3334,
-      "description": "Task9: added property-based tests for List.moreThanOne, isNotEmpty, mapWithLast, cutOffLast, foldWithLast, chooseState"
-    },
     "improve-utils-docs-20260405": {
       "branch": "repo-assist/improve-utils-docs-20260405-d524a13d6fee413b",
-      "status": "pr-submitted",
+      "status": "closed",
       "pr": 3335,
       "description": "Task5: added doc comments to List.chooseState, partitionWhile, mapWithLast in Utils.fsi"
     },
     "fix-2101-trailing-space": {
       "branch": "repo-assist/fix-issue-2101-trailing-space-verbatim-type-arg-e40d03594bbdd5dd",
-      "status": "pr-submitted",
-      "pr": 3338,
-      "description": "Task3: fix spurious trailing space before > in generic type args with verbatim strings. Split addExtraSpace into addLeadingSpace+addTrailingSpace in CodePrinter.fs Type.AppPrefix case. 2836 tests pass."
+      "status": "closed",
+      "pr": 3338
     },
     "fix-2670-arrow-overflow": {
       "branch": "repo-assist/fix-issue-2670-arrow-overflow-multiline-pat-d3348dec9ddf5593",
-      "status": "pr-submitted",
-      "pr": 3340,
-      "description": "Task10: fix match clause arrow overflowing MaxLineLength when pattern is multiline."
-    },
-    "fix-2945-unicode-column-tracking": {
-      "branch": "repo-assist/fix-issue-2945-unicode-column-tracking-v2",
-      "status": "pr-submitted",
-      "pr": "TBD-submitted-2026-04-11",
-      "description": "Fix Unicode combining character column tracking. Added String.visualWidth using StringInfo.LengthInTextElements with fast ASCII path. Context.fs WriterModel.update uses visualWidth instead of String.length. 2838 tests pass."
-    },
-    "test-try-with-coverage-20260412": {
-      "branch": "repo-assist/test-try-with-coverage-20260412",
-      "status": "committed-locally-not-pushed",
-      "pr": null,
-      "description": "Task9: expanded TryWithTests.fs from 1 to 8 tests. PR not created due to MCP registry issue."
+      "status": "closed",
+      "pr": 3340
     },
     "3335": "closed",
     "3338": "closed",
     "3340": "closed",
-    "test-try-with-coverage-20260414": {
-      "branch": "repo-assist/test-try-with-coverage-20260414",
-      "status": "pr-submitted",
-      "pr": "TBD",
-      "description": "Task5: expanded TryWithTests.fs from 1 to 8 tests covering: multiple typed exception patterns, single clause, when guard, try-finally, named exception binding, nested try-with, multiline body"
-    },
-    "fix-3349-struct-ctor-unparenthesized": {
-      "branch": "repo-assist/fix-issue-3349-struct-ctor-unparenthesized",
-      "status": "pr-submitted",
-      "pr": "TBD-2026-04-15",
-      "description": "Task3: fix struct constructor with unparenthesized parameter incorrectly renamed on each format pass. ASTTransformer.fs: accept any single arg pattern (not just SynPat.Paren). CodePrinter.fs: always use sepSpace for bare ident patterns in ExplicitCtor. 2837 tests pass."
+    "3344": "merged",
+    "3348": "closed",
+    "3350": "merged",
+    "fix-3069-stroustrup-anon-record": {
+      "branch": "repo-assist/fix-issue-3069-stroustrup-anon-record-type-param",
+      "status": "committed-locally-mcp-error",
+      "pr": null,
+      "description": "Task3: fix Aligned/Stroustrup bracket style for anon record type params. colGenericTypeParameters uses short path for [Type.AnonRecord _] with Aligned/Stroustrup. genPrefixApp skipOffside=true skips addFixedSpaces. Updated 3 existing tests, added 2 regression tests. All 2841 tests pass. PR not pushed due to safeoutputs MCP session error."
     }
   },
-  "m": "2026-04-11T00:55:00.000000",
+  "m": "2026-04-15T00:00:00.000000",
   "monthly_activity": {
     "2026-04": "issue #3343"
   },
-  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. NuGet Dependabot: DO NOT retry. Project has packages.lock.json files. Monthly Activity Summary 2026-04 = issue #3343. Open Repo Assist PRs: #3344 (fix-2945), #3348 (TryWith tests). PRs #3335(docs),#3338(fix-2101),#3340(fix-2670) ALL CLOSED by maintainer 2026-04-13 with no comments - be cautious about re-submitting. Issue #1536 SRTP vanity alignment - commented with root cause (atCurrentColumn in genTupleExpr). Fix non-trivial. fix-3349-struct-ctor-unparenthesized: PR submitted 2026-04-15. Dependabot PR #3347 (actions/upload-artifact 7.0.0->7.0.1) is open - low priority, readme-only change.",
+  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. NuGet Dependabot: DO NOT retry. Monthly Activity Summary 2026-04 = issue #3343. PRs #3344(fix-2945) and #3350(fix-3349) were MERGED. PR #3348(TryWith tests) was CLOSED. PRs #3335,#3338,#3340 ALL CLOSED by maintainer 2026-04-13. Issue #1536 SRTP vanity alignment - fix non-trivial. fix-3069-stroustrup-anon-record: branch committed locally but PR NOT pushed due to safeoutputs MCP session errors. Next run should retry PR creation from branch repo-assist/fix-issue-3069-stroustrup-anon-record-type-param.",
   "last_run": "2026-04-15"
 }
