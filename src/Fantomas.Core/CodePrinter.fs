@@ -2363,6 +2363,10 @@ let colGenericTypeParameters typeParameters =
     // Multiline text type params should be unmodified
     match typeParameters with
     | [ Type.StaticConstant(Constant.FromText textNode) ] when textNode.Text.Contains("\n") -> short
+    | [ Type.AnonRecord _ ] ->
+        // For Stroustrup style, let the AnonRecord render itself (which places {| on the same line as <).
+        // The outer indentSepNlnUnindent wrapper is not used so that the opening {| stays on the same line.
+        ifElseCtx (fun ctx -> ctx.Config.IsStroustrupStyle) short (expressionFitsOnRestOfLine short long)
     | _ -> expressionFitsOnRestOfLine short long
 
 /// In F#, a closing `>` on a new line is ambiguous with the comparison operator.

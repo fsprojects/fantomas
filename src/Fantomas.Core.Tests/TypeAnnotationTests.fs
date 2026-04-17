@@ -267,6 +267,31 @@ let private asJson (arm: IArmResource) =
         >
 """
 
+[<Test>]
+let ``stroustrup bracket style in anonymous record is respected for single type, 3069`` () =
+    formatSourceString
+        """
+let private asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+    |}>
+"""
+        { config with
+            MultilineBracketStyle = Stroustrup }
+    |> prepend newline
+    |> should
+        equal
+        """
+let private asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+    |}  >
+"""
+
 let alignedMaxLine30 =
     { config with
         MaxLineLength = 30
