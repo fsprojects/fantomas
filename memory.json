@@ -1,6 +1,6 @@
 {
-  "r": "2026-04-15",
-  "s": 24485992822,
+  "r": "2026-04-17",
+  "s": 24541802370,
   "c": [
     1236,
     1303,
@@ -72,22 +72,6 @@
     "3329": "closed-or-merged",
     "3330": "closed",
     "3334": "closed",
-    "improve-utils-docs-20260405": {
-      "branch": "repo-assist/improve-utils-docs-20260405-d524a13d6fee413b",
-      "status": "closed",
-      "pr": 3335,
-      "description": "Task5: added doc comments to List.chooseState, partitionWhile, mapWithLast in Utils.fsi"
-    },
-    "fix-2101-trailing-space": {
-      "branch": "repo-assist/fix-issue-2101-trailing-space-verbatim-type-arg-e40d03594bbdd5dd",
-      "status": "closed",
-      "pr": 3338
-    },
-    "fix-2670-arrow-overflow": {
-      "branch": "repo-assist/fix-issue-2670-arrow-overflow-multiline-pat-d3348dec9ddf5593",
-      "status": "closed",
-      "pr": 3340
-    },
     "3335": "closed",
     "3338": "closed",
     "3340": "closed",
@@ -95,16 +79,16 @@
     "3348": "closed",
     "3350": "merged",
     "fix-3069-stroustrup-anon-record": {
-      "branch": "repo-assist/fix-issue-3069-stroustrup-anon-record-type-param",
-      "status": "committed-locally-mcp-error",
+      "branch": "repo-assist/fix-issue-3069-stroustrup-anon-record-type-param-v2",
+      "status": "open",
       "pr": null,
-      "description": "Task3: fix Aligned/Stroustrup bracket style for anon record type params. colGenericTypeParameters uses short path for [Type.AnonRecord _] with Aligned/Stroustrup. genPrefixApp skipOffside=true skips addFixedSpaces. Updated 3 existing tests, added 2 regression tests. All 2841 tests pass. PR not pushed due to safeoutputs MCP session error."
+      "description": "Task3: fix Stroustrup bracket style for single AnonRecord type params in colGenericTypeParameters. Added 2 tests, all 2842 tests pass."
     }
   },
-  "m": "2026-04-15T00:00:00.000000",
+  "m": "2026-04-17T00:00:00.000000",
   "monthly_activity": {
     "2026-04": "issue #3343"
   },
-  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. NuGet Dependabot: DO NOT retry. Monthly Activity Summary 2026-04 = issue #3343. PRs #3344(fix-2945) and #3350(fix-3349) were MERGED. PR #3348(TryWith tests) was CLOSED. PRs #3335,#3338,#3340 ALL CLOSED by maintainer 2026-04-13. Issue #1536 SRTP vanity alignment - fix non-trivial. fix-3069-stroustrup-anon-record: branch committed locally but PR NOT pushed due to safeoutputs MCP session errors. Next run should retry PR creation from branch repo-assist/fix-issue-3069-stroustrup-anon-record-type-param.",
-  "last_run": "2026-04-15"
+  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. NuGet Dependabot: DO NOT retry. Monthly Activity Summary 2026-04 = issue #3343. PRs #3344(fix-2945) and #3350(fix-3349) were MERGED. PR #3348(TryWith tests) was CLOSED. PRs #3335,#3338,#3340 ALL CLOSED by maintainer 2026-04-13. Issue #1536 SRTP vanity alignment - fix non-trivial. fix-3069-stroustrup-anon-record v2: branch committed and PR created (safeoutputs). Single AnonRecord type param + Stroustrup style now uses short path in colGenericTypeParameters - {| on same line as <.",
+  "last_run": "2026-04-17"
 }
