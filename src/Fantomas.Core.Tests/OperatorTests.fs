@@ -1472,3 +1472,22 @@ let ``comment between lines breaks indentation, 2944`` () =
   // a comment
   5
 """
+
+[<Test>]
+let ``no-break infix operator RHS application kept together, 3110`` () =
+    formatSourceString
+        """
+let foo = xs |> List.filter (fun x -> x.FooBar = Some y)
+"""
+        { config with MaxLineLength = 25 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo =
+    xs
+    |> List.filter
+        (fun x ->
+            x.FooBar =
+                Some y)
+"""

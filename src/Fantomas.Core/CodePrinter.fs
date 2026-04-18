@@ -886,6 +886,12 @@ let genExpr (e: Expr) =
         // No-break operators (=, >, <, %) keep the operator on the same line as the LHS.
         // When the expression doesn't fit on one line, indent the RHS to preserve
         // correct indentation when trivia (comments) precedes it. See #2944.
+        // For function applications on the RHS, we try to fit the whole application
+        // on the same line as the operator. If it doesn't fit from the current column,
+        // we move the entire application to the next indented line so it is not split
+        // mid-way (e.g. `Some\n    y` should be `=\n    Some y`). See #3110.
+        // Records and other inherently-multiline expressions keep the original behaviour
+        // (they start on the same line as `=` and use `atCurrentColumnIndent`).
         elif isNoBreakInfixOp then
             let genLongNoBreakInfixExpr =
                 genExpr node.LeftHandSide
@@ -893,8 +899,29 @@ let genExpr (e: Expr) =
                 +> genSingleTextNode node.Operator
                 +> indent
                 +> sepNlnWhenWriteBeforeNewlineNotEmpty
-                +> sepSpace
-                +> genRhsExpr node.RightHandSide
+                +> (fun ctx ->
+                    let rhsNode = Expr.Node node.RightHandSide
+
+                    if rhsNode.HasContentBefore then
+                        // Leading trivia (comment/blank line) provides its own line break;
+                        // add a space that gets trimmed by the trivia's WriteLineBecauseOfTrivia.
+                        (sepSpace +> genRhsExpr node.RightHandSide) ctx
+                    else
+                        match node.RightHandSide with
+                        | Expr.App _
+                        | Expr.TypeApp _ ->
+                            // Function applications may be split mid-application if placed at a
+                            // high column. Try the same-line form first; if it doesn't fit, move
+                            // the entire application to the next indented line.
+                            expressionFitsOnRestOfLine
+                                (sepSpace +> genRhsExpr node.RightHandSide)
+                                (sepNln +> genRhsExpr node.RightHandSide)
+                                ctx
+                        | _ ->
+                            // For everything else (identifiers, records, etc.), preserve the
+                            // original behaviour so that e.g. record-with expressions stay
+                            // aligned after the operator.
+                            (sepSpace +> genRhsExpr node.RightHandSide) ctx)
                 +> unindent
 
             fun ctx ->
