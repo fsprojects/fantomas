@@ -1,1 +1,18 @@
-{"r":"2026-03-26","s":23572020495}
+{
+  "r": "2026-04-18",
+  "s": 24592829784,
+  "c": [636, 884, 1133, 1391, 1536, 1959, 2012, 2380, 2476, 2526, 2529, 2621, 2694, 2864, 2882, 2945, 3069, 3073, 3110, 3130, 3193, 3349],
+  "p": {
+    "3286": {"i": 1959, "st": "closed", "note": "needs parser fix"},
+    "3305": {"i": 3073, "st": "closed", "note": "nojaf questioned style-guide backing"},
+    "3308": {"i": 3073, "st": "closed", "note": "nojaf questioned style-guide backing"},
+    "3323": {"st": "closed", "note": "do not retry"},
+    "3325": {"st": "closed", "note": "do not retry"},
+    "3344": {"i": 2945, "st": "merged"},
+    "3350": {"i": 3349, "st": "merged"},
+    "3354": {"i": 3069, "st": "open", "note": "Stroustrup AnonRecord fix"},
+    "3355": {"i": 3110, "st": "open", "note": "noBreakInfix App fix"}
+  },
+  "monthly": 3343,
+  "notes": "PRs #3323, #3325 closed by maintainer - do not retry. Issue #3159 3 attempts closed - no retry. Issue #1959 needs parser fix (nojaf said). Issues #3073, #2864 contested/closed. No retry. Issue #3110 fixed in PR #3355. Comment on #1391 noting same root cause."
+}
