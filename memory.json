@@ -1,10 +1,12 @@
 {
-  "r": "2026-04-17",
-  "s": 24541802370,
+  "r": "2026-04-19",
+  "s": 24617539021,
   "c": [
+    1222,
     1236,
     1303,
     1351,
+    1391,
     1507,
     1512,
     1536,
@@ -17,6 +19,7 @@
     2042,
     2101,
     2286,
+    2332,
     2362,
     2476,
     2526,
@@ -78,17 +81,25 @@
     "3344": "merged",
     "3348": "closed",
     "3350": "merged",
+    "3354": "open",
+    "3355": "open",
     "fix-3069-stroustrup-anon-record": {
       "branch": "repo-assist/fix-issue-3069-stroustrup-anon-record-type-param-v2",
       "status": "open",
-      "pr": null,
+      "pr": 3354,
       "description": "Task3: fix Stroustrup bracket style for single AnonRecord type params in colGenericTypeParameters. Added 2 tests, all 2842 tests pass."
+    },
+    "fix-3110-nobreak-infix": {
+      "branch": "repo-assist/fix-issue-3110-nobreak-infix-app",
+      "status": "open",
+      "pr": 3355,
+      "description": "Task3: fix noBreakInfix to keep RHS application together when op is in noBreakInfixOps set."
     }
   },
-  "m": "2026-04-17T00:00:00.000000",
+  "m": "2026-04-19T01:04:00.000000",
   "monthly_activity": {
     "2026-04": "issue #3343"
   },
-  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. NuGet Dependabot: DO NOT retry. Monthly Activity Summary 2026-04 = issue #3343. PRs #3344(fix-2945) and #3350(fix-3349) were MERGED. PR #3348(TryWith tests) was CLOSED. PRs #3335,#3338,#3340 ALL CLOSED by maintainer 2026-04-13. Issue #1536 SRTP vanity alignment - fix non-trivial. fix-3069-stroustrup-anon-record v2: branch committed and PR created (safeoutputs). Single AnonRecord type param + Stroustrup style now uses short path in colGenericTypeParameters - {| on same line as <.",
-  "last_run": "2026-04-17"
+  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. NuGet Dependabot: DO NOT retry. Monthly Activity Summary 2026-04 = issue #3343. PRs #3344(fix-2945) and #3350(fix-3349) were MERGED. PR #3348(TryWith tests) was CLOSED. PRs #3335,#3338,#3340 ALL CLOSED by maintainer 2026-04-13. Issue #1536 SRTP vanity alignment - fix non-trivial. PR #3354 open (fix #3069 Stroustrup AnonRecord). PR #3355 open (fix #3110 noBreakInfix RHS app). Issue #1222 commented: for-loop formatting improved vs 2020, suggest closing. Issue #2332 commented: vanity alignment in IndexRange still reproducible, root cause in genMultilineInfixExpr atCurrentColumn - needs style guide direction. Issue #2332 labeled style-guide-clarification-needed already.",
+  "last_run": "2026-04-19"
 }
