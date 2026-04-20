@@ -38,7 +38,7 @@ dotnet fantomas --help
 
 ```
 Learn more about Fantomas:       https://fsprojects.github.io/fantomas/docs
-Join our Discord community:      https://discord.gg/Cpq9vf8BJH
+Join us on the F# Discord:       https://discord.com/channels/196693847965696000/1493226271767924747
 
 USAGE: dotnet fantomas [--help] [--force] [--profile] [--out <string>] [--check]
                        [--daemon] [--version] [--verbosity <string>]

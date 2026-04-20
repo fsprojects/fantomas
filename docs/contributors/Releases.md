@@ -112,7 +112,7 @@ To add a nickname:
 
 ## Spread the word
 
-Share the newly created release on our Discord server in the `#announcements` channel.
+Share the newly created release in the [#fantomas channel on the F# Discord](https://discord.com/channels/196693847965696000/1493226271767924747).
 Optionally share (minor or major) releases on other social media.
 
 <fantomas-nav previous="Updating%20the%20compiler.md" next="Formatting%20Conventions.md"></fantomas-nav>

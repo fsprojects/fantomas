@@ -1,7 +1,7 @@
 # Fantomas
 
 [![Build Status Github Actions](https://github.com/fsprojects/fantomas/workflows/Build%20main/badge.svg?branch=main&event=push)](https://github.com/fsprojects/fantomas/actions)
-[![Discord](https://img.shields.io/discord/940511234179096586?label=Fantomas%20Discord&style=flat-square)](https://discord.gg/D5QXvQrBVa)
+[![Discord](https://img.shields.io/discord/196693847965696000?label=F%23%20Discord&style=flat-square)](https://discord.com/channels/196693847965696000/1493226271767924747)
 
 F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://pypi.org/project/PythonTidy/) for Python.
 
