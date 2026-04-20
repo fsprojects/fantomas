@@ -1,6 +1,6 @@
 {
-  "r": "2026-04-19",
-  "s": 24617539021,
+  "r": "2026-04-20",
+  "s": 24643324660,
   "c": [
     1222,
     1236,
@@ -16,6 +16,7 @@
     1863,
     1864,
     1989,
+    2012,
     2042,
     2101,
     2286,
@@ -51,6 +52,7 @@
     3174,
     3181,
     3192,
+    3200,
     3243,
     3258,
     3273,
@@ -96,10 +98,10 @@
       "description": "Task3: fix noBreakInfix to keep RHS application together when op is in noBreakInfixOps set."
     }
   },
-  "m": "2026-04-19T01:04:00.000000",
+  "m": "2026-04-20T00:59:00.000000",
   "monthly_activity": {
     "2026-04": "issue #3343"
   },
-  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. NuGet Dependabot: DO NOT retry. Monthly Activity Summary 2026-04 = issue #3343. PRs #3344(fix-2945) and #3350(fix-3349) were MERGED. PR #3348(TryWith tests) was CLOSED. PRs #3335,#3338,#3340 ALL CLOSED by maintainer 2026-04-13. Issue #1536 SRTP vanity alignment - fix non-trivial. PR #3354 open (fix #3069 Stroustrup AnonRecord). PR #3355 open (fix #3110 noBreakInfix RHS app). Issue #1222 commented: for-loop formatting improved vs 2020, suggest closing. Issue #2332 commented: vanity alignment in IndexRange still reproducible, root cause in genMultilineInfixExpr atCurrentColumn - needs style guide direction. Issue #2332 labeled style-guide-clarification-needed already.",
-  "last_run": "2026-04-19"
+  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. NuGet Dependabot: DO NOT retry. Monthly Activity Summary 2026-04 = issue #3343. PRs #3344(fix-2945) and #3350(fix-3349) were MERGED. PR #3348(TryWith tests) was CLOSED. PRs #3335,#3338,#3340 ALL CLOSED by maintainer 2026-04-13. Issue #1536 SRTP vanity alignment - fix non-trivial. PR #3354 open (fix #3069 Stroustrup AnonRecord). PR #3355 open (fix #3110 noBreakInfix RHS app). Issue #1222 commented: for-loop formatting improved vs 2020, suggest closing. Issue #2332 commented: vanity alignment in IndexRange still reproducible, root cause in genMultilineInfixExpr atCurrentColumn - needs style guide direction. Issue #2332 labeled style-guide-clarification-needed already. Issue #3200 commented: poll results (Stroustrup=157, Aligned=51, Cramped=16). Issue #2012 commented: summarised dsyme type abbreviation offside-rule analysis. Issues #3271,#3302,#3326 (stale NuGet update issues) - commented that they are superseded by current main, maintainer should close them. Issue #3279 (RFC lambda semantics) - resolved in v8.0.0-alpha-008 via PR #3303, still open - maintainer should close it.",
+  "last_run": "2026-04-20"
 }
