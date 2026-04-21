@@ -1,7 +1,9 @@
 {
-  "r": "2026-04-20",
-  "s": 24643324660,
+  "r": "2026-04-21",
+  "s": 24698065149,
   "c": [
+    884,
+    1133,
     1222,
     1236,
     1303,
@@ -22,6 +24,7 @@
     2286,
     2332,
     2362,
+    2380,
     2476,
     2526,
     2529,
@@ -96,12 +99,18 @@
       "status": "open",
       "pr": 3355,
       "description": "Task3: fix noBreakInfix to keep RHS application together when op is in noBreakInfixOps set."
+    },
+    "fix-2694-comment-dot-chain": {
+      "branch": "repo-assist/fix-issue-2694-comment-in-dot-chain",
+      "status": "open",
+      "pr": "pending",
+      "description": "Task3: fix genIdentListNodeAux to use indentSepNlnUnindent when any KnownDot has ContentBefore trivia. This prevents offside error when comment appears before dot in ident chain. 2841 tests pass."
     }
   },
-  "m": "2026-04-20T00:59:00.000000",
+  "m": "2026-04-21T00:00:00.000000",
   "monthly_activity": {
     "2026-04": "issue #3343"
   },
-  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. NuGet Dependabot: DO NOT retry. Monthly Activity Summary 2026-04 = issue #3343. PRs #3344(fix-2945) and #3350(fix-3349) were MERGED. PR #3348(TryWith tests) was CLOSED. PRs #3335,#3338,#3340 ALL CLOSED by maintainer 2026-04-13. Issue #1536 SRTP vanity alignment - fix non-trivial. PR #3354 open (fix #3069 Stroustrup AnonRecord). PR #3355 open (fix #3110 noBreakInfix RHS app). Issue #1222 commented: for-loop formatting improved vs 2020, suggest closing. Issue #2332 commented: vanity alignment in IndexRange still reproducible, root cause in genMultilineInfixExpr atCurrentColumn - needs style guide direction. Issue #2332 labeled style-guide-clarification-needed already. Issue #3200 commented: poll results (Stroustrup=157, Aligned=51, Cramped=16). Issue #2012 commented: summarised dsyme type abbreviation offside-rule analysis. Issues #3271,#3302,#3326 (stale NuGet update issues) - commented that they are superseded by current main, maintainer should close them. Issue #3279 (RFC lambda semantics) - resolved in v8.0.0-alpha-008 via PR #3303, still open - maintainer should close it.",
-  "last_run": "2026-04-20"
+  "notes": "PRs #3323,#3325 closed by maintainer-do not retry. PR #3286(#1959 block comment after of) closed-needs parser fix. Issue #3159(?operator space) 3 attempts closed-no retry. NUnit4.5.1 blocked by Is.EqualTo overload ambiguity. NuGet Dependabot: DO NOT retry. Monthly Activity Summary 2026-04 = issue #3343. PRs #3344(fix-2945) and #3350(fix-3349) were MERGED. PR #3348(TryWith tests) was CLOSED. PRs #3335,#3338,#3340 ALL CLOSED by maintainer 2026-04-13. Issue #1536 SRTP vanity alignment - fix non-trivial. PR #3354 open (fix #3069 Stroustrup AnonRecord). PR #3355 open (fix #3110 noBreakInfix RHS app). PR fix-2694 open (fix comment-before-dot in IdentListNode causing offside error). Issue #1133 commented: constraint formatting improved since 2020, current behavior correct. Issue #2380 commented: OCaml operators now cause parse error in modern F# - original bug resolved. Issue #884 commented: original pattern-match split bug is fixed. Issue #2694 commented: fix PR submitted - root cause in genIdentListNodeAux, fixed with indentSepNlnUnindent. Issues #1222,#2332,#3200,#2012,#3271,#3302,#3326 commented. Issue #3279 (RFC lambda semantics) - resolved in v8.0.0-alpha-008 - maintainer should close.",
+  "last_run": "2026-04-21"
 }
