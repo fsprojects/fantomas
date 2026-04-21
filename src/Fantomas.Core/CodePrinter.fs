@@ -172,7 +172,17 @@ let genMultipleTextsNode (node: MultipleTextsNode) =
     col sepSpace node.Content genSingleTextNode |> genNode node
 
 let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
-    coli sepNone iln.Content (fun idx identOrDot ->
+    // When any dot in the chain has ContentBefore trivia (e.g., a line comment), the
+    // trivia forces a newline before the dot. Without indentation, the dot lands at the
+    // same column as the preceding expression, which the F# offside rule rejects as
+    // "Unexpected symbol '.'". We indent the tail of the chain to avoid this.
+    let hasChainTrivia =
+        iln.Content
+        |> List.exists (function
+            | IdentifierOrDot.KnownDot dot -> not (Seq.isEmpty dot.ContentBefore)
+            | _ -> false)
+
+    let genItem idx identOrDot =
         match identOrDot with
         | IdentifierOrDot.Ident ident ->
             if addLeadingDot && idx = 0 then
@@ -180,8 +190,19 @@ let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
             else
                 genSingleTextNode ident +> sepNlnWhenWriteBeforeNewlineNotEmpty
         | IdentifierOrDot.KnownDot dot -> genSingleTextNode dot
-        | IdentifierOrDot.UnknownDot -> sepDot)
-    |> genNode iln
+        | IdentifierOrDot.UnknownDot -> sepDot
+
+    let gen =
+        if hasChainTrivia then
+            match iln.Content with
+            | (IdentifierOrDot.Ident _ as head) :: rest ->
+                genItem 0 head
+                +> indentSepNlnUnindent (coli sepNone rest (fun idx item -> genItem (idx + 1) item))
+            | _ -> coli sepNone iln.Content genItem
+        else
+            coli sepNone iln.Content genItem
+
+    gen |> genNode iln
 
 let genIdentListNode iln = genIdentListNodeAux false iln
 let genIdentListNodeWithDot iln = genIdentListNodeAux true iln

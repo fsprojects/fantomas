@@ -62,6 +62,27 @@ Log.Logger <-
 """
 
 [<Test>]
+let ``comment before dot in ident list should produce valid code, 2694`` () =
+    formatSourceString
+        """
+loggerConfig
+    // Comment
+    .WriteTo.Logger(fun config -> config.WriteTo.Console() |> ignore)
+|> ignore
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+loggerConfig
+    // Comment
+    .WriteTo.Logger
+    (fun config -> config.WriteTo.Console() |> ignore)
+|> ignore
+"""
+
+[<Test>]
 let ``force newline by adding comments`` () =
     formatSourceString
         """let config = //
