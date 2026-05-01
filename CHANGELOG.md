@@ -9,6 +9,7 @@
 ### Fixed
 
 - Chained `?` operator accesses (e.g. `x?a("")?b(t)`) no longer add a space before parenthesised arguments, which previously changed how the next `?member` was parsed. Detected during AST→Oak transformation and represented as a new `Expr.DynamicChain` node so the printer can keep the chain tight; lone `?` calls still respect `SpaceBefore(Upper|Lower)caseInvocation`. [#3159](https://github.com/fsprojects/fantomas/issues/3159)
+- `SpaceBeforeUppercaseInvocation` and `SpaceBeforeLowercaseInvocation` no longer insert a space before method call parens inside a DotLambda chain (e.g. `_.Substring(0, 16).ToLower()`), which would produce invalid F# code. [#3364](https://github.com/fsprojects/fantomas/issues/3364)
 
 ## [8.0.0-alpha-011] - 2026-04-15
 

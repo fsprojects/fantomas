@@ -1643,6 +1643,28 @@ let genExpr (e: Expr) =
             match expr with
             | Expr.AppSingleParenArg p -> genAppSingleParenArgExpr sepNone p // be always atomic, see 3050
             | Expr.AppLongIdentAndSingleParenArg p -> genAppLongIdentAndSingleParenArgExpr sepNone p // see 3120
+            | Expr.Chain chainNode ->
+                // Inside DotLambda, the expression must be atomic - no space before invocation parens,
+                // see #3364. Render each chain link without the isLastLink space logic.
+                let genAtomicLink (link: ChainLink) =
+                    match link with
+                    | ChainLink.Identifier e -> genExpr e
+                    | ChainLink.Dot stn -> genSingleTextNode stn
+                    | ChainLink.Expr e ->
+                        match e with
+                        | Expr.App appNode ->
+                            match appNode.Arguments with
+                            | [ Expr.ArrayOrList _ as arrayOrList ] ->
+                                genExpr appNode.FunctionExpr +> genExpr arrayOrList
+                            | _ -> genExpr e
+                        | _ -> genExpr e
+                    | ChainLink.AppUnit u ->
+                        genExpr u.FunctionName +> genUnit u.Unit |> genNode u
+                    | ChainLink.AppParen p ->
+                        (genExpr p.FunctionName +> genExpr (Expr.Paren p.Paren)) |> genNode p
+                    | ChainLink.IndexExpr e -> sepOpenLFixed +> genExpr e +> sepCloseLFixed
+
+                coli sepNone chainNode.Links (fun _ -> genAtomicLink) |> genNode chainNode
             | _ -> genExpr expr
 
         genSingleTextNode node.Underscore

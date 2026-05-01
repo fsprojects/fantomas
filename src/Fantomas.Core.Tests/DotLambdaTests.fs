@@ -174,3 +174,17 @@ workstations
         category
     )
 """
+
+[<Test>]
+let ``DotLambda chain should not add space before uppercase invocation, 3364`` () =
+    formatSourceString
+        """
+"yow" |> _.Substring(0, 16).ToLower()
+"""
+        { config with SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+"yow" |> _.Substring(0, 16).ToLower()
+"""
