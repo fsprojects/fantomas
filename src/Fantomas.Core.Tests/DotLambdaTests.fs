@@ -188,3 +188,31 @@ let ``DotLambda chain should not add space before uppercase invocation, 3364`` (
         """
 "yow" |> _.Substring(0, 16).ToLower()
 """
+
+[<Test>]
+let ``DotLambda chain should not add space before lowercase invocation`` () =
+    formatSourceString
+        """
+"yow" |> _.substring(0, 16).toLower()
+"""
+        { config with SpaceBeforeLowercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+"yow" |> _.substring(0, 16).toLower()
+"""
+
+[<Test>]
+let ``DotLambda triple chain should not add space before invocation`` () =
+    formatSourceString
+        """
+"yow" |> _.Substring(0, 16).ToLower().Trim()
+"""
+        { config with SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+"yow" |> _.Substring(0, 16).ToLower().Trim()
+"""
