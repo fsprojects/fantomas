@@ -4,6 +4,8 @@ module Fantomas.Logging
 type VerbosityLevel =
     | Normal
     | Detailed
+    | Warnings
+    | Errors
 
 val initLogger: level: VerbosityLevel -> VerbosityLevel
 

@@ -35,7 +35,7 @@ type Arguments =
                 sprintf
                     "Input paths: can be multiple folders or files with %s extension."
                     (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
-            | Verbosity _ -> "Set the verbosity level. Allowed values are n[ormal] and d[etailed]."
+            | Verbosity _ -> "Set the verbosity level. Allowed values are n[ormal], d[etailed], w[arnings], and e[rrors]."
 
 [<RequireQualifiedAccess>]
 type InputPath =
@@ -285,6 +285,10 @@ Join us on the F# Discord:       https://discord.com/channels/196693847965696000
         | Some "normal" -> initLogger VerbosityLevel.Normal
         | Some "d"
         | Some "detailed" -> initLogger VerbosityLevel.Detailed
+        | Some "w"
+        | Some "warnings" -> initLogger VerbosityLevel.Warnings
+        | Some "e"
+        | Some "errors" -> initLogger VerbosityLevel.Errors
         | Some _ ->
             elog "Invalid verbosity level"
             exit 1
@@ -380,7 +384,7 @@ Join us on the F# Discord:       https://discord.com/channels/196693847965696000
         let reportError (file: string, exn: Exception) =
             let message =
                 match verbosity with
-                | VerbosityLevel.Normal ->
+                | VerbosityLevel.Normal | VerbosityLevel.Warnings | VerbosityLevel.Errors ->
                     match exn with
                     | :? ParseException -> "Could not parse the file."
                     | :? DefineParseException as dpe ->

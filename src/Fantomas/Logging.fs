@@ -6,6 +6,8 @@ open Serilog
 type VerbosityLevel =
     | Normal
     | Detailed
+    | Warnings
+    | Errors
 
 let initLogger (level: VerbosityLevel) : VerbosityLevel =
     let logger =
@@ -16,6 +18,16 @@ let initLogger (level: VerbosityLevel) : VerbosityLevel =
                 .WriteTo.Console(outputTemplate = "{Message:lj}{NewLine}{Exception}")
                 .CreateLogger()
         | VerbosityLevel.Detailed -> LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger()
+        | VerbosityLevel.Warnings ->
+            LoggerConfiguration()
+                .MinimumLevel.Warning()
+                .WriteTo.Console(outputTemplate = "{Message:lj}{NewLine}{Exception}")
+                .CreateLogger()
+        | VerbosityLevel.Errors ->
+            LoggerConfiguration()
+                .MinimumLevel.Error()
+                .WriteTo.Console(outputTemplate = "{Message:lj}{NewLine}{Exception}")
+                .CreateLogger()
 
     Log.Logger <- logger
     level
