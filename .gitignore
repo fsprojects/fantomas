@@ -206,6 +206,4 @@ tests/.repositories/**
 
 # LLM stuff
 .claude/settings.local.json
-
-
 .deslop-cache/
