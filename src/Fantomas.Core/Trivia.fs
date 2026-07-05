@@ -455,11 +455,13 @@ let addToTree (tree: Oak) (trivia: TriviaNode array) =
             | BlockComment _
             | Cursor -> blockCommentToTriviaInstruction parentNode trivia
 
+let private parsedInputTrivia (ast: ParsedInput) =
+    match ast with
+    | ParsedInput.ImplFile(ParsedImplFileInput(trivia = t))
+    | ParsedInput.SigFile(ParsedSigFileInput(trivia = t)) -> t
+
 let internal collectCommentTextsFromAST (sourceText: ISourceText) (ast: ParsedInput) : Set<TriviaContent> =
-    let parsedTrivia =
-        match ast with
-        | ParsedInput.ImplFile(ParsedImplFileInput(trivia = t))
-        | ParsedInput.SigFile(ParsedSigFileInput(trivia = t)) -> t
+    let parsedTrivia = parsedInputTrivia ast
 
     let fullRange =
         let startPos = Position.mkPos 0 0
@@ -480,10 +482,7 @@ let internal collectCommentTextsFromAST (sourceText: ISourceText) (ast: ParsedIn
 let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak =
     let fullTreeRange = tree.Range
 
-    let parsedTrivia =
-        match ast with
-        | ParsedInput.ImplFile(ParsedImplFileInput(trivia = t))
-        | ParsedInput.SigFile(ParsedSigFileInput(trivia = t)) -> t
+    let parsedTrivia = parsedInputTrivia ast
 
     let trivia =
         let newlines =

@@ -999,6 +999,15 @@ let mkParenExpr creationAide lpr e rpr m =
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
+    let mkAnonRecordFields (recordFields: (SynLongIdent * range option * SynExpr) list) =
+        recordFields
+        |> List.choose (function
+            | sli, Some mEq, e ->
+                let m = unionRanges sli.Range e.Range
+                let longIdent = mkSynLongIdent creationAide sli
+                Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
+            | _ -> None)
+
     match e with
     | SynExpr.Lazy(e, StartRange 4 (lazyKeyword, _range)) ->
         ExprLazyNode(stn "lazy" lazyKeyword, mkExpr creationAide e, exprRange)
@@ -1107,15 +1116,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                        recordFields,
                        (StartRange 6 (mStruct, _) & EndRange 2 (mClose, _)),
                        { OpeningBraceRange = mOpen }) ->
-        let fields =
-            recordFields
-            |> List.choose (function
-                | sli, Some mEq, e ->
-                    let m = unionRanges sli.Range e.Range
-                    let longIdent = mkSynLongIdent creationAide sli
-
-                    Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
-                | _ -> None)
+        let fields = mkAnonRecordFields recordFields
 
         ExprAnonStructRecordNode(
             stn "struct" mStruct,
@@ -1127,14 +1128,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         )
         |> Expr.AnonStructRecord
     | SynExpr.AnonRecd(false, copyInfo, recordFields, EndRange 2 (mClose, _), { OpeningBraceRange = mOpen }) ->
-        let fields =
-            recordFields
-            |> List.choose (function
-                | sli, Some mEq, e ->
-                    let m = unionRanges sli.Range e.Range
-                    let longIdent = mkSynLongIdent creationAide sli
-                    Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
-                | _ -> None)
+        let fields = mkAnonRecordFields recordFields
 
         ExprRecordNode(
             stn "{|" mOpen,
@@ -2579,6 +2573,13 @@ let mkImplicitCtor
         range
     )
 
+let mkTypeDefnObjectModelKind (tdk: SynTypeDefnKind) (range: range) =
+    match tdk, range with
+    | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
+    | SynTypeDefnKind.Interface, StartRange 9 (mInterface, _) -> stn "interface" mInterface
+    | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
+    | _ -> failwith "unexpected kind"
+
 let mkTypeDefn
     (creationAide: CreationAide)
     (SynTypeDefn(typeInfo, typeRepr, members, implicitConstructor, range, trivia))
@@ -2690,12 +2691,7 @@ let mkTypeDefn
         kind = SynTypeDefnKind.Class | SynTypeDefnKind.Interface | SynTypeDefnKind.Struct as tdk
         members = objectMembers
         range = range) ->
-        let kindNode =
-            match tdk, range with
-            | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
-            | SynTypeDefnKind.Interface, StartRange 9 (mInterface, _) -> stn "interface" mInterface
-            | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
-            | _ -> failwith "unexpected kind"
+        let kindNode = mkTypeDefnObjectModelKind tdk range
 
         let objectMembers =
             objectMembers
@@ -3277,20 +3273,19 @@ let rec mkModuleDecls
     | head :: tail ->
         mkModuleDecls creationAide tail (fun nodes -> mkModuleDecl creationAide head :: nodes |> finalContinuation)
 
-let mkModuleOrNamespace
+let mkModuleOrNamespaceHeader
     (creationAide: CreationAide)
-    (SynModuleOrNamespace(
-        xmlDoc = xmlDoc
-        attribs = attribs
-        accessibility = accessibility
-        longId = longId
-        isRecursive = isRecursive
-        kind = kind
-        decls = decls
-        trivia = trivia) as mn)
+    leadingKeyword
+    kind
+    longId
+    xmlDoc
+    attribs
+    accessibility
+    isRecursive
+    (range: range)
     =
     let leadingKeyword =
-        match trivia.LeadingKeyword with
+        match leadingKeyword with
         | SynModuleOrNamespaceLeadingKeyword.Module mModule ->
             Some(MultipleTextsNode([ stn "module" mModule ], mModule))
         | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
@@ -3306,39 +3301,62 @@ let mkModuleOrNamespace
         | SynModuleOrNamespaceKind.GlobalNamespace -> None
         | _ -> Some(mkLongIdent longId)
 
+    match leadingKeyword with
+    | None -> None
+    | Some leadingKeyword ->
+        match name with
+        | None ->
+            let m = mkFileIndexRange range.FileIndex range.Start leadingKeyword.Range.End
+
+            ModuleOrNamespaceHeaderNode(
+                mkXmlDoc xmlDoc,
+                mkAttributes creationAide attribs,
+                leadingKeyword,
+                mkSynAccess accessibility,
+                isRecursive,
+                None,
+                m
+            )
+            |> Some
+        | Some name ->
+            let m = mkFileIndexRange range.FileIndex range.Start name.Range.End
+
+            ModuleOrNamespaceHeaderNode(
+                mkXmlDoc xmlDoc,
+                mkAttributes creationAide attribs,
+                leadingKeyword,
+                mkSynAccess accessibility,
+                isRecursive,
+                Some name,
+                m
+            )
+            |> Some
+
+let mkModuleOrNamespace
+    (creationAide: CreationAide)
+    (SynModuleOrNamespace(
+        xmlDoc = xmlDoc
+        attribs = attribs
+        accessibility = accessibility
+        longId = longId
+        isRecursive = isRecursive
+        kind = kind
+        decls = decls
+        trivia = trivia) as mn)
+    =
     let range: range = mkSynModuleOrNamespaceFullRange mn
 
     let header =
-        match leadingKeyword with
-        | None -> None
-        | Some leadingKeyword ->
-            match name with
-            | None ->
-                let m = mkFileIndexRange range.FileIndex range.Start leadingKeyword.Range.End
-
-                ModuleOrNamespaceHeaderNode(
-                    mkXmlDoc xmlDoc,
-                    mkAttributes creationAide attribs,
-                    leadingKeyword,
-                    mkSynAccess accessibility,
-                    isRecursive,
-                    None,
-                    m
-                )
-                |> Some
-            | Some name ->
-                let m = mkFileIndexRange range.FileIndex range.Start name.Range.End
-
-                ModuleOrNamespaceHeaderNode(
-                    mkXmlDoc xmlDoc,
-                    mkAttributes creationAide attribs,
-                    leadingKeyword,
-                    mkSynAccess accessibility,
-                    isRecursive,
-                    Some name,
-                    m
-                )
-                |> Some
+        mkModuleOrNamespaceHeader
+            creationAide
+            trivia.LeadingKeyword
+            kind
+            longId
+            xmlDoc
+            attribs
+            accessibility
+            isRecursive
+            range
 
     let decls = mkModuleDecls creationAide decls id
 
@@ -3528,12 +3546,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
         memberSigs = objectMembers
         range = range) ->
 
-        let kindNode =
-            match tdk, range with
-            | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
-            | SynTypeDefnKind.Interface, StartRange 9 (mInterface, _) -> stn "interface" mInterface
-            | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
-            | _ -> failwith "unexpected kind"
+        let kindNode = mkTypeDefnObjectModelKind tdk range
 
         let objectMembers = objectMembers |> List.map (mkMemberSig creationAide)
 
@@ -3627,57 +3640,20 @@ let mkModuleOrNamespaceSig
         decls = decls
         trivia = trivia) as mn)
     =
-    let leadingKeyword =
-        match trivia.LeadingKeyword with
-        | SynModuleOrNamespaceLeadingKeyword.Module mModule ->
-            Some(MultipleTextsNode([ stn "module" mModule ], mModule))
-        | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
-            match kind with
-            | SynModuleOrNamespaceKind.GlobalNamespace ->
-                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" range0 ], mNamespace))
-            | _ -> Some(MultipleTextsNode([ stn "namespace" mNamespace ], mNamespace))
-        | SynModuleOrNamespaceLeadingKeyword.None -> None
-
-    let name =
-        match kind with
-        | SynModuleOrNamespaceKind.AnonModule
-        | SynModuleOrNamespaceKind.GlobalNamespace -> None
-        | _ -> Some(mkLongIdent longId)
-
     let decls = mkModuleSigDecls creationAide decls id
     let range: range = mkSynModuleOrNamespaceSigFullRange mn
 
     let header =
-        match leadingKeyword with
-        | None -> None
-        | Some leadingKeyword ->
-            match name with
-            | None ->
-                let m = mkFileIndexRange range.FileIndex range.Start leadingKeyword.Range.End
-
-                ModuleOrNamespaceHeaderNode(
-                    mkXmlDoc xmlDoc,
-                    mkAttributes creationAide attribs,
-                    leadingKeyword,
-                    mkSynAccess accessibility,
-                    isRecursive,
-                    None,
-                    m
-                )
-                |> Some
-            | Some name ->
-                let m = mkFileIndexRange range.FileIndex range.Start name.Range.End
-
-                ModuleOrNamespaceHeaderNode(
-                    mkXmlDoc xmlDoc,
-                    mkAttributes creationAide attribs,
-                    leadingKeyword,
-                    mkSynAccess accessibility,
-                    isRecursive,
-                    Some name,
-                    m
-                )
-                |> Some
+        mkModuleOrNamespaceHeader
+            creationAide
+            trivia.LeadingKeyword
+            kind
+            longId
+            xmlDoc
+            attribs
+            accessibility
+            isRecursive
+            range
 
     ModuleOrNamespaceNode(header, decls, range)
 

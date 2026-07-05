@@ -280,6 +280,10 @@ let dump (isSelection: bool) (ctx: Context) =
     let mutable atColumn = 0
     let mutable writeBeforeNewline = ""
 
+    let trimTrailingSpaces () =
+        while sb.Length > 0 && sb.[sb.Length - 1] = ' ' do
+            sb.Remove(sb.Length - 1, 1) |> ignore
+
     let doNewline () =
         indent <- max indent atColumn
 
@@ -288,8 +292,7 @@ let dump (isSelection: bool) (ctx: Context) =
             writeBeforeNewline <- ""
 
         // Trim trailing spaces on the current line
-        while sb.Length > 0 && sb.[sb.Length - 1] = ' ' do
-            sb.Remove(sb.Length - 1, 1) |> ignore
+        trimTrailingSpaces ()
 
         sb.Append(newline) |> ignore
         sb.Append(String.replicate indent " ") |> ignore
@@ -315,8 +318,7 @@ let dump (isSelection: bool) (ctx: Context) =
         | Placeholder -> ()
 
     // Trim trailing spaces on the last line
-    while sb.Length > 0 && sb.[sb.Length - 1] = ' ' do
-        sb.Remove(sb.Length - 1, 1) |> ignore
+    trimTrailingSpaces ()
 
     let code = sb.ToString()
 

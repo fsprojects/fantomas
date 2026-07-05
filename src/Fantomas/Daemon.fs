@@ -14,6 +14,13 @@ open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Core
 open Fantomas.EditorConfig
 
+let private configForRequest (filePath: string) configOverride =
+    match configOverride with
+    | Some configProperties ->
+        let config = readConfiguration filePath
+        parseOptionsFromEditorConfig config configProperties
+    | None -> readConfiguration filePath
+
 type FantomasDaemon(sender: Stream, reader: Stream) as this =
     let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)
     let traceListener = new DefaultTraceListener()
@@ -52,12 +59,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
             then
                 return FormatDocumentResponse.IgnoredFile request.FilePath
             else
-                let config =
-                    match request.Config with
-                    | Some configProperties ->
-                        let config = readConfiguration request.FilePath
-                        parseOptionsFromEditorConfig config configProperties
-                    | None -> readConfiguration request.FilePath
+                let config = configForRequest request.FilePath request.Config
 
                 let cursor =
                     request.Cursor
@@ -90,12 +92,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
     [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
         task {
-            let config =
-                match request.Config with
-                | Some configProperties ->
-                    let config = readConfiguration request.FilePath
-                    parseOptionsFromEditorConfig config configProperties
-                | None -> readConfiguration request.FilePath
+            let config = configForRequest request.FilePath request.Config
 
             let selection =
                 let r = request.Range

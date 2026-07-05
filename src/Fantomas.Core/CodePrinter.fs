@@ -1160,13 +1160,7 @@ let genExpr (e: Expr) =
                         +> genArrayOrList lastList
                         +> unindent
                     else
-                        genExpr node.FunctionExpr
-                        +> sepSpace
-                        +> col sepSpace sequentialArgs genExpr
-                        +> onlyIfNot sequentialArgs.IsEmpty sepSpace
-                        +> genArrayOrList firstList
-                        +> sepSpace
-                        +> genArrayOrList lastList
+                        short
 
                 if futureNlnCheck singleLineTestExpr ctx then
                     long ctx
