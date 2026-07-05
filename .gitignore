@@ -200,10 +200,10 @@ tests/.repositories/**
 # Analyzer files
 .analyzerpackages
 *.sarif
+.deslop-cache/
 
 # vscode history plugin
 .history/
 
 # LLM stuff
 .claude/settings.local.json
-.deslop-cache/
