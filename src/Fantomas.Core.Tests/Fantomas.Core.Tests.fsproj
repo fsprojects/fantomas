@@ -82,6 +82,7 @@
     <Compile Include="BlankLinesAroundNestedMultilineExpressions.fs" />
     <Compile Include="ColMultilineItemTests.fs" />
     <Compile Include="BarBeforeDiscriminatedUnionDeclarationTests.fs" />
+    <Compile Include="KeepSingleCaseUnionMultilineTests.fs" />
     <Compile Include="SpaceBeforeColonTests.fs" />
     <Compile Include="LibraryOnlySynExprTests.fs" />
     <Compile Include="IndexSyntaxTests.fs" />

@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- New `fsharp_keep_single_case_union_multiline` setting to keep single-case discriminated union declarations on a separate line instead of collapsing them onto the type name. [#3373](https://github.com/fsprojects/fantomas/pull/3373)
+
 ## [8.0.0-alpha-012] - 2026-04-16
 
 ### Changed

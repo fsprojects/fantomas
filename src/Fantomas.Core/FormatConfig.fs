@@ -222,6 +222,11 @@ type FormatConfig =
       BarBeforeDiscriminatedUnionDeclaration: bool
 
       [<Category("Convention")>]
+      [<DisplayName("Keep single-case Discriminated Union declarations multiline")>]
+      [<Description("Do not collapse a short single-case union onto the same line as the type name.")>]
+      KeepSingleCaseUnionMultiline: bool
+
+      [<Category("Convention")>]
       [<DisplayName("How to format bracket expressions (arrays, objects, etc.) that span multiple lines")>]
       [<Description("Possible options include cramped (default), aligned, and stroustrup")>]
       MultilineBracketStyle: MultilineBracketStyle
@@ -273,6 +278,7 @@ type FormatConfig =
           ExperimentalKeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
+          KeepSingleCaseUnionMultiline = false
           MultilineBracketStyle = Aligned
           KeepMaxNumberOfBlankLines = 100
           NewlineBeforeMultilineComputationExpression = true

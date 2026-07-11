@@ -1020,11 +1020,34 @@ printfn
 (*** include-output ***)
 
 formatCode
-    """ 
+    """
     type MyDU = Short of int
     """
     """
 fsharp_bar_before_discriminated_union_declaration = true
+    """
+
+(*** include-output ***)
+
+(**
+<fantomas-setting green></fantomas-setting>
+### fsharp_keep_single_case_union_multiline
+<copy-to-clipboard text="fsharp_keep_single_case_union_multiline = true"></copy-to-clipboard>
+
+Keep the declaration of a single-case discriminated union on a separate line, instead of collapsing it onto the same line as the type name when it is short enough to fit.
+*)
+
+(*** hide ***)
+printfn
+    $"# Default\n{toEditorConfigName (nameof FormatConfig.Default.KeepSingleCaseUnionMultiline)} = {FormatConfig.Default.KeepSingleCaseUnionMultiline.ToString().ToLower()}"
+(*** include-output ***)
+
+formatCode
+    """
+    type MyDU = Short of int
+    """
+    """
+fsharp_keep_single_case_union_multiline = true
     """
 
 (*** include-output ***)

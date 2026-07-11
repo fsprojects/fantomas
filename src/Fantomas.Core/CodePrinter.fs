@@ -3549,10 +3549,13 @@ let genTypeDefn (td: TypeDefn) =
                         genSingleTextNode vis +> onlyIfNot singleCase.XmlDoc.IsNone sepNln)
                     +> genUnionCase hasVerticalBar singleCase
 
-                expressionFitsOnRestOfLine
-                    (sepSpace +> genCase hasVerticalBar)
-                    (indentSepNlnUnindent (genCase true))
-                    ctx
+                if ctx.Config.KeepSingleCaseUnionMultiline then
+                    indentSepNlnUnindent (genCase true) ctx
+                else
+                    expressionFitsOnRestOfLine
+                        (sepSpace +> genCase hasVerticalBar)
+                        (indentSepNlnUnindent (genCase true))
+                        ctx
             | xs ->
                 indentSepNlnUnindent
                     (opt sepNln node.Accessibility genSingleTextNode
