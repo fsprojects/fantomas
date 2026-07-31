@@ -336,6 +336,9 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
         mkOakFromModuleDecl (ModuleDecl.TypeDefn tdn)
     | :? ValNode as node -> mkOakFromModuleDecl (ModuleDecl.Val node)
     | _ ->
+        // Deliberately not an InvariantViolationException: this is not an impossible state but a
+        // node kind selection does not support yet, and release builds degrade to `Unsupported`
+        // rather than failing. The DEBUG-only throw exists to make the gap loud while developing.
 #if DEBUG
         failwithf $"%s{node.GetType().Name} is currently unsupported"
 #endif

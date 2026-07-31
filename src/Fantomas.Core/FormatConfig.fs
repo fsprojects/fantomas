@@ -103,7 +103,7 @@ type EndOfLineStyle =
     static member OfConfigString(eolString: string) =
         match eolString with
         | "lf" -> Some EndOfLineStyle.LF
-        | "cr" -> failwith "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
+        | "cr" -> raise (FormatException "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'")
         | "crlf" -> Some EndOfLineStyle.CRLF
         | _ -> None
 

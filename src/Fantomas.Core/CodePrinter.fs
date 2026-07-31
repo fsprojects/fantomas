@@ -35,7 +35,13 @@ let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
     | Type.Var node -> upperOrLower (node.Text.Substring(1))
     | Type.AppPostfix node -> (|UppercaseType|LowercaseType|) node.First
     | Type.AppPrefix node -> (|UppercaseType|LowercaseType|) node.Identifier
-    | _ -> failwithf $"Cannot determine if synType %A{t} is uppercase or lowercase"
+    | _ ->
+        raise (
+            InvariantViolationException(
+                $"cannot tell whether this type is uppercase or lowercase: %A{t}",
+                (Type.Node t).Range
+            )
+        )
 
 let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
     let upperOrLower (v: string) =
@@ -76,7 +82,13 @@ let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
     | Expr.Paren node -> (|UppercaseExpr|LowercaseExpr|) node.Expr
     | Expr.App node -> (|UppercaseExpr|LowercaseExpr|) node.FunctionExpr
     | Expr.IndexWithoutDot node -> (|UppercaseExpr|LowercaseExpr|) node.Identifier
-    | _ -> failwithf "cannot determine if Expr %A is uppercase or lowercase" expr
+    | _ ->
+        raise (
+            InvariantViolationException(
+                $"cannot tell whether this expression is uppercase or lowercase: %A{expr}",
+                (Expr.Node expr).Range
+            )
+        )
 
 let (|ParenExpr|_|) (e: Expr) =
     match e with

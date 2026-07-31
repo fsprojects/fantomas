@@ -291,7 +291,7 @@ let mkInheritConstructor (creationAide: CreationAide) (t: SynType) (e: SynExpr) 
 
 let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range list) (m: range) =
     match exprs with
-    | [] -> failwith "SynExpr.Tuple with no elements"
+    | [] -> invariantViolation m "a tuple expression has no elements"
     | head :: tail ->
         let rest =
             assert (tail.Length = commas.Length)
@@ -393,7 +393,7 @@ let mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) :
     let arrowRange =
         match trivia.ArrowRange with
         | Some r -> r
-        | None -> failwith $"unable to get the arrow range from trivia in %s{nameof mkSynMatchClause}"
+        | None -> invariantViolation range $"unable to get the arrow range from trivia in %s{nameof mkSynMatchClause}"
 
     MatchClauseNode(
         Option.map (stn "|") trivia.BarRange,
@@ -604,7 +604,10 @@ let (|ElIf|_|) expr =
                         | Some mElse ->
                             match ifNode with
                             | Choice1Of2 ifNode -> Choice2Of2(mElse, ifNode.Range)
-                            | Choice2Of2 _ -> failwith "Cannot merge a second else keyword into existing else if"
+                            | Choice2Of2 _ ->
+                                invariantViolation
+                                    expr.Range
+                                    "cannot merge a second else keyword into existing else if"
                         | None -> ifNode
 
                 (node, e1, thenKw, e2))
@@ -1260,7 +1263,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let mTuple =
             match List.tryHead exprs, List.tryLast exprs with
             | Some e1, Some e2 -> unionRanges e1.Range e2.Range
-            | _ -> failwith "SynExpr.Tuple with no elements"
+            | _ -> invariantViolation exprRange "a struct tuple expression has no elements"
 
         ExprStructTupleNode(stn "struct" mStruct, mkTuple creationAide exprs commas mTuple, stn ")" mClosing, exprRange)
         |> Expr.StructTuple
@@ -1286,7 +1289,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                 | _ -> None)
 
         match baseInfo, copyInfo with
-        | Some _, Some _ -> failwith "Unexpected that both baseInfo and copyInfo are present in SynExpr.Record"
+        | Some _, Some _ ->
+            invariantViolation exprRange "a record expression has both an inherit and a copy-from source"
         | Some(t, e, m, _, mInherit), None ->
             let inheritCtor = mkInheritConstructor creationAide t e mInherit m
 
@@ -1875,7 +1879,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             [ LinkExpr.Identifier underscore; LinkExpr.Dot mDot; yield! bodyLinks ]
 
         mkChainFromLinks creationAide allLinks ChainTerminal.NoSpaceAllowed exprRange
-    | _ -> failwithf "todo for %A" e
+    | _ -> invariantViolation exprRange "no Oak node is defined for this expression: %A" e
 
 let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
     let startToken, endToken =
@@ -1909,11 +1913,12 @@ let mkUnit (StartEndRange 1 (lpr, m, rpr)) = UnitNode(stn "(" lpr, stn ")" rpr, 
 
 let mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range list) (m: range) =
     match pats with
-    | [] -> failwith "SynPat.Tuple with no elements"
+    | [] -> invariantViolation m "a tuple pattern has no elements"
     | head :: tail ->
         let rest =
             if tail.Length <> commas.Length then
-                failwith
+                invariantViolation
+                    m
                     $"Number of elements in tail of tuple (%i{tail.Length}) was not equal to number of commas (%i{commas.Length}), at range %O{m}."
 
             List.zip commas tail
@@ -2032,7 +2037,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         |> Pattern.IsInst
     | SynPat.QuoteExpr(SynExpr.Quote(_, isRaw, e, _, _), _) ->
         mkExprQuote creationAide isRaw e patternRange |> Pattern.QuoteExpr
-    | pat -> failwith $"unexpected pattern: %A{pat}"
+    | pat -> invariantViolation pat.Range $"no Oak node is defined for this pattern: %A{pat}"
 
 let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
     Option.bind
@@ -2091,7 +2096,7 @@ let mkBinding
         let equalsRange =
             match trivia.EqualsRange with
             | Some r -> r
-            | None -> failwith $"failed to get equals range in %s{nameof mkBinding}"
+            | None -> invariantViolation pat.Range $"failed to get equals range in %s{nameof mkBinding}"
 
         stn "=" equalsRange
 
@@ -2155,11 +2160,11 @@ let mkExternBinding
     let externNode =
         match trivia.LeadingKeyword with
         | SynLeadingKeyword.Extern mExtern -> stn "extern" mExtern
-        | _ -> failwith "Leading keyword should be extern"
+        | _ -> invariantViolation range "an extern binding has a leading keyword other than `extern`"
 
     let attributesOfReturnType, returnType =
         match returnInfo with
-        | None -> failwith "return info in extern binding should be present"
+        | None -> invariantViolation range "an extern binding has no return type"
         | Some(SynBindingReturnInfo(typeName = t; attributes = a)) ->
             let attrs = mkAttributes creationAide a
 
@@ -2231,7 +2236,7 @@ let mkExternBinding
             longDotId = longDotId
             argPats = SynArgPats.Pats [ SynPat.Tuple(_, ps, _, StartEndRange 1 (mOpen, _, mClose)) ]) ->
             mkSynLongIdent creationAide longDotId, stn "(" mOpen, List.map mkExternPat ps, stn ")" mClose
-        | _ -> failwith "expecting a SynPat.LongIdent for extern binding"
+        | _ -> invariantViolation pat.Range "an extern binding has a head pattern that is not a long identifier"
 
     ExternBindingNode(
         mkXmlDoc xmlDoc,
@@ -2302,7 +2307,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             declRange
         )
         |> ModuleDecl.NestedModule
-    | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
+    | decl -> invariantViolation decl.Range $"no Oak node is defined for this module declaration: %A{decl}"
 
 let mkSynTyparDecl
     (creationAide: CreationAide)
@@ -2315,7 +2320,9 @@ let mkSynTyparDecl
 
     let intersectionConstraintNodes =
         if intersectionConstraints.Length <> trivia.AmpersandRanges.Length then
-            failwith "Unexpected mismatch in SynTyparDecl between intersectionConstraints and AmpersandRanges"
+            invariantViolation
+                typar.Range
+                "a typar declaration has a different number of intersection constraints than ampersands"
         else
             (trivia.AmpersandRanges, intersectionConstraints)
             ||> List.zip
@@ -2381,7 +2388,8 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
         | SynRationalConst.Paren(innerRc, _) -> visit innerRc
         | SynRationalConst.Negate(innerRc, range) ->
             RationalConstNode.Negate(NegateRationalNode(stn "-" range.StartRange, visit innerRc, range))
-        | SynRationalConst.Rational _ -> failwith "SynRationalConst.Rational not wrapped in SynRationalConst.Paren"
+        | SynRationalConst.Rational(range = m) ->
+            invariantViolation m "a rational constant is not wrapped in parentheses"
 
     visit rc
 
@@ -2579,7 +2587,8 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
                     Type.Var(mkSynTypar typar), ts
                 | None ->
                     match ts with
-                    | [] -> failwith "SynType.Intersection does not contain typar or any intersectionConstraints"
+                    | [] ->
+                        invariantViolation t.Range "a type intersection contains neither a typar nor any constraints"
                     | head :: tail -> mkType creationAide head, tail
 
             assert (ts.Length = trivia.AmpersandRanges.Length)
@@ -2596,7 +2605,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         let nullType = stn "null" mNull |> Type.Var
 
         TypeOrNode(mkType creationAide innerType, stn "|" mBar, nullType, m) |> Type.Or
-    | t -> failwith $"unexpected type: %A{t}"
+    | t -> invariantViolation t.Range $"no Oak node is defined for this type: %A{t}"
 
 [<TailCall>]
 let rec visitOpenL acc decls =
@@ -2670,7 +2679,7 @@ let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
     | SynLeadingKeyword.Val valRange -> mtn [ "val", valRange ]
     | SynLeadingKeyword.New newRange -> mtn [ "new", newRange ]
     | SynLeadingKeyword.Do doRange -> mtn [ "do", doRange ]
-    | SynLeadingKeyword.Synthetic -> failwith "Unexpected SynLeadingKeyword.Synthetic"
+    | SynLeadingKeyword.Synthetic -> invariantViolation lk.Range "a synthetic leading keyword reached the transformer"
 
 let mkSynField
     (creationAide: CreationAide)
@@ -2774,7 +2783,8 @@ let mkTypeDefn
                 | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
                 | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
                 | SynTypeDefnLeadingKeyword.StaticType _
-                | SynTypeDefnLeadingKeyword.Synthetic -> failwithf "unexpected %A" trivia.LeadingKeyword
+                | SynTypeDefnLeadingKeyword.Synthetic ->
+                    invariantViolation range "unexpected leading keyword %A" trivia.LeadingKeyword
 
             let implicitConstructorNode =
                 match implicitConstructor with
@@ -2875,7 +2885,7 @@ let mkTypeDefn
             | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
             | SynTypeDefnKind.Interface, StartRange 9 (mInterface, _) -> stn "interface" mInterface
             | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
-            | _ -> failwith "unexpected kind"
+            | _ -> invariantViolation range "unexpected type definition kind"
 
         let objectMembers =
             objectMembers
@@ -2932,7 +2942,7 @@ let mkTypeDefn
             [ yield! objectMembers; yield! members ]
 
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
-    | _ -> failwithf $"Could not create a TypeDefn for %A{typeRepr}"
+    | _ -> invariantViolation range $"no Oak node is defined for this type definition: %A{typeRepr}"
 
 let mkWithGetSet
     (withKeyword: range option)
@@ -3024,7 +3034,10 @@ let mkPropertyGetSetBinding
 
                 [ tuplePat
                   match List.tryLast ps with
-                  | None -> failwith ""
+                  | None ->
+                      invariantViolation
+                          binding.RangeOfBindingWithRhs
+                          "an indexed property setter has no indexer pattern"
                   | Some indexerPat -> mkPat creationAide indexerPat ]
             | [ SynPat.Tuple(false, [ p1; p2 ], _, _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
             | ps -> List.map (mkPat creationAide) ps
@@ -3042,7 +3055,10 @@ let mkPropertyGetSetBinding
             mkExpr creationAide e,
             range
         )
-    | _ -> failwith "SynBinding does not expected information for PropertyGetSetBinding"
+    | _ ->
+        invariantViolation
+            binding.RangeOfBindingWithRhs
+            "a property get/set binding is missing the information the printer needs"
 
 let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     let memberDefinitionRange = md.Range
@@ -3117,7 +3133,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                 memberDefinitionRange
             )
             |> MemberDefn.Inherit
-        | None -> failwith "successful parse shouldn't have any unfinished inherit"
+        | None -> invariantViolation md.Range "a successful parse produced an unfinished inherit member"
     | SynMemberDefn.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
     | SynMemberDefn.LetBindings(
         bindings = [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) as binding ]) ->
@@ -3354,8 +3370,8 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                 memberDefinitionRange
             )
             |> MemberDefn.PropertyGetSet
-        | _ -> failwith "SynMemberDefn.GetSetMember cannot exist with get and without set"
-    | _ -> failwithf "Unexpected SynMemberDefn: %A" md
+        | _ -> invariantViolation md.Range "a get/set member has a getter but no setter"
+    | _ -> invariantViolation md.Range "no Oak node is defined for this member definition: %A" md
 
 let mkVal
     (creationAide: CreationAide)
@@ -3403,7 +3419,7 @@ let mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
         MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide t, memberSigRange)
         |> MemberDefn.Inherit
     | SynMemberSig.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
-    | _ -> failwithf "Cannot construct node for %A" ms
+    | _ -> invariantViolation ms.Range "no Oak node is defined for this member signature: %A" ms
 
 [<TailCall>]
 let rec mkModuleDecls
@@ -3599,7 +3615,7 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
         )
         |> ModuleDecl.NestedModule
     | SynModuleSigDecl.Val(valSig, _) -> mkVal creationAide valSig |> ModuleDecl.Val
-    | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
+    | decl -> invariantViolation decl.Range $"no Oak node is defined for this signature declaration: %A{decl}"
 
 let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRepr, members, range, trivia)) : TypeDefn =
     let typeNameNode =
@@ -3613,7 +3629,8 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
                 | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
                 | SynTypeDefnLeadingKeyword.StaticType _
-                | SynTypeDefnLeadingKeyword.Synthetic -> failwithf "unexpected %A" trivia.LeadingKeyword
+                | SynTypeDefnLeadingKeyword.Synthetic ->
+                    invariantViolation range "unexpected leading keyword %A" trivia.LeadingKeyword
 
             let m =
                 if not px.IsEmpty then
@@ -3713,7 +3730,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
             | SynTypeDefnKind.Interface, StartRange 9 (mInterface, _) -> stn "interface" mInterface
             | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
-            | _ -> failwith "unexpected kind"
+            | _ -> invariantViolation range "unexpected type definition kind"
 
         let objectMembers = objectMembers |> List.map (mkMemberSig creationAide)
 
@@ -3759,7 +3776,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             [ yield! objectMembers; yield! members ]
 
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
-    | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
+    | _ -> invariantViolation range "no Oak node is defined for this type definition: %A" typeRepr
 
 [<TailCall>]
 let rec mkModuleSigDecls
