@@ -237,17 +237,11 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprChain as node ->
         let expr = Expr.Chain node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprAppLongIdentAndSingleParenArgNode as node ->
-        let expr = Expr.AppLongIdentAndSingleParenArg node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppSingleParenArgNode as node ->
         let expr = Expr.AppSingleParenArg node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppWithLambdaNode as node ->
         let expr = Expr.AppWithLambda node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprNestedIndexWithoutDotNode as node ->
-        let expr = Expr.NestedIndexWithoutDot node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppNode as node ->
         let expr = Expr.App node
@@ -278,9 +272,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprLongIdentSetNode as node ->
         let expr = Expr.LongIdentSet node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprDotIndexedGetNode as node ->
-        let expr = Expr.DotIndexedGet node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprDotIndexedSetNode as node ->
         let expr = Expr.DotIndexedSet node

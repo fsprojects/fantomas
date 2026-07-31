@@ -1321,9 +1321,7 @@ let ``app tuple inside dotget expression`` () =
         """
 (st :> IProvidedCustomAttributeProvider)
     .GetHasTypeProviderEditorHideMethodsAttribute(
-        info
-            .ProvidedType
-            .TypeProvider
+        info.ProvidedType.TypeProvider
             .PUntaintNoFailure(id)
     )
 """

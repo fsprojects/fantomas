@@ -289,8 +289,25 @@ Map
     |> should
         equal
         """
-Map.empty<_, obj>
-    .Add("headerAction", modifyHeader.Action.ArmValue)
+Map.empty<_, obj>.Add(
+    "headerAction",
+    modifyHeader.Action.ArmValue
+)
+"""
+
+[<Test>]
+let ``dotlambda chain with simple segments`` () =
+    formatSourceString
+        """
+_.Name.Length
+"""
+        { config with MaxLineLength = 12 }
+    |> prepend newline
+    |> should
+        equal
+        """
+_.Name
+    .Length
 """
 
 [<Test>]
@@ -428,4 +445,258 @@ Animal<
     .Dog(
         "Spot"
     )
+"""
+
+// ── Tight receivers ─────────────────────────────────────────────────────────
+//
+// `mkAtomicExpr` in the ASTTransformer marks a chain that has to stay one indivisible unit,
+// because a prefix operator, an index or a `?member` binds directly to it. Each test below
+// covers one call site of it. They all run with `SpaceBeforeUppercaseInvocation = true`,
+// because that is the setting that would otherwise introduce the space: compare with
+// `obj.Bar()` on its own, which correctly becomes `obj.Bar ()` under the same config.
+
+[<Test>]
+let ``tight receiver control case, a plain terminal call does take the space`` () =
+    formatSourceString
+        """
+obj.Bar()
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+obj.Bar ()
+"""
+
+[<Test>]
+let ``tight receiver, leading expression of a dynamic chain`` () =
+    formatSourceString
+        """
+obj?A()?B()
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+obj?A()?B()
+"""
+
+[<Test>]
+let ``tight receiver, prefix operator applied to a unit call`` () =
+    formatSourceString
+        """
+-obj.Bar()
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+-obj.Bar()
+"""
+
+[<Test>]
+let ``tight receiver, prefix operator applied to a paren call`` () =
+    formatSourceString
+        """
+-obj.Bar(a)
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+-obj.Bar(a)
+"""
+
+[<Test>]
+let ``tight receiver, identifier of a new-style index`` () =
+    formatSourceString
+        """
+a.Foo()[0]
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+a.Foo()[0]
+"""
+
+// ── Intermediate calls stay welded to their opening paren ───────────────────
+//
+// An intermediate call may never be separated from its `(`: `a.Foo (x).Bar()` parses as
+// `a.Foo ((x).Bar())`. A conditional directive attached to the argument pushes that
+// argument onto its own lines, and the break has to land AFTER the `(`, not before it.
+
+[<Test>]
+let ``directive inside an intermediate call argument keeps the opening paren tight`` () =
+    formatSourceString
+        """
+let x =
+    builder.Configure(
+#if DEBUG
+        debugOptions
+#else
+        releaseOptions
+#endif
+    ).Build().Result
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    builder
+        .Configure(
+#if DEBUG
+            debugOptions
+#else
+            releaseOptions
+#endif
+        )
+        .Build()
+        .Result
+"""
+
+[<Test>]
+let ``match lambda as an intermediate call argument breaks after the opening paren`` () =
+    formatSourceString
+        """
+let x =
+    builder.Configure(function
+        | Some v -> handleSome v
+        | None -> handleNone ()).Build().Result
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    builder
+        .Configure(
+            function
+            | Some v -> handleSome v
+            | None -> handleNone ()
+        )
+        .Build()
+        .Result
+"""
+
+[<Test>]
+let ``match lambda as a terminal call argument keeps the function keyword attached`` () =
+    formatSourceString
+        """
+let x =
+    builder.Build().Configure(function
+        | Some v -> handleSome v
+        | None -> handleNone ())
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    builder
+        .Build()
+        .Configure(function
+            | Some v -> handleSome v
+            | None -> handleNone ())
+"""
+
+// ── Casing of the terminal is decided by the LAST segment ───────────────────
+//
+// `SpaceBeforeUppercaseInvocation` looks at the name the terminal call is made on,
+// which is always the final segment. Intermediate calls earlier in the chain have no
+// say — and stay tight regardless of their own casing.
+
+[<Test>]
+let ``uppercase terminal after an uppercase intermediate call takes the space`` () =
+    formatSourceString
+        """
+a.Foo(x).Bar(y)
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+a.Foo(x).Bar (y)
+"""
+
+[<Test>]
+let ``lowercase terminal after an uppercase intermediate call does not take the space`` () =
+    formatSourceString
+        """
+a.Foo(x).bar(y)
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeLowercaseInvocation = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+a.Foo(x).bar(y)
+"""
+
+[<Test>]
+let ``match lambda as a terminal call argument breaks when closing newline is set`` () =
+    formatSourceString
+        """
+let x =
+    builder.Build().Configure(function
+        | Some v -> handleSome v
+        | None -> handleNone ())
+"""
+        { config with
+            MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    builder
+        .Build()
+        .Configure(
+            function
+            | Some v -> handleSome v
+            | None -> handleNone ()
+        )
+"""
+
+[<Test>]
+let ``match lambda as a terminal call argument honours a user break after the paren`` () =
+    formatSourceString
+        """
+let x =
+    builder.Build().Configure(
+        function
+        | Some v -> handleSome v
+        | None -> handleNone ())
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    builder
+        .Build()
+        .Configure(
+            function
+            | Some v -> handleSome v
+            | None -> handleNone ()
+        )
 """

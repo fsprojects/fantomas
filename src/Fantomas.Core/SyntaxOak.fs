@@ -1380,57 +1380,81 @@ type ExprIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, range) =
     member val Identifier = identifierExpr
     member val Index = indexExpr
 
-/// A chain link where a function is applied to a parenthesised argument, e.g. `foo(x)` in `a.foo(x).bar`.
-type LinkSingleAppParen(functionName: Expr, parenExpr: ExprParenNode, range) =
-    inherit NodeBase(range)
-    override val Children: Node array = [| yield Expr.Node functionName; yield parenExpr |]
-    member val FunctionName = functionName
-    member val Paren = parenExpr
-
-/// A chain link where a function is applied to a unit argument, e.g. `Dispose()` in `x.Dispose()`.
-type LinkSingleAppUnit(functionName: Expr, unit: UnitNode, range) =
-    inherit NodeBase(range)
-    override val Children: Node array = [| yield Expr.Node functionName; yield unit |]
-    member val FunctionName = functionName
-    member val Unit = unit
-
-/// A single link in a method-call or property-access chain (e.g. <c>a.b().c[0]</c>).
-/// The chain is represented as an ordered list of <c>ChainLink</c> values so that the
-/// printer can decide whether to keep the chain on one line or break at each dot.
+/// The argument of a call within a chain — either a parenthesised expression or unit.
 [<RequireQualifiedAccess; NoComparison; NoEquality>]
-type ChainLink =
-    | Identifier of Expr
-    | Dot of SingleTextNode
-    | Expr of Expr
-    | AppParen of
-        // There should only be one argument
-        LinkSingleAppParen
-    | AppUnit of LinkSingleAppUnit
-    // [ expr ] from DotIndexedGet
-    | IndexExpr of Expr // e.[f]
+type ChainCall =
+    | Paren of ExprParenNode
+    | Unit of UnitNode
 
-    static member Node(link: ChainLink) : Node =
-        match link with
-        | Identifier e -> Expr.Node e
-        | Dot n -> n
-        | Expr e -> Expr.Node e
-        | AppParen n -> n
-        | AppUnit n -> n
-        | IndexExpr e -> Expr.Node e
+/// A single dot-prefixed step in a member-access or call chain.
+/// Every step is reached through a <c>.</c>; the dot is an explicit <see cref="SingleTextNode"/>
+/// so that trivia (comments, blank lines) attached to it are preserved during formatting.
+///
+/// A segment is always <em>intermediate</em>: the final call of a chain is the
+/// <c>ExprChain.Terminal</c>, never a segment here.  That is why <c>DotApplication</c> (an
+/// intermediate call) is distinct from <c>DotMember</c> (plain access) — the distinction the
+/// layout cares about (navigation vs. action) is then visible in the shape of the data itself.
+[<RequireQualifiedAccess; NoComparison; NoEquality>]
+type ChainSegment =
+    ///   .Foo        — plain property access (navigation)
+    ///   .Items[0]   — expr = IndexWithoutDot(Items, [0]), no dedicated case needed
+    | DotMember of dot: SingleTextNode * expr: Expr
+    ///   .Foo(x)     — intermediate call — always tight, never a space before (
+    ///   .Foo()      — intermediate unit call — always tight
+    /// e.g. the `.Foo(x)` in `a.Foo(x).Bar`.  The terminal call of a chain is not a segment.
+    | DotApplication of dot: SingleTextNode * expr: Expr * call: ChainCall
+    /// Old dot-bracket index syntax: <c>arr.[i]</c>.
+    /// <c>DotIndex</c> is a separate case rather than <c>DotMember</c> because the <c>[</c> and
+    /// <c>]</c> brackets are <em>not</em> part of <c>indexExpr</c> in the AST — <c>genExpr
+    /// indexExpr</c> produces only the content (e.g. <c>0</c>), not <c>[0]</c>.  No existing
+    /// <c>Expr</c> type naturally renders bracketed index content, so the printer must add
+    /// <c>[</c> and <c>]</c> explicitly.  From a layout perspective <c>DotIndex</c> is
+    /// identical to <c>DotMember</c> — both are navigation segments with no call.
+    | DotIndex of dot: SingleTextNode * indexExpr: Expr
 
-/// Example: `person.Address.City.ToUpper()` — a chain of dot-separated member accesses and calls
-type ExprChain(links: ChainLink list, range) =
+/// Controls whether and how a space is emitted before the terminal call's parenthesis.
+/// The terminal call is the only position in a chain where a space is negotiable;
+/// intermediate calls are always tight (adding a space before their parens changes the parse tree).
+[<RequireQualifiedAccess; NoComparison; NoEquality>]
+type ChainTerminal =
+    | SpaceAllowed of ChainCall // regular chain — space governed by SpaceBeforeUppercaseInvocation
+    | NoSpaceAllowed of ChainCall // DotLambda body — space never permitted (compiler constraint)
+    | NoTerminal // chain ends with a property access or index, no invocation
+
+/// Example: `person.Address.City.ToUpper()` — a chain of dot-separated member accesses and calls.
+/// <c>Head</c> is the leading receiver expression (fully decomposed; no dotted content remains in it).
+/// <c>Segments</c> are the dot-paired steps. <c>Terminal</c> is the optional outermost call.
+type ExprChain(head: Expr, segments: ChainSegment list, terminal: ChainTerminal, range) =
     inherit NodeBase(range)
-    override val Children: Node array = List.map ChainLink.Node links |> List.toArray
-    member val Links = links
+    member val Head = head
+    member val Segments = segments
+    member val Terminal = terminal
 
-/// Example: `List.map(f)` — a qualified name (dotted identifier) applied to a single parenthesised argument
-type ExprAppLongIdentAndSingleParenArgNode(functionName: IdentListNode, argExpr: Expr, range) =
-    inherit NodeBase(range)
+    override val Children: Node array =
+        [| yield Expr.Node head
 
-    override val Children: Node array = [| yield functionName; yield Expr.Node argExpr |]
-    member val FunctionName = functionName
-    member val ArgExpr = argExpr
+           for segment in segments do
+               match segment with
+               | ChainSegment.DotMember(dot, expr) ->
+                   yield dot
+                   yield Expr.Node expr
+               | ChainSegment.DotApplication(dot, expr, call) ->
+                   yield dot
+                   yield Expr.Node expr
+
+                   match call with
+                   | ChainCall.Paren p -> yield p
+                   | ChainCall.Unit u -> yield u
+               | ChainSegment.DotIndex(dot, idx) ->
+                   yield dot
+                   yield Expr.Node idx
+
+           match terminal with
+           | ChainTerminal.SpaceAllowed(ChainCall.Paren p)
+           | ChainTerminal.NoSpaceAllowed(ChainCall.Paren p) -> yield p
+           | ChainTerminal.SpaceAllowed(ChainCall.Unit u)
+           | ChainTerminal.NoSpaceAllowed(ChainCall.Unit u) -> yield u
+           | ChainTerminal.NoTerminal -> () |]
 
 /// Example: `f(a)` — a general expression (not a simple dotted name) applied to a single parenthesised argument
 type ExprAppSingleParenArgNode(functionExpr: Expr, argExpr: Expr, range) =
@@ -1469,20 +1493,6 @@ type ExprAppWithLambdaNode
     member val OpeningParen = openingParen
     member val Lambda = lambda
     member val ClosingParen = closingParen
-
-/// Example: `xs[i] arg` — an indexed expression (`xs[i]`) immediately applied to an argument.
-/// Used for cases like `arr[0] + 1` where the index result is itself called or applied.
-type ExprNestedIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, argumentExpr: Expr, range) =
-    inherit NodeBase(range)
-
-    override val Children: Node array =
-        [| yield Expr.Node identifierExpr
-           yield Expr.Node indexExpr
-           yield Expr.Node argumentExpr |]
-
-    member val Identifier = identifierExpr
-    member val Index = indexExpr
-    member val Argument = argumentExpr
 
 /// Example: `List.map f xs` — a function applied to two or more space-separated arguments
 type ExprAppNode(functionExpr: Expr, arguments: Expr list, range) =
@@ -1716,13 +1726,6 @@ type ExprLongIdentSetNode(identifier: IdentListNode, rhs: Expr, range) =
     member val Identifier = identifier
     member val Expr = rhs
 
-/// Example: `arr.[i]` — indexed get using the older dot-bracket syntax (deprecated in F# 6).
-type ExprDotIndexedGetNode(objectExpr: Expr, indexExpr: Expr, range) =
-    inherit NodeBase(range)
-    override val Children: Node array = [| yield Expr.Node objectExpr; yield Expr.Node indexExpr |]
-    member val ObjectExpr = objectExpr
-    member val IndexExpr = indexExpr
-
 /// Example: `arr.[i] <- value` — indexed set using the older dot-bracket syntax (deprecated in F# 6).
 type ExprDotIndexedSetNode(objectExpr: Expr, indexExpr: Expr, valueExpr: Expr, range) =
     inherit NodeBase(range)
@@ -1874,15 +1877,6 @@ type ExprIndexFromEndNode(expr: Expr, range) =
     override val Children: Node array = [| Expr.Node expr |]
     member val Expr = expr
 
-/// Example: `_.ToUpper()` or `_.Length` — a dot-lambda shorthand (F# 8+).
-/// `Underscore` is the `_` placeholder, `Dot` is the `.`, and `Expr` is the member access or call.
-type ExprDotLambda(underscore: SingleTextNode, dot: SingleTextNode, expr: Expr, range: range) =
-    inherit NodeBase(range)
-    override val Children: Node array = [| underscore; dot; Expr.Node expr |]
-    member val Underscore = underscore
-    member val Dot = dot
-    member val Expr = expr
-
 /// Example: `begin expr end` — explicit `begin`/`end` block delimiters (equivalent to parentheses).
 type ExprBeginEndNode(beginNode: SingleTextNode, expr: Expr, endNode: SingleTextNode, range) =
     inherit NodeBase(range)
@@ -1941,10 +1935,8 @@ type Expr =
     | SameInfixApps of ExprSameInfixAppsNode
     | InfixApp of ExprInfixAppNode
     | IndexWithoutDot of ExprIndexWithoutDotNode
-    | AppLongIdentAndSingleParenArg of ExprAppLongIdentAndSingleParenArgNode
     | AppSingleParenArg of ExprAppSingleParenArgNode
     | AppWithLambda of ExprAppWithLambdaNode
-    | NestedIndexWithoutDot of ExprNestedIndexWithoutDotNode
     | App of ExprAppNode
     | TypeApp of ExprTypeAppNode
     | TryWithSingleClause of ExprTryWithSingleClauseNode
@@ -1956,7 +1948,6 @@ type Expr =
     | Ident of SingleTextNode
     | OptVar of ExprOptVarNode
     | LongIdentSet of ExprLongIdentSetNode
-    | DotIndexedGet of ExprDotIndexedGetNode
     | DotIndexedSet of ExprDotIndexedSetNode
     | NamedIndexedPropertySet of ExprNamedIndexedPropertySetNode
     | DotNamedIndexedPropertySet of ExprDotNamedIndexedPropertySetNode
@@ -1969,7 +1960,6 @@ type Expr =
     | IndexFromEnd of ExprIndexFromEndNode
     | Typar of SingleTextNode
     | Chain of ExprChain
-    | DotLambda of ExprDotLambda
     | BeginEnd of ExprBeginEndNode
     | ExplicitConstructorThenExpr of ExprExplicitConstructorThenExpr
 
@@ -2010,10 +2000,8 @@ type Expr =
         | SameInfixApps n -> n
         | InfixApp n -> n
         | IndexWithoutDot n -> n
-        | AppLongIdentAndSingleParenArg n -> n
         | AppSingleParenArg n -> n
         | AppWithLambda n -> n
-        | NestedIndexWithoutDot n -> n
         | App n -> n
         | TypeApp n -> n
         | TryWithSingleClause n -> n
@@ -2025,7 +2013,6 @@ type Expr =
         | Ident n -> n
         | OptVar n -> n
         | LongIdentSet n -> n
-        | DotIndexedGet n -> n
         | DotIndexedSet n -> n
         | NamedIndexedPropertySet n -> n
         | DotNamedIndexedPropertySet n -> n
@@ -2038,7 +2025,6 @@ type Expr =
         | IndexFromEnd n -> n
         | Typar n -> n
         | Chain n -> n
-        | DotLambda n -> n
         | BeginEnd n -> n
         | ExplicitConstructorThenExpr n -> n
 

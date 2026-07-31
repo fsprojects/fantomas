@@ -126,6 +126,7 @@
     <Compile Include="DallasTests.fs" />
     <Compile Include="InlineTests.fs" />
     <Compile Include="ChainTests.fs" />
+    <Compile Include="ChainFormattingTests.fs" />
     <Compile Include="TryWithTests.fs" />
     <Compile Include="CursorTests.fs" />
     <Compile Include="MultipleDefineCombinationsTests.fs" />
@@ -149,5 +150,6 @@
     <PackageReference Include="FsCheck" />
     <PackageReference Include="FsUnit" />
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" />
+    <PackageReference Include="AltCover" PrivateAssets="all" />
   </ItemGroup>
 </Project>

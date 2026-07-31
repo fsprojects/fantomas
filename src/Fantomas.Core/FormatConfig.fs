@@ -3,6 +3,7 @@ namespace Fantomas.Core
 open System
 open System.ComponentModel
 open Fantomas.FCS.Parse
+open Fantomas.FCS.Text
 
 /// Raised when the F# parser produces errors for source code without conditional directives.
 exception ParseException of diagnostics: FSharpParserDiagnostic list
@@ -10,6 +11,24 @@ exception ParseException of diagnostics: FSharpParserDiagnostic list
 /// Raised when Fantomas encounters a problem during formatting.
 type FormatException(msg: string) =
     inherit Exception(msg)
+
+/// Raised when Fantomas reaches a state that its own model says is impossible, for example a
+/// chain whose parts do not fit the shape the transformer guarantees.
+///
+/// Unlike the other exceptions here, this never indicates a problem with the code being
+/// formatted: it is a bug in Fantomas, or a change in how the F# parser groups expressions.
+/// Failing loudly is deliberate — the alternative is silently dropping parts of the source.
+type InvariantViolationException(msg: string, range: range) =
+    inherit
+        FormatException(
+            $"%s{msg}\nAt line %i{range.StartLine}, column %i{range.StartColumn} in %s{range.FileName}.\nThis is a bug in Fantomas. Please report it via https://fsprojects.github.io/fantomas-tools/"
+        )
+
+    /// The invariant that was violated, without the location or "please report" suffix.
+    member _.Invariant = msg
+
+    /// The source range of the construct that triggered the violation.
+    member _.Range = range
 
 /// Raised when one or more conditional compilation define combinations produce invalid syntax trees.
 type DefineParseException(combinations: string list) =

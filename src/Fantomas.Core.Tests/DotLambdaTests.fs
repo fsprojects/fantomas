@@ -174,3 +174,18 @@ workstations
         category
     )
 """
+
+[<Test>]
+let ``no space before unit invocation in chained dot lambda body, 3364`` () =
+    formatSourceString
+        """
+"yow" |> _.Substring(0, 16).ToLower()
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+"yow" |> _.Substring(0, 16).ToLower()
+"""

@@ -272,6 +272,11 @@ val sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth: expr: (Context -> 
 val autoParenthesisIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
 
 val futureNlnCheck: f: (Context -> Context) -> ctx: Context -> bool
+/// Probe `f` and report `(isMultiline, isLong)` separately: whether it spans
+/// multiple lines, and whether it overflows the right margin. `futureNlnCheck`
+/// is `isMultiline || isLong`; callers that care only about multiline layout
+/// (not width) use the first component.
+val futureNlnCheckMem: f: (Context -> Context) * ctx: Context -> bool * bool
 /// similar to futureNlnCheck but // validates whether the expression is going over the max page width
 /// This functions is does not use any caching
 val exceedsWidth: maxWidth: int -> f: (Context -> Context) -> ctx: Context -> bool

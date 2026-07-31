@@ -33,3 +33,34 @@ let ``should fail on uncompilable extern functions`` () =
 [<System.Runtime.InteropServices.DllImport("user32.dll")>]
 let GetWindowLong hwnd : System.IntPtr, index : int : int = failwith )"""
     |> should equal false
+
+// InvariantViolationException marks a state the transformer's own model says is impossible.
+// It must derive from FormatException: the CLI matches on that type to decide what to print,
+// and anything else falls through to an empty message at normal verbosity.
+
+let private sampleRange =
+    Fantomas.FCS.Text.Range.mkRange
+        "Sample.fs"
+        (Fantomas.FCS.Text.Position.mkPos 7 4)
+        (Fantomas.FCS.Text.Position.mkPos 7 20)
+
+[<Test>]
+let ``InvariantViolationException is reported as a FormatException`` () =
+    let ex = Fantomas.Core.InvariantViolationException("chain head is Foo", sampleRange)
+    ex |> should be instanceOfType<Fantomas.Core.FormatException>
+
+[<Test>]
+let ``InvariantViolationException keeps the bare invariant and points at the issue tracker`` () =
+    let ex = Fantomas.Core.InvariantViolationException("chain head is Foo", sampleRange)
+    ex.Invariant |> should equal "chain head is Foo"
+    ex.Message |> should haveSubstring "chain head is Foo"
+    ex.Message |> should haveSubstring "fsprojects.github.io/fantomas-tools"
+
+[<Test>]
+let ``InvariantViolationException reports where in the source the violation happened`` () =
+    let ex = Fantomas.Core.InvariantViolationException("chain head is Foo", sampleRange)
+    ex.Range |> should equal sampleRange
+    // The location has to survive into the message, because that is all the CLI prints.
+    ex.Message |> should haveSubstring "line 7"
+    ex.Message |> should haveSubstring "column 4"
+    ex.Message |> should haveSubstring "Sample.fs"

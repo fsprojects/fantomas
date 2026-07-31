@@ -61,6 +61,10 @@ let pushPackage nupkg =
 
 let analysisReportsDir = "analysisreports"
 
+let coverageReportDir = "coveragereport"
+
+let coverageXml = "src" </> "Fantomas.Core.Tests" </> "coverage.xml"
+
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
@@ -84,6 +88,45 @@ pipeline "Benchmark" {
     workingDir __SOURCE_DIRECTORY__
     stage "Prepare" { run "dotnet build -c Release src/Fantomas.Benchmarks --tl" }
     stage "Benchmark" { run $"dotnet {benchmarkAssembly}" }
+    runIfOnlySpecified true
+}
+
+// Line and branch coverage for Fantomas.Core, via AltCover's MSBuild integration.
+//
+// The filter is a negative lookahead: instrument Fantomas.Core and nothing else, which keeps the
+// generated Fantomas.FCS parser (and the test assembly itself) out of the report and makes the
+// run fast. AltCover writes OpenCover XML, which is for tooling rather than reading, so
+// ReportGenerator turns it into a browsable HTML report afterwards.
+//
+// Produces:
+//   src/Fantomas.Core.Tests/coverage.xml   raw OpenCover XML
+//   coveragereport/index.html              browsable report, per file and per line
+pipeline "Coverage" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "RestoreTools" { run "dotnet tool restore" }
+    stage "Clean" { run (cleanFolders [| coverageReportDir |]) }
+
+    stage "Coverage" {
+        run
+            @"dotnet test src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj -c Release /p:AltCover=true ""/p:AltCoverAssemblyFilter=^(?!Fantomas\.Core$)"""
+    }
+
+    stage "Report" {
+        run
+            $"dotnet reportgenerator -reports:{coverageXml} -targetdir:{coverageReportDir} -reporttypes:Html;TextSummary"
+        run (fun _ ->
+            async {
+                let summary = coverageReportDir </> "Summary.txt"
+                let index = coverageReportDir </> "index.html"
+
+                if File.Exists summary then
+                    printfn "%s" (File.ReadAllText summary)
+
+                printfn $"Browse the full report at {index}"
+                return 0
+            })
+    }
+
     runIfOnlySpecified true
 }
 
