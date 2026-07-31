@@ -86,7 +86,7 @@ a.Foo(x).Bar()    // parsed the way you intended
 
 The parser reads `(x).Bar()` as a single parenthesised argument handed to `a.Foo`. So for every call except the last one, tightness is a grammar requirement rather than a preference, and no setting can override it.
 
-The same applies wherever an expression has to stay glued to its neighbour: a receiver that is itself a call (`getBuilder().Build()`), an indexed call (`x.Foo()[0]`), or a `?` access. In each case a space would rebind the parentheses to the wrong thing.
+The same constraint turns up wherever an expression has to stay glued to its neighbour. In `getBuilder().Build()` the receiver keeps its own `()` tight, in `x.Foo()[0]` the indexed call keeps its own `()` tight, and a `?` access does the same. In each case a space there would rebind the parentheses to the wrong thing. (The *final* call is still free to take a space: with the setting on, that first example formats as `getBuilder().Build ()`.)
 
 There is one place where even the last call stays tight: the body of a `_.` shorthand lambda, covered in the final section of this page.
 
