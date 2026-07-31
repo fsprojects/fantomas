@@ -407,7 +407,7 @@ let requiresMultilineToPreserveSemantics (exprs: Expr list) =
 ///   * whether the opening `(` is allowed to leave the member name, which is a grammar
 ///     constraint rather than a style choice, and
 ///   * whether a `(function` argument is forced onto its own line, which is a readability call.
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; Struct>]
 type ChainCallPosition =
     /// A call with more chain after it, e.g. `.Foo(x)` in `a.Foo(x).Bar()`.
     | Intermediate
