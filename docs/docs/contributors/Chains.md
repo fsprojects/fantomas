@@ -55,6 +55,43 @@ arr.[i]         // a chain, this indexing syntax does have a dot
 
 An expression without any dots is laid out by other rules, not the ones on this page.
 
+## Two decisions, not one
+
+Formatting a chain settles two questions that have nothing to do with each other:
+
+1. **Where do the line breaks go?** A style decision, and the bulk of this page.
+2. **May a space sit between a method name and its `(`?** Mostly *not* a style decision, and the shorter of the two, so it is settled first.
+
+## Only the last call may have a space before its parentheses
+
+Fantomas has settings that ask for a space before the parentheses of a call, [`space_before_uppercase_invocation`](../end-users/Configuration.html) and [`space_before_lowercase_invocation`](../end-users/Configuration.html).
+
+In a chain, **those settings apply to the final call only**. Every earlier call stays tight, whatever the settings say:
+
+```fsharp
+// both examples with space_before_uppercase_invocation = true
+
+obj.Bar ()          // a call on its own: the setting applies
+
+a.Foo(x).Bar (y)    // in a chain: only the final .Bar takes the space,
+                    // the intermediate .Foo stays tight
+```
+
+This is not Fantomas being inconsistent. A space in the middle of a chain changes what the code *means*:
+
+```fsharp
+a.Foo (x).Bar()   // parsed as a.Foo ((x).Bar())
+a.Foo(x).Bar()    // parsed the way you intended
+```
+
+The parser reads `(x).Bar()` as a single parenthesised argument handed to `a.Foo`. So for every call except the last one, tightness is a grammar requirement rather than a preference, and no setting can override it.
+
+The same applies wherever an expression has to stay glued to its neighbour: a receiver that is itself a call (`getBuilder().Build()`), an indexed call (`x.Foo()[0]`), or a `?` access. In each case a space would rebind the parentheses to the wrong thing.
+
+There is one place where even the last call stays tight: the body of a `_.` shorthand lambda, covered in the final section of this page.
+
+Everything from here on is about the first question, where the line breaks go.
+
 ## Two kinds of step
 
 Once Fantomas has to break a chain, it sorts the steps into two weights.
@@ -87,7 +124,7 @@ That is the one pair worth keeping straight:
 
 An index or a set of type arguments is navigation while it stays on one line, and becomes an action if its contents grow big enough to need several lines.
 
-## The rule
+## The rule for line breaks
 
 ```text
 Does the whole chain fit on one line?
@@ -280,9 +317,9 @@ F# lets you write `_.Property` as a short lambda. Fantomas treats it as a chain 
 "yow" |> _.Substring(0, 16).ToLower()
 ```
 
-There is one thing that makes it special.
-The F# compiler requires the body of a `_.` lambda to stay tightly joined, so Fantomas will **never** insert a space before a `(` here.
-This holds even when [`space_before_uppercase_invocation`](../end-users/Configuration.html) is enabled, which would otherwise produce `ToLower ()` and fail to compile.
+There is one thing that makes it special, and it concerns [the space before a call](#only-the-last-call-may-have-a-space-before-its-parentheses).
+Everywhere else the *last* call of a chain may take a space when a setting asks for one. Here it may not: the F# compiler requires the body of a `_.` lambda to stay atomic, so `ToLower ()` would not compile.
+Fantomas therefore keeps it tight even with [`space_before_uppercase_invocation`](../end-users/Configuration.html) enabled. This was [issue 3364](https://github.com/fsprojects/fantomas/issues/3364).
 
 Apart from that, it follows the same rule as any other chain.
 The example above has two calls, so if it does not fit, it becomes a pipeline:
@@ -292,19 +329,5 @@ _
     .Substring(0, 16)
     .ToLower()
 ```
-
-## Why intermediate calls never get a space
-
-Settings such as [`space_before_uppercase_invocation`](../end-users/Configuration.html) can ask Fantomas to write `obj.Bar ()` with a space.
-You may notice that this never happens to a call in the middle of a chain.
-That is not a style preference. In F#, a space in the middle of a chain changes how the code is parsed:
-
-```fsharp
-a.Foo (x).Bar()   // means a.Foo ((x).Bar())
-a.Foo(x).Bar()    // means what you intended
-```
-
-So only the very last call in a chain can be given a space, and only when a setting asks for one.
-Every call before it stays tight, always.
 
 <fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
