@@ -150,12 +150,18 @@ let enterNode<'n when 'n :> Node> (n: 'n) =
 let leaveNode<'n when 'n :> Node> (n: 'n) =
     col sepNone n.ContentAfter (genTrivia n)
 
-let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) =
-    onlyIfCtx (fun ctx -> ctx.DebugMode) (writerEvent (NodeStart(n.GetType().Name, sprintf "%O" n.Range)))
-    +> enterNode n
-    +> recordCursorNode f n
-    +> leaveNode n
-    +> onlyIfCtx (fun ctx -> ctx.DebugMode) (writerEvent (NodeEnd(n.GetType().Name, sprintf "%O" n.Range)))
+let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) =
+    // The NodeStart/NodeEnd payloads are only ever observed via CodeFormatter.GetWriterEventsAsync.
+    // Keep them out of the default path entirely: building them costs a reflection call and a sprintf per node.
+    if ctx.DebugMode then
+        (writerEvent (NodeStart(n.GetType().Name, sprintf "%O" n.Range))
+         +> enterNode n
+         +> recordCursorNode f n
+         +> leaveNode n
+         +> writerEvent (NodeEnd(n.GetType().Name, sprintf "%O" n.Range)))
+            ctx
+    else
+        (enterNode n +> recordCursorNode f n +> leaveNode n) ctx
 
 let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 
