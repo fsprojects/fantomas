@@ -28,9 +28,10 @@ If you disagree with a rule, the discussion belongs at [fsharp/fslang-design](ht
 Fantomas does not edit your text.
 Think of it like a word processor: it re-types your entire file from scratch, following its own rules.
 
-When it re-types a piece of code, it asks one question first:
+Most of that re-typing is mechanical: spacing, indentation and parentheses follow fixed rules with nothing to decide.
+The one real choice is **where to put line breaks**, and it comes down to a single question:
 
-> Does this fit on the current line?
+> Does this fit within the max line length?
 
 If the answer is yes, it stays on one line and there is nothing more to decide.
 Everything below is about what happens when the answer is **no**.
@@ -86,7 +87,7 @@ a.Foo(x).Bar()    // parsed the way you intended
 
 The parser reads `(x).Bar()` as a single parenthesised argument handed to `a.Foo`. So for every call except the last one, tightness is a grammar requirement rather than a preference, and no setting can override it.
 
-The same constraint turns up wherever an expression has to stay glued to its neighbour. In `getBuilder().Build()` the receiver keeps its own `()` tight, in `x.Foo()[0]` the indexed call keeps its own `()` tight, and a `?` access does the same. In each case a space there would rebind the parentheses to the wrong thing. (The *final* call is still free to take a space: with the setting on, that first example formats as `getBuilder().Build ()`.)
+The same constraint turns up wherever an expression has to stay glued to its neighbour. In `getBuilder().Build()` the receiver keeps its own `()` tight, in `x.Foo()[0]` the indexed call keeps its own `()` tight, and the dynamic-access operator `?` behaves the same way: `settings?Section("db")?ConnectionString` stays tight throughout. In each case a space there would rebind the parentheses to the wrong thing. (The *final* call is still free to take a space: with the setting on, that first example formats as `getBuilder().Build ()`.)
 
 There is one place where even the last call stays tight: the body of a `_.` shorthand lambda, covered in the final section of this page.
 
@@ -122,8 +123,6 @@ That is the one pair worth keeping straight:
 .Cast<T>()      // action, this calls something
 ```
 
-An index or a set of type arguments is navigation while it stays on one line, and becomes an action if its contents grow big enough to need several lines.
-
 ## The rule for line breaks
 
 ```text
@@ -141,6 +140,10 @@ In one sentence:
 > As soon as there are two or more calls, the chain is a pipeline and each call gets its own line.
 
 Navigation is never worth a line of its own. It rides at the front of the line belonging to the action it introduces.
+
+Riding along only works while the navigation itself stays on one line.
+If an index (or a set of type arguments) has to break across several lines, it can no longer be a passenger, and the question above then counts it as an action: it claims a line of its own, and the chain around it becomes a pipeline.
+It is still navigation in what it *does*; it has simply grown too big to ride along.
 
 ## Examples
 
@@ -188,6 +191,28 @@ document.Body.FirstChild
 
 `.Body` and `.FirstChild` lead the first line.
 `.ParentElement` is navigation introducing `.RemoveChild(oldNode)`, so it rides at the front of that line instead of claiming one of its own.
+
+### An index too big to ride along
+
+```fsharp
+lookupTable.[0].AppendEntry(
+    newEntryForTheBucket
+)
+```
+
+A short index is navigation, so there is a single action at the end and only its arguments break.
+
+Grow the index until it needs several lines of its own and it can no longer ride along:
+
+```fsharp
+lookupTable
+    .[computeBucketIndex
+        hashOfTheKeyValue
+        tableSizeInBuckets]
+    .AppendEntry(newEntry)
+```
+
+Nothing about the index started executing. It just stopped fitting on someone else's line.
 
 ### A chain that ends in navigation
 
