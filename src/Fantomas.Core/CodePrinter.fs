@@ -144,11 +144,19 @@ let recordCursorNode f (node: Node) (ctx: Context) =
         { ctxAfter with
             FormattedCursor = Some formattedCursor }
 
+// Most nodes carry no trivia at all. `col` over an empty sequence returns the context unchanged,
+// so skipping it is equivalent to `sepNone` and saves allocating an enumerator per node.
 let enterNode<'n when 'n :> Node> (n: 'n) =
-    col sepNone n.ContentBefore (genTrivia n)
+    if n.HasAnyContentBefore then
+        col sepNone n.ContentBefore (genTrivia n)
+    else
+        sepNone
 
 let leaveNode<'n when 'n :> Node> (n: 'n) =
-    col sepNone n.ContentAfter (genTrivia n)
+    if n.HasAnyContentAfter then
+        col sepNone n.ContentAfter (genTrivia n)
+    else
+        sepNone
 
 let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) =
     // The NodeStart/NodeEnd payloads are only ever observed via CodeFormatter.GetWriterEventsAsync.
