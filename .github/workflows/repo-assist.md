@@ -1,6 +1,6 @@
 ---
 description: |
-  A friendly repository assistant that runs to support contributors and maintainers.
+  A friendly repository assistant that runs regularly (twice a day by default) to assist maintainers.
   Can also be triggered on-demand via '/repo-assist <instructions>' to perform specific tasks.
   - Labels and triages open issues
   - Comments helpfully on open issues to unblock contributors and onboard newcomers
@@ -16,9 +16,29 @@ description: |
 on:
   schedule: every 30d
   workflow_dispatch:
+    inputs:
+      command:
+        description: "Optional command-mode instruction (for example: Run Task 9)"
+        required: false
+        type: string
+        default: ""
   slash_command:
     name: repo-assist
   reaction: "eyes"
+  permissions:
+    pull-requests: read
+  steps:
+    - id: check
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        MAX_OPEN_PRS=8
+        if [[ "$GITHUB_EVENT_NAME" != "schedule" ]]; then exit 0; fi
+        COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "[repo-assist]"' --json number --jq 'length')
+        [[ "$COUNT" -lt "$MAX_OPEN_PRS" ]]
+      # exits 0 if not scheduled or <MAX_OPEN_PRS open PRs, 1 if ≥MAX_OPEN_PRS
+
+if: needs.pre_activation.outputs.check_result == 'success'
 
 timeout-minutes: 60
 
@@ -49,6 +69,7 @@ tools:
   bash: true
   repo-memory: true
   playwright:
+    mode: cli
     #allowed_domains: ["defaults", "github", "*.custom.com", "fsprojects.github.io"]
     version: "1.56.1" # Optional: defaults to 1.56.1, use "latest" for newest
 
@@ -64,22 +85,22 @@ safe-outputs:
     hide-older-comments: true
   create-pull-request:
     draft: true
-    title-prefix: "[Repo Assist] "
+    title-prefix: "[repo-assist] "
     labels: [automation, repo-assist]
     protected-files: fallback-to-issue
     max: 1
   push-to-pull-request-branch:
     target: "*"
-    title-prefix: "[Repo Assist] "
+    required-title-prefix: "[repo-assist] "
     max: 4
     protected-files: fallback-to-issue
   create-issue:
-    title-prefix: "[Repo Assist] "
+    title-prefix: "[repo-assist] "
     labels: [automation, repo-assist]
     max: 1
   update-issue:
     target: "*"
-    title-prefix: "[Repo Assist] "
+    required-title-prefix: "[repo-assist] "
     max: 1
   add-labels:
     allowed:
@@ -139,7 +160,7 @@ steps:
       # Fetch open PRs with titles (up to 200)
       gh pr list --state open --limit 200 --json number,title > /tmp/gh-aw/prs.json
 
-      # Compute task weights and select two tasks for this run
+      # Compute task weights and select three tasks for this run
       python3 - << 'EOF'
       import json, random, os
 
@@ -150,8 +171,8 @@ steps:
 
       open_issues     = len(issues)
       unlabelled      = sum(1 for i in issues if not i.get('labels'))
-      repo_assist_prs = sum(1 for p in prs if p['title'].startswith('[Repo Assist]'))
-      other_prs       = sum(1 for p in prs if not p['title'].startswith('[Repo Assist]'))
+      repo_assist_prs = sum(1 for p in prs if p['title'].startswith('[repo-assist]'))
+      other_prs       = sum(1 for p in prs if not p['title'].startswith('[repo-assist]'))
 
       task_names = {
           1:  'Issue Labelling',
@@ -186,13 +207,14 @@ steps:
       task_ids     = list(weights.keys())
       task_weights = [weights[t] for t in task_ids]
 
-      # Weighted sample without replacement (pick 2 distinct tasks)
+      # Weighted sample without replacement (pick 3 distinct tasks)
+      NUM_TASKS_PER_RUN = 3
       chosen, seen = [], set()
       for t in rng.choices(task_ids, weights=task_weights, k=30):
           if t not in seen:
               seen.add(t)
               chosen.append(t)
-          if len(chosen) == 2:
+          if len(chosen) == NUM_TASKS_PER_RUN:
               break
 
       print('=== Repo Assist Task Selection ===')
@@ -206,7 +228,7 @@ steps:
           tag = ' <-- SELECTED' if t in chosen else ''
           print(f'  Task {t:2d} ({task_names[t]}): weight {w:6.1f}{tag}')
       print()
-      print(f'Selected tasks for this run: Task {chosen[0]} ({task_names[chosen[0]]}) and Task {chosen[1]} ({task_names[chosen[1]]})')
+      print(f'Selected tasks for this run: ' + ', '.join(f'Task {c} ({task_names[c]})' for c in chosen))
 
       result = {
           'open_issues': open_issues, 'unlabelled_issues': unlabelled,
@@ -219,16 +241,16 @@ steps:
           json.dump(result, f, indent=2)
       EOF
 
-source: githubnext/agentics/workflows/repo-assist.md@96b9d4c39aa22359c0b38265927eadb31dcf4e2a
+source: githubnext/agentics/workflows/repo-assist.md@42c2ab5b4e4c9273534c39259b2e0df7f20f07e9
 ---
 
 # Repo Assist
 
 ## Command Mode
 
-Take heed of **instructions**: "${{ steps.sanitized.outputs.text }}"
+Take heed of **instructions**: "${{ steps.sanitized.outputs.text || inputs.command }}"
 
-If these are non-empty (not ""), then you have been triggered via `/repo-assist <instructions>`. Follow the user's instructions instead of the normal scheduled workflow. Focus exclusively on those instructions. Apply all the same guidelines (read AGENTS.md, run formatters/linters/tests, be polite, use AI disclosure). Skip the weighted task selection and Task 11 reporting, and instead directly do what the user requested. If no specific instructions were provided (empty or blank), proceed with the normal scheduled workflow below.
+If these are non-empty (not ""), then you have been triggered via `/repo-assist <instructions>` (or by the user setting `inputs.command` in a manual `workflow_dispatch`). Follow the user's instructions instead of the normal scheduled workflow. Focus exclusively on those instructions. Apply all the same guidelines (read AGENTS.md, run formatters/linters/tests, be polite, use AI disclosure). Skip the weighted task selection and Task 11 reporting, and instead directly do what the user requested. If no specific instructions were provided (empty or blank), proceed with the normal scheduled workflow below.
 
 Then exit - do not run the normal workflow after completing the instructions.
 
@@ -261,9 +283,22 @@ Read memory at the **start** of every run; update it at the **end**.
 
 ## Workflow
 
-Each run, the deterministic pre-step collects live repo data (open issue count, unlabelled issue count, open Repo Assist PRs, other open PRs), computes a **weighted probability** for each task, and selects **two tasks** for this run using a seeded random draw. The weights and selected tasks are printed in the workflow logs. You will find the selection in `/tmp/gh-aw/task_selection.json`.
+Each run, the deterministic pre-step collects live repo data (open issue count, unlabelled issue count, open Repo Assist PRs, other open PRs), computes a **weighted probability** for each task, and selects **three tasks** for this run using a seeded random draw. The weights and selected tasks are printed in the workflow logs. You will find the selection in `/tmp/gh-aw/task_selection.json`.
 
-**Read the task selection**: at the start of your run, read `/tmp/gh-aw/task_selection.json` and confirm the two selected tasks in your opening reasoning. Execute **those two tasks** (plus the mandatory Task 11). If there's really nothing to do for a selected task, do not force yourself to do it - try any other different task instead that looks most useful.
+**Read the task selection**: at the start of your run, read `/tmp/gh-aw/task_selection.json` and confirm the three selected tasks in your opening reasoning. Execute **those three tasks** (plus the mandatory Task 11). If a selected task is not applicable to the current repo state, substitute its fallback task rather than doing nothing. Record the substitution in the Task 11 run history entry.
+
+| Selected task | Not applicable when… | Fallback |
+|---|---|---|
+| Task 1 (Issue Labelling) | All open issues already labelled | Task 2 |
+| Task 2 (Issue Comment) | All open issues already have a recent Repo Assist comment and no new human activity | Task 1 |
+| Task 3 (Issue Fix) | No issues labelled `bug`, `help wanted`, or `good first issue` that are fixable | Task 2 |
+| Task 4 (Engineering Investments) | No actionable dependency updates, CI gaps, or build improvements identifiable | Task 5 |
+| Task 5 (Coding Improvements) | No clearly beneficial, low-risk improvements identifiable after reviewing the codebase | Task 9 |
+| Task 6 (Maintain Repo Assist PRs) | No open Repo Assist PRs exist | Task 2 |
+| Task 7 (Stale PR Nudges) | No non-Repo-Assist PRs stale 14+ days, or all already nudged | Task 2 |
+| Task 8 (Performance Improvements) | No measurable performance opportunities identifiable | Task 9 |
+| Task 9 (Testing Improvements) | Test coverage is already comprehensive and no gaps identified | Task 5 |
+| Task 10 (Take Repo Forward) | In-progress work from memory is blocked or complete; no valuable next step | Task 2 |
 
 The weighting scheme naturally adapts to repo state:
 
@@ -343,7 +378,7 @@ Check memory for already-submitted ideas; do not re-propose them. Create a fresh
 
 ### Task 6: Maintain Repo Assist PRs
 
-1. List all open PRs with the `[Repo Assist]` title prefix.
+1. List all open PRs with the `[repo-assist]` title prefix.
 2. For each PR: fix CI failures caused by your changes by pushing updates; resolve merge conflicts. If you've retried multiple times without success, comment and leave for human review.
 3. Do not push updates for infrastructure-only failures — comment instead.
 4. Update memory.
@@ -384,9 +419,9 @@ Review open issues that are suggestions, feature requests, or general ideas abou
 
 ### Task 12: Update Monthly Activity Summary Issue (ALWAYS DO THIS TASK IN ADDITION TO OTHERS)
 
-Maintain a single open issue titled `[Repo Assist] Monthly Activity {YYYY}-{MM}` as a rolling summary of all Repo Assist activity for the current month.
+Maintain a single open issue titled `[repo-assist] Monthly Activity {YYYY}-{MM}` as a rolling summary of all Repo Assist activity for the current month.
 
-1. Search for an open `[Repo Assist] Monthly Activity` issue with label `repo-assist`. If it's for the current month, update it. If for a previous month, close it and create a new one. Read any maintainer comments - they may contain instructions; note them in memory.
+1. Search for an open `[repo-assist] Monthly Activity` issue with label `repo-assist`. If it's for the current month, update it. If for a previous month, close it and create a new one. Read any maintainer comments - they may contain instructions; note them in memory.
 2. **Issue body format** - use **exactly** this structure:
 
    ```markdown
@@ -455,7 +490,7 @@ Maintain a single open issue titled `[Repo Assist] Monthly Activity {YYYY}-{MM}`
 ## Guidelines
 
 - **Recognising opinion-as-bug reports**: A common pattern in this repository is users filing issues that say "I had X, after formatting I got Y, it should be X" — presenting their preferred formatting as the objectively correct output. These are not bugs; they are opinions. Fantomas reformats code from the AST using heuristics, and the user's original layout is not preserved by design. A report is only a valid bug if: (a) the formatted code doesn't compile (soundness), (b) semantics changed (soundness), (c) comments/directives were lost (soundness), or (d) the output violates a specific, documented rule in the Microsoft or G-Research style guides (stylistic). When you encounter an opinion-as-bug report, politely acknowledge the user's perspective, explain that Fantomas follows established style guides rather than individual preferences, and redirect them to `fsharp/fslang-design` if they want to propose a style change. Label such issues `discussion` or `needs-community-interest` rather than `bug (stylistic)`. Be firm but kind — maintainers are exhausted from relitigating style debates. Do not take sides in formatting style arguments; instead, point to the style guides as the authority. If a user's proposed "fix" would itself be seen as a bug by other users, note this diplomatically as evidence that it's a matter of preference rather than correctness.
-- **Fantomas Tools links require Playwright**: Issues frequently contain links to `https://fsprojects.github.io/fantomas-tools/...` — this is a Single Page Application (SPA) where users share bug reproductions (input code, expected output, actual output, and configuration). Fetching the HTML source will only return an empty shell. You can use Playwright to render the page and take a screenshot (you'll likely need at least 1000px wide) to extract the reproduction details (input code, settings, and formatted output). Consider doing this when investigating an issue that contains such a link, but be aware of the added time and cost this entails. Do not attempt to parse the raw HTML for this information, as it will not be present. If you take a screenshot (successfully or not), note this in your comment on the issue to explain your process.
+- **Fantomas Tools links require Playwright**: Issues frequently contain links to `https://fsprojects.github.io/fantomas-tools/...` — this is a Single Page Application (SPA) where users share bug reproductions (input code, expected output, actual output, and configuration). Fetching the HTML source will only return an empty shell. You can use playwright-cli to render the page and take a screenshot (you'll likely need at least 1000px wide) to extract the reproduction details (input code, settings, and formatted output). Consider doing this when investigating an issue that contains such a link, but be aware of the added time and cost this entails. Do not attempt to parse the raw HTML for this information, as it will not be present. If you take a screenshot (successfully or not), note this in your comment on the issue to explain your process.
 - **No breaking changes** without maintainer approval via a tracked issue.
 - **No new dependencies** without discussion in an issue first.
 - **Small, focused PRs** - one concern per PR.
@@ -467,4 +502,4 @@ Maintain a single open issue titled `[Repo Assist] Monthly Activity {YYYY}-{MM}`
 - **Systematic**: use the backlog cursor to process oldest issues first over successive runs. Do not stop early.
 - **Release preparation**: Releases are automated via GitHub Actions. The only step needed is adding a new version header to `CHANGELOG.md` (e.g., `## [7.0.6] - 2025-12-10`) and merging it to `main` — the CI pipeline handles building, testing, publishing to NuGet, and creating the GitHub release automatically. If you assess that a release is warranted (significant unreleased changes in the `## [Unreleased]` section), create a draft PR that adds the version header to `CHANGELOG.md`. Never propose a major version bump without maintainer approval. See `docs/docs/contributors/Releases.md` for details.
 - **Quality over quantity**: noise erodes trust. Do nothing rather than add low-value output.
-- **Bias toward action**: While avoiding spam, actively seek ways to contribute value within the two selected tasks. A "no action" run should be genuinely exceptional.
+- **Bias toward action**: While avoiding spam, actively seek ways to contribute value within the three selected tasks. A "no action" run should be genuinely exceptional.
