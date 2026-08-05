@@ -144,18 +144,32 @@ let recordCursorNode f (node: Node) (ctx: Context) =
         { ctxAfter with
             FormattedCursor = Some formattedCursor }
 
+// Most nodes carry no trivia at all. `col` over an empty sequence returns the context unchanged,
+// so skipping it is equivalent to `sepNone` and saves allocating an enumerator per node.
 let enterNode<'n when 'n :> Node> (n: 'n) =
-    col sepNone n.ContentBefore (genTrivia n)
+    if n.HasAnyContentBefore then
+        col sepNone n.ContentBefore (genTrivia n)
+    else
+        sepNone
 
 let leaveNode<'n when 'n :> Node> (n: 'n) =
-    col sepNone n.ContentAfter (genTrivia n)
+    if n.HasAnyContentAfter then
+        col sepNone n.ContentAfter (genTrivia n)
+    else
+        sepNone
 
-let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) =
-    onlyIfCtx (fun ctx -> ctx.DebugMode) (writerEvent (NodeStart(n.GetType().Name, sprintf "%O" n.Range)))
-    +> enterNode n
-    +> recordCursorNode f n
-    +> leaveNode n
-    +> onlyIfCtx (fun ctx -> ctx.DebugMode) (writerEvent (NodeEnd(n.GetType().Name, sprintf "%O" n.Range)))
+let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) =
+    // The NodeStart/NodeEnd payloads are only ever observed via CodeFormatter.GetWriterEventsAsync.
+    // Keep them out of the default path entirely: building them costs a reflection call and a sprintf per node.
+    if ctx.DebugMode then
+        (writerEvent (NodeStart(n.GetType().Name, sprintf "%O" n.Range))
+         +> enterNode n
+         +> recordCursorNode f n
+         +> leaveNode n
+         +> writerEvent (NodeEnd(n.GetType().Name, sprintf "%O" n.Range)))
+            ctx
+    else
+        (enterNode n +> recordCursorNode f n +> leaveNode n) ctx
 
 let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 

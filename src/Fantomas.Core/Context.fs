@@ -253,15 +253,29 @@ type Context =
 let writerEvent (e: WriterEvent) (ctx: Context) : Context =
     // One event could contain a multiline string or code comments.
     // These need to be split up in multiple events.
-    let evs = WriterEvents.normalize e
+    // Splitting is rare, so keep the common case off the list-building path entirely.
+    let isSingleEvent =
+        match e with
+        | Write s
+        // IndexOf(char) is the ordinal single-character search; string.Contains(char) is not available on netstandard2.0.
+        | WriteTrivia s -> isNull s || s.IndexOf('\n') < 0
+        | _ -> true
 
-    for ev in evs do
-        ctx.WriterEvents.Append(ev) |> ignore
+    if isSingleEvent then
+        ctx.WriterEvents.Append(e) |> ignore
 
-    { ctx with
-        WriterModel =
-            (ctx.WriterModel, evs)
-            ||> List.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m) }
+        { ctx with
+            WriterModel = WriterModel.update ctx.Config.MaxLineLength e ctx.WriterModel }
+    else
+        let evs = WriterEvents.normalize e
+
+        for ev in evs do
+            ctx.WriterEvents.Append(ev) |> ignore
+
+        { ctx with
+            WriterModel =
+                (ctx.WriterModel, evs)
+                ||> List.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m) }
 
 let hasWriteBeforeNewlineContent ctx =
     String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline
@@ -333,32 +347,41 @@ type Context with
 
     member x.Dump() = (dump false x).Code
 
-let writeEventsOnLastLine ctx =
-    ctx.WriterEvents.ToRevSeq()
-    |> Seq.takeWhile (function
+/// Walk backward to the first non-empty write on the current line, stopping at the line start.
+let lastWriteEventOnLastLine ctx =
+    let mutable current = ctx.WriterEvents.Tail
+    let mutable result = None
+
+    while not (isNull current) do
+        match current.Event with
         | WriteLine
         | WriteLineBecauseOfTrivia
-        | WriteLineInsideStringConst -> false
-        | _ -> true)
-    |> Seq.choose (function
+        | WriteLineInsideStringConst -> current <- null
         | Write w
-        | WriteTrivia w when (String.length w > 0) -> Some w
-        | _ -> None)
+        | WriteTrivia w when (String.length w > 0) ->
+            result <- Some w
+            current <- null
+        | _ -> current <- current.Prev
+
+    result
 
 let lastWriteEventIsNewline ctx =
-    ctx.WriterEvents.ToRevSeq()
-    |> Seq.skipWhile (function
+    let mutable current = ctx.WriterEvents.Tail
+    let mutable result = false
+
+    while not (isNull current) do
+        match current.Event with
         | RestoreIndent _
         | RestoreAtColumn _
         | UnIndentBy _
-        | EmptyWrite -> true
-        | _ -> false)
-    |> Seq.tryHead
-    |> Option.map (function
+        | EmptyWrite -> current <- current.Prev
         | WriteLineBecauseOfTrivia
-        | WriteLine -> true
-        | _ -> false)
-    |> Option.defaultValue false
+        | WriteLine ->
+            result <- true
+            current <- null
+        | _ -> current <- null
+
+    result
 
 /// Check if the DLL tail has a complete blank line (two or more newline events)
 /// before any content. Walks backward, skipping indent/restore events.
@@ -382,9 +405,6 @@ let hasBlankLineBeforeLastWrite ctx =
         | _ -> current <- null
 
     newlineCount > 1
-
-let lastWriteEventOnLastLine ctx =
-    writeEventsOnLastLine ctx |> Seq.tryHead
 
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
