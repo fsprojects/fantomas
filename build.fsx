@@ -69,7 +69,7 @@ pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" { run (cleanFolders [| analysisReportsDir; "artifacts" |]) }
-    stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
+    stage "CheckFormat" { run "dotnet fantomas src docs scripts build.fsx --check" }
     stage "Build" { run "dotnet build -c Release --tl" }
     stage "UnitTests" { run "dotnet test -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
@@ -222,7 +222,7 @@ pipeline "Docs" {
 
 pipeline "FormatAll" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Fantomas" { run "dotnet fantomas src docs build.fsx" }
+    stage "Fantomas" { run "dotnet fantomas src docs scripts build.fsx" }
     runIfOnlySpecified true
 }
 

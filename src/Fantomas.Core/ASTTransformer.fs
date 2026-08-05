@@ -1143,8 +1143,12 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list voption =
     | SynExpr.App(
         isInfix = false; funcExpr = SynExpr.LongIdent(longDotId = DottedLongIdent); argExpr = (ParenExpr _ | UnitExpr _)) ->
         ValueSome(visitChainLinks e id)
-    // An identifier-only application with a paren lambda (e.g. `List.map (fun n -> n)`)
-    // is NOT considered a chain because the identifier is not complex.
+    // An application with a paren lambda and a dot-less function expression (e.g. `map (fun n -> n)`)
+    // is NOT considered a chain: there is nothing to chain. The dotted `List.map (fun n -> n)`
+    // never reaches here — the arm above already claimed it.
+    // The one dotted shape that does land here is `DotGet(TypeApp(Ident))`
+    // (`MailboxProcessor<string>.Start (fun ...)`): it deliberately stays an `AppWithLambda`
+    // rather than becoming a chain, so it keeps the space before its argument.
     | SynExpr.App(
         isInfix = false
         funcExpr = SynExpr.LongIdent _ | SynExpr.Ident _ | SynExpr.DotGet(expr = SynExpr.TypeApp(expr = SynExpr.Ident _))

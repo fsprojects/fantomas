@@ -31,7 +31,7 @@ Run these after completing a task, not during iterative development — analyzer
 ### Format
 
 ```bash
-dotnet fantomas src docs build.fsx
+dotnet fsi build.fsx -- -p FormatAll
 ```
 
 ### Analyzers

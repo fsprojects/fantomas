@@ -1439,7 +1439,7 @@ type ChainSegment =
 /// intermediate calls are always tight (adding a space before their parens changes the parse tree).
 [<RequireQualifiedAccess; NoComparison; NoEquality>]
 type ChainTerminal =
-    | SpaceAllowed of ChainCall // regular chain — space governed by SpaceBeforeUppercaseInvocation
+    | SpaceAllowed of ChainCall // regular chain — space governed by SpaceBeforeUppercaseInvocation / SpaceBeforeLowercaseInvocation, depending on the casing of the called identifier
     | NoSpaceAllowed of ChainCall // DotLambda body — space never permitted (compiler constraint)
     | NoTerminal // chain ends with a property access or index, no invocation
 
