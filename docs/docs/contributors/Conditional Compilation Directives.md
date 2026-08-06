@@ -93,7 +93,7 @@ As the combination of directives has an influence on the tree, Fantomas first pa
 This base tree is then being inspected for [ConditionalDirectiveTrivia](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-conditionaldirectivetrivia.html).
 We determine the different combinations in the `Defines` module.
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A["Parse base tree"] --> B
     B["Figure out all compiler define combinations"] --> C
@@ -103,7 +103,7 @@ graph TD
     C --> E
     D --> E
     E["Merge results"]
- </div>
+```
 
 As trivia is being restored in each tree, they all will have gaps in them.
 

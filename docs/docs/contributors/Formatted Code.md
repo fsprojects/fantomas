@@ -8,12 +8,12 @@ index: 7
 After the `Context` travelled through the composed `CodePrinter` function, all events are captured.  
 These can be converted to a string of formatted code.
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A[Transform source code to tree] --> B
     B[Traverse Oak to get formatted code] --> C[Formatted code]
     style C stroke:#338CBB,stroke-width:2px
- </div>
+```
 
 ## Post processing
 

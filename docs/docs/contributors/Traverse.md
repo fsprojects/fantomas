@@ -7,12 +7,12 @@ index: 6
 
 Once the `Oak` is populated with all the found trivia, we can traverse the `Oak` to capture all the `WriterEvent`s.
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A[Transform source code to tree] --> B
     B[Traverse Oak to get formatted code] --> C[Formatted code]
     style B stroke:#338CBB,stroke-width:2px
- </div>
+```
 
 We enter the module of `CodePrinter` and try and reconstruct the code based on the given configuration.
 

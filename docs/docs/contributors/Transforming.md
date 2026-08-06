@@ -7,12 +7,12 @@ index: 5
 
 In its simplest form, Fantomas.Core works in two major phases: transform the raw source code to a custom tree model and traverse that custom tree to print the formatted code.
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A[Transform source code to Oak] --> B
     B[Traverse Oak to get formatted code] --> C[Formatted code]
     style A stroke:#338CBB,stroke-width:2px
- </div>
+```
 
 Unfortunately, both phases are not always very straight forward.  
 But once you get hang of the first phase, you can easily understand the second phase.
@@ -24,12 +24,12 @@ We can parse the source code into an untyped syntax tree. This tree isn't really
 An `Oak` is the toplevel root node of the Fantomas tree. We use a custom tree because it better suites our needs to reconstruct the output code.
 
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A[Parse AST] --> B
     B[Transfrom untyped AST to OAK] --> C
     C[Enrich the Oak with Trivia]
-</div>
+```
 
 ### Parse AST
 
@@ -164,10 +164,10 @@ Once we have the trivia, we can insert them to a `Node` they belong to.
 This is one of the key reasons why we work with our own tree. We can add the trivia information to the best suitable child node in the `Oak`.
 Every `Node` can have `ContentBefore` and `ContentAfter`, this is how we try to reconstruct everything.
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A[Capture all trivia from AST and ISourceText] --> B
     B[Insert trivia into nodes]
- </div>
+```
 
 <fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

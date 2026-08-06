@@ -8,7 +8,7 @@ index: 4
 Fantomas has a modular project structure.  
 The parser (`Fantomas.FCS`), the core library (`Fantomas.Core`) and the command line application (`fantomas`) are the main components of the solution.
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A[Fantomas.FCS] --> B
     B[Fantomas.Core] --> C[Fantomas]
@@ -16,7 +16,7 @@ graph TD
     B --> E[Fantomas.Core.Tests]
     C --> F[Fantomas.Tests]
     G[Fantomas.Client] --> H[Fantomas.Client.Tests]
- </div>
+```
 
 ## Fantomas.FCS
 
