@@ -166,7 +166,7 @@ lookupTable
 // ── A chain with no calls at all ────────────────────────────────────────────
 
 [<Test>]
-let ``chain with no calls at all fills greedily`` () =
+let ``chain with no calls at all is balanced across its lines`` () =
     formatSourceString
         """
 this.Configuration.Database.PrimaryConnection.Settings.IdleTimeoutInSeconds
@@ -176,8 +176,229 @@ this.Configuration.Database.PrimaryConnection.Settings.IdleTimeoutInSeconds
     |> should
         equal
         """
-this.Configuration.Database.PrimaryConnection.Settings
-    .IdleTimeoutInSeconds
+this.Configuration.Database.PrimaryConnection
+    .Settings.IdleTimeoutInSeconds
+"""
+
+// ── Keeping the chain together needs more than one trailing action ──────────
+//
+// Two further conditions guard the "break the arguments" branch: the starting value
+// must be a plain value, and everything up to the method name must fit on one line.
+
+[<Test>]
+let ``a plain starting value keeps the chain together`` () =
+    formatSourceString
+        """
+config.Settings.GetValue(theConfigurationKeyNameThatIsRatherLong)
+"""
+        { config with MaxLineLength = 50 }
+    |> prepend newline
+    |> should
+        equal
+        """
+config.Settings.GetValue(
+    theConfigurationKeyNameThatIsRatherLong
+)
+"""
+
+[<Test>]
+let ``a starting value that is a call leads a pipeline, even with one action`` () =
+    // Same steps and the same single trailing call as the test above; only the starting
+    // value differs, and that alone decides the layout.
+    formatSourceString
+        """
+getConfiguration().Settings.GetValue(theConfigurationKeyNameThatIsRatherLong)
+"""
+        { config with MaxLineLength = 50 }
+    |> prepend newline
+    |> should
+        equal
+        """
+getConfiguration()
+    .Settings.GetValue(
+        theConfigurationKeyNameThatIsRatherLong
+    )
+"""
+
+[<Test>]
+let ``a comment between the steps leaves nothing to keep together`` () =
+    formatSourceString
+        """
+config.Settings
+    // the primary one
+    .GetValue(theKeyName)
+"""
+        { config with MaxLineLength = 50 }
+    |> prepend newline
+    |> should
+        equal
+        """
+config.Settings
+    // the primary one
+    .GetValue(theKeyName)
+"""
+
+// ── When a line is still too long ───────────────────────────────────────────
+//
+// A run of navigation that does not fit wraps before a dot, chosen so the longest
+// resulting line is as short as possible. Greedy filling would leave one line packed
+// to the margin and a stub behind it.
+
+[<Test>]
+let ``a long navigation run is balanced rather than filled greedily`` () =
+    formatSourceString
+        """
+getConfiguration().Configuration.Database.PrimaryConnection.Settings.Timeouts.IdleTimeout.Duration.Total.Seconds.Value
+"""
+        { config with MaxLineLength = 100 }
+    |> prepend newline
+    |> should
+        equal
+        """
+getConfiguration()
+    .Configuration.Database.PrimaryConnection.Settings
+    .Timeouts.IdleTimeout.Duration.Total.Seconds.Value
+"""
+
+[<Test>]
+let ``when two splits tie, the longer first line wins`` () =
+    formatSourceString
+        """
+builder.Connect(hostName).Configuration.Database.PrimaryConnection.Settings.Timeouts.Idle
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .Connect(hostName)
+    .Configuration.Database.PrimaryConnection
+    .Settings.Timeouts.Idle
+"""
+
+[<Test>]
+let ``the receiver keeps a step rather than sitting alone`` () =
+    formatSourceString
+        """
+defineCombinationValue.Value.IsEmpty
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+defineCombinationValue.Value
+    .IsEmpty
+"""
+
+[<Test>]
+let ``navigation wraps to keep an intermediate call whole`` () =
+    // The run leads a call in the middle of a pipeline. Wrapping the navigation is preferred,
+    // so `spec` is never pushed onto a line of its own to make room for it.
+    formatSourceString
+        """
+builder.Connect(hostName).Configuration.Database.PrimaryConnection.Settings.Apply(spec).Build()
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .Connect(hostName)
+    .Configuration.Database
+    .PrimaryConnection.Settings.Apply(spec)
+    .Build()
+"""
+
+[<Test>]
+let ``navigation wraps to keep the terminal call whole`` () =
+    // Wrapping one step earlier than strictly needed keeps `keyName` beside its method.
+    formatSourceString
+        """
+getConfiguration().Configuration.Database.PrimaryConnection.Settings.Timeouts.GetValue(keyName)
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+getConfiguration()
+    .Configuration.Database.PrimaryConnection
+    .Settings.Timeouts.GetValue(keyName)
+"""
+
+[<Test>]
+let ``arguments still break when no wrap can hold the whole call`` () =
+    formatSourceString
+        """
+getConfiguration().Configuration.Database.Settings.GetValue(theConfigurationKeyNameThatIsVeryVeryLongIndeed)
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+getConfiguration()
+    .Configuration.Database.Settings.GetValue(
+        theConfigurationKeyNameThatIsVeryVeryLongIndeed
+    )
+"""
+
+[<Test>]
+let ``a call leaving the receiver's line has its own line to fit in`` () =
+    // The navigation fits on the receiver's line, so the call leaves that line and claims one
+    // of its own. There is nothing for the navigation to make room for, and it stays put.
+    formatSourceString
+        """
+Microsoft.FSharp.Reflection.FSharpType.GetUnionCases(typeof<option<option<unit>>>.GetGenericTypeDefinition().MakeGenericType(t)).Assembly
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Microsoft.FSharp.Reflection.FSharpType
+    .GetUnionCases(typeof<option<option<unit>>>.GetGenericTypeDefinition().MakeGenericType(t))
+    .Assembly
+"""
+
+[<Test>]
+let ``balancing never crosses an action`` () =
+    formatSourceString
+        """
+serviceCollection.AddSingleton<IClock>(systemClock).AddOptions<MyOptions>(configureOptions)
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+serviceCollection
+    .AddSingleton<IClock>(systemClock)
+    .AddOptions<MyOptions>(configureOptions)
+"""
+
+[<Test>]
+let ``a step carrying a comment opens its own line and the rest is balanced from there`` () =
+    // A commented dot renders on lines of its own, so it has no width to balance with.
+    // The run stops there and resumes afterwards, measured from where the comment left off.
+    formatSourceString
+        """
+myConfiguration
+    // pick the primary
+    .Database.PrimaryConnection.Settings.IdleTimeoutInSeconds
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+myConfiguration
+    // pick the primary
+    .Database.PrimaryConnection
+    .Settings.IdleTimeoutInSeconds
 """
 
 // ── A dot-lambda body (_.…) ─────────────────────────────────────────────────
@@ -490,4 +711,193 @@ repository.Cast<IEntity>.GetConnectionString(primaryReplica)
 repository.Cast<IEntity>.GetConnectionString(
     primaryReplica
 )
+"""
+
+// ── Lambda arguments do not depend on the call's position ───────────────────
+//
+// `fun` and `function` are laid out the same way wherever their call sits, as the F#
+// style guide asks ("Treat match lambda's in a similar fashion"). The eight tests below
+// are the full matrix: both lambda forms, both positions, both settings.
+
+[<Test>]
+let ``fun lambda mid-pipeline keeps its opener attached`` () =
+    formatSourceString
+        """
+builder.Configure(fun v -> handleSomeValue v |> andThenSomethingElse v).Build().Result
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .Configure(fun v ->
+        handleSomeValue v |> andThenSomethingElse v)
+    .Build()
+    .Result
+"""
+
+[<Test>]
+let ``fun lambda as the last step keeps its opener attached`` () =
+    formatSourceString
+        """
+builder.Build().Configure(fun v -> handleSomeValue v |> andThenSomethingElse v)
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .Build()
+    .Configure(fun v ->
+        handleSomeValue v |> andThenSomethingElse v)
+"""
+
+[<Test>]
+let ``match lambda mid-pipeline keeps its opener attached`` () =
+    formatSourceString
+        """
+builder.Configure(function Some v -> handleSome v | None -> handleNone ()).Build().Result
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .Configure(function
+        | Some v -> handleSome v
+        | None -> handleNone ())
+    .Build()
+    .Result
+"""
+
+[<Test>]
+let ``match lambda as the last step keeps its opener attached`` () =
+    formatSourceString
+        """
+builder.Build().Configure(function Some v -> handleSome v | None -> handleNone ())
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .Build()
+    .Configure(function
+        | Some v -> handleSome v
+        | None -> handleNone ())
+"""
+
+[<Test>]
+let ``fun lambda mid-pipeline, closing newline true`` () =
+    formatSourceString
+        """
+builder.Configure(fun v -> handleSomeValue v |> andThenSomethingElse v).Build().Result
+"""
+        { config with
+            MaxLineLength = 60
+            MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .Configure(fun v ->
+        handleSomeValue v |> andThenSomethingElse v
+    )
+    .Build()
+    .Result
+"""
+
+[<Test>]
+let ``fun lambda as the last step, closing newline true`` () =
+    formatSourceString
+        """
+builder.Build().Configure(fun v -> handleSomeValue v |> andThenSomethingElse v)
+"""
+        { config with
+            MaxLineLength = 60
+            MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .Build()
+    .Configure(fun v ->
+        handleSomeValue v |> andThenSomethingElse v
+    )
+"""
+
+[<Test>]
+let ``match lambda mid-pipeline, closing newline true`` () =
+    formatSourceString
+        """
+builder.Configure(function Some v -> handleSome v | None -> handleNone ()).Build().Result
+"""
+        { config with
+            MaxLineLength = 60
+            MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .Configure(
+        function
+        | Some v -> handleSome v
+        | None -> handleNone ()
+    )
+    .Build()
+    .Result
+"""
+
+[<Test>]
+let ``match lambda as the last step, closing newline true`` () =
+    formatSourceString
+        """
+builder.Build().Configure(function Some v -> handleSome v | None -> handleNone ())
+"""
+        { config with
+            MaxLineLength = 60
+            MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .Build()
+    .Configure(
+        function
+        | Some v -> handleSome v
+        | None -> handleNone ()
+    )
+"""
+
+[<Test>]
+let ``breaking after the opening paren yourself moves function down`` () =
+    // The third thing that moves `function` onto its own line, and the only one that is
+    // neither the setting nor the chain: the source already had it there.
+    formatSourceString
+        """
+builder.Build().Configure(
+    function
+    | Some v -> handleSome v
+    | None -> handleNone ())
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .Build()
+    .Configure(
+        function
+        | Some v -> handleSome v
+        | None -> handleNone ()
+    )
 """

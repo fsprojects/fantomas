@@ -352,8 +352,8 @@ Universe.Galaxy.SolarSystem.Planet.[3].Countries.[9].People.Count
     |> should
         equal
         """
-Universe.Galaxy.SolarSystem.Planet.[3].Countries
-    .[9].People.Count
+Universe.Galaxy.SolarSystem.Planet
+    .[3].Countries.[9].People.Count
 """
 
 [<Test>]
@@ -568,7 +568,9 @@ let x =
 """
 
 [<Test>]
-let ``match lambda as an intermediate call argument breaks after the opening paren`` () =
+let ``match lambda as an intermediate call argument keeps the function keyword attached`` () =
+    // Identical in shape to the terminal case below: where the call sits in the chain has no
+    // say over a lambda argument, for `function` just as for `fun`.
     formatSourceString
         """
 let x =
@@ -583,11 +585,9 @@ let x =
         """
 let x =
     builder
-        .Configure(
-            function
+        .Configure(function
             | Some v -> handleSome v
-            | None -> handleNone ()
-        )
+            | None -> handleNone ())
         .Build()
         .Result
 """
