@@ -105,7 +105,7 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
     Assert.Pass()
 
 // ============================================================
-// Chain transformation tests — worked examples from chain-formatting-rationale.md
+// Chain transformation tests, worked examples from docs/docs/contributors/Chains.md
 // ============================================================
 
 [<Test>]
@@ -567,8 +567,9 @@ let ``repo.Where(fun a -> a.B).Select(f).ToList() — intermediate call carrying
     | _ -> Assert.Fail $"Expected Chain expression, got %A{expr}"
 
 [<Test>]
-let ``a.Foo()[0].Bar() — new-style index (no dot) as part of the head`` () =
-    // Note: a.Foo()[0] requires dot-index syntax to parse: (a.Foo()).[0].Bar()
+let ``(a.Foo()).[0].Bar(), a dot-index segment after a parenthesised call head`` () =
+    // Note: `a.Foo()[0].Bar()` does not parse (FS0597), so the dot-index spelling is
+    // required here. (`a.Foo()[0]` on its own parses fine.)
     let oak = parseOak "let x = (a.Foo()).[0].Bar()"
     let expr = getExprFromBinding oak
 
@@ -615,10 +616,11 @@ let ``a.Foo()[0].Bar() — new-style index (no dot) as part of the head`` () =
 // Negative routing — expressions that must NOT become chains
 // ============================================================
 //
-// A chain is a sequence of DOT-separated steps. These three shapes have no dot to
-// separate anything, so the transformer must route them to their own nodes. If a
-// future FCS change alters how they are grouped, these tests fail rather than
-// silently widening what a chain is.
+// A chain is a sequence of DOT-separated steps, ending in at most one call. `xs[i]` and
+// `f (args)` have no dot at all, and `List.map f (fun ...)` has a prefix argument the
+// chain terminal model cannot hold, so the transformer must route all three to their own
+// nodes. If a future FCS change alters how they are grouped, these tests fail rather
+// than silently widening what a chain is.
 
 [<Test>]
 let ``List.map f (fun x -> x+1) — prefix args mean AppWithLambda, not a chain`` () =

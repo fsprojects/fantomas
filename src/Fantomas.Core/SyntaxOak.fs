@@ -1440,7 +1440,7 @@ type ChainSegment =
 [<RequireQualifiedAccess; NoComparison; NoEquality>]
 type ChainTerminal =
     | SpaceAllowed of ChainCall // regular chain — space governed by SpaceBeforeUppercaseInvocation / SpaceBeforeLowercaseInvocation, depending on the casing of the called identifier
-    | NoSpaceAllowed of ChainCall // DotLambda body — space never permitted (compiler constraint)
+    | NoSpaceAllowed of ChainCall // space never permitted: a DotLambda body (compiler constraint), a call used as a chain receiver, or any atomic position (see mkAtomicExpr)
     | NoTerminal // chain ends with a property access or index, no invocation
 
 /// Example: `person.Address.City.ToUpper()` — a chain of dot-separated member accesses and calls.
@@ -1485,7 +1485,7 @@ type ExprAppSingleParenArgNode(functionExpr: Expr, argExpr: Expr, range) =
     member val FunctionExpr = functionExpr
     member val ArgExpr = argExpr
 
-/// Example: `List.map (fun x -> x + 1) xs` — a function applied to zero or more prefix arguments
+/// Example: `f a b (fun y -> y)`, a function applied to zero or more prefix arguments
 /// followed by a parenthesised lambda or `function` expression as the last argument.
 type ExprAppWithLambdaNode
     (

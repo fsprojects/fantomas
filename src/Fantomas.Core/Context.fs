@@ -966,8 +966,6 @@ let futureNlnCheck f (ctx: Context) =
     let isMultiLine, isLong = futureNlnCheckMem (f, ctx)
     isMultiLine || isLong
 
-/// similar to futureNlnCheck but validates whether the expression is going over the max page width
-/// This functions is does not use any caching
 let exceedsWidth maxWidth f (ctx: Context) =
     let dummyResult = ctx.WithDummy(f, keepPageWidth = true)
 

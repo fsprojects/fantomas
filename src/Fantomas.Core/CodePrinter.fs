@@ -516,9 +516,9 @@ let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : 
         else
             genParenLambda ctx
 
-/// Layout for `(function | ... -> ...)`. This is the one argument shape whose layout depends on
-/// where the call sits: mid-chain the clauses would run on underneath a line that still
-/// continues with further steps, so `function` is given its own line.
+/// Layout for `(function | ... -> ...)`. Identical wherever the call sits in its chain:
+/// `MultiLineLambdaClosingNewline`, or a break the user already made after the `(`, decides
+/// whether `function` goes on its own line.
 let genMatchLambdaParenArg (parenNode: ExprParenNode) (matchLambdaNode: ExprMatchLambdaNode) : Context -> Context =
     let keepFunctionWithParen: Context -> Context =
         genSingleTextNode parenNode.OpeningParen
@@ -556,7 +556,7 @@ let genMatchLambdaParenArg (parenNode: ExprParenNode) (matchLambdaNode: ExprMatc
 
 /// Multiline layout of a call's parenthesised argument `( ... )`, shared by intermediate calls
 /// (genSegment) and the terminal call (genTerminal). Everything between `(` and `)` is laid out
-/// by the ordinary argument rules; the chain only gets a say in the two places named on
+/// by the ordinary argument rules; the chain only gets a say in the one place named on
 /// `ChainCallPosition`.
 let genMultilineParenArg (position: ChainCallPosition) (parenNode: ExprParenNode) : Context -> Context =
     // Content attached before the argument is decided ahead of the argument's shape, so this is
@@ -729,8 +729,7 @@ let genChain (node: ExprChain) : Context -> Context =
     // source order with no line breaks between them; only the terminal call's arguments may
     // wrap (`genTerminal` breaks them like an ordinary `f(args)`). This same rendering
     // doubles as the "does the whole chain fit on one line?" candidate — when it fits, it
-    // *is* the one-liner. (The design notes in `chain-formatting-rationale.md` call this
-    // layout "Option A".)
+    // *is* the one-liner. (`Chains.md` calls this layout "keeping the chain together".)
     let genChainKeptTogether: Context -> Context =
         genExpr node.Head +> col sepNone node.Segments genSegment +> genTerminal node
 
@@ -777,19 +776,21 @@ let genChain (node: ExprChain) : Context -> Context =
         | ChainTerminal.NoSpaceAllowed _ -> true
         | ChainTerminal.NoTerminal -> false
 
-    // Is the receiver a plain value — a bare identifier or dotted path (`config`,
-    // `this`, the dot-lambda `_`)? Only then may it share its line with the navigation
-    // and method name of a single trailing call. A compound receiver — a call `Mock()`,
-    // a parenthesised expression `(x :> T)`, a generic `Animal<Id>` — is not eligible to
-    // be kept together and leads a pipeline instead.
+    // Is the receiver a plain value, a bare identifier like `config`, `this` or the
+    // dot-lambda `_`? A dotted path never lands here: every dot became a segment, so the
+    // head of `config.Settings.GetValue(x)` is just `config`. Only a plain value may share
+    // its line with the navigation and method name of a single trailing call. A compound
+    // receiver (a call `Mock()`, a parenthesised expression `(x :> T)`, a generic
+    // `Animal<Id>`) is not eligible to be kept together and leads a pipeline instead.
     let headIsSimple: bool =
         match node.Head with
         | Expr.Ident _
         | Expr.OptVar _ -> true
         | _ -> false
 
-    // Leading-dot pipeline: two or more actions, or a chain that ends in
-    // navigation. Walk the segments and place each one:
+    // Leading-dot pipeline: two or more actions, a chain that ends in navigation, a
+    // compound receiver, or a head plus navigation that does not fit on one line (see
+    // the branch on `headAndSegmentsFit` below). Walk the segments and place each one:
     //   * every ACTION starts its own line, led by its dot;
     //   * light NAVIGATION rides at the front of the line of the action it
     //     introduces — or, directly after the receiver, on the receiver's line;

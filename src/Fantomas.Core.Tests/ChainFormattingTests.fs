@@ -1,7 +1,7 @@
 module Fantomas.Core.Tests.ChainFormattingTests
 
-// This file encodes the specification in `chain-formatting-rationale.md`.
-// Each test mirrors one before/after example from that document, at a narrow
+// This file encodes the specification in `docs/docs/contributors/Chains.md`.
+// Most tests mirror a before/after example from that document, at a narrow
 // page width so the intended line breaks are visible. Where the spec shows a
 // setting explicitly, the test uses it (default vs. MultiLineLambdaClosingNewline).
 //
@@ -180,7 +180,7 @@ this.Configuration.Database.PrimaryConnection
     .Settings.IdleTimeoutInSeconds
 """
 
-// ── Keeping the chain together needs more than one trailing action ──────────
+// ── A single trailing action is not enough on its own ───────────────────────
 //
 // Two further conditions guard the "break the arguments" branch: the starting value
 // must be a plain value, and everything up to the method name must fit on one line.
@@ -879,8 +879,8 @@ builder
 
 [<Test>]
 let ``breaking after the opening paren yourself moves function down`` () =
-    // The third thing that moves `function` onto its own line, and the only one that is
-    // neither the setting nor the chain: the source already had it there.
+    // The second thing that moves `function` onto its own line, and the only one that is
+    // not the setting: the source already had it there.
     formatSourceString
         """
 builder.Build().Configure(

@@ -450,8 +450,9 @@ Animal<
 // ── Tight receivers ─────────────────────────────────────────────────────────
 //
 // `mkAtomicExpr` in the ASTTransformer marks a chain that has to stay one indivisible unit,
-// because a prefix operator, an index or a `?member` binds directly to it. Each test below
-// covers one call site of it. They all run with `SpaceBeforeUppercaseInvocation = true`,
+// because a prefix operator, an index or a `?member` binds directly to it. The tests below
+// cover the prefix-operator, index and `?`-chain call sites. They all run with
+// `SpaceBeforeUppercaseInvocation = true`,
 // because that is the setting that would otherwise introduce the space: compare with
 // `obj.Bar()` on its own, which correctly becomes `obj.Bar ()` under the same config.
 
@@ -650,6 +651,11 @@ a.Foo(x).bar(y)
         """
 a.Foo(x).bar(y)
 """
+
+// ── A match lambda as the terminal call's argument ──────────────────────────
+//
+// Only `MultiLineLambdaClosingNewline` or a break the user already made after the `(`
+// moves `function` onto its own line. Where the call sits in the chain has no say.
 
 [<Test>]
 let ``match lambda as a terminal call argument breaks when closing newline is set`` () =

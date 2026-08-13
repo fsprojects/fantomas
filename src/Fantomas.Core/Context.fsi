@@ -277,8 +277,8 @@ val futureNlnCheck: f: (Context -> Context) -> ctx: Context -> bool
 /// is `isMultiline || isLong`; callers that care only about multiline layout
 /// (not width) use the first component.
 val futureNlnCheckMem: f: (Context -> Context) * ctx: Context -> bool * bool
-/// similar to futureNlnCheck but // validates whether the expression is going over the max page width
-/// This functions is does not use any caching
+/// similar to futureNlnCheck but validates whether the expression is going over the given
+/// max width, measured from the current column
 val exceedsWidth: maxWidth: int -> f: (Context -> Context) -> ctx: Context -> bool
 
 // =============================================================================

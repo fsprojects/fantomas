@@ -992,7 +992,8 @@ let rec visitChainLinks (e: SynExpr) (continuation: LinkExpr list -> LinkExpr li
 
 /// Convert a LinkExpr list (produced by visitChainLinks) into an ExprChain.
 /// mkTerminal maps a ChainCall to the appropriate ChainTerminal case —
-/// use ChainTerminal.SpaceAllowed for regular chains, ChainTerminal.NoSpaceAllowed for DotLambda bodies.
+/// use ChainTerminal.SpaceAllowed for regular chains, ChainTerminal.NoSpaceAllowed wherever the chain
+/// must stay atomic: DotLambda bodies and the positions handled by `mkAtomicExpr`.
 ///
 /// This is the ONLY place an ExprChain with segments is built, so it is also the only place
 /// that has to uphold the chain invariant: **the head contains no dotted content**. Every dot
@@ -1009,7 +1010,8 @@ let mkChainFromLinks
 
     // The first link is the receiver; everything after it is dotted content. Because
     // visitChainLinks has already peeled every dot out into its own `Dot` link, whatever
-    // lands here is dot-free and can be used as the head as-is.
+    // lands here is dot-free: a plain receiver becomes the head directly, while a call
+    // receiver is wrapped in a zero-segment chain (see the AppUnit / AppParen arms below).
     let head, rest =
         match links with
         | LinkExpr.Identifier e :: rest -> mkExpr creationAide e, rest
@@ -1054,10 +1056,6 @@ let mkChainFromLinks
     // rather than silently dropping links.
     let rec processLinks (remainingLinks: LinkExpr list) : ChainSegment list * ChainTerminal =
         match remainingLinks with
-        // Only reachable for a chain with no segments at all. `visitChainLinks` never
-        // produces this (every chain it matches has at least one dot) and the recursion
-        // below always stops at a two-element arm, so this is the base case for
-        // completeness rather than a path exercised by real source.
         // Unreachable: every chain has at least one dot, and the recursion below always stops
         // at one of the two-element arms, so an empty remainder is never passed in.
         | [] -> invariantViolation range "a chain was built with no dotted content at all"
@@ -1125,12 +1123,22 @@ let mkChainFromLinks
     ExprChain(head, segments, terminal, range) |> Expr.Chain
 
 [<return: Struct>]
-let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list voption =
-    let (|DottedLongIdent|_|) (sli: SynLongIdent) =
-        match sli.IdentsWithTrivia with
-        | _ :: _ :: _ when sli.Dots.Length > 0 -> ValueSome()
-        | _ -> ValueNone
+let (|DottedLongIdent|_|) (sli: SynLongIdent) =
+    match sli.IdentsWithTrivia with
+    | _ :: _ :: _ when sli.Dots.Length > 0 -> ValueSome()
+    | _ -> ValueNone
 
+/// A function expression that carries dotted content, so the application around it is a chain.
+[<return: Struct>]
+let (|DottedFunctionExpr|_|) (e: SynExpr) : unit voption =
+    match e with
+    | SynExpr.LongIdent(isOptional = false; longDotId = DottedLongIdent)
+    | SynExpr.DotGet _
+    | SynExpr.TypeApp(expr = SynExpr.DotGet _) -> ValueSome()
+    | _ -> ValueNone
+
+[<return: Struct>]
+let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list voption =
     match e with
     // A plain LongIdent with dots (e.g. `a.b.c`) is a chain of property accesses.
     // An *optional* one (`?a.b`) is not: the `?` belongs to the whole path and the chain
@@ -1163,11 +1171,13 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list voption =
     | _ -> ValueNone
 
 [<return: Struct>]
-// Note: no guard is needed against a dotted function expression (`a.Foo(x, y)`). The only
-// use site sits directly after the `ChainExpr` arm in `mkExpr`, and a chain claims every
-// `App(DotGet, Paren _)` before this pattern is ever tried.
+// A dotted function expression (`a.Foo(x, y)`) belongs to `ChainExpr`, and this pattern
+// declines it here rather than relying on `mkExpr` trying `ChainExpr` first. The result is
+// the same either way, but the pattern then holds on its own instead of depending on where
+// it is used.
 let (|AppSingleParenArg|_|) =
     function
+    | App(DottedFunctionExpr, _) -> ValueNone
     | App(e, [ UnitExpr _ as px ]) -> ValueSome(e, px)
     | App(e, [ SynExpr.Paren(expr = singleExpr) as px ]) ->
         match singleExpr with

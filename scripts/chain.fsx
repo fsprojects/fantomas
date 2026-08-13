@@ -24,9 +24,20 @@ let printChain (chain: ExprChain) =
 
     printfn "  Segments: %d" chain.Segments.Length
 
+    // When the chain has a terminal call, its method name lives in the LAST segment
+    // (the call itself is the Terminal). Labelling that one "navigation" would be a lie.
+    let hasTerminal =
+        match chain.Terminal with
+        | ChainTerminal.NoTerminal -> false
+        | _ -> true
+
+    let lastIndex = chain.Segments.Length - 1
+
     chain.Segments
     |> List.iteri (fun i seg ->
         match seg with
+        | ChainSegment.DotMember(_, expr) when hasTerminal && i = lastIndex ->
+            printfn "    [%02d] terminal    .%s (called below)" i (exprName expr)
         | ChainSegment.DotMember(_, expr) -> printfn "    [%02d] navigation  .%s" i (exprName expr)
         | ChainSegment.DotApplication(_, expr, ChainCall.Unit _) ->
             printfn "    [%02d] action      .%s()" i (exprName expr)

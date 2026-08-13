@@ -49,6 +49,15 @@ The one real choice is **where to put line breaks**, and it comes down to a sing
 If the answer is yes, it stays on one line and there is nothing more to decide.
 Everything below is about what happens when the answer is **no**.
 
+One thing overrides the fit question: trivia the user wrote between the steps.
+A trailing comment on the starting value, or an `#if` directive in front of a step, pins that step to its own line no matter how much room is left.
+
+```fsharp
+// ✅ at a max line length of 80 this fits on one line, and is still broken up
+config // note
+    .Settings.GetValue(theKeyName)
+```
+
 ## What counts as a chain
 
 The dot is what matters. If there is no dot, there is no step:
@@ -225,12 +234,14 @@ graph TD
     C -->|Yes| D{"Is the starting value a plain value?"}
     D -->|No| P
     D -->|Yes| E{"Does everything up to the method name\nfit on one line?"}
-    E -->|No| P
+    E -->|No| F{"Is the method name itself\nthe overflow?"}
+    F -->|No| P
+    F -->|Yes| K
     E -->|Yes| K["Keep the chain together,\nand break the call's arguments"]
     P["Pipeline: give each action its own line, led by its dot"]
 ```
 
-The three questions after the first are the conditions for keeping the chain together, and a "no" to any one of them lands in the same place.
+The questions after the first are the conditions for keeping the chain together, and a "no" to any one of them lands in the same place, bar the last one's escape hatch.
 
 In one sentence:
 
@@ -285,6 +296,15 @@ getConfiguration()
 
 The two inputs differ only in their starting value. A compound one is already doing something, so it earns the opening line rather than serving as a prefix to the navigation behind it.
 
+One compound starting value is exempt: a parenthesised expression whose only step is an index, with no call after it. Indexing a parenthesised value reads as a plain access rather than a pipeline, so the index rides tight onto the closing paren:
+
+```fsharp
+// ✅ at a max line length of 30, the index stays welded to the `)`
+let x =
+    (someVeryLongExpression
+     + otherLongThing).[0]
+```
+
 **Everything up to the method name must fit on one line.** When it does not, or when a comment falls between the steps, there is nothing left to keep together and the pipeline takes over:
 
 ```fsharp
@@ -294,7 +314,16 @@ config.Settings
     .GetValue(theKeyName)
 ```
 
-That second guard is also why step 5, wrapping a long run of navigation, never applies to this branch: if the chain is kept together then everything up to the method name fits by definition, so there is no wrap to be made.
+With one exception: when the method name alone would still overflow on a line of its own, moving it down gains nothing, so the chain stays together and the arguments wrap anyway.
+
+```fsharp
+// ✅ at a max line length of 40, `.AVeryVery...` overflows wherever you put it
+config.AVeryVeryLongMethodNameThatIsCertainlyTooLong(
+    arg
+)
+```
+
+That second guard is also why step 5, wrapping a long run of navigation, never applies to this branch: a chain is only kept together when its navigation already fits on one line, and in the escape-hatch case the overflow is the method name, which wrapping the navigation would not fix either.
 
 ## Step 4: navigation rides along
 

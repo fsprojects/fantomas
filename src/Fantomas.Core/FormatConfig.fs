@@ -107,7 +107,7 @@ type EndOfLineStyle =
         | "crlf" -> Some EndOfLineStyle.CRLF
         | _ -> None
 
-// NOTE: try to keep this list below in sync with the docs (e.g. Documentation.md)
+// NOTE: try to keep this list below in sync with docs/docs/end-users/Configuration.fsx
 type FormatConfig =
     { [<Category("Indentation")>]
       [<DisplayName("Indent spaces")>]
