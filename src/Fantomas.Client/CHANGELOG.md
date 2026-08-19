@@ -2,6 +2,11 @@
 
 This is the changelog for the Fantomas.Client package specifically. It's distinct from that of the overall libraries and command-line tool.
 
+## [Unreleased]
+
+### Changed
+- Bump `StreamJsonRpc` to `2.25.29`. [#3393](https://github.com/fsprojects/fantomas/pull/3393)
+
 ## [0.11.0] - 2026-04-16
 
 ### Changed
