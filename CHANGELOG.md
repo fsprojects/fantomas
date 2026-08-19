@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.0.0-alpha-013] - 2026-08-19
+
+### Changed
+
+- Improved formatting performance. Formatting is roughly 1.5 to 2 times faster and allocates around 65% less memory, depending on hardware. [#3388](https://github.com/fsprojects/fantomas/pull/3388)
+- The command line tool now runs with Server GC, which speeds up formatting multiple files in parallel at the cost of a larger memory footprint. [#3388](https://github.com/fsprojects/fantomas/pull/3388)
+
 ## [8.0.0-alpha-012] - 2026-04-16
 
 ### Changed

@@ -53,15 +53,46 @@ type TriviaNode(content: TriviaContent, range: range) =
 [<Interface>]
 type Node =
     abstract ContentBefore: TriviaNode seq
+    /// True when there is trivia before this node that should influence layout.
+    /// <c>Cursor</c> trivia is excluded on purpose: the caret position must never change the
+    /// formatted output. Use this to decide indentation, newlines and spacing.
+    /// This is NOT the negation of <c>HasAnyContentBefore</c> — see that member.
     abstract HasContentBefore: bool
     abstract ContentAfter: TriviaNode seq
+    /// See <c>HasContentBefore</c>.
     abstract HasContentAfter: bool
+    /// True when there is any trivia before this node at all, <c>Cursor</c> included.
+    /// Use this to decide whether generating trivia can be skipped entirely: a node whose only
+    /// trivia is a <c>Cursor</c> still has to be generated, so <c>HasContentBefore</c> is the
+    /// wrong test for that and would silently drop the cursor. O(1), where <c>HasContentBefore</c>
+    /// enumerates.
+    abstract HasAnyContentBefore: bool
+    /// See <c>HasAnyContentBefore</c>.
+    abstract HasAnyContentAfter: bool
     abstract Range: range
     abstract Children: Node array
     abstract AddBefore: triviaNode: TriviaNode -> unit
     abstract AddAfter: triviaNode: TriviaNode -> unit
     abstract AddCursor: pos -> unit
     abstract TryGetCursor: pos option
+
+/// True when the queue holds trivia that should influence layout, i.e. anything other than a
+/// <c>Cursor</c>. Most nodes carry no trivia at all, so the O(1) count is tested first; beyond that
+/// the queue's struct enumerator is walked directly, because going through <c>Seq</c> boxes it
+/// (measured: 40 bytes and roughly 2x the time per call).
+let private hasLayoutAffectingTrivia (nodes: Queue<TriviaNode>) =
+    if nodes.Count = 0 then
+        false
+    else
+        let mutable found = false
+        let mutable e = nodes.GetEnumerator()
+
+        while not found && e.MoveNext() do
+            match e.Current.Content with
+            | Cursor -> ()
+            | _ -> found <- true
+
+        found
 
 /// Base implementation of <see cref="Node"/> shared by all concrete Oak node types.
 /// Manages the mutable trivia queues (<c>ContentBefore</c> / <c>ContentAfter</c>) and
@@ -75,25 +106,14 @@ type NodeBase(range: range) =
 
     member _.ContentBefore: TriviaNode seq = nodesBefore
 
-    member _.HasContentBefore =
-        nodesBefore
-        |> Seq.filter (fun tn ->
-            match tn.Content with
-            | Cursor -> false
-            | _ -> true)
-        |> Seq.isEmpty
-        |> not
+    member _.HasContentBefore = hasLayoutAffectingTrivia nodesBefore
 
     member _.ContentAfter: TriviaNode seq = nodesAfter
 
-    member _.HasContentAfter =
-        nodesAfter
-        |> Seq.filter (fun tn ->
-            match tn.Content with
-            | Cursor -> false
-            | _ -> true)
-        |> Seq.isEmpty
-        |> not
+    member _.HasContentAfter = hasLayoutAffectingTrivia nodesAfter
+
+    member _.HasAnyContentBefore = nodesBefore.Count > 0
+    member _.HasAnyContentAfter = nodesAfter.Count > 0
 
     member _.Range = range
     member _.AddBefore triviaNode = nodesBefore.Enqueue triviaNode
@@ -160,6 +180,8 @@ type NodeBase(range: range) =
         member x.HasContentBefore = x.HasContentBefore
         member x.ContentAfter = x.ContentAfter
         member x.HasContentAfter = x.HasContentAfter
+        member x.HasAnyContentBefore = x.HasAnyContentBefore
+        member x.HasAnyContentAfter = x.HasAnyContentAfter
         member x.Range = x.Range
         member x.AddBefore triviaNode = x.AddBefore triviaNode
         member x.AddAfter triviaNode = x.AddAfter triviaNode
@@ -1567,6 +1589,8 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
             member _.HasContentBefore: bool = false
             member _.ContentAfter: TriviaNode seq = Seq.empty
             member _.HasContentAfter: bool = false
+            member _.HasAnyContentBefore: bool = false
+            member _.HasAnyContentAfter: bool = false
             member _.Range = mElse
 
             member _.AddBefore(triviaNode: TriviaNode) =
@@ -1585,6 +1609,8 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
             member _.HasContentBefore: bool = false
             member _.ContentAfter: TriviaNode seq = Seq.empty
             member _.HasContentAfter: bool = false
+            member _.HasAnyContentBefore: bool = false
+            member _.HasAnyContentAfter: bool = false
             member _.Range = mIf
 
             member _.AddBefore(triviaNode: TriviaNode) =
@@ -1605,6 +1631,8 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
         member _.HasContentBefore: bool = not (Seq.isEmpty nodesBefore)
         member _.ContentAfter: TriviaNode seq = nodesAfter
         member _.HasContentAfter: bool = not (Seq.isEmpty nodesAfter)
+        member _.HasAnyContentBefore: bool = nodesBefore.Count > 0
+        member _.HasAnyContentAfter: bool = nodesAfter.Count > 0
         member _.Range = range
         member _.AddBefore(triviaNode: TriviaNode) = nodesBefore.Enqueue triviaNode
 
