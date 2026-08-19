@@ -580,6 +580,18 @@ Everything between `(` and `)` is laid out by the ordinary rules for call argume
 A chain never overrides them.
 That is the same idea as "break the call's arguments" in the rule above: at that point Fantomas stops making chain decisions and hands the argument to the normal machinery.
 
+Which includes the decision to move the argument itself. A lambda whose parameters no longer fit beside the method name takes a line of its own, and the terminal call's `(` goes down with it, exactly as it would with no starting value in front:
+
+```fsharp
+// ✅ the opener no longer fits, so the whole argument moves down one level
+ifaces
+|> List.tryPick
+    (fun (SynInterfaceImpl(interfaceTy = ty; withKeyword = withRange)) ->
+        Some(ty, withRange))
+```
+
+This is the one thing that separates a terminal `(` from its method name without a setting asking for it, and it is allowed for the same reason a setting may ask: the last call of a chain has nothing behind it to reparse. Every earlier call keeps its parenthesis welded, so its argument breaks after the `(` instead.
+
 The practical consequence is that **every setting that governs argument layout keeps working unchanged inside a chain**.
 The one you are most likely to notice is [`multi_line_lambda_closing_newline`](../end-users/Configuration.html), which decides where the closing `)` lands when a lambda argument needs several lines.
 

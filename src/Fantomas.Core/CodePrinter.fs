@@ -463,12 +463,13 @@ let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : 
          +> genSingleTextNode parenNode.ClosingParen)
             ctx
 
-    // Move the whole lambda argument onto its own indented line when leaving `(fun` at the
-    // margin would read badly:
+    // Move the whole lambda argument onto its own indented line when leaving it where it is
+    // would read badly:
     //   * a single parameter that is itself multiline (a record pattern), or
-    //   * even the bare `(fun` no longer fits, because the method name in front of it is
-    //     already too long. (A long *list* of simple parameters is NOT a reason — those align
-    //     under `fun` on the same line — so we probe only up to `fun`.)
+    //   * the opener does not fit, meaning `(fun` plus the parameters up to the arrow. The F#
+    //     style guide asks for all arguments up to the arrow to sit on one line, and rejects
+    //     parameters aligned under the opening parenthesis, since that column depends on the
+    //     length of the identifier in front of it.
     fun (ctx: Context) ->
         let singleMultilineParameter: bool =
             match lambdaNode.Parameters with
@@ -476,7 +477,14 @@ let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : 
             | _ -> false
 
         let openerDoesNotFit: bool =
-            futureNlnCheck (genSingleTextNode parenNode.OpeningParen +> genSingleTextNode lambdaNode.Fun) ctx
+            futureNlnCheck
+                (genSingleTextNode parenNode.OpeningParen
+                 +> genSingleTextNode lambdaNode.Fun
+                 +> sepSpace
+                 +> col sepSpace lambdaNode.Parameters genPat
+                 +> sepSpace
+                 +> genSingleTextNode lambdaNode.Arrow)
+                ctx
 
         if singleMultilineParameter || openerDoesNotFit then
             indentSepNlnUnindent genParenLambda ctx

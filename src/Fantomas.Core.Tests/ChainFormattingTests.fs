@@ -899,3 +899,68 @@ builder
         | Some v -> handleSome v
         | None -> handleNone ())
 """
+
+// ── A lambda argument that no longer fits ───────────────────────────────────
+//
+// Where the lambda goes is the argument's business, not the chain's, so a call reached through
+// a dot is laid out exactly like the same call without one. The F# style guide asks for
+// everything up to the arrow on one line, and rejects parameters aligned under the opening
+// parenthesis, because that column depends on the length of the name in front of it.
+
+[<Test>]
+let ``lambda moves to its own line when everything up to the arrow does not fit`` () =
+    formatSourceString
+        """
+let dotted ifaces =
+    ifaces
+    |> List.tryPick (fun (SynInterfaceImpl(interfaceTy = ty; withKeyword = withRange)) -> Some(ty, withRange))
+
+let undotted ifaces =
+    ifaces
+    |> pickFromList (fun (SynInterfaceImpl(interfaceTy = ty; withKeyword = withRange)) -> Some(ty, withRange))
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let dotted ifaces =
+    ifaces
+    |> List.tryPick
+        (fun (SynInterfaceImpl(interfaceTy = ty; withKeyword = withRange)) ->
+            Some(ty, withRange))
+
+let undotted ifaces =
+    ifaces
+    |> pickFromList
+        (fun (SynInterfaceImpl(interfaceTy = ty; withKeyword = withRange)) ->
+            Some(ty, withRange))
+"""
+
+[<Test>]
+let ``lambda parameters take a line each when they do not fit after the lambda moved down`` () =
+    formatSourceString
+        """
+let dotted () =
+    Cfg.register (fun (aVeryLongParameterName: AnEquallyLongTypeName) (anotherLongParameterName: AnotherTypeName) -> body ())
+
+let undotted () =
+    registerWith (fun (aVeryLongParameterName: AnEquallyLongTypeName) (anotherLongParameterName: AnotherTypeName) -> body ())
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let dotted () =
+    Cfg.register
+        (fun
+            (aVeryLongParameterName: AnEquallyLongTypeName)
+            (anotherLongParameterName: AnotherTypeName) -> body ())
+
+let undotted () =
+    registerWith
+        (fun
+            (aVeryLongParameterName: AnEquallyLongTypeName)
+            (anotherLongParameterName: AnotherTypeName) -> body ())
+"""
