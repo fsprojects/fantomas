@@ -3272,8 +3272,7 @@ Program.statefulWithCmdMsg
         CanReuseView = ViewHelper.canReuseView
         SyncAction =
             (fun fn ->
-                program.SyncAction
-                    (
+                program.SyncAction(
 #if IOS
                     // iOS animates by default layout changes, we don't want that
                     fun () -> UIKit.UIView.PerformWithoutAnimation(fn)

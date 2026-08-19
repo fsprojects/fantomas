@@ -706,3 +706,114 @@ let x =
             | None -> handleNone ()
         )
 """
+
+[<Test>]
+let ``a comment before the argument of a terminal call keeps the parenthesis with the method name`` () =
+    formatSourceString
+        """
+let host =
+    builder.UseUrls(
+        // the public endpoint
+        url
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let host =
+    builder.UseUrls(
+        // the public endpoint
+        url
+    )
+"""
+
+[<Test>]
+let ``a comment before the argument keeps the parenthesis with the method name, however the source was laid out`` () =
+    formatSourceString
+        """
+let host = builder.UseUrls(
+    // the public endpoint
+    url)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let host =
+    builder.UseUrls(
+        // the public endpoint
+        url
+    )
+"""
+
+[<Test>]
+let ``a comment before the argument of an intermediate call keeps the parenthesis welded`` () =
+    formatSourceString
+        """
+let host =
+    builder
+        .UseUrls(
+            // the public endpoint
+            url
+        )
+        .Build()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let host =
+    builder
+        .UseUrls(
+            // the public endpoint
+            url
+        )
+        .Build()
+"""
+
+[<Test>]
+let ``a comment between the method name and the parenthesis takes the call down with it`` () =
+    formatSourceString
+        """
+let host =
+    builder.UseUrls
+        // pick the endpoint
+        (url)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let host =
+    builder.UseUrls
+        // pick the endpoint
+        (url)
+"""
+
+[<Test>]
+let ``a comment between the method name and the parenthesis leaves the argument rules alone`` () =
+    formatSourceString
+        """
+let host =
+    builder.UseUrls
+        // pick the endpoint
+        (theConfigurationValueForThePublicEndpoint, theFallbackEndpointValue)
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let host =
+    builder.UseUrls
+        // pick the endpoint
+        (
+            theConfigurationValueForThePublicEndpoint,
+            theFallbackEndpointValue
+        )
+"""

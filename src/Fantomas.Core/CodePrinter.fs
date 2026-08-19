@@ -457,25 +457,6 @@ type ChainCallPosition =
     /// The last call of the chain, with nothing following it.
     | Terminal
 
-/// Layout for an argument carrying a directive or comment before it (e.g. `(` on its own line
-/// above a `#if`): the argument is pushed onto its own indented lines and the closing `)`
-/// returns to the method's column.
-let genParenArgWithContentBefore (position: ChainCallPosition) (parenNode: ExprParenNode) : Context -> Context =
-    // An INTERMEDIATE call may not be separated from its `(` — `a.Foo (x).Bar()` parses as
-    // `a.Foo ((x).Bar())` — so there the paren stays welded to the member name and the break
-    // happens after it. Only a terminal call may put the `(` on the indented line.
-    let genOpeningParen: Context -> Context =
-        match position with
-        | ChainCallPosition.Intermediate -> genSingleTextNode parenNode.OpeningParen +> indent +> sepNln
-        | ChainCallPosition.Terminal -> indent +> sepNln +> genSingleTextNode parenNode.OpeningParen +> sepNln
-
-    genOpeningParen
-    +> genExpr parenNode.Expr
-    +> unindent
-    +> sepNlnUnlessLastEventIsNewline
-    +> genSingleTextNode parenNode.ClosingParen
-    |> genNode parenNode
-
 /// Layout for `(fun params -> body)`. Identical wherever the call sits: `MultiLineLambdaClosingNewline`
 /// decides where the closing `)` lands, exactly as it would for a call with no receiver.
 let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : Context -> Context =
@@ -559,15 +540,76 @@ let genMatchLambdaParenArg (parenNode: ExprParenNode) (matchLambdaNode: ExprMatc
 /// by the ordinary argument rules; the chain only gets a say in the one place named on
 /// `ChainCallPosition`.
 let genMultilineParenArg (position: ChainCallPosition) (parenNode: ExprParenNode) : Context -> Context =
-    // Content attached before the argument is decided ahead of the argument's shape, so this is
-    // an `if` rather than another match arm.
-    if parenNode.HasContentBefore || (Expr.Node parenNode.Expr).HasContentBefore then
-        genParenArgWithContentBefore position parenNode
-    else
+    // How the argument breaks, once it is settled where the call starts. Whatever sits between
+    // the parentheses is the argument's business, so this is the ordinary layout for one.
+    let genByArgumentShape: Context -> Context =
         match parenNode.Expr with
         | Expr.Lambda lambdaNode -> genLambdaParenArg parenNode lambdaNode
         | Expr.MatchLambda matchLambdaNode -> genMatchLambdaParenArg parenNode matchLambdaNode
         | _ -> genMultilineFunctionApplicationArguments (Expr.Paren parenNode)
+
+    // The argument on its own indented lines, with the closing `)` back at the method's column.
+    let genArgumentBelow: Context -> Context =
+        genExpr parenNode.Expr
+        +> unindent
+        +> sepNlnUnlessLastEventIsNewline
+        +> genSingleTextNode parenNode.ClosingParen
+
+    // Trivia attached before the parenthesis or before the argument is decided ahead of the
+    // argument's shape, so this is an `if` rather than another match arm. Which of the two nodes
+    // carries the trivia is what decides where the `(` may sit.
+    if parenNode.HasContentBefore then
+        // The trivia sits between the member name and the `(`:
+        //
+        //     builder.UseUrls
+        //         // pick the endpoint
+        //         (url)
+        //
+        // The comment is written first and ends its line, so the `(` cannot follow `UseUrls`
+        // and drops to the indented line below.
+        //
+        // An intermediate call cannot afford to let the `(` go: a space between a member name
+        // and its parenthesis changes what the code means. `a.Foo(x).Bar()` calls `Foo` and then
+        // `Bar`, while `a.Foo (x).Bar()` passes `(x).Bar()` to `Foo`. A line break in front of
+        // the `(` reads the same way to the parser, so there the paren stays welded to the name
+        // and the argument breaks after it instead.
+        match position with
+        | ChainCallPosition.Terminal ->
+            // `genNode` writes the trivia on entering the node, so the indent has to be in place
+            // before then. Without it the comment lands back at the receiver's column and the
+            // `sepNln` behind it adds a blank line, one more on every format run.
+            //
+            // Only the position of the call moves. Whether the argument then has to break is
+            // asked of a copy of the parenthesis without the trivia, since the comment takes a
+            // line of its own either way and would otherwise answer the question by itself.
+            let parenWithoutTrivia: Expr =
+                mkExprParenNode parenNode.OpeningParen parenNode.Expr parenNode.ClosingParen parenNode.Range
+
+            indent
+            +> sepNln
+            +> ifElseCtx
+                (futureNlnCheck (genExpr parenWithoutTrivia))
+                genByArgumentShape
+                (genExpr (Expr.Paren parenNode))
+            +> unindent
+        | ChainCallPosition.Intermediate ->
+            genSingleTextNode parenNode.OpeningParen +> indent +> sepNln +> genArgumentBelow
+            |> genNode parenNode
+    elif (Expr.Node parenNode.Expr).HasContentBefore then
+        // The trivia sits between the `(` and the argument:
+        //
+        //     builder.UseUrls(
+        //         // the public endpoint
+        //         url
+        //     )
+        //
+        // It is written after the parenthesis, which leaves the parenthesis free to stay with
+        // the method name. Only the argument moves down, and it does so wherever the call sits
+        // in the chain, so an intermediate call is laid out no differently from a terminal one.
+        genSingleTextNode parenNode.OpeningParen +> indent +> sepNln +> genArgumentBelow
+        |> genNode parenNode
+    else
+        genByArgumentShape
 
 let genSegment (segment: ChainSegment) : Context -> Context =
     match segment with
