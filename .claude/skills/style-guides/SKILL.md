@@ -24,6 +24,7 @@ cd .deps/style-guides
 fetch() { curl -sS --etag-compare "$2.etag" --etag-save "$2.etag" -o "$2" "$1"; }
 fetch https://raw.githubusercontent.com/dotnet/docs/main/docs/fsharp/style-guide/formatting.md microsoft-formatting.md
 fetch https://raw.githubusercontent.com/G-Research/fsharp-formatting-conventions/master/README.md g-research-conventions.md
+fetch https://raw.githubusercontent.com/G-Research/fsharp-formatting-conventions/master/.editorconfig g-research.editorconfig
 ```
 
 The `.etag` files next to the documents are what make the second run free; keep them. Verified that
@@ -37,6 +38,21 @@ a repeat run leaves the file byte for byte intact rather than truncating it.
 - **G-Research**, the alternative style behind the G-Research settings.
   Local: `.deps/style-guides/g-research-conventions.md`
   Rendered: <https://github.com/G-Research/fsharp-formatting-conventions>
+
+## Which settings a guide means
+
+Do not infer these from the prose, from the examples, or from our own documentation.
+
+Microsoft is the Fantomas defaults. Nothing to configure, so format with `FormatConfig.Default`,
+and a deviation is a Fantomas bug rather than a settings question.
+
+G-Research ships its settings, and `.deps/style-guides/g-research.editorconfig` is the whole
+answer. Use it verbatim.
+
+One warning about `docs/docs/end-users/Configuration.fsx`. The `gr` badge marks a setting as part
+of the G-Research set, but the value in the copy-to-clipboard box is the value that section
+demonstrates, usually the non-default one. It is not a claim about what G-Research chose. Read
+those boxes as G-Research values and you will get it wrong.
 
 Style discussions themselves happen at <https://github.com/fsharp/fslang-design#style-guide>, not
 in this repository. See `docs/docs/end-users/StyleGuide.md`.
@@ -67,11 +83,9 @@ the settings that style implies. Three traps make a naive pass-rate meaningless,
   `// Not OK` comment, so Fantomas rewriting it is the guide being obeyed, not broken.
 - Many blocks are **fragments** that do not parse alone, or illustrate naming and structure rather
   than layout. `if cond then e1 else e2` shown across four lines is not a claim about line breaks.
-- The **settings have to be right**, and are best read off the guide's own examples: the
-  G-Research ones use `aligned` brackets and a space before the colon in record fields. That does
-  not always line up with the badges in `docs/docs/end-users/Configuration.fsx`, and the badges are
-  not necessarily wrong when it does not. They carry history this skill does not know, so treat a
-  mismatch as a question for nojaf rather than a documentation bug to fix.
+- The **settings have to be right**. Take them from `g-research.editorconfig`, never from the
+  examples or from our documentation. A hand-assembled set produces a number that says more about
+  the set than about Fantomas.
 
 So classify a block before diffing it, and say what was excluded and why. A pass rate without that
 classification says nothing.
