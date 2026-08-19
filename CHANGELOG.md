@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Bump `StreamJsonRpc` to `2.25.29`. This clears the NuGet vulnerability warnings coming from the transitive `MessagePack` and `Nerdbank.MessagePack` dependencies. [#3393](https://github.com/fsprojects/fantomas/pull/3393)
+
 ## [8.0.0-alpha-013] - 2026-08-19
 
 ### Changed
