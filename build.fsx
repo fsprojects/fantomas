@@ -1,3 +1,5 @@
+#!/usr/bin/env -S dotnet fsi
+
 #r "nuget: Fun.Build, 1.1.16"
 #r "nuget: CliWrap, 3.6.4"
 #r "nuget: FSharp.Data, 6.3.0"
@@ -19,28 +21,43 @@ open Humanizer
 
 let (</>) a b = Path.Combine(a, b)
 
+// Every path here is anchored to the script folder. A relative path is resolved against the
+// working directory of the process, which is not necessarily the folder this script lives in.
+let artifactsDir = __SOURCE_DIRECTORY__ </> "artifacts"
+let binDir = artifactsDir </> "bin"
+let packagesDir = artifactsDir </> "package" </> "release"
+let analysisReportsDir = __SOURCE_DIRECTORY__ </> "analysisreports"
+
+let benchmarkAssembly =
+    binDir </> "Fantomas.Benchmarks" </> "release" </> "Fantomas.Benchmarks.dll"
+
+let semanticVersioning =
+    binDir </> "Fantomas" </> "release" </> "SemanticVersioning.dll"
+
 let isDryRun =
     let args = fsi.CommandLineArgs
     Array.exists (fun arg -> arg = "--dry-run") args
 
-let cleanFolders (input: string seq) =
+/// Deleting a folder can fail with "Directory not empty" when something writes into it while
+/// the delete is walking it, Finder dropping a .DS_Store back in is enough. The delete does
+/// remove what it got to, so retry a couple of times before giving up.
+let rec private deleteDirectory (attempt: int) (dir: string) : Async<unit> =
     async {
-        input
-        |> Seq.iter (fun dir ->
+        try
+            Directory.Delete(dir, true)
+        with :? IOException when attempt < 5 ->
+            do! Async.Sleep(100 * attempt)
+
             if Directory.Exists(dir) then
-                Directory.Delete(dir, true))
+                return! deleteDirectory (attempt + 1) dir
     }
 
-let benchmarkAssembly =
-    "artifacts/bin/Fantomas.Benchmarks/release/Fantomas.Benchmarks.dll"
-
-let semanticVersioning =
-    __SOURCE_DIRECTORY__
-    </> "artifacts"
-    </> "bin"
-    </> "Fantomas"
-    </> "release"
-    </> "SemanticVersioning.dll"
+let cleanFolders (input: string seq) : Async<unit> =
+    async {
+        for dir in input do
+            if Directory.Exists(dir) then
+                do! deleteDirectory 1 dir
+    }
 
 let pushPackage nupkg =
     async {
@@ -52,19 +69,19 @@ let pushPackage nupkg =
             let! result =
                 Cli
                     .Wrap("dotnet")
-                    .WithArguments($"nuget push {nupkg} --api-key {key} --source https://api.nuget.org/v3/index.json")
+                    .WithArguments(
+                        $"nuget push \"{nupkg}\" --api-key \"{key}\" --source https://api.nuget.org/v3/index.json"
+                    )
                     .ExecuteAsync()
                     .Task
                 |> Async.AwaitTask
             return result.ExitCode
     }
 
-let analysisReportsDir = "analysisreports"
-
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
-    stage "Clean" { run (cleanFolders [| analysisReportsDir; "artifacts" |]) }
+    stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
     stage "Build" { run "dotnet build -c Release --tl" }
     stage "UnitTests" { run "dotnet test -c Release --tl" }
@@ -83,7 +100,7 @@ pipeline "Build" {
 pipeline "Benchmark" {
     workingDir __SOURCE_DIRECTORY__
     stage "Prepare" { run "dotnet build -c Release src/Fantomas.Benchmarks --tl" }
-    stage "Benchmark" { run $"dotnet {benchmarkAssembly}" }
+    stage "Benchmark" { run $"dotnet \"{benchmarkAssembly}\"" }
     runIfOnlySpecified true
 }
 
@@ -143,11 +160,7 @@ pipeline "PushClient" {
         run (fun _ ->
             async {
                 return!
-                    Directory.EnumerateFiles(
-                        "artifacts/package/release",
-                        "Fantomas.Client.*.nupkg",
-                        SearchOption.TopDirectoryOnly
-                    )
+                    Directory.EnumerateFiles(packagesDir, "Fantomas.Client.*.nupkg", SearchOption.TopDirectoryOnly)
                     |> Seq.tryExactlyOne
                     |> Option.map pushPackage
                     |> Option.defaultValue (
@@ -333,20 +346,62 @@ type GithubRelease =
         Version: string
         Title: string
         Date: DateTime
-        /// Optional because new releases don't have a published date yet
+        /// None when GitHub has no release for this version: it is not created yet, or the
+        /// version went to NuGet by hand the way 7.0.6 did.
         PublishedDate: string option
         Draft: string
     }
 
-let mkGithubRelease (v: SemanticVersion, d: DateTime, cd: ChangelogData option) =
+let formatVersion (v: SemanticVersion) : string =
+    if String.IsNullOrEmpty v.Prerelease then
+        $"{v.Major}.{v.Minor}.{v.Patch}"
+    else
+        $"{v.Major}.{v.Minor}.{v.Patch}-{v.Prerelease}"
+
+/// Releases are ordered on their version and not on their date. A hotfix for an older major is
+/// released from its own branch, so it can enter the changelog with a date that is newer than
+/// the entry main is about to release: 7.0.6 is dated after 8.0.0-alpha-013.
+/// SemanticVersion itself does not support the comparison constraint, hence the tuple.
+let versionSortKey (v: SemanticVersion) : int * int * int * int * string =
+    let prerelease = if isNull v.Prerelease then String.Empty else v.Prerelease
+
+    v.Major.GetValueOrDefault(),
+    v.Minor.GetValueOrDefault(),
+    v.Patch.GetValueOrDefault(),
+    // a stable release comes after the prereleases that led up to it
+    (if prerelease = String.Empty then 1 else 0),
+    prerelease
+
+/// The date the GitHub release for this version was published.
+/// None when GitHub has no release for it, which is what happens for a version that was pushed
+/// to NuGet by hand, like 7.0.6.
+let getPublishedDate (version: string) : string option =
+    let prefixedVersion = $"v{version}"
+    printfn $"Checking if release {prefixedVersion} already exists on GitHub..."
+
+    let cmdResult =
+        Cli
+            .Wrap("gh")
+            .WithArguments($"release view {prefixedVersion} --json publishedAt -t \"{{{{.publishedAt}}}}\"")
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteBufferedAsync()
+            .Task.Result
+
+    if cmdResult.ExitCode <> 0 then
+        printfn $"Release {prefixedVersion} does not exist yet"
+        None
+    else
+        let output = cmdResult.StandardOutput.Trim()
+        let lastIdx = output.LastIndexOf("Z", StringComparison.Ordinal)
+        let dateStr = output.Substring(0, lastIdx)
+        printfn $"Release {prefixedVersion} already exists, published at: {dateStr}"
+        Some dateStr
+
+let mkGithubRelease (v: SemanticVersion, d: DateTime, cd: ChangelogData option) : GithubRelease =
     match cd with
     | None -> failwith "Each Fantomas release is expected to have at least one section."
     | Some cd ->
-        let version =
-            if String.IsNullOrEmpty v.Prerelease then
-                $"{v.Major}.{v.Minor}.{v.Patch}"
-            else
-                $"{v.Major}.{v.Minor}.{v.Patch}-{v.Prerelease}"
+        let version = formatVersion v
 
         printfn $"Parsing release version: {version} (prerelease: {not (String.IsNullOrEmpty v.Prerelease)})"
 
@@ -355,26 +410,7 @@ let mkGithubRelease (v: SemanticVersion, d: DateTime, cd: ChangelogData option) 
             let day = d.Day.Ordinalize()
             $"{month} {day} Release"
 
-        let prefixedVersion = $"v{version}"
-        printfn $"Checking if release {prefixedVersion} already exists on GitHub..."
-
-        let publishDate =
-            let cmdResult =
-                Cli
-                    .Wrap("gh")
-                    .WithArguments($"release view {prefixedVersion} --json publishedAt -t \"{{{{.publishedAt}}}}\"")
-                    .WithValidation(CommandResultValidation.None)
-                    .ExecuteBufferedAsync()
-                    .Task.Result
-            if cmdResult.ExitCode <> 0 then
-                printfn $"Release {prefixedVersion} does not exist yet"
-                None
-            else
-                let output = cmdResult.StandardOutput.Trim()
-                let lastIdx = output.LastIndexOf("Z", StringComparison.Ordinal)
-                let dateStr = output.Substring(0, lastIdx)
-                printfn $"Release {prefixedVersion} already exists, published at: {dateStr}"
-                Some(dateStr)
+        let publishDate = getPublishedDate version
 
         let sections =
             [ "Added", cd.Added
@@ -406,15 +442,15 @@ let mkGithubRelease (v: SemanticVersion, d: DateTime, cd: ChangelogData option) 
           PublishedDate = publishDate
           Draft = draft }
 
-let getReleaseNotes currentRelease (lastRelease: GithubRelease) =
+let getReleaseNotes (currentRelease: GithubRelease) (lastPublishedDate: string option) : string =
     let date =
-        match lastRelease.PublishedDate with
+        match lastPublishedDate with
         | Some d ->
             printfn $"Using last release published date for author attribution: {d}"
             d
         | None ->
             // Query GitHub for the most recent published release
-            printfn "Last release has no published date, querying GitHub for most recent release..."
+            printfn "No earlier changelog entry is on GitHub, querying GitHub for most recent release..."
             let ghReleaseResult =
                 Cli
                     .Wrap("gh")
@@ -548,9 +584,10 @@ let getReleaseNotes currentRelease (lastRelease: GithubRelease) =
 [https://www.nuget.org/packages/fantomas/{currentRelease.Version}](https://www.nuget.org/packages/fantomas/{currentRelease.Version})
     """
 
-let getCurrentAndLastReleaseFromChangelog () =
+let getCurrentReleaseAndLastPublishedDate () : GithubRelease * string option =
     printfn "Parsing CHANGELOG.md to find current and last release..."
     let changelog = FileInfo(__SOURCE_DIRECTORY__ </> "CHANGELOG.md")
+
     let changeLogResult =
         match Parser.parseChangeLog changelog with
         | Error error -> failwithf "Failed to parse changelog: %A" error
@@ -558,30 +595,33 @@ let getCurrentAndLastReleaseFromChangelog () =
             printfn $"Found {result.Releases.Length} releases in changelog"
             result
 
-    let lastReleases =
+    let releases =
         changeLogResult.Releases
-        |> List.sortByDescending (fun (_, d, _) -> d)
-        |> List.take 2
+        |> List.sortByDescending (fun (v, _, _) -> versionSortKey v)
 
-    match lastReleases with
-    | [ current; last ] ->
-        let currentVersion, _, _ = current
-        let lastVersion, _, _ = last
-        let currentPrerelease =
-            if String.IsNullOrEmpty currentVersion.Prerelease then
-                ""
-            else
-                $" (prerelease: {currentVersion.Prerelease})"
-        let lastPrerelease =
-            if String.IsNullOrEmpty lastVersion.Prerelease then
-                ""
-            else
-                $" (prerelease: {lastVersion.Prerelease})"
-        printfn
-            $"Current release: {currentVersion.Major}.{currentVersion.Minor}.{currentVersion.Patch}{currentPrerelease}"
-        printfn $"Last release: {lastVersion.Major}.{lastVersion.Minor}.{lastVersion.Patch}{lastPrerelease}"
-        mkGithubRelease current, mkGithubRelease last
-    | _ -> failwith "Could not find the current and last release from CHANGELOG.md"
+    match releases with
+    | [] -> failwith "Could not find any release in CHANGELOG.md"
+    | current :: earlierReleases ->
+        let currentRelease = mkGithubRelease current
+        printfn $"Current release: {currentRelease.Version}"
+
+        // The release below the current one does not have to exist on GitHub: 7.0.6 went to
+        // NuGet by hand from the v7.0.6 branch and never got a GitHub release. Walk down the
+        // recent entries until GitHub knows one, its publish date is what the contributor
+        // query is based on. Anything older than that is out of date anyway, getReleaseNotes
+        // then falls back to the most recent release GitHub reports.
+        let lastPublishedRelease =
+            earlierReleases
+            |> List.truncate 5
+            |> List.tryPick (fun (v, _, _) ->
+                let version = formatVersion v
+                getPublishedDate version |> Option.map (fun date -> version, date))
+
+        match lastPublishedRelease with
+        | Some(version, date) -> printfn $"Last release on GitHub: {version}, published at {date}"
+        | None -> printfn "None of the recent changelog entries has a GitHub release"
+
+        currentRelease, Option.map snd lastPublishedRelease
 
 pipeline "Release" {
     workingDir __SOURCE_DIRECTORY__
@@ -596,7 +636,7 @@ pipeline "Release" {
                 else
                     printfn "Starting release pipeline"
 
-                let currentRelease, lastRelease = getCurrentAndLastReleaseFromChangelog ()
+                let currentRelease, lastPublishedDate = getCurrentReleaseAndLastPublishedDate ()
 
                 if Option.isSome currentRelease.PublishedDate then
                     printfn $"Release {currentRelease.Version} already exists on GitHub. Skipping release process."
@@ -611,7 +651,7 @@ pipeline "Release" {
 
                     // Push packages to NuGet
                     let nugetPackages =
-                        Directory.EnumerateFiles("artifacts/package/release", "*.nupkg", SearchOption.TopDirectoryOnly)
+                        Directory.EnumerateFiles(packagesDir, "*.nupkg", SearchOption.TopDirectoryOnly)
                         |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
                         |> Seq.toArray
 
@@ -627,14 +667,14 @@ pipeline "Release" {
                         let exitCodesStr = nugetExitCodes |> Array.map string |> String.concat ", "
                         printfn $"Warning: Some NuGet packages failed to push. Exit codes: {exitCodesStr}"
 
-                    let notes = getReleaseNotes currentRelease lastRelease
+                    let notes = getReleaseNotes currentRelease lastPublishedDate
                     printfn "Release notes that will be used:"
                     printfn "---"
                     printfn "%s" notes
                     printfn "---"
                     let noteFile = Path.GetTempFileName()
                     File.WriteAllText(noteFile, notes)
-                    let files = nugetPackages |> String.concat " "
+                    let files = nugetPackages |> Array.map (sprintf "\"%s\"") |> String.concat " "
 
                     // We create a draft release for minor and majors. Those that requires a manual publish.
                     // This is to allow us to add additional release notes when it makes sense.
@@ -704,14 +744,14 @@ pipeline "Release" {
 
 pipeline "PublishAlpha" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Clean" { run (cleanFolders [| analysisReportsDir; "artifacts" |]) }
+    stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
     stage "Build" { run "dotnet build -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
     stage "Publish" {
         run (fun ctx ->
             async {
                 let nugetPackages =
-                    Directory.EnumerateFiles("artifacts/package/release", "*.nupkg", SearchOption.TopDirectoryOnly)
+                    Directory.EnumerateFiles(packagesDir, "*.nupkg", SearchOption.TopDirectoryOnly)
                     |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
                     |> Seq.toArray
 

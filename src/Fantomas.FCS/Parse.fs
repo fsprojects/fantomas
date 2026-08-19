@@ -998,11 +998,33 @@ let getSyntaxErrorMessage ctxt =
 
     os.ToString()
 
+/// Every range packs a small integer instead of a file name, and the compiler keeps
+/// the name to integer mapping in a process wide table. In this compiler revision the
+/// lookup checks for a miss outside the lock, so two threads that both miss on the same
+/// name each allocate their own index for it.
+///
+/// Fantomas parses every implementation file as "tmp.fsx" and every signature file as
+/// "tmp.fsi", and the command line tool formats files in parallel. On a cold table that
+/// means one name can end up with two indices, after which ranges coming from different
+/// documents no longer compare as belonging to the same file and trivia is placed
+/// against the wrong node.
+///
+/// Resolving both names once, before any parse can race, closes the window. Lazy is
+/// ExecutionAndPublication by default, so the first thread populates the table while the
+/// others block.
+///
+/// See https://github.com/fsprojects/fantomas/issues/3391
+let private fileIndexTableWarmup =
+    lazy
+        (FileIndex.fileIndexOfFile "tmp.fsx" |> ignore
+         FileIndex.fileIndexOfFile "tmp.fsi" |> ignore)
+
 let parseFile
     (isSignature: bool)
     (sourceText: ISourceText)
     (defines: string list)
     : ParsedInput * FSharpParserDiagnostic list =
+    fileIndexTableWarmup.Force()
     let errorLogger = CapturingDiagnosticsLogger("ErrorHandler")
 
     let parseResult =
