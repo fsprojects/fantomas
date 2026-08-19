@@ -17,7 +17,7 @@
         <PackageVersion Include="G-Research.FSharp.Analyzers" Version="0.22.0" />
         <PackageVersion Include="Ionide.Analyzers" Version="0.15.0" />
 
-        <PackageVersion Include="StreamJsonRpc" Version="2.24.84" />
+        <PackageVersion Include="StreamJsonRpc" Version="2.25.29" />
         <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
         <PackageVersion Include="SemanticVersioning" Version="3.0.0" />
         <PackageVersion Include="Serilog" Version="4.3.1"/>
