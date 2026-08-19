@@ -498,8 +498,7 @@ let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : 
             genParenLambda ctx
 
 /// Layout for `(function | ... -> ...)`. Identical wherever the call sits in its chain:
-/// `MultiLineLambdaClosingNewline`, or a break the user already made after the `(`, decides
-/// whether `function` goes on its own line.
+/// `MultiLineLambdaClosingNewline` decides whether `function` goes on its own line.
 let genMatchLambdaParenArg (parenNode: ExprParenNode) (matchLambdaNode: ExprMatchLambdaNode) : Context -> Context =
     let keepFunctionWithParen: Context -> Context =
         genSingleTextNode parenNode.OpeningParen
@@ -520,20 +519,11 @@ let genMatchLambdaParenArg (parenNode: ExprParenNode) (matchLambdaNode: ExprMatc
         +> sepNln
         +> genSingleTextNode parenNode.ClosingParen
 
-    // The user already broke after the `(` themselves — `function` starts on a line below it.
-    let userBrokeAfterParen: bool =
-        matchLambdaNode.Range.StartLine > parenNode.OpeningParen.Range.EndLine
-
-    fun (ctx: Context) ->
-        // Where the call sits in its chain has no say here: a match lambda is laid out the same
-        // way as a `fun` lambda, whether its call is the last step or the first.
-        let breakOpener: bool =
-            ctx.Config.MultiLineLambdaClosingNewline || userBrokeAfterParen
-
-        if breakOpener then
-            breakAfterParen ctx
-        else
-            keepFunctionWithParen ctx
+    // Where the call sits in its chain has no say here: a match lambda is laid out the same way as
+    // a `fun` lambda, whether its call is the last step or the first. Neither has the line the
+    // author happened to start `function` on: the same call written two ways is one call, and
+    // formatting both has to land on the same answer.
+    ifElseCtx (fun ctx -> ctx.Config.MultiLineLambdaClosingNewline) breakAfterParen keepFunctionWithParen
 
 /// Multiline layout of a call's parenthesised argument `( ... )`, shared by intermediate calls
 /// (genSegment) and the terminal call (genTerminal). Everything between `(` and `)` is laid out

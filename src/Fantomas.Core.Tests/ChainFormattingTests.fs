@@ -878,9 +878,9 @@ builder
 """
 
 [<Test>]
-let ``breaking after the opening paren yourself moves function down`` () =
-    // The second thing that moves `function` onto its own line, and the only one that is
-    // not the setting: the source already had it there.
+let ``match lambda as the last step, function written below the opening paren`` () =
+    // The setting is the only thing that moves `function` onto its own line. The same call
+    // written across more lines is still the same call, so it formats the same way.
     formatSourceString
         """
 builder.Build().Configure(
@@ -895,9 +895,7 @@ builder.Build().Configure(
         """
 builder
     .Build()
-    .Configure(
-        function
+    .Configure(function
         | Some v -> handleSome v
-        | None -> handleNone ()
-    )
+        | None -> handleNone ())
 """

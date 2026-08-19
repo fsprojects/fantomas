@@ -683,7 +683,7 @@ let x =
 """
 
 [<Test>]
-let ``match lambda as a terminal call argument honours a user break after the paren`` () =
+let ``match lambda as a terminal call argument with the function keyword written below the paren`` () =
     formatSourceString
         """
 let x =
@@ -700,11 +700,9 @@ let x =
 let x =
     builder
         .Build()
-        .Configure(
-            function
+        .Configure(function
             | Some v -> handleSome v
-            | None -> handleNone ()
-        )
+            | None -> handleNone ())
 """
 
 [<Test>]
@@ -730,7 +728,7 @@ let host =
 """
 
 [<Test>]
-let ``a comment before the argument keeps the parenthesis with the method name, however the source was laid out`` () =
+let ``a comment before the argument of a terminal call written on one line`` () =
     formatSourceString
         """
 let host = builder.UseUrls(

@@ -705,7 +705,7 @@ Position still makes no difference. What the setting changes is the closing `)`,
 
 The one difference left between the two forms is that `function` also moves down off the `(`, while `(fun v ->` stays put. That is not about the chain either: a `fun` lambda's parameters have to stay with their arrow, so there is nothing to move, whereas `function` takes no parameters and can. The setting simply has a visible effect on the opener as well as on the closing `)` for that one argument shape.
 
-One further thing moves `function` down onto its own line, and it belongs to the argument rather than the chain: having broken after the `(` yourself, which Fantomas leaves as you wrote it.
+The setting is the only thing that moves it. Writing `function` on the line below the `(` yourself makes no difference: the same call written across more lines is still the same call, and Fantomas has to land on one answer for both.
 
 The only thing the chain decides here is that the `(` never leaves `.Configure`, for the parsing reason given in [Only the last call may have a space before its parentheses](#only-the-last-call-may-have-a-space-before-its-parentheses).
 A comment written between the two is the one thing that can separate them, and that is the next section.
