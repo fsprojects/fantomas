@@ -67,9 +67,11 @@ the settings that style implies. Three traps make a naive pass-rate meaningless,
   `// Not OK` comment, so Fantomas rewriting it is the guide being obeyed, not broken.
 - Many blocks are **fragments** that do not parse alone, or illustrate naming and structure rather
   than layout. `if cond then e1 else e2` shown across four lines is not a claim about line breaks.
-- The **settings have to be right**, and are best read off the guide's own examples rather than off
-  our documentation: the G-Research examples use `aligned` brackets and a space before the colon in
-  record fields, which does not match every badge in `docs/docs/end-users/Configuration.fsx`.
+- The **settings have to be right**, and are best read off the guide's own examples: the
+  G-Research ones use `aligned` brackets and a space before the colon in record fields. That does
+  not always line up with the badges in `docs/docs/end-users/Configuration.fsx`, and the badges are
+  not necessarily wrong when it does not. They carry history this skill does not know, so treat a
+  mismatch as a question for nojaf rather than a documentation bug to fix.
 
 So classify a block before diffing it, and say what was excluded and why. A pass rate without that
 classification says nothing.
