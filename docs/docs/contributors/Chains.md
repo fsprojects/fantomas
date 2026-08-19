@@ -75,24 +75,11 @@ An expression without any dots is laid out by other rules, not the ones on this 
 Formatting a chain settles two questions that have nothing to do with each other:
 
 1. **Where do the line breaks go?** A style decision, and the bulk of this page.
-2. **May a space sit between a method name and its `(`?** Mostly _not_ a style decision, and the shorter of the two, so it is settled first.
+2. **Is the method name welded to its argument?** Mostly _not_ a style decision, and the shorter of the two, so it is settled first.
 
-## Only the last call may have a space before its parentheses
+## An intermediate call is welded to its parenthesis
 
-Fantomas has settings that ask for a space before the parentheses of a call, [`space_before_uppercase_invocation`](../end-users/Configuration.html) and [`space_before_lowercase_invocation`](../end-users/Configuration.html).
-
-In a chain, **those settings apply to the final call only**. Every earlier call stays tight, whatever the settings say:
-
-```fsharp
-// both examples with space_before_uppercase_invocation = true
-
-obj.Bar ()          // a call on its own: the setting applies
-
-a.Foo(x).Bar (y)    // in a chain: only the final .Bar takes the space,
-                    // the intermediate .Foo stays tight
-```
-
-This is not Fantomas being inconsistent. A space in the middle of a chain changes what the code _means_:
+A call in the middle of a chain may not be separated from its `(` by anything at all, because that changes what the code _means_:
 
 ```fsharp
 // ⛔ parsed as a.Foo ((x).Bar()) — a different program
@@ -102,7 +89,26 @@ a.Foo (x).Bar()
 a.Foo(x).Bar()
 ```
 
-The parser reads `(x).Bar()` as a single parenthesised argument handed to `a.Foo`. So for every call except the last one, tightness is a grammar requirement rather than a preference, and no setting can override it.
+The parser reads `(x).Bar()` as a single parenthesised argument handed to `a.Foo`. So for every call except the last one, tightness is a grammar requirement rather than a preference, and nothing on this page can override it. A space, a line break and a comment are all the same gap as far as the parser is concerned.
+
+**The last call is under no such constraint.** Nothing follows it to be reparsed, so its `(` is free to leave the method name. Three things make use of that freedom, and each is covered where it belongs:
+
+- a setting asking for a space, just below;
+- a comment written between the name and the argument, see [A comment beside the parentheses](#a-comment-beside-the-parentheses);
+- an argument that needs a line of its own, see [Arguments are not the chain's business](#arguments-are-not-the-chains-business).
+
+That is the whole of it. What follows are those three, not three exceptions to a rule. One shape takes the freedom away again, the `_.` lambda body below.
+
+Fantomas has settings that ask for a space before the parentheses of a call, [`space_before_uppercase_invocation`](../end-users/Configuration.html) and [`space_before_lowercase_invocation`](../end-users/Configuration.html). In a chain, **they apply to the final call only**. Every earlier call stays tight, whatever the settings say:
+
+```fsharp
+// both examples with space_before_uppercase_invocation = true
+
+obj.Bar ()          // a call on its own: the setting applies
+
+a.Foo(x).Bar (y)    // in a chain: only the final .Bar takes the space,
+                    // the intermediate .Foo stays tight
+```
 
 The same constraint turns up wherever an expression has to stay glued to its neighbour. In `getBuilder().Build()` the starting value keeps its own `()` tight, in `x.Foo()[0]` the indexed call keeps its own `()` tight, and the dynamic-access operator `?` behaves the same way: `settings?Section("db")?ConnectionString` stays tight throughout. In each case a space there would rebind the parentheses to the wrong thing. (The _final_ call is still free to take a space: with the setting on, that first example formats as `getBuilder().Build ()`.)
 
@@ -229,23 +235,16 @@ The rule behind the first three steps:
 graph TD
     A{"Does the whole chain fit on one line?"}
     A -->|Yes| B["Leave it on one line"]
-    A -->|No| C{"Is there exactly one action,\nand is it the last step?"}
-    C -->|No| P
-    C -->|Yes| D{"Is the starting value a plain value?"}
-    D -->|No| P
-    D -->|Yes| E{"Does everything up to the method name\nfit on one line?"}
-    E -->|No| F{"Is the method name itself\nthe overflow?"}
-    F -->|No| P
-    F -->|Yes| K
-    E -->|Yes| K["Keep the chain together,\nand break the call's arguments"]
-    P["Pipeline: give each action its own line, led by its dot"]
+    A -->|No| C{"Does it read as a single call:\na plain starting value, navigation,\nand one call as its last step?"}
+    C -->|Yes| K["Keep the chain together,\nand hand the argument over"]
+    C -->|No| P["Pipeline: give each action its own line, led by its dot"]
 ```
 
-The questions after the first are the conditions for keeping the chain together, and a "no" to any one of them lands in the same place, bar the last one's escape hatch.
+Two questions, and only two outcomes. The second one packs three conditions, taken one at a time below, and a "no" to any of them lands in the pipeline.
 
 In one sentence:
 
-> A plain `value.Method(args)` breaks its arguments, like any other call.
+> A plain `value.Method(args)` hands its argument to the ordinary rules, like any other call.
 > As soon as there are two or more calls, the chain is a pipeline and each call gets its own line.
 
 **Step 1 is the first question**, and for most chains it is also the last. At a max line length of 50:
@@ -392,7 +391,7 @@ This matters much less as a run grows: once there are several steps, the first l
 
 ### The wrap makes room for the arguments
 
-When a wrapped line ends in a call, there are two ways to find the width it needs: move some navigation down, or break the call's arguments.
+When a wrapped line ends in a call, there are two ways to find the width it needs: move some navigation down, or let the argument break.
 
 Balancing on width alone would take the second. The navigation stops just short of the margin, which leaves the arguments nowhere to go:
 
@@ -424,7 +423,7 @@ builder
     .Build()
 ```
 
-When no wrap can hold the whole call, because the arguments are too wide however the navigation is arranged, only the opening `(` has to fit and the arguments break as they normally would.
+When no wrap can hold the whole call, because the argument is too wide however the navigation is arranged, the chain stops trying and hands the argument over, which breaks it as it normally would, or moves it down a line if that is what its own rules ask for.
 
 None of this contradicts _Arguments are not the chain's business_ below.
 The chain still never decides how the arguments are laid out; it only prefers, among its own wrap points, one that leaves the call intact.
@@ -574,23 +573,13 @@ This one is a pipeline on the strength of its two calls alone, but a starting va
 It is worth stating the boundary explicitly, because it is what keeps the rules above so short:
 
 > The chain rules decide where lines break **between** steps.
-> They say nothing about what happens **inside** a call's parentheses.
+> The argument owns everything from its `(` onwards, including whether that `(` starts a line of its own.
 
-Everything between `(` and `)` is laid out by the ordinary rules for call arguments, exactly as it would be if that call had no starting value in front of it.
+An argument is laid out by the ordinary rules for call arguments, exactly as it would be if the call had no starting value in front of it.
 A chain never overrides them.
-That is the same idea as "break the call's arguments" in the rule above: at that point Fantomas stops making chain decisions and hands the argument to the normal machinery.
+That is the same idea as "hand the argument over" in the rule above: at that point Fantomas stops making chain decisions and hands the argument to the normal machinery.
 
-Which includes the decision to move the argument itself. A lambda whose parameters no longer fit beside the method name takes a line of its own, and the terminal call's `(` goes down with it, exactly as it would with no starting value in front:
-
-```fsharp
-// ✅ the opener no longer fits, so the whole argument moves down one level
-ifaces
-|> List.tryPick
-    (fun (SynInterfaceImpl(interfaceTy = ty; withKeyword = withRange)) ->
-        Some(ty, withRange))
-```
-
-This is the one thing that separates a terminal `(` from its method name without a setting asking for it, and it is allowed for the same reason a setting may ask: the last call of a chain has nothing behind it to reparse. Every earlier call keeps its parenthesis welded, so its argument breaks after the `(` instead.
+The boundary is drawn there, rather than at the `(`, because moving the argument is one of the answers those rules can give, shown under [Any part of a chain can grow](#any-part-of-a-chain-can-grow) below. Only a terminal call can be moved that way, for the reason given under [An intermediate call is welded to its parenthesis](#an-intermediate-call-is-welded-to-its-parenthesis). An earlier call keeps its `(` where it is, so its argument breaks after the parenthesis instead.
 
 The practical consequence is that **every setting that governs argument layout keeps working unchanged inside a chain**.
 The one you are most likely to notice is [`multi_line_lambda_closing_newline`](../end-users/Configuration.html), which decides where the closing `)` lands when a lambda argument needs several lines.
@@ -635,6 +624,52 @@ repo
     .Select(projector)
     .ToList()
 ```
+
+### Any part of a chain can grow
+
+The rules above are stated with short steps, but any part of a chain can turn out to be an expression that needs several lines of its own. Where that happens is what decides the consequence, and each case is already covered above:
+
+- **the starting value**, when it is a call or a parenthesised expression, leads a pipeline rather than serving as a prefix, see [Steps 1 to 3](#steps-1-to-3-the-rule-for-line-breaks);
+- **an index or a set of type arguments** stops being able to ride along, claims a line of its own and turns the chain into a pipeline, see [Step 4](#step-4-navigation-rides-along);
+- **a run of navigation** that overflows wraps, balanced, see [Step 5](#step-5-when-a-line-is-still-too-long);
+- **the final argument** is the one the chain has no say over, and it has two answers of its own.
+
+Those two answers are worth seeing side by side. All three examples are at a max line length of 70.
+
+A lambda is the case where the argument moves. Its opener, everything up to the arrow, no longer fits beside the method name, so the whole argument takes the line below and the `(` goes with it:
+
+```fsharp
+// ✅ the opener does not fit, so the argument moves down
+let publishSettings () =
+    storage.SetConfigurationSettingPublisher
+        (fun configName publisher -> publish configName publisher)
+```
+
+Grow the body and the lambda breaks further, but nothing about the chain changes: the argument was already handed over, and this is the argument's business:
+
+```fsharp
+// ✅ the same layout, with the body broken by the ordinary rules
+let publishAndReport () =
+    storage.SetConfigurationSettingPublisher
+        (fun configName publisher ->
+            publishTheConfigurationValue
+                configName
+                publisher
+                andThenSomethingElse)
+```
+
+Every other argument shape keeps the parenthesis where it is and breaks between the parentheses instead. A tuple, a record and a long expression all behave this way:
+
+```fsharp
+// ✅ the parenthesis stays with the method name, the argument breaks inside it
+let connectionString () =
+    config.GetConnectionString(
+        primaryReadOnlyReplicaName,
+        theFallbackConnectionValue
+    )
+```
+
+The difference is not the chain choosing between them. It is the same deference twice: a lambda opener wants to sit on one line with its arrow, and a tuple does not care, so the ordinary argument rules answer differently.
 
 ### Match lambdas are no exception
 
@@ -719,8 +754,7 @@ The one difference left between the two forms is that `function` also moves down
 
 The setting is the only thing that moves it. Writing `function` on the line below the `(` yourself makes no difference: the same call written across more lines is still the same call, and Fantomas has to land on one answer for both.
 
-The only thing the chain decides here is that the `(` never leaves `.Configure`, for the parsing reason given in [Only the last call may have a space before its parentheses](#only-the-last-call-may-have-a-space-before-its-parentheses).
-A comment written between the two is the one thing that can separate them, and that is the next section.
+In none of these does the chain have a say. `.Configure` is an intermediate call in half of them, so its `(` is welded to it either way; where the lambda goes is the argument's business, and it answers the same way in both positions.
 
 ### A comment beside the parentheses
 
@@ -745,8 +779,8 @@ builder.UseUrls
     (url)
 ```
 
-The first of these happens wherever the call sits in the chain. The second can only ever happen to the last call: anything between a method name and its `(`, a comment as much as a line break, makes the parser read the parentheses as a separate argument, so an earlier call cannot carry a comment there and still mean the same thing.
+The first of these happens wherever the call sits in the chain. The second can only ever happen to the last call, since an earlier one is welded to its parenthesis and a comment is the same gap as a space.
 
-Which side the comment is on is the whole of it. How the call was spread over lines in the source has no say, and in both layouts the argument between the parentheses is laid out by the ordinary rules, exactly as the rest of this section promises.
+Which side the comment is on is the whole of it. How the call was spread over lines in the source has no say, and in both layouts the argument is laid out by the ordinary rules, exactly as the rest of this section promises.
 
 <fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

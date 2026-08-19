@@ -452,15 +452,21 @@ let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : 
     let genParenLambda (ctx: Context) : Context =
         let startColumn: int = ctx.WriterModel.Indent
 
-        (genSingleTextNode parenNode.OpeningParen
-         +> genLambdaWithParen lambdaNode
-         +> ifElseCtx
-             (fun ctx ->
-                 ctx.Config.MultiLineLambdaClosingNewline
-                 && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr))
-             sepNln
-             (sepNlnWhenWriteBeforeNewlineNotEmpty +> addFixedSpaces startColumn)
-         +> genSingleTextNode parenNode.ClosingParen)
+        // The closing parenthesis takes a line of its own when the setting asks for it and the
+        // lambda spans several lines, which is the case the setting is about. Asking whether it
+        // did, rather than assuming it will, matters once the argument can move down: from its own
+        // line the lambda may well fit, and a `)` below a single line would be left dangling.
+        (leadingExpressionIsMultiline
+            (genSingleTextNode parenNode.OpeningParen +> genLambdaWithParen lambdaNode)
+            (fun isMultiline ->
+                ifElseCtx
+                    (fun ctx ->
+                        isMultiline
+                        && ctx.Config.MultiLineLambdaClosingNewline
+                        && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr))
+                    sepNln
+                    (sepNlnWhenWriteBeforeNewlineNotEmpty +> addFixedSpaces startColumn)
+                +> genSingleTextNode parenNode.ClosingParen))
             ctx
 
     // Move the whole lambda argument onto its own indented line when leaving it where it is
@@ -2884,10 +2890,17 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                 | [] ->
                     match node.Lambda with
                     | Choice1Of2 lambdaNode ->
-                        genSingleTextNode node.OpeningParen
-                        +> genLambdaWithParen lambdaNode
-                        +> onlyIf (not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)) sepNln
-                        +> genSingleTextNode node.ClosingParen
+                        // The closing parenthesis takes a line of its own when the lambda spans
+                        // several lines, which is what the setting is for. Asking afterwards
+                        // rather than assuming matters once the argument can move down: from its
+                        // own line the lambda may well fit, and then a `)` below it would be
+                        // dangling under a single line. The branch for leading arguments below
+                        // asks the same way.
+                        leadingExpressionIsMultiline
+                            (genSingleTextNode node.OpeningParen +> genLambdaWithParen lambdaNode)
+                            (fun isMultiline ->
+                                onlyIf (isMultiline && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)) sepNln
+                                +> genSingleTextNode node.ClosingParen)
                     | Choice2Of2 matchLambdaNode ->
                         genSingleTextNode node.OpeningParen
                         +> indentSepNlnUnindent (

@@ -964,3 +964,59 @@ let undotted () =
             (aVeryLongParameterName: AnEquallyLongTypeName)
             (anotherLongParameterName: AnotherTypeName) -> body ())
 """
+
+[<Test>]
+let ``lambda that still does not fit after moving down keeps its closing parenthesis on the body`` () =
+    formatSourceString
+        """
+let dotted () =
+    storage.SetConfigurationSettingPublisher(fun configName publisher -> publishTheConfigurationValue configName publisher andThenSomethingElse)
+
+let undotted () =
+    storageSetConfigurationSettingPublisher (fun configName publisher -> publishTheConfigurationValue configName publisher andThenSomethingElse)
+"""
+        { config with MaxLineLength = 70 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let dotted () =
+    storage.SetConfigurationSettingPublisher
+        (fun configName publisher ->
+            publishTheConfigurationValue
+                configName
+                publisher
+                andThenSomethingElse)
+
+let undotted () =
+    storageSetConfigurationSettingPublisher
+        (fun configName publisher ->
+            publishTheConfigurationValue
+                configName
+                publisher
+                andThenSomethingElse)
+"""
+
+[<Test>]
+let ``lambda that fits on one line after moving down keeps its closing parenthesis`` () =
+    formatSourceString
+        """
+let dotted () =
+    storage.SetConfigurationSettingPublisher(fun configName publisher -> publish configName publisher)
+
+let undotted () =
+    storageSetConfigurationSettingPublisher (fun configName publisher -> publish configName publisher)
+"""
+        { config with MaxLineLength = 70 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let dotted () =
+    storage.SetConfigurationSettingPublisher
+        (fun configName publisher -> publish configName publisher)
+
+let undotted () =
+    storageSetConfigurationSettingPublisher
+        (fun configName publisher -> publish configName publisher)
+"""
