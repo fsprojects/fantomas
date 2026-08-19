@@ -466,10 +466,25 @@ let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : 
     // Move the whole lambda argument onto its own indented line when leaving it where it is
     // would read badly:
     //   * a single parameter that is itself multiline (a record pattern), or
-    //   * the opener does not fit, meaning `(fun` plus the parameters up to the arrow. The F#
-    //     style guide asks for all arguments up to the arrow to sit on one line, and rejects
-    //     parameters aligned under the opening parenthesis, since that column depends on the
-    //     length of the identifier in front of it.
+    //   * the opener does not fit. The opener is the parenthesis, `fun`, the parameters and the
+    //     arrow: everything that has to be written before the body can start.
+    //
+    //         items |> List.tryPick (fun (Interface(ty = t; keyword = k)) ->
+    //                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the opener
+    //
+    //     When that runs past the margin, the whole argument moves down a level:
+    //
+    //         items
+    //         |> List.tryPick
+    //             (fun (Interface(ty = t; keyword = k)) -> body)
+    //
+    //     The alternative is to leave `(fun` where it is and hang the parameters underneath it.
+    //     The F# style guide rejects that, because the column they hang from depends on the
+    //     length of the name in front of them:
+    //
+    //         items
+    //         |> List.tryPick (fun
+    //                              (Interface(ty = t; keyword = k)) -> body)
     fun (ctx: Context) ->
         let singleMultilineParameter: bool =
             match lambdaNode.Parameters with
@@ -2905,10 +2920,33 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                              +> genSingleTextNode node.ClosingParen))
                     +> unindent
 
-            (genExpr node.FunctionName
-             +> ifElse (List.isEmpty node.Arguments) sep (indent +> sepNln)
-             +> genArguments)
-                ctx
+            // A lone lambda argument is asked the same question as in the branch below, and the
+            // same one `genLambdaParenArg` asks for a call reached through a dot: does the
+            // opener fit, meaning everything up to the arrow? See the worked example there.
+            // Without this, the setting being on was enough to skip the question entirely.
+            let openerDoesNotFit: bool =
+                match node.Arguments, node.Lambda with
+                | [], Choice1Of2 lambdaNode ->
+                    futureNlnCheck
+                        (genExpr node.FunctionName
+                         +> sep
+                         +> genSingleTextNode node.OpeningParen
+                         +> enterNode lambdaNode
+                         +> genSingleTextNode lambdaNode.Fun
+                         +> sepSpace
+                         +> col sepSpace lambdaNode.Parameters genPat
+                         +> sepSpace
+                         +> genSingleTextNode lambdaNode.Arrow)
+                        ctx
+                | _ -> false
+
+            if openerDoesNotFit then
+                (genExpr node.FunctionName +> indent +> sepNln +> genArguments +> unindent) ctx
+            else
+                (genExpr node.FunctionName
+                 +> ifElse (List.isEmpty node.Arguments) sep (indent +> sepNln)
+                 +> genArguments)
+                    ctx
         else
             match node.Lambda with
             | Choice1Of2 lambdaNode ->

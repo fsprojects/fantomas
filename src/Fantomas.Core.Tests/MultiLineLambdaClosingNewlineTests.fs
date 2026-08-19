@@ -1141,7 +1141,6 @@ module Foo =
 // says about the closing parenthesis.
 
 [<Test>]
-[<Ignore("A call without a dot does not ask whether the lambda opener fits when this setting is on; fixed in the next commit")>]
 let ``lambda moves to its own line when everything up to the arrow does not fit`` () =
     formatSourceString
         """
@@ -1174,7 +1173,6 @@ let undotted ifaces =
 """
 
 [<Test>]
-[<Ignore("A call without a dot does not ask whether the lambda opener fits when this setting is on; fixed in the next commit")>]
 let ``lambda parameters take a line each when they do not fit after the lambda moved down`` () =
     formatSourceString
         """
