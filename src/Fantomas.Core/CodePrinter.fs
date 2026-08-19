@@ -443,20 +443,6 @@ type ChainStepPlacement =
     /// The step opens a fresh line, indented to the run's own column.
     | OpensNewLine
 
-/// Where a call sits in its chain. This governs exactly one thing about the layout of the
-/// call's parenthesised argument, and nothing else: whether the opening `(` is allowed to leave
-/// the member name, which is a grammar constraint rather than a style choice.
-///
-/// Nothing about a lambda argument depends on it. `fun` and `function` are laid out the same
-/// way wherever their call sits, as the F# style guide asks ("Treat match lambda's in a similar
-/// fashion").
-[<RequireQualifiedAccess; Struct>]
-type ChainCallPosition =
-    /// A call with more chain after it, e.g. `.Foo(x)` in `a.Foo(x).Bar()`.
-    | Intermediate
-    /// The last call of the chain, with nothing following it.
-    | Terminal
-
 /// Layout for `(fun params -> body)`. Identical wherever the call sits: `MultiLineLambdaClosingNewline`
 /// decides where the closing `)` lands, exactly as it would for a call with no receiver.
 let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : Context -> Context =
@@ -526,10 +512,10 @@ let genMatchLambdaParenArg (parenNode: ExprParenNode) (matchLambdaNode: ExprMatc
     ifElseCtx (fun ctx -> ctx.Config.MultiLineLambdaClosingNewline) breakAfterParen keepFunctionWithParen
 
 /// Multiline layout of a call's parenthesised argument `( ... )`, shared by intermediate calls
-/// (genSegment) and the terminal call (genTerminal). Everything between `(` and `)` is laid out
-/// by the ordinary argument rules; the chain only gets a say in the one place named on
-/// `ChainCallPosition`.
-let genMultilineParenArg (position: ChainCallPosition) (parenNode: ExprParenNode) : Context -> Context =
+/// (genSegment) and the terminal call (genTerminal). Where the call sits in its chain makes no
+/// difference: everything between `(` and `)` is laid out by the ordinary argument rules, and the
+/// chain only decides whether the call itself has to move down.
+let genMultilineParenArg (parenNode: ExprParenNode) : Context -> Context =
     // How the argument breaks, once it is settled where the call starts. Whatever sits between
     // the parentheses is the argument's business, so this is the ordinary layout for one.
     let genByArgumentShape: Context -> Context =
@@ -558,33 +544,26 @@ let genMultilineParenArg (position: ChainCallPosition) (parenNode: ExprParenNode
         // The comment is written first and ends its line, so the `(` cannot follow `UseUrls`
         // and drops to the indented line below.
         //
-        // An intermediate call cannot afford to let the `(` go: a space between a member name
-        // and its parenthesis changes what the code means. `a.Foo(x).Bar()` calls `Foo` and then
-        // `Bar`, while `a.Foo (x).Bar()` passes `(x).Bar()` to `Foo`. A line break in front of
-        // the `(` reads the same way to the parser, so there the paren stays welded to the name
-        // and the argument breaks after it instead.
-        match position with
-        | ChainCallPosition.Terminal ->
-            // `genNode` writes the trivia on entering the node, so the indent has to be in place
-            // before then. Without it the comment lands back at the receiver's column and the
-            // `sepNln` behind it adds a blank line, one more on every format run.
-            //
-            // Only the position of the call moves. Whether the argument then has to break is
-            // asked of a copy of the parenthesis without the trivia, since the comment takes a
-            // line of its own either way and would otherwise answer the question by itself.
-            let parenWithoutTrivia: Expr =
-                mkExprParenNode parenNode.OpeningParen parenNode.Expr parenNode.ClosingParen parenNode.Range
+        // Only the last call of a chain can end up here. An earlier call keeps its `(` glued to
+        // the member name, because a gap there changes what the code means: `a.Foo(x).Bar()`
+        // calls `Foo` and then `Bar`, while `a.Foo (x).Bar()` passes `(x).Bar()` to `Foo`. A
+        // comment makes the same gap a line break would, so a call in the middle of a chain
+        // cannot carry one in front of its parenthesis and still be the same program.
+        //
+        // `genNode` writes the trivia on entering the node, so the indent has to be in place
+        // before then. Without it the comment lands back at the receiver's column and the
+        // `sepNln` behind it adds a blank line, one more on every format run.
+        //
+        // Only the position of the call moves. Whether the argument then has to break is asked
+        // of a copy of the parenthesis without the trivia, since the comment takes a line of its
+        // own either way and would otherwise answer the question by itself.
+        let parenWithoutTrivia: Expr =
+            mkExprParenNode parenNode.OpeningParen parenNode.Expr parenNode.ClosingParen parenNode.Range
 
-            indent
-            +> sepNln
-            +> ifElseCtx
-                (futureNlnCheck (genExpr parenWithoutTrivia))
-                genByArgumentShape
-                (genExpr (Expr.Paren parenNode))
-            +> unindent
-        | ChainCallPosition.Intermediate ->
-            genSingleTextNode parenNode.OpeningParen +> indent +> sepNln +> genArgumentBelow
-            |> genNode parenNode
+        indent
+        +> sepNln
+        +> ifElseCtx (futureNlnCheck (genExpr parenWithoutTrivia)) genByArgumentShape (genExpr (Expr.Paren parenNode))
+        +> unindent
     elif (Expr.Node parenNode.Expr).HasContentBefore then
         // The trivia sits between the `(` and the argument:
         //
@@ -611,9 +590,7 @@ let genSegment (segment: ChainSegment) : Context -> Context =
            | ChainCall.Unit u -> genUnit u
            | ChainCall.Paren parenNode ->
                // Intermediate paren calls are always tight — space would change the parse tree.
-               expressionFitsOnRestOfLine
-                   (genExpr (Expr.Paren parenNode))
-                   (genMultilineParenArg ChainCallPosition.Intermediate parenNode)
+               expressionFitsOnRestOfLine (genExpr (Expr.Paren parenNode)) (genMultilineParenArg parenNode)
     | ChainSegment.DotIndex(dot, index) ->
         // DotIndex (.[i]) is structurally like DotMember with no call: the dot is explicit
         // for trivia, but the [ ] brackets are not part of the index expression and must
@@ -698,8 +675,7 @@ let genTerminal (node: ExprChain) : Context -> Context =
         | ChainCall.Paren parenNode ->
             let short: Context -> Context = addSpace +> genExpr (Expr.Paren parenNode)
 
-            let long: Context -> Context =
-                addSpace +> genMultilineParenArg ChainCallPosition.Terminal parenNode
+            let long: Context -> Context = addSpace +> genMultilineParenArg parenNode
 
             expressionFitsOnRestOfLine short long
 
