@@ -708,5 +708,33 @@ The one difference left between the two forms is that `function` also moves down
 One further thing moves `function` down onto its own line, and it belongs to the argument rather than the chain: having broken after the `(` yourself, which Fantomas leaves as you wrote it.
 
 The only thing the chain decides here is that the `(` never leaves `.Configure`, for the parsing reason given in [Only the last call may have a space before its parentheses](#only-the-last-call-may-have-a-space-before-its-parentheses).
+A comment written between the two is the one thing that can separate them, and that is the next section.
+
+### A comment beside the parentheses
+
+A comment can sit on either side of a call's opening parenthesis, and which side it is on decides what moves.
+
+In front of the argument, the comment is written after the `(`. The parenthesis has no reason to leave the method name, so it stays where it is and only the argument moves down:
+
+```fsharp
+// ✅ the comment is inside the parentheses, so only the argument moves
+builder.UseUrls(
+    // the public endpoint
+    url
+)
+```
+
+In front of the parenthesis, the comment is written before the `(` and ends its line. The parenthesis can no longer follow the method name, so the whole call moves down instead:
+
+```fsharp
+// ✅ the comment is between the method name and the `(`, so the call moves
+builder.UseUrls
+    // pick the endpoint
+    (url)
+```
+
+The first of these happens wherever the call sits in the chain. The second can only ever happen to the last call: anything between a method name and its `(`, a comment as much as a line break, makes the parser read the parentheses as a separate argument, so an earlier call cannot carry a comment there and still mean the same thing.
+
+Which side the comment is on is the whole of it. How the call was spread over lines in the source has no say, and in both layouts the argument between the parentheses is laid out by the ordinary rules, exactly as the rest of this section promises.
 
 <fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
