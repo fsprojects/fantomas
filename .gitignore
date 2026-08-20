@@ -206,3 +206,6 @@ tests/.repositories/**
 
 # LLM stuff
 .claude/settings.local.json
+
+# altcover
+coveragereport/
