@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -364,7 +370,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11730" data-fsdocs-tip-unique="11730">
+              <code data-fsdocs-tip="11628" data-fsdocs-tip-unique="11628">
                 <p>
                   <a id="CodeComments">
                     <a href="#CodeComments">
@@ -373,7 +379,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11730">
+              <div popover="" class="fsdocs-tip" id="11628">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code>CodeComments</code>
@@ -419,7 +425,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11731" data-fsdocs-tip-unique="11731">
+              <code data-fsdocs-tip="11629" data-fsdocs-tip-unique="11629">
                 <p>
                   <a id="ConditionalDirectives">
                     <a href="#ConditionalDirectives">
@@ -428,7 +434,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11731">
+              <div popover="" class="fsdocs-tip" id="11629">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code>ConditionalDirectives</code>
@@ -474,7 +480,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11732" data-fsdocs-tip-unique="11732">
+              <code data-fsdocs-tip="11630" data-fsdocs-tip-unique="11630">
                 <p>
                   <a id="WarnDirectives">
                     <a href="#WarnDirectives">
@@ -483,7 +489,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11732">
+              <div popover="" class="fsdocs-tip" id="11630">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code>WarnDirectives</code>
@@ -552,7 +558,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11733" data-fsdocs-tip-unique="11733">
+              <code data-fsdocs-tip="11631" data-fsdocs-tip-unique="11631">
                 <p>
                   <a id="Empty">
                     <a href="#Empty">
@@ -561,7 +567,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11733">
+              <div popover="" class="fsdocs-tip" id="11631">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ParsedInputTrivia.Empty</span></code>
@@ -628,7 +634,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

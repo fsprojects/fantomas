@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -379,7 +385,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10538" data-fsdocs-tip-unique="10538">
+              <code data-fsdocs-tip="10436" data-fsdocs-tip-unique="10436">
                 <p>
                   <a id="ILField">
                     <a href="#ILField">
@@ -388,7 +394,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10538">
+              <div popover="" class="fsdocs-tip" id="10436">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ILField&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilfieldspec.html">ILFieldSpec</a></span></code>
@@ -433,7 +439,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10539" data-fsdocs-tip-unique="10539">
+              <code data-fsdocs-tip="10437" data-fsdocs-tip-unique="10437">
                 <p>
                   <a id="ILMethod">
                     <a href="#ILMethod">
@@ -442,7 +448,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10539">
+              <div popover="" class="fsdocs-tip" id="10437">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ILMethod&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilmethodspec.html">ILMethodSpec</a></span></code>
@@ -487,7 +493,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10540" data-fsdocs-tip-unique="10540">
+              <code data-fsdocs-tip="10438" data-fsdocs-tip-unique="10438">
                 <p>
                   <a id="ILType">
                     <a href="#ILType">
@@ -496,7 +502,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10540">
+              <div popover="" class="fsdocs-tip" id="10438">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ILType&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-iltype.html">ILType</a></span></code>
@@ -564,7 +570,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10541" data-fsdocs-tip-unique="10541">
+              <code data-fsdocs-tip="10439" data-fsdocs-tip-unique="10439">
                 <p>
                   <a id="IsILField">
                     <a href="#IsILField">
@@ -573,7 +579,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10541">
+              <div popover="" class="fsdocs-tip" id="10439">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsILField</span></code>
@@ -610,7 +616,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10542" data-fsdocs-tip-unique="10542">
+              <code data-fsdocs-tip="10440" data-fsdocs-tip-unique="10440">
                 <p>
                   <a id="IsILMethod">
                     <a href="#IsILMethod">
@@ -619,7 +625,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10542">
+              <div popover="" class="fsdocs-tip" id="10440">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsILMethod</span></code>
@@ -656,7 +662,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10543" data-fsdocs-tip-unique="10543">
+              <code data-fsdocs-tip="10441" data-fsdocs-tip-unique="10441">
                 <p>
                   <a id="IsILType">
                     <a href="#IsILType">
@@ -665,7 +671,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10543">
+              <div popover="" class="fsdocs-tip" id="10441">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsILType</span></code>
@@ -733,7 +739,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

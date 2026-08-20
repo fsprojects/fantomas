@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -368,7 +374,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="12385" data-fsdocs-tip-unique="12385">
+              <code data-fsdocs-tip="12283" data-fsdocs-tip-unique="12283">
                 <p>
                   <a id="IndexOfAnyExcept">
                     <a href="#IndexOfAnyExcept">
@@ -377,7 +383,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="12385">
+              <div popover="" class="fsdocs-tip" id="12283">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ReadOnlySpanExtensions.IndexOfAnyExcept<span><span>(<span>span,&#32;value</span>)</span></span></span></code>
@@ -452,7 +458,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="12386" data-fsdocs-tip-unique="12386">
+              <code data-fsdocs-tip="12284" data-fsdocs-tip-unique="12284">
                 <p>
                   <a id="IndexOfAnyExcept">
                     <a href="#IndexOfAnyExcept">
@@ -461,7 +467,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="12386">
+              <div popover="" class="fsdocs-tip" id="12284">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ReadOnlySpanExtensions.IndexOfAnyExcept<span><span>(<span>span,&#32;values</span>)</span></span></span></code>
@@ -536,7 +542,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="12387" data-fsdocs-tip-unique="12387">
+              <code data-fsdocs-tip="12285" data-fsdocs-tip-unique="12285">
                 <p>
                   <a id="IndexOfAnyExcept">
                     <a href="#IndexOfAnyExcept">
@@ -545,7 +551,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="12387">
+              <div popover="" class="fsdocs-tip" id="12285">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ReadOnlySpanExtensions.IndexOfAnyExcept<span><span>(<span>span,&#32;value0,&#32;value1</span>)</span></span></span></code>
@@ -636,7 +642,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="12388" data-fsdocs-tip-unique="12388">
+              <code data-fsdocs-tip="12286" data-fsdocs-tip-unique="12286">
                 <p>
                   <a id="LastIndexOfAnyExcept">
                     <a href="#LastIndexOfAnyExcept">
@@ -645,7 +651,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="12388">
+              <div popover="" class="fsdocs-tip" id="12286">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ReadOnlySpanExtensions.LastIndexOfAnyExcept<span><span>(<span>span,&#32;value</span>)</span></span></span></code>
@@ -720,7 +726,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="12389" data-fsdocs-tip-unique="12389">
+              <code data-fsdocs-tip="12287" data-fsdocs-tip-unique="12287">
                 <p>
                   <a id="LastIndexOfAnyInRange">
                     <a href="#LastIndexOfAnyInRange">
@@ -729,7 +735,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="12389">
+              <div popover="" class="fsdocs-tip" id="12287">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ReadOnlySpanExtensions.LastIndexOfAnyInRange<span><span>(<span>span,&#32;lowInclusive,&#32;highInclusive</span>)</span></span></span></code>
@@ -850,7 +856,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

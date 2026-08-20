@@ -1,31 +1,39 @@
+---
+category: Contributors
+categoryindex: 2
+index: 5
+---
+
 # Fantomas.Core overview (1)
 
 In its simplest form, Fantomas.Core works in two major phases: transform the raw source code to a custom tree model and traverse that custom tree to print the formatted code.
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A[Transform source code to Oak] --> B
     B[Traverse Oak to get formatted code] --> C[Formatted code]
     style A stroke:#338CBB,stroke-width:2px
- </div>
-Unfortunately, both phases are not always very straight forward.
+```
+
+Unfortunately, both phases are not always very straight forward.  
 But once you get hang of the first phase, you can easily understand the second phase.
 
 ## Processing the raw source
 
-To have an understanding of what the raw source code means we parse the code using the parser of the F# compiler.
-We can parse the source code into an untyped syntax tree. This tree isn't really perfect for our use-case, so we map it to an `Oak`.
+To have an understanding of what the raw source code means we parse the code using the parser of the F# compiler.  
+We can parse the source code into an untyped syntax tree. This tree isn't really perfect for our use-case, so we map it to an `Oak`.  
 An `Oak` is the toplevel root node of the Fantomas tree. We use a custom tree because it better suites our needs to reconstruct the output code.
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A[Parse AST] --> B
     B[Transfrom untyped AST to OAK] --> C
     C[Enrich the Oak with Trivia]
-</div>
+```
+
 ### Parse AST
 
-Parsing the AST is straightforward. We use the `parseFile` function from `Fantomas.FCS` and get back a syntax tree and diagnostic information.
+Parsing the AST is straightforward. We use the `parseFile` function from `Fantomas.FCS` and get back a syntax tree and diagnostic information.  
 The diagnostic information is used to report errors and warnings. When we have errors, we stop processing the file.
 
 **Fantomas requires a valid source code to format.**
@@ -77,7 +85,7 @@ dotnet '/Users/nojaf/Library/Application Support/dnvm/dn/sdk/10.0.100/FSharp/fsc
 
 ### Transform untyped AST to Oak
 
-The untyped syntax tree from the F# compiler is used as an intermediate representation of source code in the process of transforming a text file to binary.
+The untyped syntax tree from the F# compiler is used as an intermediate representation of source code in the process of transforming a text file to binary.  
 The AST is optimized for the use-case of generating binary. What we try to do in Fantomas is stop at the first AST level and go back to source text.
 
 The F# compiler was never designed with our use-case in mind and yet it has served us very well for years.
@@ -89,20 +97,15 @@ To stream line our entire process, we've decided to map the untyped tree to our 
 This introduces a lot of flexibility and simplifies our story.
 
 > I thought Fangorn was dangerous - Gimli, son of Glóin
-> 
 
 In `ASTTransformer.fs` we map the AST to our tree model. Some of the benefits we get out of this:
 
 * The Oak model does not differentiate between implementation files and signature files. We use one tree model which allows for optimal code re-use in `CodePrinter.fs`.
-
 * We don't map all possible combinations of AST into our model. Sometimes valid AST code can in theory be created, 
 but will in practise never exist. For example [SynTypeDefnRepr.Exception](../../reference/fsharp-compiler-syntax-syntypedefnrepr.html#Exception). It is defined in `SyntaxTree.fs` yet the parser (`pars.fs`) will never create it.
 The F# compiler uses this later in the typed tree. We will throw an exception when encountering this during the mapping as we have the foresight of what the parser doesn't create.
-
 * Recursive types are all considered as toplevel types. This is not the case in the AST but we map it as such.
-
 * Some nodes are combined into one, for example a toplevel attribute will always be linked to its sibling do expression.
-
 * The ranges of some nodes are being calculated when they lead to a more accurate result.
 
 ### Collect Trivia
@@ -111,9 +114,7 @@ A syntax tree contains almost all the information we need to format the code.
 However, there are three items that are either missing all together or require further processing:
 
 * Blank lines
-
 * Code comments
-
 * Conditional directives
 
 These three items are labelled as `Trivia` in Fantomas. We need to restore them because the source code originally had them, but cannot do so purely on the AST.
@@ -149,10 +150,10 @@ ImplFile
         CodeComments = [LineComment tmp.fsx (2,3--2,15)] }))
 ```
 
-The AST does contain a node for the line comment, but we cannot restore it when we are processing the let binding.
+The AST does contain a node for the line comment, but we cannot restore it when we are processing the let binding.  
 There is no link between the line comment and the let binding.
 
-All trivia face this problem, so we need to process them separately.
+All trivia face this problem, so we need to process them separately.  
 We do this in `Trivia.collectTrivia`.
 
 Note: blank lines are detected differently, we go over all the lines via the `ISourceText`.
@@ -163,9 +164,10 @@ Once we have the trivia, we can insert them to a `Node` they belong to.
 This is one of the key reasons why we work with our own tree. We can add the trivia information to the best suitable child node in the `Oak`.
 Every `Node` can have `ContentBefore` and `ContentAfter`, this is how we try to reconstruct everything.
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A[Capture all trivia from AST and ISourceText] --> B
     B[Insert trivia into nodes]
- </div>
+```
+
 <fantomas-nav previous="Solution%20Structure.md" next="Traverse.md"></fantomas-nav>

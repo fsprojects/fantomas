@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -362,7 +368,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="292" data-fsdocs-tip-unique="292">
+              <code data-fsdocs-tip="294" data-fsdocs-tip-unique="294">
                 <p>
                   <a id="GetTrivia">
                     <a href="#GetTrivia">
@@ -371,7 +377,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="292">
+              <div popover="" class="fsdocs-tip" id="294">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IfdefStore.GetTrivia&#32;<span>lexbuf</span></span></code>
@@ -430,7 +436,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="293" data-fsdocs-tip-unique="293">
+              <code data-fsdocs-tip="295" data-fsdocs-tip-unique="295">
                 <p>
                   <a id="SaveElifHash">
                     <a href="#SaveElifHash">
@@ -439,7 +445,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="293">
+              <div popover="" class="fsdocs-tip" id="295">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IfdefStore.SaveElifHash&#32;<span><span>(<span>lexbuf,&#32;lexed,&#32;expr,&#32;range</span>)</span></span></span></code>
@@ -532,7 +538,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="294" data-fsdocs-tip-unique="294">
+              <code data-fsdocs-tip="296" data-fsdocs-tip-unique="296">
                 <p>
                   <a id="SaveElseHash">
                     <a href="#SaveElseHash">
@@ -541,7 +547,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="294">
+              <div popover="" class="fsdocs-tip" id="296">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IfdefStore.SaveElseHash&#32;<span><span>(<span>lexbuf,&#32;lexed,&#32;range</span>)</span></span></span></code>
@@ -618,7 +624,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="295" data-fsdocs-tip-unique="295">
+              <code data-fsdocs-tip="297" data-fsdocs-tip-unique="297">
                 <p>
                   <a id="SaveEndIfHash">
                     <a href="#SaveEndIfHash">
@@ -627,7 +633,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="295">
+              <div popover="" class="fsdocs-tip" id="297">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IfdefStore.SaveEndIfHash&#32;<span><span>(<span>lexbuf,&#32;lexed,&#32;range</span>)</span></span></span></code>
@@ -704,7 +710,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="296" data-fsdocs-tip-unique="296">
+              <code data-fsdocs-tip="298" data-fsdocs-tip-unique="298">
                 <p>
                   <a id="SaveIfHash">
                     <a href="#SaveIfHash">
@@ -713,7 +719,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="296">
+              <div popover="" class="fsdocs-tip" id="298">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IfdefStore.SaveIfHash&#32;<span><span>(<span>lexbuf,&#32;lexed,&#32;expr,&#32;range</span>)</span></span></span></code>
@@ -844,7 +850,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

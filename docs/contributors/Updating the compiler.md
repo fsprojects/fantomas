@@ -1,6 +1,12 @@
+---
+category: Contributors
+categoryindex: 2
+index: 13
+---
+
 # Updating the compiler sources
 
-From time to time we want to update the sources of the F# compiler we use for our own parser (Fantomas.FCS).
+From time to time we want to update the sources of the F# compiler we use for our own parser (Fantomas.FCS).  
 Reasons can be bugfixes or new features we want to use.
 Examples are range fixes or newly added information in the AST we want to make use of.
 
@@ -10,7 +16,7 @@ To do this, first remove the old compiler sources by running:
 git clean -xdf
 ```
 
-Make sure, that this removes your `.deps` folder.
+Make sure, that this removes your `.deps` folder.  
 Next update the hash of the source version to use. Edit the `FCSCommitHash` value in the `Directory.Build.props` file.
 Run
 

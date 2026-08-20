@@ -1,14 +1,20 @@
+---
+category: End-users
+categoryindex: 1
+index: 3
+---
+
 <link rel="stylesheet" type="text/css" href="https://fsprojects.github.io/fantomas/content/configuration.css" />
 # Configuration
 
 Fantomas ships with a limited series of options.
 These can be stored in an [.editorconfig](https://editorconfig.org/) file and will be picked up automatically by the
-commandline.
+commandline.  
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.
 
 ```
-version: 8.0.0-alpha-013+e4daf1aa3462ec5d5fc98765e8657d4c2d003811
+version: 8.0.0-alpha-014+333238fde3178e10d22b0e0ac7e6f74f5d00194e
 ```
 
 ## Usage
@@ -36,7 +42,7 @@ You can quickly try your settings via the <a href="https://fsprojects.github.io/
 <img src="https://fsprojects.github.io/fantomas//online_tool_usage.gif" alt="drawing" width="100%"/>
 ## Settings recommendations
 
-Fantomas ships with a series of settings that you can use freely depending  on your case.
+Fantomas ships with a series of settings that you can use freely depending  on your case.  
 However, there are settings that we do not recommend and generally should not be used.
 <p><fantomas-setting green></fantomas-setting><strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to change these as it's been agreed on the codebase, however, you can always use it's defaults.</p>
 <p><fantomas-setting orange></fantomas-setting><strong>Use with caution:</strong> Settings where it is not recommended to change the default value. They might lead to incomplete results.</p>
@@ -53,7 +59,7 @@ However, there are settings that we do not recommend and generally should not be
 `indent_size` has to be between 1 and 10.
 
 This preference sets the indentation
-The common values are 2 and 4.
+The common values are 2 and 4.  
 The same indentation is ensured to be consistent in a source file.
 
 ```
@@ -97,7 +103,7 @@ let inline selectRandom (f: _[]) =
 ### max_line_length
 
 <copy-to-clipboard text="max_line_length = 100"></copy-to-clipboard>
-`max_line_length` has to be an integer greater or equal to 60.
+`max_line_length` has to be an integer greater or equal to 60.  
 This preference sets the column where we break F# constructs into new lines.
 
 ```
@@ -128,15 +134,15 @@ match myValue with
 ### end_of_line
 
 <copy-to-clipboard text="end_of_line = lf"></copy-to-clipboard>
-`end_of_line` determines the newline character, `lf` will add `\n` where `crlf` will add `\r\n`.
-`cr` is not supported by the F# language spec.
+`end_of_line` determines the newline character, `lf` will add `\n` where `crlf` will add `\r\n`.  
+`cr` is not supported by the F# language spec.  
 If not set by the user, the default value is determined by `System.Environment.NewLine`.
 
 <fantomas-setting orange></fantomas-setting>
 ### insert_final_newline
 
 <copy-to-clipboard text="insert_final_newline = false"></copy-to-clipboard>
-Adds a final newline character at the end of the file.
+Adds a final newline character at the end of the file.  
 <a href="https://stackoverflow.com/questions/729692/why-should-text-files-end-with-a-newline" target="_blank">Why should text files end with a newline?</a>
 
 ```
@@ -162,7 +168,7 @@ let a = 42
 ### fsharp_space_before_parameter
 
 <copy-to-clipboard text="fsharp_space_before_parameter = false"></copy-to-clipboard>
-Add a space after the name of a function and before the opening parenthesis of the first parameter.
+Add a space after the name of a function and before the opening parenthesis of the first parameter.  
 This setting influences function definitions.
 
 ```
@@ -190,7 +196,7 @@ let DumpTrace() = ()
 ### fsharp_space_before_lowercase_invocation
 
 <copy-to-clipboard text="fsharp_space_before_lowercase_invocation = false"></copy-to-clipboard>
-Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.
+Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.  
 This setting influences function invocation in expressions and patterns.
 
 ```
@@ -224,7 +230,7 @@ match x with
 ### fsharp_space_before_uppercase_invocation
 
 <copy-to-clipboard text="fsharp_space_before_uppercase_invocation = true"></copy-to-clipboard>
-Add a space after the name of a uppercase function and before the opening parenthesis of the first argument.
+Add a space after the name of a uppercase function and before the opening parenthesis of the first argument.  
 This setting influences function invocation in expressions and patterns.
 
 ```
@@ -463,11 +469,10 @@ Settings that control the max width of certain expressions.
 ### fsharp_max_if_then_short_width
 
 <copy-to-clipboard text="fsharp_max_if_then_short_width = 15"></copy-to-clipboard>
-Control the maximum length for which if/then expression without an else expression can be on one line.
+Control the maximum length for which if/then expression without an else expression can be on one line.  
 The [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions) recommends to never write such an expression in one line.
 
 > If the else expression is absent, it is recommended to never to write the entire expression in one line.
-> 
 
 ```
 # Default
@@ -493,7 +498,7 @@ if a then ()
 ### fsharp_max_if_then_else_short_width
 
 <copy-to-clipboard text="fsharp_max_if_then_else_short_width = 80"></copy-to-clipboard>
-Fantomas by default follows the if/then/else conventions listed in the [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions).
+Fantomas by default follows the if/then/else conventions listed in the [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions).  
 This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.
 
 ```
@@ -654,8 +659,8 @@ let myRecord''' =
 ### fsharp_record_multiline_formatter
 
 <copy-to-clipboard text="fsharp_record_multiline_formatter = number_of_items"></copy-to-clipboard>
-Split records expressions/statements into multiple lines based on the given condition.
-`character_width` uses character count of the expression, controlled by `fsharp_max_record_width`.
+Split records expressions/statements into multiple lines based on the given condition.  
+`character_width` uses character count of the expression, controlled by `fsharp_max_record_width`.  
 `number_of_items` uses the number of fields in the record, controlled by `fsharp_max_record_number_of_items`.
 
 Note that in either case, record expressions/statements are still governed by `max_line_length`.
@@ -775,8 +780,8 @@ let myArray =
 ### fsharp_array_or_list_multiline_formatter
 
 <copy-to-clipboard text="fsharp_array_or_list_multiline_formatter = number_of_items"></copy-to-clipboard>
-Split arrays and lists into multiple lines based on the given condition.
-`character_width` uses character count of the expression, controlled by `fsharp_max_array_or_list_width`.
+Split arrays and lists into multiple lines based on the given condition.  
+`character_width` uses character count of the expression, controlled by `fsharp_max_array_or_list_width`.  
 `number_of_items` uses the number of elements in the array or list, controlled by `fsharp_max_array_or_list_number_of_items`.
 
 Note that in either case, list expressions are still governed by `max_line_length`.
@@ -809,7 +814,7 @@ let myArray =
 ### fsharp_max_value_binding_width
 
 <copy-to-clipboard text="fsharp_max_value_binding_width = 100"></copy-to-clipboard>
-Control the maximum expression width for which let and member value/property bindings should be in one line.
+Control the maximum expression width for which let and member value/property bindings should be in one line.  
 The width is that of the pattern for the binding plus the right-hand expression but not the keywords (e.g. "let").
 
 ```
@@ -842,7 +847,7 @@ type MyType() =
 ### fsharp_max_function_binding_width
 
 <copy-to-clipboard text="fsharp_max_function_binding_width = 40"></copy-to-clipboard>
-Control the maximum width for which function and member bindings should be in one line.
+Control the maximum width for which function and member bindings should be in one line.  
 In contrast to `fsharp_max_value_binding_width`, only the right-hand side expression of the binding is measured.
 
 ```
@@ -876,8 +881,8 @@ type Triangle() =
 ### fsharp_multiline_bracket_style
 
 <copy-to-clipboard text="fsharp_multiline_bracket_style = stroustrup"></copy-to-clipboard>
-`Cramped` Alternative way in F# to format brackets.
-`Aligned` The default way of formatting records, arrays and lists. This will align the braces at the same column level.
+`Cramped` Alternative way in F# to format brackets.  
+`Aligned` The default way of formatting records, arrays and lists. This will align the braces at the same column level.  
 `Stroustrup` Allow for easier reordering of members and keeping the code succinct.
 
 ```
@@ -1032,7 +1037,7 @@ let something = task {
 
 ## G-Research style
 
-A series of settings requicolor="red" to conform with the [G-Research style guide](https://github.com/G-Research/fsharp-formatting-conventions).
+A series of settings requicolor="red" to conform with the [G-Research style guide](https://github.com/G-Research/fsharp-formatting-conventions).  
 From a consistency point of view, it is recommend to enable all these settings instead of cherry-picking a few.
 
 <fantomas-setting green gr></fantomas-setting>
@@ -1074,7 +1079,7 @@ type Range =
 ### fsharp_align_function_signature_to_indentation
 
 <copy-to-clipboard text="fsharp_align_function_signature_to_indentation = true"></copy-to-clipboard>
-When a function signature exceeds the `max_line_length`, Fantomas will put all parameters on separate lines.
+When a function signature exceeds the `max_line_length`, Fantomas will put all parameters on separate lines.  
 This setting also places the equals sign and return type on a new line.
 
 ```
@@ -1238,7 +1243,7 @@ let printListWithOffset a list1 =
 ### fsharp_experimental_keep_indent_in_branch
 
 <copy-to-clipboard text="fsharp_experimental_keep_indent_in_branch = true"></copy-to-clipboard>
-Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.
+Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.  
 Only when the last pattern match or else branch was already at the same level of the entire match or if expression.
 
 *This feature is experimental and is subject to change.*
@@ -1292,7 +1297,7 @@ let main argv =
 ### fsharp_bar_before_discriminated_union_declaration
 
 <copy-to-clipboard text="fsharp_bar_before_discriminated_union_declaration = true"></copy-to-clipboard>
-Always use a `|` before every case in the declaration of a discriminated union.
+Always use a `|` before every case in the declaration of a discriminated union.  
 If `false`, a `|` character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.
 
 ```
@@ -1322,8 +1327,8 @@ Some additional settings that don't fit into any style guide.
 ### fsharp_blank_lines_around_nested_multiline_expressions
 
 <copy-to-clipboard text="fsharp_blank_lines_around_nested_multiline_expressions = false"></copy-to-clipboard>
-Surround **nested** multi-line expressions with blank lines.
-Existing blank lines are always preserved (via trivia), with exception when [fsharp_keep_max_number_of_blank_lines](#fsharp_keep_max_number_of_blank_lines) is used.
+Surround **nested** multi-line expressions with blank lines.  
+Existing blank lines are always preserved (via trivia), with exception when [fsharp_keep_max_number_of_blank_lines](#fsharp_keep_max_number_of_blank_lines) is used.  
 Top level expressions will always follow the [2020 blank lines revision](https://github.com/fsprojects/fantomas/blob/main/docs-old/FormattingConventions.md#2020-revision) principle.
 
 ```
@@ -1401,7 +1406,7 @@ let x = 42
 ### fsharp_experimental_elmish
 
 <copy-to-clipboard text="fsharp_experimental_elmish = true"></copy-to-clipboard>
-Applies the Stroustrup style to the final (two) array or list argument(s) in a function application.
+Applies the Stroustrup style to the final (two) array or list argument(s) in a function application.  
 Note that this behaviour is also active when `fsharp_multiline_bracket_style = stroustrup`.
 
 ```

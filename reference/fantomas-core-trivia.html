@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -356,7 +362,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="142" data-fsdocs-tip-unique="142">
+              <code data-fsdocs-tip="144" data-fsdocs-tip-unique="144">
                 <p>
                   <a id="collectCommentTextsFromAST">
                     <a href="#collectCommentTextsFromAST">
@@ -365,7 +371,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="142">
+              <div popover="" class="fsdocs-tip" id="144">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>collectCommentTextsFromAST&#32;<span>sourceText&#32;ast</span></span></code>
@@ -440,7 +446,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="143" data-fsdocs-tip-unique="143">
+              <code data-fsdocs-tip="145" data-fsdocs-tip-unique="145">
                 <p>
                   <a id="enrichTree">
                     <a href="#enrichTree">
@@ -449,7 +455,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="143">
+              <div popover="" class="fsdocs-tip" id="145">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>enrichTree&#32;<span>config&#32;sourceText&#32;ast&#32;tree</span></span></code>
@@ -556,7 +562,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="144" data-fsdocs-tip-unique="144">
+              <code data-fsdocs-tip="146" data-fsdocs-tip-unique="146">
                 <p>
                   <a id="findNodeWhereRangeFitsIn">
                     <a href="#findNodeWhereRangeFitsIn">
@@ -565,7 +571,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="144">
+              <div popover="" class="fsdocs-tip" id="146">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>findNodeWhereRangeFitsIn&#32;<span>root&#32;range</span></span></code>
@@ -640,7 +646,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="145" data-fsdocs-tip-unique="145">
+              <code data-fsdocs-tip="147" data-fsdocs-tip-unique="147">
                 <p>
                   <a id="insertCursor">
                     <a href="#insertCursor">
@@ -649,7 +655,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="145">
+              <div popover="" class="fsdocs-tip" id="147">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>insertCursor&#32;<span>tree&#32;cursor</span></span></code>
@@ -778,7 +784,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -379,7 +385,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3334" data-fsdocs-tip-unique="3334">
+              <code data-fsdocs-tip="3336" data-fsdocs-tip-unique="3336">
                 <p>
                   <a id="DotNetListError">
                     <a href="#DotNetListError">
@@ -388,7 +394,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3334">
+              <div popover="" class="fsdocs-tip" id="3336">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>DotNetListError&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes-dotnettoollisterror.html">DotNetToolListError</a></span></code>
@@ -433,7 +439,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3335" data-fsdocs-tip-unique="3335">
+              <code data-fsdocs-tip="3337" data-fsdocs-tip-unique="3337">
                 <p>
                   <a id="NoCompatibleVersionFound">
                     <a href="#NoCompatibleVersionFound">
@@ -442,7 +448,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3335">
+              <div popover="" class="fsdocs-tip" id="3337">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>NoCompatibleVersionFound</span></code>
@@ -493,7 +499,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3336" data-fsdocs-tip-unique="3336">
+              <code data-fsdocs-tip="3338" data-fsdocs-tip-unique="3338">
                 <p>
                   <a id="IsDotNetListError">
                     <a href="#IsDotNetListError">
@@ -502,7 +508,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3336">
+              <div popover="" class="fsdocs-tip" id="3338">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsDotNetListError</span></code>
@@ -539,7 +545,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3337" data-fsdocs-tip-unique="3337">
+              <code data-fsdocs-tip="3339" data-fsdocs-tip-unique="3339">
                 <p>
                   <a id="IsNoCompatibleVersionFound">
                     <a href="#IsNoCompatibleVersionFound">
@@ -548,7 +554,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3337">
+              <div popover="" class="fsdocs-tip" id="3339">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsNoCompatibleVersionFound</span></code>
@@ -616,7 +622,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -368,7 +374,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="9151" data-fsdocs-tip-unique="9151">
+              <code data-fsdocs-tip="9049" data-fsdocs-tip-unique="9049">
                 <p>
                   <a id="CheckAndThrow">
                     <a href="#CheckAndThrow">
@@ -377,7 +383,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="9151">
+              <div popover="" class="fsdocs-tip" id="9049">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Cancellable.CheckAndThrow<span>()</span></span></code>
@@ -411,7 +417,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="9152" data-fsdocs-tip-unique="9152">
+              <code data-fsdocs-tip="9050" data-fsdocs-tip-unique="9050">
                 <p>
                   <a id="HasCancellationToken">
                     <a href="#HasCancellationToken">
@@ -420,7 +426,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="9152">
+              <div popover="" class="fsdocs-tip" id="9050">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Cancellable.HasCancellationToken</span></code>
@@ -457,7 +463,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="9153" data-fsdocs-tip-unique="9153">
+              <code data-fsdocs-tip="9051" data-fsdocs-tip-unique="9051">
                 <p>
                   <a id="Token">
                     <a href="#Token">
@@ -466,7 +472,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="9153">
+              <div popover="" class="fsdocs-tip" id="9051">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Cancellable.Token</span></code>
@@ -503,7 +509,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="9154" data-fsdocs-tip-unique="9154">
+              <code data-fsdocs-tip="9052" data-fsdocs-tip-unique="9052">
                 <p>
                   <a id="TryCheckAndThrow">
                     <a href="#TryCheckAndThrow">
@@ -512,7 +518,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="9154">
+              <div popover="" class="fsdocs-tip" id="9052">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Cancellable.TryCheckAndThrow<span>()</span></span></code>
@@ -546,7 +552,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="9155" data-fsdocs-tip-unique="9155">
+              <code data-fsdocs-tip="9053" data-fsdocs-tip-unique="9053">
                 <p>
                   <a id="UseToken">
                     <a href="#UseToken">
@@ -555,7 +561,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="9155">
+              <div popover="" class="fsdocs-tip" id="9053">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Cancellable.UseToken<span>()</span></span></code>
@@ -622,7 +628,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

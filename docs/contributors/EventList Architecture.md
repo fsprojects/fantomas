@@ -1,3 +1,9 @@
+---
+category: Contributors
+categoryindex: 2
+index: 17
+---
+
 # Writer Events and the EventList
 
 ## Overview
@@ -5,7 +11,6 @@
 Fantomas formats code in two phases:
 
 1. **Event generation**: The code printer traverses the Oak tree and appends `WriterEvent` values to an `EventList` — a mutable doubly-linked list. During this phase, only lightweight metadata is tracked (line count, column, indent level). No strings are built.
-
 2. **String materialization**: The `dump` function walks the EventList head-to-tail with a `StringBuilder`, producing the final formatted string.
 
 ## EventList
@@ -23,7 +28,6 @@ Operation | Complexity | Used for
 `RollbackTo` | O(1) | Discarding events appended after a backup point
 `ToSeq` / `ToRevSeq` | O(n) | Iterating forward/backward for inspection
 `CurrentLineContent` | O(k) | Walking backward to collect text on the current line
-
 
 `EventNode` uses `[<AllowNullLiteral>]` instead of `option` for `Prev`/`Next` links because this is a hot path — every formatting operation appends nodes.
 
@@ -43,7 +47,6 @@ Event | Purpose
 `SetAtColumn` / `RestoreAtColumn` | Indentation floor (`atCurrentColumn`)
 `Start` / `Placeholder` | Position markers for future `colWithNlnWhenItemIsMultiline` rework
 
-
 ## Speculative formatting
 
 Several functions try a short layout and fall back to a long one:
@@ -55,11 +58,8 @@ CreateBackupPoint  →  try short layout  →  fits?  →  keep events
 ```
 
 * `expressionFitsOnRestOfLine` / `isShortExpression`: Uses `ShortExpression` mode to detect overflow
-
 * `expressionExceedsPageWidth`: Same, with `LongExpressionLayout` DU for the long path
-
 * `colWithNlnWhenItemIsMultiline`: Optimistic blank-line separator, rolls back if both items are single-line
-
 * `WithDummy`: Encapsulates probe functions — creates backup, runs probe, reads metadata, rolls back automatically
 
 ## Trivia-aware indentation
@@ -73,7 +73,6 @@ indent +> sepNln +> content +> unindent
 Both sides are trivia-aware:
 
 * **`indentSepNlnWithTriviaAwareness`**: If trailing trivia exists before the indent point, splices `IndentBy` before the trivia block so the comment appears at the indented level. The trivia's own newline replaces `sepNln`.
-
 * **`unindentWithTriviaAwareness`**: If trailing trivia exists after the content, splices `UnIndentBy` before the trailing trivia newline so the newline uses the reduced indent level.
 
 Both use `findTrailingTriviaNewline` which walks backward from the DLL tail, skipping `RestoreIndent`/`RestoreAtColumn`/`UnIndentBy`/`IndentBy`/`WriteLine` events, then verifies a `WriteLineBecauseOfTrivia` preceded by `WriteTrivia`.

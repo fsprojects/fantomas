@@ -7,15 +7,15 @@
     <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
     <!-- Opengraph properties (https://ogp.me/) -->
     <meta property="og:site_name" content="fantomas">
-    <meta property="og:title" content="ChainLink (fantomas)" />
+    <meta property="og:title" content="ChainSegment (fantomas)" />
     <meta property="og:url" content="https://fsprojects.github.io/fantomas/{{fsdocs-source-basename}}.html">
     <meta property="og:type" content="website" />
     <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
-    <meta name="twitter:title" content="ChainLink (fantomas)">
+    <meta name="twitter:title" content="ChainSegment (fantomas)">
     
-    <title>ChainLink (fantomas) | fantomas</title>
+    <title>ChainSegment (fantomas) | fantomas</title>
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
@@ -150,6 +150,9 @@
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -314,7 +320,7 @@
     <div id="content">
         <div>
   <h2>
-    ChainLink Type
+    ChainSegment Type
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
@@ -341,9 +347,14 @@
     <div>
       <div class="fsdocs-summary-contents">
         <p class="fsdocs-summary">
-           A single link in a method-call or property-access chain (e.g. <c>a.b().c[0]</c>).
- The chain is represented as an ordered list of <c>ChainLink</c> values so that the
- printer can decide whether to keep the chain on one line or break at each dot.
+           A single dot-prefixed step in a member-access or call chain.
+ Every step is reached through a <c>.</c>; the dot is an explicit <see cref="SingleTextNode"/>
+ so that trivia (comments, blank lines) attached to it are preserved during formatting.
+
+ A segment is always <em>intermediate</em>: the final call of a chain is the
+ <c>ExprChain.Terminal</c>, never a segment here.  That is why <c>DotApplication</c> (an
+ intermediate call) is distinct from <c>DotMember</c> (plain access) — the distinction the
+ layout cares about (navigation vs. action) is then visible in the shape of the data itself.
         </p>
       </div>
     </div>
@@ -371,139 +382,47 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3519" data-fsdocs-tip-unique="3519">
+              <code data-fsdocs-tip="3525" data-fsdocs-tip-unique="3525">
                 <p>
-                  <a id="AppParen">
-                    <a href="#AppParen">
-                      <code><span>AppParen&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-linksingleappparen.html">LinkSingleAppParen</a></span></code>
+                  <a id="DotApplication">
+                    <a href="#DotApplication">
+                      <code><span>DotApplication(<span>dot,&#32;expr,&#32;call</span>)</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3519">
+              <div popover="" class="fsdocs-tip" id="3525">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>AppParen&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-linksingleappparen.html">LinkSingleAppParen</a></span></code>
+                  <code><span>DotApplication(<span>dot,&#32;expr,&#32;call</span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        Item
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-linksingleappparen.html">LinkSingleAppParen</a></code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-params">
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    Item
-                  </span>
-                  :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-linksingleappparen.html">LinkSingleAppParen</a></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="3520" data-fsdocs-tip-unique="3520">
-                <p>
-                  <a id="AppUnit">
-                    <a href="#AppUnit">
-                      <code><span>AppUnit&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-linksingleappunit.html">LinkSingleAppUnit</a></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3520">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>AppUnit&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-linksingleappunit.html">LinkSingleAppUnit</a></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        Item
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-linksingleappunit.html">LinkSingleAppUnit</a></code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-params">
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    Item
-                  </span>
-                  :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-linksingleappunit.html">LinkSingleAppUnit</a></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="3521" data-fsdocs-tip-unique="3521">
-                <p>
-                  <a id="Dot">
-                    <a href="#Dot">
-                      <code><span>Dot&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3521">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>Dot&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        Item
+                        dot
                       </b>
                       :
                       <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
                     </span>
                     <br/>
+                    <span>
+                      <b>
+                        expr
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        call
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chaincall.html">ChainCall</a></code>
+                    </span>
+                    <br/>
                   </ul>
                   <br/>
                 </div>
@@ -511,48 +430,79 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <pre>   .Foo(x)     — intermediate call — always tight, never a space before (
+   .Foo()      — intermediate unit call — always tight
+ e.g. the `.Foo(x)` in `a.Foo(x).Bar`.  The terminal call of a chain is not a segment.</pre>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
-                    Item
+                    dot
                   </span>
                   :
                   <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    expr
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    call
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chaincall.html">ChainCall</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3522" data-fsdocs-tip-unique="3522">
+              <code data-fsdocs-tip="3526" data-fsdocs-tip-unique="3526">
                 <p>
-                  <a id="Expr">
-                    <a href="#Expr">
-                      <code><span>Expr&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></span></code>
+                  <a id="DotIndex">
+                    <a href="#DotIndex">
+                      <code><span>DotIndex(<span>dot,&#32;indexExpr</span>)</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3522">
+              <div popover="" class="fsdocs-tip" id="3526">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>Expr&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></span></code>
+                  <code><span>DotIndex(<span>dot,&#32;indexExpr</span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        Item
+                        dot
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        indexExpr
                       </b>
                       :
                       <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
@@ -565,48 +515,79 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Old dot-bracket index syntax: <c>arr.[i]</c>.
+ <c>DotIndex</c> is a separate case rather than <c>DotMember</c> because the <c>[</c> and
+ <c>]</c> brackets are <em>not</em> part of <c>indexExpr</c> in the AST — <c>genExpr
+ indexExpr</c> produces only the content (e.g. <c>0</c>), not <c>[0]</c>.  No existing
+ <c>Expr</c> type naturally renders bracketed index content, so the printer must add
+ <c>[</c> and <c>]</c> explicitly.  From a layout perspective <c>DotIndex</c> is
+ identical to <c>DotMember</c> — both are navigation segments with no call.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
-                    Item
+                    dot
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    indexExpr
                   </span>
                   :
                   <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3523" data-fsdocs-tip-unique="3523">
+              <code data-fsdocs-tip="3527" data-fsdocs-tip-unique="3527">
                 <p>
-                  <a id="Identifier">
-                    <a href="#Identifier">
-                      <code><span>Identifier&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></span></code>
+                  <a id="DotMember">
+                    <a href="#DotMember">
+                      <code><span>DotMember(<span>dot,&#32;expr</span>)</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3523">
+              <div popover="" class="fsdocs-tip" id="3527">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>Identifier&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></span></code>
+                  <code><span>DotMember(<span>dot,&#32;expr</span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        Item
+                        dot
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        expr
                       </b>
                       :
                       <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
@@ -619,77 +600,41 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-params">
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    Item
-                  </span>
-                  :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="3524" data-fsdocs-tip-unique="3524">
-                <p>
-                  <a id="IndexExpr">
-                    <a href="#IndexExpr">
-                      <code><span>IndexExpr&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></span></code>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                         .Foo        — plain property access (navigation)
+   .Items[0]   — expr = IndexWithoutDot(Items, [0]), no dedicated case needed
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
                     </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3524">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>IndexExpr&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        Item
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+              </summary>
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
-                    Item
+                    dot
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    expr
                   </span>
                   :
                   <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
       </tbody>
@@ -718,149 +663,11 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3525" data-fsdocs-tip-unique="3525">
-                <p>
-                  <a id="IsAppParen">
-                    <a href="#IsAppParen">
-                      <code><span>this.IsAppParen</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3525">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.IsAppParen</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>bool</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code>bool</code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="3526" data-fsdocs-tip-unique="3526">
-                <p>
-                  <a id="IsAppUnit">
-                    <a href="#IsAppUnit">
-                      <code><span>this.IsAppUnit</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3526">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.IsAppUnit</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>bool</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code>bool</code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="3527" data-fsdocs-tip-unique="3527">
-                <p>
-                  <a id="IsDot">
-                    <a href="#IsDot">
-                      <code><span>this.IsDot</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3527">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.IsDot</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>bool</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code>bool</code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
               <code data-fsdocs-tip="3528" data-fsdocs-tip-unique="3528">
                 <p>
-                  <a id="IsExpr">
-                    <a href="#IsExpr">
-                      <code><span>this.IsExpr</span></code>
+                  <a id="IsDotApplication">
+                    <a href="#IsDotApplication">
+                      <code><span>this.IsDotApplication</span></code>
                     </a>
                   </a>
                 </p>
@@ -868,7 +675,7 @@
               <div popover="" class="fsdocs-tip" id="3528">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.IsExpr</span></code>
+                  <code><span>this.IsDotApplication</span></code>
                   <br/>
                   <br/>
                   <span>
@@ -904,9 +711,9 @@
             <div>
               <code data-fsdocs-tip="3529" data-fsdocs-tip-unique="3529">
                 <p>
-                  <a id="IsIdentifier">
-                    <a href="#IsIdentifier">
-                      <code><span>this.IsIdentifier</span></code>
+                  <a id="IsDotIndex">
+                    <a href="#IsDotIndex">
+                      <code><span>this.IsDotIndex</span></code>
                     </a>
                   </a>
                 </p>
@@ -914,7 +721,7 @@
               <div popover="" class="fsdocs-tip" id="3529">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.IsIdentifier</span></code>
+                  <code><span>this.IsDotIndex</span></code>
                   <br/>
                   <br/>
                   <span>
@@ -950,9 +757,9 @@
             <div>
               <code data-fsdocs-tip="3530" data-fsdocs-tip-unique="3530">
                 <p>
-                  <a id="IsIndexExpr">
-                    <a href="#IsIndexExpr">
-                      <code><span>this.IsIndexExpr</span></code>
+                  <a id="IsDotMember">
+                    <a href="#IsDotMember">
+                      <code><span>this.IsDotMember</span></code>
                     </a>
                   </a>
                 </p>
@@ -960,7 +767,7 @@
               <div popover="" class="fsdocs-tip" id="3530">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.IsIndexExpr</span></code>
+                  <code><span>this.IsDotMember</span></code>
                   <br/>
                   <br/>
                   <span>
@@ -994,94 +801,7 @@
       </tbody>
     </table>
   </div>
-  <div>
-    <h3>
-      Static members
-    </h3>
-    <table class="table outer-list fsdocs-member-list">
-      <thead>
-        <tr>
-          <td class="fsdocs-member-list-header">
-            Static member
-          </td>
-          <td class="fsdocs-member-list-header">
-            Description
-            <fsdocs-details-toggle></fsdocs-details-toggle>
-          </td>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="3531" data-fsdocs-tip-unique="3531">
-                <p>
-                  <a id="Node">
-                    <a href="#Node">
-                      <code><span>ChainLink.Node<span><span>(<span>link</span>)</span></span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3531">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>ChainLink.Node<span><span>(<span>link</span>)</span></span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        link
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainlink.html">ChainLink</a></code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-node.html">Node</a></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-params">
-                <dt class="fsdocs-param">
-                  <span class="fsdocs-param-name">
-                    link
-                  </span>
-                  :
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainlink.html">ChainLink</a></code>
-                </dt>
-                <dd class="fsdocs-param-docs"></dd>
-              </dl>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-node.html">Node</a></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <div></div>
 </div>
         
     </div>
@@ -1112,7 +832,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -379,7 +385,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7627" data-fsdocs-tip-unique="7627">
+              <code data-fsdocs-tip="7525" data-fsdocs-tip-unique="7525">
                 <p>
                   <a id="IfDefElif">
                     <a href="#IfDefElif">
@@ -388,7 +394,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7627">
+              <div popover="" class="fsdocs-tip" id="7525">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IfDefElif</span></code>
@@ -416,7 +422,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7628" data-fsdocs-tip-unique="7628">
+              <code data-fsdocs-tip="7526" data-fsdocs-tip-unique="7526">
                 <p>
                   <a id="IfDefElse">
                     <a href="#IfDefElse">
@@ -425,7 +431,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7628">
+              <div popover="" class="fsdocs-tip" id="7526">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IfDefElse</span></code>
@@ -453,7 +459,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7629" data-fsdocs-tip-unique="7629">
+              <code data-fsdocs-tip="7527" data-fsdocs-tip-unique="7527">
                 <p>
                   <a id="IfDefIf">
                     <a href="#IfDefIf">
@@ -462,7 +468,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7629">
+              <div popover="" class="fsdocs-tip" id="7527">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IfDefIf</span></code>
@@ -513,7 +519,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7630" data-fsdocs-tip-unique="7630">
+              <code data-fsdocs-tip="7528" data-fsdocs-tip-unique="7528">
                 <p>
                   <a id="IsIfDefElif">
                     <a href="#IsIfDefElif">
@@ -522,7 +528,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7630">
+              <div popover="" class="fsdocs-tip" id="7528">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsIfDefElif</span></code>
@@ -559,7 +565,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7631" data-fsdocs-tip-unique="7631">
+              <code data-fsdocs-tip="7529" data-fsdocs-tip-unique="7529">
                 <p>
                   <a id="IsIfDefElse">
                     <a href="#IsIfDefElse">
@@ -568,7 +574,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7631">
+              <div popover="" class="fsdocs-tip" id="7529">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsIfDefElse</span></code>
@@ -605,7 +611,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7632" data-fsdocs-tip-unique="7632">
+              <code data-fsdocs-tip="7530" data-fsdocs-tip-unique="7530">
                 <p>
                   <a id="IsIfDefIf">
                     <a href="#IsIfDefIf">
@@ -614,7 +620,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7632">
+              <div popover="" class="fsdocs-tip" id="7530">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsIfDefIf</span></code>
@@ -682,7 +688,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

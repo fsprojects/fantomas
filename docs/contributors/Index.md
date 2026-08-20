@@ -1,7 +1,12 @@
+---
+category: Contributors
+categoryindex: 2
+index: 1
+---
+
 # Contributors
 
 > “It's a dangerous business, Frodo, going out of your door," he used to say. "You step into the Road, and if you don't keep your feet, there is no knowing where you might be swept off to. ― J.R.R. Tolkien, The Fellowship of the Ring
-> 
 
 Fantomas is a project that has its roots deeply nested in the F# compiler. This can be an overwhelming experience at first, and it might even make you nervous about contributing in the first place.
 Fear not: once you get the hang of it, things are less complicated than they seem.

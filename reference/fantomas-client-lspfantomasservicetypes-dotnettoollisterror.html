@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -379,7 +385,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3318" data-fsdocs-tip-unique="3318">
+              <code data-fsdocs-tip="3320" data-fsdocs-tip-unique="3320">
                 <p>
                   <a id="ExitCodeNonZero">
                     <a href="#ExitCodeNonZero">
@@ -388,7 +394,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3318">
+              <div popover="" class="fsdocs-tip" id="3320">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ExitCodeNonZero(<span>executableFile,&#32;arguments,&#32;exitCode,&#32;error</span>)</span></code>
@@ -481,7 +487,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3319" data-fsdocs-tip-unique="3319">
+              <code data-fsdocs-tip="3321" data-fsdocs-tip-unique="3321">
                 <p>
                   <a id="ProcessStartError">
                     <a href="#ProcessStartError">
@@ -490,7 +496,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3319">
+              <div popover="" class="fsdocs-tip" id="3321">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ProcessStartError&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes-processstarterror.html">ProcessStartError</a></span></code>
@@ -558,7 +564,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3320" data-fsdocs-tip-unique="3320">
+              <code data-fsdocs-tip="3322" data-fsdocs-tip-unique="3322">
                 <p>
                   <a id="IsExitCodeNonZero">
                     <a href="#IsExitCodeNonZero">
@@ -567,7 +573,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3320">
+              <div popover="" class="fsdocs-tip" id="3322">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsExitCodeNonZero</span></code>
@@ -604,7 +610,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3321" data-fsdocs-tip-unique="3321">
+              <code data-fsdocs-tip="3323" data-fsdocs-tip-unique="3323">
                 <p>
                   <a id="IsProcessStartError">
                     <a href="#IsProcessStartError">
@@ -613,7 +619,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3321">
+              <div popover="" class="fsdocs-tip" id="3323">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsProcessStartError</span></code>
@@ -681,7 +687,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

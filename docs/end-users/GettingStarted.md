@@ -1,6 +1,12 @@
+---
+category: End-users
+categoryindex: 1
+index: 1
+---
+
 # Getting Started
 
-Fantomas should be installed as a [.NET tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools).
+Fantomas should be installed as a [.NET tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools).  
 It is recommended to install it as a local tool and stick to a certain version per repository.
 
 ## Installation
@@ -87,7 +93,7 @@ If you omit the output path, Fantomas will overwrite the input files unless the 
 
 *starting version 4.5*
 
-Multiple paths can be passed as last argument, these can be both files and folders.
+Multiple paths can be passed as last argument, these can be both files and folders.  
 This cannot be combined with the `--out` flag.
 
 One interesting use-case of passing down multiple paths is that you can easily control the selection and filtering of paths from the current shell.

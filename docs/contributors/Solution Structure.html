@@ -155,6 +155,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -299,6 +302,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -319,15 +325,14 @@
 <h1><a name="Solution-structure" class="anchor" href="#Solution-structure">Solution structure</a></h1>
 <p>Fantomas has a modular project structure.<br />
 The parser (<code>Fantomas.FCS</code>), the core library (<code>Fantomas.Core</code>) and the command line application (<code>fantomas</code>) are the main components of the solution.</p>
-<div class="mermaid text-center">
-graph TD
-    A[Fantomas.FCS] --> B
-    B[Fantomas.Core] --> C[Fantomas]
-    B --> D[Fantomas.Benchmarks]
-    B --> E[Fantomas.Core.Tests]
-    C --> F[Fantomas.Tests]
-    G[Fantomas.Client] --> H[Fantomas.Client.Tests]
- </div>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="mermaid">graph TD
+    A[Fantomas.FCS] --&gt; B
+    B[Fantomas.Core] --&gt; C[Fantomas]
+    B --&gt; D[Fantomas.Benchmarks]
+    B --&gt; E[Fantomas.Core.Tests]
+    C --&gt; F[Fantomas.Tests]
+    G[Fantomas.Client] --&gt; H[Fantomas.Client.Tests]
+</code></pre></td></tr></table>
 <h2><a name="Fantomas-FCS" class="anchor" href="#Fantomas-FCS">Fantomas.FCS</a></h2>
 <p>This is a very custom fork of the F# compiler. We only expose a single parse function to construct the untyped syntax tree.
 We achieve this by taking the files necessary to compile the F# parser from source (via custom code in a <code>Fun.Build</code> pipeline).
@@ -431,7 +436,25 @@ This selected version could then later be re-used to verify if all files were fo
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -379,7 +385,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3360" data-fsdocs-tip-unique="3360">
+              <code data-fsdocs-tip="3362" data-fsdocs-tip-unique="3362">
                 <p>
                   <a id="ExecutableFileNotFound">
                     <a href="#ExecutableFileNotFound">
@@ -388,7 +394,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3360">
+              <div popover="" class="fsdocs-tip" id="3362">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>ExecutableFileNotFound(<span>executableFile,&#32;arguments,&#32;workingDirectory,&#32;pathEnvironmentVariable,&#32;error</span>)</span></code>
@@ -497,7 +503,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3361" data-fsdocs-tip-unique="3361">
+              <code data-fsdocs-tip="3363" data-fsdocs-tip-unique="3363">
                 <p>
                   <a id="UnExpectedException">
                     <a href="#UnExpectedException">
@@ -506,7 +512,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3361">
+              <div popover="" class="fsdocs-tip" id="3363">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>UnExpectedException(<span>executableFile,&#32;arguments,&#32;error</span>)</span></code>
@@ -606,7 +612,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3362" data-fsdocs-tip-unique="3362">
+              <code data-fsdocs-tip="3364" data-fsdocs-tip-unique="3364">
                 <p>
                   <a id="IsExecutableFileNotFound">
                     <a href="#IsExecutableFileNotFound">
@@ -615,7 +621,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3362">
+              <div popover="" class="fsdocs-tip" id="3364">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsExecutableFileNotFound</span></code>
@@ -652,7 +658,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3363" data-fsdocs-tip-unique="3363">
+              <code data-fsdocs-tip="3365" data-fsdocs-tip-unique="3365">
                 <p>
                   <a id="IsUnExpectedException">
                     <a href="#IsUnExpectedException">
@@ -661,7 +667,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3363">
+              <div popover="" class="fsdocs-tip" id="3365">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsUnExpectedException</span></code>
@@ -729,7 +735,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

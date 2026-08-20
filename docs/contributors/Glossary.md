@@ -1,3 +1,9 @@
+---
+category: Contributors
+categoryindex: 2
+index: 1000
+---
+
 # Glossary
 
 ## AST
@@ -14,7 +20,7 @@ A [Pull Request](https://docs.github.com/en/pull-requests) (PR) is a unit of pro
 
 ## Range
 
-A data structure modeling the exact place and size of a node or language construct in the source code.
+A data structure modeling the exact place and size of a node or language construct in the source code.  
 A *range* has a start and end position. A position is composed of a line number and a column number.
 
 ## Style Guide
@@ -40,12 +46,12 @@ Additional information captured in the [syntax tree](https://github.com/dotnet/f
 ## Trivia Node
 
 A *trivia node* can contain *trivia*, either as content before or content after.
-A *trivia node* is a generalized type that serves as a common denominator for all AST node types.
+A *trivia node* is a generalized type that serves as a common denominator for all AST node types.  
 *Trivia nodes* are used to construct a hierarchical tree-like structure in which every node can have multiple child nodes and each node has one parent node.
 
 ## Typed Syntax Tree
 
-The AST from the FCS carrying typed information about the processed source code. It is contructed from the *Untyped Syntax Tree*.
+The AST from the FCS carrying typed information about the processed source code. It is contructed from the *Untyped Syntax Tree*.  
 Fantomas does not use this AST to format the source code.
 
 ## Untyped Syntax Tree
@@ -54,4 +60,4 @@ The AST from the FCS used by Fantomas.
 It represents the source code as it was processed by the F# compiler. The *Untyped Syntax Tree* doesn't carry any information regarding the validity of the source code or semantics.
 In a later compilation stage, the *Untyped Syntax Tree* is transformed into the *Typed Syntax Tree*.
 
-<fantomas-nav previous="Trivia%20Assignment.md"></fantomas-nav>
+<fantomas-nav previous="Chains.md"></fantomas-nav>

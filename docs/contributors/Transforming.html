@@ -155,6 +155,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -299,6 +302,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -318,30 +324,28 @@
         
 <h1><a name="Fantomas-Core-overview-1" class="anchor" href="#Fantomas-Core-overview-1">Fantomas.Core overview (1)</a></h1>
 <p>In its simplest form, Fantomas.Core works in two major phases: transform the raw source code to a custom tree model and traverse that custom tree to print the formatted code.</p>
-<div class="mermaid text-center">
-graph TD
-    A[Transform source code to Oak] --> B
-    B[Traverse Oak to get formatted code] --> C[Formatted code]
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="mermaid">graph TD
+    A[Transform source code to Oak] --&gt; B
+    B[Traverse Oak to get formatted code] --&gt; C[Formatted code]
     style A stroke:#338CBB,stroke-width:2px
- </div>
+</code></pre></td></tr></table>
 <p>Unfortunately, both phases are not always very straight forward.<br />
 But once you get hang of the first phase, you can easily understand the second phase.</p>
 <h2><a name="Processing-the-raw-source" class="anchor" href="#Processing-the-raw-source">Processing the raw source</a></h2>
 <p>To have an understanding of what the raw source code means we parse the code using the parser of the F# compiler.<br />
 We can parse the source code into an untyped syntax tree. This tree isn't really perfect for our use-case, so we map it to an <code>Oak</code>.<br />
 An <code>Oak</code> is the toplevel root node of the Fantomas tree. We use a custom tree because it better suites our needs to reconstruct the output code.</p>
-<div class="mermaid text-center">
-graph TD
-    A[Parse AST] --> B
-    B[Transfrom untyped AST to OAK] --> C
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="mermaid">graph TD
+    A[Parse AST] --&gt; B
+    B[Transfrom untyped AST to OAK] --&gt; C
     C[Enrich the Oak with Trivia]
-</div>
+</code></pre></td></tr></table>
 <h3><a name="Parse-AST" class="anchor" href="#Parse-AST">Parse AST</a></h3>
 <p>Parsing the AST is straightforward. We use the <code>parseFile</code> function from <code>Fantomas.FCS</code> and get back a syntax tree and diagnostic information.<br />
 The diagnostic information is used to report errors and warnings. When we have errors, we stop processing the file.</p>
 <p><strong>Fantomas requires a valid source code to format.</strong></p>
 <p>If your code has errors, the parser cannot return a complete AST which is a strict requirement to run the remaining phases.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">a</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">a</span> <span class="o">=</span>
 </code></pre>
 <p>Returns a parsing error <code>Incomplete structured construct at or before this point in binding</code>.
 This has <code>FSharpDiagnosticSeverity.Error</code> and Fantomas will not process any code that has those.</p>
@@ -357,7 +361,7 @@ This has <code>FSharpDiagnosticSeverity.Error</code> and Fantomas will not proce
 <li><code>defines: string list</code></li>
 </ul>
 <p>Conditional compilation defines are passed to the parser. These can have an influence on the parsing process, resulting in different ASTs.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">a</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">a</span> <span class="o">=</span>
     <span class="pp">#if</span> <span class="id">DEBUG</span>
 <span class="inactive">    </span><span class="inactive">0</span>
     <span class="pp">#else</span>
@@ -409,7 +413,7 @@ However, there are three items that are either missing all together or require f
 <p>Trivia can however be easily detected in Fantomas. Both code comments and conditional directives are present in the AST.
 These are stored on the file level (in <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedimplfileinput.html">ParsedImplFileInput</a> and  <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedsigfileinput.html">ParsedSigFileInput</a> in the <code>trivia</code> node).</p>
 <p>In both <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-parsedimplfileinputtrivia.html">ParsedImplFileInputTrivia</a> and <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-parsedsigfileinputtrivia.html">ParsedSigFileInputTrivia</a> we can see comments and conditional directives.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="3" class="id">a</span> <span class="o">=</span> 
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">a</span> <span class="o">=</span> 
    <span class="c">// comment b</span>
    <span class="id">c</span>
 </code></pre>
@@ -422,9 +426,9 @@ These are stored on the file level (in <a href="https://fsprojects.github.io/fan
           <span class="pn">[</span><span class="id">Let</span>
              <span class="pn">(</span><span class="k">false</span><span class="pn">,</span>
               <span class="pn">[</span><span class="id">SynBinding</span><span class="pn">(</span><span class="o">..</span><span class="pn">.</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span>
-              <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">3</span><span class="pn">,</span><span class="n">4</span><span class="pn">)</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="id">PreXmlDocEmpty</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="4" class="id">None</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">3</span><span class="pn">,</span><span class="n">4</span><span class="pn">)</span><span class="pn">,</span>
-          <span class="pn">{</span> <span class="id">ModuleKeyword</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="5" class="id">None</span>
-            <span class="id">NamespaceKeyword</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="6" class="id">None</span> <span class="pn">}</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">(</span><span class="k">false</span><span class="pn">,</span> <span class="k">false</span><span class="pn">)</span><span class="pn">,</span>
+              <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">3</span><span class="pn">,</span><span class="n">4</span><span class="pn">)</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="id">PreXmlDocEmpty</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">None</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">3</span><span class="pn">,</span><span class="n">4</span><span class="pn">)</span><span class="pn">,</span>
+          <span class="pn">{</span> <span class="id">ModuleKeyword</span> <span class="o">=</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="2" class="id">None</span>
+            <span class="id">NamespaceKeyword</span> <span class="o">=</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="3" class="id">None</span> <span class="pn">}</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">(</span><span class="k">false</span><span class="pn">,</span> <span class="k">false</span><span class="pn">)</span><span class="pn">,</span>
       <span class="pn">{</span> <span class="id">ConditionalDirectives</span> <span class="o">=</span> <span class="pn">[</span><span class="pn">]</span>
         <span class="id">CodeComments</span> <span class="o">=</span> <span class="pn">[</span><span class="id">LineComment</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">2</span><span class="pn">,</span><span class="n">3</span><span class="o">--</span><span class="n">2</span><span class="pn">,</span><span class="n">15</span><span class="pn">)</span><span class="pn">]</span> <span class="pn">}</span><span class="pn">)</span><span class="pn">)</span>
 </code></pre>
@@ -437,16 +441,13 @@ We do this in <code>Trivia.collectTrivia</code>.</p>
 <p>Once we have the trivia, we can insert them to a <code>Node</code> they belong to.
 This is one of the key reasons why we work with our own tree. We can add the trivia information to the best suitable child node in the <code>Oak</code>.
 Every <code>Node</code> can have <code>ContentBefore</code> and <code>ContentAfter</code>, this is how we try to reconstruct everything.</p>
-<div class="mermaid text-center">
-graph TD
-    A[Capture all trivia from AST and ISourceText] --> B
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="mermaid">graph TD
+    A[Capture all trivia from AST and ISourceText] --&gt; B
     B[Insert trivia into nodes]
- </div>
+</code></pre></td></tr></table>
 <fantomas-nav previous="Solution%20Structure.html" next="Traverse.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">val a: &#39;a</div>
-<div popover class="fsdocs-tip" id="fs2">val a: int</div>
-<div popover class="fsdocs-tip" id="fs3">union case Option.None: Option&lt;&#39;T&gt;</div>
+        <div popover class="fsdocs-tip" id="fs1">union case Option.None: Option&lt;&#39;T&gt;</div>
 
     </div>
 </main>
@@ -512,7 +513,25 @@ graph TD
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

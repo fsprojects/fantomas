@@ -1,13 +1,16 @@
+---
+category: Contributors
+categoryindex: 2
+index: 14
+---
+
 # Releases
 
 Releases in Fantomas are automated via GitHub Actions. When a new release entry is added to the [CHANGELOG.md](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md) and pushed to the `main` branch, the release workflow will automatically:
 
 1. Build and test the project
-
 2. Create NuGet packages
-
 3. Publish packages to NuGet
-
 4. Create a GitHub release with release notes
 
 ## Preparation
@@ -57,29 +60,21 @@ The release pipeline (`build.fsx -p Release`) performs the following steps:
 5. **Publishes packages to NuGet**
 
 6. **Generates release notes** including:
-
   * Changelog sections (Added, Changed, Fixed, etc.)
-  
   * Contributor attribution (from PR commits merged since the last release)
-  
   * Link to NuGet package
   
 
 7. **Creates GitHub release**:
-
   * Draft releases for stable minor/major versions (patch = 0)
-  
   * Published releases for revisions (patch &gt; 0) and all prereleases
-  
   * Includes `--prerelease` flag for alpha/beta versions
   
 
 ### Release Types
 
 * **Stable minor/major** (e.g., `7.0.0`, `8.0.0`): Created as draft releases, requiring manual publish
-
 * **Stable revisions** (e.g., `7.0.5`, `8.1.2`): Published immediately
-
 * **Prereleases** (e.g., `8.0.0-alpha-001`, `8.0.0-beta-001`): Always published immediately
 
 ### Author Attribution
@@ -112,7 +107,7 @@ To add a nickname:
 
 ## Spread the word
 
-Share the newly created release in the [#fantomas channel on the F# Discord](https://discord.com/channels/196693847965696000/1493226271767924747).
+Share the newly created release in the [#fantomas channel on the F# Discord](https://discord.com/channels/196693847965696000/1493226271767924747).  
 Optionally share (minor or major) releases on other social media.
 
 <fantomas-nav previous="Updating%20the%20compiler.md" next="Formatting%20Conventions.md"></fantomas-nav>

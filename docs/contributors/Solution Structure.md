@@ -1,9 +1,15 @@
+---
+category: Contributors
+categoryindex: 2
+index: 4
+---
+
 # Solution structure
 
-Fantomas has a modular project structure.
+Fantomas has a modular project structure.  
 The parser (`Fantomas.FCS`), the core library (`Fantomas.Core`) and the command line application (`fantomas`) are the main components of the solution.
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A[Fantomas.FCS] --> B
     B[Fantomas.Core] --> C[Fantomas]
@@ -11,7 +17,8 @@ graph TD
     B --> E[Fantomas.Core.Tests]
     C --> F[Fantomas.Tests]
     G[Fantomas.Client] --> H[Fantomas.Client.Tests]
- </div>
+```
+
 ## Fantomas.FCS
 
 This is a very custom fork of the F# compiler. We only expose a single parse function to construct the untyped syntax tree.
@@ -28,7 +35,7 @@ Fantomas can be used as a library, see `CodeFormatter.fsi` to learn what APIs ar
 
 ## Fantomas
 
-The command line application is the main entry point of the solution.
+The command line application is the main entry point of the solution.  
 It exposes the core functionality and also takes care of `.editorconfig` and `.fantomasignore` files.
 
 ## Fantomas.Benchmarks

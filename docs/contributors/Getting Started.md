@@ -1,3 +1,9 @@
+---
+category: Contributors
+categoryindex: 2
+index: 3
+---
+
 # Getting started
 
 Fantomas has a fairly straightforward setup.
@@ -7,9 +13,7 @@ Fantomas has a fairly straightforward setup.
 We recommend the following overall workflow when developing for this repository:
 
 * Fork this repository
-
 * Always work in your fork
-
 * Always keep your fork up to date
 
 Before updating your fork, run this command:
@@ -66,9 +70,7 @@ Alternately, you can also run some other pipelines using `-p`.
 Examples:
 
 * `dotnet fsi build.fsx -p FormatChanged` will format all modified files detected by `git`.
-
 * `dotnet fsi build.fsx -p Docs` will serve the documentation website locally.
-
 * `dotnet fsi build.fsx -p EnsureRepoConfig` sets up some git repo-level configuration to ensure
 that formatting of new code is consistent before it is pushed up to a remote repository.
 

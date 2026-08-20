@@ -1,11 +1,17 @@
+---
+category: Contributors
+categoryindex: 2
+index: 8
+---
+
 # Formatting Conditional Compilation Directives
 
-Fantomas is able to format code that contains [conditional compiler directives](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/compiler-directives#conditional-compilation-directives).
+Fantomas is able to format code that contains [conditional compiler directives](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/compiler-directives#conditional-compilation-directives).  
 In order to achieve this, Fantomas will actually format the code multiple times and merge all results afterwards.
 
 ## Compilation directives and the syntax tree
 
-The F# parser will construct a different syntax tree based on the provided compilation directives.
+The F# parser will construct a different syntax tree based on the provided compilation directives.  
 Consider the following piece of code:
 
 ```fsharp
@@ -17,7 +23,7 @@ let a =
     #endif
 ```
 
-When parsing this code without any directives, the `#else` branch will be considered the active code path.
+When parsing this code without any directives, the `#else` branch will be considered the active code path.  
 The AST would be:
 
 ```fsharp
@@ -50,7 +56,7 @@ ImplFile
 Notice that the right hand expression of binding `a` is `Const (Int32 1, ...)`.
 There is no mention of `0` as that code was not active and thus is not a part of the syntax tree.
 
-Passing `[ "DEBUG" ]` to the parser will influence the lexer. The lexer will tokenize the other code branch and take the `#if DEBUG` path this time.
+Passing `[ "DEBUG" ]` to the parser will influence the lexer. The lexer will tokenize the other code branch and take the `#if DEBUG` path this time.  
 Leading to
 
 ```fsharp
@@ -88,7 +94,7 @@ As the combination of directives has an influence on the tree, Fantomas first pa
 This base tree is then being inspected for [ConditionalDirectiveTrivia](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-conditionaldirectivetrivia.html).
 We determine the different combinations in the `Defines` module.
 
-<div class="mermaid text-center">
+```mermaid
 graph TD
     A["Parse base tree"] --> B
     B["Figure out all compiler define combinations"] --> C
@@ -98,7 +104,8 @@ graph TD
     C --> E
     D --> E
     E["Merge results"]
- </div>
+```
+
 As trivia is being restored in each tree, they all will have gaps in them.
 
 The first result will look like:
@@ -124,12 +131,12 @@ let a =
 ## Merging the trees
 
 Once every tree is formatted, we chop each file into fragments.
-A fragment is everything between a conditional directive `#if | #else | #endif` or an actual directive.
+A fragment is everything between a conditional directive `#if | #else | #endif` or an actual directive.  
 This means fragments can also be empty strings.
 Each result should have the same amount of fragments before we can merge them together.
 If this is not the case, it means that somewhere a trivia was not properly restored.
 
-If the number of fragments add up in each tree, then we merge two trees by reducing both lists and comparing each fragment.
+If the number of fragments add up in each tree, then we merge two trees by reducing both lists and comparing each fragment.  
 We always take the longest fragment and thus picking the active code.
 
 ```fsharp

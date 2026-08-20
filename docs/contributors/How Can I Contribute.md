@@ -1,6 +1,12 @@
+---
+category: Contributors
+categoryindex: 2
+index: 9
+---
+
 # How can I contribute?
 
-There are many ways to contribute to an open-source project. From liking a tweet to show some interest to solving a heavy handed coding problem.
+There are many ways to contribute to an open-source project. From liking a tweet to show some interest to solving a heavy handed coding problem.  
 The most obvious thing where we can use some help is fixing bugs, but there are a lot of other things that most certainly would be welcome.
 
 ## Bug fixes
@@ -30,7 +36,7 @@ Again, here: scratch your own itch. If something bothers you, the best cure is t
 
 ## Good first issues
 
-If you wish to solve an issue, but don't know where to start, you can take a look that [good first issue](https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) list.
+If you wish to solve an issue, but don't know where to start, you can take a look that [good first issue](https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) list.  
 These issues are typically easier to pick up and might only require a few small changes to solve them.
 
 In case you want to solve any issue and would like some more guidance to start, you can also just ask this on the GitHub issue.
@@ -45,12 +51,12 @@ This tool will only improve by adoption.
 
 ### fsprojects
 
-As Fantomas is part of the [F# Community Project Incubation Space](https://github.com/fsprojects/), it would be nice to see all the sibling projects formatted as well.
+As Fantomas is part of the [F# Community Project Incubation Space](https://github.com/fsprojects/), it would be nice to see all the sibling projects formatted as well.  
 We've put a lot of emphasis on [continued formatting](../end-users/FormattingCheck.md) using the `--check` flag. Having that **CI setup** in place **really brings it home**.
 
 ### Big fish
 
-For marketing purposes, it is also very interesting if a larger or well-known project is using Fantomas.
+For marketing purposes, it is also very interesting if a larger or well-known project is using Fantomas.  
 We can put these on our [landing page](../../index.html#who-uses-fantomas) and that really sends a strong message.
 
 ### Any fish really
@@ -59,8 +65,8 @@ Regardless of size or type of project. Any project that checks Fantomas in their
 
 ## Sponsoring
 
-Fantomas grew significantly as a result of its first sponsorship deal with [G-Research](https://www.gresearch.co.uk/).
-It would still be in the dark ages if it weren't for this support. For that we will forever be grateful.
+Fantomas grew significantly as a result of its first sponsorship deal with [G-Research](https://www.gresearch.co.uk/).  
+It would still be in the dark ages if it weren't for this support. For that we will forever be grateful.  
 If you want to help increase adoption by providing financial support, you can reach out to [sponsoring@fantomas.io](mailto:sponsoring@fantomas.io).
 
 ## Keeping the grass green
@@ -69,29 +75,29 @@ There are also some smaller deeds that can benefit the codebase.
 
 ### Eliminate dead code
 
-Here and there, there are parts of code that are no longer being used. Ranging from unused parameters to complete functions.
+Here and there, there are parts of code that are no longer being used. Ranging from unused parameters to complete functions.  
 A PR that cleans up these things would be appreciated as well.
 
 ### Linting
 
-Using F# Lint or other editor tooling, sometimes small improvements can be detected. Redundant parenthesis for example.
+Using F# Lint or other editor tooling, sometimes small improvements can be detected. Redundant parenthesis for example.  
 Tweaks like this are nice.
 
 ## Understand how things work
 
-One other thing that changes your perception of code all together is knowing how Fantomas does what it does.
+One other thing that changes your perception of code all together is knowing how Fantomas does what it does.  
 Having a sense of the inner workings of Fantomas can be beneficial in understanding how the output was achieved.
 
-It broadens your horizon in general, as it touched a lot of interesting concepts, and you start looking differently at your F# code.
+It broadens your horizon in general, as it touched a lot of interesting concepts, and you start looking differently at your F# code.  
 Your sentiment on what you think matters might change, once you realized the level of complexity it involves.
 
 ## Documentation
 
-Found a typo? Still confused about something? Do you have some knowledge that should totally be documented?
-Let us know! We really value any contribution to our documentation. The more knowledge is here, the brighter the future of the project.
+Found a typo? Still confused about something? Do you have some knowledge that should totally be documented?  
+Let us know! We really value any contribution to our documentation. The more knowledge is here, the brighter the future of the project.  
 Please do no hesitate here 😊.
 
-You can find some instructions on running the documentation locally in the [.README.md](https://github.com/fsprojects/fantomas/blob/main/docs/.README.md) file in the `docs` folder.
+You can find some instructions on running the documentation locally in the [.README.md](https://github.com/fsprojects/fantomas/blob/main/docs/.README.md) file in the `docs` folder.  
 The only prerequisite to run the docs, is having a recent local dotnet sdk.
 
 ## New releases
@@ -100,28 +106,28 @@ Testing out new releases is also a huge way to help us. Spotting regressions ear
 
 ### Move to the latest
 
-Always try and stay on the latest version of Fantomas for your day-to-day projects.
+Always try and stay on the latest version of Fantomas for your day-to-day projects.  
 Updating to the newer version that might only have a couple of fixes might seem insignificant, but it really helps.
 
 ### Try alphas and betas
 
-Please give an alpha a spin if you are interested in submitting feedback for new development.
+Please give an alpha a spin if you are interested in submitting feedback for new development.  
 Try both versions if you want to make sure everything still works for you.
 
-Don't feel obliged to use an alpha/beta in your day-to-day flow, just try them to see if the potential next stable version will still work.
+Don't feel obliged to use an alpha/beta in your day-to-day flow, just try them to see if the potential next stable version will still work.  
 We have **over 2000 unit tests**, that still doesn't tell us if the next release will break your code or not.
 
 ## Improve the Syntax Tree
 
-Fantomas uses the parser from the F# compiler to construct the untyped syntax tree.
-This tree is later used to reconstruct the code. The better the tree, the better Fantomas can operate on it.
+Fantomas uses the parser from the F# compiler to construct the untyped syntax tree.  
+This tree is later used to reconstruct the code. The better the tree, the better Fantomas can operate on it.  
 The tree can be improved over at [dotnet/fsharp](https://github.com/dotnet/fsharp) when a valid use-case appears.
 
 ### Trivia nodes
 
 Trivia nodes in the syntax tree are nodes the compiler doesn't need to compile the code. However, for Fantomas they can be the missing link to perfectly restore the code.
 
-For example, in issue [#2360](https://github.com/fsprojects/fantomas/issues/2360), the information about the `and` keyword is missing in the syntax tree.
+For example, in issue [#2360](https://github.com/fsprojects/fantomas/issues/2360), the information about the `and` keyword is missing in the syntax tree.  
 If this information was available in [SynTypeDefnTrivia](../../reference/fsharp-compiler-syntaxtrivia-syntypedefntrivia.html), the bug could be fixed.
 
 ### Better representation

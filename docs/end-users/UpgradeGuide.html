@@ -155,6 +155,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -299,6 +302,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -407,9 +413,257 @@ Note that <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>
 <ul>
 <li>The default setting for <code>fsharp_multiline_bracket_style</code> is now <code>aligned</code>, to restore the previous behaviour use <code>fsharp_multiline_bracket_style = cramped</code>.</li>
 </ul>
+<h3><a name="console-application-3" class="anchor" href="#console-application-3">console application</a></h3>
+<ul>
+<li>Target framework is now <code>net10.0</code>.</li>
+</ul>
+<h3><a name="Formatting" class="anchor" href="#Formatting">Formatting</a></h3>
+<p>Chains (dotted member access and calls) are laid out by a new set of rules, written up in full in
+<a href="../contributors/Chains.html">Chains</a>. They are a proposal for the F# style guide and may still
+change before <code>v8.0.0</code> is final.</p>
+<p>The rules only apply once a chain has to break, so a chain that already fits on one line is left
+alone. Reformatting the whole of <code>Fantomas.Core</code> with <code>v8</code> moves a handful of lines, none of them
+in a chain. The changes below are the ones you are most likely to notice.</p>
+<h4><a name="A-run-of-property-access-wraps-instead-of-overflowing" class="anchor" href="#A-run-of-property-access-wraps-instead-of-overflowing">A run of property access wraps instead of overflowing</a></h4>
+<p>Navigation that does not fit is spread over balanced lines, chosen so the longest resulting line is
+as short as possible. Previously it was left to overflow the margin. At <code>max_line_length = 80</code>:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">navigation</span> <span class="o">=</span>
+    <span class="id">builder</span><span class="pn">.</span><span class="id">Services</span><span class="pn">.</span><span class="id">Configuration</span><span class="pn">.</span><span class="id">Providers</span><span class="pn">.</span><span class="id">Defaults</span><span class="pn">.</span><span class="id">Primary</span><span class="pn">.</span><span class="id">Fallback</span><span class="pn">.</span><span class="id">Value</span><span class="pn">.</span><span class="id">Inner</span>
+
+<span class="c">// v8</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="2" class="id">navigation</span> <span class="o">=</span>
+    <span class="id">builder</span><span class="pn">.</span><span class="id">Services</span><span class="pn">.</span><span class="id">Configuration</span><span class="pn">.</span><span class="id">Providers</span>
+        <span class="pn">.</span><span class="id">Defaults</span><span class="pn">.</span><span class="id">Primary</span><span class="pn">.</span><span class="id">Fallback</span><span class="pn">.</span><span class="id">Value</span><span class="pn">.</span><span class="id">Inner</span>
+</code></pre>
+<h4><a name="A-comment-no-longer-fans-the-chain-out-one-step-per-line" class="anchor" href="#A-comment-no-longer-fans-the-chain-out-one-step-per-line">A comment no longer fans the chain out one step per line</a></h4>
+<p>A comment between the steps forces the chain to break, whatever the line length allows. In <code>v7</code>
+that break was taken by every step. In <code>v8</code> only a call claims a line of its own, and plain
+property access rides along at the front of the line belonging to the call it introduces:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="3" class="id">a</span> <span class="o">=</span>
+    <span class="id">config</span>
+        <span class="c">// note</span>
+        <span class="pn">.</span><span class="id">Settings</span>
+        <span class="pn">.</span><span class="id">GetValue</span><span class="pn">(</span><span class="id">key</span><span class="pn">)</span>
+
+<span class="c">// v8</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="4" class="id">a</span> <span class="o">=</span>
+    <span class="id">config</span>
+        <span class="c">// note</span>
+        <span class="pn">.</span><span class="id">Settings</span><span class="pn">.</span><span class="id">GetValue</span><span class="pn">(</span><span class="id">key</span><span class="pn">)</span>
+</code></pre>
+<p>A chain whose steps are all calls is unaffected, because each of those claims a line either way.</p>
+<h4><a name="A-match-lambda-keeps-beside-the" class="anchor" href="#A-match-lambda-keeps-beside-the">A match lambda keeps <code>function</code> beside the <code>(</code></a></h4>
+<p>This applies with <strong><code>fsharp_multi_line_lambda_closing_newline = false</code></strong>, which is the default.
+With the setting set to <code>true</code> nothing changes.</p>
+<p>In <code>v7</code> a call reached through a dot pushed <code>function</code> onto its own line, while the very same
+call without a receiver kept it beside the <code>(</code>. The two disagreed about the same argument.
+A chain now follows what the receiverless call already did:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7 and v8 agree here: no receiver, `function` stays beside the `(`</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="5" class="id">a</span> <span class="o">=</span>
+    <span class="id">configureTheThing</span> <span class="pn">(</span><span class="k">function</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="6" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="7" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+
+<span class="c">// v7: the same argument, reached through a dot, was laid out differently</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="8" class="id">b</span> <span class="o">=</span>
+    <span class="id">builder</span>
+        <span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
+        <span class="pn">.</span><span class="id">Configure</span><span class="pn">(</span>
+            <span class="k">function</span>
+            <span class="pn">|</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="9" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
+            <span class="pn">|</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="10" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span>
+        <span class="pn">)</span>
+
+<span class="c">// v8: the dot makes no difference any more</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="11" class="id">b</span> <span class="o">=</span>
+    <span class="id">builder</span>
+        <span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
+        <span class="pn">.</span><span class="id">Configure</span><span class="pn">(</span><span class="k">function</span>
+            <span class="pn">|</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="12" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
+            <span class="pn">|</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="13" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+</code></pre>
+<h4><a name="A-lambda-whose-opening-line-does-not-fit-moves-to-its-own-line" class="anchor" href="#A-lambda-whose-opening-line-does-not-fit-moves-to-its-own-line">A lambda whose opening line does not fit moves to its own line</a></h4>
+<p>This applies with <strong><code>fsharp_multi_line_lambda_closing_newline = true</code></strong>. With the setting left at
+its default of <code>false</code> nothing changes.</p>
+<p>In <code>v7</code> the parameters were hung underneath the opening parenthesis, which pushed them far to the
+right and could force the pattern itself to break. Now the whole argument moves down one line and
+indents normally. This affects calls with and without a receiver alike. At <code>max_line_length = 80</code>:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="14" class="fn">dotted</span> <span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="15" class="fn">ifaces</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="16" class="fn">ifaces</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="17" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="18" class="id">tryPick</span> <span class="pn">(</span><span class="k">fun</span>
+                         <span class="pn">(</span><span class="id">SynInterfaceImpl</span><span class="pn">(</span>
+                             <span class="id">interfaceTy</span> <span class="o">=</span> <span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="19" class="fn">ty</span><span class="pn">;</span> <span class="id">withKeyword</span> <span class="o">=</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="20" class="fn">withRange</span><span class="pn">)</span><span class="pn">)</span> <span class="k">-&gt;</span>
+        <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="21" class="uc">Some</span><span class="pn">(</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="22" class="fn">ty</span><span class="pn">,</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="23" class="fn">withRange</span><span class="pn">)</span>
+    <span class="pn">)</span>
+
+<span class="c">// v8</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="24" class="fn">dotted</span> <span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="25" class="fn">ifaces</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="26" class="fn">ifaces</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="27" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="28" class="id">tryPick</span>
+        <span class="pn">(</span><span class="k">fun</span> <span class="pn">(</span><span class="id">SynInterfaceImpl</span><span class="pn">(</span><span class="id">interfaceTy</span> <span class="o">=</span> <span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="29" class="fn">ty</span><span class="pn">;</span> <span class="id">withKeyword</span> <span class="o">=</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="30" class="fn">withRange</span><span class="pn">)</span><span class="pn">)</span> <span class="k">-&gt;</span>
+            <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="31" class="uc">Some</span><span class="pn">(</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="32" class="fn">ty</span><span class="pn">,</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="33" class="fn">withRange</span><span class="pn">)</span>
+        <span class="pn">)</span>
+</code></pre>
+<h3><a name="Fantomas-Core-API" class="anchor" href="#Fantomas-Core-API">Fantomas.Core API</a></h3>
+<p>These only affect you if you consume <code>Fantomas.Core</code> as a library. Formatting source text through
+<code>CodeFormatter.FormatDocumentAsync</code> is unaffected.</p>
+<h4><a name="Exceptions" class="anchor" href="#Exceptions">Exceptions</a></h4>
+<ul>
+<li>
+<code>InvariantViolationException</code> was added. It derives from <code>FormatException</code> and is raised when Fantomas reaches a state its own model says is impossible, which always means a bug in Fantomas rather than a problem with your code.
+If you catch <code>FormatException</code>, you already catch this.
+</li>
+<li><code>DefineParseException</code> was added, raised when one or more conditional compilation define combinations produce invalid syntax trees.</li>
+<li><code>EndOfLineStyle.OfConfigString "cr"</code> now raises <code>FormatException</code> instead of calling <code>failwith</code>.</li>
+</ul>
+<h4><a name="CodeFormatter" class="anchor" href="#CodeFormatter">CodeFormatter</a></h4>
+<p>All additions, nothing was removed:</p>
+<ul>
+<li><code>CodeFormatter.FormatASTAsync(ast, config, source)</code> was added, next to the existing <code>FormatASTAsync(ast, source)</code>.</li>
+<li><code>CodeFormatter.GetWriterEventsAsync</code> was added for debugging. It returns the writer events produced while formatting.</li>
+</ul>
+<h4><a name="Oak-chains" class="anchor" href="#Oak-chains">Oak: chains</a></h4>
+<p><code>Expr.Chain</code> no longer holds a flat <code>ChainLink list</code>. A chain is now a head expression, a list of
+dot-prefixed segments, and a terminal call:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="34" class="rt">ExprChain</span><span class="pn">(</span><span class="id">head</span><span class="pn">:</span> <span class="id">Expr</span><span class="pn">,</span> <span class="id">segments</span><span class="pn">:</span> <span class="id">ChainSegment</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="35" class="id">list</span><span class="pn">,</span> <span class="id">terminal</span><span class="pn">:</span> <span class="id">ChainTerminal</span><span class="pn">,</span> <span class="id">range</span><span class="pn">)</span>
+
+<span class="k">type</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="36" class="rt">ChainCall</span> <span class="o">=</span>
+    <span class="pn">|</span> <span class="uc">Paren</span> <span class="k">of</span> <span class="id">ExprParenNode</span>
+    <span class="pn">|</span> <span class="uc">Unit</span> <span class="k">of</span> <span class="id">UnitNode</span>
+
+<span class="k">type</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="37" class="rt">ChainSegment</span> <span class="o">=</span>
+    <span class="pn">|</span> <span class="uc">DotMember</span> <span class="k">of</span> <span class="prop">dot</span><span class="pn">:</span> <span class="id">SingleTextNode</span> <span class="pn">*</span> <span class="prop">expr</span><span class="pn">:</span> <span class="id">Expr</span>
+    <span class="pn">|</span> <span class="uc">DotApplication</span> <span class="k">of</span> <span class="prop">dot</span><span class="pn">:</span> <span class="id">SingleTextNode</span> <span class="pn">*</span> <span class="prop">expr</span><span class="pn">:</span> <span class="id">Expr</span> <span class="pn">*</span> <span class="prop">call</span><span class="pn">:</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="38" class="rt">ChainCall</span>
+    <span class="pn">|</span> <span class="uc">DotIndex</span> <span class="k">of</span> <span class="prop">dot</span><span class="pn">:</span> <span class="id">SingleTextNode</span> <span class="pn">*</span> <span class="prop">indexExpr</span><span class="pn">:</span> <span class="id">Expr</span>
+
+<span class="k">type</span> <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="39" class="rt">ChainTerminal</span> <span class="o">=</span>
+    <span class="pn">|</span> <span class="uc">SpaceAllowed</span> <span class="k">of</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="40" class="rt">ChainCall</span>
+    <span class="pn">|</span> <span class="uc">NoSpaceAllowed</span> <span class="k">of</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="41" class="rt">ChainCall</span>
+    <span class="pn">|</span> <span class="uc">NoTerminal</span>
+</code></pre>
+<p>Mapping from the old model:</p>
+<table>
+<thead>
+<tr class="header">
+<th><p>Removed</p></th>
+<th><p>Replacement</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><p><code>ChainLink.Identifier</code></p></td>
+<td><p><code>ExprChain.Head</code>, when it is the first link</p></td>
+</tr>
+<tr class="even">
+<td><p><code>ChainLink.Dot</code></p></td>
+<td><p>the <code>dot</code> field of the segment that follows it</p></td>
+</tr>
+<tr class="odd">
+<td><p><code>ChainLink.Expr</code></p></td>
+<td><p><code>ChainSegment.DotMember</code></p></td>
+</tr>
+<tr class="even">
+<td><p><code>ChainLink.AppParen</code></p></td>
+<td><p><code>ChainSegment.DotApplication</code> with <code>ChainCall.Paren</code>, or <code>ExprChain.Terminal</code> when last</p></td>
+</tr>
+<tr class="odd">
+<td><p><code>ChainLink.AppUnit</code></p></td>
+<td><p><code>ChainSegment.DotApplication</code> with <code>ChainCall.Unit</code>, or <code>ExprChain.Terminal</code> when last</p></td>
+</tr>
+<tr class="even">
+<td><p><code>ChainLink.IndexExpr</code></p></td>
+<td><p><code>ChainSegment.DotIndex</code></p></td>
+</tr>
+<tr class="odd">
+<td><p><code>LinkSingleAppParen</code>, <code>LinkSingleAppUnit</code></p></td>
+<td><p><code>ChainCall</code></p></td>
+</tr>
+</tbody>
+</table>
+
+<p>A dot now always belongs to the step that follows it, so two adjacent dots are unrepresentable and
+you no longer have to pair links up yourself. The final call is <code>Terminal</code> rather than the last
+element of the list, and <code>ChainTerminal.NoSpaceAllowed</code> records that no space may precede its
+parenthesis. That is a grammar constraint, not a style choice: a space there reparses
+<code>a.Foo (x).Bar()</code> as <code>a.Foo ((x).Bar())</code>.</p>
+<h4><a name="Oak-expressions-absorbed-into" class="anchor" href="#Oak-expressions-absorbed-into">Oak: expressions absorbed into <code>Expr.Chain</code></a></h4>
+<p>These <code>Expr</code> cases were removed. Each was a chain in all but name, and all four now arrive as
+<code>Expr.Chain</code>:</p>
+<ul>
+<li><code>Expr.DotLambda</code> (<code>_.Property</code>), now a chain whose <code>Head</code> is the <code>_</code></li>
+<li><code>Expr.DotIndexedGet</code> (<code>a.[i]</code>), now a <code>ChainSegment.DotIndex</code></li>
+<li><code>Expr.AppLongIdentAndSingleParenArg</code> (<code>a.Foo(x)</code>), now a chain with a terminal call</li>
+<li><code>Expr.NestedIndexWithoutDot</code>, which was already dead: nothing ever constructed it</li>
+</ul>
+<p><code>Expr.AppWithLambda</code> is unchanged, but no longer receives calls that have no prefix arguments;
+those are chains now.</p>
+<p>A dotted long identifier such as <code>a.b.c</code> yields <code>Expr.Chain</code> in expression position, where it
+previously yielded <code>Expr.OptVar</code>. <code>Expr.OptVar</code> still exists, and is still produced for long
+identifiers without dots and for the optional-argument form <code>?a.b</code>. A single identifier is
+<code>Expr.Ident</code>, as before.</p>
+<h4><a name="Oak-other-node-changes" class="anchor" href="#Oak-other-node-changes">Oak: other node changes</a></h4>
+<ul>
+<li><code>Expr.DynamicChain</code> was added for chained <code>?</code> operator accesses such as <code>x?a("")?b(t)</code>.</li>
+<li>
+<code>ComputationExpressionStatement</code> collapsed from four cases to two. <code>LetOrUseStatement</code>,
+<code>LetOrUseBangStatement</code> and <code>AndBangStatement</code> are all <code>BindingStatement of BindingNode</code> now,
+and <code>ExprLetOrUseNode</code>, <code>ExprLetOrUseBangNode</code> and <code>ExprAndBang</code> were removed.
+</li>
+<li>
+<code>NamePatPair</code> was renamed to <code>NamePatPairNode</code>, and its <code>ident: SingleTextNode</code> became
+<code>fieldName: IdentListNode</code>.
+</li>
+<li>
+<code>PatRecordField</code> was removed and merged into <code>NamePatPairNode</code>. <code>PatRecordNode.Fields</code> is now
+a <code>NamePatPairNode list</code>, and the old <code>Prefix</code> and <code>FieldName</code> fields are together in
+<code>fieldName</code>.
+</li>
+</ul>
 <fantomas-nav previous="GeneratingCode.html" next="Recipes.html"></fantomas-nav>
 
-        
+        <div popover class="fsdocs-tip" id="fs1">val navigation: obj</div>
+<div popover class="fsdocs-tip" id="fs2">val a: obj</div>
+<div popover class="fsdocs-tip" id="fs3">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs4">union case Option.None: Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs5">val b: obj</div>
+<div popover class="fsdocs-tip" id="fs6">val dotted: ifaces: &#39;a list -&gt; (&#39;b * &#39;c) option</div>
+<div popover class="fsdocs-tip" id="fs7">val ifaces: &#39;a list</div>
+<div popover class="fsdocs-tip" id="fs8">Multiple items<br />module List
+
+from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List&lt;&#39;T&gt; =
+  | op_Nil
+  | op_ColonColon of Head: &#39;T * Tail: &#39;T list
+  interface IReadOnlyList&lt;&#39;T&gt;
+  interface IReadOnlyCollection&lt;&#39;T&gt;
+  interface IEnumerable
+  interface IEnumerable&lt;&#39;T&gt;
+  member GetReverseIndex: rank: int * offset: int -&gt; int
+  member GetSlice: startIndex: int option * endIndex: int option -&gt; &#39;T list
+  static member Cons: head: &#39;T * tail: &#39;T list -&gt; &#39;T list
+  member Head: &#39;T
+  member IsEmpty: bool
+  member Item: index: int -&gt; &#39;T with get
+  ...</div>
+<div popover class="fsdocs-tip" id="fs9">val tryPick: chooser: (&#39;T -&gt; &#39;U option) -&gt; list: &#39;T list -&gt; &#39;U option</div>
+<div popover class="fsdocs-tip" id="fs10">val ty: &#39;b</div>
+<div popover class="fsdocs-tip" id="fs11">val withRange: &#39;c</div>
+<div popover class="fsdocs-tip" id="fs12">type ExprChain</div>
+<div popover class="fsdocs-tip" id="fs13">type &#39;T list = List&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs14">type ChainCall =
+  | Paren of obj
+  | Unit of obj</div>
+<div popover class="fsdocs-tip" id="fs15">type ChainSegment =
+  | DotMember of dot: obj * expr: obj
+  | DotApplication of dot: obj * expr: obj * call: ChainCall
+  | DotIndex of dot: obj * indexExpr: obj</div>
+<div popover class="fsdocs-tip" id="fs16">type ChainTerminal =
+  | SpaceAllowed of ChainCall
+  | NoSpaceAllowed of ChainCall
+  | NoTerminal</div>
+
     </div>
 </main>
 <aside id="fsdocs-page-menu">
@@ -515,6 +769,56 @@ Note that <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>
       .editorconfig
     </a>
   </li>
+  <li class="level-3">
+    <a href="#console-application-3">
+      console application
+    </a>
+  </li>
+  <li class="level-3">
+    <a href="#Formatting">
+      Formatting
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#A-run-of-property-access-wraps-instead-of-overflowing">
+      A run of property access wraps instead of overflowing
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#A-comment-no-longer-fans-the-chain-out-one-step-per-line">
+      A comment no longer fans the chain out one step per line
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#A-lambda-whose-opening-line-does-not-fit-moves-to-its-own-line">
+      A lambda whose opening line does not fit moves to its own line
+    </a>
+  </li>
+  <li class="level-3">
+    <a href="#Fantomas-Core-API">
+      Fantomas.Core API
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#Exceptions">
+      Exceptions
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#CodeFormatter">
+      CodeFormatter
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#Oak-chains">
+      Oak: chains
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#Oak-other-node-changes">
+      Oak: other node changes
+    </a>
+  </li>
 </ul>
 </aside>
 <dialog>
@@ -539,7 +843,25 @@ Note that <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

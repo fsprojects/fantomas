@@ -1,26 +1,30 @@
+---
+category: End-users
+categoryindex: 1
+index: 10
+---
+
 # Generating source code
 
-The [Fantomas.Core](https://www.nuget.org/packages/Fantomas.Core) NuGet package can also be used to format code programmatically.
-The public API is available from the static `CodeFormatter` class. It exposes a couple of APIs to format code, one being to format code from a raw syntax tree.
+The [Fantomas.Core](https://www.nuget.org/packages/Fantomas.Core) NuGet package can also be used to format code programmatically.  
+The public API is available from the static `CodeFormatter` class. It exposes a couple of APIs to format code, one being to format code from a raw syntax tree.  
 This API assumes the user already parsed a syntax tree or constructed an artificial one.
 
 ## Key motivation
 
-It can be very tempting to generate some F# code by doing some string concatenations.
+It can be very tempting to generate some F# code by doing some string concatenations.  
 In simple scenarios this can work out, but in the long run it doesn't scale well:
 
 * The more code constructs you want to support, the more conditional logic you will need to ensure all edge cases.
-
 * A string is just a string, you cannot guarantee the output will be valid code.
-
 * It is easier to map your domain model to untyped syntax tree nodes and let Fantomas take care of the actual generation of code.
 
 **For mercy's sake don't use string concatenation when generating F# code, use Fantomas instead. It is battle tested and proven technology!**
 
 ## Consider using Fabulous.AST
 
-If you're looking to generate F# code programmatically, you might want to check out [Fabulous.AST](https://edgarfgp.github.io/Fabulous.AST/) first.
-Fabulous.AST provides a more user-friendly DSL built on top of Fantomas Oak AST, dramatically reducing the boilerplate code required to generate F# code.
+If you're looking to generate F# code programmatically, you might want to check out [Fabulous.AST](https://edgarfgp.github.io/Fabulous.AST/) first.  
+Fabulous.AST provides a more user-friendly DSL built on top of Fantomas Oak AST, dramatically reducing the boilerplate code required to generate F# code.  
 It offers a concise and easier-to-use API compared to constructing Oak nodes directly, which can be quite verbose.
 
 The rest of this page documents how to work with Fantomas Oak AST directly, which is useful if you need more control or want to understand the underlying structure.
@@ -104,12 +108,12 @@ The more you interact with AST/Oak, the easier you pick up which node represents
 
 ### Fantomas.FCS
 
-When looking at the example, we notice that we've opened `Fantomas.FCS.Text`.
-`Fantomas.FCS` is a custom version of the F# compiler (built from source) that only exposes the F# parser and the syntax tree.
-The key difference is that `Fantomas.FCS` will most likely contain a more recent version of the F# parser.
+When looking at the example, we notice that we've opened `Fantomas.FCS.Text`.  
+`Fantomas.FCS` is a custom version of the F# compiler (built from source) that only exposes the F# parser and the syntax tree.  
+The key difference is that `Fantomas.FCS` will most likely contain a more recent version of the F# parser.  
 You can read the [CHANGELOG](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md) to see what git commit was used to build `Fantomas.FCS`.
 
-You can use `Fantomas.FCS` in your own projects, but be aware that it is **not binary compatible** with `FSharp.Compiler.Service`.
+You can use `Fantomas.FCS` in your own projects, but be aware that it is **not binary compatible** with `FSharp.Compiler.Service`.  
 Example usage:
 
 ```fsharp
@@ -143,20 +147,20 @@ Parse.parseFile false (SourceText.ofString "let a = 1") []
          CodeComments = [] }, set [])), [])
 ```
 
-You can format untyped AST created from `Fantomas.FCS` using the `CodeFormatter` API.
-However, we recommend to use the new `Oak` model (as in the example) instead.
+You can format untyped AST created from `Fantomas.FCS` using the `CodeFormatter` API.  
+However, we recommend to use the new `Oak` model (as in the example) instead.  
 The `Oak` model is easier to reason with as it structures certain concepts differently than the untyped AST.
 
 ## Tips and tricks
 
 ### Online tool
 
-The syntax tree can have an overwhelming type hierarchy.
+The syntax tree can have an overwhelming type hierarchy.  
 We wholeheartedly recommend to use our **[online tool](https://fsprojects.github.io/fantomas-tools/#/ast)** when working with AST.
 
 ![F# AST Viewer](../../images/oak-viewer.png)
 
-This shows you what Oak nodes the parser created for a given input text.
+This shows you what Oak nodes the parser created for a given input text.  
 From there on you can use our search bar to find the corresponding documentation:
 
 ![Search bar](../../images/searchbar-ast.png)
@@ -188,12 +192,12 @@ mkCodeFromExpression wrappedNumber
 (7)
 ```
 
-As a rule of thumb: **create what the parser creates, use the online tool!**
+As a rule of thumb: **create what the parser creates, use the online tool!**  
 Just because you can create Oak nodes, does not mean Fantomas will do the right thing.
 
 ### Look at the Fantomas code base
 
-As mentioned, not every AST node is being used in Fantomas. There are numerous things that do not have any influence on the generation of code.
+As mentioned, not every AST node is being used in Fantomas. There are numerous things that do not have any influence on the generation of code.  
 For example creating [SynExpr.Lambda](../../reference/fsharp-compiler-syntax-synexpr.html#Lambda).
 
 When you want to construct `fun a b -> a + b`, the AST the online tool produces looks like:
@@ -242,14 +246,14 @@ How to know which nodes to include? Take a look at `CodePrinter.fs`!
 
 ### Create your own set of helper functions
 
-Throughout all these examples, we have duplicated a lot of code. You can typically easily refactor this into some helper functions.
+Throughout all these examples, we have duplicated a lot of code. You can typically easily refactor this into some helper functions.  
 The Fantomas maintainers are not affiliated with any projects that expose AST construction helpers.
 
 ### Updates
 
-Since code generation is considered to be a nice to have functionality, there is no compatibility between any `Fantomas.Core` version when it comes to the `SyntaxOak` module.
-We do not apply any semantic versioning to `Fantomas.FCS` or `Fantomas.Core.SyntaxOak`. Breaking changes can be expected at any given point.
-Our recommendation is that you include a set of regression tests  to meet your own expectations when upgrading.
+Since code generation is considered to be a nice to have functionality, there is no compatibility between any `Fantomas.Core` version when it comes to the `SyntaxOak` module.  
+We do not apply any semantic versioning to `Fantomas.FCS` or `Fantomas.Core.SyntaxOak`. Breaking changes can be expected at any given point.  
+Our recommendation is that you include a set of regression tests  to meet your own expectations when upgrading.  
 As none of our versions are compatible it is advised to take a very strict dependency on `Fantomas.Core`. Using constraints like `(>= 6.0.0)` will inevitably lead to unexpected problems.
 
 <fantomas-nav previous="VSCode.md" next="UpgradeGuide.md"></fantomas-nav>

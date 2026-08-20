@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -369,7 +375,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7511" data-fsdocs-tip-unique="7511">
+              <code data-fsdocs-tip="7409" data-fsdocs-tip-unique="7409">
                 <p>
                   <a id="LexerStringFinisher">
                     <a href="#LexerStringFinisher">
@@ -378,7 +384,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7511">
+              <div popover="" class="fsdocs-tip" id="7409">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>LexerStringFinisher&#32;<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-io-bytebuffer.html">ByteBuffer</a>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-parsehelpers-lexerstringkind.html">LexerStringKind</a>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexhelp-lexerstringfinishercontext.html">LexerStringFinisherContext</a>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-parsehelpers-lexercontinuation.html">LexerContinuation</a>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-parser-token.html">token</a></span></span></code>
@@ -446,7 +452,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7512" data-fsdocs-tip-unique="7512">
+              <code data-fsdocs-tip="7410" data-fsdocs-tip-unique="7410">
                 <p>
                   <a id="Finish">
                     <a href="#Finish">
@@ -455,7 +461,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7512">
+              <div popover="" class="fsdocs-tip" id="7410">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.Finish</span></code>
@@ -582,7 +588,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7513" data-fsdocs-tip-unique="7513">
+              <code data-fsdocs-tip="7411" data-fsdocs-tip-unique="7411">
                 <p>
                   <a id="Default">
                     <a href="#Default">
@@ -591,7 +597,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7513">
+              <div popover="" class="fsdocs-tip" id="7411">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>LexerStringFinisher.Default</span></code>
@@ -658,7 +664,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

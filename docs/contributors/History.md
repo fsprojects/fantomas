@@ -1,3 +1,9 @@
+---
+category: Contributors
+categoryindex: 2
+index: 16
+---
+
 # History
 
 This page provides architectural history and context for key decisions in the Fantomas project.
@@ -29,9 +35,7 @@ With the editor coupling removed, Fantomas 5 took the next step: creating a cust
 Key properties of this approach:
 
 * We only expose the lexer and parser (early compiler phases), significantly reducing the dependency footprint compared to the full FCS NuGet package.
-
 * We can move forward as soon as a relevant PR is merged to the `dotnet/fsharp` main branch, without waiting for an official NuGet release.
-
 * The AST returned by `Fantomas.FCS` looks identical to what the official F# compiler returns, but is not binary compatible. Fantomas typically contains a newer version of the syntax tree than the official compiler.
 
 ### Why not just build the classic FCS from source?

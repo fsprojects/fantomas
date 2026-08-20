@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -363,7 +369,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11507" data-fsdocs-tip-unique="11507">
+              <code data-fsdocs-tip="11405" data-fsdocs-tip-unique="11405">
                 <p>
                   <a id="Decided">
                     <a href="#Decided">
@@ -372,7 +378,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11507">
+              <div popover="" class="fsdocs-tip" id="11405">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Decided&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-ident.html">Ident</a></span></code>
@@ -426,7 +432,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11508" data-fsdocs-tip-unique="11508">
+              <code data-fsdocs-tip="11406" data-fsdocs-tip-unique="11406">
                 <p>
                   <a id="Undecided">
                     <a href="#Undecided">
@@ -435,7 +441,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11508">
+              <div popover="" class="fsdocs-tip" id="11406">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Undecided&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-ident.html">Ident</a></span></code>
@@ -512,7 +518,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11509" data-fsdocs-tip-unique="11509">
+              <code data-fsdocs-tip="11407" data-fsdocs-tip-unique="11407">
                 <p>
                   <a id="IsDecided">
                     <a href="#IsDecided">
@@ -521,7 +527,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11509">
+              <div popover="" class="fsdocs-tip" id="11407">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsDecided</span></code>
@@ -558,7 +564,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11510" data-fsdocs-tip-unique="11510">
+              <code data-fsdocs-tip="11408" data-fsdocs-tip-unique="11408">
                 <p>
                   <a id="IsUndecided">
                     <a href="#IsUndecided">
@@ -567,7 +573,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11510">
+              <div popover="" class="fsdocs-tip" id="11408">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.IsUndecided</span></code>
@@ -635,7 +641,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

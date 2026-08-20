@@ -1,16 +1,22 @@
+---
+category: End-users
+categoryindex: 1
+index: 5
+---
+
 # Formatting Check
 
-Formatting source code is a habit, a step in your developer workflow.
+Formatting source code is a habit, a step in your developer workflow.  
 The benefits of consistently formatting is that **your delta** (*typically the changes in the files of a pull request*) will be the **smallest set possible** if every previous change was formatted.
 
 ## The tragedy of the ancient Greek developers
 
 When working with multiple people on the same code base, it is important (to some degrees) that you cannot distinguish who wrote the code.
-If you agree as a team that you need to write unit tests to guarantee the code quality, you expect every developer to cover any new code with a test.
+If you agree as a team that you need to write unit tests to guarantee the code quality, you expect every developer to cover any new code with a test.  
 Formatting is no different, every developer should do it and it is an acceptance criteria for new code.
 
-Imagine we have multiple developers in our team. Hektor made the initial setup and during a team meeting it was decided that the code should always be formatted.
-Once the initial project structure was delivered, Achilles made a change where the code was not formatted.
+Imagine we have multiple developers in our team. Hektor made the initial setup and during a team meeting it was decided that the code should always be formatted.  
+Once the initial project structure was delivered, Achilles made a change where the code was not formatted.  
 The next day, Odysseus wants to submit a new pull request. As agreed code should be formatted, so Odysseus did exactly that.
 As the changes Achilles made were not formatted, there was more code touched than was absolutely necessary. Perseus didn't see any harm in this rectification and merge the pull request as is.
 
@@ -24,7 +30,7 @@ But it lead him to a downwards spiral and would take him ten years before he cou
 
 ### Aftermath
 
-The team was shocked by what had transpired. Besides Hektor overreacting, another painful meeting was planned to have a retrospective on the past events.
+The team was shocked by what had transpired. Besides Hektor overreacting, another painful meeting was planned to have a retrospective on the past events.  
 After asking five why's, the team had to brainstorm on how to avoid these things.
 
 Ultimately, that meeting was mostly about the contents of the function Achilles wrote, but to end on a high note, the team discussed formatting source code afterwards.
@@ -38,7 +44,6 @@ The moral of this story is that there are two things that could have saved Odyss
 Verify that a single file or folder was formatted correctly.
 
 > dotnet fantomas --check Source.fs
-> 
 
 This will verify if the file `Source.fs` still needs formatting.
 If it does, the process will return exit code **99**.
@@ -100,16 +105,15 @@ One thing to note is that if you add a commit SHA to a `.git-blame-ignore-revs` 
 
 ## Checking is good for regressions
 
-Normally, the rule of thumb is that the code style will not change between revisions.
+Normally, the rule of thumb is that the code style will not change between revisions.  
 If you are using `4.7.2`, then it should be safe for you upgrade to the latest `4.7.X` without seeing any changes.
 
 > Life happens, so this is a best effort guarantee
-> 
 
-In case you do see a change that cannot be linked to anything in the [CHANGELOG.md](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md) file, you may have detected a regression.
+In case you do see a change that cannot be linked to anything in the [CHANGELOG.md](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md) file, you may have detected a regression.  
 Or, more likely, you have something slightly different in your code base that isn't covered yet by a unit test.
 
-No matter the case, when you have a `--check` command somewhere in your continuous integration environment, please consider running a build with the latest compatible version from time to time.
+No matter the case, when you have a `--check` command somewhere in your continuous integration environment, please consider running a build with the latest compatible version from time to time.  
 It really helps us spotting problems early on and we can more easily pinpoint the problem due to lesser recent changes.
 
 <fantomas-nav previous="IgnoreFiles.md" next="GitHooks.md"></fantomas-nav>

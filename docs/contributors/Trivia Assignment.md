@@ -1,3 +1,9 @@
+---
+category: Contributors
+categoryindex: 2
+index: 18
+---
+
 # Trivia Assignment
 
 Trivia (comments, blank lines, compiler directives) is assigned to Oak nodes before the code printer runs.

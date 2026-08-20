@@ -63,7 +63,11 @@
     --header-background: light-dark(#f9fbfc, #0c1318);
     --header-border: light-dark(#e8ecf1, #3a3a42);
     --header-link-color: var(--text-color);
-    --mobile-menu-background: var(--header-background);
+    /* Panel variables (--panel-background, --panel-border): override to customise menus, dialogs,
+       blockquotes, copy buttons, and other UI panels independently from the page header. */
+    --panel-background: var(--header-background);
+    --panel-border: var(--header-border);
+    --mobile-menu-background: var(--panel-background);
     --menu-color: var(--text-color);
     --menu-item-hover-background: light-dark(#eff0f1, #2c2624);
     --menu-item-hover-color: var(--menu-color);
@@ -77,16 +81,16 @@
     --scrollbar-thumb-background: #686868;
     --shadow-color: hsla(0, 0%, 0%, .1);
     --main-shadow-color: hsla(0, 0%, 0%, .025);
-    --aside-background: var(--header-background);
-    --blockquote-bacground-color: var(--header-background);
+    --aside-background: var(--panel-background);
+    --blockquote-background-color: var(--panel-background);
     --blockquote-color: var(--text-color);
     --on-this-page-color: var(--menu-color);
-    --page-menu-background-color: var(--header-background);
-    --page-menu-background-border-color: var(--header-border);
+    --page-menu-background-color: var(--panel-background);
+    --page-menu-background-border-color: var(--panel-border);
     --page-menu-background-hover-border-color: var(--text-color);
-    --nav-item-border-color: var(--header-border);
+    --nav-item-border-color: var(--panel-border);
     --nav-item-active-border-color: var(--text-color);
-    --dialog-background-color: var(--header-background);
+    --dialog-background-color: var(--panel-background);
     --dialog-empty-color: var(--nav-category);
     --dialog-icon-color: var(--text-color);
     --dialog-link-color: var(--link-color);
@@ -347,7 +351,7 @@ main {
         margin: 0;
 
         & li {
-            border-left: 1px solid var(--header-border);
+            border-left: 1px solid var(--panel-border);
             margin: 0;
 
             &:hover, &:focus {
@@ -468,7 +472,7 @@ main {
         padding: var(--spacing-300) var(--spacing-500);
         background-color: var(--aside-background);
         width: var(--main-menu-width);
-        border-right: 1px solid var(--header-border);
+        border-right: 1px solid var(--panel-border);
         grid-row: var(--main-menu-grid-row);
         grid-column: var(--main-menu-grid-column);
         overflow-y: auto;
@@ -666,7 +670,7 @@ blockquote {
     margin: var(--spacing-200) 0;
     margin-left: var(--spacing-200);
     padding: var(--spacing-100) var(--spacing-300);
-    background-color: var(--blockquote-bacground-color);
+    background-color: var(--blockquote-background-color);
     color: var(--blockquote-color);
 
     > p {
@@ -731,8 +735,8 @@ pre.has-copy-button {
     top: var(--spacing-100);
     right: var(--spacing-100);
     padding: var(--spacing-50) var(--spacing-100);
-    background-color: var(--header-background);
-    border: 1px solid var(--header-border);
+    background-color: var(--panel-background);
+    border: 1px solid var(--panel-border);
     border-radius: var(--radius);
     color: var(--text-color);
     cursor: pointer;
@@ -989,7 +993,7 @@ table.pre, code, pre.fssnip {
 div.fsdocs-tip {
     background-color: var(--doc-tip-background);
     border-radius: var(--radius);
-    border: 1px solid var(--header-border);
+    border: 1px solid var(--panel-border);
     padding: var(--spacing-200);
     font-family: var(--monospace-font);
     font-variant-ligatures: none;
@@ -1070,7 +1074,7 @@ div.fsdocs-tip:popover-open {
     }
 
     & tbody td {
-        border-top: 1px solid var(--header-border);
+        border-top: 1px solid var(--panel-border);
         padding: var(--spacing-300) 0;
     }
 
@@ -1280,7 +1284,7 @@ dialog {
 
         & li {
             margin: 0;
-            border-bottom: 1px solid var(--header-border);
+            border-bottom: 1px solid var(--panel-border);
 
             &:hover {
                 & a, & a iconify-icon {

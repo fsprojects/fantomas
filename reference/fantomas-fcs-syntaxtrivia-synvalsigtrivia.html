@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -364,7 +370,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11900" data-fsdocs-tip-unique="11900">
+              <code data-fsdocs-tip="11798" data-fsdocs-tip-unique="11798">
                 <p>
                   <a id="EqualsRange">
                     <a href="#EqualsRange">
@@ -373,7 +379,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11900">
+              <div popover="" class="fsdocs-tip" id="11798">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code>EqualsRange</code>
@@ -419,7 +425,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11901" data-fsdocs-tip-unique="11901">
+              <code data-fsdocs-tip="11799" data-fsdocs-tip-unique="11799">
                 <p>
                   <a id="InlineKeyword">
                     <a href="#InlineKeyword">
@@ -428,7 +434,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11901">
+              <div popover="" class="fsdocs-tip" id="11799">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code>InlineKeyword</code>
@@ -474,7 +480,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11902" data-fsdocs-tip-unique="11902">
+              <code data-fsdocs-tip="11800" data-fsdocs-tip-unique="11800">
                 <p>
                   <a id="LeadingKeyword">
                     <a href="#LeadingKeyword">
@@ -483,7 +489,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11902">
+              <div popover="" class="fsdocs-tip" id="11800">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code>LeadingKeyword</code>
@@ -531,7 +537,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11903" data-fsdocs-tip-unique="11903">
+              <code data-fsdocs-tip="11801" data-fsdocs-tip-unique="11801">
                 <p>
                   <a id="WithKeyword">
                     <a href="#WithKeyword">
@@ -540,7 +546,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11903">
+              <div popover="" class="fsdocs-tip" id="11801">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code>WithKeyword</code>
@@ -609,7 +615,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="11904" data-fsdocs-tip-unique="11904">
+              <code data-fsdocs-tip="11802" data-fsdocs-tip-unique="11802">
                 <p>
                   <a id="Zero">
                     <a href="#Zero">
@@ -618,7 +624,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="11904">
+              <div popover="" class="fsdocs-tip" id="11802">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>SynValSigTrivia.Zero</span></code>
@@ -685,7 +691,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

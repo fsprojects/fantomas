@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -345,7 +351,9 @@
     <div>
       <div class="fsdocs-summary-contents">
         <p class="fsdocs-summary">
-           Example: `person.Address.City.ToUpper()` — a chain of dot-separated member accesses and calls
+           Example: `person.Address.City.ToUpper()` — a chain of dot-separated member accesses and calls.
+ <c>Head</c> is the leading receiver expression (fully decomposed; no dotted content remains in it).
+ <c>Segments</c> are the dot-paired steps. <c>Terminal</c> is the optional outermost call.
         </p>
       </div>
     </div>
@@ -376,29 +384,45 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3867" data-fsdocs-tip-unique="3867">
+              <code data-fsdocs-tip="3847" data-fsdocs-tip-unique="3847">
                 <p>
                   <a id="``.ctor``">
                     <a href="#``.ctor``">
-                      <code><span>ExprChain<span><span>(<span>links,&#32;range</span>)</span></span></span></code>
+                      <code><span>ExprChain<span><span>(<span>head,&#32;segments,&#32;terminal,&#32;range</span>)</span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3867">
+              <div popover="" class="fsdocs-tip" id="3847">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>ExprChain<span><span>(<span>links,&#32;range</span>)</span></span></span></code>
+                  <code><span>ExprChain<span><span>(<span>head,&#32;segments,&#32;terminal,&#32;range</span>)</span></span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        links
+                        head
                       </b>
                       :
-                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainlink.html">ChainLink</a>&#32;list</span></code>
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        segments
+                      </b>
+                      :
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainsegment.html">ChainSegment</a>&#32;list</span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        terminal
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainterminal.html">ChainTerminal</a></code>
                     </span>
                     <br/>
                     <span>
@@ -430,10 +454,26 @@
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
-                    links
+                    head
                   </span>
                   :
-                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainlink.html">ChainLink</a>&#32;list</span></code>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    segments
+                  </span>
+                  :
+                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainsegment.html">ChainSegment</a>&#32;list</span></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    terminal
+                  </span>
+                  :
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainterminal.html">ChainTerminal</a></code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
                 <dt class="fsdocs-param">
@@ -480,24 +520,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3868" data-fsdocs-tip-unique="3868">
+              <code data-fsdocs-tip="3848" data-fsdocs-tip-unique="3848">
                 <p>
-                  <a id="Links">
-                    <a href="#Links">
-                      <code><span>this.Links</span></code>
+                  <a id="Head">
+                    <a href="#Head">
+                      <code><span>this.Head</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3868">
+              <div popover="" class="fsdocs-tip" id="3848">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.Links</span></code>
+                  <code><span>this.Head</span></code>
                   <br/>
                   <br/>
                   <span>
                     Returns: 
-                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainlink.html">ChainLink</a>&#32;list</span></code>
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
                   </span>
                   <br/>
                 </div>
@@ -516,7 +556,99 @@
                   <span class="fsdocs-return-name">
                     Returns: 
                   </span>
-                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainlink.html">ChainLink</a>&#32;list</span></code>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="3849" data-fsdocs-tip-unique="3849">
+                <p>
+                  <a id="Segments">
+                    <a href="#Segments">
+                      <code><span>this.Segments</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="3849">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.Segments</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainsegment.html">ChainSegment</a>&#32;list</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainsegment.html">ChainSegment</a>&#32;list</span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="3850" data-fsdocs-tip-unique="3850">
+                <p>
+                  <a id="Terminal">
+                    <a href="#Terminal">
+                      <code><span>this.Terminal</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="3850">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.Terminal</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainterminal.html">ChainTerminal</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainterminal.html">ChainTerminal</a></code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
@@ -554,7 +686,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3869" data-fsdocs-tip-unique="3869">
+              <code data-fsdocs-tip="3851" data-fsdocs-tip-unique="3851">
                 <p>
                   <a id="AddAfter">
                     <a href="#AddAfter">
@@ -563,7 +695,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3869">
+              <div popover="" class="fsdocs-tip" id="3851">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.AddAfter</span></code>
@@ -608,7 +740,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3870" data-fsdocs-tip-unique="3870">
+              <code data-fsdocs-tip="3852" data-fsdocs-tip-unique="3852">
                 <p>
                   <a id="AddBefore">
                     <a href="#AddBefore">
@@ -617,7 +749,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3870">
+              <div popover="" class="fsdocs-tip" id="3852">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.AddBefore</span></code>
@@ -662,7 +794,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3871" data-fsdocs-tip-unique="3871">
+              <code data-fsdocs-tip="3853" data-fsdocs-tip-unique="3853">
                 <p>
                   <a id="AddCursor">
                     <a href="#AddCursor">
@@ -671,7 +803,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3871">
+              <div popover="" class="fsdocs-tip" id="3853">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.AddCursor</span></code>
@@ -716,7 +848,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3872" data-fsdocs-tip-unique="3872">
+              <code data-fsdocs-tip="3854" data-fsdocs-tip-unique="3854">
                 <p>
                   <a id="AppendToStringWithIndent">
                     <a href="#AppendToStringWithIndent">
@@ -725,7 +857,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3872">
+              <div popover="" class="fsdocs-tip" id="3854">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.AppendToStringWithIndent</span></code>
@@ -786,7 +918,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3873" data-fsdocs-tip-unique="3873">
+              <code data-fsdocs-tip="3855" data-fsdocs-tip-unique="3855">
                 <p>
                   <a id="ToStringWithIndent">
                     <a href="#ToStringWithIndent">
@@ -795,7 +927,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3873">
+              <div popover="" class="fsdocs-tip" id="3855">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.ToStringWithIndent</span></code>
@@ -854,7 +986,145 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3874" data-fsdocs-tip-unique="3874">
+              <code data-fsdocs-tip="3856" data-fsdocs-tip-unique="3856">
+                <p>
+                  <a id="TryGetCursor">
+                    <a href="#TryGetCursor">
+                      <code><span>this.TryGetCursor</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="3856">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.TryGetCursor</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-pos.html">pos</a>&#32;option</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-pos.html">pos</a>&#32;option</span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="3857" data-fsdocs-tip-unique="3857">
+                <p>
+                  <a id="HasAnyContentAfter">
+                    <a href="#HasAnyContentAfter">
+                      <code><span>this.HasAnyContentAfter</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="3857">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.HasAnyContentAfter</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code>bool</code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="3858" data-fsdocs-tip-unique="3858">
+                <p>
+                  <a id="HasContentAfter">
+                    <a href="#HasContentAfter">
+                      <code><span>this.HasContentAfter</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="3858">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.HasContentAfter</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code>bool</code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="3859" data-fsdocs-tip-unique="3859">
                 <p>
                   <a id="HasAnyContentBefore">
                     <a href="#HasAnyContentBefore">
@@ -863,7 +1133,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3874">
+              <div popover="" class="fsdocs-tip" id="3859">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.HasAnyContentBefore</span></code>
@@ -900,24 +1170,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3875" data-fsdocs-tip-unique="3875">
+              <code data-fsdocs-tip="3860" data-fsdocs-tip-unique="3860">
                 <p>
-                  <a id="HasContentBefore">
-                    <a href="#HasContentBefore">
-                      <code><span>this.HasContentBefore</span></code>
+                  <a id="Range">
+                    <a href="#Range">
+                      <code><span>this.Range</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3875">
+              <div popover="" class="fsdocs-tip" id="3860">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.HasContentBefore</span></code>
+                  <code><span>this.Range</span></code>
                   <br/>
                   <br/>
                   <span>
                     Returns: 
-                    <code>bool</code>
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
                   </span>
                   <br/>
                 </div>
@@ -936,7 +1206,7 @@
                   <span class="fsdocs-return-name">
                     Returns: 
                   </span>
-                  <code>bool</code>
+                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
@@ -946,7 +1216,53 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3876" data-fsdocs-tip-unique="3876">
+              <code data-fsdocs-tip="3861" data-fsdocs-tip-unique="3861">
+                <p>
+                  <a id="ContentAfter">
+                    <a href="#ContentAfter">
+                      <code><span>this.ContentAfter</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="3861">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.ContentAfter</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-trivianode.html">TriviaNode</a>&#32;seq</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-trivianode.html">TriviaNode</a>&#32;seq</span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="3862" data-fsdocs-tip-unique="3862">
                 <p>
                   <a id="Children">
                     <a href="#Children">
@@ -955,7 +1271,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3876">
+              <div popover="" class="fsdocs-tip" id="3862">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.Children</span></code>
@@ -995,237 +1311,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3877" data-fsdocs-tip-unique="3877">
-                <p>
-                  <a id="Range">
-                    <a href="#Range">
-                      <code><span>this.Range</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3877">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.Range</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="3878" data-fsdocs-tip-unique="3878">
-                <p>
-                  <a id="TryGetCursor">
-                    <a href="#TryGetCursor">
-                      <code><span>this.TryGetCursor</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3878">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.TryGetCursor</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-pos.html">pos</a>&#32;option</span></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-pos.html">pos</a>&#32;option</span></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="3879" data-fsdocs-tip-unique="3879">
-                <p>
-                  <a id="HasContentAfter">
-                    <a href="#HasContentAfter">
-                      <code><span>this.HasContentAfter</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3879">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.HasContentAfter</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>bool</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code>bool</code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="3880" data-fsdocs-tip-unique="3880">
-                <p>
-                  <a id="ContentAfter">
-                    <a href="#ContentAfter">
-                      <code><span>this.ContentAfter</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3880">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.ContentAfter</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-trivianode.html">TriviaNode</a>&#32;seq</span></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-trivianode.html">TriviaNode</a>&#32;seq</span></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="3881" data-fsdocs-tip-unique="3881">
-                <p>
-                  <a id="HasAnyContentAfter">
-                    <a href="#HasAnyContentAfter">
-                      <code><span>this.HasAnyContentAfter</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="3881">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.HasAnyContentAfter</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>bool</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code>bool</code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="3882" data-fsdocs-tip-unique="3882">
+              <code data-fsdocs-tip="3863" data-fsdocs-tip-unique="3863">
                 <p>
                   <a id="ContentBefore">
                     <a href="#ContentBefore">
@@ -1234,7 +1320,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3882">
+              <div popover="" class="fsdocs-tip" id="3863">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.ContentBefore</span></code>
@@ -1262,6 +1348,52 @@
                     Returns: 
                   </span>
                   <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-trivianode.html">TriviaNode</a>&#32;seq</span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="3864" data-fsdocs-tip-unique="3864">
+                <p>
+                  <a id="HasContentBefore">
+                    <a href="#HasContentBefore">
+                      <code><span>this.HasContentBefore</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="3864">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.HasContentBefore</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code>bool</code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
@@ -1302,7 +1434,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

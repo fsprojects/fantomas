@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -296,6 +299,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -372,7 +378,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7249" data-fsdocs-tip-unique="7249">
+              <code data-fsdocs-tip="7147" data-fsdocs-tip-unique="7147">
                 <p>
                   <a id="``.ctor``">
                     <a href="#``.ctor``">
@@ -381,7 +387,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7249">
+              <div popover="" class="fsdocs-tip" id="7147">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>StackGuard<span><span>(<span>name</span>)</span></span></span></code>
@@ -460,7 +466,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7250" data-fsdocs-tip-unique="7250">
+              <code data-fsdocs-tip="7148" data-fsdocs-tip-unique="7148">
                 <p>
                   <a id="Guard">
                     <a href="#Guard">
@@ -469,7 +475,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7250">
+              <div popover="" class="fsdocs-tip" id="7148">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.Guard</span></code>
@@ -594,7 +600,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7251" data-fsdocs-tip-unique="7251">
+              <code data-fsdocs-tip="7149" data-fsdocs-tip-unique="7149">
                 <p>
                   <a id="GuardCancellable">
                     <a href="#GuardCancellable">
@@ -603,7 +609,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7251">
+              <div popover="" class="fsdocs-tip" id="7149">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.GuardCancellable</span></code>
@@ -696,7 +702,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

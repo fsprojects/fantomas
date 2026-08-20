@@ -1,3 +1,9 @@
+---
+category: End-users
+categoryindex: 1
+index: 13
+---
+
 # Conditional Compilation Directives
 
 Fantomas supports formatting F# code that contains conditional compilation directives (`#if`, `#else`, `#endif`).
@@ -11,11 +17,8 @@ The F# parser processes `#if` / `#else` / `#endif` directives at parse time, mea
 To handle this, Fantomas:
 
 1. Parses your code without any defines to discover all conditional directives.
-
 2. Determines every possible combination of defines.
-
 3. Parses and formats the code once for each combination.
-
 4. Merges the results back together.
 
 ## The limitation: all define combinations must produce valid syntax

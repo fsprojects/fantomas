@@ -1,7 +1,12 @@
+---
+category: Contributors
+categoryindex: 2
+index: 15
+---
+
 # Formatting Conventions
 
 > This document is a historical reference. It was the precursor to the [Microsoft F# formatting style guide](https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting), which is now the authoritative source for F# formatting conventions. We preserve it here for its legacy value to the project.
-> 
 
 This article is written mostly based on ["F# Coding Guidelines"](https://web.archive.org/web/20070306131206/http://research.microsoft.com/fsharp/expert-fsharp-draft/FormattingConventions.doc) (offline version) from Don Syme.
 There are certain bits of the original document that need to be updated when F# has changed a lot in last few years.
@@ -11,31 +16,22 @@ Another purpose of the article is to recognize requirements for an F# source cod
 ## **Table of Contents**
 
 * [General rules for indentation](#general-rules-for-indentation)
-
   * [Using spaces](#using-spaces)
-  
   * [Offside rule](#offside-rule)
   
 
 * [Formatting rules for syntactic constructs](#formatting-rules-for-syntactic-constructs)
-
   * [Type definitions](#type-definitions)
   
   * [Value declarations](#value-declarations)
-  
     * [Tuples](#tuples)
-    
     * [Records](#records)
-    
     * [Lists and arrays](#lists-and-arrays)
-    
     * [Discriminated unions](#discriminated-unions)
     
   
   * [Conditional expressions](#conditional-expressions)
-  
     * [Multiple branches](#multiple-branches)
-    
     * [Single branches](#single-branches)
     
   
@@ -73,7 +69,6 @@ That said, indentation of programs is a subjective matter.
 Variations are OK, but the first rule you should follow is *consistency of indentation*:
 
 > Choose a generally accepted style of indentation, then use it systematically throughout the whole application.
-> 
 
 You can configure Visual Studio to match your organization's indentation standards by changing the options in the **Options** dialog box, which is available from the **Tools** menu.
 In the **Text Editor** node, expand **F#** and then click **Tabs**. For a description of the available options, see [Options, Text Editor, All Languages, Tabs](http://msdn.microsoft.com/en-us/library/7sffa753.aspx).
@@ -575,11 +570,8 @@ let makeStreamReader x = new System.IO.StreamReader(path = x)`
 ### Blank lines
 
 * Separate top-level function and class definitions with two blank lines.
-
 * Method definitions inside a class are separated by a single blank line.
-
 * Extra blank lines may be used (sparingly) to separate groups of related functions. Blank lines may be omitted between a bunch of related one-liners (e.g. a set of dummy implementations).
-
 * Use blank lines in functions, sparingly, to indicate logical sections.
 
 #### 2020 Revision

@@ -152,6 +152,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
 </a></li>
 
@@ -294,6 +297,9 @@
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
@@ -543,9 +549,9 @@
         <tr>
           <td class="fsdocs-entity-name">
             <p>
-              <a name="ChainLink">
-                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainlink.html">
-                  ChainLink
+              <a name="ChainCall">
+                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chaincall.html">
+                  ChainCall
                 </a>
               </a>
             </p>
@@ -554,19 +560,88 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                   A single link in a method-call or property-access chain (e.g. <c>a.b().c[0]</c>).
- The chain is represented as an ordered list of <c>ChainLink</c> values so that the
- printer can decide whether to keep the chain on one line or break at each dot.
+                   The argument of a call within a chain — either a parenthesised expression or unit.
                 </p>
               </div>
               <div class="icon-button-row">
                 <a href="" class="fsdocs-source-link" title="Source on GitHub">
                   <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
                 </a>
-                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.SyntaxOak.ChainLink\'/>')">
+                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.SyntaxOak.ChainCall\'/>')">
                   <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
                 </div>
-                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.ChainLink`')">
+                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.ChainCall`')">
+                  <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-entity-name">
+            <p>
+              <a name="ChainSegment">
+                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainsegment.html">
+                  ChainSegment
+                </a>
+              </a>
+            </p>
+          </td>
+          <td class="fsdocs-entity-xmldoc">
+            <div>
+              <div class="fsdocs-summary-contents">
+                <p class="fsdocs-summary">
+                   A single dot-prefixed step in a member-access or call chain.
+ Every step is reached through a <c>.</c>; the dot is an explicit <see cref="SingleTextNode"/>
+ so that trivia (comments, blank lines) attached to it are preserved during formatting.
+
+ A segment is always <em>intermediate</em>: the final call of a chain is the
+ <c>ExprChain.Terminal</c>, never a segment here.  That is why <c>DotApplication</c> (an
+ intermediate call) is distinct from <c>DotMember</c> (plain access) — the distinction the
+ layout cares about (navigation vs. action) is then visible in the shape of the data itself.
+                </p>
+              </div>
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.SyntaxOak.ChainSegment\'/>')">
+                  <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                </div>
+                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.ChainSegment`')">
+                  <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-entity-name">
+            <p>
+              <a name="ChainTerminal">
+                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainterminal.html">
+                  ChainTerminal
+                </a>
+              </a>
+            </p>
+          </td>
+          <td class="fsdocs-entity-xmldoc">
+            <div>
+              <div class="fsdocs-summary-contents">
+                <p class="fsdocs-summary">
+                   Controls whether and how a space is emitted before the terminal call's parenthesis.
+ The terminal call is the only position in a chain where a space is negotiable;
+ intermediate calls are always tight (adding a space before their parens changes the parse tree).
+                </p>
+              </div>
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.SyntaxOak.ChainTerminal\'/>')">
+                  <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                </div>
+                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.ChainTerminal`')">
                   <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
                 </div>
               </div>
@@ -832,37 +907,6 @@
         <tr>
           <td class="fsdocs-entity-name">
             <p>
-              <a name="ExprAppLongIdentAndSingleParenArgNode">
-                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprapplongidentandsingleparenargnode.html">
-                  ExprAppLongIdentAndSingleParenArgNode
-                </a>
-              </a>
-            </p>
-          </td>
-          <td class="fsdocs-entity-xmldoc">
-            <div>
-              <div class="fsdocs-summary-contents">
-                <p class="fsdocs-summary">
-                   Example: `List.map(f)` — a qualified name (dotted identifier) applied to a single parenthesised argument
-                </p>
-              </div>
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.SyntaxOak.ExprAppLongIdentAndSingleParenArgNode\'/>')">
-                  <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
-                </div>
-                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.ExprAppLongIdentAndSingleParenArgNode`')">
-                  <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
-                </div>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-entity-name">
-            <p>
               <a name="ExprAppNode">
                 <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappnode.html">
                   ExprAppNode
@@ -936,7 +980,7 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                   Example: `List.map (fun x -> x + 1) xs` — a function applied to zero or more prefix arguments
+                   Example: `f a b (fun y -> y)`, a function applied to zero or more prefix arguments
  followed by a parenthesised lambda or `function` expression as the last argument.
                 </p>
               </div>
@@ -1030,7 +1074,9 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                   Example: `person.Address.City.ToUpper()` — a chain of dot-separated member accesses and calls
+                   Example: `person.Address.City.ToUpper()` — a chain of dot-separated member accesses and calls.
+ <c>Head</c> is the leading receiver expression (fully decomposed; no dotted content remains in it).
+ <c>Segments</c> are the dot-paired steps. <c>Terminal</c> is the optional outermost call.
                 </p>
               </div>
               <div class="icon-button-row">
@@ -1145,37 +1191,6 @@
         <tr>
           <td class="fsdocs-entity-name">
             <p>
-              <a name="ExprDotIndexedGetNode">
-                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotindexedgetnode.html">
-                  ExprDotIndexedGetNode
-                </a>
-              </a>
-            </p>
-          </td>
-          <td class="fsdocs-entity-xmldoc">
-            <div>
-              <div class="fsdocs-summary-contents">
-                <p class="fsdocs-summary">
-                   Example: `arr.[i]` — indexed get using the older dot-bracket syntax (deprecated in F# 6).
-                </p>
-              </div>
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.SyntaxOak.ExprDotIndexedGetNode\'/>')">
-                  <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
-                </div>
-                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.ExprDotIndexedGetNode`')">
-                  <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
-                </div>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-entity-name">
-            <p>
               <a name="ExprDotIndexedSetNode">
                 <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotindexedsetnode.html">
                   ExprDotIndexedSetNode
@@ -1198,38 +1213,6 @@
                   <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
                 </div>
                 <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.ExprDotIndexedSetNode`')">
-                  <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
-                </div>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-entity-name">
-            <p>
-              <a name="ExprDotLambda">
-                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotlambda.html">
-                  ExprDotLambda
-                </a>
-              </a>
-            </p>
-          </td>
-          <td class="fsdocs-entity-xmldoc">
-            <div>
-              <div class="fsdocs-summary-contents">
-                <p class="fsdocs-summary">
-                   Example: `_.ToUpper()` or `_.Length` — a dot-lambda shorthand (F# 8+).
- `Underscore` is the `_` placeholder, `Dot` is the `.`, and `Expr` is the member access or call.
-                </p>
-              </div>
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.SyntaxOak.ExprDotLambda\'/>')">
-                  <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
-                </div>
-                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.ExprDotLambda`')">
                   <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
                 </div>
               </div>
@@ -2017,38 +2000,6 @@
                   <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
                 </div>
                 <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.ExprNamedIndexedPropertySetNode`')">
-                  <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
-                </div>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-entity-name">
-            <p>
-              <a name="ExprNestedIndexWithoutDotNode">
-                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnestedindexwithoutdotnode.html">
-                  ExprNestedIndexWithoutDotNode
-                </a>
-              </a>
-            </p>
-          </td>
-          <td class="fsdocs-entity-xmldoc">
-            <div>
-              <div class="fsdocs-summary-contents">
-                <p class="fsdocs-summary">
-                   Example: `xs[i] arg` — an indexed expression (`xs[i]`) immediately applied to an argument.
- Used for cases like `arr[0] + 1` where the index result is itself called or applied.
-                </p>
-              </div>
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.SyntaxOak.ExprNestedIndexWithoutDotNode\'/>')">
-                  <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
-                </div>
-                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.ExprNestedIndexWithoutDotNode`')">
                   <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
                 </div>
               </div>
@@ -3308,68 +3259,6 @@
                   <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
                 </div>
                 <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.InterfaceImplNode`')">
-                  <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
-                </div>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-entity-name">
-            <p>
-              <a name="LinkSingleAppParen">
-                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-linksingleappparen.html">
-                  LinkSingleAppParen
-                </a>
-              </a>
-            </p>
-          </td>
-          <td class="fsdocs-entity-xmldoc">
-            <div>
-              <div class="fsdocs-summary-contents">
-                <p class="fsdocs-summary">
-                   A chain link where a function is applied to a parenthesised argument, e.g. `foo(x)` in `a.foo(x).bar`.
-                </p>
-              </div>
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.SyntaxOak.LinkSingleAppParen\'/>')">
-                  <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
-                </div>
-                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.LinkSingleAppParen`')">
-                  <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
-                </div>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-entity-name">
-            <p>
-              <a name="LinkSingleAppUnit">
-                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-linksingleappunit.html">
-                  LinkSingleAppUnit
-                </a>
-              </a>
-            </p>
-          </td>
-          <td class="fsdocs-entity-xmldoc">
-            <div>
-              <div class="fsdocs-summary-contents">
-                <p class="fsdocs-summary">
-                   A chain link where a function is applied to a unit argument, e.g. `Dispose()` in `x.Dispose()`.
-                </p>
-              </div>
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Core.SyntaxOak.LinkSingleAppUnit\'/>')">
-                  <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
-                </div>
-                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Core.SyntaxOak.LinkSingleAppUnit`')">
                   <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
                 </div>
               </div>
@@ -6609,7 +6498,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="137" data-fsdocs-tip-unique="137">
+              <code data-fsdocs-tip="139" data-fsdocs-tip-unique="139">
                 <p>
                   <a id="combineRanges">
                     <a href="#combineRanges">
@@ -6618,7 +6507,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="137">
+              <div popover="" class="fsdocs-tip" id="139">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>combineRanges&#32;<span>ranges</span></span></code>
@@ -6677,7 +6566,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="138" data-fsdocs-tip-unique="138">
+              <code data-fsdocs-tip="140" data-fsdocs-tip-unique="140">
                 <p>
                   <a id="hasLayoutAffectingTrivia">
                     <a href="#hasLayoutAffectingTrivia">
@@ -6686,7 +6575,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="138">
+              <div popover="" class="fsdocs-tip" id="140">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>hasLayoutAffectingTrivia&#32;<span>nodes</span></span></code>
@@ -6763,7 +6652,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="139" data-fsdocs-tip-unique="139">
+              <code data-fsdocs-tip="141" data-fsdocs-tip-unique="141">
                 <p>
                   <a id="noa">
                     <a href="#noa">
@@ -6772,7 +6661,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="139">
+              <div popover="" class="fsdocs-tip" id="141">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>noa&#32;<span>n</span></span></code>
@@ -6834,7 +6723,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="140" data-fsdocs-tip-unique="140">
+              <code data-fsdocs-tip="142" data-fsdocs-tip-unique="142">
                 <p>
                   <a id="nodeRange">
                     <a href="#nodeRange">
@@ -6843,7 +6732,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="140">
+              <div popover="" class="fsdocs-tip" id="142">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>nodeRange&#32;<span>n</span></span></code>
@@ -6902,7 +6791,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="141" data-fsdocs-tip-unique="141">
+              <code data-fsdocs-tip="143" data-fsdocs-tip-unique="143">
                 <p>
                   <a id="nodes">
                     <a href="#nodes">
@@ -6911,7 +6800,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="141">
+              <div popover="" class="fsdocs-tip" id="143">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>nodes&#32;<span>ns</span></span></code>
@@ -7011,7 +6900,25 @@
     })
 </script>
 <script type="module">
-    import mermaid from "https://esm.sh/mermaid@9.2.2";
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "base",

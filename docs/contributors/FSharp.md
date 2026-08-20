@@ -1,18 +1,20 @@
+---
+category: Contributors
+categoryindex: 2
+index: 2
+---
+
 # F#
 
 ## New to F#?
 
-If you are truly brand-new to the F# language, you might want to start by reading the [F# documentation of Microsoft](https://dotnet.microsoft.com/en-us/languages/fsharp).
+If you are truly brand-new to the F# language, you might want to start by reading the [F# documentation of Microsoft](https://dotnet.microsoft.com/en-us/languages/fsharp).  
 Some other great resources (in no particular order) are:
 
 * [Essential F#](https://leanpub.com/essential-fsharp)
-
 * [F# for Fun and Profit](https://fsharpforfunandprofit.com/)
-
 * [F# Fundamentals Tutorial | Learn Functional Programming | Step-by-Step Guide](https://www.youtube.com/watch?v=SvOInBxPL30)
-
 * [F# Foundation Slack](https://fsharp.org/guides/slack/)
-
 * [F# on Discord](https://discord.com/invite/R6n7c54)
 
 ## Used F# features
@@ -85,8 +87,8 @@ type CommentTrivia with
         | CommentTrivia.LineComment m -> m
 ```
 
-The type `SynMemberFlags` does not expose any range information, but we can extend it to do so.
-The `.FullRange` naming convention is used to indicate that we are not satisfied by the original range or it is lacking all together.
+The type `SynMemberFlags` does not expose any range information, but we can extend it to do so.  
+The `.FullRange` naming convention is used to indicate that we are not satisfied by the original range or it is lacking all together.  
 Don't worry just yet about this implementation, so keep in mind that with this feature we can later use `memberFlags.FullRange` on a `SynMemberFlags` instance.
 
 * [Function Values](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/#function-values)
@@ -96,16 +98,16 @@ Fantomas is full of this kind of functions, so be sure to grasp this concept bef
 
 * [Tail recursion](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/recursive-functions-the-rec-keyword#tail-recursion)
 
-There are places in the code base where we use some more advanced recursion techniques. `ASTTransformer.fs` is one of them.
+There are places in the code base where we use some more advanced recursion techniques. `ASTTransformer.fs` is one of them.  
 A very good explanation of what happens here can be found in this [blogpost](https://www.gresearch.co.uk/blog/article/advanced-recursion-techniques-in-f/).
 
 * [Event Sourcing](https://medium.com/@dzoukr/event-sourcing-step-by-step-in-f-be808aa0ca18)
 
-We use event sourcing to capture the instructions on how to write the new code. Instead of writing the new code directly to for example a `StringBuilder`, we write it to a list of events.
+We use event sourcing to capture the instructions on how to write the new code. Instead of writing the new code directly to for example a `StringBuilder`, we write it to a list of events.  
 That list of events will contain instructions like `Write "let"`, `IndentBy 4`, `WriteLine` etc. So it is useful to have some notion of event sourcing.
 
 Although, it really is an implementation detail in `Context.fs`, think of it as writing a letter with a pen and a paper.
-We first rehearse what we want to say, then we write the letter. Not write evey word as we are making up the letter, but write the letter as a whole once we know the content.
+We first rehearse what we want to say, then we write the letter. Not write evey word as we are making up the letter, but write the letter as a whole once we know the content.  
 These events are used to achieve this.
 
 <fantomas-nav previous="Index.md" next="Getting%20Started.md"></fantomas-nav>

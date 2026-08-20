@@ -1,3 +1,9 @@
+---
+category: End-users
+categoryindex: 1
+index: 12
+---
+
 # Recipes
 
 Fantomas has a limited set of settings and adheres to style guides.
@@ -190,7 +196,7 @@ let tests =
 
 ## FAKE
 
-At the end of a [FAKE](https://fake.build/) script, the target dependencies are typically listed using custom operators.
+At the end of a [FAKE](https://fake.build/) script, the target dependencies are typically listed using custom operators.  
 Using [fsharp_max_infix_operator_expression](https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_max_infix_operator_expression)
 you can tweak when they should go to the next line.
 

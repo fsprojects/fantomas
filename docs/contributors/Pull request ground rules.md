@@ -1,3 +1,9 @@
+---
+category: Contributors
+categoryindex: 2
+index: 12
+---
+
 # Pull request ground rules
 
 We expect some things from code changes.
@@ -52,17 +58,14 @@ Please always rebase your code on the targeted branch.
 To keep your fork up to date, run this command:
 
 > git remote add upstream [https://github.com/fsprojects/fantomas.git](https://github.com/fsprojects/fantomas.git)
-> 
 
 Updating your fork:
 
 > git checkout main &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/main &amp;&amp; git push
-> 
 
 ### Unit test
 
 * Unit test names should start with a lowercase letter.
-
 * When creating a test that is linked to a GitHub issue, add the number at the back with a comma, as in the following:
 
 ```fsharp
@@ -78,35 +81,31 @@ Verify if the change you are making should also apply to signature files (`*.fsi
 ### Verify slight variations
 
 * Check if you need additional tests to cope with a different combination of settings.
-
 * Check if you need additional tests to cope with a different combination of defines (`#if DEBUG`, ...).
 
 ### Documentation
 
-Write/update documentation when necessary.
+Write/update documentation when necessary.  
 You can find instructions on how to run the documentation locally in the [docs/.README.md](https://github.com/fsprojects/fantomas/blob/main/docs/.README.md) file.
 
 ### Pull request title
 
 * Give your PR a meaningful title. Make sure it covers the change you are introducing in Fantomas.
   
-
   For example:
-*"Fix bug 1404"* is a poor title as it does not tell the maintainers what changed in the codebase.
+*"Fix bug 1404"* is a poor title as it does not tell the maintainers what changed in the codebase.  
 *"Don't double unindent when record has an access modifier"* is better as it informs us what exactly has changed.
   
 
-* Add a link to the issue you are solving by using [a keyword](https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) in the PR description.
+* Add a link to the issue you are solving by using [a keyword](https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) in the PR description.  
 *"Fixes #1404"* does the trick quite well. GitHub will automatically close the issue if you used the correct wording.
   
-
   ![Linked issue](../../images/github-linked-issue.png)
   
-
   Please verify your issue is linked. ([GitHub documentation](https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword))
   
 
-* Not mandatory, but when fixing a bug consider using `fix-<issue-number>` as the git branch name.
+* Not mandatory, but when fixing a bug consider using `fix-<issue-number>` as the git branch name.  
 For example, `git checkout -b fix-1404`.
   
 
@@ -114,19 +113,16 @@ For example, `git checkout -b fix-1404`.
 
 * Code should be formatted to our standard style, using either `dotnet fsi build.fsx -p FormatAll` which works on all files, or
 `dotnet fsi build.fsx -p FormatChanged` to just change the files in git.
-
   * If you forget, there's a git `pre-commit` script that will run this for you, make sure to run `dotnet fsi build.fsx -p EnsureRepoConfig` to set that hook up.
   
 
 ### Changelog
 
 * Add an entry to the `CHANGELOG.md` in the `Unreleased` section based on what kind of change your change is. Follow the guidelines at [KeepAChangelog](https://keepachangelog.com/en/1.0.0/#how) to make your message relevant to future readers.
-
   * If you're not sure what Changelog section your change belongs to, start with `Changed` and ask for clarification in your Pull Request
   
   * If there's not an `Unreleased` section in the `CHANGELOG.md`, create one at the top above the most recent version like so:
     
-  
     ```markdown
     ## [Unreleased]
     
@@ -180,7 +176,6 @@ type Foo() =
 ```
 
 * Use `_` when you don't need the `self-identifier`.
-
 * Use `member val` when possible.
 
 ```fsharp
