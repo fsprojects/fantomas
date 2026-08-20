@@ -108,6 +108,12 @@ val atCurrentColumn: f: (Context -> Context) -> ctx: Context -> Context
 /// }
 /// `atCurrentColumn` was called on `X`, then `indent` was called, "some long string" have indent 6, because it is indented from `atCurrentColumn` pos (2).
 val atCurrentColumnIndent: f: (Context -> Context) -> ctx: Context -> Context
+
+/// Indent and open a new line, taking trailing trivia into account.
+/// When the emitted content ends with a comment, the indent is spliced in ahead of that comment
+/// so it sits at the indented level, and the newline the comment already wrote is reused instead
+/// of a second one being added. Without trailing trivia this is plain `indent +> sepNln`.
+val indentSepNlnWithTriviaAwareness: ctx: Context -> Context
 val indentSepNlnUnindent: f: (Context -> Context) -> (Context -> Context)
 
 // =============================================================================
@@ -272,8 +278,13 @@ val sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth: expr: (Context -> 
 val autoParenthesisIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
 
 val futureNlnCheck: f: (Context -> Context) -> ctx: Context -> bool
-/// similar to futureNlnCheck but // validates whether the expression is going over the max page width
-/// This functions is does not use any caching
+/// Probe `f` and report `(isMultiline, isLong)` separately: whether it spans
+/// multiple lines, and whether it overflows the right margin. `futureNlnCheck`
+/// is `isMultiline || isLong`; callers that care only about multiline layout
+/// (not width) use the first component.
+val futureNlnCheckMem: f: (Context -> Context) * ctx: Context -> bool * bool
+/// similar to futureNlnCheck but validates whether the expression is going over the given
+/// max width, measured from the current column
 val exceedsWidth: maxWidth: int -> f: (Context -> Context) -> ctx: Context -> bool
 
 // =============================================================================

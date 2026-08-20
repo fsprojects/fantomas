@@ -128,7 +128,7 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
 
         mkExtractableOakFromModule md (node.GetType())
 
-    // ModuleDecl.Expr
+    // ModuleDecl.DeclExpr
     | :? ExprLazyNode as node ->
         let expr = Expr.Lazy node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
@@ -237,17 +237,11 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprChain as node ->
         let expr = Expr.Chain node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprAppLongIdentAndSingleParenArgNode as node ->
-        let expr = Expr.AppLongIdentAndSingleParenArg node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppSingleParenArgNode as node ->
         let expr = Expr.AppSingleParenArg node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppWithLambdaNode as node ->
         let expr = Expr.AppWithLambda node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprNestedIndexWithoutDotNode as node ->
-        let expr = Expr.NestedIndexWithoutDot node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppNode as node ->
         let expr = Expr.App node
@@ -278,9 +272,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprLongIdentSetNode as node ->
         let expr = Expr.LongIdentSet node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprDotIndexedGetNode as node ->
-        let expr = Expr.DotIndexedGet node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprDotIndexedSetNode as node ->
         let expr = Expr.DotIndexedSet node
@@ -345,6 +336,9 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
         mkOakFromModuleDecl (ModuleDecl.TypeDefn tdn)
     | :? ValNode as node -> mkOakFromModuleDecl (ModuleDecl.Val node)
     | _ ->
+        // Deliberately not an InvariantViolationException: this is not an impossible state but a
+        // node kind that selection does not support yet, and release builds degrade to `Unsupported`
+        // rather than failing. The DEBUG-only throw exists to make the gap loud while developing.
 #if DEBUG
         failwithf $"%s{node.GetType().Name} is currently unsupported"
 #endif

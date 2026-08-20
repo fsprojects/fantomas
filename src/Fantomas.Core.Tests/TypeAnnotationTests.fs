@@ -574,15 +574,17 @@ XYZ.app<int -> int -> int -> string>.[tellMeWhy { return wouldSomeoneWriteThisCo
     |> should
         equal
         """
-XYZ.app<
-    int
-        -> int
-        -> int
-        -> string
- >.[tellMeWhy {
-    return
-        wouldSomeoneWriteThisCode
-}]
+XYZ
+    .app<
+        int
+            -> int
+            -> int
+            -> string
+      >
+    .[tellMeWhy {
+        return
+            wouldSomeoneWriteThisCode
+    }]
 """
 
 [<Test>]

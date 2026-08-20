@@ -11,6 +11,12 @@ open Fantomas.Core.RangePatterns
 open Fantomas.Core.SyntaxOak
 open Microsoft.FSharp.Core
 
+/// Raise an <see cref="T:Fantomas.Core.InvariantViolationException"/> with a printf-style
+/// message. Use this instead of `failwith` when a branch is unreachable by construction, so
+/// that the CLI reports something actionable rather than an empty message.
+let invariantViolation (range: range) format =
+    Printf.kprintf (fun msg -> raise (InvariantViolationException(msg, range))) format
+
 [<NoComparison>]
 type CreationAide =
     { SourceText: ISourceText option }
@@ -285,7 +291,7 @@ let mkInheritConstructor (creationAide: CreationAide) (t: SynType) (e: SynExpr) 
 
 let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range list) (m: range) =
     match exprs with
-    | [] -> failwith "SynExpr.Tuple with no elements"
+    | [] -> invariantViolation m "a tuple expression has no elements"
     | head :: tail ->
         let rest =
             assert (tail.Length = commas.Length)
@@ -387,7 +393,7 @@ let mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) :
     let arrowRange =
         match trivia.ArrowRange with
         | Some r -> r
-        | None -> failwith $"unable to get the arrow range from trivia in %s{nameof mkSynMatchClause}"
+        | None -> invariantViolation range $"unable to get the arrow range from trivia in %s{nameof mkSynMatchClause}"
 
     MatchClauseNode(
         Option.map (stn "|") trivia.BarRange,
@@ -598,7 +604,10 @@ let (|ElIf|_|) expr =
                         | Some mElse ->
                             match ifNode with
                             | Choice1Of2 ifNode -> Choice2Of2(mElse, ifNode.Range)
-                            | Choice2Of2 _ -> failwith "Cannot merge a second else keyword into existing else if"
+                            | Choice2Of2 _ ->
+                                invariantViolation
+                                    expr.Range
+                                    "cannot merge a second else keyword into existing else if"
                         | None -> ifNode
 
                 (node, e1, thenKw, e2))
@@ -669,7 +678,6 @@ type LinkExpr =
         SynExpr
     | Dot of range
     | Expr of SynExpr
-    | AppParenLambda of functionName: SynExpr * parenLambda: SynExpr
     | AppParen of functionName: SynExpr * lpr: range * e: SynExpr * rpr: range * pr: range
     | AppUnit of functionName: SynExpr * unit: range
     | IndexExpr of indexExpr: SynExpr
@@ -685,10 +693,14 @@ let mkLinksFromSynLongIdent (sli: SynLongIdent) : LinkExpr list =
         | LinkExpr.Identifier identifierExpr -> identifierExpr.Range.StartLine, identifierExpr.Range.StartColumn
         | LinkExpr.Dot m -> m.StartLine, m.StartColumn
         | LinkExpr.Expr _
-        | LinkExpr.AppParenLambda _
         | LinkExpr.AppParen _
         | LinkExpr.AppUnit _
-        | LinkExpr.IndexExpr _ -> -1, -1)
+        // mkLinksFromSynLongIdent only ever builds Identifier and Dot links, so no other
+        // case can reach the sort key.
+        | LinkExpr.IndexExpr _ ->
+            invariantViolation
+                sli.Range
+                "mkLinksFromSynLongIdent produced a link that is neither an Identifier nor a Dot")
 
 [<return: Struct>]
 let (|UnitExpr|_|) e =
@@ -704,6 +716,8 @@ let (|DynamicChainArg|_|) (e: SynExpr) =
     | SynExpr.Const(constant = SynConst.Unit) -> ValueSome e
     | SynExpr.Paren(expr = inner) ->
         match inner with
+        // A lambda argument (`x?y (fun a -> a)`) is not fused into the `?` chain: it is a
+        // normal application whose argument needs the ordinary multiline lambda layout.
         | SynExpr.Lambda _
         | SynExpr.MatchLambda _ -> ValueNone
         | _ -> ValueSome e
@@ -750,8 +764,10 @@ let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName:
                       typeArgsRange,
                       _) ->
         match sli.IdentsWithTrivia with
+        // A generic function name only reaches here from a dotted chain, so it always has
+        // at least two identifiers (`a.Foo<T>`); `Foo<T>` on its own is not a chain.
         | []
-        | [ _ ] -> [ mkLinkFromExpr functionName ]
+        | [ _ ] -> invariantViolation functionName.Range "generic function name %A has fewer than two identifiers" sli
         | synIdents ->
             let leftLinks = mkLinksFromSynLongIdent sli
             let lastSynIdent = List.last synIdents
@@ -775,8 +791,10 @@ let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName:
 
     | SynExpr.LongIdent(longDotId = sli) ->
         match sli.IdentsWithTrivia with
+        // Likewise a plain function name: an undotted `f(x)` never becomes a chain, so by the
+        // time we are building links there are always at least two identifiers.
         | []
-        | [ _ ] -> [ mkLinkFromExpr functionName ]
+        | [ _ ] -> invariantViolation functionName.Range "function name %A has fewer than two identifiers" sli
         | synIdents ->
             let leftLinks = mkLinksFromSynLongIdent sli
             let lastSynIdent = List.last synIdents
@@ -785,188 +803,360 @@ let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName:
               yield (mkLongIdentExprFromSynIdent lastSynIdent |> mkLinkFromExpr) ]
     | e -> [ mkLinkFromExpr e ]
 
-[<return: Struct>]
-let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list voption =
-    let rec visit (e: SynExpr) (continuation: LinkExpr list -> LinkExpr list) =
-        match e with
-        | SynExpr.App(
-            isInfix = false
-            funcExpr = SynExpr.TypeApp(SynExpr.DotGet _ as funcExpr,
-                                       lessRange,
-                                       typeArgs,
-                                       commaRanges,
-                                       Some greaterRange,
-                                       typeArgsRange,
-                                       _)
-            argExpr = ParenExpr _ | UnitExpr _ as argExpr) ->
-            visit funcExpr (fun leftLinks ->
-                let lastLink =
-                    match List.tryLast leftLinks with
-                    | Some(LinkExpr.Identifier identifierExpr) ->
-                        let typeApp =
-                            SynExpr.TypeApp(
-                                identifierExpr,
-                                lessRange,
-                                typeArgs,
-                                commaRanges,
-                                Some greaterRange,
-                                typeArgsRange,
-                                unionRanges identifierExpr.Range greaterRange
-                            )
+/// Visits a SynExpr and produces a flat LinkExpr list representing the chain links.
+/// Exposed at module level so that SynExpr.DotLambda handling can reuse the same logic.
+let rec visitChainLinks (e: SynExpr) (continuation: LinkExpr list -> LinkExpr list) =
+    match e with
+    | SynExpr.App(
+        isInfix = false
+        funcExpr = SynExpr.TypeApp(SynExpr.DotGet _ as funcExpr,
+                                   lessRange,
+                                   typeArgs,
+                                   commaRanges,
+                                   Some greaterRange,
+                                   typeArgsRange,
+                                   _)
+        argExpr = ParenExpr _ | UnitExpr _ as argExpr) ->
+        visitChainLinks funcExpr (fun leftLinks ->
+            let lastLink =
+                match List.tryLast leftLinks with
+                | Some(LinkExpr.Identifier identifierExpr) ->
+                    let typeApp =
+                        SynExpr.TypeApp(
+                            identifierExpr,
+                            lessRange,
+                            typeArgs,
+                            commaRanges,
+                            Some greaterRange,
+                            typeArgsRange,
+                            unionRanges identifierExpr.Range greaterRange
+                        )
 
-                        match argExpr with
-                        | UnitExpr mUnit -> [ LinkExpr.AppUnit(typeApp, mUnit) ]
-                        | ParenExpr(lpr, innerExpr, rpr, pr) -> [ LinkExpr.AppParen(typeApp, lpr, innerExpr, rpr, pr) ]
-                        | _ -> []
-                    | _ -> []
+                    match argExpr with
+                    | UnitExpr mUnit -> [ LinkExpr.AppUnit(typeApp, mUnit) ]
+                    | ParenExpr(lpr, innerExpr, rpr, pr) -> [ LinkExpr.AppParen(typeApp, lpr, innerExpr, rpr, pr) ]
+                    // Unreachable: the outer pattern already constrained argExpr to Paren or Unit.
+                    | _ ->
+                        invariantViolation
+                            e.Range
+                            "generic call argument %A is neither a unit nor a parenthesised expression"
+                            argExpr
+                // Unreachable: visiting a DotGet always ends the link list with an Identifier.
+                | _ ->
+                    invariantViolation
+                        e.Range
+                        "generic call has no identifier to attach its type arguments to (links: %A)"
+                        leftLinks
 
-                let leftLinks = List.cutOffLast leftLinks
+            let leftLinks = List.cutOffLast leftLinks
+            continuation [ yield! leftLinks; yield! lastLink ])
 
-                continuation [ yield! leftLinks; yield! lastLink ])
-
-        | SynExpr.TypeApp(SynExpr.DotGet _ as dotGet,
+    | SynExpr.TypeApp(SynExpr.DotGet _ as dotGet, lessRange, typeArgs, commaRanges, Some greaterRange, typeArgsRange, _) ->
+        visitChainLinks dotGet (fun leftLinks ->
+            let lastLink =
+                match List.tryLast leftLinks with
+                | Some(LinkExpr.Identifier property) ->
+                    [ SynExpr.TypeApp(
+                          property,
                           lessRange,
                           typeArgs,
                           commaRanges,
                           Some greaterRange,
                           typeArgsRange,
-                          _) ->
-            visit dotGet (fun leftLinks ->
-                let lastLink =
-                    match List.tryLast leftLinks with
-                    | Some(LinkExpr.Identifier property) ->
-                        [ SynExpr.TypeApp(
-                              property,
-                              lessRange,
-                              typeArgs,
-                              commaRanges,
-                              Some greaterRange,
-                              typeArgsRange,
-                              unionRanges property.Range greaterRange
-                          )
-                          |> LinkExpr.Identifier ]
-                    | _ -> []
+                          unionRanges property.Range greaterRange
+                      )
+                      |> LinkExpr.Identifier ]
+                // Unreachable: visiting a DotGet always ends the link list with an Identifier.
+                | _ ->
+                    invariantViolation e.Range "type application has no identifier to attach to (links: %A)" leftLinks
 
-                let leftLinks = List.cutOffLast leftLinks
-                continuation [ yield! leftLinks; yield! lastLink ])
+            let leftLinks = List.cutOffLast leftLinks
+            continuation [ yield! leftLinks; yield! lastLink ])
 
-        // Transform `x().y[0]` into `x()` , `dot`, `y[0]`
-        | IndexWithoutDot(SynExpr.DotGet(expr, mDot, sli, _), indexExpr) ->
-            visit expr (fun leftLinks ->
-                let middleLinks, lastExpr =
-                    match List.tryLast sli.IdentsWithTrivia with
-                    | None -> [], indexExpr
-                    | Some lastMiddleLink ->
-                        let middleLinks = mkLinksFromSynLongIdent sli |> List.cutOffLast
+    // Transform `x().y[0]` into `x()` , `dot`, `y[0]`
+    | IndexWithoutDot(SynExpr.DotGet(expr, mDot, sli, _), indexExpr) ->
+        visitChainLinks expr (fun leftLinks ->
+            let middleLinks, lastExpr =
+                match List.tryLast sli.IdentsWithTrivia with
+                // Unreachable: a DotGet always carries at least one identifier after its dot.
+                | None -> invariantViolation e.Range "indexed member access has no identifier after the dot (%A)" sli
+                | Some lastMiddleLink ->
+                    let middleLinks = mkLinksFromSynLongIdent sli |> List.cutOffLast
 
-                        let indexWithDotExpr =
-                            let identifierExpr = mkLongIdentExprFromSynIdent lastMiddleLink
+                    let indexWithDotExpr =
+                        let identifierExpr = mkLongIdentExprFromSynIdent lastMiddleLink
 
-                            // Create an adjacent range for the `[`,`]` in the index expression.
-                            let adjacentRange =
-                                mkRange
-                                    indexExpr.Range.FileName
-                                    (Position.mkPos
-                                        identifierExpr.Range.StartLine
-                                        (identifierExpr.Range.StartColumn + 1))
-                                    (Position.mkPos indexExpr.Range.EndLine (indexExpr.Range.EndColumn - 1))
+                        // Create an adjacent range for the `[`,`]` in the index expression.
+                        let adjacentRange =
+                            mkRange
+                                indexExpr.Range.FileName
+                                (Position.mkPos identifierExpr.Range.StartLine (identifierExpr.Range.StartColumn + 1))
+                                (Position.mkPos indexExpr.Range.EndLine (indexExpr.Range.EndColumn - 1))
 
-                            SynExpr.App(
-                                ExprAtomicFlag.Atomic,
-                                false,
-                                identifierExpr,
-                                SynExpr.ArrayOrListComputed(false, indexExpr, adjacentRange),
-                                unionRanges identifierExpr.Range indexExpr.Range
-                            )
+                        SynExpr.App(
+                            ExprAtomicFlag.Atomic,
+                            false,
+                            identifierExpr,
+                            SynExpr.ArrayOrListComputed(false, indexExpr, adjacentRange),
+                            unionRanges identifierExpr.Range indexExpr.Range
+                        )
 
-                        middleLinks, indexWithDotExpr
+                    middleLinks, indexWithDotExpr
 
-                continuation
-                    [ yield! leftLinks
-                      yield LinkExpr.Dot mDot
-                      yield! middleLinks
-                      yield LinkExpr.Expr lastExpr ])
+            continuation
+                [ yield! leftLinks
+                  yield LinkExpr.Dot mDot
+                  yield! middleLinks
+                  yield LinkExpr.Expr lastExpr ])
 
-        | SynExpr.App(isInfix = false; funcExpr = SynExpr.DotGet _ as funcExpr; argExpr = argExpr) ->
-            visit funcExpr (fun leftLinks ->
+    | SynExpr.App(isInfix = false; funcExpr = SynExpr.DotGet _ as funcExpr; argExpr = argExpr) ->
+        visitChainLinks funcExpr (fun leftLinks ->
+            match List.tryLast leftLinks with
+            | Some(LinkExpr.Identifier(identifierExpr)) ->
+                match argExpr with
+                | UnitExpr mUnit ->
+                    let leftLinks = List.cutOffLast leftLinks
+
+                    // Compose a function application by taking the last identifier of the SynExpr.DotGet
+                    // and the following argument expression.
+                    // Example: X().Y() -> Take `Y` as function name and `()` as argument.
+                    let rightLink = LinkExpr.AppUnit(identifierExpr, mUnit)
+
+                    continuation [ yield! leftLinks; yield rightLink ]
+
+                | ParenExpr(lpr, e, rpr, pr) ->
+                    let leftLinks = List.cutOffLast leftLinks
+                    // Example: A().B(fun b -> b)
+                    let rightLink = LinkExpr.AppParen(identifierExpr, lpr, e, rpr, pr)
+                    continuation [ yield! leftLinks; yield rightLink ]
+
+                // Unreachable: `(|ChainExpr|_|)` only routes Unit/Paren arguments here, and a
+                // dot-lambda body cannot be a space-separated application.
+                | _ ->
+                    invariantViolation
+                        e.Range
+                        "call argument %A is neither a unit nor a parenthesised expression"
+                        argExpr
+            // Unreachable: visiting a DotGet always ends the link list with an Identifier.
+            | _ -> invariantViolation e.Range "call has no identifier to apply its argument to (links: %A)" leftLinks)
+
+    | SynExpr.DotGet(expr, rangeOfDot, longDotId, _) ->
+        visitChainLinks expr (fun links ->
+            continuation
+                [ yield! links
+                  yield LinkExpr.Dot rangeOfDot
+                  yield! mkLinksFromSynLongIdent longDotId ])
+
+    | SynExpr.App(isInfix = false; funcExpr = funcExpr; argExpr = UnitExpr mUnit) ->
+        mkLinksFromFunctionName (fun e -> LinkExpr.AppUnit(e, mUnit)) funcExpr
+        |> continuation
+
+    | SynExpr.App(isInfix = false; funcExpr = funcExpr; argExpr = ParenExpr(lpr, e, rpr, pr)) ->
+        mkLinksFromFunctionName (fun f -> LinkExpr.AppParen(f, lpr, e, rpr, pr)) funcExpr
+        |> continuation
+
+    | SynExpr.App(ExprAtomicFlag.Atomic, false, (SynExpr.LongIdent _ as funcExpr), (SynExpr.ArrayOrList _ as argExpr), _) ->
+        visitChainLinks funcExpr (fun leftLinks ->
+            let app =
                 match List.tryLast leftLinks with
-                | Some(LinkExpr.Identifier(identifierExpr)) ->
-                    match argExpr with
-                    | UnitExpr mUnit ->
-                        let leftLinks = List.cutOffLast leftLinks
+                | Some(LinkExpr.Identifier identifier) ->
+                    [ SynExpr.App(
+                          ExprAtomicFlag.Atomic,
+                          false,
+                          identifier,
+                          argExpr,
+                          unionRanges identifier.Range argExpr.Range
+                      )
+                      |> LinkExpr.Expr ]
+                // Unreachable: visiting a LongIdent always ends the link list with an Identifier.
+                | _ ->
+                    invariantViolation e.Range "indexed application has no identifier to index (links: %A)" leftLinks
 
-                        // Compose a function application by taking the last identifier of the SynExpr.DotGet
-                        // and the following argument expression.
-                        // Example: X().Y() -> Take `Y` as function name and `()` as argument.
-                        let rightLink = LinkExpr.AppUnit(identifierExpr, mUnit)
+            let leftLinks = List.cutOffLast leftLinks
+            continuation [ yield! leftLinks; yield! app ])
 
-                        continuation [ yield! leftLinks; yield rightLink ]
+    | SynExpr.TypeApp _ as typeApp -> mkLinksFromFunctionName LinkExpr.Identifier typeApp |> continuation
 
-                    | ParenExpr(lpr, e, rpr, pr) ->
-                        let leftLinks = List.cutOffLast leftLinks
-                        // Example: A().B(fun b -> b)
-                        let rightLink = LinkExpr.AppParen(identifierExpr, lpr, e, rpr, pr)
-                        continuation [ yield! leftLinks; yield rightLink ]
+    | SynExpr.LongIdent(longDotId = sli) -> continuation (mkLinksFromSynLongIdent sli)
 
-                    | _ -> visit argExpr (fun rightLinks -> continuation [ yield! leftLinks; yield! rightLinks ])
-                | _ -> visit argExpr (fun rightLinks -> continuation [ yield! leftLinks; yield! rightLinks ]))
+    | SynExpr.Ident _ -> continuation [ LinkExpr.Identifier e ]
 
-        | SynExpr.DotGet(expr, rangeOfDot, longDotId, _) ->
-            visit expr (fun links ->
-                continuation
-                    [ yield! links
-                      yield LinkExpr.Dot rangeOfDot
-                      yield! mkLinksFromSynLongIdent longDotId ])
+    | SynExpr.DotIndexedGet(objectExpr, indexArgs, dotRange, _) ->
+        visitChainLinks objectExpr (fun leftLinks ->
+            continuation
+                [ yield! leftLinks
+                  yield LinkExpr.Dot dotRange
+                  yield LinkExpr.IndexExpr indexArgs ])
 
-        | SynExpr.App(isInfix = false; funcExpr = funcExpr; argExpr = UnitExpr mUnit) ->
-            mkLinksFromFunctionName (fun e -> LinkExpr.AppUnit(e, mUnit)) funcExpr
-            |> continuation
+    | other -> continuation [ LinkExpr.Expr other ]
 
-        | SynExpr.App(isInfix = false; funcExpr = funcExpr; argExpr = ParenExpr(lpr, e, rpr, pr)) ->
-            mkLinksFromFunctionName (fun f -> LinkExpr.AppParen(f, lpr, e, rpr, pr)) funcExpr
-            |> continuation
+/// Convert a LinkExpr list (produced by visitChainLinks) into an ExprChain.
+/// mkTerminal maps a ChainCall to the appropriate ChainTerminal case —
+/// use ChainTerminal.SpaceAllowed for regular chains, ChainTerminal.NoSpaceAllowed wherever the chain
+/// must stay atomic: DotLambda bodies and the positions handled by `mkAtomicExpr`.
+///
+/// This is the ONLY place an ExprChain with segments is built, so it is also the only place
+/// that has to uphold the chain invariant: **the head contains no dotted content**. Every dot
+/// in the source becomes a ChainSegment, so a receiver like `List.map` is split into
+/// `head = List` plus `DotMember(., map)` rather than being kept as one opaque LongIdent.
+/// The CodePrinter relies on this — it decides where to break by counting segments, and a
+/// dot hidden inside the head would be invisible to that count.
+let mkChainFromLinks
+    (creationAide: CreationAide)
+    (links: LinkExpr list)
+    (mkTerminal: ChainCall -> ChainTerminal)
+    (range: range)
+    : Expr =
 
-        | SynExpr.App(ExprAtomicFlag.Atomic,
-                      false,
-                      (SynExpr.LongIdent _ as funcExpr),
-                      (SynExpr.ArrayOrList _ as argExpr),
-                      _) ->
-            visit funcExpr (fun leftLinks ->
-                let app =
-                    match List.tryLast leftLinks with
-                    | Some(LinkExpr.Identifier identifier) ->
-                        [ SynExpr.App(
-                              ExprAtomicFlag.Atomic,
-                              false,
-                              identifier,
-                              argExpr,
-                              unionRanges identifier.Range argExpr.Range
-                          )
-                          |> LinkExpr.Expr ]
-                    | _ -> []
+    // The first link is the receiver; everything after it is dotted content. Because
+    // visitChainLinks has already peeled every dot out into its own `Dot` link, whatever
+    // lands here is dot-free: a plain receiver becomes the head directly, while a call
+    // receiver is wrapped in a zero-segment chain (see the AppUnit / AppParen arms below).
+    let head, rest =
+        match links with
+        | LinkExpr.Identifier e :: rest -> mkExpr creationAide e, rest
+        | LinkExpr.Expr e :: rest -> mkExpr creationAide e, rest
+        | LinkExpr.AppUnit(f, mUnit) :: rest ->
+            // A function call like X() is the receiver of a dotted chain (e.g. X().Y).
+            // Use NoSpaceAllowed so the head always prints tight — a space before () would
+            // change the parse (X ().Y parses as X (().Y), not (X ()).Y).
+            // The result is a chain with ZERO segments: it exists only to pair a callee with
+            // its argument under a terminal that forbids the space.
+            let headChain =
+                ExprChain(
+                    mkExpr creationAide f,
+                    [],
+                    ChainTerminal.NoSpaceAllowed(ChainCall.Unit(mkUnit mUnit)),
+                    unionRanges f.Range mUnit
+                )
 
-                let leftLinks = List.cutOffLast leftLinks
-                continuation [ yield! leftLinks; yield! app ])
+            Expr.Chain headChain, rest
+        | LinkExpr.AppParen(f, lpr, e, rpr, pr) :: rest ->
+            // Similarly, X(args) as the chain receiver must be tight.
+            let headChain =
+                ExprChain(
+                    mkExpr creationAide f,
+                    [],
+                    ChainTerminal.NoSpaceAllowed(ChainCall.Paren(mkParenExpr creationAide lpr e rpr pr)),
+                    unionRanges f.Range pr
+                )
 
-        | SynExpr.TypeApp _ as typeApp -> mkLinksFromFunctionName LinkExpr.Identifier typeApp |> continuation
+            Expr.Chain headChain, rest
+        | other -> invariantViolation range "chain head is %A, which is not a receiver the model allows" other
 
-        | SynExpr.LongIdent(longDotId = sli) -> continuation (mkLinksFromSynLongIdent sli)
+    // Expected input: the links *after* the head, which `visitChainLinks` always emits as a
+    // repeating `Dot` + one content link (`Identifier` / `AppUnit` / `AppParen` / `IndexExpr` /
+    // `Expr`). Two dots never follow each other and two content links never sit adjacent — a
+    // dot always introduces exactly one thing. `processLinks` consumes that pairing two links
+    // at a time; the two-element arms come first because the *last* pair is what decides the
+    // terminal, and only there may a call negotiate a space before its `(`.
+    //
+    // A malformed list (e.g. `[Identifier; Identifier]`, no dot between them) means
+    // `visitChainLinks` produced something this function does not model, so it fails loudly
+    // rather than silently dropping links.
+    let rec processLinks (remainingLinks: LinkExpr list) : ChainSegment list * ChainTerminal =
+        match remainingLinks with
+        // Unreachable: every chain has at least one dot, and the recursion below always stops
+        // at one of the two-element arms, so an empty remainder is never passed in.
+        | [] -> invariantViolation range "a chain was built with no dotted content at all"
 
-        | SynExpr.Ident _ -> continuation [ LinkExpr.Identifier e ]
+        | [ LinkExpr.Dot mDot; LinkExpr.Identifier f ] ->
+            [ ChainSegment.DotMember(stn "." mDot, mkExpr creationAide f) ], ChainTerminal.NoTerminal
 
-        | SynExpr.DotIndexedGet(objectExpr, indexArgs, dotRange, _) ->
-            visit objectExpr (fun leftLinks ->
-                continuation
-                    [ yield! leftLinks
-                      yield LinkExpr.Dot dotRange
-                      yield LinkExpr.IndexExpr indexArgs ])
+        | [ LinkExpr.Dot mDot; LinkExpr.AppUnit(f, mUnit) ] ->
+            [ ChainSegment.DotMember(stn "." mDot, mkExpr creationAide f) ], mkTerminal (ChainCall.Unit(mkUnit mUnit))
 
-        | other -> continuation [ LinkExpr.Expr other ]
+        | [ LinkExpr.Dot mDot; LinkExpr.AppParen(f, lpr, e, rpr, pr) ] ->
+            [ ChainSegment.DotMember(stn "." mDot, mkExpr creationAide f) ],
+            mkTerminal (ChainCall.Paren(mkParenExpr creationAide lpr e rpr pr))
 
+        | [ LinkExpr.Dot mDot; LinkExpr.IndexExpr idx ] ->
+            [ ChainSegment.DotIndex(stn "." mDot, mkExpr creationAide idx) ], ChainTerminal.NoTerminal
+
+        // A chain ending in an opaque expression. Reached when a dot-lambda body is an indexed
+        // member access (`_.Values[0]`): the `[0]` has no dot of its own, so `Values[0]` arrives
+        // as a single `Expr` link. There is no call to negotiate, hence no terminal.
+        | [ LinkExpr.Dot mDot; LinkExpr.Expr e ] ->
+            [ ChainSegment.DotMember(stn "." mDot, mkExpr creationAide e) ], ChainTerminal.NoTerminal
+
+        | LinkExpr.Dot mDot :: LinkExpr.AppUnit(f, mUnit) :: rest ->
+            let seg =
+                ChainSegment.DotApplication(stn "." mDot, mkExpr creationAide f, ChainCall.Unit(mkUnit mUnit))
+
+            let segs, terminal = processLinks rest
+            seg :: segs, terminal
+
+        | LinkExpr.Dot mDot :: LinkExpr.AppParen(f, lpr, e, rpr, pr) :: rest ->
+            let seg =
+                ChainSegment.DotApplication(
+                    stn "." mDot,
+                    mkExpr creationAide f,
+                    ChainCall.Paren(mkParenExpr creationAide lpr e rpr pr)
+                )
+
+            let segs, terminal = processLinks rest
+            seg :: segs, terminal
+
+        | LinkExpr.Dot mDot :: LinkExpr.Identifier f :: rest ->
+            let seg = ChainSegment.DotMember(stn "." mDot, mkExpr creationAide f)
+            let segs, terminal = processLinks rest
+            seg :: segs, terminal
+
+        | LinkExpr.Dot mDot :: LinkExpr.IndexExpr idx :: rest ->
+            let seg = ChainSegment.DotIndex(stn "." mDot, mkExpr creationAide idx)
+            let segs, terminal = processLinks rest
+            seg :: segs, terminal
+
+        | LinkExpr.Dot mDot :: LinkExpr.Expr e :: rest ->
+            let seg = ChainSegment.DotMember(stn "." mDot, mkExpr creationAide e)
+            let segs, terminal = processLinks rest
+            seg :: segs, terminal
+
+        | other ->
+            invariantViolation
+                range
+                "unexpected link pattern in chain.\nExpected a `Dot` followed by exactly one content link, but got:\n%A\nFull link list for this chain:\n%A"
+                other
+                links
+
+    let segments, terminal = processLinks rest
+    ExprChain(head, segments, terminal, range) |> Expr.Chain
+
+[<return: Struct>]
+let (|DottedLongIdent|_|) (sli: SynLongIdent) =
+    match sli.IdentsWithTrivia with
+    | _ :: _ :: _ when sli.Dots.Length > 0 -> ValueSome()
+    | _ -> ValueNone
+
+/// A function expression that carries dotted content, so the application around it is a chain.
+[<return: Struct>]
+let (|DottedFunctionExpr|_|) (e: SynExpr) : unit voption =
     match e with
-    // An identifier only application with a parenthesis lambda expression.
-    // ex: `List.map (fun n -> n)` or `MailboxProcessor<string>.Start (fun n -> n)
-    // Because the identifier is not complex we don't consider it a chain.
+    | SynExpr.LongIdent(isOptional = false; longDotId = DottedLongIdent)
+    | SynExpr.DotGet _
+    | SynExpr.TypeApp(expr = SynExpr.DotGet _) -> ValueSome()
+    | _ -> ValueNone
+
+[<return: Struct>]
+let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list voption =
+    match e with
+    // A plain LongIdent with dots (e.g. `a.b.c`) is a chain of property accesses.
+    // An *optional* one (`?a.b`) is not: the `?` belongs to the whole path and the chain
+    // links would drop it, so leave it as a single (OptVar) expression.
+    | SynExpr.LongIdent(isOptional = false; longDotId = DottedLongIdent) -> ValueSome(visitChainLinks e id)
+    // An App(LongIdent, Paren _ | Unit) where the LongIdent has dots (e.g. `path.Replace("x","y")`)
+    // is a chain with a terminal call. `ParenExpr _` is deliberately unrestricted, so this also
+    // covers a paren carrying a lambda (`List.map (fun x -> x+1)`) — the lambda is just another
+    // argument shape and needs no arm of its own.
+    | SynExpr.App(
+        isInfix = false; funcExpr = SynExpr.LongIdent(longDotId = DottedLongIdent); argExpr = (ParenExpr _ | UnitExpr _)) ->
+        ValueSome(visitChainLinks e id)
+    // An application with a paren lambda and a dot-less function expression (e.g. `map (fun n -> n)`)
+    // is NOT considered a chain: there is nothing to chain. The dotted `List.map (fun n -> n)`
+    // never reaches here — the arm above already claimed it.
+    // The one dotted shape that does land here is `DotGet(TypeApp(Ident))`
+    // (`MailboxProcessor<string>.Start (fun ...)`): it deliberately stays an `AppWithLambda`
+    // rather than becoming a chain, so it keeps the space before its argument.
     | SynExpr.App(
         isInfix = false
         funcExpr = SynExpr.LongIdent _ | SynExpr.Ident _ | SynExpr.DotGet(expr = SynExpr.TypeApp(expr = SynExpr.Ident _))
@@ -977,14 +1167,17 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list voption =
         argExpr = UnitExpr _ | ParenExpr _)
     | SynExpr.DotGet _
     | SynExpr.TypeApp(expr = SynExpr.DotGet _)
-    | SynExpr.DotIndexedGet(objectExpr = SynExpr.App(funcExpr = SynExpr.DotGet _) | SynExpr.DotGet _) ->
-        ValueSome(visit e id)
+    | SynExpr.DotIndexedGet _ -> ValueSome(visitChainLinks e id)
     | _ -> ValueNone
 
 [<return: Struct>]
+// A dotted function expression (`a.Foo(x, y)`) belongs to `ChainExpr`, and this pattern
+// declines it here rather than relying on `mkExpr` trying `ChainExpr` first. The result is
+// the same either way, but the pattern then holds on its own instead of depending on where
+// it is used.
 let (|AppSingleParenArg|_|) =
     function
-    | App(SynExpr.DotGet _, [ (SynExpr.Paren(expr = SynExpr.Tuple _)) ]) -> ValueNone
+    | App(DottedFunctionExpr, _) -> ValueNone
     | App(e, [ UnitExpr _ as px ]) -> ValueSome(e, px)
     | App(e, [ SynExpr.Paren(expr = singleExpr) as px ]) ->
         match singleExpr with
@@ -995,6 +1188,28 @@ let (|AppSingleParenArg|_|) =
 
 let mkParenExpr creationAide lpr e rpr m =
     ExprParenNode(stn "(" lpr, mkExpr creationAide e, stn ")" rpr, m)
+
+/// Build `expr` for a position where it has to stay one indivisible unit, because something
+/// binds directly to it with no whitespace allowed in between:
+///
+///   * a prefix operator in front of it   — `-x.Foo(a)`
+///   * an index behind it                 — `x.Foo()[0]`, `x.Foo().[0] <- v`
+///   * a `?member` behind it              — `x.Foo()?Bar`, `x?a()?b()`
+///
+/// The F# parser calls such an expression *atomic*, and it only stays atomic while its final
+/// call is written tight: `x.Foo()[0]` parses the call as `App(Atomic, ...)`, whereas
+/// `x.Foo ()[0]` parses it as `App(NonAtomic, ...)` and the index no longer binds to the call.
+///
+/// The one thing that could introduce that space is a `SpaceBefore*Invocation` setting acting
+/// on a chain's final call, so a chain built here is marked `NoSpaceAllowed`. Every other
+/// expression is already indivisible and is built normally.
+///
+/// Note this does not *make* an expression atomic (it adds no parentheses); it only avoids the
+/// one formatting choice that would stop it being atomic.
+let mkAtomicExpr (creationAide: CreationAide) (expr: SynExpr) : Expr =
+    match expr with
+    | ChainExpr links -> mkChainFromLinks creationAide links ChainTerminal.NoSpaceAllowed expr.Range
+    | _ -> mkExpr creationAide expr
 
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
@@ -1062,7 +1277,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let mTuple =
             match List.tryHead exprs, List.tryLast exprs with
             | Some e1, Some e2 -> unionRanges e1.Range e2.Range
-            | _ -> failwith "SynExpr.Tuple with no elements"
+            | _ -> invariantViolation exprRange "a struct tuple expression has no elements"
 
         ExprStructTupleNode(stn "struct" mStruct, mkTuple creationAide exprs commas mTuple, stn ")" mClosing, exprRange)
         |> Expr.StructTuple
@@ -1088,7 +1303,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                 | _ -> None)
 
         match baseInfo, copyInfo with
-        | Some _, Some _ -> failwith "Unexpected that both baseInfo and copyInfo are present in SynExpr.Record"
+        | Some _, Some _ ->
+            invariantViolation exprRange "a record expression has both an inherit and a copy-from source"
         | Some(t, e, m, _, mInherit), None ->
             let inheritCtor = mkInheritConstructor creationAide t e mInherit m
 
@@ -1304,10 +1520,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
                 ExprDynamicChainItemNode(memberExpr', parenArg', itemRange))
 
-        ExprDynamicChainNode(mkExpr creationAide leading, chainItems, exprRange)
+        ExprDynamicChainNode(mkAtomicExpr creationAide leading, chainItems, exprRange)
         |> Expr.DynamicChain
     | SynExpr.Dynamic(funcExpr, _, argExpr, _) ->
-        ExprDynamicNode(mkExpr creationAide funcExpr, mkExpr creationAide argExpr, exprRange)
+        ExprDynamicNode(mkAtomicExpr creationAide funcExpr, mkExpr creationAide argExpr, exprRange)
         |> Expr.Dynamic
     | SynExpr.App(_,
                   false,
@@ -1321,7 +1537,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             PrettyNaming.ConvertValLogicalNameToDisplayNameCore ident.idText
         )
         ->
-        ExprPrefixAppNode(stn operatorName ident.idRange, mkExpr creationAide e2, exprRange)
+        // A prefix operator needs an atomic operand (`!-foo.bar(x)`), so a chain argument keeps
+        // its final call tight regardless of the space-before-invocation settings.
+        ExprPrefixAppNode(stn operatorName ident.idRange, mkAtomicExpr creationAide e2, exprRange)
         |> Expr.PrefixApp
 
     | NewlineInfixApps(head, xs)
@@ -1337,7 +1555,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.InfixApp
 
     | IndexWithoutDot(identifierExpr, indexExpr) ->
-        ExprIndexWithoutDotNode(mkExpr creationAide identifierExpr, mkExpr creationAide indexExpr, exprRange)
+        ExprIndexWithoutDotNode(mkAtomicExpr creationAide identifierExpr, mkExpr creationAide indexExpr, exprRange)
         |> Expr.IndexWithoutDot
 
     | EmptyComputationExpr(expr, mOpen, mClose, m) ->
@@ -1350,31 +1568,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         )
         |> Expr.NamedComputation
 
-    | ChainExpr links ->
-        let chainLinks =
-            links
-            |> List.map (function
-                | LinkExpr.Identifier identifierExpr -> mkExpr creationAide identifierExpr |> ChainLink.Identifier
-                | LinkExpr.Dot mDot -> stn "." mDot |> ChainLink.Dot
-                | LinkExpr.Expr e -> mkExpr creationAide e |> ChainLink.Expr
-                | LinkExpr.AppUnit(f, mUnit) ->
-                    LinkSingleAppUnit(mkExpr creationAide f, mkUnit mUnit, unionRanges f.Range mUnit)
-                    |> ChainLink.AppUnit
-                | LinkExpr.AppParen(f, lpr, e, rpr, pr) ->
-                    LinkSingleAppParen(
-                        mkExpr creationAide f,
-                        mkParenExpr creationAide lpr e rpr pr,
-                        unionRanges f.Range pr
-                    )
-                    |> ChainLink.AppParen
-                | LinkExpr.IndexExpr e -> mkExpr creationAide e |> ChainLink.IndexExpr
-                | link -> failwithf "cannot map %A" link)
+    | ChainExpr links -> mkChainFromLinks creationAide links ChainTerminal.SpaceAllowed exprRange
 
-        ExprChain(chainLinks, exprRange) |> Expr.Chain
-
-    | AppSingleParenArg(SynExpr.LongIdent(longDotId = longDotId), px) ->
-        ExprAppLongIdentAndSingleParenArgNode(mkSynLongIdent creationAide longDotId, mkExpr creationAide px, exprRange)
-        |> Expr.AppLongIdentAndSingleParenArg
     | AppSingleParenArg(e, px) ->
         ExprAppSingleParenArgNode(mkExpr creationAide e, mkExpr creationAide px, exprRange)
         |> Expr.AppSingleParenArg
@@ -1531,13 +1726,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.LongIdentSet(synLongIdent, e, _) ->
         ExprLongIdentSetNode(mkSynLongIdent creationAide synLongIdent, mkExpr creationAide e, exprRange)
         |> Expr.LongIdentSet
-    | SynExpr.DotIndexedGet(objectExpr, indexArgs, _, _) ->
-        ExprDotIndexedGetNode(mkExpr creationAide objectExpr, mkExpr creationAide indexArgs, exprRange)
-        |> Expr.DotIndexedGet
-
     | SynExpr.DotIndexedSet(objectExpr, indexExpr, valueExpr, _, _, _) ->
         ExprDotIndexedSetNode(
-            mkExpr creationAide objectExpr,
+            mkAtomicExpr creationAide objectExpr,
             mkExpr creationAide indexExpr,
             mkExpr creationAide valueExpr,
             exprRange
@@ -1693,9 +1884,16 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         expr = e
         trivia = { DotRange = mDot
                    UnderscoreRange = mUnderscore }) ->
-        ExprDotLambda(stn "_" mUnderscore, stn "." mDot, mkExpr creationAide e, exprRange)
-        |> Expr.DotLambda
-    | _ -> failwithf "todo for %A" e
+        // Build the chain with `_` as head and the body links as segments.
+        // Terminal uses NoSpaceAllowed — the F# compiler requires DotLambda bodies to be atomic.
+        let bodyLinks = visitChainLinks e id
+        let underscore = SynExpr.Ident(Ident("_", mUnderscore))
+
+        let allLinks =
+            [ LinkExpr.Identifier underscore; LinkExpr.Dot mDot; yield! bodyLinks ]
+
+        mkChainFromLinks creationAide allLinks ChainTerminal.NoSpaceAllowed exprRange
+    | _ -> invariantViolation exprRange "no Oak node is defined for this expression: %A" e
 
 let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
     let startToken, endToken =
@@ -1729,11 +1927,12 @@ let mkUnit (StartEndRange 1 (lpr, m, rpr)) = UnitNode(stn "(" lpr, stn ")" rpr, 
 
 let mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range list) (m: range) =
     match pats with
-    | [] -> failwith "SynPat.Tuple with no elements"
+    | [] -> invariantViolation m "a tuple pattern has no elements"
     | head :: tail ->
         let rest =
             if tail.Length <> commas.Length then
-                failwith
+                invariantViolation
+                    m
                     $"Number of elements in tail of tuple (%i{tail.Length}) was not equal to number of commas (%i{commas.Length}), at range %O{m}."
 
             List.zip commas tail
@@ -1852,7 +2051,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         |> Pattern.IsInst
     | SynPat.QuoteExpr(SynExpr.Quote(_, isRaw, e, _, _), _) ->
         mkExprQuote creationAide isRaw e patternRange |> Pattern.QuoteExpr
-    | pat -> failwith $"unexpected pattern: %A{pat}"
+    | pat -> invariantViolation pat.Range $"no Oak node is defined for this pattern: %A{pat}"
 
 let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
     Option.bind
@@ -1911,7 +2110,7 @@ let mkBinding
         let equalsRange =
             match trivia.EqualsRange with
             | Some r -> r
-            | None -> failwith $"failed to get equals range in %s{nameof mkBinding}"
+            | None -> invariantViolation pat.Range $"failed to get equals range in %s{nameof mkBinding}"
 
         stn "=" equalsRange
 
@@ -1975,11 +2174,11 @@ let mkExternBinding
     let externNode =
         match trivia.LeadingKeyword with
         | SynLeadingKeyword.Extern mExtern -> stn "extern" mExtern
-        | _ -> failwith "Leading keyword should be extern"
+        | _ -> invariantViolation range "an extern binding has a leading keyword other than `extern`"
 
     let attributesOfReturnType, returnType =
         match returnInfo with
-        | None -> failwith "return info in extern binding should be present"
+        | None -> invariantViolation range "an extern binding has no return type"
         | Some(SynBindingReturnInfo(typeName = t; attributes = a)) ->
             let attrs = mkAttributes creationAide a
 
@@ -2051,7 +2250,7 @@ let mkExternBinding
             longDotId = longDotId
             argPats = SynArgPats.Pats [ SynPat.Tuple(_, ps, _, StartEndRange 1 (mOpen, _, mClose)) ]) ->
             mkSynLongIdent creationAide longDotId, stn "(" mOpen, List.map mkExternPat ps, stn ")" mClose
-        | _ -> failwith "expecting a SynPat.LongIdent for extern binding"
+        | _ -> invariantViolation pat.Range "an extern binding has a head pattern that is not a long identifier"
 
     ExternBindingNode(
         mkXmlDoc xmlDoc,
@@ -2122,7 +2321,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             declRange
         )
         |> ModuleDecl.NestedModule
-    | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
+    | decl -> invariantViolation decl.Range $"no Oak node is defined for this module declaration: %A{decl}"
 
 let mkSynTyparDecl
     (creationAide: CreationAide)
@@ -2135,7 +2334,9 @@ let mkSynTyparDecl
 
     let intersectionConstraintNodes =
         if intersectionConstraints.Length <> trivia.AmpersandRanges.Length then
-            failwith "Unexpected mismatch in SynTyparDecl between intersectionConstraints and AmpersandRanges"
+            invariantViolation
+                typar.Range
+                "a typar declaration has a different number of intersection constraints than ampersands"
         else
             (trivia.AmpersandRanges, intersectionConstraints)
             ||> List.zip
@@ -2201,7 +2402,8 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
         | SynRationalConst.Paren(innerRc, _) -> visit innerRc
         | SynRationalConst.Negate(innerRc, range) ->
             RationalConstNode.Negate(NegateRationalNode(stn "-" range.StartRange, visit innerRc, range))
-        | SynRationalConst.Rational _ -> failwith "SynRationalConst.Rational not wrapped in SynRationalConst.Paren"
+        | SynRationalConst.Rational(range = m) ->
+            invariantViolation m "a rational constant is not wrapped in parentheses"
 
     visit rc
 
@@ -2399,7 +2601,8 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
                     Type.Var(mkSynTypar typar), ts
                 | None ->
                     match ts with
-                    | [] -> failwith "SynType.Intersection does not contain typar or any intersectionConstraints"
+                    | [] ->
+                        invariantViolation t.Range "a type intersection contains neither a typar nor any constraints"
                     | head :: tail -> mkType creationAide head, tail
 
             assert (ts.Length = trivia.AmpersandRanges.Length)
@@ -2416,7 +2619,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         let nullType = stn "null" mNull |> Type.Var
 
         TypeOrNode(mkType creationAide innerType, stn "|" mBar, nullType, m) |> Type.Or
-    | t -> failwith $"unexpected type: %A{t}"
+    | t -> invariantViolation t.Range $"no Oak node is defined for this type: %A{t}"
 
 [<TailCall>]
 let rec visitOpenL acc decls =
@@ -2490,7 +2693,7 @@ let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
     | SynLeadingKeyword.Val valRange -> mtn [ "val", valRange ]
     | SynLeadingKeyword.New newRange -> mtn [ "new", newRange ]
     | SynLeadingKeyword.Do doRange -> mtn [ "do", doRange ]
-    | SynLeadingKeyword.Synthetic -> failwith "Unexpected SynLeadingKeyword.Synthetic"
+    | SynLeadingKeyword.Synthetic -> invariantViolation lk.Range "a synthetic leading keyword reached the transformer"
 
 let mkSynField
     (creationAide: CreationAide)
@@ -2594,7 +2797,8 @@ let mkTypeDefn
                 | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
                 | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
                 | SynTypeDefnLeadingKeyword.StaticType _
-                | SynTypeDefnLeadingKeyword.Synthetic -> failwithf "unexpected %A" trivia.LeadingKeyword
+                | SynTypeDefnLeadingKeyword.Synthetic ->
+                    invariantViolation range "unexpected leading keyword %A" trivia.LeadingKeyword
 
             let implicitConstructorNode =
                 match implicitConstructor with
@@ -2695,7 +2899,7 @@ let mkTypeDefn
             | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
             | SynTypeDefnKind.Interface, StartRange 9 (mInterface, _) -> stn "interface" mInterface
             | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
-            | _ -> failwith "unexpected kind"
+            | _ -> invariantViolation range "unexpected type definition kind"
 
         let objectMembers =
             objectMembers
@@ -2752,7 +2956,7 @@ let mkTypeDefn
             [ yield! objectMembers; yield! members ]
 
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
-    | _ -> failwithf $"Could not create a TypeDefn for %A{typeRepr}"
+    | _ -> invariantViolation range $"no Oak node is defined for this type definition: %A{typeRepr}"
 
 let mkWithGetSet
     (withKeyword: range option)
@@ -2844,7 +3048,10 @@ let mkPropertyGetSetBinding
 
                 [ tuplePat
                   match List.tryLast ps with
-                  | None -> failwith ""
+                  | None ->
+                      invariantViolation
+                          binding.RangeOfBindingWithRhs
+                          "an indexed property setter has no indexer pattern"
                   | Some indexerPat -> mkPat creationAide indexerPat ]
             | [ SynPat.Tuple(false, [ p1; p2 ], _, _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
             | ps -> List.map (mkPat creationAide) ps
@@ -2862,7 +3069,10 @@ let mkPropertyGetSetBinding
             mkExpr creationAide e,
             range
         )
-    | _ -> failwith "SynBinding does not expected information for PropertyGetSetBinding"
+    | _ ->
+        invariantViolation
+            binding.RangeOfBindingWithRhs
+            "a property get/set binding is missing the information the printer needs"
 
 let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     let memberDefinitionRange = md.Range
@@ -2937,7 +3147,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                 memberDefinitionRange
             )
             |> MemberDefn.Inherit
-        | None -> failwith "successful parse shouldn't have any unfinished inherit"
+        | None -> invariantViolation md.Range "a successful parse produced an unfinished inherit member"
     | SynMemberDefn.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
     | SynMemberDefn.LetBindings(
         bindings = [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) as binding ]) ->
@@ -3174,8 +3384,8 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                 memberDefinitionRange
             )
             |> MemberDefn.PropertyGetSet
-        | _ -> failwith "SynMemberDefn.GetSetMember cannot exist with get and without set"
-    | _ -> failwithf "Unexpected SynMemberDefn: %A" md
+        | _ -> invariantViolation md.Range "a get/set member has a getter but no setter"
+    | _ -> invariantViolation md.Range "no Oak node is defined for this member definition: %A" md
 
 let mkVal
     (creationAide: CreationAide)
@@ -3223,7 +3433,7 @@ let mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
         MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide t, memberSigRange)
         |> MemberDefn.Inherit
     | SynMemberSig.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
-    | _ -> failwithf "Cannot construct node for %A" ms
+    | _ -> invariantViolation ms.Range "no Oak node is defined for this member signature: %A" ms
 
 [<TailCall>]
 let rec mkModuleDecls
@@ -3419,7 +3629,7 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
         )
         |> ModuleDecl.NestedModule
     | SynModuleSigDecl.Val(valSig, _) -> mkVal creationAide valSig |> ModuleDecl.Val
-    | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
+    | decl -> invariantViolation decl.Range $"no Oak node is defined for this signature declaration: %A{decl}"
 
 let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRepr, members, range, trivia)) : TypeDefn =
     let typeNameNode =
@@ -3433,7 +3643,8 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
                 | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
                 | SynTypeDefnLeadingKeyword.StaticType _
-                | SynTypeDefnLeadingKeyword.Synthetic -> failwithf "unexpected %A" trivia.LeadingKeyword
+                | SynTypeDefnLeadingKeyword.Synthetic ->
+                    invariantViolation range "unexpected leading keyword %A" trivia.LeadingKeyword
 
             let m =
                 if not px.IsEmpty then
@@ -3533,7 +3744,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
             | SynTypeDefnKind.Interface, StartRange 9 (mInterface, _) -> stn "interface" mInterface
             | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
-            | _ -> failwith "unexpected kind"
+            | _ -> invariantViolation range "unexpected type definition kind"
 
         let objectMembers = objectMembers |> List.map (mkMemberSig creationAide)
 
@@ -3579,7 +3790,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             [ yield! objectMembers; yield! members ]
 
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
-    | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
+    | _ -> invariantViolation range "no Oak node is defined for this type definition: %A" typeRepr
 
 [<TailCall>]
 let rec mkModuleSigDecls

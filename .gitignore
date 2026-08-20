@@ -207,5 +207,7 @@ tests/.repositories/**
 # LLM stuff
 .claude/settings.local.json
 
-# altcover
+# Coverage reports (see the Coverage pipeline in build.fsx)
+coverage.xml
 coveragereport/
+coverage.xml.*.acv

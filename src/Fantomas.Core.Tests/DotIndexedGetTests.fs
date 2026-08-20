@@ -20,11 +20,13 @@ foo.Bar(
     |> should
         equal
         """
-foo.Bar(
-    ziggy,
-    jiggy,
-    "looooooooooooooooooooooooooooooooonStringValue"
-).[5]
+foo
+    .Bar(
+        ziggy,
+        jiggy,
+        "looooooooooooooooooooooooooooooooonStringValue"
+    )
+    .[5]
 """
 
 [<Test>]
@@ -38,14 +40,13 @@ myList.[7].SomeFunctionCallOnSeven("looooooooooooooooooooooooooooooooonnggggStri
     |> should
         equal
         """
-myList.[7]
-    .SomeFunctionCallOnSeven(
-        "looooooooooooooooooooooooooooooooonnggggStringArgument",
-        otherArg1,
-        otherArg2,
-        otherArg3,
-        otherArgument4
-    )
+myList.[7].SomeFunctionCallOnSeven(
+    "looooooooooooooooooooooooooooooooonnggggStringArgument",
+    otherArg1,
+    otherArg2,
+    otherArg3,
+    otherArgument4
+)
 """
 
 [<Test>]
@@ -59,14 +60,13 @@ myList.[7].lowerSomeFunctionCallOnSeven("looooooooooooooooooooooooooooooooonnggg
     |> should
         equal
         """
-myList.[7]
-    .lowerSomeFunctionCallOnSeven (
-        "looooooooooooooooooooooooooooooooonnggggStringArgument",
-        otherArg1,
-        otherArg2,
-        otherArg3,
-        otherArgument4
-    )
+myList.[7].lowerSomeFunctionCallOnSeven (
+    "looooooooooooooooooooooooooooooooonnggggStringArgument",
+    otherArg1,
+    otherArg2,
+    otherArg3,
+    otherArgument4
+)
 """
 
 [<Test>]

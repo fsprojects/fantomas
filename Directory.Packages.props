@@ -38,5 +38,6 @@
         <PackageVersion Include="System.IO.Abstractions.TestingHelpers" Version="22.1.1" />
         <PackageVersion Include="FsCheck" Version="3.3.2" />
         <PackageVersion Include="FsUnit" Version="7.1.1" />
+        <PackageVersion Include="AltCover" Version="9.0.102" />
     </ItemGroup>
 </Project>

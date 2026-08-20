@@ -153,3 +153,54 @@ Jest.expect(json)?oMatchSnapshot ()
         """
 Jest.expect(json)?oMatchSnapshot ()
 """
+
+// A lambda or match-lambda argument is NOT fused into the `?` chain: unlike a plain
+// argument (`obj?y?z (a)`, where the argument ends up inside the chain item), it stays a
+// normal application so the argument can use the ordinary multiline lambda layout.
+
+[<Test>]
+let ``dynamic operator with a lambda argument`` () =
+    formatSourceString
+        """
+let a = x?y (fun a -> a)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = x?y (fun a -> a)
+"""
+
+[<Test>]
+let ``dynamic operator with a match lambda argument`` () =
+    formatSourceString
+        """
+let b = x?y (function
+             | Some v -> v
+             | None -> 0)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let b =
+    x?y (function
+        | Some v -> v
+        | None -> 0)
+"""
+
+[<Test>]
+let ``dynamic chain with a lambda argument`` () =
+    formatSourceString
+        """
+let c = obj?y?z (fun a -> a)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let c = obj?y?z (fun a -> a)
+"""

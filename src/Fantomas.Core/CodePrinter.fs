@@ -35,7 +35,13 @@ let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
     | Type.Var node -> upperOrLower (node.Text.Substring(1))
     | Type.AppPostfix node -> (|UppercaseType|LowercaseType|) node.First
     | Type.AppPrefix node -> (|UppercaseType|LowercaseType|) node.Identifier
-    | _ -> failwithf $"Cannot determine if synType %A{t} is uppercase or lowercase"
+    | _ ->
+        raise (
+            InvariantViolationException(
+                $"cannot tell whether this type is uppercase or lowercase: %A{t}",
+                (Type.Node t).Range
+            )
+        )
 
 let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
     let upperOrLower (v: string) =
@@ -54,25 +60,35 @@ let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
     | Expr.Ident ident -> upperOrLower ident.Text
     | Expr.OptVar node -> lastFragmentInList node.Identifier
     | Expr.Chain node ->
-        match List.tryLast node.Links with
-        | None
-        | Some(ChainLink.Dot _) -> LowercaseExpr
-        | Some(ChainLink.Identifier e)
-        | Some(ChainLink.Expr e) -> (|UppercaseExpr|LowercaseExpr|) e
-        | Some(ChainLink.AppParen appParen) -> (|UppercaseExpr|LowercaseExpr|) appParen.FunctionName
-        | Some(ChainLink.AppUnit appUnit) -> (|UppercaseExpr|LowercaseExpr|) appUnit.FunctionName
-        // Questionable
-        | Some(ChainLink.IndexExpr _) -> LowercaseExpr
-    | Expr.DotIndexedGet node -> (|UppercaseExpr|LowercaseExpr|) node.ObjectExpr
+        // The casing that governs `SpaceBefore*Invocation` is the casing of the name the call
+        // is made on, which is always the LAST segment — `a.foo(x).Bar` is uppercase because of
+        // `Bar`, not `a` or `foo`. The terminal itself carries no name, so it does not take part.
+        //
+        // In practice only the DotMember arm is ever reached: a chain that has a terminal call
+        // always ends in a DotMember (the member being called), and the other shapes are either
+        // impossible or answered before we get here — a chain ending in an index is short-
+        // circuited by `chainEndsInIndex` in `sepSpaceBeforeParenInFuncInvocation`, and a
+        // zero-segment chain only ever exists as the head of another chain. They are kept so
+        // the active pattern stays total, and each returns the answer its shape deserves.
+        match List.tryLast node.Segments with
+        | Some(ChainSegment.DotMember(_, e))
+        | Some(ChainSegment.DotApplication(_, e, _)) -> (|UppercaseExpr|LowercaseExpr|) e
+        | Some(ChainSegment.DotIndex _) -> LowercaseExpr
+        | None -> (|UppercaseExpr|LowercaseExpr|) node.Head
     | Expr.TypeApp node -> (|UppercaseExpr|LowercaseExpr|) node.Identifier
     | Expr.Dynamic node -> (|UppercaseExpr|LowercaseExpr|) node.FuncExpr
     | Expr.DynamicChain node -> (|UppercaseExpr|LowercaseExpr|) node.LeadingExpr
-    | Expr.AppLongIdentAndSingleParenArg node -> lastFragmentInList node.FunctionName
     | Expr.AppSingleParenArg node -> (|UppercaseExpr|LowercaseExpr|) node.FunctionExpr
     | Expr.Paren node -> (|UppercaseExpr|LowercaseExpr|) node.Expr
     | Expr.App node -> (|UppercaseExpr|LowercaseExpr|) node.FunctionExpr
     | Expr.IndexWithoutDot node -> (|UppercaseExpr|LowercaseExpr|) node.Identifier
-    | _ -> failwithf "cannot determine if Expr %A is uppercase or lowercase" expr
+    | _ ->
+        raise (
+            InvariantViolationException(
+                $"cannot tell whether this expression is uppercase or lowercase: %A{expr}",
+                (Expr.Node expr).Range
+            )
+        )
 
 let (|ParenExpr|_|) (e: Expr) =
     match e with
@@ -409,6 +425,655 @@ let requiresMultilineToPreserveSemantics (exprs: Expr list) =
         exprs
         |> List.take (exprs.Length - 1) // skip the last item: it can't swallow anything to its right
         |> List.exists isOpenEndedExpression
+
+// Chain printing helpers
+
+/// A column in a chain's rendered output, counting from the left margin: where one of its
+/// lines starts, where a step would land, or the right margin the run has to stay inside.
+type ChainColumn = int
+
+/// How wide a single chain step renders, in characters.
+type ChainStepWidth = int
+
+/// What one chain step does to the line it lands on, as decided by `balanceNavigationRun`.
+[<RequireQualifiedAccess; Struct>]
+type ChainStepPlacement =
+    /// The step continues the line the step before it ended on.
+    | RidesOnCurrentLine
+    /// The step opens a fresh line, indented to the run's own column.
+    | OpensNewLine
+
+/// Layout for `(fun params -> body)`. Identical wherever the call sits: `MultiLineLambdaClosingNewline`
+/// decides where the closing `)` lands, exactly as it would for a call with no receiver.
+let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : Context -> Context =
+    // `startColumn` is remembered so the closing `)` can be indented back to it — important
+    // when the body ends at a shallow column (e.g. a verbatim string in column 0), where a `)`
+    // left there breaks the offside rule and produces invalid F#.
+    let genParenLambda (ctx: Context) : Context =
+        let startColumn: int = ctx.WriterModel.Indent
+
+        // The closing parenthesis takes a line of its own when the setting asks for it and the
+        // lambda spans several lines, which is the case the setting is about. Asking whether it
+        // did, rather than assuming it will, matters once the argument can move down: from its own
+        // line the lambda may well fit, and a `)` below a single line would be left dangling.
+        (leadingExpressionIsMultiline
+            (genSingleTextNode parenNode.OpeningParen +> genLambdaWithParen lambdaNode)
+            (fun isMultiline ->
+                ifElseCtx
+                    (fun ctx ->
+                        isMultiline
+                        && ctx.Config.MultiLineLambdaClosingNewline
+                        && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr))
+                    sepNln
+                    (sepNlnWhenWriteBeforeNewlineNotEmpty +> addFixedSpaces startColumn)
+                +> genSingleTextNode parenNode.ClosingParen))
+            ctx
+
+    // Move the whole lambda argument onto its own indented line when leaving it where it is
+    // would read badly:
+    //   * a single parameter that is itself multiline (a record pattern), or
+    //   * the opener does not fit. The opener is the parenthesis, `fun`, the parameters and the
+    //     arrow: everything that has to be written before the body can start.
+    //
+    //         items |> List.tryPick (fun (Interface(ty = t; keyword = k)) ->
+    //                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the opener
+    //
+    //     When that runs past the margin, the whole argument moves down a level:
+    //
+    //         items
+    //         |> List.tryPick
+    //             (fun (Interface(ty = t; keyword = k)) -> body)
+    //
+    //     The alternative is to leave `(fun` where it is and hang the parameters underneath it.
+    //     The F# style guide rejects that, because the column they hang from depends on the
+    //     length of the name in front of them:
+    //
+    //         items
+    //         |> List.tryPick (fun
+    //                              (Interface(ty = t; keyword = k)) -> body)
+    fun (ctx: Context) ->
+        let singleMultilineParameter: bool =
+            match lambdaNode.Parameters with
+            | [ singleParam ] -> fst (futureNlnCheckMem (genPat singleParam, ctx))
+            | _ -> false
+
+        let openerDoesNotFit: bool =
+            futureNlnCheck
+                (genSingleTextNode parenNode.OpeningParen
+                 +> genSingleTextNode lambdaNode.Fun
+                 +> sepSpace
+                 +> col sepSpace lambdaNode.Parameters genPat
+                 +> sepSpace
+                 +> genSingleTextNode lambdaNode.Arrow)
+                ctx
+
+        if singleMultilineParameter || openerDoesNotFit then
+            indentSepNlnUnindent genParenLambda ctx
+        else
+            genParenLambda ctx
+
+/// Layout for `(function | ... -> ...)`. Identical wherever the call sits in its chain:
+/// `MultiLineLambdaClosingNewline` decides whether `function` goes on its own line.
+let genMatchLambdaParenArg (parenNode: ExprParenNode) (matchLambdaNode: ExprMatchLambdaNode) : Context -> Context =
+    let keepFunctionWithParen: Context -> Context =
+        genSingleTextNode parenNode.OpeningParen
+        +> (genSingleTextNode matchLambdaNode.Function
+            +> indentSepNlnUnindent (genClauses matchLambdaNode.Clauses)
+            |> genNode matchLambdaNode)
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty
+        +> genSingleTextNode parenNode.ClosingParen
+
+    let breakAfterParen: Context -> Context =
+        genSingleTextNode parenNode.OpeningParen
+        +> indentSepNlnUnindent (
+            genSingleTextNode matchLambdaNode.Function
+            +> sepNln
+            +> genClauses matchLambdaNode.Clauses
+            |> genNode matchLambdaNode
+        )
+        +> sepNln
+        +> genSingleTextNode parenNode.ClosingParen
+
+    // Where the call sits in its chain has no say here: a match lambda is laid out the same way as
+    // a `fun` lambda, whether its call is the last step or the first. Neither has the line the
+    // author happened to start `function` on: the same call written two ways is one call, and
+    // formatting both has to land on the same answer.
+    ifElseCtx (fun ctx -> ctx.Config.MultiLineLambdaClosingNewline) breakAfterParen keepFunctionWithParen
+
+/// Multiline layout of a call's parenthesised argument `( ... )`, shared by intermediate calls
+/// (genSegment) and the terminal call (genTerminal). Where the call sits in its chain makes no
+/// difference: everything between `(` and `)` is laid out by the ordinary argument rules, and the
+/// chain only decides whether the call itself has to move down.
+let genMultilineParenArg (parenNode: ExprParenNode) : Context -> Context =
+    // How the argument breaks, once it is settled where the call starts. Whatever sits between
+    // the parentheses is the argument's business, so this is the ordinary layout for one.
+    let genByArgumentShape: Context -> Context =
+        match parenNode.Expr with
+        | Expr.Lambda lambdaNode -> genLambdaParenArg parenNode lambdaNode
+        | Expr.MatchLambda matchLambdaNode -> genMatchLambdaParenArg parenNode matchLambdaNode
+        | _ -> genMultilineFunctionApplicationArguments (Expr.Paren parenNode)
+
+    // The argument on its own indented lines, with the closing `)` back at the method's column.
+    let genArgumentBelow: Context -> Context =
+        genExpr parenNode.Expr
+        +> unindent
+        +> sepNlnUnlessLastEventIsNewline
+        +> genSingleTextNode parenNode.ClosingParen
+
+    // Trivia attached before the parenthesis or before the argument is decided ahead of the
+    // argument's shape, so this is an `if` rather than another match arm. Which of the two nodes
+    // carries the trivia is what decides where the `(` may sit.
+    if parenNode.HasContentBefore then
+        // The trivia sits between the member name and the `(`:
+        //
+        //     builder.UseUrls
+        //         // pick the endpoint
+        //         (url)
+        //
+        // The comment is written first and ends its line, so the `(` cannot follow `UseUrls`
+        // and drops to the indented line below.
+        //
+        // Only the last call of a chain can end up here. An earlier call keeps its `(` glued to
+        // the member name, because a gap there changes what the code means: `a.Foo(x).Bar()`
+        // calls `Foo` and then `Bar`, while `a.Foo (x).Bar()` passes `(x).Bar()` to `Foo`. A
+        // comment makes the same gap a line break would, so a call in the middle of a chain
+        // cannot carry one in front of its parenthesis and still be the same program.
+        //
+        // `genNode` writes the trivia on entering the node, so the indent has to be in place
+        // before then. Without it the comment lands back at the receiver's column and the
+        // `sepNln` behind it adds a blank line, one more on every format run.
+        //
+        // Only the position of the call moves. Whether the argument then has to break is asked
+        // of a copy of the parenthesis without the trivia, since the comment takes a line of its
+        // own either way and would otherwise answer the question by itself.
+        let parenWithoutTrivia: Expr =
+            mkExprParenNode parenNode.OpeningParen parenNode.Expr parenNode.ClosingParen parenNode.Range
+
+        indent
+        +> sepNln
+        +> ifElseCtx (futureNlnCheck (genExpr parenWithoutTrivia)) genByArgumentShape (genExpr (Expr.Paren parenNode))
+        +> unindent
+    elif (Expr.Node parenNode.Expr).HasContentBefore then
+        // The trivia sits between the `(` and the argument:
+        //
+        //     builder.UseUrls(
+        //         // the public endpoint
+        //         url
+        //     )
+        //
+        // It is written after the parenthesis, which leaves the parenthesis free to stay with
+        // the method name. Only the argument moves down, and it does so wherever the call sits
+        // in the chain, so an intermediate call is laid out no differently from a terminal one.
+        genSingleTextNode parenNode.OpeningParen +> indent +> sepNln +> genArgumentBelow
+        |> genNode parenNode
+    else
+        genByArgumentShape
+
+let genSegment (segment: ChainSegment) : Context -> Context =
+    match segment with
+    | ChainSegment.DotMember(dot, expr) -> genSingleTextNode dot +> genExpr expr
+    | ChainSegment.DotApplication(dot, expr, call) ->
+        genSingleTextNode dot
+        +> genExpr expr
+        +> match call with
+           | ChainCall.Unit u -> genUnit u
+           | ChainCall.Paren parenNode ->
+               // Intermediate paren calls are always tight — space would change the parse tree.
+               expressionFitsOnRestOfLine (genExpr (Expr.Paren parenNode)) (genMultilineParenArg parenNode)
+    | ChainSegment.DotIndex(dot, index) ->
+        // DotIndex (.[i]) is structurally like DotMember with no call: the dot is explicit
+        // for trivia, but the [ ] brackets are not part of the index expression and must
+        // be added here rather than delegated to genExpr.
+        genSingleTextNode dot +> sepOpenLFixed +> genExpr index +> sepCloseLFixed
+
+/// The opener of a step: the part that has to fit on the line before the step's arguments get
+/// any say. For navigation that is the whole step (`.Name`); for a call it stops at the `(`,
+/// because what sits between the parentheses is the argument's business, not the chain's.
+let genSegmentOpener (segment: ChainSegment) : Context -> Context =
+    match segment with
+    | ChainSegment.DotApplication(dot, expr, call) ->
+        genSingleTextNode dot
+        +> genExpr expr
+        +> match call with
+           | ChainCall.Unit u -> genUnit u
+           | ChainCall.Paren parenNode -> genSingleTextNode parenNode.OpeningParen
+    | ChainSegment.DotMember _
+    | ChainSegment.DotIndex _ -> genSegment segment
+
+/// The space a setting may ask for between the last member name and the terminal call's `(`.
+/// Only the final call of a chain is eligible; see the note on tightness in `Chains.md`.
+let genTerminalSpace (node: ExprChain) (call: ChainCall) : Context -> Context =
+    match node.Terminal with
+    | ChainTerminal.NoSpaceAllowed _ -> sepNone
+    | ChainTerminal.NoTerminal -> sepNone
+    | ChainTerminal.SpaceAllowed _ ->
+        match List.tryLast node.Segments with
+        | Some(ChainSegment.DotMember(_, funcExpr)) ->
+            match call with
+            | ChainCall.Unit u -> sepSpaceBeforeParenInFuncInvocation funcExpr (Expr.Constant(Constant.Unit u))
+            | ChainCall.Paren parenNode -> sepSpaceBeforeParenInFuncInvocation funcExpr (Expr.Paren parenNode)
+        | _ -> sepNone
+
+/// The opener of the terminal call — the `(` and any space in front of it. This is the least
+/// the navigation before it has to leave room for.
+let genTerminalOpener (node: ExprChain) : Context -> Context =
+    match node.Terminal with
+    | ChainTerminal.NoTerminal -> sepNone
+    | ChainTerminal.SpaceAllowed call
+    | ChainTerminal.NoSpaceAllowed call ->
+        genTerminalSpace node call
+        +> match call with
+           | ChainCall.Unit u -> genUnit u
+           | ChainCall.Paren parenNode -> genSingleTextNode parenNode.OpeningParen
+
+/// A whole step on one line: navigation, or a call with its arguments. Used to ask whether a
+/// wrap exists that would leave the call intact, so its arguments never have to break. This
+/// deliberately renders the one-line form rather than asking whether it fits *here*, because
+/// where "here" is, is exactly what the wrap is about to decide.
+let genSegmentOnOneLine (segment: ChainSegment) : Context -> Context =
+    match segment with
+    | ChainSegment.DotApplication(dot, expr, call) ->
+        genSingleTextNode dot
+        +> genExpr expr
+        +> match call with
+           | ChainCall.Unit u -> genUnit u
+           | ChainCall.Paren parenNode -> genExpr (Expr.Paren parenNode)
+    | ChainSegment.DotMember _
+    | ChainSegment.DotIndex _ -> genSegment segment
+
+/// The terminal call on one line, arguments included. The counterpart of `genTerminalOpener`.
+let genTerminalOnOneLine (node: ExprChain) : Context -> Context =
+    match node.Terminal with
+    | ChainTerminal.NoTerminal -> sepNone
+    | ChainTerminal.SpaceAllowed call
+    | ChainTerminal.NoSpaceAllowed call ->
+        genTerminalSpace node call
+        +> match call with
+           | ChainCall.Unit u -> genUnit u
+           | ChainCall.Paren parenNode -> genExpr (Expr.Paren parenNode)
+
+let genTerminal (node: ExprChain) : Context -> Context =
+    match node.Terminal with
+    | ChainTerminal.NoTerminal -> sepNone
+    | ChainTerminal.SpaceAllowed call
+    | ChainTerminal.NoSpaceAllowed call ->
+        let addSpace: Context -> Context = genTerminalSpace node call
+
+        match call with
+        | ChainCall.Unit u -> addSpace +> genUnit u
+        | ChainCall.Paren parenNode ->
+            let short: Context -> Context = addSpace +> genExpr (Expr.Paren parenNode)
+
+            let long: Context -> Context = addSpace +> genMultilineParenArg parenNode
+
+            expressionFitsOnRestOfLine short long
+
+/// Decide where a run of navigation steps breaks when it does not fit on one line.
+///
+/// `widths` holds the rendered width of each step, in order. The run starts at column
+/// `startColumn`, every line after the first starts at `indentColumn`, and no line should pass
+/// `maxColumn`. The result says, for each step, whether it opens a fresh line.
+///
+/// Filling greedily — take steps until the margin is reached, then break — leaves one line
+/// packed to the margin with a short remnant behind it. Instead we look for the narrowest
+/// margin that still fits the run in the same number of lines, and fill greedily against
+/// *that*. Squeezing the margin evens the lines out, it can never cost an extra line, and
+/// because the fill underneath is still greedy the earlier lines stay the longer ones.
+let balanceNavigationRun
+    (startColumn: ChainColumn)
+    (indentColumn: ChainColumn)
+    (maxColumn: ChainColumn)
+    (widths: ChainStepWidth list)
+    : ChainStepPlacement list =
+    // One placement per step, threading the column the next step would start at: a step that
+    // still fits rides on the current line, one that does not opens a fresh line at the run's
+    // indent.
+    let fillAt (margin: ChainColumn) : ChainStepPlacement list =
+        let placeNextStep (column: ChainColumn) (width: ChainStepWidth) : ChainStepPlacement * ChainColumn =
+            if column + width <= margin then
+                ChainStepPlacement.RidesOnCurrentLine, column + width
+            else
+                ChainStepPlacement.OpensNewLine, indentColumn + width
+
+        List.mapFold placeNextStep startColumn widths |> fst
+
+    let lineCount (placements: ChainStepPlacement list) : int =
+        let opensLine (placement: ChainStepPlacement) : bool =
+            placement = ChainStepPlacement.OpensNewLine
+
+        1 + List.length (List.filter opensLine placements)
+
+    // The fewest lines this run can take: whatever the real margin already achieves.
+    let fewestLines: int = lineCount (fillAt maxColumn)
+
+    // Narrow the margin as far as it will go without buying an extra line. A run only ever
+    // needs more lines as the margin shrinks, so a binary search finds the narrowest one.
+    let rec narrowest (low: ChainColumn) (high: ChainColumn) : ChainColumn =
+        if low >= high then
+            high
+        else
+            let middle: ChainColumn = (low + high) / 2
+
+            if lineCount (fillAt middle) <= fewestLines then
+                narrowest low middle
+            else
+                narrowest (middle + 1) high
+
+    fillAt (narrowest 0 maxColumn)
+
+let genChain (node: ExprChain) : Context -> Context =
+    // The receiver, every navigation step and the method name are rendered together in
+    // source order with no line breaks between them; only the terminal call's arguments may
+    // wrap (`genTerminal` breaks them like an ordinary `f(args)`). This same rendering
+    // doubles as the "does the whole chain fit on one line?" candidate — when it fits, it
+    // *is* the one-liner. (`Chains.md` calls this layout "keeping the chain together".)
+    let genChainKeptTogether: Context -> Context =
+        genExpr node.Head +> col sepNone node.Segments genSegment +> genTerminal node
+
+    // A segment is HEAVY — it earns its own line in a pipeline — when it is an
+    // intermediate call (`.Foo(x)`), or a member / index whose bracket payload is
+    // large enough to render on multiple lines (a long `.Cast<..>`, a big `.[expr]`).
+    // Everything else is light NAVIGATION (`.Name`, a short `.[0]`) and rides at the
+    // front of the next line instead of taking one of its own.
+    let isHeavy (segment: ChainSegment) (ctx: Context) : bool =
+        // Heavy only when the member's own bracket payload renders on multiple lines.
+        // We probe the payload alone (not the whole segment) so a comment attached to a
+        // plain `.Name` does not masquerade as a multiline type application, and so mere
+        // right-margin overflow does not count either.
+        let payloadIsMultiline (payload: Context -> Context) = fst (futureNlnCheckMem (payload, ctx))
+
+        match segment with
+        | ChainSegment.DotApplication _ -> true
+        | ChainSegment.DotMember(_, expr) ->
+            match expr with
+            | Expr.TypeApp _ -> payloadIsMultiline (genExpr expr)
+            | _ -> false
+        | ChainSegment.DotIndex(_, index) -> payloadIsMultiline (genExpr index)
+
+    // A `#if`/`#else` directive before a segment's dot pins that segment to its own line.
+    // Directly after the receiver this makes the navigation split from the call it would
+    // otherwise lead; deeper in the chain the segment already starts a fresh line, so the
+    // directive changes nothing and the following call still rides with it.
+    let segmentBeginsWithDirective (segment: ChainSegment) : bool =
+        let dot =
+            match segment with
+            | ChainSegment.DotMember(dot, _)
+            | ChainSegment.DotApplication(dot, _, _)
+            | ChainSegment.DotIndex(dot, _) -> dot
+
+        dot.ContentBefore
+        |> Seq.exists (fun trivia ->
+            match trivia.Content with
+            | TriviaContent.Directive _ -> true
+            | _ -> false)
+
+    let terminalIsCall: bool =
+        match node.Terminal with
+        | ChainTerminal.SpaceAllowed _
+        | ChainTerminal.NoSpaceAllowed _ -> true
+        | ChainTerminal.NoTerminal -> false
+
+    // Is the receiver a plain value, a bare identifier like `config`, `this` or the
+    // dot-lambda `_`? A dotted path never lands here: every dot became a segment, so the
+    // head of `config.Settings.GetValue(x)` is just `config`. Only a plain value may share
+    // its line with the navigation and method name of a single trailing call. A compound
+    // receiver (a call `Mock()`, a parenthesised expression `(x :> T)`, a generic
+    // `Animal<Id>`) is not eligible to be kept together and leads a pipeline instead.
+    let headIsSimple: bool =
+        match node.Head with
+        | Expr.Ident _
+        | Expr.OptVar _ -> true
+        | _ -> false
+
+    // Leading-dot pipeline: two or more actions, a chain that ends in navigation, a
+    // compound receiver, or a head plus navigation that does not fit on one line (see
+    // the branch on `headAndSegmentsFit` below). Walk the segments and place each one:
+    //   * every ACTION starts its own line, led by its dot;
+    //   * light NAVIGATION rides at the front of the line of the action it
+    //     introduces — or, directly after the receiver, on the receiver's line;
+    //   * a run of navigation too long for one line is balanced across several
+    //     (see `balanceNavigationRun`).
+    let genLeadingDotPipeline (ctx: Context) : Context =
+        // Width of a fragment as it would render right here. A fragment that takes lines of
+        // its own — a comment on the dot forces that — adds nothing to the line the run is
+        // filling, so it contributes no width rather than a meaningless one.
+        let widthOf (fragment: Context -> Context) (ctx: Context) : ChainStepWidth =
+            if fst (futureNlnCheckMem (fragment, ctx)) then
+                0
+            else
+                ctx.WithDummy(fragment, keepPageWidth = true).Column - ctx.Column
+
+        // Does this segment claim a line of its own? Actions always do, and so does a
+        // segment whose dot carries an `#if` directive while we are still on the
+        // receiver's line: that splits the navigation from the call it would lead.
+        let claimsOwnLine (onHeadLine: bool) (segment: ChainSegment) (ctx: Context) : bool =
+            isHeavy segment ctx || (onHeadLine && segmentBeginsWithDirective segment)
+
+        // A step whose dot carries a comment renders on more than one line all by itself, so
+        // it has no width to balance and cannot share a line with what came before. It opens
+        // one instead, and the steps after it are measured afresh from where it left off.
+        let rendersOnItsOwnLines (segment: ChainSegment) (ctx: Context) : bool =
+            fst (futureNlnCheckMem (genSegment segment, ctx))
+
+        // Open a fresh line for a step. The step that leaves the receiver's line is also the one
+        // that establishes the pipeline's indent, hence the flag. Both forms are trivia aware: a
+        // comment already ended the line it sits on, so a second newline would open a blank one,
+        // and every further pass would open another.
+        let openLine (establishIndent: bool) : Context -> Context =
+            if establishIndent then
+                indentSepNlnWithTriviaAwareness
+            else
+                sepNlnUnlessLastEventIsNewline
+
+        // Emit one navigation step, either on the current line or opening a fresh one.
+        let placeStep (onHeadLine: bool) (placement: ChainStepPlacement) (segment: ChainSegment) : Context -> Context =
+            match placement with
+            | ChainStepPlacement.OpensNewLine -> openLine onHeadLine +> genSegment segment
+            | ChainStepPlacement.RidesOnCurrentLine -> genSegment segment
+
+        // Walk a run of navigation whose placements have already been decided, reporting
+        // back whether the receiver's line is still the current one.
+        let rec placeRun
+            (onHeadLine: bool)
+            (steps: (ChainSegment * ChainStepPlacement) list)
+            (ctx: Context)
+            : bool * Context =
+            match steps with
+            | [] -> onHeadLine, ctx
+            | (segment, placement) :: rest ->
+                let stillOnHeadLine: bool =
+                    match placement with
+                    | ChainStepPlacement.OpensNewLine -> false
+                    | ChainStepPlacement.RidesOnCurrentLine -> onHeadLine
+
+                placeRun stillOnHeadLine rest (placeStep onHeadLine placement segment ctx)
+
+        // onHeadLine — still on the receiver's line; no break has been emitted
+        //              yet, so the first break must also `indent`.
+        // mustBreak  — the previous segment was an action, so whatever comes
+        //              next has to start on a fresh line.
+        let rec place (onHeadLine: bool) (mustBreak: bool) (segments: ChainSegment list) (ctx: Context) : Context =
+            match segments with
+            | [] -> (genTerminal node +> onlyIfNot onHeadLine unindent) ctx
+            | segment :: rest when claimsOwnLine onHeadLine segment ctx ->
+                // An action starts a new line when it opens the pipeline
+                // (leaving the receiver's line) or follows another action;
+                // otherwise it rides after the navigation that introduced it.
+                let placeAction: Context -> Context =
+                    if onHeadLine then openLine true +> genSegment segment
+                    elif mustBreak then openLine false +> genSegment segment
+                    else genSegment segment
+
+                place false true rest (placeAction ctx)
+            | segment :: rest when rendersOnItsOwnLines segment ctx ->
+                place false false rest ((openLine onHeadLine +> genSegment segment) ctx)
+            | _ ->
+                // A run of navigation, taken as a whole so its breaks can be balanced. It stops
+                // at anything that cannot share a line, so every step in it has a real width.
+                let run, afterRun =
+                    segments
+                    |> List.partitionWhile (fun _ segment ->
+                        not (claimsOwnLine onHeadLine segment ctx)
+                        && not (rendersOnItsOwnLines segment ctx))
+
+                // Where a fresh line would start, and where this run starts.
+                let indentColumn: ChainColumn =
+                    ctx.WithDummy(onlyIf onHeadLine indent +> sepNln, keepPageWidth = true).Column
+
+                let startColumn: ChainColumn = if mustBreak then indentColumn else ctx.Column
+
+                let maxColumn: ChainColumn = ctx.Config.MaxLineLength
+
+                let decidePlacements (widths: ChainStepWidth list) : ChainStepPlacement list =
+                    // A run that follows an action always opens a fresh line. The balance below
+                    // already measured from that line's indent, so only the placement of the
+                    // first step needs correcting.
+                    let balanced: ChainStepPlacement list =
+                        match balanceNavigationRun startColumn indentColumn maxColumn widths with
+                        | _ :: rest when mustBreak -> ChainStepPlacement.OpensNewLine :: rest
+                        | placements -> placements
+
+                    // The receiver is not a step, so a line holding nothing but the receiver has
+                    // nothing on it to balance — it is a wasted line, not a short one. Whenever
+                    // the receiver's line can hold the first step, it keeps it, and the rest of
+                    // the run is balanced from there.
+                    match balanced, widths with
+                    | ChainStepPlacement.OpensNewLine :: _, firstWidth :: laterWidths when
+                        not mustBreak && startColumn + firstWidth <= maxColumn
+                        ->
+                        ChainStepPlacement.RidesOnCurrentLine
+                        :: balanceNavigationRun (startColumn + firstWidth) indentColumn maxColumn laterWidths
+                    | _ -> balanced
+
+                // The steps on their own, carrying nothing for what comes after them.
+                let stepWidths: ChainStepWidth list =
+                    run |> List.map (fun segment -> widthOf (genSegment segment) ctx)
+
+                let plainPlacements: ChainStepPlacement list = decidePlacements stepWidths
+
+                // Does the run really share its last line with what follows it? The terminal
+                // call always rides there. An intermediate action does too — unless the run
+                // never left the receiver's line, because an action leaving that line claims
+                // one of its own and the run has nothing to make room for.
+                let sharesItsLastLine: bool =
+                    List.isEmpty afterRun
+                    || not onHeadLine
+                    || List.contains ChainStepPlacement.OpensNewLine plainPlacements
+
+                let placements: ChainStepPlacement list =
+                    if not sharesItsLastLine then
+                        plainPlacements
+                    else
+                        // Nothing after the run means the chain's terminal call rides there.
+                        let opener, whole =
+                            match afterRun with
+                            | [] -> genTerminalOpener node, genTerminalOnOneLine node
+                            | action :: _ -> genSegmentOpener action, genSegmentOnOneLine action
+
+                        // Charge the run's final step for `part` of the call that rides after it.
+                        let charge (part: Context -> Context) : ChainStepWidth list =
+                            let lastStep: int = List.length run - 1
+                            let callWidth: ChainStepWidth = widthOf part ctx
+
+                            stepWidths
+                            |> List.mapi (fun i width -> if i = lastStep then width + callWidth else width)
+
+                        // Wrapping the navigation to make room for the arguments beats breaking
+                        // the arguments, so the call is charged whole whenever a line of the run
+                        // could hold it. When none can — the arguments are too wide however the
+                        // navigation wraps — only the opener has to fit and the arguments break
+                        // as usual.
+                        let chargingWhole: ChainStepWidth list = charge whole
+
+                        let wholeCallFitsOnALine: bool =
+                            not (fst (futureNlnCheckMem (whole, ctx)))
+                            && chargingWhole |> List.forall (fun width -> indentColumn + width <= maxColumn)
+
+                        decidePlacements (
+                            if wholeCallFitsOnALine then
+                                chargingWhole
+                            else
+                                charge opener
+                        )
+
+                let onHeadLine, ctx = placeRun onHeadLine (List.zip run placements) ctx
+                place onHeadLine false afterRun ctx
+
+        // Indexing a parenthesised value — `(expr).[0]` — is a plain access, not a
+        // pipeline: the index rides tight onto the closing paren instead of breaking.
+        let isParenThenIndex: bool =
+            (match node.Head with
+             | Expr.Paren _ -> true
+             | _ -> false)
+            && (match node.Segments with
+                | [ ChainSegment.DotIndex _ ] -> true
+                | _ -> false)
+            && not terminalIsCall
+
+        // A comment after the receiver ends its line whatever the rest of the chain wanted, so
+        // the navigation behind it cannot ride along. Where the comment is attached depends on
+        // how it was written: a trailing `config // note` lands on the receiver's own node,
+        // while one written on the line below lands on the last identifier inside it. Both
+        // print the same way, so both have to be found, or the steps after the comment resume
+        // at the receiver's own indent and the result no longer parses.
+        let rec endsWithComment (n: Node) : bool =
+            n.HasContentAfter
+            || (match Array.tryLast n.Children with
+                | Some last -> endsWithComment last
+                | None -> false)
+
+        // Otherwise the first segment starts a fresh line when the receiver is compound
+        // (it leads a pipeline).
+        let receiverForcesBreak: bool =
+            endsWithComment (Expr.Node node.Head)
+            || (not headIsSimple && not isParenThenIndex)
+
+        place true receiverForcesBreak node.Segments (genExpr node.Head ctx)
+
+    // Chosen when the whole chain does not fit on one line: either keep the chain together
+    // (and let the terminal's arguments wrap) or fall back to the leading-dot pipeline.
+    let long (ctx: Context) : Context =
+        // Keeping the chain together is only allowed for a single call at the very end:
+        // every segment is light navigation and the terminal is the one and only action.
+        let everySegmentIsLight: bool =
+            node.Segments |> List.forall (fun segment -> not (isHeavy segment ctx))
+
+        // Keeping the chain together holds the receiver, navigation and method name on one
+        // line. It gives way to the leading-dot pipeline when a comment between the steps
+        // forces a break, or when breaking actually *helps* the width. With several segments,
+        // spreading them across lines always helps. With a single method, breaking only helps
+        // when that method would fit on its own line — if the method itself is the overflow (a
+        // very long name), there is nothing to gain, so it stays together and the arguments wrap.
+        //
+        // Hence the two arms below ask genuinely different questions, and it is worth being
+        // explicit about why:
+        //   * ONE segment  — `receiver.Method(args)`. The pipeline has exactly one line to
+        //     offer (`.Method(args)` under the receiver), so it is only an improvement if
+        //     `.Method` actually fits there. `methodOverflowsOnItsOwn` asks that. When the
+        //     method name alone already overruns the margin, moving it down changes nothing
+        //     and we would have traded a readable `receiver.Method(` opener for a lone dotted
+        //     line that still overflows.
+        //   * MANY segments — the pipeline can spread the segments over several lines, so it
+        //     always reduces width. There is no "would it even help?" question to ask; we only
+        //     need to know whether the combined head + segments overflow in the first place.
+        let headAndSegmentsFit: bool =
+            match node.Segments with
+            | [ single ] ->
+                let combinedForcesBreak: bool =
+                    futureNlnCheck (genExpr node.Head +> genSegment single) ctx
+
+                let methodOverflowsOnItsOwn: bool = snd (futureNlnCheckMem (genSegment single, ctx))
+                not (combinedForcesBreak && not methodOverflowsOnItsOwn)
+            | _ -> not (futureNlnCheck (genExpr node.Head +> col sepNone node.Segments genSegment) ctx)
+
+        if terminalIsCall && everySegmentIsLight && headIsSimple && headAndSegmentsFit then
+            genChainKeptTogether ctx
+        else
+            genLeadingDotPipeline ctx
+
+    // Try the whole chain on one line first; otherwise `long` decides between keeping the
+    // chain together (with wrapped arguments) and the leading-dot pipeline.
+    expressionFitsOnRestOfLine genChainKeptTogether long
 
 let genExpr (e: Expr) =
     match e with
@@ -779,14 +1444,10 @@ let genExpr (e: Expr) =
             +> genSingleTextNode node.ClosingParen
         |> genNode node
     | Expr.Dynamic node ->
-        // Use sepNone for AppLongIdentAndSingleParenArg to preserve atomic application (no space before paren).
-        // Adding a space would change the AST from `(Jest.expect(json))?oMatchSnapshot` to `Jest.expect ((json)?oMatchSnapshot)`. See #3135.
-        let genFuncExpr =
-            match node.FuncExpr with
-            | Expr.AppLongIdentAndSingleParenArg appNode -> genAppLongIdentAndSingleParenArgExpr sepNone appNode
-            | _ -> genExpr node.FuncExpr
-
-        genFuncExpr +> !-"?" +> genExpr node.ArgExpr |> genNode node
+        // Chain expressions that serve as the function expression (e.g. Jest.expect(json)) are
+        // already printed tight — no space before their terminal paren — so genExpr is sufficient.
+        // See #3135.
+        genExpr node.FuncExpr +> !-"?" +> genExpr node.ArgExpr |> genNode node
     | Expr.DynamicChain node ->
         // A chain of `?` accesses is printed tight (no space before paren args).
         // Adding a space changes the parsing of the next `?member`. See #3159.
@@ -826,13 +1487,6 @@ let genExpr (e: Expr) =
         | Expr.AppSingleParenArg appNode ->
             genSingleTextNode node.Operator
             +> genExpr appNode.FunctionExpr
-            +> genExpr appNode.ArgExpr
-        // E.g. !-Foo.Meh(a)
-        | Expr.AppLongIdentAndSingleParenArg appNode ->
-            let mOptVarNode = appNode.FunctionName.Range
-
-            genSingleTextNode node.Operator
-            +> genExpr (Expr.OptVar(ExprOptVarNode(false, appNode.FunctionName, mOptVarNode)))
             +> genExpr appNode.ArgExpr
         | _ -> genWithoutSpace
         |> genNode node
@@ -930,7 +1584,6 @@ let genExpr (e: Expr) =
     | Expr.IndexWithoutDot node ->
         let genIdentifierExpr =
             match node.Identifier with
-            | Expr.AppLongIdentAndSingleParenArg appNode -> genAppLongIdentAndSingleParenArgExpr sepNone appNode
             | Expr.AppSingleParenArg appNode -> genAppSingleParenArgExpr sepNone appNode
             | _ -> genExpr node.Identifier
 
@@ -942,161 +1595,8 @@ let genExpr (e: Expr) =
         +> sepCloseLFixed
         |> genNode node
 
-    | Expr.Chain node ->
-        let genLink (isLastLink: bool) (link: ChainLink) =
-            match link with
-            | ChainLink.Identifier expr -> genExpr expr
-            | ChainLink.Dot stn -> genSingleTextNode stn
-            | ChainLink.Expr expr ->
-                match expr with
-                | Expr.App appNode ->
-                    match appNode.Arguments with
-                    | [ Expr.ArrayOrList _ as arrayOrList ] ->
-                        // Edge case for something like .G[].
-                        genExpr appNode.FunctionExpr +> genExpr arrayOrList
-                    | _ -> genExpr expr
-                | _ -> genExpr expr
-            | ChainLink.AppUnit appUnitNode ->
-                genExpr appUnitNode.FunctionName
-                +> onlyIf
-                    isLastLink
-                    (sepSpaceBeforeParenInFuncInvocation
-                        appUnitNode.FunctionName
-                        (Expr.Constant(Constant.Unit appUnitNode.Unit)))
-                +> genUnit appUnitNode.Unit
-                |> genNode appUnitNode
-            | ChainLink.AppParen appParen ->
-                let short =
-                    genExpr appParen.FunctionName
-                    +> onlyIf
-                        isLastLink
-                        (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
-                    +> genExpr (Expr.Paren appParen.Paren)
+    | Expr.Chain node -> genChain node |> genNode node
 
-                let long =
-                    match appParen.Paren.Expr with
-                    | Expr.Lambda lambdaNode ->
-                        genExpr appParen.FunctionName
-                        +> onlyIf
-                            isLastLink
-                            (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
-                        +> genSingleTextNode appParen.Paren.OpeningParen
-                        +> genLambdaWithParen lambdaNode
-                        +> onlyIfCtx
-                            (fun ctx ->
-                                ctx.Config.MultiLineLambdaClosingNewline
-                                && (not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)))
-                            sepNln
-                        +> genSingleTextNode appParen.Paren.ClosingParen
-                    | _ ->
-                        genExpr appParen.FunctionName
-                        +> onlyIf
-                            isLastLink
-                            (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
-                        +> genMultilineFunctionApplicationArguments (Expr.Paren appParen.Paren)
-
-                expressionFitsOnRestOfLine short long |> genNode appParen
-            | ChainLink.IndexExpr e -> sepOpenLFixed +> genExpr e +> sepCloseLFixed
-
-        let lastIndex = node.Links.Length - 1
-        let short = coli sepNone node.Links (fun idx -> genLink (idx = lastIndex))
-
-        let long =
-            let (|SimpleChain|_|) (link: ChainLink) =
-                match link with
-                | ChainLink.Identifier _
-                | ChainLink.IndexExpr _ -> Some link
-                | _ -> None
-
-            let (|LeadingSimpleChain|_|) (links: ChainLink list) =
-                let leading = System.Collections.Generic.Queue(links.Length)
-                let rest = System.Collections.Generic.Queue(links.Length)
-
-                (None, links)
-                ||> List.fold (fun lastDot link ->
-                    if not (Seq.isEmpty rest) then
-                        rest.Enqueue link
-                        None
-                    else
-                        match link with
-                        | SimpleChain _ ->
-                            Option.iter leading.Enqueue lastDot
-                            leading.Enqueue link
-                            None
-                        | ChainLink.Dot _ as dot -> Some dot
-                        | _ ->
-                            Option.iter rest.Enqueue lastDot
-                            rest.Enqueue link
-                            None)
-                |> (fun _ ->
-                    if Seq.isEmpty leading then
-                        None
-                    else
-                        Some(Seq.toList leading, Seq.toList rest))
-
-            let rec genIndentedLinks (lastLinkWasSimple: bool) (links: ChainLink list) (ctx: Context) : Context =
-                match links with
-                | [] -> ctx
-                | ChainLink.Dot dot :: link :: rest ->
-                    let isLast = List.isEmpty rest
-                    let genDotAndLink = genSingleTextNode dot +> genLink isLast link
-                    let currentIsSimple = ((|SimpleChain|_|) >> Option.isSome) link
-                    let currentLinkFitsOnRestOfLine = not (futureNlnCheck genDotAndLink ctx)
-
-                    if lastLinkWasSimple && currentLinkFitsOnRestOfLine then
-                        // The last link was an identifier and the current link fits on the remainder of the current line.
-                        genIndentedLinks currentIsSimple rest (genDotAndLink ctx)
-                    else
-                        let ctx' =
-                            onlyIf
-                                (not // Last link was `.Foo()`
-                                    lastLinkWasSimple
-                                 // `.Foo.Bar` but `Bar` crossed the max_line_length
-                                 || (lastLinkWasSimple && currentIsSimple && not currentLinkFitsOnRestOfLine))
-                                sepNlnUnlessLastEventIsNewline
-                                ctx
-
-                        genIndentedLinks
-                            currentIsSimple
-                            rest
-                            // Print the current link
-                            (genDotAndLink ctx')
-                | _ -> failwith "Expected dot in chain at this point"
-
-            let genFirstLinkAndIndentOther (firstLink: ChainLink) (others: ChainLink list) =
-                genLink false firstLink +> indentSepNlnUnindent (genIndentedLinks false others)
-
-            match node.Links with
-            | [] -> sepNone
-            | LeadingSimpleChain(leadingChain, links) ->
-                match links with
-                | [] ->
-                    expressionFitsOnRestOfLine
-                        short
-                        (match leadingChain with
-                         | [] -> sepNone
-                         | head :: links -> genLink false head +> indent +> genIndentedLinks true links +> unindent)
-                | _ ->
-                    expressionFitsOnRestOfLine
-                        (coli sepNone leadingChain (fun idx -> genLink (idx = lastIndex)))
-                        (match leadingChain with
-                         | [] -> sepNone
-                         | [ head ] -> genLink false head
-                         | head :: rest -> genLink false head +> indentSepNlnUnindent (genIndentedLinks true rest))
-                    +> indentSepNlnUnindent (genIndentedLinks true links)
-
-            | head :: links -> genFirstLinkAndIndentOther head links
-
-        expressionFitsOnRestOfLine short long |> genNode node
-
-    // path.Replace("../../../", "....")
-    | Expr.AppLongIdentAndSingleParenArg node ->
-        let addSpace =
-            sepSpaceBeforeParenInFuncInvocation
-                (Expr.OptVar(ExprOptVarNode(false, node.FunctionName, node.FunctionName.Range)))
-                node.ArgExpr
-
-        genAppLongIdentAndSingleParenArgExpr addSpace node
     // fn (a, b, c)
     | Expr.AppSingleParenArg node when
         (match node.FunctionExpr with
@@ -1125,13 +1625,6 @@ let genExpr (e: Expr) =
             | _ -> sepSpace
 
         genAppWithLambda sepSpaceAfterFunctionName node
-    | Expr.NestedIndexWithoutDot node ->
-        genExpr node.Identifier
-        +> sepOpenLFixed
-        +> genExpr node.Index
-        +> sepCloseLFixed
-        +> genExpr node.Argument
-        |> genNode node
 
     | Expr.App node ->
         fun ctx ->
@@ -1465,41 +1958,6 @@ let genExpr (e: Expr) =
         +> sepArrowRev
         +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
         |> genNode node
-    | Expr.DotIndexedGet node ->
-        let genDotIndexedGet =
-            let isParen =
-                match node.ObjectExpr with
-                | Expr.Paren _ -> true
-                | _ -> false
-
-            ifElse isParen (genExpr node.ObjectExpr) (addParenIfAutoNln node.ObjectExpr genExpr)
-            +> !-"."
-            +> sepOpenLFixed
-            +> genExpr node.IndexExpr
-            +> sepCloseLFixed
-
-        let genDotIndexedGetWithApp funcExpr argExpr (appNode: Node) =
-            let short = funcExpr +> genExpr argExpr |> genNode appNode
-
-            let long =
-                funcExpr +> genMultilineFunctionApplicationArguments argExpr |> genNode appNode
-
-            let idx = !-"." +> sepOpenLFixed +> genExpr node.IndexExpr +> sepCloseLFixed
-            expressionFitsOnRestOfLine (short +> idx) (long +> idx)
-
-        match node.ObjectExpr with
-        | Expr.App appNode ->
-            match appNode.Arguments with
-            | [ Expr.Constant(Constant.Unit _) as ux ] ->
-                genDotIndexedGetWithApp (genExpr appNode.FunctionExpr) ux appNode
-            | _ -> genDotIndexedGet
-        | Expr.AppSingleParenArg appNode ->
-            genDotIndexedGetWithApp (genExpr appNode.FunctionExpr) appNode.ArgExpr appNode
-
-        | Expr.AppLongIdentAndSingleParenArg appNode ->
-            genDotIndexedGetWithApp (genIdentListNode appNode.FunctionName) appNode.ArgExpr appNode
-        | _ -> genDotIndexedGet
-        |> genNode node
     | Expr.DotIndexedSet node ->
         let genDotIndexedSet =
             addParenIfAutoNln node.ObjectExpr genExpr
@@ -1539,8 +1997,16 @@ let genExpr (e: Expr) =
         | Expr.AppSingleParenArg appNode ->
             genDotIndexedSetWithApp (genExpr appNode.FunctionExpr) appNode.ArgExpr appNode
 
-        | Expr.AppLongIdentAndSingleParenArg appNode ->
-            genDotIndexedSetWithApp (genIdentListNode appNode.FunctionName) appNode.ArgExpr appNode
+        // An indexed set on a chain ending in a paren call (`foo.Bar(args).[i] <- v`):
+        // treat the receiver + method as the function and the terminal parens as the
+        // argument, so the arguments can break when the whole statement is too long.
+        | Expr.Chain chainNode ->
+            match chainNode.Terminal with
+            | ChainTerminal.SpaceAllowed(ChainCall.Paren parenNode)
+            | ChainTerminal.NoSpaceAllowed(ChainCall.Paren parenNode) ->
+                let funcExpr = genExpr chainNode.Head +> col sepNone chainNode.Segments genSegment
+                genDotIndexedSetWithApp funcExpr (Expr.Paren parenNode) chainNode
+            | _ -> genDotIndexedSet
 
         | _ -> genDotIndexedSet
         |> genNode node
@@ -1558,7 +2024,10 @@ let genExpr (e: Expr) =
                 match node.Index with
                 | Expr.Constant _
                 | Expr.Ident _
-                | Expr.OptVar _ -> sepSpace
+                | Expr.OptVar _
+                // A dotted access index (`a.B c.DE`) is now a chain; it still needs the
+                // separating space, since a chain never opens with a bracket.
+                | Expr.Chain _ -> sepSpace
                 | _ -> sepNone
 
             genIdentListNode node.Identifier
@@ -1652,17 +2121,6 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.IndexFromEnd node -> !-"^" +> genExpr node.Expr |> genNode node
     | Expr.Typar node -> genSingleTextNode node
-    | Expr.DotLambda node ->
-        let genDotLambdaExpr expr =
-            match expr with
-            | Expr.AppSingleParenArg p -> genAppSingleParenArgExpr sepNone p // be always atomic, see 3050
-            | Expr.AppLongIdentAndSingleParenArg p -> genAppLongIdentAndSingleParenArgExpr sepNone p // see 3120
-            | _ -> genExpr expr
-
-        genSingleTextNode node.Underscore
-        +> genSingleTextNode node.Dot
-        +> genDotLambdaExpr node.Expr
-        |> genNode node
     | Expr.BeginEnd node ->
         let short =
             genSingleTextNode node.Begin
@@ -2064,22 +2522,6 @@ let genLambdaAux (includeClosingParen: bool) (node: ExprLambdaNode) =
 let genLambda = genLambdaAux false
 let genLambdaWithParen = genLambdaAux true
 
-let genAppLongIdentAndSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppLongIdentAndSingleParenArgNode) =
-    let shortLids = genIdentListNode node.FunctionName
-    let short = shortLids +> addSpace +> genExpr node.ArgExpr
-
-    let long =
-        let args =
-            addSpace
-            +> expressionFitsOnRestOfLine (genExpr node.ArgExpr) (genMultilineFunctionApplicationArguments node.ArgExpr)
-
-        ifElseCtx
-            (futureNlnCheck shortLids)
-            (genFunctionNameWithMultilineLids args node.FunctionName)
-            (shortLids +> args)
-
-    expressionFitsOnRestOfLine short long |> genNode node
-
 let genAppSingleParenArgExpr (addSpace: Context -> Context) (node: ExprAppSingleParenArgNode) =
     let short = genExpr node.FunctionExpr +> addSpace +> genExpr node.ArgExpr
 
@@ -2397,25 +2839,6 @@ let genPrefixApp
      +> genSingleTextNode greaterThan)
         ctx
 
-let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: IdentListNode) =
-    match longIdent.Content with
-    | IdentifierOrDot.Ident identNode :: t ->
-        genSingleTextNode identNode
-        +> indentSepNlnUnindent (
-            colEx
-                (function
-                | IdentifierOrDot.Ident _ -> sepNone
-                | IdentifierOrDot.KnownDot _
-                | IdentifierOrDot.UnknownDot -> sepNln)
-                t
-                (function
-                 | IdentifierOrDot.Ident identNode -> genSingleTextNode identNode
-                 | IdentifierOrDot.KnownDot dot -> genSingleTextNode dot
-                 | IdentifierOrDot.UnknownDot -> sepDot)
-            +> trailing
-        )
-    | _ -> sepNone
-
 let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
     if not (config.ExperimentalElmish || config.IsStroustrupStyle) then
         None
@@ -2487,10 +2910,17 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                 | [] ->
                     match node.Lambda with
                     | Choice1Of2 lambdaNode ->
-                        genSingleTextNode node.OpeningParen
-                        +> genLambdaWithParen lambdaNode
-                        +> onlyIf (not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)) sepNln
-                        +> genSingleTextNode node.ClosingParen
+                        // The closing parenthesis takes a line of its own when the lambda spans
+                        // several lines, which is what the setting is for. Asking afterwards
+                        // rather than assuming matters once the argument can move down: from its
+                        // own line the lambda may well fit, and then a `)` below it would be
+                        // dangling under a single line. The branch for leading arguments below
+                        // asks the same way.
+                        leadingExpressionIsMultiline
+                            (genSingleTextNode node.OpeningParen +> genLambdaWithParen lambdaNode)
+                            (fun isMultiline ->
+                                onlyIf (isMultiline && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)) sepNln
+                                +> genSingleTextNode node.ClosingParen)
                     | Choice2Of2 matchLambdaNode ->
                         genSingleTextNode node.OpeningParen
                         +> indentSepNlnUnindent (
@@ -2523,10 +2953,33 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                              +> genSingleTextNode node.ClosingParen))
                     +> unindent
 
-            (genExpr node.FunctionName
-             +> ifElse (List.isEmpty node.Arguments) sep (indent +> sepNln)
-             +> genArguments)
-                ctx
+            // A lone lambda argument is asked the same question as in the branch below, and the
+            // same one `genLambdaParenArg` asks for a call reached through a dot: does the
+            // opener fit, meaning everything up to the arrow? See the worked example there.
+            // Without this, the setting being on was enough to skip the question entirely.
+            let openerDoesNotFit: bool =
+                match node.Arguments, node.Lambda with
+                | [], Choice1Of2 lambdaNode ->
+                    futureNlnCheck
+                        (genExpr node.FunctionName
+                         +> sep
+                         +> genSingleTextNode node.OpeningParen
+                         +> enterNode lambdaNode
+                         +> genSingleTextNode lambdaNode.Fun
+                         +> sepSpace
+                         +> col sepSpace lambdaNode.Parameters genPat
+                         +> sepSpace
+                         +> genSingleTextNode lambdaNode.Arrow)
+                        ctx
+                | _ -> false
+
+            if openerDoesNotFit then
+                (genExpr node.FunctionName +> indent +> sepNln +> genArguments +> unindent) ctx
+            else
+                (genExpr node.FunctionName
+                 +> ifElse (List.isEmpty node.Arguments) sep (indent +> sepNln)
+                 +> genArguments)
+                    ctx
         else
             match node.Lambda with
             | Choice1Of2 lambdaNode ->
@@ -2619,9 +3072,30 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
     expressionFitsOnRestOfLine short long |> genNode node
 
 let sepSpaceBeforeParenInFuncInvocation (functionExpr: Expr) (argExpr: Expr) ctx =
+    // A chain that ends in an index access (`a.A.[0]`) invokes the indexed value —
+    // like new-style `xs[0]`, the `(` stays tight regardless of the space-before
+    // settings, since a space would read as applying the index to the parens.
+    let chainEndsInIndex =
+        match functionExpr with
+        | Expr.Chain node ->
+            match node.Terminal, List.tryLast node.Segments with
+            | ChainTerminal.NoTerminal, Some(ChainSegment.DotIndex _) -> true
+            | _ -> false
+        | _ -> false
+
+    // An empty index written tight against its receiver (`x.G[]`) is index syntax, not an
+    // application to an empty list — keep it tight. Adjacency distinguishes it from a real
+    // empty-list argument `f []`, which keeps its space.
+    let isEmptyIndex =
+        match argExpr with
+        | Expr.ArrayOrList arrayNode ->
+            List.isEmpty arrayNode.Elements
+            && RangeHelpers.isAdjacentTo (Expr.Node functionExpr).Range arrayNode.Range
+        | _ -> false
+
     match functionExpr, argExpr with
-    | Expr.DotLambda _, _ -> ctx
     | Expr.IndexWithoutDot _, ParenExpr _ -> ctx
+    | _ when chainEndsInIndex || isEmptyIndex -> ctx
     | Expr.Constant _, _ -> sepSpace ctx
     | ParenExpr _, _ -> sepSpace ctx
     | UppercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx

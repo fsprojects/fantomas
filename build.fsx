@@ -27,6 +27,10 @@ let artifactsDir = __SOURCE_DIRECTORY__ </> "artifacts"
 let binDir = artifactsDir </> "bin"
 let packagesDir = artifactsDir </> "package" </> "release"
 let analysisReportsDir = __SOURCE_DIRECTORY__ </> "analysisreports"
+let coverageReportDir = __SOURCE_DIRECTORY__ </> "coveragereport"
+
+let coverageXml =
+    __SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core.Tests" </> "coverage.xml"
 
 let benchmarkAssembly =
     binDir </> "Fantomas.Benchmarks" </> "release" </> "Fantomas.Benchmarks.dll"
@@ -82,7 +86,7 @@ pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
-    stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
+    stage "CheckFormat" { run "dotnet fantomas src docs scripts build.fsx --check" }
     stage "Build" { run "dotnet build -c Release --tl" }
     stage "UnitTests" { run "dotnet test -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
@@ -101,6 +105,45 @@ pipeline "Benchmark" {
     workingDir __SOURCE_DIRECTORY__
     stage "Prepare" { run "dotnet build -c Release src/Fantomas.Benchmarks --tl" }
     stage "Benchmark" { run $"dotnet \"{benchmarkAssembly}\"" }
+    runIfOnlySpecified true
+}
+
+// Line and branch coverage for Fantomas.Core, via AltCover's MSBuild integration.
+//
+// The filter is a negative lookahead: instrument Fantomas.Core and nothing else, which keeps the
+// generated Fantomas.FCS parser (and the test assembly itself) out of the report and makes the
+// run fast. AltCover writes OpenCover XML, which is for tooling rather than reading, so
+// ReportGenerator turns it into a browsable HTML report afterwards.
+//
+// Produces:
+//   src/Fantomas.Core.Tests/coverage.xml   raw OpenCover XML
+//   coveragereport/index.html              browsable report, per file and per line
+pipeline "Coverage" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "RestoreTools" { run "dotnet tool restore" }
+    stage "Clean" { run (cleanFolders [| coverageReportDir |]) }
+
+    stage "Coverage" {
+        run
+            @"dotnet test src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj -c Release /p:AltCover=true ""/p:AltCoverAssemblyFilter=^(?!Fantomas\.Core$)"""
+    }
+
+    stage "Report" {
+        run
+            $"dotnet reportgenerator -reports:{coverageXml} -targetdir:{coverageReportDir} -reporttypes:Html;TextSummary"
+        run (fun _ ->
+            async {
+                let summary = coverageReportDir </> "Summary.txt"
+                let index = coverageReportDir </> "index.html"
+
+                if File.Exists summary then
+                    printfn "%s" (File.ReadAllText summary)
+
+                printfn $"Browse the full report at {index}"
+                return 0
+            })
+    }
+
     runIfOnlySpecified true
 }
 
@@ -192,7 +235,7 @@ pipeline "Docs" {
 
 pipeline "FormatAll" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Fantomas" { run "dotnet fantomas src docs build.fsx" }
+    stage "Fantomas" { run "dotnet fantomas src docs scripts build.fsx" }
     runIfOnlySpecified true
 }
 

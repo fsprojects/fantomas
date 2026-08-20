@@ -344,8 +344,10 @@ end_of_line = cr
 
     use fsharpFile = new FSharpFile(rootDir)
 
+    // A FormatException rather than a bare exception, because that is the type the CLI matches
+    // on to decide what to print. Anything else reports an empty message at normal verbosity.
     let ex =
-        Assert.Throws(fun () -> EditorConfig.readConfiguration fsharpFile.FSharpFile |> ignore)
+        Assert.Throws<FormatException>(fun () -> EditorConfig.readConfiguration fsharpFile.FSharpFile |> ignore)
 
     ex.Message
     == "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"

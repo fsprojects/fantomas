@@ -977,22 +977,23 @@ configuration
         """
 configuration.MinimumLevel
     .Debug()
-    .WriteTo.Logger(fun
-                        (a0: int)
-                        (a1: int)
-                        (a2: int)
-                        (a3: int)
-                        (a4: int)
-                        (a5: int)
-                        (a6: int)
-                        (a7: int)
-                        (a8: int)
-                        (a9: int)
-                        (a10: int)
-                        (a11: int) ->
-        //
-        ()
-    )
+    .WriteTo.Logger
+        (fun
+            (a0: int)
+            (a1: int)
+            (a2: int)
+            (a3: int)
+            (a4: int)
+            (a5: int)
+            (a6: int)
+            (a7: int)
+            (a8: int)
+            (a9: int)
+            (a10: int)
+            (a11: int) ->
+            //
+            ()
+        )
 """
 
 [<Test>]
@@ -1133,4 +1134,128 @@ module Foo =
                 .Create()
 
         ()
+"""
+
+// The two tests below repeat the chain cases from ChainFormattingTests with this setting on.
+// A call reached through a dot is laid out like the same call without one, whatever the setting
+// says about the closing parenthesis.
+
+[<Test>]
+let ``lambda moves to its own line when everything up to the arrow does not fit`` () =
+    formatSourceString
+        """
+let dotted ifaces =
+    ifaces
+    |> List.tryPick (fun (SynInterfaceImpl(interfaceTy = ty; withKeyword = withRange)) -> Some(ty, withRange))
+
+let undotted ifaces =
+    ifaces
+    |> pickFromList (fun (SynInterfaceImpl(interfaceTy = ty; withKeyword = withRange)) -> Some(ty, withRange))
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let dotted ifaces =
+    ifaces
+    |> List.tryPick
+        (fun (SynInterfaceImpl(interfaceTy = ty; withKeyword = withRange)) ->
+            Some(ty, withRange)
+        )
+
+let undotted ifaces =
+    ifaces
+    |> pickFromList
+        (fun (SynInterfaceImpl(interfaceTy = ty; withKeyword = withRange)) ->
+            Some(ty, withRange)
+        )
+"""
+
+[<Test>]
+let ``lambda parameters take a line each when they do not fit after the lambda moved down`` () =
+    formatSourceString
+        """
+let dotted () =
+    Cfg.register (fun (aVeryLongParameterName: AnEquallyLongTypeName) (anotherLongParameterName: AnotherTypeName) -> body ())
+
+let undotted () =
+    registerWith (fun (aVeryLongParameterName: AnEquallyLongTypeName) (anotherLongParameterName: AnotherTypeName) -> body ())
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let dotted () =
+    Cfg.register
+        (fun
+            (aVeryLongParameterName: AnEquallyLongTypeName)
+            (anotherLongParameterName: AnotherTypeName) -> body ()
+        )
+
+let undotted () =
+    registerWith
+        (fun
+            (aVeryLongParameterName: AnEquallyLongTypeName)
+            (anotherLongParameterName: AnotherTypeName) -> body ()
+        )
+"""
+
+[<Test>]
+let ``lambda that fits on one line after moving down keeps its closing parenthesis`` () =
+    formatSourceString
+        """
+let dotted () =
+    storage.SetConfigurationSettingPublisher(fun configName publisher -> publish configName publisher)
+
+let undotted () =
+    storageSetConfigurationSettingPublisher (fun configName publisher -> publish configName publisher)
+"""
+        { config with MaxLineLength = 70 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let dotted () =
+    storage.SetConfigurationSettingPublisher
+        (fun configName publisher -> publish configName publisher)
+
+let undotted () =
+    storageSetConfigurationSettingPublisher
+        (fun configName publisher -> publish configName publisher)
+"""
+
+[<Test>]
+let ``lambda that still does not fit after moving down puts its closing parenthesis on its own line`` () =
+    formatSourceString
+        """
+let dotted () =
+    storage.SetConfigurationSettingPublisher(fun configName publisher -> publishTheConfigurationValue configName publisher andThenSomethingElse)
+
+let undotted () =
+    storageSetConfigurationSettingPublisher (fun configName publisher -> publishTheConfigurationValue configName publisher andThenSomethingElse)
+"""
+        { config with MaxLineLength = 70 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let dotted () =
+    storage.SetConfigurationSettingPublisher
+        (fun configName publisher ->
+            publishTheConfigurationValue
+                configName
+                publisher
+                andThenSomethingElse
+        )
+
+let undotted () =
+    storageSetConfigurationSettingPublisher
+        (fun configName publisher ->
+            publishTheConfigurationValue
+                configName
+                publisher
+                andThenSomethingElse
+        )
 """

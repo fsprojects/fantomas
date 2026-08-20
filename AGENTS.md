@@ -17,6 +17,7 @@ All scripts accept a file path or stdin, with optional `--signature` and `--edit
 - `scripts/oak.fsx` — Oak tree
 - `scripts/format.fsx` — format with local build
 - `scripts/writer-events.fsx` — writer events produced during formatting
+- `scripts/chain.fsx` - ExprChain structure (head, segments, terminal); ignores `--editorconfig`
 
 Scripts require a debug build first (`dotnet build src/Fantomas/Fantomas.fsproj`).
 
@@ -31,7 +32,7 @@ Run these after completing a task, not during iterative development — analyzer
 ### Format
 
 ```bash
-dotnet fantomas src docs build.fsx
+dotnet fsi build.fsx -- -p FormatAll
 ```
 
 ### Analyzers

@@ -1,14 +1,20 @@
 # Changelog
 
-## [Unreleased]
+## [8.0.0-alpha-014] - 2026-08-20
 
 ### Changed
 
 - Bump `StreamJsonRpc` to `2.25.29`. This clears the NuGet vulnerability warnings coming from the transitive `MessagePack` and `Nerdbank.MessagePack` dependencies. [#3393](https://github.com/fsprojects/fantomas/pull/3393)
+- Breaking: `Expr.Chain` is redesigned around a head, a list of `ChainSegment` and a `ChainTerminal`. `Expr.DotLambda`, `Expr.DotIndexedGet`, `Expr.AppLongIdentAndSingleParenArg` and `Expr.NestedIndexWithoutDot` are removed, and a dotted long identifier now yields `Expr.Chain` instead of `Expr.OptVar` in expression position. See the [upgrade guide](https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html) for how to migrate. [#3385](https://github.com/fsprojects/fantomas/pull/3385)
+- Chains are laid out by a documented set of rules, written up in full under [Chains](https://fsprojects.github.io/fantomas/docs/contributors/Chains.html). They are a proposal for the F# style guide and may still change. A chain that fits on one line is left alone. When one has to break, only a call claims a line of its own and plain property access rides along in front of it, where a comment between the steps previously put every step on its own line. A long run of property access now wraps into balanced lines instead of overflowing the margin. [#3385](https://github.com/fsprojects/fantomas/pull/3385)
+- With `fsharp_multi_line_lambda_closing_newline = false` (the default), a match lambda argument keeps `function` beside the `(` when the call is reached through a dot, matching what a call without a receiver already did. [#3385](https://github.com/fsprojects/fantomas/pull/3385)
+- With `fsharp_multi_line_lambda_closing_newline = true`, a lambda argument whose opening line does not fit moves onto its own line instead of hanging its parameters under the opening parenthesis. This applies to calls with and without a receiver. [#3385](https://github.com/fsprojects/fantomas/pull/3385)
+- Added `InvariantViolationException`, raised when Fantomas reaches a state its own model says is impossible. It derives from `FormatException`, carries the source range of the construct involved, and points at the issue tracker. [#3385](https://github.com/fsprojects/fantomas/pull/3385)
 
 ### Fixed
 
 - CLI refuses to format files containing IWSAM types (warning 3535 fails output validation). [#3396](https://github.com/fsprojects/fantomas/issues/3396)
+- A space was added before the parenthesis of a call inside a `_.` shorthand lambda when `fsharp_space_before_uppercase_invocation` was enabled, producing code that does not compile. [#3364](https://github.com/fsprojects/fantomas/issues/3364)
 
 ## [8.0.0-alpha-013] - 2026-08-19
 

@@ -289,8 +289,25 @@ Map
     |> should
         equal
         """
-Map.empty<_, obj>
-    .Add("headerAction", modifyHeader.Action.ArmValue)
+Map.empty<_, obj>.Add(
+    "headerAction",
+    modifyHeader.Action.ArmValue
+)
+"""
+
+[<Test>]
+let ``dotlambda chain with simple segments`` () =
+    formatSourceString
+        """
+_.Name.Length
+"""
+        { config with MaxLineLength = 12 }
+    |> prepend newline
+    |> should
+        equal
+        """
+_.Name
+    .Length
 """
 
 [<Test>]
@@ -335,8 +352,8 @@ Universe.Galaxy.SolarSystem.Planet.[3].Countries.[9].People.Count
     |> should
         equal
         """
-Universe.Galaxy.SolarSystem.Planet.[3].Countries
-    .[9].People.Count
+Universe.Galaxy.SolarSystem.Planet
+    .[3].Countries.[9].People.Count
 """
 
 [<Test>]
@@ -428,4 +445,436 @@ Animal<
     .Dog(
         "Spot"
     )
+"""
+
+// ── Tight receivers ─────────────────────────────────────────────────────────
+//
+// `mkAtomicExpr` in the ASTTransformer marks a chain that has to stay one indivisible unit,
+// because a prefix operator, an index or a `?member` binds directly to it. The tests below
+// cover the prefix-operator, index and `?`-chain call sites. They all run with
+// `SpaceBeforeUppercaseInvocation = true`,
+// because that is the setting that would otherwise introduce the space: compare with
+// `obj.Bar()` on its own, which correctly becomes `obj.Bar ()` under the same config.
+
+[<Test>]
+let ``tight receiver control case, a plain terminal call does take the space`` () =
+    formatSourceString
+        """
+obj.Bar()
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+obj.Bar ()
+"""
+
+[<Test>]
+let ``tight receiver, leading expression of a dynamic chain`` () =
+    formatSourceString
+        """
+obj?A()?B()
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+obj?A()?B()
+"""
+
+[<Test>]
+let ``tight receiver, prefix operator applied to a unit call`` () =
+    formatSourceString
+        """
+-obj.Bar()
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+-obj.Bar()
+"""
+
+[<Test>]
+let ``tight receiver, prefix operator applied to a paren call`` () =
+    formatSourceString
+        """
+-obj.Bar(a)
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+-obj.Bar(a)
+"""
+
+[<Test>]
+let ``tight receiver, identifier of a new-style index`` () =
+    formatSourceString
+        """
+a.Foo()[0]
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+a.Foo()[0]
+"""
+
+// ── Intermediate calls stay welded to their opening paren ───────────────────
+//
+// An intermediate call may never be separated from its `(`: `a.Foo (x).Bar()` parses as
+// `a.Foo ((x).Bar())`. A conditional directive attached to the argument pushes that
+// argument onto its own lines, and the break has to land AFTER the `(`, not before it.
+
+[<Test>]
+let ``directive inside an intermediate call argument keeps the opening paren tight`` () =
+    formatSourceString
+        """
+let x =
+    builder.Configure(
+#if DEBUG
+        debugOptions
+#else
+        releaseOptions
+#endif
+    ).Build().Result
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    builder
+        .Configure(
+#if DEBUG
+            debugOptions
+#else
+            releaseOptions
+#endif
+        )
+        .Build()
+        .Result
+"""
+
+[<Test>]
+let ``match lambda as an intermediate call argument keeps the function keyword attached`` () =
+    // Identical in shape to the terminal case below: where the call sits in the chain has no
+    // say over a lambda argument, for `function` just as for `fun`.
+    formatSourceString
+        """
+let x =
+    builder.Configure(function
+        | Some v -> handleSome v
+        | None -> handleNone ()).Build().Result
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    builder
+        .Configure(function
+            | Some v -> handleSome v
+            | None -> handleNone ())
+        .Build()
+        .Result
+"""
+
+[<Test>]
+let ``match lambda as a terminal call argument keeps the function keyword attached`` () =
+    formatSourceString
+        """
+let x =
+    builder.Build().Configure(function
+        | Some v -> handleSome v
+        | None -> handleNone ())
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    builder
+        .Build()
+        .Configure(function
+            | Some v -> handleSome v
+            | None -> handleNone ())
+"""
+
+// ── Casing of the terminal is decided by the LAST segment ───────────────────
+//
+// `SpaceBeforeUppercaseInvocation` looks at the name the terminal call is made on,
+// which is always the final segment. Intermediate calls earlier in the chain have no
+// say — and stay tight regardless of their own casing.
+
+[<Test>]
+let ``uppercase terminal after an uppercase intermediate call takes the space`` () =
+    formatSourceString
+        """
+a.Foo(x).Bar(y)
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+a.Foo(x).Bar (y)
+"""
+
+[<Test>]
+let ``lowercase terminal after an uppercase intermediate call does not take the space`` () =
+    formatSourceString
+        """
+a.Foo(x).bar(y)
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeLowercaseInvocation = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+a.Foo(x).bar(y)
+"""
+
+// ── A match lambda as the terminal call's argument ──────────────────────────
+//
+// Only `MultiLineLambdaClosingNewline` or a break the user already made after the `(`
+// moves `function` onto its own line. Where the call sits in the chain has no say.
+
+[<Test>]
+let ``match lambda as a terminal call argument breaks when closing newline is set`` () =
+    formatSourceString
+        """
+let x =
+    builder.Build().Configure(function
+        | Some v -> handleSome v
+        | None -> handleNone ())
+"""
+        { config with
+            MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    builder
+        .Build()
+        .Configure(
+            function
+            | Some v -> handleSome v
+            | None -> handleNone ()
+        )
+"""
+
+[<Test>]
+let ``match lambda as a terminal call argument with the function keyword written below the paren`` () =
+    formatSourceString
+        """
+let x =
+    builder.Build().Configure(
+        function
+        | Some v -> handleSome v
+        | None -> handleNone ())
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    builder
+        .Build()
+        .Configure(function
+            | Some v -> handleSome v
+            | None -> handleNone ())
+"""
+
+[<Test>]
+let ``a comment before the argument of a terminal call keeps the parenthesis with the method name`` () =
+    formatSourceString
+        """
+let host =
+    builder.UseUrls(
+        // the public endpoint
+        url
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let host =
+    builder.UseUrls(
+        // the public endpoint
+        url
+    )
+"""
+
+[<Test>]
+let ``a comment before the argument of a terminal call written on one line`` () =
+    formatSourceString
+        """
+let host = builder.UseUrls(
+    // the public endpoint
+    url)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let host =
+    builder.UseUrls(
+        // the public endpoint
+        url
+    )
+"""
+
+[<Test>]
+let ``a comment before the argument of an intermediate call keeps the parenthesis welded`` () =
+    formatSourceString
+        """
+let host =
+    builder
+        .UseUrls(
+            // the public endpoint
+            url
+        )
+        .Build()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let host =
+    builder
+        .UseUrls(
+            // the public endpoint
+            url
+        )
+        .Build()
+"""
+
+[<Test>]
+let ``a comment between the method name and the parenthesis takes the call down with it`` () =
+    formatSourceString
+        """
+let host =
+    builder.UseUrls
+        // pick the endpoint
+        (url)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let host =
+    builder.UseUrls
+        // pick the endpoint
+        (url)
+"""
+
+[<Test>]
+let ``a comment between the method name and the parenthesis leaves the argument rules alone`` () =
+    formatSourceString
+        """
+let host =
+    builder.UseUrls
+        // pick the endpoint
+        (theConfigurationValueForThePublicEndpoint, theFallbackEndpointValue)
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let host =
+    builder.UseUrls
+        // pick the endpoint
+        (
+            theConfigurationValueForThePublicEndpoint,
+            theFallbackEndpointValue
+        )
+"""
+
+// A comment written after the receiver ends its line before the chain has decided anything.
+// The steps behind it have to open an indented line, or they land level with the receiver and
+// the result no longer parses. Where the comment attaches depends on how it was written, so
+// the three spellings below are the same chain and have to reach the same output.
+
+[<Test>]
+let ``a comment on its own line after the receiver indents the steps behind it`` () =
+    formatSourceString
+        """
+let a =
+    config
+    // note
+        .Settings.GetValue(key)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    config
+        // note
+        .Settings.GetValue(key)
+"""
+
+[<Test>]
+let ``the column the comment after a receiver was written at makes no difference`` () =
+    formatSourceString
+        """
+let a =
+    config
+        // note
+        .Settings.GetValue(key)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    config
+        // note
+        .Settings.GetValue(key)
+"""
+
+[<Test>]
+let ``a trailing comment after the receiver indents the steps behind it`` () =
+    formatSourceString
+        """
+let a =
+    config // note
+        .Settings.GetValue(key)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    config // note
+        .Settings.GetValue(key)
 """
