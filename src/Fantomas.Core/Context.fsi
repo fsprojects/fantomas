@@ -108,6 +108,12 @@ val atCurrentColumn: f: (Context -> Context) -> ctx: Context -> Context
 /// }
 /// `atCurrentColumn` was called on `X`, then `indent` was called, "some long string" have indent 6, because it is indented from `atCurrentColumn` pos (2).
 val atCurrentColumnIndent: f: (Context -> Context) -> ctx: Context -> Context
+
+/// Indent and open a new line, taking trailing trivia into account.
+/// When the emitted content ends with a comment, the indent is spliced in ahead of that comment
+/// so it sits at the indented level, and the newline the comment already wrote is reused instead
+/// of a second one being added. Without trailing trivia this is plain `indent +> sepNln`.
+val indentSepNlnWithTriviaAwareness: ctx: Context -> Context
 val indentSepNlnUnindent: f: (Context -> Context) -> (Context -> Context)
 
 // =============================================================================

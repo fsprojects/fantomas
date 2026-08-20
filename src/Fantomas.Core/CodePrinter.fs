@@ -855,11 +855,20 @@ let genChain (node: ExprChain) : Context -> Context =
         let rendersOnItsOwnLines (segment: ChainSegment) (ctx: Context) : bool =
             fst (futureNlnCheckMem (genSegment segment, ctx))
 
+        // Open a fresh line for a step. The step that leaves the receiver's line is also the one
+        // that establishes the pipeline's indent, hence the flag. Both forms are trivia aware: a
+        // comment already ended the line it sits on, so a second newline would open a blank one,
+        // and every further pass would open another.
+        let openLine (establishIndent: bool) : Context -> Context =
+            if establishIndent then
+                indentSepNlnWithTriviaAwareness
+            else
+                sepNlnUnlessLastEventIsNewline
+
         // Emit one navigation step, either on the current line or opening a fresh one.
-        // Leaving the receiver's line is also where the pipeline's indent is established.
         let placeStep (onHeadLine: bool) (placement: ChainStepPlacement) (segment: ChainSegment) : Context -> Context =
             match placement with
-            | ChainStepPlacement.OpensNewLine -> onlyIf onHeadLine indent +> sepNln +> genSegment segment
+            | ChainStepPlacement.OpensNewLine -> openLine onHeadLine +> genSegment segment
             | ChainStepPlacement.RidesOnCurrentLine -> genSegment segment
 
         // Walk a run of navigation whose placements have already been decided, reporting
@@ -891,13 +900,13 @@ let genChain (node: ExprChain) : Context -> Context =
                 // (leaving the receiver's line) or follows another action;
                 // otherwise it rides after the navigation that introduced it.
                 let placeAction: Context -> Context =
-                    if onHeadLine then indent +> sepNln +> genSegment segment
-                    elif mustBreak then sepNln +> genSegment segment
+                    if onHeadLine then openLine true +> genSegment segment
+                    elif mustBreak then openLine false +> genSegment segment
                     else genSegment segment
 
                 place false true rest (placeAction ctx)
             | segment :: rest when rendersOnItsOwnLines segment ctx ->
-                place false false rest ((onlyIf onHeadLine indent +> sepNln +> genSegment segment) ctx)
+                place false false rest ((openLine onHeadLine +> genSegment segment) ctx)
             | _ ->
                 // A run of navigation, taken as a whole so its breaks can be balanced. It stops
                 // at anything that cannot share a line, so every step in it has a real width.
@@ -1001,11 +1010,22 @@ let genChain (node: ExprChain) : Context -> Context =
                 | _ -> false)
             && not terminalIsCall
 
+        // A comment after the receiver ends its line whatever the rest of the chain wanted, so
+        // the navigation behind it cannot ride along. Where the comment is attached depends on
+        // how it was written: a trailing `config // note` lands on the receiver's own node,
+        // while one written on the line below lands on the last identifier inside it. Both
+        // print the same way, so both have to be found, or the steps after the comment resume
+        // at the receiver's own indent and the result no longer parses.
+        let rec endsWithComment (n: Node) : bool =
+            n.HasContentAfter
+            || (match Array.tryLast n.Children with
+                | Some last -> endsWithComment last
+                | None -> false)
+
         // Otherwise the first segment starts a fresh line when the receiver is compound
-        // (it leads a pipeline), or when the receiver carries a trailing comment — else
-        // that comment would be stranded in the middle of the first call.
+        // (it leads a pipeline).
         let receiverForcesBreak: bool =
-            (Expr.Node node.Head).HasContentAfter
+            endsWithComment (Expr.Node node.Head)
             || (not headIsSimple && not isParenThenIndex)
 
         place true receiverForcesBreak node.Segments (genExpr node.Head ctx)

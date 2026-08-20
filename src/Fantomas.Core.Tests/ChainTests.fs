@@ -815,3 +815,66 @@ let host =
             theFallbackEndpointValue
         )
 """
+
+// A comment written after the receiver ends its line before the chain has decided anything.
+// The steps behind it have to open an indented line, or they land level with the receiver and
+// the result no longer parses. Where the comment attaches depends on how it was written, so
+// the three spellings below are the same chain and have to reach the same output.
+
+[<Test>]
+let ``a comment on its own line after the receiver indents the steps behind it`` () =
+    formatSourceString
+        """
+let a =
+    config
+    // note
+        .Settings.GetValue(key)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    config
+        // note
+        .Settings.GetValue(key)
+"""
+
+[<Test>]
+let ``the column the comment after a receiver was written at makes no difference`` () =
+    formatSourceString
+        """
+let a =
+    config
+        // note
+        .Settings.GetValue(key)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    config
+        // note
+        .Settings.GetValue(key)
+"""
+
+[<Test>]
+let ``a trailing comment after the receiver indents the steps behind it`` () =
+    formatSourceString
+        """
+let a =
+    config // note
+        .Settings.GetValue(key)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    config // note
+        .Settings.GetValue(key)
+"""
