@@ -13,7 +13,8 @@ let safeToIgnoreWarnings =
         [ 35 // Deprecated
           42 // LibraryUseOnly
           46 // ReservedKeyword
-          1104 ] // lexhlpIdentifiersContainingAtSymbolReserved
+          1104 // lexhlpIdentifiersContainingAtSymbolReserved
+          3535 ] // tcUsingInterfacesWithAbstractStaticMembers
 
 let noWarningOrErrorDiagnostics diagnostics =
     diagnostics

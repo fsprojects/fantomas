@@ -3692,3 +3692,43 @@ type X // oh dear
 
 23
 """
+
+[<Test>]
+let ``interface with static abstract members, 3396`` () =
+    formatSourceString
+        """
+type IWSAMTest<'e> =
+    static abstract member Test : int -> 'e
+    static abstract member Zero : 'e
+    abstract member Value : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type IWSAMTest<'e> =
+    static abstract member Test: int -> 'e
+    static abstract member Zero: 'e
+    abstract member Value: int
+"""
+
+[<Test>]
+let ``interface with static abstract members in signature file`` () =
+    formatSignatureString
+        """
+module Foo
+
+type IWSAMTest<'e> =
+    static abstract member Test : int -> 'e
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo
+
+type IWSAMTest<'e> =
+    static abstract member Test: int -> 'e
+"""

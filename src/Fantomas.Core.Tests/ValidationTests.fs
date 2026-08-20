@@ -33,3 +33,25 @@ let ``should fail on uncompilable extern functions`` () =
 [<System.Runtime.InteropServices.DllImport("user32.dll")>]
 let GetWindowLong hwnd : System.IntPtr, index : int : int = failwith )"""
     |> should equal false
+
+[<Test>]
+let ``interface with static abstract members is valid, 3396`` () =
+    isValidFSharpCode
+        false
+        """
+type IWSAMTest<'e> =
+    static abstract member Test: int -> 'e
+"""
+    |> should equal true
+
+[<Test>]
+let ``interface with static abstract members is valid in a signature file`` () =
+    isValidFSharpCode
+        true
+        """
+module Foo
+
+type IWSAMTest<'e> =
+    static abstract member Test: int -> 'e
+"""
+    |> should equal true
