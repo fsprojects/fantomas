@@ -34,6 +34,28 @@ let ``should fail on uncompilable extern functions`` () =
 let GetWindowLong hwnd : System.IntPtr, index : int : int = failwith )"""
     |> should equal false
 
+[<Test>]
+let ``interface with static abstract members is valid, 3396`` () =
+    isValidFSharpCode
+        false
+        """
+type IWSAMTest<'e> =
+    static abstract member Test: int -> 'e
+"""
+    |> should equal true
+
+[<Test>]
+let ``interface with static abstract members is valid in a signature file`` () =
+    isValidFSharpCode
+        true
+        """
+module Foo
+
+type IWSAMTest<'e> =
+    static abstract member Test: int -> 'e
+"""
+    |> should equal true
+
 // InvariantViolationException marks a state the transformer's own model says is impossible.
 // It must derive from FormatException: the CLI matches on that type to decide what to print,
 // and anything else falls through to an empty message at normal verbosity.
