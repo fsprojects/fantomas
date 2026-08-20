@@ -40,6 +40,26 @@ Establish these, and report them back before running anything long:
 
 Say up front that the builds are long and CPU heavy, and run them in the background one at a time.
 
+## Rung zero: the base state must pass its own check
+
+Before touching any version, run the pinned version's `--check` and establish the scope it must
+pass. When the docs and CI disagree on which paths to format, trust CI: that is the scope the
+project actually enforces, and the rest is drift they have chosen to live with. FsAutoComplete's
+CONTRIBUTING says to format `src/ test/`, but its CI has only ever checked `build.fsx src`; its
+`test/` tree holds intentionally unparseable fixtures and has never been formatted. Reformatting
+that scope on their behalf is churn they did not ask for, and can break fixture-sensitive tests in
+ways a build will not catch. Only widen beyond the CI scope when they clearly want it.
+
+If the check fails on the enforced scope, the base state is dirty, and the first commit on the
+trial branch is fixing that: format with the pinned version, build, and commit as the rung-zero
+baseline. Do this before any version bump, so each rung's diff isolates the version's effect
+instead of inheriting drift. If the base state already passes, say so; that is information too.
+
+Some files in scope may be genuinely unformattable: fixtures that are intentionally incomplete F#,
+or code in syntax the pinned parser rejects (F# 7 relaxed indentation is a live example). Record
+that set explicitly — file by file, with the reason — and compare each rung's check against it,
+rather than demanding exit 0 from a repo that cannot give it.
+
 ## The rungs
 
 For each of: **latest stable**, **latest alpha**, **a local build of the branch under test**:
