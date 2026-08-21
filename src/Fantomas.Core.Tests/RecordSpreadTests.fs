@@ -603,29 +603,7 @@ let r =
 """
 
 [<Test>]
-let ``anonymous record expression with a multiline application as spread source`` () =
-    formatSourceString
-        """
-let r =
-    {|
-        ...someRatherLongFunctionName firstArgument secondArgument thirdArgument fourthArg
-        B = 2
-    |}
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let r =
-    {|
-        ...someRatherLongFunctionName firstArgument secondArgument thirdArgument fourthArg
-        B = 2
-    |}
-"""
-
-[<Test>]
-let ``copy and update expression with a spread binding`` () =
+let ``copy and update record expression with a spread`` () =
     formatSourceString """let r = { original with ...source }""" config
     |> should
         equal
@@ -728,6 +706,28 @@ let r =
         ...someRatherLongSourceExpression
         FirstAdditionalField = 1
         SecondAdditionalField = "two"
+    |}
+"""
+
+[<Test>]
+let ``anonymous record expression with a multiline application as spread source`` () =
+    formatSourceString
+        """
+let r =
+    {|
+        ...someRatherLongFunctionName firstArgument secondArgument thirdArgument fourthArg
+        B = 2
+    |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let r =
+    {|
+        ...someRatherLongFunctionName firstArgument secondArgument thirdArgument fourthArg
+        B = 2
     |}
 """
 
@@ -855,7 +855,7 @@ let r =
 """
 
 [<Test>]
-let ``spread with a comment before the source`` () =
+let ``record expression with a comment before the spread`` () =
     formatSourceString
         """
 let r =
