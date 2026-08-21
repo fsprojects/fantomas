@@ -359,6 +359,8 @@ pipeline "Init" {
                "src/Compiler/pars.fsy"
                "src/Compiler/SyntaxTree/UnicodeLexing.fsi"
                "src/Compiler/SyntaxTree/UnicodeLexing.fs"
+               "src/Compiler/SyntaxTree/XmlDocIncludeExpander.fsi"
+               "src/Compiler/SyntaxTree/XmlDocIncludeExpander.fs"
                "src/Compiler/SyntaxTree/XmlDoc.fsi"
                "src/Compiler/SyntaxTree/XmlDoc.fs"
                "src/Compiler/SyntaxTree/SyntaxTrivia.fsi"

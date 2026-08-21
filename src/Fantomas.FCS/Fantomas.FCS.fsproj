@@ -255,6 +255,12 @@
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\SyntaxTree\UnicodeLexing.fs">
       <Link>SyntaxTree\UnicodeLexing.fs</Link>
     </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\SyntaxTree\XmlDocIncludeExpander.fsi">
+      <Link>SyntaxTree\XmlDocIncludeExpander.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\SyntaxTree\XmlDocIncludeExpander.fs">
+      <Link>SyntaxTree\XmlDocIncludeExpander.fs</Link>
+    </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\SyntaxTree\XmlDoc.fsi">
       <Link>SyntaxTree\XmlDoc.fsi</Link>
     </Compile>
