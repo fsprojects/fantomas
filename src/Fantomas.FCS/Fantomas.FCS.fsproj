@@ -17,15 +17,23 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="TailCall.fs" />
-    <EmbeddedText Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\FSComp.txt">
+    <!--
+      Deliberately not an EmbeddedText item. The SDK's FSharpEmbedResourceText generates SR accessors
+      returning string, while the compiler sources we vendor have expected RichText since
+      dotnet/fsharp#20097. Our own item name keeps the SDK's generator away from this file, and
+      GenerateFantomasTextResources below runs the vendored task over it instead.
+    -->
+    <FantomasEmbeddedText Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\FSComp.txt">
       <Link>FSComp.txt</Link>
-    </EmbeddedText>
+      <RichText>true</RichText>
+    </FantomasEmbeddedText>
     <EmbeddedResource Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\FSStrings.resx">
       <Link>FSStrings.resx</Link>
       <LogicalName>FSStrings.resources</LogicalName>
     </EmbeddedResource>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\NullHelpers.fs">
       <Link>Utilities\NullHelpers.fs</Link>
+      <CompileOrder>CompileFirst</CompileOrder>
     </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\Activity.fsi">
       <Link>Utilities\Activity.fsi</Link>
@@ -41,15 +49,27 @@
     </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\sformat.fsi">
       <Link>Utilities\sformat.fsi</Link>
+      <CompileOrder>CompileFirst</CompileOrder>
     </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\sformat.fs">
       <Link>Utilities\sformat.fs</Link>
+      <CompileOrder>CompileFirst</CompileOrder>
     </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\sr.fsi">
       <Link>Utilities\sr.fsi</Link>
+      <CompileOrder>CompileFirst</CompileOrder>
     </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\sr.fs">
       <Link>Utilities\sr.fs</Link>
+      <CompileOrder>CompileFirst</CompileOrder>
+    </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\RichText.fsi">
+      <Link>Facilities\RichText.fsi</Link>
+      <CompileOrder>CompileFirst</CompileOrder>
+    </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\RichText.fs">
+      <Link>Facilities\RichText.fs</Link>
+      <CompileOrder>CompileFirst</CompileOrder>
     </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\ResizeArray.fsi">
       <Link>Utilities\ResizeArray.fsi</Link>
@@ -353,5 +373,34 @@
 
   <Target Name="AcquireCompilerFiles" Condition="!Exists('../../.deps/$(FCSCommitHash)')" BeforeTargets="CollectPackageReferences">
     <Exec Command="dotnet fsi ../../build.fsx -p Init" />
+  </Target>
+
+  <PropertyGroup>
+    <FantomasBuildTasksAssembly>$(MSBuildThisFileDirectory)..\..\artifacts\bin\Fantomas.FCS.BuildTasks\$(Configuration.ToLowerInvariant())\Fantomas.FCS.BuildTasks.dll</FantomasBuildTasksAssembly>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Fantomas.FCS.Build.FSharpEmbedResourceText" AssemblyFile="$(FantomasBuildTasksAssembly)" />
+
+  <!-- Build the task before anything needs to run it. -->
+  <Target Name="BuildFantomasBuildTasks" BeforeTargets="GenerateFantomasTextResources" Condition="!Exists('$(FantomasBuildTasksAssembly)')">
+    <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)..\Fantomas.FCS.BuildTasks\Fantomas.FCS.BuildTasks.fsproj&quot; -c $(Configuration) -v quiet" />
+  </Target>
+
+  <!-- The SDK's GenerateFSharpTextResources, but over our item and with our task. -->
+  <Target Name="GenerateFantomasTextResources" BeforeTargets="CoreResGen;PrepareForBuild">
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+
+    <Fantomas.FCS.Build.FSharpEmbedResourceText EmbeddedText="@(FantomasEmbeddedText)" IntermediateOutputPath="$(IntermediateOutputPath)">
+      <Output TaskParameter="GeneratedSource" ItemName="_FantomasGeneratedTxtSource" />
+      <Output TaskParameter="GeneratedResx" ItemName="_FantomasGeneratedResx" />
+    </Fantomas.FCS.Build.FSharpEmbedResourceText>
+
+    <ItemGroup>
+      <Compile Include="@(_FantomasGeneratedTxtSource)" CompileOrder="CompileBefore" />
+      <FsGeneratedSource Include="@(_FantomasGeneratedTxtSource)" />
+      <EmbeddedResource Include="@(_FantomasGeneratedResx)" />
+      <FileWrites Include="@(_FantomasGeneratedTxtSource)" />
+      <FileWrites Include="@(_FantomasGeneratedResx)" />
+    </ItemGroup>
   </Target>
 </Project>

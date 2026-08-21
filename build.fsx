@@ -256,7 +256,9 @@ let updateFileRaw (file: FileInfo) =
     let updatedLines =
         lines
         |> Array.map (fun line ->
-            if line.Contains("FSharp.Compiler") then
+            if line.StartsWith("namespace FSharp.Build") then
+                line.Replace("namespace FSharp.Build", "namespace Fantomas.FCS.Build")
+            elif line.Contains("FSharp.Compiler") then
                 line.Replace("FSharp.Compiler", "Fantomas.FCS")
             elif line.Contains("[<TailCall>]") then
                 line.Replace("[<TailCall>]", "[<Microsoft.FSharp.Core.TailCall>]")
@@ -292,7 +294,12 @@ pipeline "Init" {
     workingDir __SOURCE_DIRECTORY__
     stage "Download FCS files" {
         run (fun _ ->
-            [| "src/Compiler/FSComp.txt"
+            [|
+               // Not a compiler source. This is the MSBuild task that turns FSComp.txt into the SR
+               // module. Since dotnet/fsharp#20097 the generated diagnostic accessors return RichText
+               // instead of string, and the task shipped in the .NET SDK cannot generate those yet.
+               "src/FSharp.Build/FSharpEmbedResourceText.fs"
+               "src/Compiler/FSComp.txt"
                "src/Compiler/FSStrings.resx"
                "src/Compiler/Utilities/NullHelpers.fs"
                "src/Compiler/Utilities/Activity.fsi"
@@ -303,6 +310,8 @@ pipeline "Init" {
                "src/Compiler/Utilities/sformat.fs"
                "src/Compiler/Utilities/sr.fsi"
                "src/Compiler/Utilities/sr.fs"
+               "src/Compiler/Facilities/RichText.fsi"
+               "src/Compiler/Facilities/RichText.fs"
                "src/Compiler/Utilities/ResizeArray.fsi"
                "src/Compiler/Utilities/ResizeArray.fs"
                "src/Compiler/Utilities/HashMultiMap.fsi"
