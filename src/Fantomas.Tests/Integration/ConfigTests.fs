@@ -48,9 +48,9 @@ end_of_line=cr
         )
 
     let args = DetailedVerbosity @ [ fileFixture.Filename ]
-    let { ExitCode = exitCode; Output = output } = runFantomasTool args
+    let { ExitCode = exitCode; Error = error } = runFantomasTool args
     exitCode |> should equal 1
-    Assert.That(output, Does.Contain "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'")
+    Assert.That(error, Does.Contain "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'")
 
 let valid_eol_settings = [ "lf"; "crlf" ]
 

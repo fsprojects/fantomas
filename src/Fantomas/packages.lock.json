@@ -69,15 +69,6 @@
           "Serilog": "4.0.0"
         }
       },
-      "SerilogTraceListener": {
-        "type": "Direct",
-        "requested": "[3.2.1-dev-00011, )",
-        "resolved": "3.2.1-dev-00011",
-        "contentHash": "Lcd96moPFhTzFOJR+EIxu0PSzZPPoX1BGNfpm7ArJ4/3MnMw3iTblEJBn8EpcSzS66DJyiy+WaXVkE7fuHhU3A==",
-        "dependencies": {
-          "Serilog": "2.8.0"
-        }
-      },
       "Spectre.Console": {
         "type": "Direct",
         "requested": "[0.55.0, )",

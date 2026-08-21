@@ -24,6 +24,7 @@
     <Compile Include="Integration\ConfigTests.fs" />
     <Compile Include="Integration\IgnoreFilesTests.fs" />
     <Compile Include="Integration\ExitCodeTests.fs" />
+    <Compile Include="Integration\StandardStreamTests.fs" />
     <Compile Include="Integration\MultiplePathsTests.fs" />
     <Compile Include="Integration\WriteTests.fs" />
     <Compile Include="Integration\DaemonTests.fs" />

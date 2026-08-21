@@ -278,16 +278,26 @@ Join us on the F# Discord:       https://discord.com/channels/196693847965696000
         results.TryGetResult <@ Arguments.Verbosity @>
         |> Option.map (fun v -> v.ToLowerInvariant())
 
-    let verbosity =
+    let verbosityLevel =
         match maybeVerbosity with
         | None
         | Some "n"
-        | Some "normal" -> initLogger VerbosityLevel.Normal
+        | Some "normal" -> VerbosityLevel.Normal
         | Some "d"
-        | Some "detailed" -> initLogger VerbosityLevel.Detailed
+        | Some "detailed" -> VerbosityLevel.Detailed
         | Some _ ->
-            elog "Invalid verbosity level"
+            // The logger is not up yet, so this cannot go through elog.
+            eprintfn "Invalid verbosity level"
             exit 1
+
+    let isDaemon = results.Contains <@ Arguments.Daemon @>
+
+    // In daemon mode standard out carries the JSON-RPC protocol, so the logger must stay off it.
+    let verbosity =
+        if isDaemon then
+            initDaemonLogger verbosityLevel
+        else
+            initLogger verbosityLevel
 
     AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> closeAndFlushLog ())
 
@@ -362,7 +372,6 @@ Join us on the F# Discord:       https://discord.com/channels/196693847965696000
         (fileTasks @ folderTasks)
 
     let check = results.Contains <@ Arguments.Check @>
-    let isDaemon = results.Contains <@ Arguments.Daemon @>
 
     let partitionResults (results: #(FormatResult seq)) =
         (([], [], [], []), results)
