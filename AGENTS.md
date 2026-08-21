@@ -21,6 +21,24 @@ All scripts accept a file path or stdin, with optional `--signature` and `--edit
 
 Scripts require a debug build first (`dotnet build src/Fantomas/Fantomas.fsproj`).
 
+## Code Style
+
+Annotate every parameter and the return type on a function, even where inference would manage
+without it:
+
+```fsharp
+let writeRow (column: int) (left: string) (right: string) : unit = ...
+```
+
+A written signature reads as documentation, and a wrong assumption fails at the definition
+rather than at a call site somewhere else. Both matter more when the reader is skimming
+unfamiliar code, which is most of the time. Modules with a signature file already state this at
+the boundary; annotate the implementation as well.
+
+This is guidance for code you are writing or revisiting, not a reason to sweep the codebase.
+When you touch a function for some other reason, add the annotations it is missing. Leave the
+functions you had no reason to open alone.
+
 ## Changelog
 
 When updating `CHANGELOG.md`, add new entries to the **end** of the relevant section (e.g. `### Fixed`), not the top. One entry per issue.
