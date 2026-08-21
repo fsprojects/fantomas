@@ -5,6 +5,7 @@
 ### Added
 
 - Support for the record spread syntax introduced in F# preview, [RFC FS-1151](https://github.com/fsharp/fslang-design/pull/805). A spread can appear in a record expression, `{ ...source; Field = value }`, in an anonymous record expression, `{| ...source; Field = value |}`, and in the record representation of a type definition, `type Target = { ...Source; Field: int }`, in both implementation and signature files. [#3400](https://github.com/fsprojects/fantomas/pull/3400)
+- Interpolated strings with a negative alignment, `$"{value,-10}"`, now format instead of failing with a parse error. Alignment and format specifiers keep their existing layout, so `$"{value,10:N2}"` is unaffected. [#3400](https://github.com/fsprojects/fantomas/pull/3400)
 
 ### Changed
 

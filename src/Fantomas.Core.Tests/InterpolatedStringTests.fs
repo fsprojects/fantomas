@@ -165,6 +165,66 @@ $\"\"\"one: {1}<
 >two: {2}\"\"\"
 "
 
+// The parser reports the alignment of `{x,10}` separately from the expression since
+// dotnet/fsharp#19971. Fantomas has always printed a space after the comma, because the alignment
+// used to arrive as part of a tuple expression. These pin that existing output.
+[<Test>]
+let ``alignment in string interpolation`` () =
+    formatSourceString
+        """
+let s = $"value {x,10}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let s = $"value {x, 10}"
+"""
+
+[<Test>]
+let ``negative alignment in string interpolation`` () =
+    formatSourceString
+        """
+let s = $"value {x,-10}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let s = $"value {x, -10}"
+"""
+
+[<Test>]
+let ``alignment and format in string interpolation`` () =
+    formatSourceString
+        """
+let s = $"{x,10:N2} then {y}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let s = $"{x, 10:N2} then {y}"
+"""
+
+[<Test>]
+let ``alignment in string interpolation from AST`` () =
+    formatAST
+        false
+        """
+$"{x,10:N2} then {y}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+$"{x, 10:N2} then {y}"
+"""
+
 [<Test>]
 let ``format in FillExpr, 1549`` () =
     formatSourceString

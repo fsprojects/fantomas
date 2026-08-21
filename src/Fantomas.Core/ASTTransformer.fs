@@ -1804,26 +1804,49 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             |> List.mapi (fun idx part ->
                 match part with
                 | SynInterpolatedStringPart.String(v, r) ->
+                    // `%d{x}` puts the specifier on the following fill, not in this part's text,
+                    // even though this part's range still covers it. Only the fallback needs it.
+                    let specifier =
+                        match List.tryItem (idx + 1) parts with
+                        | Some(SynInterpolatedStringPart.FillExpr(_, SynInterpolationFormatting.Printf(specifier, _))) ->
+                            specifier
+                        | _ -> ""
+
                     stn
                         (creationAide.TextFromSource
                             (fun () ->
                                 if idx = 0 && not (String.startsWithOrdinal "$" v) then
-                                    $"$\"%s{v}{{"
+                                    $"$\"%s{v}%s{specifier}{{"
                                 elif idx = lastIndex && not (String.endsWithOrdinal "\"" v) then
                                     $"}}%s{v}\""
                                 else
-                                    $"}}%s{v}{{")
+                                    $"}}%s{v}%s{specifier}{{")
                             r)
                         r
                     |> Choice1Of2
-                | SynInterpolatedStringPart.FillExpr(fillExpr, qualifiers) ->
-                    let m =
-                        match qualifiers with
-                        | None -> fillExpr.Range
-                        | Some ident -> unionRanges fillExpr.Range ident.idRange
+                | SynInterpolatedStringPart.FillExpr(fillExpr, formatting) ->
+                    // The parser reports the alignment of `{x,10}` separately from the expression.
+                    // A fill is printed as an expression optionally followed by `:format`, so fold the
+                    // alignment back into the expression as the tuple the parser used to hand us. The
+                    // comma is the gap between the two, it has no node of its own.
+                    let expr, format =
+                        match formatting with
+                        | SynInterpolationFormatting.Printf _ -> mkExpr creationAide fillExpr, None
+                        | SynInterpolationFormatting.DotNet(None, format) -> mkExpr creationAide fillExpr, format
+                        | SynInterpolationFormatting.DotNet(Some alignment, format) ->
+                            let mComma =
+                                mkRange fillExpr.Range.FileName fillExpr.Range.End alignment.Range.Start
 
-                    FillExprNode(mkExpr creationAide fillExpr, Option.map mkIdent qualifiers, m)
-                    |> Choice2Of2)
+                            let mTuple = unionRanges fillExpr.Range alignment.Range
+
+                            mkTuple creationAide [ fillExpr; alignment ] [ mComma ] mTuple |> Expr.Tuple, format
+
+                    let m =
+                        match format with
+                        | Some ident -> unionRanges fillExpr.Range ident.idRange
+                        | None -> unionRanges fillExpr.Range (Expr.Node expr).Range
+
+                    FillExprNode(expr, Option.map mkIdent format, m) |> Choice2Of2)
 
         ExprInterpolatedStringExprNode(parts, exprRange) |> Expr.InterpolatedStringExpr
     | SynExpr.IndexRange(None, _, None, _, _, _) -> stn "*" exprRange |> Expr.IndexRangeWildcard
