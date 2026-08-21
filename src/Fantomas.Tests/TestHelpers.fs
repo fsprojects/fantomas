@@ -138,8 +138,13 @@ let getFantomasToolStartInfo arguments : ProcessStartInfo =
     startInfo.RedirectStandardError <- true
     startInfo
 
-let runFantomasTool arguments : FantomasToolResult =
-    use p = getFantomasToolStartInfo arguments |> Process.Start
+let runFantomasToolWithEnvironment (environment: (string * string) list) arguments : FantomasToolResult =
+    let startInfo = getFantomasToolStartInfo arguments
+
+    for key, value in environment do
+        startInfo.Environment[key] <- value
+
+    use p = Process.Start startInfo
 
     let output = p.StandardOutput.ReadToEnd()
     let error = p.StandardError.ReadToEnd()
@@ -148,6 +153,9 @@ let runFantomasTool arguments : FantomasToolResult =
     { ExitCode = p.ExitCode
       Output = output
       Error = error }
+
+let runFantomasTool arguments : FantomasToolResult =
+    runFantomasToolWithEnvironment [] arguments
 
 let checkCode (files: string list) : FantomasToolResult =
     let arguments = "--check" :: files

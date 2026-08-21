@@ -9,14 +9,19 @@ open Fantomas.Core
 // Select graphic rendition sequences, so a decorated string can still be measured.
 let escapeSequence = Regex(@"\u001b\[[0-9;]*m", RegexOptions.Compiled)
 
-// What the terminal can do is Spectre.Console's answer to give: it already honours NO_COLOR,
-// TERM and the CI environments, and reports no colours at all when standard out is redirected.
-// Piping the help page into a file or a pager therefore yields plain text.
+// What the terminal can do is Spectre.Console's answer to give: it knows the TERM values, it
+// honours NO_COLOR, and it reports which colour system is available.
 let capabilities = lazy AnsiConsole.Profile.Capabilities
 
+// Redirection is decided here rather than left to Spectre. Spectre turns ANSI back on when it
+// detects a CI environment, because a CI log viewer renders escape codes and a progress bar
+// there is worth colouring. A help page is not: it gets piped into a file, a pager or a script
+// that reads it, on a build agent as much as anywhere else. Standard out being a terminal is
+// the question this page needs answered, so both have to agree.
 let colorsEnabled =
     lazy
-        (capabilities.Value.Ansi
+        (not Console.IsOutputRedirected
+         && capabilities.Value.Ansi
          && capabilities.Value.ColorSystem <> ColorSystem.NoColors)
 
 let eightBitColors = lazy (capabilities.Value.ColorSystem >= ColorSystem.EightBit)

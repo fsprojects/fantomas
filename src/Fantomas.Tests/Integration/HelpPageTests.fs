@@ -58,6 +58,19 @@ let ``help page is not coloured when standard out is redirected`` () =
 
     output.Contains "\u001b[" |> should equal false
 
+// Spectre.Console reports that ANSI is supported once it detects a CI environment, even with
+// standard out redirected, because a CI log viewer renders escape codes. A help page that a
+// build step captures still has to be plain, so redirection has to win over that.
+[<Test>]
+[<TestCase("GITHUB_ACTIONS")>]
+[<TestCase("TF_BUILD")>]
+let ``help page is not coloured on a build agent`` (variable: string) =
+    let { Output = output } =
+        runFantomasToolWithEnvironment [ variable, "true"; "TERM", "xterm-256color" ] [ "--help" ]
+
+    Assert.That(output, Does.Contain "Usage: fantomas [...flags] [...paths]")
+    output.Contains "\u001b[" |> should equal false
+
 [<Test>]
 let ``an argument error is reported on standard error without Argu's usage text`` () =
     let { ExitCode = exitCode
