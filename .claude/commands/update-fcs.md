@@ -21,6 +21,13 @@ vendored copy has caught up. Most steps will need no repo change at all, the has
 everything still builds. A few will need real work. Treat a clean step as the normal case and
 say so plainly, do not go looking for something to fix.
 
+**Whenever you name an upstream commit, give the link to the PR that introduced it**, as
+`https://github.com/dotnet/fsharp/pull/<n>`. Not only in the target summary: any commit you
+discuss, skip, blame for a regression or point at as future work gets its link the first time it
+appears in a reply. The sha alone is not something a person can reason about, and the PR is where
+the intent and the review discussion live. Take the number from the commit subject, upstream ends
+every squashed subject with `(#NNNNN)`.
+
 Every run must open and close with the same progress line, so the user can see the catch-up
 shrinking across invocations:
 
