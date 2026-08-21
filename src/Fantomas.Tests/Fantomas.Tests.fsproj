@@ -29,6 +29,7 @@
     <Compile Include="Integration\WriteTests.fs" />
     <Compile Include="Integration\DaemonTests.fs" />
     <Compile Include="Integration\ForceTests.fs" />
+    <Compile Include="Integration\HelpPageTests.fs" />
     <Compile Include="FantomasServiceTests.fs" />
   </ItemGroup>
   <ItemGroup>

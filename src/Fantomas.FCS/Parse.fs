@@ -599,7 +599,8 @@ let getSyntaxErrorMessage ctxt =
         | Parser.TOKEN_COLON_QMARK -> getErrorString "Parser.TOKEN.COLON.QMARK"
         | Parser.TOKEN_INT32_DOT_DOT -> getErrorString "Parser.TOKEN.INT32.DOT.DOT"
         | Parser.TOKEN_DOT_DOT -> getErrorString "Parser.TOKEN.DOT.DOT"
-        | Parser.TOKEN_DOT_DOT_HAT -> getErrorString "Parser.TOKEN.DOT.DOT"
+        | Parser.TOKEN_DOT_DOT_HAT -> getErrorString "Parser.TOKEN.DOT.DOT.HAT"
+        | Parser.TOKEN_DOT_DOT_DOT -> getErrorString "Parser.TOKEN.DOT.DOT.DOT"
         | Parser.TOKEN_QUOTE -> getErrorString "Parser.TOKEN.QUOTE"
         | Parser.TOKEN_STAR -> getErrorString "Parser.TOKEN.STAR"
         | Parser.TOKEN_HIGH_PRECEDENCE_TYAPP -> getErrorString "Parser.TOKEN.HIGH.PRECEDENCE.TYAPP"
@@ -607,6 +608,7 @@ let getSyntaxErrorMessage ctxt =
         | Parser.TOKEN_COLON_EQUALS -> getErrorString "Parser.TOKEN.COLON.EQUALS"
         | Parser.TOKEN_LARROW -> getErrorString "Parser.TOKEN.LARROW"
         | Parser.TOKEN_EQUALS -> getErrorString "Parser.TOKEN.EQUALS"
+        | Parser.TOKEN_GREATER_BAR_RBRACE -> getErrorString "Parser.TOKEN.GREATER.BAR.RBRACE"
         | Parser.TOKEN_GREATER_BAR_RBRACK -> getErrorString "Parser.TOKEN.GREATER.BAR.RBRACK"
         | Parser.TOKEN_MINUS -> getErrorString "Parser.TOKEN.MINUS"
         | Parser.TOKEN_ADJACENT_PREFIX_OP -> getErrorString "Parser.TOKEN.ADJACENT.PREFIX.OP"
@@ -633,6 +635,7 @@ let getSyntaxErrorMessage ctxt =
         | Parser.TOKEN_GREATER_RBRACK -> getErrorString "Parser.TOKEN.GREATER.RBRACK"
         | Parser.TOKEN_RQUOTE_DOT
         | Parser.TOKEN_RQUOTE -> getErrorString "Parser.TOKEN.RQUOTE"
+        | Parser.TOKEN_RQUOTE_BAR_RBRACE -> getErrorString "Parser.TOKEN.RQUOTE.BAR.RBRACE"
         | Parser.TOKEN_RBRACK -> getErrorString "Parser.TOKEN.RBRACK"
         | Parser.TOKEN_RBRACE
         | Parser.TOKEN_RBRACE_COMING_SOON
@@ -736,7 +739,8 @@ let getSyntaxErrorMessage ctxt =
         | Parser.TOKEN_HASH_LINE
         | Parser.TOKEN_HASH_IF
         | Parser.TOKEN_HASH_ELSE
-        | Parser.TOKEN_HASH_ENDIF -> getErrorString "Parser.TOKEN.HASH.ENDIF"
+        | Parser.TOKEN_HASH_ENDIF
+        | Parser.TOKEN_HASH_ELIF -> getErrorString "Parser.TOKEN.HASH.ENDIF"
         | Parser.TOKEN_INACTIVECODE -> getErrorString "Parser.TOKEN.INACTIVECODE"
         | Parser.TOKEN_LEX_FAILURE -> getErrorString "Parser.TOKEN.LEX.FAILURE"
         | Parser.TOKEN_WHITESPACE -> getErrorString "Parser.TOKEN.WHITESPACE"
@@ -753,6 +757,7 @@ let getSyntaxErrorMessage ctxt =
         | Parser.TOKEN_INTERP_STRING_BEGIN_PART -> getErrorString "Parser.TOKEN.INTERP.STRING.BEGIN.PART"
         | Parser.TOKEN_INTERP_STRING_PART -> getErrorString "Parser.TOKEN.INTERP.STRING.PART"
         | Parser.TOKEN_INTERP_STRING_END -> getErrorString "Parser.TOKEN.INTERP.STRING.END"
+        | Parser.TOKEN_BAR_JUST_BEFORE_NULL -> getErrorString "Parser.TOKEN.BAR_JUST_BEFORE_NULL"
         | unknown ->
             Debug.Assert(false, "unknown token tag")
             let result = $"%+A{unknown}"

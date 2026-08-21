@@ -18,6 +18,7 @@ type IgnoreFile =
     { Location: IFileInfo
       IsIgnored: IsPathIgnored }
 
+[<RequireQualifiedAccess>]
 module IgnoreFile =
 
     [<Literal>]

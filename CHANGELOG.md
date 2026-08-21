@@ -11,6 +11,7 @@
 
 - Breaking: warnings and errors are written to standard error instead of standard out. Informational output stays on standard out, including `--version` and the files `--check` reports as needing formatting, so a caller can tell the tool's output apart from its diagnostics by stream. Scripts that capture standard out to detect failures need to capture standard error as well. [#3399](https://github.com/fsprojects/fantomas/pull/3399)
 - Update FCS to 'Parser: recover on missing when conditions', commit d05075e098278aedcea3379159504d664628a495 [#3400](https://github.com/fsprojects/fantomas/pull/3400)
+- Breaking: the `--help` page is written by Fantomas instead of by Argu. It carries the version, worked examples, what an input path may be, and links to the documentation, the F# Discord and the `llms.txt` files an LLM can read. Colours are used when the terminal supports them and dropped when standard out is redirected. `-h` is now accepted alongside `--help`. An argument error reports the complaint on standard error followed by a pointer to `--help`, where it used to print Argu's usage block. [#3402](https://github.com/fsprojects/fantomas/pull/3402)
 
 ### Fixed
 

@@ -4,6 +4,7 @@ open System.Collections.Generic
 open System.Threading
 open System.Threading.Tasks
 
+[<RequireQualifiedAccess>]
 module Methods =
 
     [<Literal>]
