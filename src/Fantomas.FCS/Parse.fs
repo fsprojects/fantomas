@@ -382,7 +382,7 @@ let EmptyParsedInput (filename, isLastCompiland) =
 
 let createLexbuf langVersion (sourceText: ISourceText) =
     let lexbuf =
-        UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), Some true, sourceText)
+        UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), sourceText)
 
     lexbuf.BufferLocalStore["SourceText"] <- (sourceText :> obj)
     lexbuf
