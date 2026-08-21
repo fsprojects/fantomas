@@ -1,32 +1,42 @@
 module Fantomas.Logging
 
+open System
 open Serilog
+open Serilog.Events
 
 [<RequireQualifiedAccess>]
 type VerbosityLevel =
     | Normal
     | Detailed
 
-let initLogger (level: VerbosityLevel) : VerbosityLevel =
-    let logger =
+let createLogger (level: VerbosityLevel) (standardErrorFromLevel: LogEventLevel) : VerbosityLevel =
+    let configuration =
         match level with
         | VerbosityLevel.Normal ->
             LoggerConfiguration()
                 .MinimumLevel.Information()
-                .WriteTo.Console(outputTemplate = "{Message:lj}{NewLine}{Exception}")
-                .CreateLogger()
-        | VerbosityLevel.Detailed -> LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger()
+                .WriteTo.Console(
+                    outputTemplate = "{Message:lj}{NewLine}{Exception}",
+                    standardErrorFromLevel = Nullable standardErrorFromLevel
+                )
+        | VerbosityLevel.Detailed ->
+            LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console(standardErrorFromLevel = Nullable standardErrorFromLevel)
 
-    Log.Logger <- logger
+    Log.Logger <- configuration.CreateLogger()
     level
 
-/// log a message
+let initLogger (level: VerbosityLevel) : VerbosityLevel =
+    createLogger level LogEventLevel.Warning
+
+let initDaemonLogger (level: VerbosityLevel) : VerbosityLevel =
+    createLogger level LogEventLevel.Verbose
+
 let stdlog (s: string) = Log.Logger.Information(s)
 
-/// log an error
 let elog (s: string) = Log.Logger.Error(s)
 
-/// log a message if the verbosity level is >= Detailed
 let logGrEqDetailed s = Log.Logger.Debug(s)
 
 let closeAndFlushLog () = Log.CloseAndFlush()

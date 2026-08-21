@@ -41,7 +41,6 @@
     <PackageReference Include="StreamJsonRpc" />
     <PackageReference Include="Argu" />
     <PackageReference Include="Thoth.Json.Net" />
-    <PackageReference Include="SerilogTraceListener" />
     <PackageReference Include="editorconfig" />
     <PackageReference Include="Ignore" />
     <PackageReference Include="System.IO.Abstractions" />

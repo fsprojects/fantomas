@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Breaking: warnings and errors are written to standard error instead of standard out. Informational output stays on standard out, including `--version` and the files `--check` reports as needing formatting, so a caller can tell the tool's output apart from its diagnostics by stream. Scripts that capture standard out to detect failures need to capture standard error as well. [#3399](https://github.com/fsprojects/fantomas/pull/3399)
+
+### Fixed
+
+- `--verbosity` with an unrecognised value exited with code 1 and printed nothing, because the message was logged before the logger was configured. It now reports `Invalid verbosity level` on standard error. [#3399](https://github.com/fsprojects/fantomas/pull/3399)
+
 ## [8.0.0-alpha-014] - 2026-08-20
 
 ### Changed

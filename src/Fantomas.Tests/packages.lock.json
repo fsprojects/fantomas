@@ -267,7 +267,6 @@
           "Ignore": "[0.2.1, )",
           "Serilog": "[4.3.1, )",
           "Serilog.Sinks.Console": "[6.1.1, )",
-          "SerilogTraceListener": "[3.2.1-dev-00011, )",
           "Spectre.Console": "[0.55.0, )",
           "StreamJsonRpc": "[2.25.29, )",
           "System.IO.Abstractions": "[22.1.0, )",
@@ -343,15 +342,6 @@
         "contentHash": "8jbqgjUyZlfCuSTaJk6lOca465OndqOz3KZP6Cryt/IqZYybyBu7GP0fE/AXBzrrQB3EBmQntBFAvMVz1COvAA==",
         "dependencies": {
           "Serilog": "4.0.0"
-        }
-      },
-      "SerilogTraceListener": {
-        "type": "CentralTransitive",
-        "requested": "[3.2.1-dev-00011, )",
-        "resolved": "3.2.1-dev-00011",
-        "contentHash": "Lcd96moPFhTzFOJR+EIxu0PSzZPPoX1BGNfpm7ArJ4/3MnMw3iTblEJBn8EpcSzS66DJyiy+WaXVkE7fuHhU3A==",
-        "dependencies": {
-          "Serilog": "2.8.0"
         }
       },
       "Spectre.Console": {

@@ -22,7 +22,6 @@
         <PackageVersion Include="SemanticVersioning" Version="3.0.0" />
         <PackageVersion Include="Serilog" Version="4.3.1"/>
         <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
-        <PackageVersion Include="SerilogTraceListener" Version="3.2.1-dev-00011" />
         <PackageVersion Include="Argu" Version="6.2.5" />
         <PackageVersion Include="Thoth.Json.Net" Version="12.0.0" />
         <PackageVersion Include="editorconfig" Version="0.15.0" />
