@@ -340,37 +340,41 @@ You can skip this step if you wish to install Fantomas globally.</p>
 <p>For the overview how to use the tool, you can type the command</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="o">--</span><span class="id">help</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code>Learn more about Fantomas:       https://fsprojects.github.io/fantomas/docs
-Join us on the F# Discord:       https://discord.com/channels/196693847965696000/1493226271767924747
+<table class="pre"><tr><td><pre><code>Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-014+76e6c3b0d)
 
-USAGE: dotnet fantomas [--help] [--force] [--profile] [--out &lt;string&gt;] [--check]
-                       [--daemon] [--version] [--verbosity &lt;string&gt;]
-                       [&lt;string&gt;...]
+Usage: fantomas [...flags] [...paths]
 
-INPUT:
+Examples:
+  fantomas .                     Format every F# file below the current folder
+  fantomas src/App.fs            Format a single file in place
+  fantomas --check .             Report what needs formatting, write nothing
+  fantomas --out build src       Copy the formatted files to another folder
 
-    &lt;string&gt;...           Input paths: can be multiple folders or files with
-                          *.fs,*.fsi,*.fsx,*.ml,*.mli extension.
+Flags:
+      --check                Report which files need formatting and write nothing.
+                             Exits 0 when every file is already formatted, 99 when some
+                             file needs formatting, and 1 when an error occurred.
+      --out &lt;path&gt;           Write the result to this file or folder instead of formatting
+                             in place. Takes a single input path.
+      --force                Write the output even when it is not valid F# code.
+                             For debugging purposes only.
+      --profile              Print the line count and the time taken for every file.
+      --daemon               Run an LSP-like server that editor tooling can talk to.
+  -v, --verbosity &lt;level&gt;    How much to print: normal or detailed. Defaults to normal.
+                             n and d are accepted as well.
+      --version              Print the version and exit
+  -h, --help                 Display this menu and exit
 
-OPTIONS:
+Paths:
+  A path is a folder, which is searched recursively, or a file ending in .fs, .fsi,
+  .fsx, .ml or .mli. Formatting settings are read from .editorconfig, and files
+  matched by .fantomasignore in the current folder are skipped.
 
-    --force               Print the output even if it is not valid F# code. For
-                          debugging purposes only.
-    --profile             Print performance profiling information.
-    --out &lt;string&gt;        Give a valid path for files/folders. Files should
-                          have .fs, .fsx, .fsi, .ml or .mli extension only.
-                          Multiple files/folders are not supported.
-    --check               Don't format files, just check if they have changed.
-                          Exits with 0 if it's formatted correctly, with 1 if
-                          some files need formatting and 99 if there was an
-                          internal error
-    --daemon              Daemon mode, launches an LSP-like server that can be
-                          used by editor tooling.
-    --version             Displays the version of Fantomas
-    --verbosity, -v &lt;string&gt;
-                          Set the verbosity level. Allowed values are n[ormal]
-                          and d[etailed].
-    --help                display this list of options.</code></pre></td></tr></table>
+Learn more about Fantomas:   https://fsprojects.github.io/fantomas/docs
+Configure Fantomas:          https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html
+Join the F# Discord:         https://discord.com/channels/196693847965696000/1493226271767924747
+Docs for your LLM:           https://fsprojects.github.io/fantomas/llms.txt
+                             https://fsprojects.github.io/fantomas/llms-full.txt</code></pre></td></tr></table>
 <p>You have to specify an input path and optionally an output path.
 The output path is prompted by <code>--out</code> e.g.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">.</span><span class="o">/</span><span class="id">input</span><span class="o">/</span><span data-fsdocs-tip="fs21" data-fsdocs-tip-unique="31" class="id">array</span><span class="pn">.</span><span class="id">fs</span> <span class="o">--</span><span class="id">out</span> <span class="pn">.</span><span class="o">/</span><span class="id">output</span><span class="o">/</span><span data-fsdocs-tip="fs21" data-fsdocs-tip-unique="32" class="id">array</span><span class="pn">.</span><span class="id">fs</span> 

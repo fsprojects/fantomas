@@ -43,37 +43,41 @@ dotnet fantomas --help
 ```
 
 ```
-Learn more about Fantomas:       https://fsprojects.github.io/fantomas/docs
-Join us on the F# Discord:       https://discord.com/channels/196693847965696000/1493226271767924747
+Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-014+76e6c3b0d)
 
-USAGE: dotnet fantomas [--help] [--force] [--profile] [--out <string>] [--check]
-                       [--daemon] [--version] [--verbosity <string>]
-                       [<string>...]
+Usage: fantomas [...flags] [...paths]
 
-INPUT:
+Examples:
+  fantomas .                     Format every F# file below the current folder
+  fantomas src/App.fs            Format a single file in place
+  fantomas --check .             Report what needs formatting, write nothing
+  fantomas --out build src       Copy the formatted files to another folder
 
-    <string>...           Input paths: can be multiple folders or files with
-                          *.fs,*.fsi,*.fsx,*.ml,*.mli extension.
+Flags:
+      --check                Report which files need formatting and write nothing.
+                             Exits 0 when every file is already formatted, 99 when some
+                             file needs formatting, and 1 when an error occurred.
+      --out <path>           Write the result to this file or folder instead of formatting
+                             in place. Takes a single input path.
+      --force                Write the output even when it is not valid F# code.
+                             For debugging purposes only.
+      --profile              Print the line count and the time taken for every file.
+      --daemon               Run an LSP-like server that editor tooling can talk to.
+  -v, --verbosity <level>    How much to print: normal or detailed. Defaults to normal.
+                             n and d are accepted as well.
+      --version              Print the version and exit
+  -h, --help                 Display this menu and exit
 
-OPTIONS:
+Paths:
+  A path is a folder, which is searched recursively, or a file ending in .fs, .fsi,
+  .fsx, .ml or .mli. Formatting settings are read from .editorconfig, and files
+  matched by .fantomasignore in the current folder are skipped.
 
-    --force               Print the output even if it is not valid F# code. For
-                          debugging purposes only.
-    --profile             Print performance profiling information.
-    --out <string>        Give a valid path for files/folders. Files should
-                          have .fs, .fsx, .fsi, .ml or .mli extension only.
-                          Multiple files/folders are not supported.
-    --check               Don't format files, just check if they have changed.
-                          Exits with 0 if it's formatted correctly, with 1 if
-                          some files need formatting and 99 if there was an
-                          internal error
-    --daemon              Daemon mode, launches an LSP-like server that can be
-                          used by editor tooling.
-    --version             Displays the version of Fantomas
-    --verbosity, -v <string>
-                          Set the verbosity level. Allowed values are n[ormal]
-                          and d[etailed].
-    --help                display this list of options.
+Learn more about Fantomas:   https://fsprojects.github.io/fantomas/docs
+Configure Fantomas:          https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html
+Join the F# Discord:         https://discord.com/channels/196693847965696000/1493226271767924747
+Docs for your LLM:           https://fsprojects.github.io/fantomas/llms.txt
+                             https://fsprojects.github.io/fantomas/llms-full.txt
 ```
 
 You have to specify an input path and optionally an output path.
