@@ -1038,6 +1038,151 @@
       <tr>
         <td class="fsdocs-entity-name">
           <p>
+            <a name="RichMessage">
+              <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-richmessage.html">
+                RichMessage
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <pre> Splices classified arguments into the holes of a message that comes from a resource file.
+
+ A resource accessor returns a message that is already formatted, so the holes can no longer be told
+ apart afterwards. Instead the message is formatted with a sentinel in place of each classified
+ argument, and the sentinels are then replaced with the parts they stand for. This way the resource
+ key stays a compile-checked member reference, and translations are free to reorder, repeat or drop
+ holes.
+
+ This is what the generated FSComp accessors taking classified arguments are built on. Call those
+ directly where they exist; these take a function instead, for the messages that have no such
+ overload - the ones from FSStrings:
+
+     RichMessage.text (fun rich -> RecursionE().Format name (rich ty1) (rich ty2) (rich tpcs))</pre>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.FCS.Text.RichMessage\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.FCS.Text.RichMessage`')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="RichText">
+              <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-richtextmodule.html">
+                RichText (Module)
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-summary-contents">
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.FCS.Text.RichTextModule\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.FCS.Text.RichTextModule`')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="RichText">
+              <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-richtext.html">
+                RichText (Type)
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-summary-contents">
+              <p class="fsdocs-summary">
+                 Represents text made of tagged parts, e.g. a diagnostic message in which types, identifiers and
+ punctuation are classified, so that tooling is able to render them with colors.
+
+ Text that carries no classification is represented as a single part tagged TextTag.Text, so that
+ a plain string is always representable and Text is always equal to the original string.
+
+ Two rich texts are equal when they read the same. Classification does not take part in equality,
+ since the places that compare texts - such as deciding whether two types can be told apart in a
+ message - are asking about what reaches the reader.
+              </p>
+            </div>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.FCS.Text.RichText\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.FCS.Text.RichText`')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="RichTextBuilder">
+              <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-richtextbuilder.html">
+                RichTextBuilder
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-summary-contents">
+              <p class="fsdocs-summary">
+                 Accumulates rich text. Adjacent parts with the same classification are merged, so that where one
+ append ended is not visible in the result.
+
+ AppendString has the same name and signature as the StringBuilder extension in lib.fs, so that
+ message formatting code can be moved over to rich text without being rewritten, and can then be
+ converted to emit classified parts one message at a time.
+              </p>
+            </div>
+            <div class="icon-button-row">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+              </a>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.FCS.Text.RichTextBuilder\'/>')">
+                <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.FCS.Text.RichTextBuilder`')">
+                <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
             <a name="SourceText">
               <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-sourcetext.html">
                 SourceText

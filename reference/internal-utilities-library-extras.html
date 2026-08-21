@@ -1100,7 +1100,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1234" data-fsdocs-tip-unique="1234">
+              <code data-fsdocs-tip="1302" data-fsdocs-tip-unique="1302">
                 <p>
                   <a id="GetEnvInteger">
                     <a href="#GetEnvInteger">
@@ -1109,7 +1109,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1234">
+              <div popover="" class="fsdocs-tip" id="1302">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>GetEnvInteger&#32;<span>e&#32;dflt</span></span></code>
@@ -1184,7 +1184,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1235" data-fsdocs-tip-unique="1235">
+              <code data-fsdocs-tip="1303" data-fsdocs-tip-unique="1303">
                 <p>
                   <a id="buildString">
                     <a href="#buildString">
@@ -1193,7 +1193,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1235">
+              <div popover="" class="fsdocs-tip" id="1303">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>buildString&#32;<span>f</span></span></code>
@@ -1267,7 +1267,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1236" data-fsdocs-tip-unique="1236">
+              <code data-fsdocs-tip="1304" data-fsdocs-tip-unique="1304">
                 <p>
                   <a id="cacheOptByref">
                     <a href="#cacheOptByref">
@@ -1276,7 +1276,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1236">
+              <div popover="" class="fsdocs-tip" id="1304">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>cacheOptByref&#32;<span>cache&#32;f</span></span></code>
@@ -1357,7 +1357,132 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1237" data-fsdocs-tip-unique="1237">
+              <code data-fsdocs-tip="1305" data-fsdocs-tip-unique="1305">
+                <p>
+                  <a id="cacheOptByrefByVersion">
+                    <a href="#cacheOptByrefByVersion">
+                      <code><span>cacheOptByrefByVersion&#32;<span>version&#32;cache&#32;f</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="1305">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>cacheOptByrefByVersion&#32;<span>version&#32;cache&#32;f</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        version
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        cache
+                      </b>
+                      :
+                      <code><span>byref&lt;<span><span>(<span>int&#32;*&#32;'T</span>)</span>&#32;option</span>&gt;</span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        f
+                      </b>
+                      :
+                      <code><span>unit&#32;->&#32;'T</span></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>'T</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  inline
+                  <br/>
+                  Type parameters: 
+                  &#39;T
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Version-stamped variant of 'cacheOptByref' for memo tables whose backing data may be appended to
+ concurrently. The cached value is tagged with the data 'version' observed when it was computed; a reader
+ whose 'version' no longer matches recomputes. Callers must read 'version' with acquire semantics before
+ evaluating 'f', and 'f' must read only data covered by that version. 'cache' must be a reference type so
+ its publication is a single atomic store.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Internal.Utilities.Library.Extras.cacheOptByrefByVersion``1\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('```cref:M:Internal.Utilities.Library.Extras.cacheOptByrefByVersion``1```')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    version
+                  </span>
+                  :
+                  <code>int</code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    cache
+                  </span>
+                  :
+                  <code><span>byref&lt;<span><span>(<span>int&#32;*&#32;'T</span>)</span>&#32;option</span>&gt;</span></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    f
+                  </span>
+                  :
+                  <code><span>unit&#32;->&#32;'T</span></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code>'T</code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="1306" data-fsdocs-tip-unique="1306">
                 <p>
                   <a id="cacheOptRef">
                     <a href="#cacheOptRef">
@@ -1366,7 +1491,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1237">
+              <div popover="" class="fsdocs-tip" id="1306">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>cacheOptRef&#32;<span>cache&#32;f</span></span></code>
@@ -1447,7 +1572,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1238" data-fsdocs-tip-unique="1238">
+              <code data-fsdocs-tip="1307" data-fsdocs-tip-unique="1307">
                 <p>
                   <a id="cached">
                     <a href="#cached">
@@ -1456,7 +1581,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1238">
+              <div popover="" class="fsdocs-tip" id="1307">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>cached&#32;<span>cache&#32;resF</span></span></code>
@@ -1537,7 +1662,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1239" data-fsdocs-tip-unique="1239">
+              <code data-fsdocs-tip="1308" data-fsdocs-tip-unique="1308">
                 <p>
                   <a id="debug">
                     <a href="#debug">
@@ -1546,7 +1671,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1239">
+              <div popover="" class="fsdocs-tip" id="1308">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>debug&#32;<span></span></span></code>
@@ -1583,7 +1708,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1240" data-fsdocs-tip-unique="1240">
+              <code data-fsdocs-tip="1309" data-fsdocs-tip-unique="1309">
                 <p>
                   <a id="dispose">
                     <a href="#dispose">
@@ -1592,7 +1717,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1240">
+              <div popover="" class="fsdocs-tip" id="1309">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>dispose&#32;<span>x</span></span></code>
@@ -1637,7 +1762,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1241" data-fsdocs-tip-unique="1241">
+              <code data-fsdocs-tip="1310" data-fsdocs-tip-unique="1310">
                 <p>
                   <a id="fold1Of2">
                     <a href="#fold1Of2">
@@ -1646,7 +1771,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1241">
+              <div popover="" class="fsdocs-tip" id="1310">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>fold1Of2&#32;<span>f1&#32;acc&#32;<span>(<span>a1,&#32;_a2</span>)</span></span></span></code>
@@ -1756,7 +1881,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1242" data-fsdocs-tip-unique="1242">
+              <code data-fsdocs-tip="1311" data-fsdocs-tip-unique="1311">
                 <p>
                   <a id="foldPair">
                     <a href="#foldPair">
@@ -1765,7 +1890,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1242">
+              <div popover="" class="fsdocs-tip" id="1311">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>foldPair&#32;<span><span>(<span>f1,&#32;f2</span>)</span>&#32;acc&#32;<span>(<span>a1,&#32;a2</span>)</span></span></span></code>
@@ -1891,7 +2016,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1243" data-fsdocs-tip-unique="1243">
+              <code data-fsdocs-tip="1312" data-fsdocs-tip-unique="1312">
                 <p>
                   <a id="foldQuadruple">
                     <a href="#foldQuadruple">
@@ -1900,7 +2025,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1243">
+              <div popover="" class="fsdocs-tip" id="1312">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>foldQuadruple&#32;<span><span>(<span>f1,&#32;f2,&#32;f3,&#32;f4</span>)</span>&#32;acc&#32;<span>(<span>a1,&#32;a2,&#32;a3,&#32;a4</span>)</span></span></span></code>
@@ -2090,7 +2215,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1244" data-fsdocs-tip-unique="1244">
+              <code data-fsdocs-tip="1313" data-fsdocs-tip-unique="1313">
                 <p>
                   <a id="foldTriple">
                     <a href="#foldTriple">
@@ -2099,7 +2224,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1244">
+              <div popover="" class="fsdocs-tip" id="1313">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>foldTriple&#32;<span><span>(<span>f1,&#32;f2,&#32;f3</span>)</span>&#32;acc&#32;<span>(<span>a1,&#32;a2,&#32;a3</span>)</span></span></span></code>
@@ -2257,7 +2382,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1245" data-fsdocs-tip-unique="1245">
+              <code data-fsdocs-tip="1314" data-fsdocs-tip-unique="1314">
                 <p>
                   <a id="isEnvVarSet">
                     <a href="#isEnvVarSet">
@@ -2266,7 +2391,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1245">
+              <div popover="" class="fsdocs-tip" id="1314">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>isEnvVarSet&#32;<span>s</span></span></code>
@@ -2325,7 +2450,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1246" data-fsdocs-tip-unique="1246">
+              <code data-fsdocs-tip="1315" data-fsdocs-tip-unique="1315">
                 <p>
                   <a id="map1Of2">
                     <a href="#map1Of2">
@@ -2334,7 +2459,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1246">
+              <div popover="" class="fsdocs-tip" id="1315">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>map1Of2&#32;<span>f&#32;<span>(<span>a1,&#32;a2</span>)</span></span></span></code>
@@ -2428,7 +2553,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1247" data-fsdocs-tip-unique="1247">
+              <code data-fsdocs-tip="1316" data-fsdocs-tip-unique="1316">
                 <p>
                   <a id="map1Of3">
                     <a href="#map1Of3">
@@ -2437,7 +2562,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1247">
+              <div popover="" class="fsdocs-tip" id="1316">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>map1Of3&#32;<span>f&#32;<span>(<span>a1,&#32;a2,&#32;a3</span>)</span></span></span></code>
@@ -2547,7 +2672,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1248" data-fsdocs-tip-unique="1248">
+              <code data-fsdocs-tip="1317" data-fsdocs-tip-unique="1317">
                 <p>
                   <a id="map2Of2">
                     <a href="#map2Of2">
@@ -2556,7 +2681,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1248">
+              <div popover="" class="fsdocs-tip" id="1317">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>map2Of2&#32;<span>f&#32;<span>(<span>a1,&#32;a2</span>)</span></span></span></code>
@@ -2650,7 +2775,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1249" data-fsdocs-tip-unique="1249">
+              <code data-fsdocs-tip="1318" data-fsdocs-tip-unique="1318">
                 <p>
                   <a id="map2Of3">
                     <a href="#map2Of3">
@@ -2659,7 +2784,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1249">
+              <div popover="" class="fsdocs-tip" id="1318">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>map2Of3&#32;<span>f&#32;<span>(<span>a1,&#32;a2,&#32;a3</span>)</span></span></span></code>
@@ -2769,7 +2894,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1250" data-fsdocs-tip-unique="1250">
+              <code data-fsdocs-tip="1319" data-fsdocs-tip-unique="1319">
                 <p>
                   <a id="map3Of3">
                     <a href="#map3Of3">
@@ -2778,7 +2903,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1250">
+              <div popover="" class="fsdocs-tip" id="1319">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>map3Of3&#32;<span>f&#32;<span>(<span>a1,&#32;a2,&#32;a3</span>)</span></span></span></code>
@@ -2888,7 +3013,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1251" data-fsdocs-tip-unique="1251">
+              <code data-fsdocs-tip="1320" data-fsdocs-tip-unique="1320">
                 <p>
                   <a id="map3Of4">
                     <a href="#map3Of4">
@@ -2897,7 +3022,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1251">
+              <div popover="" class="fsdocs-tip" id="1320">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>map3Of4&#32;<span>f&#32;<span>(<span>a1,&#32;a2,&#32;a3,&#32;a4</span>)</span></span></span></code>
@@ -3023,7 +3148,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1252" data-fsdocs-tip-unique="1252">
+              <code data-fsdocs-tip="1321" data-fsdocs-tip-unique="1321">
                 <p>
                   <a id="map4Of4">
                     <a href="#map4Of4">
@@ -3032,7 +3157,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1252">
+              <div popover="" class="fsdocs-tip" id="1321">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>map4Of4&#32;<span>f&#32;<span>(<span>a1,&#32;a2,&#32;a3,&#32;a4</span>)</span></span></span></code>
@@ -3158,7 +3283,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1253" data-fsdocs-tip-unique="1253">
+              <code data-fsdocs-tip="1322" data-fsdocs-tip-unique="1322">
                 <p>
                   <a id="map5Of5">
                     <a href="#map5Of5">
@@ -3167,7 +3292,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1253">
+              <div popover="" class="fsdocs-tip" id="1322">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>map5Of5&#32;<span>f&#32;<span>(<span>a1,&#32;a2,&#32;a3,&#32;a4,&#32;a5</span>)</span></span></span></code>
@@ -3309,7 +3434,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1254" data-fsdocs-tip-unique="1254">
+              <code data-fsdocs-tip="1323" data-fsdocs-tip-unique="1323">
                 <p>
                   <a id="map6Of6">
                     <a href="#map6Of6">
@@ -3318,7 +3443,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1254">
+              <div popover="" class="fsdocs-tip" id="1323">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>map6Of6&#32;<span>f&#32;<span>(<span>a1,&#32;a2,&#32;a3,&#32;a4,&#32;a5,&#32;a6</span>)</span></span></span></code>
@@ -3476,7 +3601,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1255" data-fsdocs-tip-unique="1255">
+              <code data-fsdocs-tip="1324" data-fsdocs-tip-unique="1324">
                 <p>
                   <a id="mapFoldFst">
                     <a href="#mapFoldFst">
@@ -3485,7 +3610,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1255">
+              <div popover="" class="fsdocs-tip" id="1324">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>mapFoldFst&#32;<span>f&#32;s&#32;<span>(<span>x,&#32;y</span>)</span></span></span></code>
@@ -3595,7 +3720,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1256" data-fsdocs-tip-unique="1256">
+              <code data-fsdocs-tip="1325" data-fsdocs-tip-unique="1325">
                 <p>
                   <a id="mapFoldSnd">
                     <a href="#mapFoldSnd">
@@ -3604,7 +3729,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1256">
+              <div popover="" class="fsdocs-tip" id="1325">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>mapFoldSnd&#32;<span>f&#32;s&#32;<span>(<span>x,&#32;y</span>)</span></span></span></code>
@@ -3714,7 +3839,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1257" data-fsdocs-tip-unique="1257">
+              <code data-fsdocs-tip="1326" data-fsdocs-tip-unique="1326">
                 <p>
                   <a id="mapPair">
                     <a href="#mapPair">
@@ -3723,7 +3848,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1257">
+              <div popover="" class="fsdocs-tip" id="1326">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>mapPair&#32;<span><span>(<span>f1,&#32;f2</span>)</span>&#32;<span>(<span>a1,&#32;a2</span>)</span></span></span></code>
@@ -3833,7 +3958,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1258" data-fsdocs-tip-unique="1258">
+              <code data-fsdocs-tip="1327" data-fsdocs-tip-unique="1327">
                 <p>
                   <a id="mapQuadruple">
                     <a href="#mapQuadruple">
@@ -3842,7 +3967,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1258">
+              <div popover="" class="fsdocs-tip" id="1327">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>mapQuadruple&#32;<span><span>(<span>f1,&#32;f2,&#32;f3,&#32;f4</span>)</span>&#32;<span>(<span>a1,&#32;a2,&#32;a3,&#32;a4</span>)</span></span></span></code>
@@ -4016,7 +4141,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1259" data-fsdocs-tip-unique="1259">
+              <code data-fsdocs-tip="1328" data-fsdocs-tip-unique="1328">
                 <p>
                   <a id="mapTriple">
                     <a href="#mapTriple">
@@ -4025,7 +4150,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1259">
+              <div popover="" class="fsdocs-tip" id="1328">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>mapTriple&#32;<span><span>(<span>f1,&#32;f2,&#32;f3</span>)</span>&#32;<span>(<span>a1,&#32;a2,&#32;a3</span>)</span></span></span></code>
@@ -4167,7 +4292,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1260" data-fsdocs-tip-unique="1260">
+              <code data-fsdocs-tip="1329" data-fsdocs-tip-unique="1329">
                 <p>
                   <a id="newCache">
                     <a href="#newCache">
@@ -4176,7 +4301,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1260">
+              <div popover="" class="fsdocs-tip" id="1329">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>newCache&#32;<span>()</span></span></code>
@@ -4238,7 +4363,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1261" data-fsdocs-tip-unique="1261">
+              <code data-fsdocs-tip="1330" data-fsdocs-tip-unique="1330">
                 <p>
                   <a id="nullableSlotEmpty">
                     <a href="#nullableSlotEmpty">
@@ -4247,7 +4372,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1261">
+              <div popover="" class="fsdocs-tip" id="1330">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>nullableSlotEmpty&#32;<span>()</span></span></code>
@@ -4309,7 +4434,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1262" data-fsdocs-tip-unique="1262">
+              <code data-fsdocs-tip="1331" data-fsdocs-tip-unique="1331">
                 <p>
                   <a id="nullableSlotFull">
                     <a href="#nullableSlotFull">
@@ -4318,7 +4443,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1262">
+              <div popover="" class="fsdocs-tip" id="1331">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>nullableSlotFull&#32;<span>x</span></span></code>
@@ -4380,7 +4505,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1263" data-fsdocs-tip-unique="1263">
+              <code data-fsdocs-tip="1332" data-fsdocs-tip-unique="1332">
                 <p>
                   <a id="p13">
                     <a href="#p13">
@@ -4389,7 +4514,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1263">
+              <div popover="" class="fsdocs-tip" id="1332">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p13&#32;<span><span>(<span>x,&#32;_y,&#32;_z</span>)</span></span></span></code>
@@ -4483,7 +4608,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1264" data-fsdocs-tip-unique="1264">
+              <code data-fsdocs-tip="1333" data-fsdocs-tip-unique="1333">
                 <p>
                   <a id="p14">
                     <a href="#p14">
@@ -4492,7 +4617,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1264">
+              <div popover="" class="fsdocs-tip" id="1333">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p14&#32;<span><span>(<span>x1,&#32;_x2,&#32;_x3,&#32;_x4</span>)</span></span></span></code>
@@ -4602,7 +4727,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1265" data-fsdocs-tip-unique="1265">
+              <code data-fsdocs-tip="1334" data-fsdocs-tip-unique="1334">
                 <p>
                   <a id="p15">
                     <a href="#p15">
@@ -4611,7 +4736,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1265">
+              <div popover="" class="fsdocs-tip" id="1334">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p15&#32;<span><span>(<span>x1,&#32;_x2,&#32;_x3,&#32;_x4,&#32;_x5</span>)</span></span></span></code>
@@ -4737,7 +4862,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1266" data-fsdocs-tip-unique="1266">
+              <code data-fsdocs-tip="1335" data-fsdocs-tip-unique="1335">
                 <p>
                   <a id="p23">
                     <a href="#p23">
@@ -4746,7 +4871,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1266">
+              <div popover="" class="fsdocs-tip" id="1335">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p23&#32;<span><span>(<span>_x,&#32;y,&#32;_z</span>)</span></span></span></code>
@@ -4840,7 +4965,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1267" data-fsdocs-tip-unique="1267">
+              <code data-fsdocs-tip="1336" data-fsdocs-tip-unique="1336">
                 <p>
                   <a id="p24">
                     <a href="#p24">
@@ -4849,7 +4974,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1267">
+              <div popover="" class="fsdocs-tip" id="1336">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p24&#32;<span><span>(<span>_x1,&#32;x2,&#32;_x3,&#32;_x4</span>)</span></span></span></code>
@@ -4959,7 +5084,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1268" data-fsdocs-tip-unique="1268">
+              <code data-fsdocs-tip="1337" data-fsdocs-tip-unique="1337">
                 <p>
                   <a id="p25">
                     <a href="#p25">
@@ -4968,7 +5093,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1268">
+              <div popover="" class="fsdocs-tip" id="1337">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p25&#32;<span><span>(<span>_x1,&#32;x2,&#32;_x3,&#32;_x4,&#32;_x5</span>)</span></span></span></code>
@@ -5094,7 +5219,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1269" data-fsdocs-tip-unique="1269">
+              <code data-fsdocs-tip="1338" data-fsdocs-tip-unique="1338">
                 <p>
                   <a id="p33">
                     <a href="#p33">
@@ -5103,7 +5228,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1269">
+              <div popover="" class="fsdocs-tip" id="1338">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p33&#32;<span><span>(<span>_x,&#32;_y,&#32;z</span>)</span></span></span></code>
@@ -5197,7 +5322,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1270" data-fsdocs-tip-unique="1270">
+              <code data-fsdocs-tip="1339" data-fsdocs-tip-unique="1339">
                 <p>
                   <a id="p34">
                     <a href="#p34">
@@ -5206,7 +5331,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1270">
+              <div popover="" class="fsdocs-tip" id="1339">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p34&#32;<span><span>(<span>_x1,&#32;_x2,&#32;x3,&#32;_x4</span>)</span></span></span></code>
@@ -5316,7 +5441,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1271" data-fsdocs-tip-unique="1271">
+              <code data-fsdocs-tip="1340" data-fsdocs-tip-unique="1340">
                 <p>
                   <a id="p35">
                     <a href="#p35">
@@ -5325,7 +5450,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1271">
+              <div popover="" class="fsdocs-tip" id="1340">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p35&#32;<span><span>(<span>_x1,&#32;_x2,&#32;x3,&#32;_x4,&#32;_x5</span>)</span></span></span></code>
@@ -5451,7 +5576,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1272" data-fsdocs-tip-unique="1272">
+              <code data-fsdocs-tip="1341" data-fsdocs-tip-unique="1341">
                 <p>
                   <a id="p44">
                     <a href="#p44">
@@ -5460,7 +5585,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1272">
+              <div popover="" class="fsdocs-tip" id="1341">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p44&#32;<span><span>(<span>_x1,&#32;_x2,&#32;_x3,&#32;x4</span>)</span></span></span></code>
@@ -5570,7 +5695,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1273" data-fsdocs-tip-unique="1273">
+              <code data-fsdocs-tip="1342" data-fsdocs-tip-unique="1342">
                 <p>
                   <a id="p45">
                     <a href="#p45">
@@ -5579,7 +5704,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1273">
+              <div popover="" class="fsdocs-tip" id="1342">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p45&#32;<span><span>(<span>_x1,&#32;_x2,&#32;_x3,&#32;x4,&#32;_x5</span>)</span></span></span></code>
@@ -5705,7 +5830,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1274" data-fsdocs-tip-unique="1274">
+              <code data-fsdocs-tip="1343" data-fsdocs-tip-unique="1343">
                 <p>
                   <a id="p55">
                     <a href="#p55">
@@ -5714,7 +5839,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1274">
+              <div popover="" class="fsdocs-tip" id="1343">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>p55&#32;<span><span>(<span>_x1,&#32;_x2,&#32;_x3,&#32;_x4,&#32;x5</span>)</span></span></span></code>
@@ -5840,7 +5965,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1275" data-fsdocs-tip-unique="1275">
+              <code data-fsdocs-tip="1344" data-fsdocs-tip-unique="1344">
                 <p>
                   <a id="pair">
                     <a href="#pair">
@@ -5849,7 +5974,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1275">
+              <div popover="" class="fsdocs-tip" id="1344">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>pair&#32;<span>a&#32;b</span></span></code>
@@ -5927,7 +6052,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1276" data-fsdocs-tip-unique="1276">
+              <code data-fsdocs-tip="1345" data-fsdocs-tip-unique="1345">
                 <p>
                   <a id="progress">
                     <a href="#progress">
@@ -5936,7 +6061,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1276">
+              <div popover="" class="fsdocs-tip" id="1345">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>progress&#32;<span></span></span></code>
@@ -5973,7 +6098,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1277" data-fsdocs-tip-unique="1277">
+              <code data-fsdocs-tip="1346" data-fsdocs-tip-unique="1346">
                 <p>
                   <a id="tracking">
                     <a href="#tracking">
@@ -5982,7 +6107,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1277">
+              <div popover="" class="fsdocs-tip" id="1346">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>tracking&#32;<span></span></span></code>
@@ -6019,7 +6144,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1278" data-fsdocs-tip-unique="1278">
+              <code data-fsdocs-tip="1347" data-fsdocs-tip-unique="1347">
                 <p>
                   <a id="tryGetCacheValue">
                     <a href="#tryGetCacheValue">
@@ -6028,7 +6153,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1278">
+              <div popover="" class="fsdocs-tip" id="1347">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>tryGetCacheValue&#32;<span>cache</span></span></code>
@@ -6093,7 +6218,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1279" data-fsdocs-tip-unique="1279">
+              <code data-fsdocs-tip="1348" data-fsdocs-tip-unique="1348">
                 <p>
                   <a id="verbose">
                     <a href="#verbose">
@@ -6102,7 +6227,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1279">
+              <div popover="" class="fsdocs-tip" id="1348">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>verbose&#32;<span></span></span></code>
@@ -6139,7 +6264,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1280" data-fsdocs-tip-unique="1280">
+              <code data-fsdocs-tip="1349" data-fsdocs-tip-unique="1349">
                 <p>
                   <a id="vsnd">
                     <a href="#vsnd">
@@ -6148,7 +6273,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1280">
+              <div popover="" class="fsdocs-tip" id="1349">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>vsnd&#32;<span>arg1</span></span></code>
@@ -6213,7 +6338,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1281" data-fsdocs-tip-unique="1281">
+              <code data-fsdocs-tip="1350" data-fsdocs-tip-unique="1350">
                 <p>
                   <a id="writeViaBuffer">
                     <a href="#writeViaBuffer">
@@ -6222,7 +6347,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1281">
+              <div popover="" class="fsdocs-tip" id="1350">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>writeViaBuffer&#32;<span>os&#32;f</span></span></code>
@@ -6318,7 +6443,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1282" data-fsdocs-tip-unique="1282">
+              <code data-fsdocs-tip="1351" data-fsdocs-tip-unique="1351">
                 <p>
                   <a id="AppendString">
                     <a href="#AppendString">
@@ -6327,7 +6452,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1282">
+              <div popover="" class="fsdocs-tip" id="1351">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.AppendString</span></code>

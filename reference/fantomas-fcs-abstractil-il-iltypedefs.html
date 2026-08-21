@@ -340,7 +340,7 @@
     </dt>
     <dt>
       Base Type: 
-      <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-delayinitarraymap-3.html">DelayInitArrayMap</a>&lt;<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilpretypedef.html">ILPreTypeDef</a>,&#32;<span>(<span><span>string&#32;list</span>&#32;*&#32;string</span>)</span>,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilpretypedef.html">ILPreTypeDef</a></span>&gt;</span></code>
+      <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-delayinitarraymap-3.html">DelayInitArrayMap</a>&lt;<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilpretypedef.html">ILPreTypeDef</a>,&#32;string,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilpretypedef.html">ILPreTypeDef</a></span>&gt;</span></code>
     </dt>
     <dt>
       All Interfaces: 
@@ -353,7 +353,8 @@
     <div>
       <div class="fsdocs-summary-contents">
         <p class="fsdocs-summary">
-           Tables of named type definitions.
+           One namespace level: the types declared in it, and its child namespaces. A reader is grouped into this
+ shape on the way in; types already in hand stay one level, so that flattening keeps their order.
         </p>
       </div>
     </div>
@@ -385,7 +386,68 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10538" data-fsdocs-tip-unique="10538">
+              <code data-fsdocs-tip="11364" data-fsdocs-tip-unique="11364">
+                <p>
+                  <a id="AllPreTypeDefs">
+                    <a href="#AllPreTypeDefs">
+                      <code><span>this.AllPreTypeDefs</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="11364">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.AllPreTypeDefs</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilpretypedef.html">ILPreTypeDef</a>[]</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Forces the whole subtree.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.FCS.AbstractIL.IL.ILTypeDefs.AllPreTypeDefs\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.FCS.AbstractIL.IL.ILTypeDefs.AllPreTypeDefs`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilpretypedef.html">ILPreTypeDef</a>[]</span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="11365" data-fsdocs-tip-unique="11365">
                 <p>
                   <a id="AsArray">
                     <a href="#AsArray">
@@ -394,7 +456,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10538">
+              <div popover="" class="fsdocs-tip" id="11365">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.AsArray</span></code>
@@ -431,7 +493,68 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10539" data-fsdocs-tip-unique="10539">
+              <code data-fsdocs-tip="11366" data-fsdocs-tip-unique="11366">
+                <p>
+                  <a id="AsArrayOfPreNamespaces">
+                    <a href="#AsArrayOfPreNamespaces">
+                      <code><span>this.AsArrayOfPreNamespaces</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="11366">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.AsArrayOfPreNamespaces</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilprenamespace.html">ILPreNamespace</a>[]</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Forces neither the children's contents nor this level's types.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.FCS.AbstractIL.IL.ILTypeDefs.AsArrayOfPreNamespaces\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.FCS.AbstractIL.IL.ILTypeDefs.AsArrayOfPreNamespaces`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilprenamespace.html">ILPreNamespace</a>[]</span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="11367" data-fsdocs-tip-unique="11367">
                 <p>
                   <a id="AsArrayOfPreTypeDefs">
                     <a href="#AsArrayOfPreTypeDefs">
@@ -440,7 +563,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10539">
+              <div popover="" class="fsdocs-tip" id="11367">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.AsArrayOfPreTypeDefs</span></code>
@@ -461,7 +584,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       Get some information about the type defs, but do not force the read of the type defs themselves.
+                       Forces neither the type defs nor the child namespaces.
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -492,7 +615,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10540" data-fsdocs-tip-unique="10540">
+              <code data-fsdocs-tip="11368" data-fsdocs-tip-unique="11368">
                 <p>
                   <a id="AsList">
                     <a href="#AsList">
@@ -501,7 +624,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10540">
+              <div popover="" class="fsdocs-tip" id="11368">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.AsList</span></code>
@@ -538,7 +661,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10541" data-fsdocs-tip-unique="10541">
+              <code data-fsdocs-tip="11369" data-fsdocs-tip-unique="11369">
                 <p>
                   <a id="ExistsByName">
                     <a href="#ExistsByName">
@@ -547,7 +670,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10541">
+              <div popover="" class="fsdocs-tip" id="11369">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.ExistsByName</span></code>
@@ -580,7 +703,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       Calls to <c>ExistsByName</c> will result in all the ILPreTypeDefs being read.
+                       Descends only into the type's own namespace.
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -621,7 +744,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10542" data-fsdocs-tip-unique="10542">
+              <code data-fsdocs-tip="11370" data-fsdocs-tip-unique="11370">
                 <p>
                   <a id="FindByName">
                     <a href="#FindByName">
@@ -630,7 +753,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10542">
+              <div popover="" class="fsdocs-tip" id="11370">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.FindByName</span></code>
@@ -663,7 +786,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       Calls to <c>FindByName</c> will result in all the ILPreTypeDefs being read.
+                       Descends only into the type's own namespace. Raises <c>KeyNotFoundException</c> if not found.
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -710,7 +833,7 @@
   </h3>
   <h4>
     Inherited from 
-    <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-delayinitarraymap-3.html">DelayInitArrayMap</a>&lt;<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilpretypedef.html">ILPreTypeDef</a>,&#32;<span>(<span><span>string&#32;list</span>&#32;*&#32;string</span>)</span>,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilpretypedef.html">ILPreTypeDef</a></span>&gt;</span></code>
+    <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-delayinitarraymap-3.html">DelayInitArrayMap</a>&lt;<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilpretypedef.html">ILPreTypeDef</a>,&#32;string,&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-abstractil-il-ilpretypedef.html">ILPreTypeDef</a></span>&gt;</span></code>
   </h4>
   <div>
     <h3>
@@ -732,7 +855,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10543" data-fsdocs-tip-unique="10543">
+              <code data-fsdocs-tip="11371" data-fsdocs-tip-unique="11371">
                 <p>
                   <a id="CreateDictionary">
                     <a href="#CreateDictionary">
@@ -741,7 +864,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10543">
+              <div popover="" class="fsdocs-tip" id="11371">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.CreateDictionary</span></code>
@@ -803,7 +926,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10544" data-fsdocs-tip-unique="10544">
+              <code data-fsdocs-tip="11372" data-fsdocs-tip-unique="11372">
                 <p>
                   <a id="GetArray">
                     <a href="#GetArray">
@@ -812,7 +935,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10544">
+              <div popover="" class="fsdocs-tip" id="11372">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.GetArray</span></code>
@@ -849,7 +972,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="10545" data-fsdocs-tip-unique="10545">
+              <code data-fsdocs-tip="11373" data-fsdocs-tip-unique="11373">
                 <p>
                   <a id="GetDictionary">
                     <a href="#GetDictionary">
@@ -858,7 +981,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="10545">
+              <div popover="" class="fsdocs-tip" id="11373">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.GetDictionary</span></code>
