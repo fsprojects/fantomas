@@ -975,16 +975,37 @@ type RecordFieldNode(fieldName: IdentListNode, equals: SingleTextNode, expr: Exp
     member val Equals = equals
     member val Expr = expr
 
-/// Abstract base for all record expression nodes, providing shared access to the braces and fields.
+/// Example: `...source` — a spread of an existing value into a record or anonymous record expression.
+/// The source is an arbitrary expression, the same grammar as the right-hand side of a field.
+type ExprSpreadNode(dots: SingleTextNode, expr: Expr, range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array = [| yield dots; yield Expr.Node expr |]
+    member val Dots = dots
+    member val Expr = expr
+
+/// A single item inside a record or anonymous record expression, in source order.
+[<RequireQualifiedAccess; NoEquality; NoComparison>]
+type ExprRecordFieldOrSpread =
+    | Field of RecordFieldNode
+    | Spread of ExprSpreadNode
+
+    static member Node(item: ExprRecordFieldOrSpread) : Node =
+        match item with
+        | Field n -> n
+        | Spread n -> n
+
+/// Abstract base for all record expression nodes, providing shared access to the braces and content.
 [<AbstractClass>]
-type ExprRecordBaseNode(openingBrace: SingleTextNode, fields: RecordFieldNode list, closingBrace: SingleTextNode, range)
-    =
+type ExprRecordBaseNode
+    (openingBrace: SingleTextNode, fields: ExprRecordFieldOrSpread list, closingBrace: SingleTextNode, range) =
     inherit NodeBase(range)
 
     member val OpeningBrace = openingBrace
     member val Fields = fields
     member val ClosingBrace = closingBrace
-    member x.HasFields = List.isNotEmpty x.Fields
+    /// True when the braces hold anything at all, a field assignment or a spread.
+    member x.HasItems = List.isNotEmpty x.Fields
 
 /// <summary>
 /// Represents a record instance, parsed from both `SynExpr.Record` and `SynExpr.AnonRecd`.
@@ -994,7 +1015,7 @@ type ExprRecordNode
     (
         openingBrace: SingleTextNode,
         copyInfo: Expr option,
-        fields: RecordFieldNode list,
+        fields: ExprRecordFieldOrSpread list,
         closingBrace: SingleTextNode,
         range
     ) =
@@ -1005,10 +1026,8 @@ type ExprRecordNode
     override val Children: Node array =
         [| yield openingBrace
            yield! copyInfo |> Option.map Expr.Node |> noa
-           yield! nodes fields
+           yield! List.map ExprRecordFieldOrSpread.Node fields
            yield closingBrace |]
-
-    member x.HasFields = List.isNotEmpty x.Fields
 
 /// Example: `struct {| Name = "Alice"; Age = 30 |}` — an anonymous struct record expression.
 /// Extends `ExprRecordNode` by prepending the `struct` keyword.
@@ -1017,7 +1036,7 @@ type ExprAnonStructRecordNode
         structNode: SingleTextNode,
         openingBrace: SingleTextNode,
         copyInfo: Expr option,
-        fields: RecordFieldNode list,
+        fields: ExprRecordFieldOrSpread list,
         closingBrace: SingleTextNode,
         range
     ) =
@@ -1028,7 +1047,7 @@ type ExprAnonStructRecordNode
         [| yield structNode
            yield openingBrace
            yield! copyInfo |> Option.map Expr.Node |> noa
-           yield! nodes fields
+           yield! List.map ExprRecordFieldOrSpread.Node fields
            yield closingBrace |]
 
 /// Example: `{ inherit Base(args); Field = value }` — a record with an `inherit` constructor call.
@@ -1036,7 +1055,7 @@ type ExprInheritRecordNode
     (
         openingBrace: SingleTextNode,
         inheritConstructor: InheritConstructor,
-        fields: RecordFieldNode list,
+        fields: ExprRecordFieldOrSpread list,
         closingBrace: SingleTextNode,
         range
     ) =
@@ -1047,7 +1066,7 @@ type ExprInheritRecordNode
     override val Children: Node array =
         [| yield openingBrace
            yield InheritConstructor.Node inheritConstructor
-           yield! nodes fields
+           yield! List.map ExprRecordFieldOrSpread.Node fields
            yield closingBrace |]
 
 /// Example: `interface IDisposable with member _.Dispose() = ()` — an interface implementation clause inside an object expression or type definition.
@@ -2386,6 +2405,25 @@ type FieldNode
     member val Name = name
     member val Type = t
 
+/// Example: `...Source` — a spread of an existing record type into a record type definition.
+type TypeSpreadNode(dots: SingleTextNode, t: Type, range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array = [| yield dots; yield Type.Node t |]
+    member val Dots = dots
+    member val Type = t
+
+/// A single item inside the record representation of a type definition, in source order.
+[<RequireQualifiedAccess; NoEquality; NoComparison>]
+type TypeDefnRecordFieldOrSpread =
+    | Field of FieldNode
+    | Spread of TypeSpreadNode
+
+    static member Node(item: TypeDefnRecordFieldOrSpread) : Node =
+        match item with
+        | Field n -> n
+        | Spread n -> n
+
 /// Example: `| MyCase of int * string` — a discriminated union case declaration.
 type UnionCaseNode
     (
@@ -2528,7 +2566,7 @@ type TypeDefnRecordNode
         typeNameNode,
         accessibility: SingleTextNode option,
         openingBrace: SingleTextNode,
-        fields: FieldNode list,
+        fields: TypeDefnRecordFieldOrSpread list,
         closingBrace: SingleTextNode,
         members,
         range
@@ -2539,7 +2577,7 @@ type TypeDefnRecordNode
         [| yield typeNameNode
            yield! noa accessibility
            yield openingBrace
-           yield! nodes fields
+           yield! List.map TypeDefnRecordFieldOrSpread.Node fields
            yield closingBrace
            yield! nodes (List.map MemberDefn.Node members) |]
 

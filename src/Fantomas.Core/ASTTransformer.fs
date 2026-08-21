@@ -1211,6 +1211,36 @@ let mkAtomicExpr (creationAide: CreationAide) (expr: SynExpr) : Expr =
     | ChainExpr links -> mkChainFromLinks creationAide links ChainTerminal.NoSpaceAllowed expr.Range
     | _ -> mkExpr creationAide expr
 
+let mkExprSpread (creationAide: CreationAide) (SynExprSpread(spreadRange = mDots; expr = expr; range = m)) =
+    ExprSpreadNode(stn "..." mDots, mkExpr creationAide expr, m)
+
+/// An item of a nominal record expression, `X = expr` or `...expr`.
+/// A field without a name or without a value only arises from error recovery, and is dropped.
+let mkExprRecordFieldOrSpread (creationAide: CreationAide) (item: SynExprRecordFieldOrSpread) =
+    match item with
+    | SynExprRecordFieldOrSpread.Field(SynExprRecordField((fieldName, _), Some mEq, Some expr, m), _) ->
+        Some(
+            ExprRecordFieldOrSpread.Field(
+                RecordFieldNode(mkSynLongIdent creationAide fieldName, stn "=" mEq, mkExpr creationAide expr, m)
+            )
+        )
+    | SynExprRecordFieldOrSpread.Field _ -> None
+    | SynExprRecordFieldOrSpread.Spread(spread, _) ->
+        Some(ExprRecordFieldOrSpread.Spread(mkExprSpread creationAide spread))
+
+/// An item of an anonymous record expression, `X = expr` or `...expr`.
+let mkExprAnonRecordFieldOrSpread (creationAide: CreationAide) (item: SynExprAnonRecordFieldOrSpread) =
+    match item with
+    | SynExprAnonRecordFieldOrSpread.Field(SynExprAnonRecordField(sli, Some mEq, e, m), _) ->
+        Some(
+            ExprRecordFieldOrSpread.Field(
+                RecordFieldNode(mkSynLongIdent creationAide sli, stn "=" mEq, mkExpr creationAide e, m)
+            )
+        )
+    | SynExprAnonRecordFieldOrSpread.Field _ -> None
+    | SynExprAnonRecordFieldOrSpread.Spread(spread, _) ->
+        Some(ExprRecordFieldOrSpread.Spread(mkExprSpread creationAide spread))
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -1293,14 +1323,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprArrayOrListNode(o, [ mkExpr creationAide singleExpr ], c, exprRange)
         |> Expr.ArrayOrList
     | SynExpr.Record(baseInfo, copyInfo, recordFields, StartEndRange 1 (mOpen, _, mClose)) ->
-        let fieldNodes =
-            recordFields
-            |> List.choose (function
-                | SynExprRecordField((fieldName, _), Some mEq, Some expr, m, _) ->
-                    Some(
-                        RecordFieldNode(mkSynLongIdent creationAide fieldName, stn "=" mEq, mkExpr creationAide expr, m)
-                    )
-                | _ -> None)
+        let fieldNodes = List.choose (mkExprRecordFieldOrSpread creationAide) recordFields
 
         match baseInfo, copyInfo with
         | Some _, Some _ ->
@@ -1323,15 +1346,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                        recordFields,
                        (StartRange 6 (mStruct, _) & EndRange 2 (mClose, _)),
                        { OpeningBraceRange = mOpen }) ->
-        let fields =
-            recordFields
-            |> List.choose (function
-                | sli, Some mEq, e ->
-                    let m = unionRanges sli.Range e.Range
-                    let longIdent = mkSynLongIdent creationAide sli
-
-                    Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
-                | _ -> None)
+        let fields = List.choose (mkExprAnonRecordFieldOrSpread creationAide) recordFields
 
         ExprAnonStructRecordNode(
             stn "struct" mStruct,
@@ -1343,14 +1358,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         )
         |> Expr.AnonStructRecord
     | SynExpr.AnonRecd(false, copyInfo, recordFields, EndRange 2 (mClose, _), { OpeningBraceRange = mOpen }) ->
-        let fields =
-            recordFields
-            |> List.choose (function
-                | sli, Some mEq, e ->
-                    let m = unionRanges sli.Range e.Range
-                    let longIdent = mkSynLongIdent creationAide sli
-                    Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
-                | _ -> None)
+        let fields = List.choose (mkExprAnonRecordFieldOrSpread creationAide) recordFields
 
         ExprRecordNode(
             stn "{|" mOpen,
@@ -1796,26 +1804,49 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             |> List.mapi (fun idx part ->
                 match part with
                 | SynInterpolatedStringPart.String(v, r) ->
+                    // `%d{x}` puts the specifier on the following fill, not in this part's text,
+                    // even though this part's range still covers it. Only the fallback needs it.
+                    let specifier =
+                        match List.tryItem (idx + 1) parts with
+                        | Some(SynInterpolatedStringPart.FillExpr(_, SynInterpolationFormatting.Printf(specifier, _))) ->
+                            specifier
+                        | _ -> ""
+
                     stn
                         (creationAide.TextFromSource
                             (fun () ->
                                 if idx = 0 && not (String.startsWithOrdinal "$" v) then
-                                    $"$\"%s{v}{{"
+                                    $"$\"%s{v}%s{specifier}{{"
                                 elif idx = lastIndex && not (String.endsWithOrdinal "\"" v) then
                                     $"}}%s{v}\""
                                 else
-                                    $"}}%s{v}{{")
+                                    $"}}%s{v}%s{specifier}{{")
                             r)
                         r
                     |> Choice1Of2
-                | SynInterpolatedStringPart.FillExpr(fillExpr, qualifiers) ->
-                    let m =
-                        match qualifiers with
-                        | None -> fillExpr.Range
-                        | Some ident -> unionRanges fillExpr.Range ident.idRange
+                | SynInterpolatedStringPart.FillExpr(fillExpr, formatting) ->
+                    // The parser reports the alignment of `{x,10}` separately from the expression.
+                    // A fill is printed as an expression optionally followed by `:format`, so fold the
+                    // alignment back into the expression as the tuple the parser used to hand us. The
+                    // comma is the gap between the two, it has no node of its own.
+                    let expr, format =
+                        match formatting with
+                        | SynInterpolationFormatting.Printf _ -> mkExpr creationAide fillExpr, None
+                        | SynInterpolationFormatting.DotNet(None, format) -> mkExpr creationAide fillExpr, format
+                        | SynInterpolationFormatting.DotNet(Some alignment, format) ->
+                            let mComma =
+                                mkRange fillExpr.Range.FileName fillExpr.Range.End alignment.Range.Start
 
-                    FillExprNode(mkExpr creationAide fillExpr, Option.map mkIdent qualifiers, m)
-                    |> Choice2Of2)
+                            let mTuple = unionRanges fillExpr.Range alignment.Range
+
+                            mkTuple creationAide [ fillExpr; alignment ] [ mComma ] mTuple |> Expr.Tuple, format
+
+                    let m =
+                        match format with
+                        | Some ident -> unionRanges fillExpr.Range ident.idRange
+                        | None -> unionRanges fillExpr.Range (Expr.Node expr).Range
+
+                    FillExprNode(expr, Option.map mkIdent format, m) |> Choice2Of2)
 
         ExprInterpolatedStringExprNode(parts, exprRange) |> Expr.InterpolatedStringExpr
     | SynExpr.IndexRange(None, _, None, _, _, _) -> stn "*" exprRange |> Expr.IndexRangeWildcard
@@ -2069,11 +2100,68 @@ let (|OperatorWithStar|_|) (si: SynIdent) =
         ValueSome(IdentifierOrDot.Ident(stn $"( %s{text} )" ident.idRange))
     | _ -> ValueNone
 
+/// The parser moves a `[<return: ...>]` attribute written in front of a binding out of the
+/// binding's attribute list and into the arity information, where nothing prints it. Put those
+/// attributes back in the list they were written in, otherwise they are dropped from the output.
+let restoreRotatedReturnAttributes
+    (attributes: SynAttributes)
+    (SynValData(valInfo = SynValInfo(returnInfo = SynArgInfo(attributes = arityAttributes))))
+    (returnInfo: SynBindingReturnInfo option)
+    : SynAttributes =
+    let sortAttributes (attributes: SynAttribute list) =
+        List.sortBy (fun (a: SynAttribute) -> a.Range.StartLine, a.Range.StartColumn) attributes
+
+    let sortAttributeLists (attributes: SynAttributes) =
+        List.sortBy (fun (al: SynAttributeList) -> al.Range.StartLine, al.Range.StartColumn) attributes
+
+    // A return attribute written on the return type, `let f x : [<return: Foo>] int = x`, ends up in
+    // the arity information as well. That one is printed by the return type node, so leave it there.
+    let returnTypeAttributes =
+        match returnInfo with
+        | None -> []
+        | Some(SynBindingReturnInfo(attributes = attributes)) ->
+            List.collect (fun (al: SynAttributeList) -> al.Attributes) attributes
+
+    let rotated =
+        arityAttributes
+        |> List.collect (fun al -> al.Attributes)
+        |> List.filter (fun a ->
+            not (List.exists (fun (rta: SynAttribute) -> equals rta.Range a.Range) returnTypeAttributes))
+
+    match rotated with
+    | [] -> attributes
+    | rotated ->
+        let wasWrittenIn (al: SynAttributeList) (a: SynAttribute) =
+            RangeHelpers.rangeContainsRange al.Range a.Range
+
+        let restored =
+            attributes
+            |> List.map (fun al ->
+                match List.filter (wasWrittenIn al) rotated with
+                | [] -> al
+                | inThisList ->
+                    { al with
+                        Attributes = sortAttributes (al.Attributes @ inThisList) })
+
+        // An attribute list that held nothing but return attributes was removed altogether, so it
+        // has to be recreated. Its own range is gone, the attribute range is the closest we have.
+        let recreated =
+            rotated
+            |> List.choose (fun a ->
+                if List.exists (fun al -> wasWrittenIn al a) attributes then
+                    None
+                else
+                    Some({ Attributes = [ a ]; Range = a.Range }: SynAttributeList))
+
+        sortAttributeLists (restored @ recreated)
+
 let mkBinding
     (creationAide: CreationAide)
-    (SynBinding(_, _, _, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, _, _, trivia))
+    (SynBinding(_, _, _, isMutable, attributes, xmlDoc, valData, pat, returnInfo, expr, _, _, trivia))
     (inKeyword: SingleTextNode option)
     =
+    let attributes = restoreRotatedReturnAttributes attributes valData returnInfo
+
     let mkFunctionName (sli: SynLongIdent) : IdentListNode =
         match sli.IdentsWithTrivia with
         | [ prefix; OperatorWithStar operatorNode ] ->
@@ -2695,6 +2783,13 @@ let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
     | SynLeadingKeyword.Do doRange -> mtn [ "do", doRange ]
     | SynLeadingKeyword.Synthetic -> invariantViolation lk.Range "a synthetic leading keyword reached the transformer"
 
+/// An item of the record representation of a type definition, `X: int` or `...Source`.
+let mkTypeDefnRecordFieldOrSpread (creationAide: CreationAide) (item: SynFieldOrSpread) =
+    match item with
+    | SynFieldOrSpread.Field field -> TypeDefnRecordFieldOrSpread.Field(mkSynField creationAide field)
+    | SynFieldOrSpread.Spread(SynTypeSpread(spreadRange = mDots; ty = t; range = m)) ->
+        TypeDefnRecordFieldOrSpread.Spread(TypeSpreadNode(stn "..." mDots, mkType creationAide t, m))
+
 let mkSynField
     (creationAide: CreationAide)
     (SynField(ats,
@@ -2872,7 +2967,7 @@ let mkTypeDefn
 
     | SynTypeDefnRepr.Simple(
         simpleRepr = SynTypeDefnSimpleRepr.Record(ao, fs, StartEndRange 1 (openingBrace, _, closingBrace))) ->
-        let fields = List.map (mkSynField creationAide) fs
+        let fields = List.map (mkTypeDefnRecordFieldOrSpread creationAide) fs
 
         TypeDefnRecordNode(
             typeNameNode,
@@ -3697,7 +3792,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
 
     | SynTypeDefnSigRepr.Simple(
         repr = SynTypeDefnSimpleRepr.Record(ao, fs, StartEndRange 1 (openingBrace, _, closingBrace))) ->
-        let fields = List.map (mkSynField creationAide) fs
+        let fields = List.map (mkTypeDefnRecordFieldOrSpread creationAide) fs
 
         TypeDefnRecordNode(
             typeNameNode,

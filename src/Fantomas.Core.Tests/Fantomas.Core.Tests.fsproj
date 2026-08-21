@@ -70,6 +70,7 @@
     <Compile Include="HashDirectiveTests.fs" />
     <Compile Include="NumberOfItemsListOrArrayTests.fs" />
     <Compile Include="NumberOfItemsRecordTests.fs" />
+    <Compile Include="RecordSpreadTests.fs" />
     <Compile Include="SynExprNewTests.fs" />
     <Compile Include="CastTests.fs" />
     <Compile Include="MultiLineLambdaClosingNewlineTests.fs" />

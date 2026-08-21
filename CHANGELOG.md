@@ -2,9 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support for the record spread syntax introduced in F# preview, [RFC FS-1151](https://github.com/fsharp/fslang-design/pull/805). A spread can appear in a record expression, `{ ...source; Field = value }`, in an anonymous record expression, `{| ...source; Field = value |}`, and in the record representation of a type definition, `type Target = { ...Source; Field: int }`, in both implementation and signature files. [#3400](https://github.com/fsprojects/fantomas/pull/3400)
+- Interpolated strings with a negative alignment, `$"{value,-10}"`, now format instead of failing with a parse error. Alignment and format specifiers keep their existing layout, so `$"{value,10:N2}"` is unaffected. [#3400](https://github.com/fsprojects/fantomas/pull/3400)
+
 ### Changed
 
 - Breaking: warnings and errors are written to standard error instead of standard out. Informational output stays on standard out, including `--version` and the files `--check` reports as needing formatting, so a caller can tell the tool's output apart from its diagnostics by stream. Scripts that capture standard out to detect failures need to capture standard error as well. [#3399](https://github.com/fsprojects/fantomas/pull/3399)
+- Update FCS to 'Parser: recover on missing when conditions', commit d05075e098278aedcea3379159504d664628a495 [#3400](https://github.com/fsprojects/fantomas/pull/3400)
 
 ### Fixed
 

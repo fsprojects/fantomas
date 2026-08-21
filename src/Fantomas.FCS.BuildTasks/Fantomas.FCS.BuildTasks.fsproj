@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Hosts the vendored FSharpEmbedResourceText MSBuild task, which turns FSComp.txt into the SR module.
+    The task shipped in the .NET SDK is older than the compiler sources we vendor: since
+    dotnet/fsharp#20097 the generated diagnostic accessors return RichText instead of string, and the
+    SDK's task cannot generate those. Upstream solves this by bootstrapping its own FSharp.Build, we
+    solve it by vendoring the one file and compiling it here.
+
+    This is build tooling. It is never packed and never referenced at runtime.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!-- MSBuild loads the task from this folder, so its dependencies have to be beside it. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <!-- The task is vendored verbatim, so it is not held to this repo's warning settings. -->
+    <WarningsAsErrors />
+    <WarnOn />
+    <NoWarn>$(NoWarn);FS0025;FS1182;FS3390;FS1178;FS0064;FS0040</NoWarn>
+    <!-- A new project has no lock file yet, and this one is not shipped. -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <RestoreLockedMode>false</RestoreLockedMode>
+    <!-- Analyzers run over the products, not over vendored build tooling. -->
+    <RunAnalyzers>false</RunAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\FSharp.Build\FSharpEmbedResourceText.fs">
+      <Link>FSharpEmbedResourceText.fs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" />
+    <!-- Provided by the MSBuild that hosts the task, so never copied to the output. -->
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <Target Name="AcquireCompilerFiles" Condition="!Exists('../../.deps/$(FCSCommitHash)')" BeforeTargets="CollectPackageReferences">
+    <Exec Command="dotnet fsi ../../build.fsx -p Init" />
+  </Target>
+
+</Project>

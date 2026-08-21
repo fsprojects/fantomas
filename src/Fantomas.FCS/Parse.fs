@@ -382,7 +382,7 @@ let EmptyParsedInput (filename, isLastCompiland) =
 
 let createLexbuf langVersion (sourceText: ISourceText) =
     let lexbuf =
-        UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), Some true, sourceText)
+        UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), sourceText)
 
     lexbuf.BufferLocalStore["SourceText"] <- (sourceText :> obj)
     lexbuf
@@ -1052,9 +1052,11 @@ let parseFile
                     match p.Exception with
                     | :? IndentationProblem as ip -> Some ip.Data1, ip.Data0, Some 58
                     | :? SyntaxError as se -> Some se.range, (getSyntaxErrorMessage se.Data0), Some 10
+                    // Diagnostic messages carry classified text since dotnet/fsharp#20097. Fantomas
+                    // reports plain strings, so read the text back out.
                     | :? LibraryUseOnly as luo -> Some luo.range, LibraryUseOnlyE().Format, Some 42
-                    | :? DiagnosticWithText as dwt -> Some dwt.range, dwt.message, Some dwt.number
-                    | :? ReservedKeyword as rkw -> Some rkw.Data1, rkw.Data0, Some 46
+                    | :? DiagnosticWithText as dwt -> Some dwt.range, dwt.message.Text, Some dwt.number
+                    | :? ReservedKeyword as rkw -> Some rkw.Data1, rkw.Data0.Text, Some 46
                     | _ -> None, p.Exception.Message, None
 
                 { Severity = p.Severity

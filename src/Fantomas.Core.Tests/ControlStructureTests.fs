@@ -46,6 +46,28 @@ if age < 10 then
 """
 
 [<Test>]
+let ``wildcard identifier in for loop`` () =
+    formatSourceString
+        """
+for _ = 1 to 10 do
+    printfn "hi"
+
+for _ = 10 downto 1 do
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+for _ = 1 to 10 do
+    printfn "hi"
+
+for _ = 10 downto 1 do
+    ()
+"""
+
+[<Test>]
 let ``for loops`` () =
     formatSourceString
         """

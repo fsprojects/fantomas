@@ -1164,7 +1164,7 @@ let genExpr (e: Expr) =
     | Expr.Record node ->
         let smallRecordExpr = genSmallRecordNode node
         let multilineRecordExpr = genMultilineRecord node
-        genRecord smallRecordExpr multilineRecordExpr node
+        genRecordExpression smallRecordExpr multilineRecordExpr node
     | Expr.AnonStructRecord node ->
         let genStructPrefix = genSingleTextNodeWithSpaceSuffix sepSpace node.Struct
         let smallRecordExpr = genStructPrefix +> genSmallRecordNode node
@@ -1175,7 +1175,7 @@ let genExpr (e: Expr) =
             else
                 genStructPrefix +> genMultilineRecord node
 
-        genRecord smallRecordExpr multilineRecordExpr node
+        genRecordExpression smallRecordExpr multilineRecordExpr node
     | Expr.InheritRecord node ->
         let genSmallInheritRecordExpr =
             genSmallRecordBaseExpr
@@ -1183,7 +1183,7 @@ let genExpr (e: Expr) =
                   +> sepSpace
                   +> genInheritConstructor node.InheritConstructor
                   |> genNode (InheritConstructor.Node node.InheritConstructor))
-                 +> onlyIf node.HasFields sepSemi)
+                 +> onlyIf node.HasItems sepSemi)
                 node
 
         let genMultilineInheritRecordExpr =
@@ -1194,7 +1194,7 @@ let genExpr (e: Expr) =
                 (genSingleTextNode node.InheritConstructor.InheritKeyword
                  +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor node.InheritConstructor)
                  |> genNode (InheritConstructor.Node node.InheritConstructor))
-                +> onlyIf node.HasFields sepNln
+                +> onlyIf node.HasItems sepNln
 
             let genMultilineAlignBrackets =
                 genSingleTextNode node.OpeningBrace
@@ -1219,14 +1219,14 @@ let genExpr (e: Expr) =
                      // Add spaces to ensure the record field (incl trivia) starts at the right column.
                      addFixedSpaces targetColumn
                      // Potential indentations will be in relation to the opening curly brace.
-                     +> genRecordFieldNameCramped false e)
+                     +> genExprRecordFieldOrSpread (genRecordFieldNameCramped false) e)
                  +> addSpaceIfSpaceAroundDelimiter
                  +> genSingleTextNode node.ClosingBrace)
                     ctx
 
             ifAlignOrStroustrupBrackets genMultilineAlignBrackets genMultilineCramped
 
-        genRecord genSmallInheritRecordExpr genMultilineInheritRecordExpr node
+        genRecordExpression genSmallInheritRecordExpr genMultilineInheritRecordExpr node
     | Expr.ObjExpr node ->
         let param = optSingle genExpr node.Expr
 
@@ -2198,11 +2198,26 @@ let genRecordFieldNameAligned (node: RecordFieldNode) =
     +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
     +> leaveNode node
 
+/// Print `...source`. Nothing may come between the dots and the expression, so unlike a field
+/// there is no break to decide here, the source expression breaks on its own if it has to.
+let genExprSpreadNode (node: ExprSpreadNode) =
+    genSingleTextNode node.Dots +> genExpr node.Expr |> genNode node
+
+/// Print one item of a record or anonymous record expression, using the given field printer for
+/// fields. Every field printer variant shares the same spread printer.
+let genExprRecordFieldOrSpread
+    (genRecordField: RecordFieldNode -> Context -> Context)
+    (item: ExprRecordFieldOrSpread)
+    : Context -> Context =
+    match item with
+    | ExprRecordFieldOrSpread.Field node -> genRecordField node
+    | ExprRecordFieldOrSpread.Spread node -> genExprSpreadNode node
+
 let genMultilineRecordFieldsExpr
     (genRecordField: RecordFieldNode -> Context -> Context)
     (node: ExprRecordBaseNode)
     : Context -> Context =
-    col sepNln node.Fields genRecordField
+    col sepNln node.Fields (genExprRecordFieldOrSpread genRecordField)
 
 /// <summary>
 /// Print a (anonymous) record with additional information as a single line.
@@ -2213,13 +2228,16 @@ let genSmallRecordBaseExpr genExtra (node: ExprRecordBaseNode) =
     genSingleTextNode node.OpeningBrace
     +> addSpaceIfSpaceAroundDelimiter
     +> genExtra
-    +> coli sepSemi node.Fields (fun _i rf ->
-        genIdentListNode rf.FieldName
-        +> sepSpace
-        +> genSingleTextNode rf.Equals
-        +> sepSpace
-        +> genExpr rf.Expr
-        |> genNode rf)
+    +> coli sepSemi node.Fields (fun _i item ->
+        match item with
+        | ExprRecordFieldOrSpread.Field rf ->
+            genIdentListNode rf.FieldName
+            +> sepSpace
+            +> genSingleTextNode rf.Equals
+            +> sepSpace
+            +> genExpr rf.Expr
+            |> genNode rf
+        | ExprRecordFieldOrSpread.Spread node -> genExprSpreadNode node)
     +> addSpaceIfSpaceAroundDelimiter
     +> genSingleTextNode node.ClosingBrace
 
@@ -2296,7 +2314,7 @@ let genMultilineRecord (node: ExprRecordNode) (ctx: Context) =
                             // Add spaces to ensure the record field (incl trivia) starts at the right column.
                             addFixedSpaces targetColumn
                             // Potential indentations will be in relation to the opening curly brace.
-                            +> genRecordFieldNameCramped false e)
+                            +> genExprRecordFieldOrSpread (genRecordFieldNameCramped false) e)
                         ctx
 
         // Edge case scenario to make sure that the closing brace is not before the opening one
@@ -2324,8 +2342,31 @@ let genMultilineRecord (node: ExprRecordNode) (ctx: Context) =
 
     ifAlignOrStroustrupBrackets genMultilineAlignBrackets genMultilineCramped ctx
 
-let genRecord smallRecordExpr multilineRecordExpr (node: ExprRecordBaseNode) ctx =
-    let fieldExprs = node.Fields |> List.map (fun rf -> rf.Expr)
+/// <summary>
+/// Print a record or anonymous record <em>expression</em>, choosing between the single line and the
+/// multiline rendering. This is the expression form, <c>{ A = 1 }</c>, not the record representation
+/// of a type definition.
+/// </summary>
+/// <remarks>
+/// The choice is not purely about width. When any item holds an expression that would change meaning
+/// on one line, the multiline rendering is forced regardless of how short the record is. Spread items
+/// take part in that check through their source expression.
+/// </remarks>
+/// <param name="smallRecordExpr">The single line rendering, including the braces.</param>
+/// <param name="multilineRecordExpr">The multiline rendering, including the braces.</param>
+/// <param name="node">The record, anonymous record or inherit-record expression node.</param>
+/// <param name="ctx">Context</param>
+let genRecordExpression
+    (smallRecordExpr: Context -> Context)
+    (multilineRecordExpr: Context -> Context)
+    (node: ExprRecordBaseNode)
+    (ctx: Context)
+    : Context =
+    let fieldExprs =
+        node.Fields
+        |> List.map (function
+            | ExprRecordFieldOrSpread.Field rf -> rf.Expr
+            | ExprRecordFieldOrSpread.Spread spread -> spread.Expr)
 
     if requiresMultilineToPreserveSemantics fieldExprs then
         genNode node multilineRecordExpr ctx
@@ -4059,7 +4100,7 @@ let genTypeDefn (td: TypeDefn) =
         let multilineExpression (ctx: Context) =
             let genRecordFields =
                 genSingleTextNode node.OpeningBrace
-                +> indentSepNlnUnindent (col sepNlnUnlessLastEventIsNewline node.Fields genField)
+                +> indentSepNlnUnindent (col sepNlnUnlessLastEventIsNewline node.Fields genTypeDefnRecordFieldOrSpread)
                 +> sepNlnUnlessLastEventIsNewline
                 +> genSingleTextNode node.ClosingBrace
 
@@ -4067,7 +4108,10 @@ let genTypeDefn (td: TypeDefn) =
                 onlyIf hasMembers (sepNln +> sepNlnBetweenTypeAndMembers typeDefnNode +> genMemberDefnList members)
 
             let anyFieldHasXmlDoc =
-                List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields
+                node.Fields
+                |> List.exists (function
+                    | TypeDefnRecordFieldOrSpread.Field fieldNode -> fieldNode.XmlDoc.IsSome
+                    | TypeDefnRecordFieldOrSpread.Spread _ -> false)
 
             let aligned =
                 opt (indent +> sepNln) node.Accessibility genSingleTextNode
@@ -4089,7 +4133,10 @@ let genTypeDefn (td: TypeDefn) =
                 sepNlnUnlessLastEventIsNewline
                 +> opt (indent +> sepNln) node.Accessibility genSingleTextNode
                 +> genSingleTextNodeSuffixDelimiter node.OpeningBrace
-                +> atCurrentColumn (sepNlnWhenWriteBeforeNewlineNotEmpty +> col sepNln node.Fields genField)
+                +> atCurrentColumn (
+                    sepNlnWhenWriteBeforeNewlineNotEmpty
+                    +> col sepNln node.Fields genTypeDefnRecordFieldOrSpread
+                )
                 +> addSpaceIfSpaceAroundDelimiter
                 +> genSingleTextNode node.ClosingBrace
                 +> optSingle (fun _ -> unindent) node.Accessibility
@@ -4111,7 +4158,7 @@ let genTypeDefn (td: TypeDefn) =
                     +> sepSpace
                     +> genSingleTextNode node.OpeningBrace
                     +> addSpaceIfSpaceAroundDelimiter
-                    +> col sepSemi node.Fields genField
+                    +> col sepSemi node.Fields genTypeDefnRecordFieldOrSpread
                     +> addSpaceIfSpaceAroundDelimiter
                     +> genSingleTextNode node.ClosingBrace
 
@@ -4263,6 +4310,16 @@ let genTypeInSignature (t: Type) =
         | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
     | Type.Funs funsNode -> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList funsNode)
     | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
+
+/// Print `...Source` in the record representation of a type definition.
+let genTypeSpreadNode (node: TypeSpreadNode) =
+    genSingleTextNode node.Dots +> genType node.Type |> genNode node
+
+/// Print one item of the record representation of a type definition.
+let genTypeDefnRecordFieldOrSpread (item: TypeDefnRecordFieldOrSpread) : Context -> Context =
+    match item with
+    | TypeDefnRecordFieldOrSpread.Field node -> genField node
+    | TypeDefnRecordFieldOrSpread.Spread node -> genTypeSpreadNode node
 
 let genField (node: FieldNode) =
     let genAccessAndFieldContent =
