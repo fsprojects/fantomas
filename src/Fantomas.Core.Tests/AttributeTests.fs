@@ -418,6 +418,56 @@ do ()
 """
 
 [<Test>]
+let ``should preserve return attribute in front of a binding`` () =
+    formatSourceString
+        """
+[<return: Struct>]
+let (|Foo|_|) x = ValueNone
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<return: Struct>]
+let (|Foo|_|) x = ValueNone
+"""
+
+[<Test>]
+let ``should preserve return attribute next to another attribute in front of a binding`` () =
+    formatSourceString
+        """
+[<return: Struct; SomeOther>]
+let (|Foo|_|) x = ValueNone
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<return: Struct; SomeOther>]
+let (|Foo|_|) x = ValueNone
+"""
+
+[<Test>]
+let ``should preserve return attribute in its own attribute list in front of a binding`` () =
+    formatSourceString
+        """
+[<Obsolete("x")>]
+[<return: Struct>]
+let (|Foo|_|) x = ValueNone
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Obsolete("x")>]
+[<return: Struct>]
+let (|Foo|_|) x = ValueNone
+"""
+
+[<Test>]
 let ``should preserve single return type attribute`` () =
     formatSourceString """let f x : [<return: Attribute>] int = x""" config
     |> should
