@@ -144,6 +144,31 @@ Report:
   only the SyntaxTree folder, so a SyntaxTree-scoped walk can still pull in unrelated compiler
   changes and break the build.
 
+### Look for what we can stop doing
+
+A bump is usually a risk to survive, but now and then it is a gift. When the parser starts
+providing something Fantomas currently reconstructs, the right response is to delete our version,
+not just to keep building.
+
+The signal is upstream giving a construct a **real position** it did not have before:
+
+- a new or changed field in `SyntaxTrivia.fs(i)`, which is where keyword ranges live
+- a keyword range added to an existing `Syn*` case or its trivia record
+- a construct promoted from something synthesized to a proper node, the way `and!` became a
+  `SynBinding`
+
+When you see one, look in `ASTTransformer.fs` for the matching place where we do the work
+ourselves: a range built with `unionRanges` or `mkRange` that the parser now hands us directly, a
+keyword position recovered from the source text through `creationAide.TextFromSource`, or a shape
+we rebuild because the tree did not describe it. Say so in the report, with the file and the
+function.
+
+Two cautions. Most commits offer nothing here, so say that plainly rather than manufacturing an
+improvement, and check the code before claiming one: earlier bumps may already have removed the
+reconstruction, which is why a promising-looking commit often turns out to have nothing left to
+give. And do not make the change in the same step as the bump. Report it as an opportunity and let
+the user take it separately, so the bump stays clean and attributable.
+
 Fetch the actual patch for the interesting files when the file list alone is not enough to
 explain the change:
 
