@@ -10,6 +10,7 @@ open Spectre.Console
 
 let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
 
+[<HelpFlags("--help", "-h")>]
 type Arguments =
     | [<Unique>] Force
     | [<Unique>] Profile
@@ -28,7 +29,7 @@ type Arguments =
                 "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only. Multiple files/folders are not supported."
             | Profile -> "Print performance profiling information."
             | Check ->
-                "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
+                "Report which files need formatting and write nothing. Exits with 0 when every file is already formatted, with 99 when some file needs formatting, and with 1 when an error occurred."
             | Daemon -> "Daemon mode, launches an LSP-like server that can be used by editor tooling."
             | Version -> "Displays the version of Fantomas"
             | Input _ ->
@@ -202,25 +203,10 @@ let runCheckCommand (inputPath: InputPath) : int =
 
 [<EntryPoint>]
 let main argv =
-    let errorHandler =
-        ProcessExiter(
-            colorizer =
-                function
-                | ErrorCode.HelpText -> None
-                | _ -> Some ConsoleColor.Red
-        )
-
-    let helpTextMessage =
-        """Learn more about Fantomas:       https://fsprojects.github.io/fantomas/docs
-Join us on the F# Discord:       https://discord.com/channels/196693847965696000/1493226271767924747
-"""
-
+    // Argu never gets to render a usage text of its own: HelpPage.exiter answers --help with
+    // the Fantomas help page and reduces an argument error to its first line.
     let parser =
-        ArgumentParser.Create<Arguments>(
-            programName = "dotnet fantomas",
-            errorHandler = errorHandler,
-            helpTextMessage = helpTextMessage
-        )
+        ArgumentParser.Create<Arguments>(programName = "fantomas", errorHandler = HelpPage.exiter)
 
     let results = parser.ParseCommandLine argv
 

@@ -31,6 +31,8 @@
     <Compile Include="Format.fs" />
     <Compile Include="Daemon.fsi" />
     <Compile Include="Daemon.fs" />
+    <Compile Include="HelpPage.fsi" />
+    <Compile Include="HelpPage.fs" />
     <Compile Include="Program.fsi" />
     <Compile Include="Program.fs" />
   </ItemGroup>
