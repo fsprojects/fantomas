@@ -4,9 +4,18 @@ This is the changelog for the Fantomas.Client package specifically. It's distinc
 
 ## [Unreleased]
 
+### Added
+- `FantomasService.ConfigurationWarnings`, an event raised after every format request with the settings in the resolved configuration that Fantomas could not act on: a `fsharp_`-prefixed setting the daemon's version does not have, or a setting carrying a value it cannot parse. Formatting still succeeds using defaults, so without this the setting quietly does not apply. The event is raised with an empty `Problems` array when nothing is wrong, so a subscriber can clear what it reported earlier. Only Fantomas 8.0.0-alpha-014 and later daemons send these; against an older daemon the event never fires, so no version check is needed. See [Formatting from an editor with Fantomas.Client](https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.html). [#3401](https://github.com/fsprojects/fantomas/pull/3401)
+- `ConfigurationWarning`, `ConfigurationProblem`, `ConfigurationProblemCode` and `ConfigurationProblemSource`, the types carried by that event, and `Methods.ConfigurationWarning`, the JSON-RPC method they arrive on. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
+- `RunningFantomasTool.ConfigurationWarnings`, for callers driving `FantomasToolLocator.createFor` themselves rather than going through `LSPFantomasService`. The handler has to be registered before the connection starts listening, so `createFor` wires it up; its own signature is unchanged. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
+
 ### Changed
 - Bump `StreamJsonRpc` to `2.25.29`. [#3393](https://github.com/fsprojects/fantomas/pull/3393)
 - Breaking: no longer binary compatible with `0.11.0`. Several discriminated unions are structs now, which changes nothing about how they are written or matched, but an assembly compiled against `0.11.0` has to be rebuilt. [#3407](https://github.com/fsprojects/fantomas/pull/3407)
+- Breaking: `FantomasService` gained the `ConfigurationWarnings` member, and `RunningFantomasTool` gained a field. Source-breaking only for code that *implements* `FantomasService` or *constructs* `RunningFantomasTool`; calling either is unaffected, at source and at binary level. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
+
+### Fixed
+- Opening a second folder that pins the same Fantomas version started a second daemon and dropped the first one from the cache without disposing it, leaving an orphaned process behind for the rest of the session. Daemons are keyed by version, so a running one for that version is now reused. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
 
 ## [0.11.0] - 2026-04-16
 

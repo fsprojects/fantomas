@@ -7,6 +7,7 @@ open StreamJsonRpc
 open System.IO.Abstractions
 open Serilog
 open Fantomas.Core
+open Fantomas.EditorConfig
 open Fantomas.Client.Contracts
 
 /// How the daemon reaches the world outside itself. Narrower than the command line tool's
@@ -14,9 +15,14 @@ open Fantomas.Client.Contracts
 /// run, and it draws nothing, so it needs neither a resolved ignore file nor a console.
 [<NoComparison; NoEquality>]
 type DaemonEnvironment =
-    { FileSystem: IFileSystem
-      ReadConfiguration: string -> FormatConfig
-      Log: ILogger }
+    {
+        FileSystem: IFileSystem
+        /// The `.editorconfig` result for a file, problems and all. Wider than the command line
+        /// tool's hook, which only needs the configuration: the daemon sends what it could not use
+        /// to its client rather than warning about it, so it needs the problems too.
+        ReadConfiguration: string -> EditorConfigResult option
+        Log: ILogger
+    }
 
 type FantomasDaemon =
     interface IDisposable

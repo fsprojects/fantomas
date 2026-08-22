@@ -225,7 +225,7 @@ let defaultSettings: CliSettings =
 /// A `DaemonEnvironment` over the real file system, as the tool itself builds one.
 let realDaemonEnvironment: DaemonEnvironment =
     { FileSystem = FileSystem()
-      ReadConfiguration = EditorConfig.readConfiguration
+      ReadConfiguration = EditorConfig.tryReadConfiguration
       Log = Log.Logger }
 
 /// A `CliEnvironment` over the real file system, honouring no ignore file. Enough for a test that
@@ -233,7 +233,7 @@ let realDaemonEnvironment: DaemonEnvironment =
 let realEnvironment: CliEnvironment =
     { FileSystem = FileSystem()
       IgnoreFile = None
-      ReadConfiguration = EditorConfig.readConfiguration
+      ReadConfiguration = EditorConfig.readConfiguration Log.Logger
       Log = Log.Logger
       Console = AnsiConsole.Console }
 

@@ -11,6 +11,9 @@ module Methods =
     let Version = "fantomas/version"
 
     [<Literal>]
+    let ConfigurationWarning = "fantomas/configurationWarning"
+
+    [<Literal>]
     let FormatDocument = "fantomas/formatDocument"
 
     [<Literal>]
@@ -73,6 +76,27 @@ type FantomasResponse =
       SelectedRange: FormatSelectionRange option
       Cursor: FormatCursorPosition option }
 
+type ConfigurationProblemCode =
+    | UnknownSetting = 1
+    | UnrecognizedValue = 2
+
+type ConfigurationProblemSource =
+    | EditorConfig = 1
+    | Request = 2
+
+[<NoComparison>]
+type ConfigurationProblem =
+    { Code: int
+      Source: int
+      Setting: string
+      Value: string }
+
+[<NoComparison>]
+type ConfigurationWarning =
+    { FilePath: string
+      EditorConfigFiles: string array
+      Problems: ConfigurationProblem array }
+
 type FantomasService =
     interface
         inherit IDisposable
@@ -89,4 +113,6 @@ type FantomasService =
             filePath: string * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
 
         abstract member ClearCache: unit -> unit
+
+        abstract member ConfigurationWarnings: IEvent<ConfigurationWarning>
     end

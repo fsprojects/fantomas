@@ -23,6 +23,9 @@ UI might be available depending on the IDE.
 #r "../../../artifacts/bin/Fantomas.FCS/release/Fantomas.FCS.dll"
 #r "../../../artifacts/bin/Fantomas.Core/release/Fantomas.Core.dll"
 #r "../../../artifacts/bin/Fantomas/release/EditorConfig.Core.dll"
+#r "../../../artifacts/bin/Fantomas/release/Serilog.dll"
+#r "../../../artifacts/bin/Fantomas/release/Serilog.Sinks.Console.dll"
+#load "../../../src/Fantomas/Logging.fs"
 #load "../../../src/Fantomas/EditorConfig.fs"
 
 open System
@@ -43,7 +46,7 @@ let formatCode input (settings: string) =
                         Some(parts.[0], parts.[1]))
                 |> readOnlyDict
 
-            parseOptionsFromEditorConfig FormatConfig.Default editorConfigProperties
+            parseOptionsFromEditorConfig FormatConfig.Default editorConfigProperties |> fst
 
         let! result = CodeFormatter.FormatDocumentAsync(false, input, config)
         printf $"%s{result.Code}"

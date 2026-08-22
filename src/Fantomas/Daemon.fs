@@ -1,6 +1,7 @@
 ﻿module Fantomas.Daemon
 
 open System
+open System.Collections.Generic
 open System.Diagnostics
 open System.IO
 open System.IO.Abstractions
@@ -18,8 +19,54 @@ open Serilog
 [<NoComparison; NoEquality>]
 type DaemonEnvironment =
     { FileSystem: IFileSystem
-      ReadConfiguration: string -> FormatConfig
+      ReadConfiguration: string -> EditorConfigResult option
       Log: ILogger }
+
+let toConfigurationProblem (source: ConfigurationProblemSource) (problem: EditorConfigProblem) : ConfigurationProblem =
+    match problem with
+    | EditorConfigProblem.UnknownSetting setting ->
+        { Code = int ConfigurationProblemCode.UnknownSetting
+          Source = int source
+          Setting = setting
+          Value = null }
+    | EditorConfigProblem.UnrecognizedValue(setting, value) ->
+        { Code = int ConfigurationProblemCode.UnrecognizedValue
+          Source = int source
+          Setting = setting
+          Value = value }
+
+/// Resolve the configuration for a request the way the daemon needs it: the `.editorconfig` on
+/// disk, then whatever the editor sent layered on top, keeping the problems from both.
+///
+/// Deliberately silent: the problems travel to the client as a notification and are never written
+/// to standard error. `Fantomas.Client` drains the daemon's standard error, but an older client
+/// does not, and anything written there then accumulates in a pipe nobody reads. A report is
+/// around 1.5KB and the default pipe buffer on Windows is 4KB, so a few of them would block the
+/// write inside a format request and hang the connection.
+let configurationFor
+    (readConfiguration: string -> EditorConfigResult option)
+    (filePath: string)
+    (requestConfig: IReadOnlyDictionary<string, string> option)
+    : FormatConfig * ConfigurationWarning =
+    let config, editorConfigFiles, fileProblems =
+        match readConfiguration filePath with
+        | Some result -> result.Config, result.EditorConfigFiles, result.Problems
+        | None -> FormatConfig.Default, [], []
+
+    let fromEditorConfig =
+        List.map (toConfigurationProblem ConfigurationProblemSource.EditorConfig) fileProblems
+
+    let config, fromRequest =
+        match requestConfig with
+        | None -> config, []
+        | Some properties ->
+            let config, problems = parseOptionsFromEditorConfig config properties
+            config, List.map (toConfigurationProblem ConfigurationProblemSource.Request) problems
+
+    config,
+    { FilePath = filePath
+      EditorConfigFiles = Array.ofList editorConfigFiles
+      Problems = List.toArray (fromEditorConfig @ fromRequest) }
 
 type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironment) as this =
     let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)
@@ -29,6 +76,19 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
         // hook up request/response logging for debugging
         rpc.TraceSource <- TraceSource(typeof<FantomasDaemon>.Name, SourceLevels.Verbose)
         rpc.TraceSource.Listeners.Add traceListener |> ignore<int>
+
+    /// Tell the client which settings in the resolved configuration could not be acted on. Sent
+    /// after every request, with an empty list when nothing is wrong, so a client can clear what
+    /// it showed earlier. A client that does not handle the method ignores it.
+    let notifyConfigurationWarning (warning: ConfigurationWarning) : Task =
+        task {
+            try
+                do! rpc.NotifyAsync(Methods.ConfigurationWarning, [| box warning |])
+            with _ ->
+                // The client went away, or does not speak this method. Never fail a format
+                // request over a message that only carries advice.
+                ()
+        }
 
     let disconnectEvent = new ManualResetEvent(false)
 
@@ -57,20 +117,30 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                     (IgnoreFile.find fs (IgnoreFile.loadIgnoreList fs) request.FilePath)
                     request.FilePath
             then
+                // Still reported, with nothing in it, so a client can clear what an earlier request
+                // showed for this file rather than leaving a stale warning behind.
+                do!
+                    notifyConfigurationWarning
+                        { FilePath = request.FilePath
+                          EditorConfigFiles = Array.empty
+                          Problems = Array.empty }
+
                 return FormatDocumentResponse.IgnoredFile request.FilePath
             else
-                let config =
-                    match request.Config with
-                    | Some configProperties ->
-                        let config = environment.ReadConfiguration request.FilePath
-                        parseOptionsFromEditorConfig config configProperties
-                    | None -> environment.ReadConfiguration request.FilePath
-
                 let cursor =
                     request.Cursor
                     |> Option.map (fun cursor -> CodeFormatter.MakePosition(cursor.Line, cursor.Column))
 
                 try
+                    // Reading the configuration belongs inside this: an `.editorconfig` can carry a
+                    // value that raises rather than becoming a problem, `end_of_line = cr` among
+                    // them, and the client should hear about that as an Error response like any
+                    // other failure, not as a remote invocation exception.
+                    let config, warning =
+                        configurationFor environment.ReadConfiguration request.FilePath request.Config
+
+                    do! notifyConfigurationWarning warning
+
                     let! formatResponse =
                         match cursor with
                         | None -> CodeFormatter.FormatDocumentAsync(request.IsSignatureFile, request.SourceCode, config)
@@ -103,13 +173,6 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
     [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
         task {
-            let config =
-                match request.Config with
-                | Some configProperties ->
-                    let config = environment.ReadConfiguration request.FilePath
-                    parseOptionsFromEditorConfig config configProperties
-                | None -> environment.ReadConfiguration request.FilePath
-
             let selection =
                 let r = request.Range
 
@@ -119,6 +182,13 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                     (Position.mkPos r.EndLine r.EndColumn)
 
             try
+                // Inside the try for the same reason as FormatDocumentAsync: a configuration value
+                // that raises has to reach the client as an Error response.
+                let config, warning =
+                    configurationFor environment.ReadConfiguration request.FilePath request.Config
+
+                do! notifyConfigurationWarning warning
+
                 let! formatted, actualSelection =
                     CodeFormatter.FormatSelectionAsync(request.IsSignatureFile, request.SourceCode, selection, config)
 

@@ -1,19 +1,21 @@
 module Fantomas.Client.FantomasToolLocator
 
 open System
+open System.Collections.Generic
 open System.ComponentModel
 open System.Diagnostics
 open System.IO
 open System.Text.RegularExpressions
 open System.Runtime.InteropServices
 open StreamJsonRpc
+open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 
 // Only 4.6.0-alpha-004 has daemon capabilities
-let private supportedRange = SemanticVersioning.Range(">=v4.6.0-alpha-004")
+let supportedRange = SemanticVersioning.Range(">=v4.6.0-alpha-004")
 
 [<return: Struct>]
-let private (|CompatibleVersion|_|) (version: string) =
+let (|CompatibleVersion|_|) (version: string) : string voption =
     match SemanticVersioning.Version.TryParse version with
     | true, parsedVersion ->
         if supportedRange.IsSatisfied(parsedVersion, includePrerelease = true) then
@@ -24,13 +26,13 @@ let private (|CompatibleVersion|_|) (version: string) =
 
 // In the past, fantomas was named fantomas-tool.
 [<return: Struct>]
-let private (|CompatibleToolName|_|) toolName =
+let (|CompatibleToolName|_|) (toolName: string) : string voption =
     if toolName = "fantomas-tool" || toolName = "fantomas" then
         ValueSome toolName
     else
         ValueNone
 
-let private readOutputStreamAsLines (outputStream: StreamReader) : string list =
+let readOutputStreamAsLines (outputStream: StreamReader) : string list =
     let rec readLines (outputStream: StreamReader) (continuation: string list -> string list) =
         let nextLine = outputStream.ReadLine()
 
@@ -41,7 +43,7 @@ let private readOutputStreamAsLines (outputStream: StreamReader) : string list =
 
     readLines outputStream id
 
-let private startProcess (ps: ProcessStartInfo) : Result<Process, ProcessStartError> =
+let startProcess (ps: ProcessStartInfo) : Result<Process, ProcessStartError> =
     try
         Ok(Process.Start ps)
     with
@@ -59,7 +61,7 @@ let private startProcess (ps: ProcessStartInfo) : Result<Process, ProcessStartEr
         )
     | ex -> Error(ProcessStartError.UnExpectedException(ps.FileName, ps.Arguments, ex.Message))
 
-let private runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Result<string list, DotNetToolListError> =
+let runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Result<string list, DotNetToolListError> =
     let ps = ProcessStartInfo("dotnet")
     ps.WorkingDirectory <- workingDir
 
@@ -87,10 +89,10 @@ let private runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Resu
             Error(DotNetToolListError.ExitCodeNonZero(ps.FileName, ps.Arguments, exitCode, error))
     | Error err -> Error(DotNetToolListError.ProcessStartError err)
 
-let private packageSidVersionRegex = Regex(@"^Package\sId\s+Version.+$")
+let packageSidVersionRegex = Regex(@"^Package\sId\s+Version.+$")
 
 [<return: Struct>]
-let private (|CompatibleTool|_|) lines =
+let (|CompatibleTool|_|) (lines: string list) : FantomasVersion voption =
     // These are local bindings, which cannot carry an attribute, so they stay on option.
     let (|HeaderLine|_|) line =
         if packageSidVersionRegex.IsMatch line then Some() else None
@@ -124,10 +126,10 @@ let private (|CompatibleTool|_|) lines =
         tool |> ValueOption.ofOption |> ValueOption.map (snd >> FantomasVersion)
     | _ -> ValueNone
 
-let private isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+let isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 
 // Find an executable fantomas file on the PATH
-let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option =
+let fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option =
     let fantomasExecutableOnPathOpt =
         match Option.ofObj (Environment.GetEnvironmentVariable("PATH")) with
         | Some s -> s.Split([| if isWindows then ';' else ':' |], StringSplitOptions.RemoveEmptyEntries)
@@ -168,7 +170,18 @@ let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion
             stdOut
             |> Option.ofObj
             |> Option.map (fun s ->
-                let version = s.ToLowerInvariant().Replace("fantomas", String.Empty).Trim()
+                // `--version` answers `Fantomas v8.0.0`, `dotnet tool list` answers `8.0.0`.
+                // Daemons are cached by this string, so the leading v has to go: without it the
+                // same Fantomas resolved once from the manifest and once from the PATH counts as
+                // two versions and gets two processes.
+                let version =
+                    let printed = s.ToLowerInvariant().Replace("fantomas", String.Empty).Trim()
+
+                    if printed.StartsWith("v", StringComparison.Ordinal) then
+                        printed.Substring(1)
+                    else
+                        printed
+
                 FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(version))
         | Error(ProcessStartError.ExecutableFileNotFound _)
         | Error(ProcessStartError.UnExpectedException _) -> None)
@@ -232,8 +245,42 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
 
     match startProcess processStart with
     | Ok daemonProcess ->
+        // Standard error is redirected, so something has to read it. Left alone it fills the pipe
+        // the operating system gives the two processes, 4KB by default on Windows, and the daemon
+        // then blocks inside whatever it was doing when it wrote the line that did not fit. Keep
+        // the last of it for the failure message below and throw the rest away.
+        let recentStandardError = Queue<string>()
+
+        daemonProcess.ErrorDataReceived.Add(fun message ->
+            if not (isNull message.Data) then
+                lock recentStandardError (fun () ->
+                    recentStandardError.Enqueue message.Data
+
+                    while recentStandardError.Count > 50 do
+                        recentStandardError.Dequeue() |> ignore))
+
+        daemonProcess.BeginErrorReadLine()
+
         let client =
             new JsonRpc(daemonProcess.StandardInput.BaseStream, daemonProcess.StandardOutput.BaseStream)
+
+        let configurationWarnings = Event<ConfigurationWarning>()
+
+        // Has to happen before StartListening: StreamJsonRpc refuses to add local methods once
+        // the connection is listening. A daemon that never sends these simply never triggers it.
+        client.AddLocalRpcMethod(
+            Methods.ConfigurationWarning,
+            Action<ConfigurationWarning>(fun warning ->
+                try
+                    configurationWarnings.Trigger warning
+                with _ ->
+                    // A subscriber that throws must not take the connection down with it. An
+                    // exception out of a synchronous local method is not turned into an error
+                    // response: it escapes the dispatcher and disconnects the client, which would
+                    // fault every format request from then on over a message that only carries
+                    // advice.
+                    ())
+        )
 
         do client.StartListening()
 
@@ -247,14 +294,33 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
             Ok
                 { RpcClient = client
                   Process = daemonProcess
-                  StartInfo = startInfo }
+                  StartInfo = startInfo
+                  ConfigurationWarnings = configurationWarnings.Publish }
         with ex ->
             let error =
                 if daemonProcess.HasExited then
-                    let stdErr = daemonProcess.StandardError.ReadToEnd()
+                    let stdErr =
+                        lock recentStandardError (fun () -> String.Join(Environment.NewLine, recentStandardError))
+
                     $"Daemon std error: %s{stdErr}.\nJsonRpc exception:%s{ex.Message}"
                 else
                     ex.Message
+
+            // The handshake failed, so nothing will ever hand this daemon out and nothing will
+            // ever dispose it. Kill it here rather than leave the process running for the rest of
+            // the session with no way to reach it.
+            try
+                client.Dispose()
+            with _ ->
+                ()
+
+            try
+                if not daemonProcess.HasExited then
+                    daemonProcess.Kill()
+
+                daemonProcess.Dispose()
+            with _ ->
+                ()
 
             Error(ProcessStartError.UnExpectedException(processStart.FileName, processStart.Arguments, error))
     | Error err -> Error err

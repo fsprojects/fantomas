@@ -64,7 +64,8 @@ type FantomasToolStartInfo =
 type RunningFantomasTool =
     { Process: Process
       RpcClient: JsonRpc
-      StartInfo: FantomasToolStartInfo }
+      StartInfo: FantomasToolStartInfo
+      ConfigurationWarnings: IEvent<ConfigurationWarning> }
 
     interface IDisposable with
         member this.Dispose() : unit =

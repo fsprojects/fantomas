@@ -31,7 +31,7 @@ type Msg =
     | GetDaemon of folder: Folder * replyChannel: AsyncReplyChannel<Result<JsonRpc, GetDaemonError>>
     | Reset of AsyncReplyChannel<unit>
 
-let private createAgent (ct: CancellationToken) =
+let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWarning -> unit) : MailboxProcessor<Msg> =
     MailboxProcessor.Start(
         (fun inbox ->
             let rec messageLoop (state: ServiceState) =
@@ -61,13 +61,18 @@ let private createAgent (ct: CancellationToken) =
 
                                         match newDaemonResult with
                                         | Ok newDaemon ->
+                                            newDaemon.ConfigurationWarnings.Add onConfigurationWarning
                                             replyChannel.Reply(Ok newDaemon.RpcClient)
 
                                             { FolderToVersion = Map.add folder version state.FolderToVersion
                                               Daemons = Map.add version newDaemon state.Daemons }
                                         | Error pse ->
                                             replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
-                                            state
+                                            // The daemon that was there is disposed and the new one
+                                            // never started, so drop the entry rather than leave a
+                                            // dead one to be disposed again on the next request.
+                                            { state with
+                                                Daemons = Map.remove version state.Daemons }
                                     else
                                         // return running client
                                         replyChannel.Reply(Ok daemon.RpcClient)
@@ -89,17 +94,47 @@ let private createAgent (ct: CancellationToken) =
 
                                 match fantomasToolResult with
                                 | Ok(FantomasToolFound(version, startInfo)) ->
-                                    let createDaemonResult = createFor startInfo
+                                    // Daemons are keyed by version, not by folder. Two folders that
+                                    // pin the same Fantomas share one, so a running daemon for this
+                                    // version has to be reused: starting a second would overwrite
+                                    // the first in the map and leave its process running with
+                                    // nothing left to dispose it.
+                                    //
+                                    // The reused daemon keeps the StartInfo it was created with, so
+                                    // a restart after a crash resolves the tool the way the first
+                                    // folder did rather than the way this one just did.
+                                    let runningDaemon =
+                                        Map.tryFind version state.Daemons
+                                        |> Option.filter (fun daemon -> not daemon.Process.HasExited)
 
-                                    match createDaemonResult with
-                                    | Ok daemon ->
+                                    match runningDaemon with
+                                    | Some daemon ->
                                         replyChannel.Reply(Ok daemon.RpcClient)
 
-                                        { Daemons = Map.add version daemon state.Daemons
-                                          FolderToVersion = Map.add folder version state.FolderToVersion }
-                                    | Error pse ->
-                                        replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
-                                        state
+                                        { state with
+                                            FolderToVersion = Map.add folder version state.FolderToVersion }
+                                    | None ->
+                                        // A daemon that crashed is replaced, but dispose it first so
+                                        // the handles it still holds are released.
+                                        Map.tryFind version state.Daemons
+                                        |> Option.iter (fun daemon -> (daemon :> IDisposable).Dispose())
+
+                                        let createDaemonResult = createFor startInfo
+
+                                        match createDaemonResult with
+                                        | Ok daemon ->
+                                            daemon.ConfigurationWarnings.Add onConfigurationWarning
+                                            replyChannel.Reply(Ok daemon.RpcClient)
+
+                                            { Daemons = Map.add version daemon state.Daemons
+                                              FolderToVersion = Map.add folder version state.FolderToVersion }
+                                        | Error pse ->
+                                            replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
+                                            // The daemon that was there is disposed and the new one
+                                            // never started, so drop the entry rather than leave a
+                                            // dead one to be disposed again on the next request.
+                                            { state with
+                                                Daemons = Map.remove version state.Daemons }
                                 | Error FantomasToolError.NoCompatibleVersionFound ->
                                     replyChannel.Reply(Error GetDaemonError.InCompatibleVersionFound)
                                     state
@@ -143,13 +178,13 @@ let isPathAbsolute (path: string) : bool =
         else
             pathRoot.Trim('\\').IndexOf('\\') <> -1 // A UNC server name without a share name (e.g "\\NAME" or "\\NAME\") is invalid
 
-let private isCancellationRequested (requested: bool) : Result<unit, FantomasServiceError> =
+let isCancellationRequested (requested: bool) : Result<unit, FantomasServiceError> =
     if requested then
         Error FantomasServiceError.CancellationWasRequested
     else
         Ok()
 
-let private getFolderFor (filePath: string) () : Result<Folder, FantomasServiceError> =
+let getFolderFor (filePath: string) () : Result<Folder, FantomasServiceError> =
     if not (isPathAbsolute filePath) then
         Error FantomasServiceError.FilePathIsNotAbsolute
     elif not (File.Exists filePath) then
@@ -157,14 +192,14 @@ let private getFolderFor (filePath: string) () : Result<Folder, FantomasServiceE
     else
         Path.GetDirectoryName filePath |> Folder |> Ok
 
-let private getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<JsonRpc, FantomasServiceError> =
+let getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<JsonRpc, FantomasServiceError> =
     let daemon = agent.PostAndReply(fun replyChannel -> GetDaemon(folder, replyChannel))
 
     match daemon with
     | Ok daemon -> Ok daemon
     | Error gde -> Error(FantomasServiceError.DaemonNotFound gde)
 
-let private fileNotFoundResponse filePath : Task<FantomasResponse> =
+let fileNotFoundResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.FileNotFound
       FilePath = filePath
       Content = Some $"File \"%s{filePath}\" does not exist."
@@ -172,7 +207,7 @@ let private fileNotFoundResponse filePath : Task<FantomasResponse> =
       Cursor = None }
     |> Task.FromResult
 
-let private fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
+let fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.FilePathIsNotAbsolute
       FilePath = filePath
       Content = Some $"\"%s{filePath}\" is not an absolute file path. Relative paths are not supported."
@@ -180,7 +215,7 @@ let private fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
       Cursor = None }
     |> Task.FromResult
 
-let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasResponse> =
+let daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasResponse> =
     let content, code =
         match error with
         | GetDaemonError.DotNetToolListError(DotNetToolListError.ProcessStartError(ProcessStartError.ExecutableFileNotFound(executableFile,
@@ -221,7 +256,7 @@ let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<Fanto
       Cursor = None }
     |> Task.FromResult
 
-let private cancellationWasRequestedResponse filePath : Task<FantomasResponse> =
+let cancellationWasRequestedResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.CancellationWasRequested
       FilePath = filePath
       Content = Some "FantomasService is being or has been disposed."
@@ -335,7 +370,8 @@ let decodeFormatResult (inputFilePath: string) (json: JObject) : FantomasRespons
 
 type LSPFantomasService() =
     let cts = new CancellationTokenSource()
-    let agent = createAgent cts.Token
+    let configurationWarnings = Event<ConfigurationWarning>()
+    let agent = createAgent cts.Token configurationWarnings.Trigger
 
     interface FantomasService with
         member this.Dispose() =
@@ -411,5 +447,7 @@ type LSPFantomasService() =
                           SelectedRange = None
                           Cursor = None }))
             |> mapResultToResponse filePath
+
+        member _.ConfigurationWarnings = configurationWarnings.Publish
 
         member _.ClearCache() = agent.PostAndReply Reset

@@ -81,7 +81,7 @@ let main argv =
                 Console.OpenStandardOutput(),
                 Console.OpenStandardInput(),
                 { FileSystem = fileSystem
-                  ReadConfiguration = EditorConfig.readConfiguration
+                  ReadConfiguration = EditorConfig.tryReadConfiguration
                   Log = log }
             )
 
@@ -101,7 +101,7 @@ let main argv =
                         fileSystem
                         Environment.CurrentDirectory
                         (IgnoreFile.loadIgnoreList fileSystem)
-                  ReadConfiguration = EditorConfig.readConfiguration
+                  ReadConfiguration = EditorConfig.readConfiguration log
                   Log = log
                   Console = AnsiConsole.Console }
 
