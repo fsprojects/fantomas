@@ -88,144 +88,104 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
             return FormatResult.Error(formatParams.File, ex)
     }
 
-let hasByteOrderMark (fs: IFileSystem) (file: string) : Async<bool> =
+/// A file as it was read: its text, and whether it began with a byte order mark. Both come out of
+/// one read, because the mark is in the same bytes the text is decoded from.
+type SourceFile =
+    { Content: string
+      HasByteOrderMark: bool }
+
+/// Fantomas assumes the input files are UTF-8
+/// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
+let readSourceFile (fs: IFileSystem) (file: string) : Async<SourceFile> =
     async {
-        if fs.File.Exists(file) then
-            let preamble: byte array = Encoding.UTF8.GetPreamble()
+        use stream = fs.File.OpenRead file
 
-            use stream = fs.File.OpenRead(file)
+        use reader =
+            new StreamReader(stream, UTF8Encoding(false), detectEncodingFromByteOrderMarks = true)
 
-            let mutable bom: byte array = Array.zeroCreate 3
-            do! stream.ReadAsync(bom, 0, 3) |> Async.AwaitTask |> Async.Ignore<int>
-            return bom = preamble
-        else
-            return false
+        let! content = reader.ReadToEndAsync() |> Async.AwaitTask
+
+        // Opening the file again to look at its first three bytes would be needless: the reader has
+        // already read them to settle on an encoding. A file that carried a mark comes back as
+        // UTF-8 with that mark as its preamble, and one that did not keeps the encoding passed in,
+        // whose preamble is empty. Checking the code page as well keeps this to the UTF-8 mark, as
+        // reading the three bytes by hand did.
+        let encoding: Encoding = reader.CurrentEncoding
+
+        return
+            { Content = content
+              HasByteOrderMark = encoding.CodePage = Encoding.UTF8.CodePage && encoding.GetPreamble().Length > 0 }
     }
 
-let processSourceString
+/// Format content that is already in hand, settling there what `--force` means and what output
+/// that is not valid F# comes to, so that a caller is left with one kind of failure to report.
+let formatSource
     (env: CliEnvironment)
     (settings: CliSettings)
-    (s: string)
-    (fileName: string)
+    (source: SourceFile)
+    (file: string)
     (config: FormatConfig)
     : Async<FormatResult> =
-    let fs: IFileSystem = env.FileSystem
-    let force: bool = settings.Force
-
-    let writeResult (formatted: string) : Async<unit> =
-        async {
-            let! hasBom = hasByteOrderMark fs fileName
-
-            if hasBom then
-                do! fs.File.WriteAllTextAsync(fileName, formatted, Encoding.UTF8) |> Async.AwaitTask
-            else
-                do! fs.File.WriteAllTextAsync(fileName, formatted) |> Async.AwaitTask
-
-            env.Log.Debug $"%s{fileName} has been written."
-        }
-
     async {
         let formatParams: FormatParams =
-            FormatParams.Create(config, false, settings.Profile, fileName)
+            FormatParams.Create(config, false, settings.Profile, file)
 
-        let! formatted = formatContentAsync formatParams s
-
-        match formatted with
-        | FormatResult.Formatted(_, formattedContent, _) as r ->
-            do! formattedContent |> writeResult
-            return r
-        | FormatResult.InvalidCode(file, formattedContent) when force ->
-            env.Log.Information $"%s{file} was not valid after formatting."
-            do! formattedContent |> writeResult
-            return FormatResult.Formatted(fileName, formattedContent, None)
-        | FormatResult.Unchanged(file, _) as r ->
-            env.Log.Debug $"'%s{file}' was unchanged"
-            return r
-        | FormatResult.IgnoredFile _ as r -> return r
-        | FormatResult.Error _ as r -> return r
-        | FormatResult.InvalidCode(file, _) -> return FormatResult.Error(file, invalidResultException file)
-    }
-
-let processSourceFile
-    (env: CliEnvironment)
-    (settings: CliSettings)
-    (inFile: string)
-    (tw: TextWriter)
-    : Async<FormatResult> =
-    let force: bool = settings.Force
-
-    async {
-        let! originalContent = env.FileSystem.File.ReadAllTextAsync inFile |> Async.AwaitTask
-
-        let formatParams: FormatParams =
-            FormatParams.Create(env.ReadConfiguration inFile, false, settings.Profile, inFile)
-
-        let! formatted = formatContentAsync formatParams originalContent
+        let! formatted = formatContentAsync formatParams source.Content
 
         match formatted with
-        | FormatResult.Formatted(_, formattedContent, _) as r ->
-            do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
+        | FormatResult.InvalidCode(f, formattedContent) when settings.Force ->
+            env.Log.Information $"%s{f} was not valid after formatting."
+            return FormatResult.Formatted(file, formattedContent, None)
+        | FormatResult.InvalidCode(f, _) -> return FormatResult.Error(f, invalidResultException f)
+        | FormatResult.Unchanged(f, _) as r ->
+            env.Log.Debug $"'%s{f}' was unchanged"
             return r
-        | FormatResult.InvalidCode(file, formattedContent) when force ->
-            env.Log.Information $"%s{file} was not valid after formatting."
-            do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
-            return FormatResult.Formatted(inFile, formattedContent, None)
-        | FormatResult.Unchanged _ as r ->
-            // The content is already in hand, so an unchanged file is copied across from it
-            // rather than read a second time.
-            do! originalContent |> tw.WriteAsync |> Async.AwaitTask
-            return r
-        | FormatResult.IgnoredFile _ as r -> return r
-        | FormatResult.Error _ as r -> return r
-        | FormatResult.InvalidCode(file, _) -> return FormatResult.Error(file, invalidResultException file)
+        | r -> return r
     }
 
-// The formatted text is collected in memory and the output file is opened only once there
-// is something to put in it. Opening it up front truncates it before the input is read,
-// which empties the input when both paths turn out to name the same file, and leaves a
-// zero byte file behind whenever formatting does not complete.
-let fileToFile (env: CliEnvironment) (settings: CliSettings) (inFile: string) (outFile: string) : Async<FormatResult> =
-    let fs: IFileSystem = env.FileSystem
-
-    async {
-        env.Log.Debug $"Processing %s{inFile}"
-        use buffer = new StringWriter()
-        let! processResult = processSourceFile env settings inFile buffer
-
-        match processResult with
-        | FormatResult.Formatted _
-        | FormatResult.Unchanged _ ->
-            let! hasByteOrderMark = hasByteOrderMark fs inFile
-            ensureParentFolderExists fs outFile
-            let contents: string = buffer.ToString()
-
-            if hasByteOrderMark then
-                do! fs.File.WriteAllTextAsync(outFile, contents, Encoding.UTF8) |> Async.AwaitTask
-            else
-                do! fs.File.WriteAllTextAsync(outFile, contents) |> Async.AwaitTask
-
-            env.Log.Debug $"%s{outFile} has been written."
-        | FormatResult.IgnoredFile _
-        | FormatResult.InvalidCode _
-        | FormatResult.Error _ -> ()
-
-        return processResult
-    }
-
+// The formatted text is held in memory and the output file is opened only once there is something
+// to put in it. Opening it up front truncates it before the input is read, which empties the input
+// when both paths turn out to name the same file, and leaves a zero byte file behind whenever
+// formatting does not complete.
 let processFile
     (env: CliEnvironment)
     (settings: CliSettings)
     (inputFile: string)
     (outputFile: string)
     : Async<FormatResult> =
+    let fs: IFileSystem = env.FileSystem
+
     async {
         try
-            if not (isSamePath env.FileSystem inputFile outputFile) then
-                return! fileToFile env settings inputFile outputFile
-            else
-                env.Log.Debug $"Processing %s{inputFile}"
-                let! content = env.FileSystem.File.ReadAllTextAsync inputFile |> Async.AwaitTask
-                return! processSourceString env settings content inputFile (env.ReadConfiguration inputFile)
+            env.Log.Debug $"Processing %s{inputFile}"
+            let! source = readSourceFile fs inputFile
+            let inPlace: bool = isSamePath fs inputFile outputFile
+            let! result = formatSource env settings source inputFile (env.ReadConfiguration inputFile)
+
+            let toWrite: string option =
+                match result with
+                | FormatResult.Formatted(_, formattedContent, _) -> Some formattedContent
+                // Writing somewhere else has to carry an unchanged file across to it. Writing back
+                // over the input has nothing to do.
+                | FormatResult.Unchanged _ when not inPlace -> Some source.Content
+                | _ -> None
+
+            match toWrite with
+            | None -> ()
+            | Some contents ->
+                if not inPlace then
+                    ensureParentFolderExists fs outputFile
+
+                if source.HasByteOrderMark then
+                    do!
+                        fs.File.WriteAllTextAsync(outputFile, contents, Encoding.UTF8)
+                        |> Async.AwaitTask
+                else
+                    do! fs.File.WriteAllTextAsync(outputFile, contents) |> Async.AwaitTask
+
+                env.Log.Debug $"%s{outputFile} has been written."
+
+            return result
         with e ->
             return FormatResult.Error(inputFile, e)
     }

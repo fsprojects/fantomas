@@ -52,15 +52,17 @@ module IgnoreFile =
             (Ignore(), lines)
             ||> Array.fold (fun (ig: Ignore) (line: string) -> ig.Add(line))
 
+        // The folder holding the ignore file does not change between calls, and looking it up
+        // again for every file walked meant a directory lookup per file.
+        let ignoreRoot: string = fs.Directory.GetParent(ignoreFilePath).FullName
+
         fun (absoluteFilePath: AbsoluteFilePath) ->
             // See https://git-scm.com/docs/gitignore
             // We transform the incoming path relative to the .ignoreFilePath folder.
             // In a cli scenario that is the current directory, for the daemon it is the first found ignore file.
             // .gitignore uses forward slashes to path separators
             let relativePath =
-                fs.Path
-                    .GetRelativePath(fs.Directory.GetParent(ignoreFilePath).FullName, absoluteFilePath.Path)
-                    .Replace("\\", "/")
+                fs.Path.GetRelativePath(ignoreRoot, absoluteFilePath.Path).Replace("\\", "/")
 
             fantomasIgnore.IsIgnored(relativePath)
 

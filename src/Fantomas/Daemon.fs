@@ -94,7 +94,7 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                     // A ParseException's own Message is an %A dump of the diagnostic records, and
                     // it is the editor's user who would have been shown it.
                     let message =
-                        Diagnostics.describeParseFailure request.FilePath request.SourceCode ex
+                        Diagnostics.describeParseFailure request.FilePath (fun () -> request.SourceCode) ex
                         |> Option.defaultValue ex.Message
 
                     return FormatDocumentResponse.Error(request.FilePath, message)
@@ -133,7 +133,7 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                 return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
             with ex ->
                 let message =
-                    Diagnostics.describeParseFailure request.FilePath request.SourceCode ex
+                    Diagnostics.describeParseFailure request.FilePath (fun () -> request.SourceCode) ex
                     |> Option.defaultValue ex.Message
 
                 return FormatSelectionResponse.Error(request.FilePath, message)

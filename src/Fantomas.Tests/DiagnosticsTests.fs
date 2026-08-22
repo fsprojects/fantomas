@@ -217,5 +217,5 @@ let ``without source there is no snippet`` () =
 
 [<Test>]
 let ``an exception that is not a parse failure is not this module's to describe`` () =
-    Diagnostics.describeParseFailure "bad.fs" source (exn "boom")
+    Diagnostics.describeParseFailure "bad.fs" (fun () -> source) (exn "boom")
     |> should equal None

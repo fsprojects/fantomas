@@ -58,7 +58,7 @@ let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string,
 
     // A parse failure describes itself, positions and all, rather than being reduced to a
     // single line saying only that it happened.
-    match Diagnostics.describeParseFailure file (sourceOf env.FileSystem file) exn with
+    match Diagnostics.describeParseFailure file (fun () -> sourceOf env.FileSystem file) exn with
     | Some parseFailure -> env.Log.Error parseFailure
     | None -> env.Log.Error(describeOther ())
 
@@ -135,7 +135,7 @@ let reportFormatResults (env: CliEnvironment) (settings: CliSettings) (results: 
 
 let reportCheckResults (env: CliEnvironment) (checkResult: CheckResult) : unit =
     for filename, exn in checkResult.Errors do
-        match Diagnostics.describeParseFailure filename (sourceOf env.FileSystem filename) exn with
+        match Diagnostics.describeParseFailure filename (fun () -> sourceOf env.FileSystem filename) exn with
         | Some parseFailure -> env.Log.Error parseFailure
         | None -> env.Log.Error $"error: Failed to format %s{filename}: %s{exn.ToString()}"
 
