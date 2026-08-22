@@ -57,7 +57,6 @@
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="StreamJsonRpc" />
     <PackageReference Include="Argu" />
-    <PackageReference Include="Thoth.Json.Net" />
     <PackageReference Include="editorconfig" />
     <PackageReference Include="Ignore" />
     <PackageReference Include="System.IO.Abstractions" />
