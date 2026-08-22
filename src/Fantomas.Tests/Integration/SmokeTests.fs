@@ -91,6 +91,19 @@ let ``a byte order mark survives a round trip through a real file`` () =
 
     actual |> should equal preamble
 
+// Reading the ignore file happens before either command runs, so a pattern the ignore library
+// will not compile used to escape every handler and end the process with a stack trace.
+[<Test>]
+let ``a fantomasignore that cannot be read is reported rather than thrown`` () =
+    use fileFixture = new TemporaryFileCodeSample(NeedsFormatting)
+    use ignoreFixture = new FantomasIgnoreFile("a[")
+
+    let { ExitCode = exitCode; Error = error } = formatCode [ fileFixture.Filename ]
+
+    exitCode |> should equal 1
+    Assert.That(error, Does.Not.Contain "Unhandled exception")
+    Assert.That(error, Does.Not.Contain "   at ")
+
 // The ignore file is found relative to the directory the tool was started in, which is the one
 // thing about it a mock cannot stand in for.
 [<Test>]

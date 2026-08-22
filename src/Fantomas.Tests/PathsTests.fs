@@ -19,6 +19,12 @@ let private separator: char = Path.DirectorySeparatorChar
 let ``the extensions Fantomas formats are F# files`` (path: string) = isFSharpFile path |> shouldEqual true
 
 [<Test>]
+[<TestCase("A.FS")>]
+[<TestCase("A.Fsi")>]
+[<TestCase("A.ML")>]
+let ``the extension is recognised whatever its case`` (path: string) = isFSharpFile path |> shouldEqual true
+
+[<Test>]
 [<TestCase("A.cs")>]
 [<TestCase("A.txt")>]
 [<TestCase("A")>]
@@ -117,6 +123,14 @@ let ``two spellings of the same location are the same path`` () =
     let roundabout: string = fs.Path.Combine(root, "src", ".", "A.fs")
 
     isSamePath fs direct roundabout |> shouldEqual true
+
+[<Test>]
+let ``a trailing separator names the same path`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let src: string = fs.Path.Combine(mockRoot fs, "src")
+
+    isSamePath fs src (src + string separator) |> shouldEqual true
+    isSamePath fs (src + string separator) src |> shouldEqual true
 
 [<Test>]
 let ``two different locations are not the same path`` () =

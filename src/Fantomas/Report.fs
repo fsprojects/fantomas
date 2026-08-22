@@ -4,7 +4,6 @@ open System
 open System.IO.Abstractions
 open Serilog
 open Spectre.Console
-open Spectre.Console
 // Fantomas.Core has a FormatResult of its own. Opening Fantomas last is what makes the
 // FormatResult named here the one this project defines.
 open Fantomas.Core
@@ -12,7 +11,6 @@ open Fantomas
 open Fantomas.Cli
 open Fantomas.CommandResult
 open Fantomas.Logging
-open Fantomas.CommandResult
 
 // The context lines a parse failure's snippet is drawn from come from the file itself. This is
 // the error path's last act before the tool gives up on the file, so reading it again is free.
@@ -162,6 +160,9 @@ let reportCheckCommand (env: CliEnvironment) (result: CheckCommandResult) : int 
     match result with
     | CheckCommandResult.InvalidInput problem ->
         env.Log.Error(describeInputProblem problem)
+        1
+    | CheckCommandResult.Failed error ->
+        env.Log.Error $"%s{error.Message}"
         1
     | CheckCommandResult.Completed(ignored, checkResult) ->
         for file in ignored do

@@ -42,22 +42,25 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
     }
 
 let runCheckCommand (env: CliEnvironment) (inputPath: InputPath) : CheckCommandResult =
-    // A check never writes, so the output path it plans against is the input itself.
-    match plan env.FileSystem env.Log env.IgnoreFile inputPath OutputPath.NotKnown with
-    | Error problem -> CheckCommandResult.InvalidInput problem
-    | Ok items ->
-        let ignored: string list =
-            items
-            |> List.choose (fun item ->
-                match item with
-                | WorkItem.Ignored file -> Some file
-                | WorkItem.Format _ -> None)
+    try
+        // A check never writes, so the output path it plans against is the input itself.
+        match plan env.FileSystem env.Log env.IgnoreFile inputPath OutputPath.NotKnown with
+        | Error problem -> CheckCommandResult.InvalidInput problem
+        | Ok items ->
+            let ignored: string list =
+                items
+                |> List.choose (fun item ->
+                    match item with
+                    | WorkItem.Ignored file -> Some file
+                    | WorkItem.Format _ -> None)
 
-        let toCheck: string list =
-            items
-            |> List.choose (fun item ->
-                match item with
-                | WorkItem.Ignored _ -> None
-                | WorkItem.Format(inputFile, _) -> Some inputFile)
+            let toCheck: string list =
+                items
+                |> List.choose (fun item ->
+                    match item with
+                    | WorkItem.Ignored _ -> None
+                    | WorkItem.Format(inputFile, _) -> Some inputFile)
 
-        CheckCommandResult.Completed(ignored, Async.RunSynchronously(checkCode env toCheck))
+            CheckCommandResult.Completed(ignored, Async.RunSynchronously(checkCode env toCheck))
+    with exn ->
+        CheckCommandResult.Failed exn

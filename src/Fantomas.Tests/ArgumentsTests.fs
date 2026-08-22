@@ -57,6 +57,29 @@ let ``several paths are told apart by whether they carry an extension`` () =
     |> shouldEqual (InputPath.Multiple([ file ], [ folder ]))
 
 [<Test>]
+let ``a folder with a dot in its name is still a folder`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let folder: string = fs.Path.Combine(root, "my.stuff")
+    let file: string = fs.Path.Combine(root, "A.fs")
+    [ file; fs.Path.Combine(folder, "B.fs") ] |> makeFileHierarchy fs
+
+    // Guessing from the extension called this a file, and formatting it then failed.
+    classifyInputPath fs (Some [ folder; file ])
+    |> shouldEqual (InputPath.Multiple([ file ], [ folder ]))
+
+[<Test>]
+let ``a file with no extension is still a file`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let file: string = fs.Path.Combine(root, "Makefile")
+    let folder: string = fs.Path.Combine(root, "src")
+    [ file; fs.Path.Combine(folder, "B.fs") ] |> makeFileHierarchy fs
+
+    classifyInputPath fs (Some [ file; folder ])
+    |> shouldEqual (InputPath.Multiple([ file ], [ folder ]))
+
+[<Test>]
 let ``one missing path among several is reported rather than the rest being used`` () =
     let fs: IFileSystem = MockFileSystem()
     let root: string = mockRoot fs

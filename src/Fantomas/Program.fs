@@ -87,24 +87,31 @@ let main argv =
         daemon.WaitForClose.GetAwaiter().GetResult()
         0
     else
-        let environment: CliEnvironment =
-            { FileSystem = fileSystem
-              IgnoreFile =
-                IgnoreFile.findInDirectory
-                    fileSystem
-                    Environment.CurrentDirectory
-                    (IgnoreFile.loadIgnoreList fileSystem)
-              ReadConfiguration = EditorConfig.readConfiguration
-              Log = log
-              Console = AnsiConsole.Console }
+        // Reading `.fantomasignore` can fail on a pattern the ignore library will not compile, and
+        // building the environment is the first thing either command needs, so it happens under
+        // the same guard the commands run under rather than before it.
+        try
+            let environment: CliEnvironment =
+                { FileSystem = fileSystem
+                  IgnoreFile =
+                    IgnoreFile.findInDirectory
+                        fileSystem
+                        Environment.CurrentDirectory
+                        (IgnoreFile.loadIgnoreList fileSystem)
+                  ReadConfiguration = EditorConfig.readConfiguration
+                  Log = log
+                  Console = AnsiConsole.Console }
 
-        let settings: CliSettings =
-            { Force = force
-              Profile = profile
-              Verbosity = verbosity }
+            let settings: CliSettings =
+                { Force = force
+                  Profile = profile
+                  Verbosity = verbosity }
 
-        if check then
-            runCheckCommand environment inputPath |> reportCheckCommand environment
-        else
-            runFormatCommand environment settings inputPath outputPath
-            |> reportFormatCommand environment settings
+            if check then
+                runCheckCommand environment inputPath |> reportCheckCommand environment
+            else
+                runFormatCommand environment settings inputPath outputPath
+                |> reportFormatCommand environment settings
+        with exn ->
+            log.Error $"%s{exn.Message}"
+            1

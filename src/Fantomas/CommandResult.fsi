@@ -52,3 +52,5 @@ type FormatCommandResult =
 type CheckCommandResult =
     | InvalidInput of problem: InputProblem
     | Completed of ignored: string list * result: CheckResult
+    /// Something was raised that no single file could be blamed for.
+    | Failed of error: exn

@@ -178,6 +178,14 @@ let ``a check of an unusable input path exits 1`` () =
     |> shouldEqual [ "No input path provided. Call with --help for usage information." ]
 
 [<Test>]
+let ``a check that failed outright is reported and exits 1`` () =
+    let code, log =
+        reportCheck (CheckCommandResult.Failed(Exception "the ignore file makes no sense"))
+
+    code |> shouldEqual 1
+    log.Error |> shouldEqual [ "the ignore file makes no sense" ]
+
+[<Test>]
 let ``a check with nothing to do exits 0`` () =
     let code, log =
         reportCheck (CheckCommandResult.Completed([], { Errors = []; Formatted = [] }))

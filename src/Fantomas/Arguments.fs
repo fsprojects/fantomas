@@ -68,24 +68,13 @@ let classifyInputPath (fs: IFileSystem) (maybeInput: string list option) : Input
         match missing with
         | Some x -> InputPath.NotFound x
         | None ->
-            let isFolder (path: string) =
-                String.IsNullOrWhiteSpace(fs.Path.GetExtension(path))
+            // Every path here is known to exist, so which of the two it is can be asked rather
+            // than guessed from whether it carries an extension. Guessing called a folder named
+            // `my.stuff` a file, and a file with no extension a folder.
+            let folders, files =
+                inputs |> List.partition (fun (path: string) -> fs.Directory.Exists path)
 
-            let rec loop
-                (files: string list)
-                (finalContinuation: string list * string list -> string list * string list)
-                =
-                match files with
-                | [] -> finalContinuation ([], [])
-                | h :: rest ->
-                    loop rest (fun (files, folders) ->
-                        if isFolder h then
-                            files, (h :: folders)
-                        else
-                            (h :: files), folders
-                        |> finalContinuation)
-
-            InputPath.Multiple(loop inputs id)
+            InputPath.Multiple(files, folders)
     | None -> InputPath.Unspecified
 
 let parseVerbosity (value: string option) : VerbosityLevel option =

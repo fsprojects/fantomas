@@ -11,8 +11,11 @@ let isInExcludedDir (fullPath: string) : bool =
     |> Set.map (fun dir -> sprintf "%c%s%c" Path.DirectorySeparatorChar dir Path.DirectorySeparatorChar)
     |> Set.exists fullPath.Contains
 
+// The extension is compared without case, so that a file named A.FS is the F# file it plainly is.
+// On a volume that ignores case, which is the usual one on macOS and Windows, rejecting it would
+// mean refusing to format a file the compiler happily builds.
 let isFSharpFile (s: string) : bool =
-    Set.contains (Path.GetExtension s) extensions
+    Set.contains (Path.GetExtension(s).ToLowerInvariant()) extensions
 
 let findAllFilesRecursively (fs: IFileSystem) (path: string) : string seq =
     fs.Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
@@ -25,7 +28,13 @@ let ensureParentFolderExists (fs: IFileSystem) (file: string) : unit =
         fs.Directory.CreateDirectory(folder) |> ignore
 
 let isSamePath (fs: IFileSystem) (left: string) (right: string) : bool =
-    String.Equals(fs.Path.GetFullPath left, fs.Path.GetFullPath right, StringComparison.Ordinal)
+    // A trailing separator names the same place, so `src` and `src/` have to compare equal. They
+    // do not otherwise, and a folder formatted to itself under the longer spelling would be taken
+    // for a previous run's output and skipped entirely.
+    let resolve (path: string) : string =
+        fs.Path.GetFullPath(path).TrimEnd(fs.Path.DirectorySeparatorChar, fs.Path.AltDirectorySeparatorChar)
+
+    String.Equals(resolve left, resolve right, StringComparison.Ordinal)
 
 let isInFolder (fs: IFileSystem) (folder: string) (file: string) : bool =
     let folder: string =

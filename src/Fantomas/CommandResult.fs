@@ -42,3 +42,4 @@ type FormatCommandResult =
 type CheckCommandResult =
     | InvalidInput of problem: InputProblem
     | Completed of ignored: string list * result: CheckResult
+    | Failed of error: exn

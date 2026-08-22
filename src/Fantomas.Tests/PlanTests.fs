@@ -128,6 +128,18 @@ let ``an input folder that is also the output folder is formatted in place`` () 
     |> shouldPlan [ WorkItem.Format(a, a) ]
 
 [<Test>]
+let ``a folder spelled with a trailing separator is still formatted in place`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let src: string = fs.Path.Combine(mockRoot fs, "src")
+    let a: string = fs.Path.Combine(src, "A.fs")
+    [ a ] |> makeFileHierarchy fs
+
+    // `fantomas src/ --out src`. Taken as two different folders, every file below src counts as a
+    // previous run's output and the plan comes out empty.
+    planOn fs (InputPath.Folder(src + string fs.Path.DirectorySeparatorChar)) (OutputPath.IO src)
+    |> shouldPlan [ WorkItem.Format(a, a) ]
+
+[<Test>]
 let ``several files and folders are all formatted where they lie`` () =
     let fs: IFileSystem = MockFileSystem()
     let root: string = mockRoot fs
