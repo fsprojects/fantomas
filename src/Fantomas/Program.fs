@@ -459,25 +459,29 @@ let reportProfileInfos (profile: bool) (results: (string * ProfileInfo option) l
 
 /// Report the outcome of a run. A single file is reported as a sentence naming it, and several
 /// files as a table of counts, because a table of one row tells the reader less than the sentence
-/// does. Any failure ends the process with exit code 1.
-let reportFormatResults (profile: bool) (verbosity: VerbosityLevel) (results: #(FormatResult seq)) : unit =
+/// does. Returns the exit code the process should end with: 1 when anything failed, 0 otherwise.
+let reportFormatResults (profile: bool) (verbosity: VerbosityLevel) (results: #(FormatResult seq)) : int =
     match Seq.tryExactlyOne results with
     | Some singleResult ->
         match singleResult with
         | FormatResult.Formatted(f, _, p) ->
             stdlog $"%s{f} was formatted."
             reportProfileInfo profile (f, p)
-        | FormatResult.IgnoredFile f -> stdlog $"%s{f} was ignored."
+            0
+        | FormatResult.IgnoredFile f ->
+            stdlog $"%s{f} was ignored."
+            0
         | FormatResult.Unchanged(f, p) ->
             stdlog $"%s{f} was unchanged."
             reportProfileInfo profile (f, p)
+            0
         | FormatResult.Error(f, e) ->
             reportError verbosity (f, e)
-            exit 1
+            1
         | FormatResult.InvalidCode(f, _) ->
             let ex = invalidResultException f
             reportError verbosity (f, ex)
-            exit 1
+            1
 
     | None ->
         let oks, ignored, unchanged, errored = partitionResults results
@@ -503,8 +507,17 @@ let reportFormatResults (profile: bool) (verbosity: VerbosityLevel) (results: #(
 
         reportProfileInfos profile (oks @ unchanged)
 
-        if errored.Length > 0 then
-            exit 1
+        if errored.Length > 0 then 1 else 0
+
+/// Read the `--verbosity` value. `None` means the value was not one Fantomas knows.
+let parseVerbosity (value: string option) : VerbosityLevel option =
+    match value |> Option.map (fun v -> v.ToLowerInvariant()) with
+    | None
+    | Some "n"
+    | Some "normal" -> Some VerbosityLevel.Normal
+    | Some "d"
+    | Some "detailed" -> Some VerbosityLevel.Detailed
+    | Some _ -> None
 
 let asyncRunner (computations: Async<FormatResult> list) : FormatResult array =
     computations |> Async.Parallel |> Async.RunSynchronously
@@ -529,18 +542,10 @@ let main argv =
     let profile = results.Contains <@ Arguments.Profile @>
     let version = results.TryGetResult <@ Arguments.Version @>
 
-    let maybeVerbosity =
-        results.TryGetResult <@ Arguments.Verbosity @>
-        |> Option.map (fun v -> v.ToLowerInvariant())
-
     let verbosityLevel =
-        match maybeVerbosity with
-        | None
-        | Some "n"
-        | Some "normal" -> VerbosityLevel.Normal
-        | Some "d"
-        | Some "detailed" -> VerbosityLevel.Detailed
-        | Some _ ->
+        match parseVerbosity (results.TryGetResult <@ Arguments.Verbosity @>) with
+        | Some level -> level
+        | None ->
             // The logger is not up yet, so this cannot go through elog.
             eprintfn "Invalid verbosity level"
             exit 1
@@ -567,6 +572,7 @@ let main argv =
 
     if Option.isSome version then
         stdlog versionLog
+        0
     elif isDaemon then
         let daemon =
             new FantomasDaemon(Console.OpenStandardOutput(), Console.OpenStandardInput())
@@ -574,23 +580,24 @@ let main argv =
         AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> (daemon :> IDisposable).Dispose())
 
         daemon.WaitForClose.GetAwaiter().GetResult()
-        exit 0
+        0
     elif check then
-        inputPath |> runCheckCommand |> exit
+        runCheckCommand inputPath
     else
         try
             match inputPath, outputPath with
             | InputPath.NoFSharpFile s, _ ->
                 elog $"Input path '%s{s}' is unsupported file type."
-                exit 1
+                1
             | InputPath.NotFound s, _ ->
                 elog $"Input path '%s{s}' not found."
-                exit 1
+                1
             | InputPath.Unspecified, _ ->
                 elog "Input path is missing. Call with --help for usage information."
-                exit 1
+                1
             | InputPath.File f, _ when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
                 logGrEqDetailed $"'%s{f}' was ignored"
+                0
             | InputPath.Folder p1, OutputPath.NotKnown ->
                 processFolder force profile p1 p1
                 |> asyncRunner
@@ -615,9 +622,7 @@ let main argv =
                 |> reportFormatResults profile verbosity
             | InputPath.Multiple _, OutputPath.IO _ ->
                 elog "Multiple input files are not supported with the --out flag."
-                exit 1
+                1
         with exn ->
             elog $"%s{exn.Message}"
-            exit 1
-
-    0
+            1
