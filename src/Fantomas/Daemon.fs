@@ -84,7 +84,13 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
 
                         return FormatDocumentResponse.Formatted(request.FilePath, formatResponse.Code, cursor)
                 with ex ->
-                    return FormatDocumentResponse.Error(request.FilePath, ex.Message)
+                    // A ParseException's own Message is an %A dump of the diagnostic records, and
+                    // it is the editor's user who would have been shown it.
+                    let message =
+                        Diagnostics.describeParseFailure request.FilePath request.SourceCode ex
+                        |> Option.defaultValue ex.Message
+
+                    return FormatDocumentResponse.Error(request.FilePath, message)
         }
 
     [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
@@ -119,7 +125,11 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
 
                 return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
             with ex ->
-                return FormatSelectionResponse.Error(request.FilePath, ex.Message)
+                let message =
+                    Diagnostics.describeParseFailure request.FilePath request.SourceCode ex
+                    |> Option.defaultValue ex.Message
+
+                return FormatSelectionResponse.Error(request.FilePath, message)
         }
 
     [<JsonRpcMethod(Methods.Configuration)>]
