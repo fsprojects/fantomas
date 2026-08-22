@@ -236,18 +236,19 @@ type FantomasToolResult =
       Output: string
       Error: string }
 
-let getFantomasToolStartInfo arguments : ProcessStartInfo =
-    let pwd = Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
-
-    let configuration =
+let getFantomasToolStartInfo (arguments: string list) : ProcessStartInfo =
+    let configuration: string =
 #if DEBUG
         "debug"
 #else
         "release"
 #endif
 
-    let fantomasDll =
-        Path.Combine(pwd, "..", "..", "Fantomas", configuration, "fantomas.dll")
+    // Resolved from where this file sits rather than from where the test assembly is running,
+    // because those are not the same place under a coverage run: AltCover executes the tests from
+    // an instrumented copy of the output folder.
+    let fantomasDll: string =
+        Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "artifacts", "bin", "Fantomas", configuration, "fantomas.dll")
         |> Path.GetFullPath
 
     if not (File.Exists fantomasDll) then

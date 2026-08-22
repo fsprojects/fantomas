@@ -205,6 +205,65 @@ let ``several files and folders are all formatted where they lie`` () =
     read fs inFolder |> shouldEqual Formatted
 
 [<Test>]
+let ``content already at the output path is replaced rather than written over`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let input: string = fs.Path.Combine(root, "A.fs")
+    let output: string = fs.Path.Combine(root, "out", "A.fs")
+    write fs input NeedsFormatting
+    // Opening the output without truncating it left the tail of whatever was there before.
+    write fs output "// leftovers leftovers leftovers leftovers leftovers leftovers\n"
+
+    format fs (InputPath.File input) (OutputPath.IO output) |> results |> ignore
+
+    read fs output |> shouldEqual Formatted
+
+[<Test>]
+let ``with force, output that is not valid F# is written anyway`` () =
+    // The day this fails because Fantomas can format the file is the day it can be deleted.
+    let source: string =
+        System.IO.Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "tests", "data", "CheckDeclarations.fs")
+        |> System.IO.Path.GetFullPath
+        |> System.IO.File.ReadAllText
+
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let input: string = fs.Path.Combine(root, "CheckDeclarations.fs")
+    let output: string = fs.Path.Combine(root, "out", "CheckDeclarations.fs")
+    write fs input source
+
+    let settings: CliSettings = { defaultSettings with Force = true }
+
+    match
+        formatWith settings None fs (InputPath.File input) (OutputPath.IO output)
+        |> results
+    with
+    | [| FormatResult.Formatted _ |] -> fs.File.Exists output |> shouldEqual true
+    | other -> failwith $"Expected the invalid output to be written anyway, got %A{other}"
+
+[<Test>]
+let ``without force, output that is not valid F# is not written`` () =
+    let source: string =
+        System.IO.Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "tests", "data", "CheckDeclarations.fs")
+        |> System.IO.Path.GetFullPath
+        |> System.IO.File.ReadAllText
+
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let input: string = fs.Path.Combine(root, "CheckDeclarations.fs")
+    let output: string = fs.Path.Combine(root, "out", "CheckDeclarations.fs")
+    write fs input source
+
+    // Without force the invalid output is turned into an error rather than reported as invalid,
+    // so that the caller has one kind of failure to report rather than two.
+    match format fs (InputPath.File input) (OutputPath.IO output) |> results with
+    | [| FormatResult.Error(f, error) |] ->
+        f |> shouldEqual input
+        error.Message |> shouldContainText "leads to invalid F# code"
+        fs.File.Exists output |> shouldEqual false
+    | other -> failwith $"Expected the invalid output to be withheld, got %A{other}"
+
+[<Test>]
 let ``an unusable input path never reaches the file system`` () =
     let fs: IFileSystem = MockFileSystem()
 
