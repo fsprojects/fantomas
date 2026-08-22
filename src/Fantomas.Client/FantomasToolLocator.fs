@@ -128,6 +128,25 @@ let (|CompatibleTool|_|) (lines: string list) : FantomasVersion voption =
 
 let isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 
+/// The version `fantomas --version` printed, as `dotnet tool list` would have written it.
+///
+/// `--version` answers `Fantomas v8.0.0-alpha-014+e4a1c9d...`, `dotnet tool list` answers
+/// `8.0.0-alpha-014`. Daemons are cached by this string, so both the leading `v` and the commit
+/// hash have to go: with either of them left on, the same Fantomas resolved once from the manifest
+/// and once from the PATH counts as two versions and gets two processes.
+let normalizeVersion (printed: string) : string =
+    let dropPrefix (prefix: string) (text: string) : string =
+        if text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) then
+            text.Substring(prefix.Length).Trim()
+        else
+            text
+
+    let printed = printed.Trim() |> dropPrefix "fantomas" |> dropPrefix "v"
+
+    match printed.IndexOf('+') with
+    | -1 -> printed
+    | index -> printed.Substring(0, index)
+
 // Find an executable fantomas file on the PATH
 let fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option =
     let fantomasExecutableOnPathOpt =
@@ -156,7 +175,6 @@ let fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option
     |> Option.bind (fun fantomasExecutablePath ->
         let processStart = ProcessStartInfo(fantomasExecutablePath)
         processStart.Arguments <- "--version"
-        processStart.RedirectStandardOutput <- true
         processStart.CreateNoWindow <- true
         processStart.RedirectStandardOutput <- true
         processStart.RedirectStandardError <- true
@@ -164,25 +182,19 @@ let fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option
 
         match startProcess processStart with
         | Ok p ->
-            p.WaitForExit()
+            // Standard error is redirected, so something has to read it, or a version that wrote
+            // more to it than the pipe holds would block on the write and never exit. Nothing here
+            // wants what it says.
+            p.ErrorDataReceived.Add(ignore)
+            p.BeginErrorReadLine()
+
             let stdOut = p.StandardOutput.ReadToEnd()
+            p.WaitForExit()
 
             stdOut
             |> Option.ofObj
             |> Option.map (fun s ->
-                // `--version` answers `Fantomas v8.0.0`, `dotnet tool list` answers `8.0.0`.
-                // Daemons are cached by this string, so the leading v has to go: without it the
-                // same Fantomas resolved once from the manifest and once from the PATH counts as
-                // two versions and gets two processes.
-                let version =
-                    let printed = s.ToLowerInvariant().Replace("fantomas", String.Empty).Trim()
-
-                    if printed.StartsWith("v", StringComparison.Ordinal) then
-                        printed.Substring(1)
-                    else
-                        printed
-
-                FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(version))
+                FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(normalizeVersion s))
         | Error(ProcessStartError.ExecutableFileNotFound _)
         | Error(ProcessStartError.UnExpectedException _) -> None)
 
@@ -266,8 +278,10 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
 
         let configurationWarnings = Event<ConfigurationWarning>()
 
-        // Has to happen before StartListening: StreamJsonRpc refuses to add local methods once
-        // the connection is listening. A daemon that never sends these simply never triggers it.
+        // Has to happen before StartListening, for two reasons: StreamJsonRpc refuses to add local
+        // methods once the connection is listening, and a subscriber added before the daemon can
+        // send anything is a subscriber that cannot be raced by the first notification. A daemon
+        // that never sends these simply never triggers it.
         client.AddLocalRpcMethod(
             Methods.ConfigurationWarning,
             Action<ConfigurationWarning>(fun warning ->
@@ -299,6 +313,12 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
         with ex ->
             let error =
                 if daemonProcess.HasExited then
+                    // `HasExited` only says the process is gone; the handler above is fed
+                    // asynchronously and can still be behind. `WaitForExit` with no timeout is the
+                    // one overload that waits for the readers to drain too, so without it the
+                    // message here would be missing the lines that explain the failure.
+                    daemonProcess.WaitForExit()
+
                     let stdErr =
                         lock recentStandardError (fun () -> String.Join(Environment.NewLine, recentStandardError))
 

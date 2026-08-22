@@ -101,7 +101,7 @@ let main argv =
                         fileSystem
                         Environment.CurrentDirectory
                         (IgnoreFile.loadIgnoreList fileSystem)
-                  ReadConfiguration = EditorConfig.readConfiguration log
+                  ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter log)
                   Log = log
                   Console = AnsiConsole.Console }
 

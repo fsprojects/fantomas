@@ -1,11 +1,9 @@
 module Fantomas.EditorConfig
 
-open System.Collections.Concurrent
 open System.Collections.Generic
 open System.ComponentModel
 open EditorConfig.Core
 open Fantomas.Core
-open Serilog
 
 module Reflection =
     open System
@@ -54,36 +52,41 @@ let toEditorConfigName value =
         else
             $"fsharp_%s{name}"
 
-let getFantomasFields (fallbackConfig: FormatConfig) =
-    Reflection.getRecordFields fallbackConfig
-    |> Array.map (fun (recordField, defaultValue) ->
-        let editorConfigName = toEditorConfigName recordField.PropertyName
+/// The editorconfig name of every `FormatConfig` field, in record field order. Worked out once:
+/// the names cannot change while the process runs, and `parseOptionsFromEditorConfig` runs for
+/// every file that gets formatted.
+let settingNames: string array =
+    Microsoft.FSharp.Reflection.FSharpType.GetRecordFields(typeof<FormatConfig>)
+    |> Array.map (fun property -> toEditorConfigName property.Name)
 
-        (editorConfigName, defaultValue))
+/// Every field of `fallbackConfig`, paired with the editorconfig name it is written under.
+let getFantomasFields (fallbackConfig: FormatConfig) : (string * obj) array =
+    Microsoft.FSharp.Reflection.FSharpValue.GetRecordFields fallbackConfig
+    |> Array.zip settingNames
 
-[<return: Struct>]
-let (|Number|_|) (d: string) : obj voption =
-    match System.Int32.TryParse(d) with
-    | true, d -> ValueSome(box d)
-    | _ -> ValueNone
+/// Read one setting's value into the type the matching `FormatConfig` field has. Which parser
+/// applies is decided by that type rather than by trying each of them in turn: `cr` means
+/// something to `end_of_line` and nothing to any other setting, and trying every parser on every
+/// setting made `fsharp_max_record_width = cr` fail the whole run with a message about line
+/// endings.
+///
+/// Values are matched without regard to case, as editorconfig defines them.
+let parseSettingValue (defaultValue: obj) (value: string) : obj option =
+    let value = value.ToLowerInvariant()
 
-[<return: Struct>]
-let (|MultilineFormatterType|_|) (mft: string) : MultilineFormatterType voption =
-    MultilineFormatterType.OfConfigString mft |> ValueOption.ofOption
-
-[<return: Struct>]
-let (|BracketStyle|_|) (bs: string) : MultilineBracketStyle voption =
-    MultilineBracketStyle.OfConfigString bs |> ValueOption.ofOption
-
-[<return: Struct>]
-let (|EndOfLineStyle|_|) (eol: string) : EndOfLineStyle voption =
-    EndOfLineStyle.OfConfigString eol |> ValueOption.ofOption
-
-[<return: Struct>]
-let (|Boolean|_|) (b: string) : obj voption =
-    if b = "true" then ValueSome(box true)
-    elif b = "false" then ValueSome(box false)
-    else ValueNone
+    match defaultValue with
+    | :? int ->
+        match System.Int32.TryParse(value) with
+        | true, number -> Some(box number)
+        | _ -> None
+    | :? bool ->
+        if value = "true" then Some(box true)
+        elif value = "false" then Some(box false)
+        else None
+    | :? MultilineFormatterType -> MultilineFormatterType.OfConfigString value |> Option.map box
+    | :? EndOfLineStyle -> EndOfLineStyle.OfConfigString value |> Option.map box
+    | :? MultilineBracketStyle -> MultilineBracketStyle.OfConfigString value |> Option.map box
+    | _ -> None
 
 [<RequireQualifiedAccess>]
 type EditorConfigProblem =
@@ -97,7 +100,7 @@ type EditorConfigResult =
       Problems: EditorConfigProblem list }
 
 let isFantomasSetting (setting: string) : bool =
-    setting.StartsWith("fsharp_", System.StringComparison.Ordinal)
+    setting.StartsWith("fsharp_", System.StringComparison.OrdinalIgnoreCase)
 
 /// Values the editorconfig spec gives a meaning that is not a value. `unset` says a setting from
 /// a parent file no longer applies, `indent_size = tab` says to follow `tab_width`, and
@@ -114,23 +117,31 @@ let isSpecDefinedNonValue (setting: string) (value: string) : bool =
     || (setting = "indent_size" && value = "tab")
     || (setting = "max_line_length" && value = "off")
 
+/// Settings are ordered the same way everywhere here: without regard to case, as they are matched.
+let compareSettings (left: string) (right: string) : int =
+    System.String.Compare(left, right, System.StringComparison.OrdinalIgnoreCase)
+
 let supportedSettings: string list =
-    getFantomasFields FormatConfig.Default
-    |> Array.map fst
+    settingNames
     |> List.ofArray
     |> List.sortWith (fun left right ->
         // The settings editorconfig itself defines come first, then the ones belonging to
-        // Fantomas, each group ordered the same way everywhere else here: by ordinal.
+        // Fantomas, each group ordered the same way everywhere else here.
         match compare (isFantomasSetting left) (isFantomasSetting right) with
-        | 0 -> System.String.CompareOrdinal(left, right)
+        | 0 -> compareSettings left right
         | difference -> difference)
 
-let unknownFantomasSettings (editorConfigProperties: IReadOnlyDictionary<string, string>) : EditorConfigProblem list =
-    editorConfigProperties.Keys
+/// The same names again, for looking one up rather than reading the list. A `.editorconfig` is
+/// read once per formatted file, so a scan of the whole list per setting is worth avoiding.
+let supportedSettingLookup: HashSet<string> =
+    HashSet<string>(settingNames, System.StringComparer.OrdinalIgnoreCase)
+
+let unknownFantomasSettings (settings: string seq) : EditorConfigProblem list =
+    settings
     |> Seq.filter isFantomasSetting
-    |> Seq.sortWith (fun left right -> System.String.CompareOrdinal(left, right))
+    |> Seq.sortWith compareSettings
     |> Seq.choose (fun setting ->
-        if List.contains setting supportedSettings then
+        if supportedSettingLookup.Contains setting then
             None
         else
             Some(EditorConfigProblem.UnknownSetting setting))
@@ -141,81 +152,47 @@ let parseOptionsFromEditorConfig
     (editorConfigProperties: IReadOnlyDictionary<string, string>)
     : FormatConfig * EditorConfigProblem list =
     // editorconfig keys are case insensitive. The library lowercases the ones it reads from a
-    // file, but nothing lowercases a dictionary handed straight to us, so do it here rather than
-    // in one caller: a key that differs only in case would otherwise match no setting and raise
-    // no warning either. Folding keeps the last write, which is what editorconfig does when a
-    // file sets the same key twice.
-    let editorConfigProperties =
-        editorConfigProperties
-        |> Seq.fold (fun acc setting -> Map.add (setting.Key.ToLowerInvariant()) setting.Value acc) Map.empty
-        |> Seq.map (fun setting -> setting.Key, setting.Value)
-        |> readOnlyDict
+    // file, but a dictionary an editor hands us is untouched, so match without regard to case
+    // here rather than in one caller: a key that differs only in case would otherwise match no
+    // setting and raise no warning either. Each entry carries the spelling it was written with,
+    // so a problem names what the author typed rather than the folded form.
+    let properties =
+        let properties =
+            Dictionary<string, struct (string * string)>(System.StringComparer.OrdinalIgnoreCase)
+
+        for setting in editorConfigProperties do
+            properties[setting.Key] <- struct (setting.Key, setting.Value)
+
+        properties
 
     let unrecognizedValues = ResizeArray<string * string>()
 
     let newValues =
         getFantomasFields fallbackConfig
-        |> Array.map (fun (editorConfigName, defaultValue) ->
-            match editorConfigProperties.TryGetValue(editorConfigName) with
-            | true, Number n -> n
-            | true, Boolean b -> b
-            | true, MultilineFormatterType mft -> box mft
-            | true, EndOfLineStyle eol -> box eol
-            | true, BracketStyle bs -> box bs
+        |> Array.map (fun (setting, defaultValue) ->
+            match properties.TryGetValue setting with
             | false, _ -> defaultValue
-            | true, invalidValue ->
-                if not (isSpecDefinedNonValue editorConfigName invalidValue) then
-                    unrecognizedValues.Add(editorConfigName, invalidValue)
+            | true, struct (written, value) ->
+                match parseSettingValue defaultValue value with
+                | Some parsed -> parsed
+                | None ->
+                    if not (isSpecDefinedNonValue setting value) then
+                        unrecognizedValues.Add(written, value)
 
-                defaultValue)
-
-    let formatConfigType = FormatConfig.Default.GetType()
+                    defaultValue)
 
     let config =
-        Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(formatConfigType, newValues) :?> FormatConfig
+        Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(typeof<FormatConfig>, newValues) :?> FormatConfig
 
     let unrecognized =
         unrecognizedValues
-        |> Seq.sortWith (fun (left, _) (right, _) -> System.String.CompareOrdinal(left, right))
+        |> Seq.sortWith (fun (left, _) (right, _) -> compareSettings left right)
         |> Seq.map EditorConfigProblem.UnrecognizedValue
         |> Seq.toList
 
-    config, unknownFantomasSettings editorConfigProperties @ unrecognized
+    let written = properties.Values |> Seq.map (fun (struct (written, _)) -> written)
 
-/// The version without the commit hash `CodeFormatter.GetVersion` appends, so that the
-/// settings a user is being pointed at are tied to a version they can act on.
-let fantomasVersion: string =
-    let version = CodeFormatter.GetVersion()
-
-    match version.IndexOf('+') with
-    | -1 -> version
-    | index -> version.Substring(0, index)
-
-/// Every report already written, for the lifetime of the process. Never cleared: the command line
-/// reads the same `.editorconfig` again for every file it formats, and this is what keeps one typo
-/// from being reported once per file. The daemon does not report through here at all.
-let reportedWarnings = ConcurrentDictionary<string, unit>()
-
-let warnOnce (log: ILogger) (message: string) : unit =
-    if reportedWarnings.TryAdd(message, ()) then
-        log.Warning message
-
-let reportProblems (log: ILogger) (origin: string) (problems: EditorConfigProblem list) : unit =
-    if not (List.isEmpty problems) then
-        [ yield ""
-          yield $"Fantomas cannot use some settings from %s{origin}:"
-          for problem in problems do
-              match problem with
-              | EditorConfigProblem.UnknownSetting setting -> yield $"  %s{setting} is not a Fantomas setting"
-              | EditorConfigProblem.UnrecognizedValue(setting, value) ->
-                  yield $"  %s{setting} does not accept the value %s{value}, using the default instead"
-          yield ""
-          yield $"Current fantomas version (%s{fantomasVersion}) supports these .editorconfig settings:"
-          for setting in supportedSettings do
-              yield $"  %s{setting}"
-          yield "" ]
-        |> String.concat System.Environment.NewLine
-        |> warnOnce log
+    config, unknownFantomasSettings written @ unrecognized
 
 let configToEditorConfig (config: FormatConfig) : string =
     Reflection.getRecordFields config
@@ -258,15 +235,3 @@ let tryReadConfiguration (fsharpFile: string) : EditorConfigResult option =
             { Config = config
               EditorConfigFiles = editorConfigFiles
               Problems = problems }
-
-let readConfiguration (log: ILogger) (fsharpFile: string) : FormatConfig =
-    match tryReadConfiguration fsharpFile with
-    | None -> FormatConfig.Default
-    | Some result ->
-        let origin =
-            match result.EditorConfigFiles with
-            | [] -> fsharpFile
-            | files -> String.concat ", " files
-
-        reportProblems log origin result.Problems
-        result.Config

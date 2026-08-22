@@ -26,6 +26,7 @@
     <Compile Include="DiagnosticsTests.fs" />
     <Compile Include="IgnoreFileTests.fs" />
     <Compile Include="EditorConfigurationTests.fs" />
+    <Compile Include="EditorConfigReportTests.fs" />
     <Compile Include="Integration\SmokeTests.fs" />
     <Compile Include="Integration\ConfigTests.fs" />
     <Compile Include="Integration\StandardStreamTests.fs" />

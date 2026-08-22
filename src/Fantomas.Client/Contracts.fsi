@@ -19,9 +19,13 @@ module Methods =
     [<Literal>]
     val Configuration: string = "fantomas/configuration"
 
-    /// Sent by the daemon to the client after every format request, naming the settings in the
-    /// resolved configuration that Fantomas could not act on. Purely informational: the request
-    /// still succeeds, using defaults for whatever could not be read.
+    /// Sent by the daemon to the client for every format request, before the request answers,
+    /// naming the settings in the resolved configuration that Fantomas could not act on. Purely
+    /// informational: the request still succeeds, using defaults for whatever could not be read.
+    ///
+    /// The notification carries one `ConfigurationWarning`, serialized as it is written here:
+    /// `{"FilePath": "...", "EditorConfigFiles": ["..."], "Problems": [{"Code": 1, "Source": 1,
+    /// "Setting": "fsharp_bogus_option", "Value": null}]}`.
     [<Literal>]
     val ConfigurationWarning: string = "fantomas/configurationWarning"
 
@@ -142,7 +146,9 @@ type ConfigurationWarning =
         FilePath: string
 
         /// Absolute paths of the `.editorconfig` files that contributed to the configuration.
-        /// Empty when no `.editorconfig` applies to `FilePath`.
+        /// Empty when `Problems` is empty, and when no `.editorconfig` applies to `FilePath`:
+        /// it is the same list on every request for a file, and there is nothing to do with it
+        /// while nothing is wrong.
         ///
         /// Which of these a given problem came from is not knowable, and deliberately not
         /// guessed at: editorconfig merges the whole chain into one set of properties before
@@ -158,11 +164,17 @@ type FantomasService =
 
     abstract ClearCache: unit -> unit
 
-    /// Raised after every format request, with the settings in the resolved configuration that
+    /// Raised for every format request, with the settings in the resolved configuration that
     /// Fantomas could not act on. Raised with an empty `Problems` list when there is nothing
-    /// wrong, so a subscriber can clear what it reported earlier.
+    /// wrong, so a subscriber can clear what it reported earlier, and raised before the request it
+    /// belongs to answers.
     ///
-    /// Only daemons from Fantomas 8.0.0-alpha-014 onwards send these; an older one never raises it.
+    /// Raised on whichever thread the daemon's answer arrived on, never on the caller's. A
+    /// subscriber that touches a UI has to marshal, and one that throws is swallowed rather than
+    /// allowed to fault the connection.
+    ///
+    /// Only Fantomas 8 daemons send these; an older one never raises it, so no version check is
+    /// needed.
     abstract ConfigurationWarnings: IEvent<ConfigurationWarning>
 
     abstract ConfigurationAsync: filePath: string * ?cancellationToken: CancellationToken -> Task<FantomasResponse>

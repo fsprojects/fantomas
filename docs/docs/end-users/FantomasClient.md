@@ -95,8 +95,30 @@ Worth knowing:
   setting rather than trying to point at it.
 - `Source` tells you whether the setting came from a `.editorconfig` on disk or from the `Config`
   dictionary your own tool sent along with the request.
-- Only Fantomas 8.0.0-alpha-014 and later send these. Against an older daemon the event simply
-  never fires, so no version check is needed.
+- Only Fantomas 8 daemons send these. Against an older one the event simply never fires, so no
+  version check is needed.
+- The event is raised on whichever thread the daemon's message arrived on, never on the thread that
+  asked for the formatting. Marshal before touching a UI. A handler that throws is swallowed rather
+  than allowed to fault the connection, so nothing is lost but nothing is reported either.
+
+If you are talking to the daemon yourself rather than through `Fantomas.Client`, the notification
+arrives on `fantomas/configurationWarning` carrying one object:
+
+```json
+{
+  "FilePath": "/home/me/MyProject/Library.fs",
+  "EditorConfigFiles": ["/home/me/MyProject/.editorconfig"],
+  "Problems": [
+    { "Code": 1, "Source": 1, "Setting": "fsharp_multiline_brackets_style", "Value": null },
+    { "Code": 2, "Source": 2, "Setting": "fsharp_experimental_elmish", "Value": "not_a_bool" }
+  ]
+}
+```
+
+`Code` is `1` for a setting Fantomas does not have and `2` for a value it cannot parse; `Source` is
+`1` for a `.editorconfig` on disk and `2` for the `Config` dictionary sent with the request.
+`Value` is `null` for `Code` `1`, because no value was ever read. `EditorConfigFiles` is empty when
+`Problems` is empty.
 
 ## Formatting a selection
 

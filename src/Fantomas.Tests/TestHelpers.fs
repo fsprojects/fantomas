@@ -95,16 +95,30 @@ type OutputFolder internal () =
             if Directory.Exists(foldername) then
                 Directory.Delete(foldername, true)
 
-type ConfigurationFile internal (content: string) =
-    let filename = Path.Join(Path.GetTempPath(), ".editorconfig")
+/// A folder of its own, holding an `.editorconfig` and one F# file it applies to.
+///
+/// A test that reads configuration from disk needs the two next to each other, and
+/// `ConfigurationFile` writes its `.editorconfig` straight into the temp folder, where every other
+/// test doing the same finds it. `root = true` goes in front of the content so the chain stops
+/// here rather than picking up whatever sits above the temp folder on this machine.
+type ConfiguredCodeSample internal (editorConfig: string, codeSnippet: string, ?extension: string) =
+    let folder = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString("N"))
+    do Directory.CreateDirectory folder |> ignore
 
-    do File.WriteAllText(filename, content)
+    let editorConfigFile = Path.Join(folder, ".editorconfig")
+
+    let filename =
+        Path.Join(folder, sprintf "File.%s" (Option.defaultValue "fs" extension))
+
+    do
+        File.WriteAllText(editorConfigFile, "root = true\n" + editorConfig)
+        File.WriteAllText(filename, codeSnippet)
+
     member _.Filename: string = filename
+    member _.EditorConfigFile: string = editorConfigFile
 
     interface IDisposable with
-        member this.Dispose() : unit =
-            if File.Exists(filename) then
-                File.Delete(filename)
+        member this.Dispose() : unit = Directory.Delete(folder, true)
 
 type FantomasIgnoreFile internal (content: string) =
     let filename = Path.Join(Path.GetTempPath(), IgnoreFile.IgnoreFileName)
@@ -222,6 +236,14 @@ let defaultSettings: CliSettings =
       Profile = false
       Verbosity = VerbosityLevel.Normal }
 
+/// A `DaemonEnvironment` over the given file system, reading whatever configuration is handed in
+/// rather than an `.editorconfig` on disk. Enough for a test about what the daemon does with a
+/// configuration, as opposed to one about where the configuration came from.
+let daemonEnvironment (fs: IFileSystem) (readConfiguration: string -> EditorConfig.EditorConfigResult option) =
+    { FileSystem = fs
+      ReadConfiguration = readConfiguration
+      Log = silentLogger }
+
 /// A `DaemonEnvironment` over the real file system, as the tool itself builds one.
 let realDaemonEnvironment: DaemonEnvironment =
     { FileSystem = FileSystem()
@@ -233,7 +255,7 @@ let realDaemonEnvironment: DaemonEnvironment =
 let realEnvironment: CliEnvironment =
     { FileSystem = FileSystem()
       IgnoreFile = None
-      ReadConfiguration = EditorConfig.readConfiguration Log.Logger
+      ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter Log.Logger)
       Log = Log.Logger
       Console = AnsiConsole.Console }
 

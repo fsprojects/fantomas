@@ -22,9 +22,6 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.
 #r "../../../artifacts/bin/Fantomas.FCS/release/Fantomas.FCS.dll"
 #r "../../../artifacts/bin/Fantomas.Core/release/Fantomas.Core.dll"
 #r "../../../artifacts/bin/Fantomas/release/EditorConfig.Core.dll"
-#r "../../../artifacts/bin/Fantomas/release/Serilog.dll"
-#r "../../../artifacts/bin/Fantomas/release/Serilog.Sinks.Console.dll"
-#load "../../../src/Fantomas/Logging.fs"
 #load "../../../src/Fantomas/EditorConfig.fs"
 
 open System

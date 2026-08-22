@@ -1,6 +1,5 @@
 module Fantomas.EditorConfig
 
-open Serilog
 open Fantomas.Core
 
 module Reflection =
@@ -35,20 +34,26 @@ type EditorConfigResult =
         EditorConfigFiles: string list
 
         /// The settings that could not be acted on. Not reported anywhere by the time you get
-        /// them: `readConfiguration` warns about them, the daemon sends them to its client.
+        /// them: `EditorConfigReport.readConfiguration` warns about them, the daemon sends them
+        /// to its client.
         Problems: EditorConfigProblem list
     }
 
 /// Every .editorconfig setting this build of Fantomas understands, in the order they are worth
 /// reading: the settings editorconfig itself defines first, then the ones belonging to Fantomas,
-/// each group in ordinal order. The former keep their upstream names and are not prefixed, the
-/// latter all carry the `fsharp_` prefix.
+/// each group ordered without regard to case. The former keep their upstream names and are not
+/// prefixed, the latter all carry the `fsharp_` prefix.
 val supportedSettings: string list
 
+/// Whether a setting belongs to Fantomas rather than to editorconfig itself or to another tool.
+/// Matched without regard to case, as editorconfig matches keys.
+val isFantomasSetting: setting: string -> bool
+
 /// Read a `FormatConfig` from editorconfig properties, falling back to `fallbackConfig` for
-/// anything the properties do not set. Keys are matched without regard to case, and when two of
-/// them fold onto one the last wins, as editorconfig does. Returns the settings it could not act
-/// on alongside the configuration, so the caller can decide whether and how to report them.
+/// anything the properties do not set. Keys and values are both matched without regard to case,
+/// as editorconfig defines them, and when two keys fold onto one the last wins. Returns the
+/// settings it could not act on alongside the configuration, each named the way it was written,
+/// so the caller can decide whether and how to report them.
 val parseOptionsFromEditorConfig:
     fallbackConfig: FormatConfig ->
     editorConfigProperties: System.Collections.Generic.IReadOnlyDictionary<string, string> ->
@@ -59,12 +64,6 @@ val configToEditorConfig: config: FormatConfig -> string
 /// Read the `.editorconfig` chain that applies to a file. `None` when no `.editorconfig` sets
 /// anything for it.
 ///
-/// Silent: the problems are returned rather than reported. `readConfiguration` warns about them;
-/// the daemon sends them to its client instead and must not write them to standard error, which
-/// `Fantomas.Client` redirects and never drains.
+/// Silent, and this module writes nothing anywhere: `EditorConfigReport` turns the problems into
+/// something a person reads, and the daemon sends them to its client instead.
 val tryReadConfiguration: fsharpFile: string -> EditorConfigResult option
-
-/// Read the `.editorconfig` that applies to a file and warn through `log` about anything in it
-/// Fantomas cannot use. The daemon does not go through here: it sends the problems to its client
-/// instead, and must not write them to standard error.
-val readConfiguration: log: ILogger -> fsharpFile: string -> FormatConfig

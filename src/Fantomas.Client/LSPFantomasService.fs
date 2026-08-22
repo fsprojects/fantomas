@@ -10,12 +10,12 @@ open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Client.FantomasToolLocator
 
-[<NoComparison>]
-type ServiceState =
-    { Daemons: Map<FantomasVersion, RunningFantomasTool>
+[<NoComparison; NoEquality>]
+type ServiceState<'daemon> =
+    { Daemons: Map<FantomasVersion, 'daemon>
       FolderToVersion: Map<Folder, FantomasVersion> }
 
-    static member Empty: ServiceState =
+    static member Empty: ServiceState<'daemon> =
         { Daemons = Map.empty
           FolderToVersion = Map.empty }
 
@@ -31,119 +31,113 @@ type Msg =
     | GetDaemon of folder: Folder * replyChannel: AsyncReplyChannel<Result<JsonRpc, GetDaemonError>>
     | Reset of AsyncReplyChannel<unit>
 
+[<NoComparison; NoEquality>]
+type DaemonOperations<'daemon> =
+    { FindTool: Folder -> Result<FantomasToolFound, FantomasToolError>
+      Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError>
+      StartInfo: 'daemon -> FantomasToolStartInfo
+      IsRunning: 'daemon -> bool
+      Dispose: 'daemon -> unit }
+
+/// Forget a version, and with it every folder that resolved to it. Leaving those folders behind
+/// would pin them to a version with no daemon, which is the one state `resolveDaemon` cannot get
+/// out of: it answers `CompatibleVersionIsKnownButNoDaemonIsRunning` and changes nothing, so the
+/// next request answers the same way, for the rest of the session. Dropping them lets the next
+/// request resolve the tool from scratch.
+let forgetVersion (version: FantomasVersion) (state: ServiceState<'daemon>) : ServiceState<'daemon> =
+    { Daemons = Map.remove version state.Daemons
+      FolderToVersion = state.FolderToVersion |> Map.filter (fun _ known -> known <> version) }
+
+let startDaemon
+    (operations: DaemonOperations<'daemon>)
+    (version: FantomasVersion)
+    (startInfo: FantomasToolStartInfo)
+    (folder: Folder)
+    (state: ServiceState<'daemon>)
+    : Result<'daemon, GetDaemonError> * ServiceState<'daemon> =
+    match operations.Create startInfo with
+    | Ok daemon ->
+        Ok daemon,
+        { Daemons = Map.add version daemon state.Daemons
+          FolderToVersion = Map.add folder version state.FolderToVersion }
+    | Error error -> Error(GetDaemonError.FantomasProcessStart error), forgetVersion version state
+
+let resolveDaemon
+    (operations: DaemonOperations<'daemon>)
+    (state: ServiceState<'daemon>)
+    (folder: Folder)
+    : Result<'daemon, GetDaemonError> * ServiceState<'daemon> =
+    match Map.tryFind folder state.FolderToVersion with
+    | Some version ->
+        match Map.tryFind version state.Daemons with
+        | Some daemon when operations.IsRunning daemon ->
+            Ok daemon,
+            { state with
+                FolderToVersion = Map.add folder version state.FolderToVersion }
+        | Some daemon ->
+            // A weird situation where the process has crashed. Dispose what is left of it so the
+            // handles it still holds are released, then reboot it the way it was started.
+            let startInfo = operations.StartInfo daemon
+            operations.Dispose daemon
+            startDaemon operations version startInfo folder state
+        | None ->
+            // This is a strange situation, we know what version is linked to that folder but there
+            // is no daemon. The moment a version is added is also the moment a daemon is re-used or
+            // created.
+            Error(GetDaemonError.CompatibleVersionIsKnownButNoDaemonIsRunning version), state
+    | None ->
+        match operations.FindTool folder with
+        | Ok(FantomasToolFound(version, startInfo)) ->
+            // Daemons are keyed by version, not by folder. Two folders that pin the same Fantomas
+            // share one, so a running daemon for this version has to be reused: starting a second
+            // would overwrite the first in the map and leave its process running with nothing left
+            // to dispose it.
+            //
+            // The reused daemon keeps the StartInfo it was created with, so a restart after a crash
+            // resolves the tool the way the first folder did rather than the way this one just did.
+            match Map.tryFind version state.Daemons with
+            | Some daemon when operations.IsRunning daemon ->
+                Ok daemon,
+                { state with
+                    FolderToVersion = Map.add folder version state.FolderToVersion }
+            | running ->
+                // A daemon that crashed is replaced, but dispose it first so the handles it still
+                // holds are released.
+                Option.iter operations.Dispose running
+                startDaemon operations version startInfo folder state
+        | Error FantomasToolError.NoCompatibleVersionFound -> Error GetDaemonError.InCompatibleVersionFound, state
+        | Error(FantomasToolError.DotNetListError error) -> Error(GetDaemonError.DotNetToolListError error), state
+
 let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWarning -> unit) : MailboxProcessor<Msg> =
+    let operations: DaemonOperations<RunningFantomasTool> =
+        { FindTool = findFantomasTool
+          Create =
+            fun startInfo ->
+                createFor startInfo
+                |> Result.map (fun daemon ->
+                    // Subscribed here rather than where the daemon is handed out, so that it happens
+                    // once per daemon however many folders end up sharing it.
+                    daemon.ConfigurationWarnings.Add onConfigurationWarning
+                    daemon)
+          StartInfo = fun daemon -> daemon.StartInfo
+          IsRunning = fun daemon -> not daemon.Process.HasExited
+          Dispose = fun daemon -> (daemon :> IDisposable).Dispose() }
+
     MailboxProcessor.Start(
         (fun inbox ->
-            let rec messageLoop (state: ServiceState) =
+            let rec messageLoop (state: ServiceState<RunningFantomasTool>) =
                 async {
                     let! msg = inbox.Receive()
 
                     let nextState =
                         match msg with
                         | GetDaemon(folder, replyChannel) ->
-                            // get the version for that folder
-                            // look in the cache first
-                            let versionFromCache = Map.tryFind folder state.FolderToVersion
-
-                            match versionFromCache with
-                            | Some version ->
-                                let daemon = Map.tryFind version state.Daemons
-
-                                match daemon with
-                                | Some daemon ->
-                                    // We have a daemon for the required version in the cache, check if we can still use it.
-                                    if daemon.Process.HasExited then
-                                        // weird situation where the process has crashed.
-                                        // Trying to reboot
-                                        (daemon :> IDisposable).Dispose()
-
-                                        let newDaemonResult = createFor daemon.StartInfo
-
-                                        match newDaemonResult with
-                                        | Ok newDaemon ->
-                                            newDaemon.ConfigurationWarnings.Add onConfigurationWarning
-                                            replyChannel.Reply(Ok newDaemon.RpcClient)
-
-                                            { FolderToVersion = Map.add folder version state.FolderToVersion
-                                              Daemons = Map.add version newDaemon state.Daemons }
-                                        | Error pse ->
-                                            replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
-                                            // The daemon that was there is disposed and the new one
-                                            // never started, so drop the entry rather than leave a
-                                            // dead one to be disposed again on the next request.
-                                            { state with
-                                                Daemons = Map.remove version state.Daemons }
-                                    else
-                                        // return running client
-                                        replyChannel.Reply(Ok daemon.RpcClient)
-
-                                        { state with
-                                            FolderToVersion = Map.add folder version state.FolderToVersion }
-                                | None ->
-                                    // This is a strange situation, we know what version is linked to that folder but there is no daemon
-                                    // The moment a version is added, is also the moment a daemon is re-used or created
-                                    replyChannel.Reply(
-                                        Error(GetDaemonError.CompatibleVersionIsKnownButNoDaemonIsRunning version)
-                                    )
-
-                                    state
-                            | None ->
-                                // Try and find a version of fantomas daemon for our current folder
-                                let fantomasToolResult: Result<FantomasToolFound, FantomasToolError> =
-                                    findFantomasTool folder
-
-                                match fantomasToolResult with
-                                | Ok(FantomasToolFound(version, startInfo)) ->
-                                    // Daemons are keyed by version, not by folder. Two folders that
-                                    // pin the same Fantomas share one, so a running daemon for this
-                                    // version has to be reused: starting a second would overwrite
-                                    // the first in the map and leave its process running with
-                                    // nothing left to dispose it.
-                                    //
-                                    // The reused daemon keeps the StartInfo it was created with, so
-                                    // a restart after a crash resolves the tool the way the first
-                                    // folder did rather than the way this one just did.
-                                    let runningDaemon =
-                                        Map.tryFind version state.Daemons
-                                        |> Option.filter (fun daemon -> not daemon.Process.HasExited)
-
-                                    match runningDaemon with
-                                    | Some daemon ->
-                                        replyChannel.Reply(Ok daemon.RpcClient)
-
-                                        { state with
-                                            FolderToVersion = Map.add folder version state.FolderToVersion }
-                                    | None ->
-                                        // A daemon that crashed is replaced, but dispose it first so
-                                        // the handles it still holds are released.
-                                        Map.tryFind version state.Daemons
-                                        |> Option.iter (fun daemon -> (daemon :> IDisposable).Dispose())
-
-                                        let createDaemonResult = createFor startInfo
-
-                                        match createDaemonResult with
-                                        | Ok daemon ->
-                                            daemon.ConfigurationWarnings.Add onConfigurationWarning
-                                            replyChannel.Reply(Ok daemon.RpcClient)
-
-                                            { Daemons = Map.add version daemon state.Daemons
-                                              FolderToVersion = Map.add folder version state.FolderToVersion }
-                                        | Error pse ->
-                                            replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
-                                            // The daemon that was there is disposed and the new one
-                                            // never started, so drop the entry rather than leave a
-                                            // dead one to be disposed again on the next request.
-                                            { state with
-                                                Daemons = Map.remove version state.Daemons }
-                                | Error FantomasToolError.NoCompatibleVersionFound ->
-                                    replyChannel.Reply(Error GetDaemonError.InCompatibleVersionFound)
-                                    state
-                                | Error(FantomasToolError.DotNetListError dotNetToolListError) ->
-                                    replyChannel.Reply(Error(GetDaemonError.DotNetToolListError dotNetToolListError))
-                                    state
+                            let daemon, nextState = resolveDaemon operations state folder
+                            replyChannel.Reply(Result.map (fun daemon -> daemon.RpcClient) daemon)
+                            nextState
                         | Reset replyChannel ->
                             Map.toList state.Daemons
-                            |> List.iter (fun (_, daemon) -> (daemon :> IDisposable).Dispose())
+                            |> List.iter (fun (_, daemon) -> operations.Dispose daemon)
 
                             replyChannel.Reply()
                             ServiceState.Empty

@@ -24,6 +24,21 @@ type DaemonEnvironment =
         Log: ILogger
     }
 
+/// Resolve the configuration for a request the way the daemon needs it: the `.editorconfig` on
+/// disk, then whatever the editor sent layered on top, keeping the problems from both and tagging
+/// each with where it came from.
+///
+/// Deliberately silent: the warning it returns travels to the client as a notification and is never
+/// written to standard error, which `Fantomas.Client` redirects.
+val configurationFor:
+    readConfiguration: (string -> EditorConfigResult option) ->
+    filePath: string ->
+    requestConfig: System.Collections.Generic.IReadOnlyDictionary<string, string> option ->
+        FormatConfig * ConfigurationWarning
+
+/// A warning with nothing in it, which tells a client to clear whatever it showed for this file.
+val noConfigurationProblems: filePath: string -> ConfigurationWarning
+
 type FantomasDaemon =
     interface IDisposable
 

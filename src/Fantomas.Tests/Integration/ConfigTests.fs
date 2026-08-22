@@ -13,18 +13,14 @@ let NormalVerbosity = "--verbosity n"
 [<Test>]
 let ``config file in working directory should not require relative prefix, 821`` () =
     use fileFixture =
-        new TemporaryFileCodeSample(
-            "let a  = // foo
-                                                            9"
-        )
-
-    use configFixture =
-        new ConfigurationFile(
+        new ConfiguredCodeSample(
             """
 [*.fs]
 indent_size=2
 end_of_line=lf
-"""
+""",
+            "let a  = // foo
+                                                            9"
         )
 
     let args = DetailedVerbosity @ [ fileFixture.Filename ]
@@ -37,14 +33,13 @@ end_of_line=lf
 
 [<Test>]
 let ``end_of_line=cr should throw an exception`` () =
-    use fileFixture = new TemporaryFileCodeSample("let a = 9\n")
-
-    use configFixture =
-        new ConfigurationFile(
+    use fileFixture =
+        new ConfiguredCodeSample(
             """
 [*.fs]
 end_of_line=cr
-"""
+""",
+            "let a = 9\n"
         )
 
     let args = DetailedVerbosity @ [ fileFixture.Filename ]
@@ -64,16 +59,15 @@ let ``uses end_of_line setting to write user newlines`` setting =
     let sampleCode nln =
         sprintf "let a = 9%s%slet b = 7%s" nln nln nln
 
-    use fileFixture = new TemporaryFileCodeSample(sampleCode "\n")
-
-    use configFixture =
-        new ConfigurationFile(
+    use fileFixture =
+        new ConfiguredCodeSample(
             sprintf
                 """
 [*.fs]
 end_of_line = %s
 """
-                setting
+                setting,
+            sampleCode "\n"
         )
 
     let { ExitCode = exitCode } = runFantomasTool [ fileFixture.Filename ]
@@ -88,14 +82,14 @@ end_of_line = %s
 [<Test>]
 let ``end_of_line should be respected for ifdef`` () =
     let source = "#if FOO\n()\n#else\n()\n#endif"
-    use fileFixture = new TemporaryFileCodeSample(source)
 
-    use configFixture =
-        new ConfigurationFile(
+    use fileFixture =
+        new ConfiguredCodeSample(
             """
 [*.fs]
 end_of_line = lf
-"""
+""",
+            source
         )
 
     let { ExitCode = exitCode } = runFantomasTool [ fileFixture.Filename ]
@@ -105,99 +99,51 @@ end_of_line = lf
 
     result |> should equal "#if FOO\n()\n#else\n()\n#endif\n"
 
-[<Literal>]
-let private BadEditorConfig =
-    """
+// `EditorConfigReportTests` covers what a report says and when it is written. This is the one
+// test that pays for a process: that the report reaches standard error rather than standard out,
+// which is `Logging.createLogger`'s doing and not visible from inside the test host.
+[<Test>]
+let ``settings Fantomas cannot use are reported on standard error`` () =
+    use fileFixture =
+        new ConfiguredCodeSample(
+            """
 [*.fs]
 fsharp_bogus_option = true
 fsharp_experimental_elmish = not_a_bool
 some_other_tool_setting = 42
-"""
-
-let private occurrences (needle: string) (haystack: string) : int =
-    haystack.Split([| needle |], System.StringSplitOptions.None).Length - 1
-
-[<Test>]
-let ``settings Fantomas cannot use are reported on standard error`` () =
-    use fileFixture = new TemporaryFileCodeSample("let a = 9\n")
-    use configFixture = new ConfigurationFile(BadEditorConfig)
+""",
+            "let a = 9\n"
+        )
 
     let { ExitCode = exitCode
           Output = output
           Error = error } =
         formatCode [ fileFixture.Filename ]
 
+    // Advice, not a failure: the file is still formatted, with defaults for what could not be read.
     exitCode |> should equal 0
     Assert.That(error, Does.Contain "fsharp_bogus_option is not a Fantomas setting")
 
     Assert.That(
         error,
-        Does.Contain "fsharp_experimental_elmish does not accept the value not_a_bool, using the default instead"
+        Does.Contain "fsharp_experimental_elmish does not accept the value not_a_bool, so the default is used instead"
     )
 
-    Assert.That(error, Does.Contain "supports these .editorconfig settings:")
-    Assert.That(error, Does.Contain "fsharp_multiline_bracket_style")
     // A setting without the fsharp_ prefix belongs to some other tool and is none of our business.
     Assert.That(error, Does.Not.Contain "some_other_tool_setting")
     Assert.That(output, Does.Not.Contain "fsharp_bogus_option")
 
 [<Test>]
-let ``settings Fantomas cannot use are reported once, however many files are formatted`` () =
-    use firstFile = new TemporaryFileCodeSample("let a = 9\n")
-    use secondFile = new TemporaryFileCodeSample("let b = 9\n")
-    use thirdFile = new TemporaryFileCodeSample("let c = 9\n")
-    use configFixture = new ConfigurationFile(BadEditorConfig)
-
-    let { ExitCode = exitCode; Error = error } =
-        formatCode [ firstFile.Filename; secondFile.Filename; thirdFile.Filename ]
-
-    exitCode |> should equal 0
-
-    occurrences "fsharp_bogus_option is not a Fantomas setting" error
-    |> should equal 1
-
-    occurrences "supports these .editorconfig settings:" error |> should equal 1
-
-// Files are formatted in parallel, so the report has to leave one thread as a single message.
-// Written as two, the settings list can overtake the problems it belongs to.
-[<Test>]
-let ``the problems come before the settings list, however many files are formatted`` () =
-    use firstFile = new TemporaryFileCodeSample("let a = 9\n")
-    use secondFile = new TemporaryFileCodeSample("let b = 9\n")
-    use thirdFile = new TemporaryFileCodeSample("let c = 9\n")
-    use fourthFile = new TemporaryFileCodeSample("let d = 9\n")
-    use configFixture = new ConfigurationFile(BadEditorConfig)
-
-    let { ExitCode = exitCode; Error = error } =
-        formatCode
-            [ firstFile.Filename
-              secondFile.Filename
-              thirdFile.Filename
-              fourthFile.Filename ]
-
-    exitCode |> should equal 0
-
-    let problemsAt =
-        error.IndexOf("Fantomas cannot use some settings from", System.StringComparison.Ordinal)
-
-    let settingsAt =
-        error.IndexOf("supports these .editorconfig settings:", System.StringComparison.Ordinal)
-
-    Assert.That(problemsAt, Is.GreaterThanOrEqualTo 0)
-    Assert.That(settingsAt, Is.GreaterThan problemsAt)
-
-[<Test>]
 let ``an editorconfig Fantomas can act on reports nothing`` () =
-    use fileFixture = new TemporaryFileCodeSample("let a = 9\n")
-
-    use configFixture =
-        new ConfigurationFile(
+    use fileFixture =
+        new ConfiguredCodeSample(
             """
 [*.fs]
 max_line_length = 100
 fsharp_multiline_bracket_style = stroustrup
 indent_style = space
-"""
+""",
+            "let a = 9\n"
         )
 
     let { ExitCode = exitCode; Error = error } = formatCode [ fileFixture.Filename ]

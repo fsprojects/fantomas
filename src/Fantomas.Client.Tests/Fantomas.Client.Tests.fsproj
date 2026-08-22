@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="VersionTests.fs" />
+    <Compile Include="DaemonCacheTests.fs" />
     <Compile Include="EndToEndTests.fs" />
   </ItemGroup>
 

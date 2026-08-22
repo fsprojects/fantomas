@@ -1,7 +1,6 @@
 module Fantomas.Client.Tests
 
 open System
-open System.Diagnostics
 open System.IO
 open System.Text
 open System.Threading.Tasks
@@ -187,93 +186,6 @@ end_of_line = lf
                 Assert.Fail report
         }
 
-    /// The command line of a running process, when the platform lets us read it.
-    /// `System.Diagnostics` cannot do this, and without it a fantomas daemon is indistinguishable
-    /// from the many other `dotnet` processes a test run starts.
-    let commandLineOf (pid: int) : string option =
-        try
-            if OperatingSystem.IsLinux() then
-                let path = $"/proc/%i{pid}/cmdline"
-
-                if File.Exists path then
-                    // The arguments are separated by NUL bytes.
-                    Some(File.ReadAllText(path).Replace('\000', ' '))
-                else
-                    None
-            elif OperatingSystem.IsMacOS() then
-                let psi = ProcessStartInfo("/bin/ps", $"-p %i{pid} -o command=")
-                psi.RedirectStandardOutput <- true
-                psi.RedirectStandardError <- true
-                use p = Process.Start psi
-                let out = p.StandardOutput.ReadToEnd()
-                p.WaitForExit()
-                if p.ExitCode = 0 then Some out else None
-            else
-                None
-        with _ ->
-            None
-
-    let canReadCommandLines: bool =
-        OperatingSystem.IsLinux() || OperatingSystem.IsMacOS()
-
-    /// The processes currently serving as a fantomas daemon.
-    ///
-    /// Matching on the command line rather than the process name is what makes this usable: a
-    /// local tool daemon runs as `dotnet fantomas --daemon`, and so shows up under `dotnet`, the
-    /// same name as every other `dotnet` process. The test projects run in parallel, and the
-    /// command line integration tests spawn a `dotnet fantomas <file>` for nearly every test they
-    /// have, so counting by name alone counts those too.
-    let runningDaemons () : Set<int> =
-        Process.GetProcesses()
-        |> Array.choose (fun (p: Process) ->
-            // Every process handed out here holds an operating system handle until it is disposed.
-            use p = p
-
-            let name =
-                try
-                    p.ProcessName
-                with _ ->
-                    ""
-
-            if name <> "dotnet" && name <> "fantomas" then
-                None
-            else
-                match commandLineOf p.Id with
-                | Some commandLine when commandLine.Contains "fantomas" && commandLine.Contains "--daemon" -> Some p.Id
-                | _ -> None)
-        |> Set.ofArray
-
-    /// Everything we can still learn about a process that outlived the service, so that a failure
-    /// says what it was rather than only which number it had.
-    let describeProcess (pid: int) : string =
-        let commandLine =
-            match commandLineOf pid with
-            | Some c -> c.Trim()
-            | None -> "<command line unavailable>"
-
-        try
-            use p = Process.GetProcessById pid
-            $"  pid %i{pid}: name=%s{p.ProcessName}, exited=%b{p.HasExited}, cmd=%s{commandLine}"
-        with e ->
-            $"  pid %i{pid}: gone when inspected (%s{e.GetType().Name}), cmd=%s{commandLine}"
-
-    /// Wait until nothing started during the test is left running, then report what is.
-    /// Helper processes such as `dotnet tool list` exit on their own, so polling tells them apart
-    /// from a daemon that leaked, which stays.
-    let settleDaemons (before: Set<int>) : Task<Set<int>> =
-        let rec loop (attemptsLeft: int) : Task<Set<int>> =
-            backgroundTask {
-                let survivors = Set.difference (runningDaemons ()) before
-
-                if Set.isEmpty survivors || attemptsLeft = 0 then
-                    return survivors
-                else
-                    do! Task.Delay 200
-                    return! loop (attemptsLeft - 1)
-            }
-
-        loop 25
-
     let withVersion version (callback: string -> Task) =
         backgroundTask {
             let file = Path.Combine(folder.FullName, version, "File.fs")
@@ -339,63 +251,4 @@ end_of_line = lf
 
                 let! response = service.FormatDocumentAsync(request)
                 do! expectResponse FantomasResponseCode.Formatted fsharpFile response
-            })
-
-    /// Daemons are cached per version, not per folder, so a second folder pinning the same version
-    /// has to reuse the running daemon. Starting another one would drop the first from the cache
-    /// without disposing it, leaving a process behind for the rest of the session.
-    ///
-    /// A nested directory is a second folder as far as the service is concerned, while the tool
-    /// manifest it resolves upward to is the same one, so no second install is needed here.
-    ///
-    /// The check is what survives disposal rather than a count taken while the work is in flight:
-    /// resolving a folder shells out to `dotnet tool list`, and that process can still be in the
-    /// table when a sample is taken. A daemon that leaked is not in the cache the service empties,
-    /// so it is still running afterwards, while every helper process is gone by then.
-    [<TestCase("6.3.16")>]
-    [<TestCase("7.0.5")>]
-    member _.``a second folder on the same version reuses the daemon``(version: string) =
-        withVersion version (fun fsharpFile ->
-            backgroundTask {
-                let versionFolder: string = Path.GetDirectoryName fsharpFile
-
-                let nested = Directory.CreateDirectory(Path.Combine(versionFolder, "nested-folder"))
-
-                let nestedFile = Path.Combine(nested.FullName, "File.fs")
-                File.WriteAllText(nestedFile, unformattedCode)
-
-                let request (file: string) : FormatDocumentRequest =
-                    { SourceCode = unformattedCode
-                      FilePath = file
-                      Config = None
-                      Cursor = None }
-
-                if not canReadCommandLines then
-                    Assert.Ignore
-                        "This test tells a fantomas daemon from any other dotnet process by its command line, which it can only read on Linux and macOS."
-
-                let before = runningDaemons ()
-
-                // A service of its own, so that it can be disposed here. The fixture shares one for
-                // every other test and only disposes it once they have all run.
-                let ownService: FantomasService = new LSPFantomasService()
-
-                let! first = ownService.FormatDocumentAsync(request fsharpFile)
-                do! expectResponse FantomasResponseCode.Formatted fsharpFile first
-
-                let! second = ownService.FormatDocumentAsync(request nestedFile)
-                do! expectResponse FantomasResponseCode.Formatted nestedFile second
-
-                ownService.Dispose()
-
-                let! survivors = settleDaemons before
-
-                let described =
-                    survivors |> Seq.map describeProcess |> String.concat Environment.NewLine
-
-                Assert.That(
-                    survivors,
-                    Is.Empty,
-                    $"After formatting in two folders that both pin fantomas %s{version}, %i{survivors.Count} process(es) outlived the service.%s{Environment.NewLine}%s{described}"
-                )
             })

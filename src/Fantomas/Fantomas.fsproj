@@ -29,6 +29,8 @@
     <Compile Include="IgnoreFile.fs" />
     <Compile Include="EditorConfig.fsi" />
     <Compile Include="EditorConfig.fs" />
+    <Compile Include="EditorConfigReport.fsi" />
+    <Compile Include="EditorConfigReport.fs" />
     <Compile Include="Daemon.fsi" />
     <Compile Include="Daemon.fs" />
     <Compile Include="HelpPage.fsi" />
