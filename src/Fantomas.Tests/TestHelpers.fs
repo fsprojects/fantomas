@@ -11,6 +11,8 @@ open Serilog.Events
 open Spectre.Console
 open Fantomas
 open Fantomas.Cli
+open Fantomas.Core
+open Fantomas.Logging
 open Fantomas.Daemon
 
 [<RequireQualifiedAccess>]
@@ -164,6 +166,55 @@ let collectingLogger () : ILogger * (unit -> CollectedLog) =
           Debug = atLevel LogEventLevel.Debug }
 
     logger, collected
+
+/// A Spectre console that draws into a string rather than onto a terminal. Colour and width are
+/// pinned so that what it draws does not depend on the terminal the tests happen to run in.
+let recordingConsole () : IAnsiConsole * (unit -> string) =
+    let writer: StringWriter = new StringWriter()
+
+    let console: IAnsiConsole =
+        AnsiConsole.Create(
+            AnsiConsoleSettings(
+                Ansi = AnsiSupport.No,
+                ColorSystem = ColorSystemSupport.NoColors,
+                Out = AnsiConsoleOutput(writer)
+            )
+        )
+
+    console.Profile.Width <- 200
+    console, (fun () -> writer.ToString())
+
+/// A `CliEnvironment` that keeps whatever a run writes, with the two ways to read it back.
+[<NoComparison; NoEquality>]
+type RecordedRun =
+    {
+        Environment: CliEnvironment
+        /// What was logged, per level.
+        Log: unit -> CollectedLog
+        /// What Spectre drew, as text.
+        Drawn: unit -> string
+    }
+
+/// An environment over the given file system that records rather than prints, honouring the given
+/// ignore file and reading no `.editorconfig`.
+let recordingEnvironment (fs: IFileSystem) (ignoreFile: IgnoreFile option) : RecordedRun =
+    let logger, collected = collectingLogger ()
+    let console, drawn = recordingConsole ()
+
+    { Environment =
+        { FileSystem = fs
+          IgnoreFile = ignoreFile
+          ReadConfiguration = fun _ -> FormatConfig.Default
+          Log = logger
+          Console = console }
+      Log = collected
+      Drawn = drawn }
+
+/// The settings a run gets when nothing was asked for on the command line.
+let defaultSettings: CliSettings =
+    { Force = false
+      Profile = false
+      Verbosity = VerbosityLevel.Normal }
 
 /// A `DaemonEnvironment` over the real file system, as the tool itself builds one.
 let realDaemonEnvironment: DaemonEnvironment =
