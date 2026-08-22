@@ -16,6 +16,8 @@
 ### Fixed
 
 - `--verbosity` with an unrecognised value exited with code 1 and printed nothing, because the message was logged before the logger was configured. It now reports `Invalid verbosity level` on standard error. [#3399](https://github.com/fsprojects/fantomas/pull/3399)
+- `--out <folder>` flattened the input tree: every file landed directly in the output folder, so two files with the same name in different subfolders silently overwrote each other. The output folder now mirrors the structure of the input folder, as the documentation already promised. [#3403](https://github.com/fsprojects/fantomas/pull/3403)
+- `--out` failed with `Failed to format file` and exit code 1 when the folder it had to write into did not exist. Fantomas now creates it, for both `--out <file>` and the subfolders of `--out <folder>`. [#3403](https://github.com/fsprojects/fantomas/pull/3403)
 
 ## [8.0.0-alpha-014] - 2026-08-20
 
