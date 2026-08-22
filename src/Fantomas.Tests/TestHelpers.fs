@@ -6,6 +6,8 @@ open System.IO
 open System.IO.Abstractions
 open System.Text
 open Serilog
+open Serilog.Core
+open Serilog.Events
 open Spectre.Console
 open Fantomas
 open Fantomas.Cli
@@ -112,6 +114,56 @@ type FantomasIgnoreFile internal (content: string) =
         member this.Dispose() : unit =
             if File.Exists(filename) then
                 File.Delete(filename)
+
+/// Create every file, and the folders leading to it, in the given file system.
+let makeFileHierarchy (fs: IFileSystem) (filePaths: string list) : unit =
+    for path in filePaths do
+        let fileInfo: IFileInfo = fs.FileInfo.New path
+        fileInfo.Directory.Create()
+        fs.File.WriteAllText(fileInfo.FullName, "some text")
+
+/// The root a `MockFileSystem` hangs its paths from, so that a test never writes a path by hand
+/// and never has to know which platform it is running on.
+let mockRoot (fs: IFileSystem) : string =
+    fs.Path.GetTempPath() |> fs.Path.GetPathRoot
+
+/// A logger that writes nowhere, for a test that does not care what was logged.
+let silentLogger: ILogger = LoggerConfiguration().CreateLogger()
+
+/// What a run wrote, gathered per level rather than per stream: which stream a level lands on is
+/// `Logging.createLogger`'s business, and this is about the messages.
+type CollectedLog =
+    { Information: string list
+      Error: string list
+      Debug: string list }
+
+type private CollectingSink() =
+    let events: ResizeArray<LogEvent> = ResizeArray()
+
+    member _.Events: LogEvent list = lock events (fun () -> List.ofSeq events)
+
+    interface ILogEventSink with
+        member _.Emit(logEvent: LogEvent) : unit =
+            lock events (fun () -> events.Add logEvent)
+
+/// A logger that keeps what was written, and a way to read it back.
+let collectingLogger () : ILogger * (unit -> CollectedLog) =
+    let sink: CollectingSink = CollectingSink()
+
+    let logger: ILogger =
+        LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Sink(sink).CreateLogger()
+
+    let collected () : CollectedLog =
+        let atLevel (level: LogEventLevel) : string list =
+            sink.Events
+            |> List.filter (fun (e: LogEvent) -> e.Level = level)
+            |> List.map (fun (e: LogEvent) -> e.RenderMessage())
+
+        { Information = atLevel LogEventLevel.Information
+          Error = atLevel LogEventLevel.Error
+          Debug = atLevel LogEventLevel.Debug }
+
+    logger, collected
 
 /// A `DaemonEnvironment` over the real file system, as the tool itself builds one.
 let realDaemonEnvironment: DaemonEnvironment =

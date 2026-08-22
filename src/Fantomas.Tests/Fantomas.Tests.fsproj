@@ -16,6 +16,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestHelpers.fs" />
+    <Compile Include="PathsTests.fs" />
+    <Compile Include="ArgumentsTests.fs" />
+    <Compile Include="PlanTests.fs" />
     <Compile Include="DiagnosticsTests.fs" />
     <Compile Include="CheckTests.fs" />
     <Compile Include="IgnoreFileTests.fs" />
