@@ -118,7 +118,7 @@ let processSourceString
             else
                 do! fs.File.WriteAllTextAsync(fileName, formatted) |> Async.AwaitTask
 
-            logGrEqDetailed $"%s{fileName} has been written."
+            env.Log.Debug $"%s{fileName} has been written."
         }
 
     async {
@@ -132,11 +132,11 @@ let processSourceString
             do! formattedContent |> writeResult
             return r
         | FormatResult.InvalidCode(file, formattedContent) when force ->
-            stdlog $"%s{file} was not valid after formatting."
+            env.Log.Information $"%s{file} was not valid after formatting."
             do! formattedContent |> writeResult
             return FormatResult.Formatted(fileName, formattedContent, None)
         | FormatResult.Unchanged(file, _) as r ->
-            logGrEqDetailed $"'%s{file}' was unchanged"
+            env.Log.Debug $"'%s{file}' was unchanged"
             return r
         | FormatResult.IgnoredFile _ as r -> return r
         | FormatResult.Error _ as r -> return r
@@ -164,7 +164,7 @@ let processSourceFile
             do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
             return r
         | FormatResult.InvalidCode(file, formattedContent) when force ->
-            stdlog $"%s{file} was not valid after formatting."
+            env.Log.Information $"%s{file} was not valid after formatting."
             do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
             return FormatResult.Formatted(inFile, formattedContent, None)
         | FormatResult.Unchanged _ as r ->
@@ -185,7 +185,7 @@ let fileToFile (env: CliEnvironment) (settings: CliSettings) (inFile: string) (o
     let fs: IFileSystem = env.FileSystem
 
     async {
-        logGrEqDetailed $"Processing %s{inFile}"
+        env.Log.Debug $"Processing %s{inFile}"
         use buffer = new StringWriter()
         let! processResult = processSourceFile env settings inFile buffer
 
@@ -201,7 +201,7 @@ let fileToFile (env: CliEnvironment) (settings: CliSettings) (inFile: string) (o
             else
                 do! fs.File.WriteAllTextAsync(outFile, contents) |> Async.AwaitTask
 
-            logGrEqDetailed $"%s{outFile} has been written."
+            env.Log.Debug $"%s{outFile} has been written."
         | FormatResult.IgnoredFile _
         | FormatResult.InvalidCode _
         | FormatResult.Error _ -> ()
@@ -220,7 +220,7 @@ let processFile
             if not (isSamePath env.FileSystem inputFile outputFile) then
                 return! fileToFile env settings inputFile outputFile
             else
-                logGrEqDetailed $"Processing %s{inputFile}"
+                env.Log.Debug $"Processing %s{inputFile}"
                 let! content = env.FileSystem.File.ReadAllTextAsync inputFile |> Async.AwaitTask
                 return! processSourceString env settings content inputFile (env.ReadConfiguration inputFile)
         with e ->
@@ -243,7 +243,7 @@ let runFormatCommand
             fs.Directory.CreateDirectory outputFolder |> ignore
         | _ -> ()
 
-        match plan fs env.IgnoreFile inputPath outputPath with
+        match plan fs env.Log env.IgnoreFile inputPath outputPath with
         | Error problem -> FormatCommandResult.InvalidInput problem
         | Ok items ->
             items

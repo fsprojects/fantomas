@@ -5,8 +5,11 @@ open System.Diagnostics
 open System.IO
 open System.IO.Abstractions
 open System.Text
+open Serilog
+open Spectre.Console
 open Fantomas
 open Fantomas.Cli
+open Fantomas.Daemon
 
 [<RequireQualifiedAccess>]
 module String =
@@ -110,12 +113,20 @@ type FantomasIgnoreFile internal (content: string) =
             if File.Exists(filename) then
                 File.Delete(filename)
 
+/// A `DaemonEnvironment` over the real file system, as the tool itself builds one.
+let realDaemonEnvironment: DaemonEnvironment =
+    { FileSystem = FileSystem()
+      ReadConfiguration = EditorConfig.readConfiguration
+      Log = Log.Logger }
+
 /// A `CliEnvironment` over the real file system, honouring no ignore file. Enough for a test that
 /// wants the tool's own behaviour without standing up a mock.
 let realEnvironment: CliEnvironment =
     { FileSystem = FileSystem()
       IgnoreFile = None
-      ReadConfiguration = EditorConfig.readConfiguration }
+      ReadConfiguration = EditorConfig.readConfiguration
+      Log = Log.Logger
+      Console = AnsiConsole.Console }
 
 type FantomasToolResult =
     { ExitCode: int

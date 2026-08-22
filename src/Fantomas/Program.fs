@@ -12,6 +12,8 @@ open Fantomas.FormatCommand
 open Fantomas.Report
 open Fantomas.CheckCommand
 open Argu
+open Serilog
+open Spectre.Console
 
 [<EntryPoint>]
 let main argv =
@@ -55,6 +57,9 @@ let main argv =
 
     AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> closeAndFlushLog ())
 
+    // The logger the calls above configured, now handed down rather than reached for.
+    let log: ILogger = Log.Logger
+
     let check: bool = results.Contains <@ Arguments.Check @>
 
     let versionLog: string =
@@ -62,14 +67,20 @@ let main argv =
         $"Fantomas v%s{version}"
 
     if Option.isNone version then
-        logGrEqDetailed versionLog
+        log.Debug versionLog
 
     if Option.isSome version then
-        stdlog versionLog
+        log.Information versionLog
         0
     elif isDaemon then
         let daemon: FantomasDaemon =
-            new FantomasDaemon(Console.OpenStandardOutput(), Console.OpenStandardInput())
+            new FantomasDaemon(
+                Console.OpenStandardOutput(),
+                Console.OpenStandardInput(),
+                { FileSystem = fileSystem
+                  ReadConfiguration = EditorConfig.readConfiguration
+                  Log = log }
+            )
 
         AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> (daemon :> IDisposable).Dispose())
 
@@ -83,7 +94,9 @@ let main argv =
                     fileSystem
                     Environment.CurrentDirectory
                     (IgnoreFile.loadIgnoreList fileSystem)
-              ReadConfiguration = EditorConfig.readConfiguration }
+              ReadConfiguration = EditorConfig.readConfiguration
+              Log = log
+              Console = AnsiConsole.Console }
 
         let settings: CliSettings =
             { Force = force

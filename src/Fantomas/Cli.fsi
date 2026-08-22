@@ -1,6 +1,8 @@
 module Fantomas.Cli
 
 open System.IO.Abstractions
+open Serilog
+open Spectre.Console
 open Fantomas
 open Fantomas.Core
 open Fantomas.Logging
@@ -17,6 +19,11 @@ type CliEnvironment =
         /// The `.editorconfig` settings for a file. A function rather than a file system read,
         /// because the editorconfig parser reads the disk itself and cannot be given one.
         ReadConfiguration: string -> FormatConfig
+        /// Where the tool writes. A test hands over a logger with a collecting sink instead of
+        /// reading a console. Which stream a level lands on is settled by `Logging.createLogger`.
+        Log: ILogger
+        /// Spectre's console, for the one thing drawn rather than written: the summary table.
+        Console: IAnsiConsole
     }
 
 /// What the user asked for. Kept apart from the environment because a test varies these on every

@@ -19,7 +19,7 @@ let private runWithDaemon (fn: JsonRpc -> Async<unit>) =
     async {
         let struct (serverStream, clientStream) = FullDuplexStream.CreatePair()
 
-        let daemon = new FantomasDaemon(serverStream, serverStream)
+        let daemon = new FantomasDaemon(serverStream, serverStream, realDaemonEnvironment)
 
         let client = new JsonRpc(clientStream, clientStream)
         client.StartListening()

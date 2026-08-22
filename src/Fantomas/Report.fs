@@ -2,6 +2,8 @@ module Fantomas.Report
 
 open System
 open System.IO.Abstractions
+open Serilog
+open Spectre.Console
 open Spectre.Console
 // Fantomas.Core has a FormatResult of its own. Opening Fantomas last is what makes the
 // FormatResult named here the one this project defines.
@@ -34,7 +36,7 @@ let partitionResults
             let ex: FormatException = invalidResultException file
             (oks, ignores, unchanged, (file, ex :> Exception) :: errors))
 
-let reportError (fs: IFileSystem) (verbosity: VerbosityLevel) (file: string, exn: Exception) : unit =
+let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string, exn: Exception) : unit =
     let describeOther () : string =
         let message: string =
             match verbosity with
@@ -58,16 +60,16 @@ let reportError (fs: IFileSystem) (verbosity: VerbosityLevel) (file: string, exn
 
     // A parse failure describes itself, positions and all, rather than being reduced to a
     // single line saying only that it happened.
-    match Diagnostics.describeParseFailure file (sourceOf fs file) exn with
-    | Some parseFailure -> elog parseFailure
-    | None -> elog (describeOther ())
+    match Diagnostics.describeParseFailure file (sourceOf env.FileSystem file) exn with
+    | Some parseFailure -> env.Log.Error parseFailure
+    | None -> env.Log.Error(describeOther ())
 
-let reportProfileInfo (profile: bool) (file: string, profileInfo: ProfileInfo option) : unit =
+let reportProfileInfo (log: ILogger) (profile: bool) (file: string, profileInfo: ProfileInfo option) : unit =
     match profile, profileInfo with
-    | true, Some pI -> stdlog $"%s{file} Line count: %d{pI.LineCount} Time taken %A{pI.TimeTaken}"
+    | true, Some pI -> log.Information $"%s{file} Line count: %d{pI.LineCount} Time taken %A{pI.TimeTaken}"
     | _ -> ()
 
-let reportProfileInfos (profile: bool) (results: (string * ProfileInfo option) list) : unit =
+let reportProfileInfos (console: IAnsiConsole) (profile: bool) (results: (string * ProfileInfo option) list) : unit =
     if profile && not (List.isEmpty results) then
         let table: Table = Table().AddColumns([| "File"; "Line count"; "Time taken" |])
 
@@ -77,34 +79,29 @@ let reportProfileInfos (profile: bool) (results: (string * ProfileInfo option) l
         |> List.fold
             (fun (t: Table) (f, p) -> t.AddRow([| f; string<int> p.LineCount; p.TimeTaken.ToString("mm\:ss\.fff") |]))
             table
-        |> AnsiConsole.Write
+        |> console.Write
 
-let reportFormatResults
-    (fs: IFileSystem)
-    (profile: bool)
-    (verbosity: VerbosityLevel)
-    (results: #(FormatResult seq))
-    : int =
+let reportFormatResults (env: CliEnvironment) (settings: CliSettings) (results: #(FormatResult seq)) : int =
     match Seq.tryExactlyOne results with
     | Some singleResult ->
         match singleResult with
         | FormatResult.Formatted(f, _, p) ->
-            stdlog $"%s{f} was formatted."
-            reportProfileInfo profile (f, p)
+            env.Log.Information $"%s{f} was formatted."
+            reportProfileInfo env.Log settings.Profile (f, p)
             0
         | FormatResult.IgnoredFile f ->
-            stdlog $"%s{f} was ignored."
+            env.Log.Information $"%s{f} was ignored."
             0
         | FormatResult.Unchanged(f, p) ->
-            stdlog $"%s{f} was unchanged."
-            reportProfileInfo profile (f, p)
+            env.Log.Information $"%s{f} was unchanged."
+            reportProfileInfo env.Log settings.Profile (f, p)
             0
         | FormatResult.Error(f, e) ->
-            reportError fs verbosity (f, e)
+            reportError env settings.Verbosity (f, e)
             1
         | FormatResult.InvalidCode(f, _) ->
             let ex: FormatException = invalidResultException f
-            reportError fs verbosity (f, ex)
+            reportError env settings.Verbosity (f, ex)
             1
 
     | None ->
@@ -126,23 +123,23 @@ let reportFormatResults
                 )
 
         summary.Border <- TableBorder.MinimalDoubleHead
-        AnsiConsole.Write summary
+        env.Console.Write summary
 
         for e in errored do
-            reportError fs verbosity e
+            reportError env settings.Verbosity e
 
-        reportProfileInfos profile (oks @ unchanged)
+        reportProfileInfos env.Console settings.Profile (oks @ unchanged)
 
         if errored.Length > 0 then 1 else 0
 
-let reportCheckResults (fs: IFileSystem) (checkResult: CheckResult) =
+let reportCheckResults (env: CliEnvironment) (checkResult: CheckResult) : unit =
     for filename, exn in checkResult.Errors do
-        match Diagnostics.describeParseFailure filename (sourceOf fs filename) exn with
-        | Some parseFailure -> elog parseFailure
-        | None -> elog $"error: Failed to format %s{filename}: %s{exn.ToString()}"
+        match Diagnostics.describeParseFailure filename (sourceOf env.FileSystem filename) exn with
+        | Some parseFailure -> env.Log.Error parseFailure
+        | None -> env.Log.Error $"error: Failed to format %s{filename}: %s{exn.ToString()}"
 
     for filename in checkResult.Formatted do
-        stdlog $"%s{filename} needs formatting"
+        env.Log.Information $"%s{filename} needs formatting"
 
 let describeInputProblem (problem: InputProblem) : string =
     match problem with
@@ -154,26 +151,25 @@ let describeInputProblem (problem: InputProblem) : string =
 let reportFormatCommand (env: CliEnvironment) (settings: CliSettings) (result: FormatCommandResult) : int =
     match result with
     | FormatCommandResult.InvalidInput problem ->
-        elog (describeInputProblem problem)
+        env.Log.Error(describeInputProblem problem)
         1
     | FormatCommandResult.Failed error ->
-        elog $"%s{error.Message}"
+        env.Log.Error $"%s{error.Message}"
         1
-    | FormatCommandResult.Completed results ->
-        reportFormatResults env.FileSystem settings.Profile settings.Verbosity results
+    | FormatCommandResult.Completed results -> reportFormatResults env settings results
 
 let reportCheckCommand (env: CliEnvironment) (result: CheckCommandResult) : int =
     match result with
     | CheckCommandResult.InvalidInput problem ->
-        elog (describeInputProblem problem)
+        env.Log.Error(describeInputProblem problem)
         1
     | CheckCommandResult.Completed(ignored, checkResult) ->
         for file in ignored do
-            logGrEqDetailed $"'%s{file}' was ignored"
+            env.Log.Debug $"'%s{file}' was ignored"
 
         if checkResult.IsValid then
-            logGrEqDetailed "No changes required."
+            env.Log.Debug "No changes required."
             0
         else
-            reportCheckResults env.FileSystem checkResult
+            reportCheckResults env checkResult
             if checkResult.HasErrors then 1 else 99

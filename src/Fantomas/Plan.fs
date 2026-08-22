@@ -4,6 +4,7 @@ open System.IO.Abstractions
 open Fantomas
 open Fantomas.Arguments
 open Fantomas.CommandResult
+open Serilog
 open Fantomas.Paths
 
 [<RequireQualifiedAccess>]
@@ -13,12 +14,13 @@ type WorkItem =
 
 let plan
     (fs: IFileSystem)
+    (log: ILogger)
     (ignoreFile: IgnoreFile option)
     (inputPath: InputPath)
     (outputPath: OutputPath)
     : Result<WorkItem list, InputProblem> =
     let item (inputFile: string) (outputFile: string) : WorkItem =
-        if IgnoreFile.isIgnoredFile ignoreFile inputFile then
+        if IgnoreFile.isIgnoredFile log ignoreFile inputFile then
             WorkItem.Ignored inputFile
         else
             WorkItem.Format(inputFile, outputFile)

@@ -1,6 +1,8 @@
 module Fantomas.Cli
 
 open System.IO.Abstractions
+open Serilog
+open Spectre.Console
 open Fantomas
 open Fantomas.Core
 open Fantomas.Logging
@@ -9,7 +11,9 @@ open Fantomas.Logging
 type CliEnvironment =
     { FileSystem: IFileSystem
       IgnoreFile: IgnoreFile option
-      ReadConfiguration: string -> FormatConfig }
+      ReadConfiguration: string -> FormatConfig
+      Log: ILogger
+      Console: IAnsiConsole }
 
 type CliSettings =
     { Force: bool

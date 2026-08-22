@@ -4,6 +4,7 @@ open System.IO.Abstractions
 open Fantomas
 open Fantomas.Arguments
 open Fantomas.CommandResult
+open Serilog
 
 /// One file's worth of work. Whether a file is ignored is settled here, once, rather than asked
 /// again at every layer that touches the file.
@@ -17,6 +18,7 @@ type WorkItem =
 /// onto an input tree, and where the ignore file is consulted.
 val plan:
     fs: IFileSystem ->
+    log: ILogger ->
     ignoreFile: IgnoreFile option ->
     inputPath: InputPath ->
     outputPath: OutputPath ->

@@ -1,6 +1,7 @@
 namespace Fantomas
 
 open System.IO.Abstractions
+open Serilog
 
 type AbsoluteFilePath =
     private
@@ -38,4 +39,6 @@ module IgnoreFile =
     val findInDirectory:
         fs: IFileSystem -> currentDirectory: string -> loadIgnoreList: (string -> IsPathIgnored) -> IgnoreFile option
 
-    val isIgnoredFile: ignoreFile: IgnoreFile option -> file: string -> bool
+    /// Is the file matched by the ignore file? Deciding that is not something that should fail;
+    /// if it does, the failure is reported through the sink and the file counts as not ignored.
+    val isIgnoredFile: log: ILogger -> ignoreFile: IgnoreFile option -> file: string -> bool

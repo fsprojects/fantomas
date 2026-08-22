@@ -2,7 +2,7 @@ namespace Fantomas
 
 open System.IO.Abstractions
 open Ignore
-open Fantomas.Logging
+open Serilog
 
 type AbsoluteFilePath =
     private
@@ -78,15 +78,20 @@ module IgnoreFile =
         // `find` walks up from a file, so it is given a name that need not exist in the directory.
         find fs loadIgnoreList (fs.Path.Combine(currentDirectory, "_"))
 
-    let isIgnoredFile (ignoreFile: IgnoreFile option) (file: string) : bool =
+    let isIgnoredFile (log: ILogger) (ignoreFile: IgnoreFile option) (file: string) : bool =
         match ignoreFile with
         | None -> false
         | Some ignoreFile ->
-            let fs = ignoreFile.Location.FileSystem
-            let fullPath = AbsoluteFilePath.Create fs file
+            let fs: IFileSystem = ignoreFile.Location.FileSystem
+            let fullPath: AbsoluteFilePath = AbsoluteFilePath.Create fs file
 
             try
                 ignoreFile.IsIgnored fullPath
             with ex ->
-                elog $"%A{ex}"
+                // Matching a path against the ignore file is not something that should fail. If it
+                // does, say which file and which ignore file could not be told apart, and go on to
+                // format the file rather than abandon the run over it.
+                log.Error
+                    $"Could not tell whether '%s{file}' is matched by %s{ignoreFile.Location.FullName}: %s{ex.Message}"
+
                 false
