@@ -412,8 +412,6 @@ let main argv =
 
         match Seq.tryExactlyOne results with
         | Some singleResult ->
-            let fileName f = FileInfo(f).Name
-
             let reportProfileInfo (f, p: ProfileInfo option) =
                 match profile, p with
                 | true, Some pI -> stdlog $"%s{f} Line count: %d{pI.LineCount} Time taken %A{pI.TimeTaken}"
@@ -421,18 +419,18 @@ let main argv =
 
             match singleResult with
             | FormatResult.Formatted(f, _, p) ->
-                stdlog $"%s{fileName f} was formatted."
+                stdlog $"%s{f} was formatted."
                 reportProfileInfo (f, p)
-            | FormatResult.IgnoredFile f -> stdlog $"%s{fileName f} was ignored."
+            | FormatResult.IgnoredFile f -> stdlog $"%s{f} was ignored."
             | FormatResult.Unchanged(f, p) ->
-                stdlog $"%s{fileName f} was unchanged."
+                stdlog $"%s{f} was unchanged."
                 reportProfileInfo (f, p)
             | FormatResult.Error(f, e) ->
-                reportError (fileName f, e)
+                reportError (f, e)
                 exit 1
             | FormatResult.InvalidCode(f, _) ->
                 let ex = invalidResultException f
-                reportError (fileName f, ex)
+                reportError (f, ex)
                 exit 1
 
         | None ->
