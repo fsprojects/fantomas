@@ -4,10 +4,11 @@ open System
 open System.Diagnostics
 open System.IO
 open System.IO.Abstractions
+open System.Text.Json
+open System.Text.Json.Nodes
 open System.Threading
 open System.Threading.Tasks
 open StreamJsonRpc
-open Thoth.Json.Net
 open Fantomas.FCS.Text
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
@@ -141,12 +142,25 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
 
     [<JsonRpcMethod(Methods.Configuration)>]
     member _.Configuration() : string =
+        let jsonString (value: string) : JsonNode = JsonValue.Create value :> JsonNode
+
+        let jsonObject (properties: (string * JsonNode) list) : JsonNode =
+            let node = JsonObject()
+
+            for key, value in properties do
+                node.Add(key, value)
+
+            node :> JsonNode
+
+        let jsonStringArray (values: string list) : JsonNode =
+            JsonArray(values |> List.map jsonString |> List.toArray) :> JsonNode
+
         let settings =
             Reflection.getRecordFields FormatConfig.Default
             |> Array.toList
             |> List.choose (fun (recordField, defaultValue) ->
                 let optionalField key value =
-                    value |> Option.toList |> List.map (fun v -> key, Encode.string v)
+                    value |> Option.toList |> List.map (fun v -> key, v)
 
                 let meta =
                     List.concat
@@ -156,63 +170,41 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
 
                 let type' =
                     match defaultValue with
-                    | :? bool as b ->
-                        Some(
-                            Encode.object
-                                [ yield "type", Encode.string "boolean"
-                                  yield "defaultValue", Encode.string (if b then "true" else "false")
-                                  yield! meta ]
-                        )
-                    | :? int as i ->
-                        Some(
-                            Encode.object
-                                [ yield "type", Encode.string "number"
-                                  yield "defaultValue", Encode.string (string<int> i)
-                                  yield! meta ]
-                        )
+                    | :? bool as b -> Some("boolean", (if b then "true" else "false"))
+                    | :? int as i -> Some("number", string<int> i)
                     | :? MultilineFormatterType as m ->
-                        Some(
-                            Encode.object
-                                [ yield "type", Encode.string "multilineFormatterType"
-                                  yield "defaultValue", Encode.string (MultilineFormatterType.ToConfigString m)
-                                  yield! meta ]
-                        )
-                    | :? EndOfLineStyle as e ->
-                        Some(
-                            Encode.object
-                                [ yield "type", Encode.string "endOfLineStyle"
-                                  yield "defaultValue", Encode.string (EndOfLineStyle.ToConfigString e)
-                                  yield! meta ]
-                        )
+                        Some("multilineFormatterType", MultilineFormatterType.ToConfigString m)
+                    | :? EndOfLineStyle as e -> Some("endOfLineStyle", EndOfLineStyle.ToConfigString e)
                     | :? MultilineBracketStyle as m ->
-                        Some(
-                            Encode.object
-                                [ yield "type", Encode.string "multilineBracketStyle"
-                                  yield "defaultValue", Encode.string (MultilineBracketStyle.ToConfigString m)
-                                  yield! meta ]
-                        )
+                        Some("multilineBracketStyle", MultilineBracketStyle.ToConfigString m)
                     | _ -> None
 
-                type' |> Option.map (fun t -> toEditorConfigName recordField.PropertyName, t))
-            |> Encode.object
+                type'
+                |> Option.map (fun (typeName, defaultString) ->
+                    let value =
+                        ("type", typeName) :: ("defaultValue", defaultString) :: meta
+                        |> List.map (fun (key, value) -> key, jsonString value)
+                        |> jsonObject
+
+                    toEditorConfigName recordField.PropertyName, value))
+            |> jsonObject
 
         let enumOptions =
-            Encode.object
+            jsonObject
                 [ "multilineFormatterType",
-                  Encode.list
-                      [ (MultilineFormatterType.ToConfigString MultilineFormatterType.CharacterWidth
-                         |> Encode.string)
-                        (MultilineFormatterType.ToConfigString MultilineFormatterType.NumberOfItems
-                         |> Encode.string) ]
+                  jsonStringArray
+                      [ MultilineFormatterType.ToConfigString MultilineFormatterType.CharacterWidth
+                        MultilineFormatterType.ToConfigString MultilineFormatterType.NumberOfItems ]
                   "endOfLineStyle",
-                  Encode.list
-                      [ (EndOfLineStyle.ToConfigString EndOfLineStyle.LF |> Encode.string)
-                        (EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF |> Encode.string) ]
+                  jsonStringArray
+                      [ EndOfLineStyle.ToConfigString EndOfLineStyle.LF
+                        EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF ]
                   "multilineBracketStyle",
-                  Encode.list
-                      [ (MultilineBracketStyle.ToConfigString Aligned |> Encode.string)
-                        (MultilineBracketStyle.ToConfigString Cramped |> Encode.string)
-                        (MultilineBracketStyle.ToConfigString Stroustrup |> Encode.string) ] ]
+                  jsonStringArray
+                      [ MultilineBracketStyle.ToConfigString Aligned
+                        MultilineBracketStyle.ToConfigString Cramped
+                        MultilineBracketStyle.ToConfigString Stroustrup ] ]
 
-        Encode.object [ "settings", settings; "enumOptions", enumOptions ]
-        |> Encode.toString 4
+        let json = jsonObject [ "settings", settings; "enumOptions", enumOptions ]
+
+        json.ToJsonString(JsonSerializerOptions(WriteIndented = true, IndentSize = 4))
