@@ -183,7 +183,7 @@ let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
 
 // The context lines a parse failure's snippet is drawn from come from the file itself. This is
 // the error path's last act before the tool gives up on the file, so reading it again is free.
-let sourceOf (file: string) =
+let sourceOf (file: string) : string =
     try
         File.ReadAllText file
     with _ ->
@@ -422,7 +422,7 @@ let main argv =
 
     let reportFormatResults (results: #(FormatResult seq)) =
         let reportError (file: string, exn: Exception) =
-            let describeOther () =
+            let describeOther () : string =
                 let message =
                     match verbosity with
                     | VerbosityLevel.Normal ->

@@ -170,6 +170,25 @@ let ``tabs are expanded in the line and under the caret, so the two stay aligned
           "" ]
 
 [<Test>]
+let ``a tab inside the range widens the caret run by as much as it widened the line`` () =
+    let rendered =
+        Diagnostics.renderParseFailure "bad.fs" "module A\n\nlet a\t= 1\n" [ error 10 "Unexpected" (3, 3) (3, 7) ]
+
+    lines rendered
+    |> should
+        equal
+        [ "Fantomas could not parse bad.fs:"
+          ""
+          "bad.fs(3,4): error FS0010: Unexpected"
+          ""
+          "1 | module A"
+          "2 | "
+          "3 | let a    = 1"
+          "  |    ^^^^^^^"
+          "4 | "
+          "" ]
+
+[<Test>]
 let ``a range that runs past its first line is underlined to the end of that line`` () =
     let rendered =
         Diagnostics.renderParseFailure "bad.fs" source [ error 3118 "Incomplete" (3, 0) (5, 9) ]
