@@ -927,23 +927,52 @@ let sarifResultCount (report: string) : int =
             | Some results -> results.AsArray().Length
             | None -> 0)
 
-/// SARIF carries one run per tool invocation, so the per-project reports merge by concatenating
-/// their runs. GitHub code scanning reads the result as a single upload.
+/// Folds the per-project reports into the one SARIF run that GitHub code scanning takes.
+///
+/// SARIF carries a run per tool invocation, but code scanning rejects a file holding several unless
+/// each names its own category, and one project of this solution is not an analysis of its own. The
+/// runs all come from the same tool, so their results concatenate into a single run. Every
+/// invocation is kept, which is what records that a project was looked at even when it turned up
+/// nothing.
+///
+/// The reports carry no rule metadata, only a `ruleId` per result, so there is no rule table to
+/// renumber against. Should a later version of the analyzers SDK start writing one, this has to
+/// merge that too.
 let mergeSarifReports (reports: string list) (target: string) : unit =
-    let runs =
+    let documents =
         reports
         |> List.filter File.Exists
-        |> List.collect (fun report ->
-            JsonValue.Parse(File.ReadAllText report).GetProperty("runs").AsArray()
-            |> List.ofArray)
+        |> List.map (fun report -> JsonValue.Parse(File.ReadAllText report))
 
-    let merged =
-        JsonValue.Record
-            [| "$schema", JsonValue.String "https://json.schemastore.org/sarif-2.1.0.json"
-               "version", JsonValue.String "2.1.0"
-               "runs", JsonValue.Array(Array.ofList runs) |]
+    let runs =
+        documents
+        |> List.collect (fun document -> document.GetProperty("runs").AsArray() |> List.ofArray)
 
-    File.WriteAllText(target, merged.ToString())
+    match documents, runs with
+    | firstDocument :: _, firstRun :: _ ->
+        let concat (name: string) =
+            runs
+            |> List.collect (fun run ->
+                match run.TryGetProperty name with
+                | Some array -> List.ofArray (array.AsArray())
+                | None -> [])
+            |> Array.ofList
+            |> JsonValue.Array
+
+        let merged =
+            JsonValue.Record
+                [| "$schema", firstDocument.GetProperty("$schema")
+                   "version", firstDocument.GetProperty("version")
+                   "runs",
+                   JsonValue.Array
+                       [| JsonValue.Record
+                              [| "tool", firstRun.GetProperty("tool")
+                                 "columnKind", firstRun.GetProperty("columnKind")
+                                 "results", concat "results"
+                                 "invocations", concat "invocations" |] |] |]
+
+        File.WriteAllText(target, merged.ToString())
+    | _ -> failwith "The analyzers wrote no report to merge."
 
 /// Runs the analyzers over the solution, one process per project, several at a time.
 ///
