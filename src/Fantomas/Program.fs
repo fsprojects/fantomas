@@ -91,8 +91,10 @@ let isSamePath (left: string) (right: string) : bool =
 /// Is a file located inside a folder, at any depth?
 let isInFolder (folder: string) (file: string) : bool =
     let folder =
-        Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar)
-        + string Path.DirectorySeparatorChar
+        String.Concat(
+            Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar),
+            string<char> Path.DirectorySeparatorChar
+        )
 
     Path.GetFullPath(file).StartsWith(folder, StringComparison.Ordinal)
 
