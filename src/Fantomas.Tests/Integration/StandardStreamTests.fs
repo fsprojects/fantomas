@@ -59,7 +59,7 @@ let ``a parse failure is reported with its position and the source around it`` (
 
     exitCode |> should equal 1
     output |> should equal ""
-    Assert.That(error, Does.Contain $"{fileFixture.Filename}(3,9): error FS0583: Unmatched '('")
+    Assert.That(error, Does.Contain $"%s{fileFixture.Filename}(3,9): error FS0583: Unmatched '('")
     Assert.That(error, Does.Contain "3 | let a = (1 + 2")
     Assert.That(error, Does.Contain "  |         ^")
 
@@ -71,5 +71,5 @@ let ``--check reports a parse failure the same way a format run does`` () =
         runFantomasTool [ "--check"; fileFixture.Filename ]
 
     exitCode |> should equal 1
-    Assert.That(error, Does.Contain $"{fileFixture.Filename}(3,9): error FS0583: Unmatched '('")
+    Assert.That(error, Does.Contain $"%s{fileFixture.Filename}(3,9): error FS0583: Unmatched '('")
     Assert.That(error, Does.Not.Contain "at Fantomas.Core.CodeFormatterImpl")
