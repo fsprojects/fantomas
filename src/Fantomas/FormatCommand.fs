@@ -1,15 +1,93 @@
 module Fantomas.FormatCommand
 
+open System
 open System.IO
 open System.Text
-// Fantomas.Core has a FormatResult of its own. Opening Fantomas last is what makes the
-// FormatResult named here the one this project defines.
 open Fantomas.Core
 open Fantomas
 open Fantomas.Logging
 open Fantomas.Arguments
 open Fantomas.CommandResult
 open Fantomas.Paths
+open Fantomas.Plan
+
+type FormatParams =
+    { Config: FormatConfig
+      CompareWithoutLineEndings: bool
+      Profile: bool
+      File: string }
+
+    static member Create(config: FormatConfig, compareWithoutLineEndings: bool, profile: bool, file: string) =
+        { Config = config
+          CompareWithoutLineEndings = compareWithoutLineEndings
+          Profile = profile
+          File = file }
+
+    static member Create(compareWithoutLineEndings: bool, profile: bool, file: string) =
+        { Config = EditorConfig.readConfiguration file
+          CompareWithoutLineEndings = compareWithoutLineEndings
+          Profile = profile
+          File = file }
+
+let private carriageReturn = Text.RegularExpressions.Regex(@"\r")
+
+let formatContentAsync (formatParams: FormatParams) (originalContent: string) : Async<FormatResult> =
+    async {
+        try
+            let isSignatureFile = Path.GetExtension(formatParams.File) = ".fsi"
+
+            let! { Code = formattedContent }, profileInfo =
+                if formatParams.Profile then
+                    async {
+                        let sw = Diagnostics.Stopwatch.StartNew()
+
+                        let! res =
+                            CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, formatParams.Config)
+
+                        sw.Stop()
+
+                        let count =
+                            originalContent.Length - originalContent.Replace(Environment.NewLine, "").Length
+
+                        let profileInfo =
+                            { LineCount = count
+                              TimeTaken = sw.Elapsed }
+
+                        return res, Some profileInfo
+                    }
+                else
+                    async {
+                        let! res =
+                            CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, formatParams.Config)
+
+                        return res, None
+                    }
+
+            let contentChanged =
+                if formatParams.CompareWithoutLineEndings then
+                    let stripNewlines (s: string) = carriageReturn.Replace(s, String.Empty)
+
+                    (stripNewlines originalContent) <> (stripNewlines formattedContent)
+                else
+                    originalContent <> formattedContent
+
+            if contentChanged then
+                let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isSignatureFile, formattedContent)
+
+                if not isValid then
+                    return FormatResult.InvalidCode(filename = formatParams.File, formattedContent = formattedContent)
+                else
+                    return
+                        FormatResult.Formatted(
+                            filename = formatParams.File,
+                            formattedContent = formattedContent,
+                            profileInfo = profileInfo
+                        )
+            else
+                return FormatResult.Unchanged(filename = formatParams.File, profileInfo = profileInfo)
+        with ex ->
+            return FormatResult.Error(formatParams.File, ex)
+    }
 
 let hasByteOrderMark (file: string) : Async<bool> =
     async {
@@ -25,7 +103,13 @@ let hasByteOrderMark (file: string) : Async<bool> =
             return false
     }
 
-let processSourceString (force: bool) (profile: bool) s (fileName: string) config =
+let processSourceString
+    (force: bool)
+    (profile: bool)
+    (s: string)
+    (fileName: string)
+    (config: FormatConfig)
+    : Async<FormatResult> =
     let writeResult (formatted: string) =
         async {
             let! hasBom = hasByteOrderMark fileName
@@ -40,7 +124,7 @@ let processSourceString (force: bool) (profile: bool) s (fileName: string) confi
 
     async {
         let formatParams = FormatParams.Create(config, false, profile, fileName)
-        let! formatted = s |> Format.formatContentAsync formatParams
+        let! formatted = formatContentAsync formatParams s
 
         match formatted with
         | FormatResult.Formatted(_, formattedContent, _) as r ->
@@ -53,18 +137,15 @@ let processSourceString (force: bool) (profile: bool) s (fileName: string) confi
         | FormatResult.Unchanged(file, _) as r ->
             logGrEqDetailed $"'%s{file}' was unchanged"
             return r
-        | FormatResult.IgnoredFile file as r ->
-            logGrEqDetailed $"'%s{file}' was ignored"
-            return r
+        | FormatResult.IgnoredFile _ as r -> return r
         | FormatResult.Error _ as r -> return r
-        | FormatResult.InvalidCode(file, _) ->
-            let ex = Format.invalidResultException file
-            return FormatResult.Error(file, ex)
+        | FormatResult.InvalidCode(file, _) -> return FormatResult.Error(file, invalidResultException file)
     }
 
-let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
+let processSourceFile (force: bool) (profile: bool) (inFile: string) (tw: TextWriter) : Async<FormatResult> =
     async {
-        let! formatted = FormatParams.Create(false, profile, inFile) |> Format.formatFileAsync
+        let! originalContent = File.ReadAllTextAsync inFile |> Async.AwaitTask
+        let! formatted = formatContentAsync (FormatParams.Create(false, profile, inFile)) originalContent
 
         match formatted with
         | FormatResult.Formatted(_, formattedContent, _) as r ->
@@ -75,16 +156,13 @@ let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
             do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
             return FormatResult.Formatted(inFile, formattedContent, None)
         | FormatResult.Unchanged _ as r ->
-            let! input = inFile |> File.ReadAllTextAsync |> Async.AwaitTask
-            do! input |> tw.WriteAsync |> Async.AwaitTask
+            // The content is already in hand, so an unchanged file is copied across from it
+            // rather than read a second time.
+            do! originalContent |> tw.WriteAsync |> Async.AwaitTask
             return r
-        | FormatResult.IgnoredFile file as r ->
-            logGrEqDetailed $"'%s{file}' was ignored"
-            return r
+        | FormatResult.IgnoredFile _ as r -> return r
         | FormatResult.Error _ as r -> return r
-        | FormatResult.InvalidCode(file, _) ->
-            let ex = Format.invalidResultException file
-            return FormatResult.Error(file, ex)
+        | FormatResult.InvalidCode(file, _) -> return FormatResult.Error(file, invalidResultException file)
     }
 
 // The formatted text is collected in memory and the output file is opened only once there
@@ -131,94 +209,31 @@ let processFile (force: bool) (profile: bool) (inputFile: string) (outputFile: s
             return FormatResult.Error(inputFile, e)
     }
 
-let processFolder
-    (force: bool)
-    (profile: bool)
-    (inputFolder: string)
-    (outputFolder: string)
-    : Async<FormatResult> list =
-    if not <| Directory.Exists(outputFolder) then
-        Directory.CreateDirectory(outputFolder) |> ignore
-
-    let inPlace = isSamePath inputFolder outputFolder
-
-    findAllFilesRecursively inputFolder
-    // An output folder inside the input folder is walked over as well, so the previous run's
-    // results would be formatted again and nested one level deeper every time.
-    |> Seq.filter (fun i -> inPlace || not (isInFolder outputFolder i))
-    |> Seq.toList
-    |> List.map (fun i ->
-
-        let o =
-            if inPlace then
-                i
-            else
-                // The output folder mirrors the input tree. Keeping only the file name would
-                // let two files with the same name in different subfolders overwrite each other.
-                // fileToFile creates the folders leading up to the file.
-                Path.Combine(outputFolder, Path.GetRelativePath(inputFolder, i))
-
-        processFile force profile i o)
-
-let filesAndFolders
-    (force: bool)
-    (profile: bool)
-    (files: string list)
-    (folders: string list)
-    : Async<FormatResult> list =
-    let fileTasks =
-        files
-        |> List.map (fun file ->
-            if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
-                logGrEqDetailed $"'%s{file}' was ignored"
-                async.Return(FormatResult.IgnoredFile(file))
-            else
-                processFile force profile file file)
-
-    let folderTasks =
-        folders
-        |> List.collect (fun folder -> processFolder force profile folder folder)
-
-    (fileTasks @ folderTasks)
-
-let asyncRunner (computations: Async<FormatResult> list) : FormatResult array =
-    computations |> Async.Parallel |> Async.RunSynchronously
-
 let runFormatCommand
     (force: bool)
     (profile: bool)
+    (ignoreFile: IgnoreFile option)
     (inputPath: InputPath)
     (outputPath: OutputPath)
     : FormatCommandResult =
     try
+        // An output folder is created even when the run turns out to have nothing to put in it,
+        // which is what a folder that is empty, or entirely ignored, comes to.
         match inputPath, outputPath with
-        | InputPath.NoFSharpFile s, _ -> FormatCommandResult.InvalidInput(InputProblem.UnsupportedFileType s)
-        | InputPath.NotFound s, _ -> FormatCommandResult.InvalidInput(InputProblem.NotFound s)
-        | InputPath.Unspecified, _ -> FormatCommandResult.InvalidInput InputProblem.NoPathGiven
-        | InputPath.File f, _ when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
-            FormatCommandResult.IgnoredFile f
-        | InputPath.Folder p1, OutputPath.NotKnown ->
-            processFolder force profile p1 p1
-            |> asyncRunner
+        | InputPath.Folder _, OutputPath.IO outputFolder when not (Directory.Exists outputFolder) ->
+            Directory.CreateDirectory outputFolder |> ignore
+        | _ -> ()
+
+        match plan ignoreFile inputPath outputPath with
+        | Error problem -> FormatCommandResult.InvalidInput problem
+        | Ok items ->
+            items
+            |> List.map (fun item ->
+                match item with
+                | WorkItem.Ignored file -> async.Return(FormatResult.IgnoredFile file)
+                | WorkItem.Format(inputFile, outputFile) -> processFile force profile inputFile outputFile)
+            |> Async.Parallel
+            |> Async.RunSynchronously
             |> FormatCommandResult.Completed
-        | InputPath.File p1, OutputPath.NotKnown ->
-            processFile force profile p1 p1
-            |> List.singleton
-            |> asyncRunner
-            |> FormatCommandResult.Completed
-        | InputPath.File p1, OutputPath.IO p2 ->
-            processFile force profile p1 p2
-            |> List.singleton
-            |> asyncRunner
-            |> FormatCommandResult.Completed
-        | InputPath.Folder p1, OutputPath.IO p2 ->
-            processFolder force profile p1 p2
-            |> asyncRunner
-            |> FormatCommandResult.Completed
-        | InputPath.Multiple(files, folders), OutputPath.NotKnown ->
-            filesAndFolders force profile files folders
-            |> asyncRunner
-            |> FormatCommandResult.Completed
-        | InputPath.Multiple _, OutputPath.IO _ -> FormatCommandResult.InvalidInput InputProblem.MultiplePathsWithOut
     with exn ->
         FormatCommandResult.Failed exn

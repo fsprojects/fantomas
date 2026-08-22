@@ -72,8 +72,11 @@ let main argv =
 
         daemon.WaitForClose.GetAwaiter().GetResult()
         0
-    elif check then
-        runCheckCommand inputPath |> reportCheckCommand
     else
-        runFormatCommand force profile inputPath outputPath
-        |> reportFormatCommand profile verbosity
+        let ignoreFile = IgnoreFile.current.Force()
+
+        if check then
+            runCheckCommand ignoreFile inputPath |> reportCheckCommand
+        else
+            runFormatCommand force profile ignoreFile inputPath outputPath
+            |> reportFormatCommand profile verbosity

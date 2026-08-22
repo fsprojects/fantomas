@@ -1,25 +1,60 @@
 module Fantomas.CheckCommand
 
+open System.IO
 open Fantomas
 open Fantomas.Arguments
 open Fantomas.CommandResult
-open Fantomas.Paths
+open Fantomas.FormatCommand
+open Fantomas.Plan
 
-let runCheckCommand (inputPath: InputPath) : CheckCommandResult =
-    let check (files: string seq) : CheckCommandResult =
-        Async.RunSynchronously(Format.checkCode files) |> CheckCommandResult.Completed
+let checkCode (filenames: string seq) : Async<CheckResult> =
+    async {
+        let! formatted =
+            filenames
+            |> Seq.map (fun filename ->
+                async {
+                    let! content = File.ReadAllTextAsync filename |> Async.AwaitTask
+                    return! formatContentAsync (FormatParams.Create(true, false, filename)) content
+                })
+            |> Async.Parallel
 
-    match inputPath with
-    | InputPath.NoFSharpFile s -> CheckCommandResult.InvalidInput(InputProblem.UnsupportedFileType s)
-    | InputPath.NotFound s -> CheckCommandResult.InvalidInput(InputProblem.NotFound s)
-    | InputPath.Unspecified -> CheckCommandResult.InvalidInput InputProblem.NoPathGiven
-    | InputPath.File f when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
-        CheckCommandResult.IgnoredFile f
-    | InputPath.File path -> path |> Seq.singleton |> check
-    | InputPath.Folder path -> path |> findAllFilesRecursively |> check
-    | InputPath.Multiple(files, folders) ->
-        seq {
-            yield! files
-            yield! (Seq.collect findAllFilesRecursively folders)
-        }
-        |> check
+        let getChangedFile =
+            function
+            | FormatResult.Unchanged _
+            | FormatResult.IgnoredFile _ -> None
+            | FormatResult.Formatted(f, _, _)
+            | FormatResult.Error(f, _)
+            | FormatResult.InvalidCode(f, _) -> Some f
+
+        let changes = formatted |> Seq.choose getChangedFile |> Seq.toList
+
+        let getErrors =
+            function
+            | FormatResult.Error(f, e) -> Some(f, e)
+            | _ -> None
+
+        let errors = formatted |> Seq.choose getErrors |> Seq.toList
+
+        return { Errors = errors; Formatted = changes }
+    }
+
+let runCheckCommand (ignoreFile: IgnoreFile option) (inputPath: InputPath) : CheckCommandResult =
+    // A check never writes, so the output path it plans against is the input itself.
+    match plan ignoreFile inputPath OutputPath.NotKnown with
+    | Error problem -> CheckCommandResult.InvalidInput problem
+    | Ok items ->
+        let ignored =
+            items
+            |> List.choose (fun item ->
+                match item with
+                | WorkItem.Ignored file -> Some file
+                | WorkItem.Format _ -> None)
+
+        let toCheck =
+            items
+            |> List.choose (fun item ->
+                match item with
+                | WorkItem.Ignored _ -> None
+                | WorkItem.Format(inputFile, _) -> Some inputFile)
+
+        CheckCommandResult.Completed(ignored, Async.RunSynchronously(checkCode toCheck))

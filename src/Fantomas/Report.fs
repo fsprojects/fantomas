@@ -7,6 +7,7 @@ open Spectre.Console
 // FormatResult named here the one this project defines.
 open Fantomas.Core
 open Fantomas
+open Fantomas.CommandResult
 open Fantomas.Logging
 open Fantomas.CommandResult
 
@@ -29,7 +30,7 @@ let partitionResults
         | FormatResult.Unchanged(file, p) -> (oks, ignores, (file, p) :: unchanged, errors)
         | FormatResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors)
         | FormatResult.InvalidCode(file, _) ->
-            let ex = Format.invalidResultException file
+            let ex = invalidResultException file
             (oks, ignores, unchanged, (file, ex :> Exception) :: errors))
 
 let reportError (verbosity: VerbosityLevel) (file: string, exn: Exception) : unit =
@@ -96,7 +97,7 @@ let reportFormatResults (profile: bool) (verbosity: VerbosityLevel) (results: #(
             reportError verbosity (f, e)
             1
         | FormatResult.InvalidCode(f, _) ->
-            let ex = Format.invalidResultException f
+            let ex = invalidResultException f
             reportError verbosity (f, ex)
             1
 
@@ -149,9 +150,6 @@ let reportFormatCommand (profile: bool) (verbosity: VerbosityLevel) (result: For
     | FormatCommandResult.InvalidInput problem ->
         elog (describeInputProblem problem)
         1
-    | FormatCommandResult.IgnoredFile file ->
-        logGrEqDetailed $"'%s{file}' was ignored"
-        0
     | FormatCommandResult.Failed error ->
         elog $"%s{error.Message}"
         1
@@ -162,10 +160,10 @@ let reportCheckCommand (result: CheckCommandResult) : int =
     | CheckCommandResult.InvalidInput problem ->
         elog (describeInputProblem problem)
         1
-    | CheckCommandResult.IgnoredFile file ->
-        logGrEqDetailed $"'%s{file}' was ignored"
-        0
-    | CheckCommandResult.Completed checkResult ->
+    | CheckCommandResult.Completed(ignored, checkResult) ->
+        for file in ignored do
+            logGrEqDetailed $"'%s{file}' was ignored"
+
         if checkResult.IsValid then
             logGrEqDetailed "No changes required."
             0

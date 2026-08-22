@@ -1,10 +1,31 @@
 module Fantomas.FormatCommand
 
+open Fantomas
+open Fantomas.Core
 open Fantomas.Arguments
 open Fantomas.CommandResult
+
+type FormatParams =
+    { Config: FormatConfig
+      CompareWithoutLineEndings: bool
+      Profile: bool
+      File: string }
+
+    /// Read the configuration for the file from the `.editorconfig` files above it.
+    static member Create: bool * bool * string -> FormatParams
+    static member Create: FormatConfig * bool * bool * string -> FormatParams
+
+/// Format content that is already in hand. Whether the file should have been formatted at all is
+/// the caller's business, decided once in `Plan`.
+val formatContentAsync: formatParams: FormatParams -> originalContent: string -> Async<FormatResult>
 
 /// Format the files the input path names, writing each result where the output path says. What
 /// happened is returned rather than printed, so that a caller can inspect it before any of it
 /// reaches a console.
 val runFormatCommand:
-    force: bool -> profile: bool -> inputPath: InputPath -> outputPath: OutputPath -> FormatCommandResult
+    force: bool ->
+    profile: bool ->
+    ignoreFile: IgnoreFile option ->
+    inputPath: InputPath ->
+    outputPath: OutputPath ->
+        FormatCommandResult

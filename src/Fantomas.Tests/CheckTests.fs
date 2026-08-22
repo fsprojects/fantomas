@@ -3,7 +3,7 @@ module Fantomas.Core.Tests.CheckTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelpers
-open Fantomas.Format
+open Fantomas.CheckCommand
 
 [<Literal>]
 let NeedsFormatting =
