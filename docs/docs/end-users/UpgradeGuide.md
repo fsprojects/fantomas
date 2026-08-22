@@ -97,6 +97,46 @@ fsharp_experimental_stroustrup_style = true
 
 ### console application
 - Target framework is now `net10.0`.
+- `--out` now mirrors the structure of the input folder, and creates the folders it needs.
+
+#### `--out <folder>` mirrors the input folder
+
+Up to `v7`, every file found under the input folder was written straight into the root of the
+output folder, whatever its depth. Nesting collapsed, and two files with the same name in
+different subfolders overwrote each other without a warning. From `v8`, the path of each file
+relative to the input folder is preserved:
+
+```
+# input
+src/A.fs
+src/nested/A.fs
+
+# v7: dotnet fantomas src --out out
+out/A.fs           # whichever of the two was formatted last
+
+# v8: dotnet fantomas src --out out
+out/A.fs
+out/nested/A.fs
+```
+
+This is what [Getting Started](./GettingStarted.html) has always described, so no action is
+needed if you followed the documentation. If you relied on the flattening to collect a tree of
+files into a single folder, that step now has to be done by whatever calls Fantomas.
+
+#### `--out` creates the folders it writes into
+
+Up to `v7`, naming an output path whose folder did not exist failed with `Failed to format file`
+and exit code 1. Subfolders of the output folder had to exist up front. From `v8`, Fantomas
+creates them, for both `--out <file>` and `--out <folder>`:
+
+```bash
+# v7: fails unless ./output exists
+# v8: creates ./output
+dotnet fantomas ./input/array.fs --out ./output/array.fs
+```
+
+If your build script creates the output folders before calling Fantomas, it can keep doing so.
+`mkdir -p` and its equivalents are unaffected by this change.
 
 ### Formatting
 

@@ -73,6 +73,14 @@ let findAllFilesRecursively path =
     Directory.GetFiles(path, "*.*", searchOption)
     |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
 
+/// Create the folders leading up to a file, so that writing to a path the user named but never
+/// created succeeds. Path.GetDirectoryName yields an empty string for a bare file name.
+let ensureParentFolderExists (file: string) =
+    let folder = Path.GetDirectoryName(file)
+
+    if not (String.IsNullOrEmpty folder) then
+        Directory.CreateDirectory(folder) |> ignore
+
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
 let private hasByteOrderMark file =
@@ -290,6 +298,7 @@ let main argv =
     let fileToFile (force: bool) (inFile: string) (outFile: string) =
         async {
             logGrEqDetailed $"Processing %s{inFile}"
+            ensureParentFolderExists outFile
             let! hasByteOrderMark = hasByteOrderMark inFile
 
             use buffer =
@@ -335,8 +344,10 @@ let main argv =
 
             let o =
                 if inputFolder <> outputFolder then
-                    let fileName = Path.GetFileName(i)
-                    Path.Combine(outputFolder, fileName)
+                    // The output folder mirrors the input tree. Keeping only the file name would
+                    // let two files with the same name in different subfolders overwrite each other.
+                    // fileToFile creates the folders leading up to the file.
+                    Path.Combine(outputFolder, Path.GetRelativePath(inputFolder, i))
                 else
                     i
 
