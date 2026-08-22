@@ -73,6 +73,31 @@ let findAllFilesRecursively path =
     Directory.GetFiles(path, "*.*", searchOption)
     |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
 
+/// Create the folders leading up to a file, so that writing to a path the user named but never
+/// created succeeds. Path.GetDirectoryName yields an empty string for a bare file name.
+let ensureParentFolderExists (file: string) : unit =
+    let folder = Path.GetDirectoryName(file)
+
+    if not (String.IsNullOrEmpty folder) then
+        Directory.CreateDirectory(folder) |> ignore
+
+/// Do two paths name the same location? `src` and `./src` do, and comparing them as they were
+/// typed does not say so. This is about spelling, not about the file system: a path reached
+/// through a symbolic link, or through a spelling a case insensitive volume accepts, is not
+/// recognised here. Nothing may depend on a negative answer to avoid destroying a file.
+let isSamePath (left: string) (right: string) : bool =
+    String.Equals(Path.GetFullPath left, Path.GetFullPath right, StringComparison.Ordinal)
+
+/// Is a file located inside a folder, at any depth?
+let isInFolder (folder: string) (file: string) : bool =
+    let folder =
+        String.Concat(
+            Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar),
+            string<char> Path.DirectorySeparatorChar
+        )
+
+    Path.GetFullPath(file).StartsWith(folder, StringComparison.Ordinal)
+
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
 let private hasByteOrderMark file =
@@ -287,34 +312,43 @@ let main argv =
 
     AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> closeAndFlushLog ())
 
-    let fileToFile (force: bool) (inFile: string) (outFile: string) =
+    // The formatted text is collected in memory and the output file is opened only once there
+    // is something to put in it. Opening it up front truncates it before the input is read,
+    // which empties the input when both paths turn out to name the same file, and leaves a
+    // zero byte file behind whenever formatting does not complete.
+    let fileToFile (force: bool) (inFile: string) (outFile: string) : Async<FormatResult> =
         async {
             logGrEqDetailed $"Processing %s{inFile}"
-            let! hasByteOrderMark = hasByteOrderMark inFile
-
-            use buffer =
-                if hasByteOrderMark then
-                    new StreamWriter(
-                        new FileStream(outFile, FileMode.OpenOrCreate, FileAccess.ReadWrite),
-                        Encoding.UTF8
-                    )
-                else
-                    new StreamWriter(outFile)
-
+            use buffer = new StringWriter()
             let! processResult = processSourceFile force profile inFile buffer
 
-            do! buffer.FlushAsync() |> Async.AwaitTask
-            logGrEqDetailed $"%s{outFile} has been written."
+            match processResult with
+            | FormatResult.Formatted _
+            | FormatResult.Unchanged _ ->
+                let! hasByteOrderMark = hasByteOrderMark inFile
+                ensureParentFolderExists outFile
+                let contents = buffer.ToString()
+
+                if hasByteOrderMark then
+                    do! File.WriteAllTextAsync(outFile, contents, Encoding.UTF8) |> Async.AwaitTask
+                else
+                    do! File.WriteAllTextAsync(outFile, contents) |> Async.AwaitTask
+
+                logGrEqDetailed $"%s{outFile} has been written."
+            | FormatResult.IgnoredFile _
+            | FormatResult.InvalidCode _
+            | FormatResult.Error _ -> ()
+
             return processResult
         }
 
     let stringToFile (force: bool) (s: string) (outFile: string) config =
         async { return! processSourceString force profile s outFile config }
 
-    let processFile force inputFile outputFile =
+    let processFile (force: bool) (inputFile: string) (outputFile: string) : Async<FormatResult> =
         async {
             try
-                if inputFile <> outputFile then
+                if not (isSamePath inputFile outputFile) then
                     return! fileToFile force inputFile outputFile
                 else
                     logGrEqDetailed $"Processing %s{inputFile}"
@@ -325,20 +359,27 @@ let main argv =
                 return FormatResult.Error(inputFile, e)
         }
 
-    let processFolder force inputFolder outputFolder =
+    let processFolder (force: bool) (inputFolder: string) (outputFolder: string) : Async<FormatResult> list =
         if not <| Directory.Exists(outputFolder) then
             Directory.CreateDirectory(outputFolder) |> ignore
 
+        let inPlace = isSamePath inputFolder outputFolder
+
         findAllFilesRecursively inputFolder
+        // An output folder inside the input folder is walked over as well, so the previous run's
+        // results would be formatted again and nested one level deeper every time.
+        |> Seq.filter (fun i -> inPlace || not (isInFolder outputFolder i))
         |> Seq.toList
         |> List.map (fun i ->
 
             let o =
-                if inputFolder <> outputFolder then
-                    let fileName = Path.GetFileName(i)
-                    Path.Combine(outputFolder, fileName)
-                else
+                if inPlace then
                     i
+                else
+                    // The output folder mirrors the input tree. Keeping only the file name would
+                    // let two files with the same name in different subfolders overwrite each other.
+                    // fileToFile creates the folders leading up to the file.
+                    Path.Combine(outputFolder, Path.GetRelativePath(inputFolder, i))
 
             processFile force i o)
 
