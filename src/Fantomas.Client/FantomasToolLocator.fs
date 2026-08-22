@@ -115,7 +115,7 @@ let (|CompatibleTool|_|) (lines: string list) : FantomasVersion voption =
 
     match lines with
     | HeaderLine :: Dashes :: Tools tools ->
-        let tool =
+        let tool: (string * string) option =
             List.tryFind
                 (fun (packageId, version) ->
                     match packageId, version with
@@ -123,7 +123,11 @@ let (|CompatibleTool|_|) (lines: string list) : FantomasVersion voption =
                     | _ -> false)
                 tools
 
-        tool |> ValueOption.ofOption |> ValueOption.map (snd >> FantomasVersion)
+        // Folded to match `normalizeVersion`. Daemons are cached under this string and the two
+        // producers are compared as plain strings, so both sides have to normalise the same way.
+        match tool with
+        | None -> ValueNone
+        | Some(_, version) -> ValueSome(FantomasVersion(version.ToLowerInvariant()))
     | _ -> ValueNone
 
 let isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -141,11 +145,22 @@ let normalizeVersion (printed: string) : string =
         else
             text
 
-    let printed = printed.Trim() |> dropPrefix "fantomas" |> dropPrefix "v"
+    let printed: string = printed.Trim() |> dropPrefix "fantomas" |> dropPrefix "v"
 
-    match printed.IndexOf('+') with
-    | -1 -> printed
-    | index -> printed.Substring(0, index)
+    let buildMetadata: int = printed.IndexOf('+')
+
+    let withoutBuildMetadata: string =
+        if buildMetadata = -1 then
+            printed
+        else
+            printed.Substring(0, buildMetadata)
+
+    // Folded, and folded on the other side too, in `CompatibleTool`. Doing it here alone would be
+    // worse than not doing it: the two producers have to agree, and they are compared as plain
+    // strings. Semver reads prerelease identifiers case sensitively, so this is a deliberate
+    // decision that `8.0.0-Alpha-014` and `8.0.0-alpha-014` name one Fantomas, which is true of
+    // every package either path can resolve.
+    withoutBuildMetadata.ToLowerInvariant()
 
 /// How long a freshly started daemon has to answer the version handshake before it is given up on.
 [<Literal>]

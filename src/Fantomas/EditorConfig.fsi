@@ -49,6 +49,13 @@ val supportedSettings: string list
 /// Matched without regard to case, as editorconfig matches keys.
 val isFantomasSetting: setting: string -> bool
 
+/// How many single character edits turn one setting name into the other, stopping once the answer
+/// is known to be above `limit`.
+val editDistance: limit: int -> left: string -> right: string -> int
+
+/// The supported setting closest to `setting`, when one is within `limit` edits of it.
+val nearestSetting: limit: int -> setting: string -> string option
+
 /// Read a `FormatConfig` from editorconfig properties, falling back to `fallbackConfig` for
 /// anything the properties do not set. Keys and values are both matched without regard to case,
 /// as editorconfig defines them, and when two keys fold onto one the last wins. Returns the

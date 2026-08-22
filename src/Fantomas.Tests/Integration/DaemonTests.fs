@@ -96,7 +96,7 @@ let private theOnlyWarning (warnings: ConfigurationWarning list) : Configuration
         Assert.Fail $"Expected exactly one configuration warning, got %A{otherwise}"
         failwith "unreachable"
 
-let private problemsOf (warning: ConfigurationWarning) =
+let private problemsOf (warning: ConfigurationWarning) : (int * int * string * string) array =
     warning.Problems
     |> Array.map (fun problem -> problem.Code, problem.Source, problem.Setting, problem.Value)
 

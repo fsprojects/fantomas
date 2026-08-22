@@ -12,6 +12,10 @@ type EditorConfigReporter = string -> EditorConfigProblem list -> unit
 /// settings a user is pointed at are tied to a version they can act on.
 val fantomasVersion: string
 
+/// How far a setting may be from a supported one before the guess is worse than silence.
+[<Literal>]
+val MaximumSuggestionDistance: int = 3
+
 /// The supported setting closest to one Fantomas does not have, when there is a close one.
 /// A prefixed spelling of a setting editorconfig itself defines, `fsharp_max_line_length` for
 /// `max_line_length`, is answered outright; anything else has to be within a few characters.
@@ -31,8 +35,9 @@ val describeSupportedSettings: unit -> string
 
 /// A reporter over `log`. Writes each distinct report once, however many files are formatted:
 /// the command line reads the same `.editorconfig` again for every one of them, and without
-/// this a single typo would be reported once per file. At debug verbosity it also writes the
-/// supported settings out, once per run.
+/// this a single typo would be reported once per file. At debug verbosity the first report it
+/// writes is followed by the supported settings, once per run; a run with nothing to report says
+/// nothing at all.
 val createReporter: log: ILogger -> EditorConfigReporter
 
 /// Read the `.editorconfig` that applies to a file, reporting anything in it Fantomas cannot use.

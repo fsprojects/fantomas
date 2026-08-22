@@ -10,39 +10,20 @@ open Fantomas.EditorConfig
 type EditorConfigReporter = string -> EditorConfigProblem list -> unit
 
 let fantomasVersion: string =
-    let version = CodeFormatter.GetVersion()
+    let version: string = CodeFormatter.GetVersion()
+    let buildMetadata: int = version.IndexOf('+')
 
-    match version.IndexOf('+') with
-    | -1 -> version
-    | index -> version.Substring(0, index)
-
-/// How many single character edits turn one setting name into the other, capped at `limit` so a
-/// name nothing like any of ours stops being measured early rather than walking every candidate
-/// to the end.
-let editDistance (limit: int) (left: string) (right: string) : int =
-    if abs (left.Length - right.Length) > limit then
-        limit + 1
+    if buildMetadata = -1 then
+        version
     else
-        let mutable previous = Array.init (right.Length + 1) id
-        let mutable current = Array.zeroCreate<int> (right.Length + 1)
-
-        for row in 1 .. left.Length do
-            current[0] <- row
-
-            for column in 1 .. right.Length do
-                let substitution =
-                    previous[column - 1] + (if left[row - 1] = right[column - 1] then 0 else 1)
-
-                current[column] <- min (min (current[column - 1] + 1) (previous[column] + 1)) substitution
-
-            let swap = previous
-            previous <- current
-            current <- swap
-
-        min previous[right.Length] (limit + 1)
+        version.Substring(0, buildMetadata)
 
 /// Close enough that naming the other one is help rather than noise. Three edits is roughly a
 /// doubled letter, a dropped one and a swapped pair; beyond that the guess is worse than silence.
+///
+/// Deliberately looser than `MaximumUnprefixedTypoDistance`, which decides whether to say anything
+/// at all. By the time a suggestion is offered we have already decided the setting is a mistake,
+/// so a slightly wilder guess costs nothing.
 [<Literal>]
 let MaximumSuggestionDistance = 3
 
@@ -60,15 +41,7 @@ let suggestionFor (setting: string) : string option =
 
     match unprefixed with
     | Some unprefixed when List.contains unprefixed supportedSettings -> Some unprefixed
-    | _ ->
-        supportedSettings
-        |> List.choose (fun candidate ->
-            match editDistance MaximumSuggestionDistance setting candidate with
-            | distance when distance <= MaximumSuggestionDistance -> Some(candidate, distance)
-            | _ -> None)
-        |> List.sortBy snd
-        |> List.tryHead
-        |> Option.map fst
+    | _ -> nearestSetting MaximumSuggestionDistance setting
 
 /// Settings and values are quoted the way the rest of the tool quotes what it was given, and for
 /// the same reason: both are text someone else wrote. A value can be empty, or carry spaces, or
@@ -116,8 +89,10 @@ let createReporter (log: ILogger) : EditorConfigReporter =
     // Files are formatted in parallel, so more than one of them can arrive here at once. The whole
     // report is one message rather than a line each: written as several, another thread's report
     // can land in the middle of this one.
-    let reported = ConcurrentDictionary<string, unit>()
-    let supportedSettingsWritten = ref 0
+    let reported: ConcurrentDictionary<string, unit> =
+        ConcurrentDictionary<string, unit>()
+
+    let supportedSettingsWritten: int ref = ref 0
 
     fun origin problems ->
         match describe origin problems with

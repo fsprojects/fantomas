@@ -53,6 +53,29 @@ Documentation comments belong in the signature file only, never in both. A `///`
 alongside one in the `.fsi` is a second copy to keep in step, and the one readers and tooling see
 is the signature.
 
+In a `match`, put the shortest arm first:
+
+```fsharp
+match tool with
+| None -> ValueNone
+| Some(_, version) -> ValueSome(FantomasVersion(version.ToLowerInvariant()))
+```
+
+The short arm is nearly always the one that gets out of the way, and reading it first says what the
+rest of the expression is not about. It is also the order `fsharp_experimental_keep_indent_in_branch`
+wants: with the long arm last, its body can hold the indentation of the match instead of stepping in
+another level. Nothing here is formatted with that setting on, but writing the arms in the order
+that suits it costs nothing.
+
+Never write `<|`. Parenthesise instead:
+
+```fsharp
+oneAtATimePerFile request.FilePath (fun () -> task { ... })
+```
+
+It reads against the direction everything around it is written in, and it puts no visible boundary
+where the argument starts.
+
 ## Changelog
 
 When updating `CHANGELOG.md`, add new entries to the **end** of the relevant section (e.g. `### Fixed`), not the top. One entry per issue.

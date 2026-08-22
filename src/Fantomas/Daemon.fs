@@ -44,8 +44,8 @@ let configurationFor
     : FormatConfig * ConfigurationWarning =
     let config, editorConfigFiles, fileProblems =
         match readConfiguration filePath with
-        | Some result -> result.Config, result.EditorConfigFiles, result.Problems
         | None -> FormatConfig.Default, [], []
+        | Some result -> result.Config, result.EditorConfigFiles, result.Problems
 
     let fromEditorConfig =
         List.map (toConfigurationProblem ConfigurationProblemSource.EditorConfig) fileProblems

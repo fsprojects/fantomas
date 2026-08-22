@@ -43,14 +43,14 @@ let private operationsFor
             created |> Result.iter recorder.Record
             created }
 
-let private findsVersion (version: FantomasVersion) (folder: Folder) =
+let private findsVersion (version: FantomasVersion) (folder: Folder) : Result<FantomasToolFound, FantomasToolError> =
     Ok(FantomasToolFound(version, FantomasToolStartInfo.LocalTool folder))
 
-let private startsFine (nextId: int ref) (startInfo: FantomasToolStartInfo) =
+let private startsFine (nextId: int ref) (startInfo: FantomasToolStartInfo) : Result<FakeDaemon, ProcessStartError> =
     nextId.Value <- nextId.Value + 1
     Ok(new FakeDaemon(nextId.Value, startInfo))
 
-let private neverStarts (_: FantomasToolStartInfo) =
+let private neverStarts (_: FantomasToolStartInfo) : Result<FakeDaemon, ProcessStartError> =
     Error(ProcessStartError.UnExpectedException("dotnet", "fantomas --daemon", "boom"))
 
 let private expectOk (result: Result<'a, GetDaemonError>) : 'a =
@@ -108,6 +108,27 @@ let ``a daemon that crashed is replaced, and the one it replaces is disposed`` (
     Assert.That(first.Disposed, Is.True)
     // Restarted the way the daemon it replaces was started, not the way this folder resolves now.
     Assert.That((second :> IDaemon).StartInfo, Is.EqualTo (first :> IDaemon).StartInfo)
+
+// The daemon is shared by every folder on its version, so which folder happens to notice it has
+// died must not decide where the replacement runs. The cached-folder path always restarted it as it
+// was started; this path used to restart it the way the noticing folder resolves now.
+[<Test>]
+let ``a crashed daemon is restarted as it was started, whichever folder notices`` () =
+    let recorder = Recorder()
+    let operations = operationsFor recorder (findsVersion version) (startsFine (ref 0))
+
+    // `/repo` starts it, `/repo/nested` is the one that finds it dead.
+    let first, state = resolveDaemon operations ServiceState.Empty folder
+    (expectOk first).Running <- false
+
+    let replacement, _ = resolveDaemon operations state nested
+    let replacement = expectOk replacement
+
+    Assert.That(
+        (replacement :> IDaemon).StartInfo,
+        Is.EqualTo(FantomasToolStartInfo.LocalTool folder),
+        "the replacement should run where the daemon it replaces ran, not where the folder that noticed does"
+    )
 
 // The regression this is here for: dropping a version from the cache used to leave every folder
 // that resolved to it pointing at a version with no daemon. That is the one state resolveDaemon

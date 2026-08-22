@@ -91,7 +91,7 @@ Worth knowing:
   empty `Problems` array when the configuration is fine. That is what lets you clear a warning
   once the user fixes it.
 - You can have as many format requests in flight as you like. Warnings for one file arrive in the
-  order you asked for them, because the daemon serves one request at a time per file, so an empty
+  order the daemon received them, because the daemon serves one request at a time per file, so an empty
   one never overtakes problems that are still current. Requests for different files are served
   concurrently and their warnings interleave; `FilePath` is what tells them apart.
 - Nothing is coalesced. Several requests queued for one file each run to completion in turn, so a
@@ -111,7 +111,10 @@ Worth knowing:
   than allowed to fault the connection, so nothing is lost but nothing is reported either.
 
 If you are talking to the daemon yourself rather than through `Fantomas.Client`, the notification
-arrives on `fantomas/configurationWarning` carrying one object:
+arrives on `fantomas/configurationWarning` carrying one object. The shape of that object is below.
+The framing around it is StreamJsonRpc's default, which is JSON-RPC with `Content-Length` headers,
+the same as the Language Server Protocol uses, so this is what the payload looks like and not what
+goes on the wire byte for byte:
 
 ```json
 {
@@ -175,7 +178,7 @@ let schema = service.ConfigurationAsync("/home/me/MyProject/Library.fs").Result
 
 ```fsharp
 // Stop every daemon this service started. Call it when your tool shuts down.
-(service :> System.IDisposable).Dispose()
+service.Dispose()
 ```
 
 `ClearCache` throws away the daemons without disposing the service, which is what you want after the

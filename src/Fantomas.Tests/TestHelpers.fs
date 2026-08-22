@@ -97,10 +97,10 @@ type OutputFolder internal () =
 
 /// A folder of its own, holding an `.editorconfig` and one F# file it applies to.
 ///
-/// A test that reads configuration from disk needs the two next to each other, and
-/// `ConfigurationFile` writes its `.editorconfig` straight into the temp folder, where every other
-/// test doing the same finds it. `root = true` goes in front of the content so the chain stops
-/// here rather than picking up whatever sits above the temp folder on this machine.
+/// A test that reads configuration from disk needs the two next to each other. Writing the
+/// `.editorconfig` straight into the temp folder, as this used to, puts it where every other test
+/// doing the same finds it. `root = true` goes in front of the content so the chain stops here
+/// rather than picking up whatever sits above the temp folder on this machine.
 type ConfiguredCodeSample internal (editorConfig: string, codeSnippet: string, ?extension: string) =
     let folder = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString("N"))
     do Directory.CreateDirectory folder |> ignore
@@ -239,7 +239,10 @@ let defaultSettings: CliSettings =
 /// A `DaemonEnvironment` over the given file system, reading whatever configuration is handed in
 /// rather than an `.editorconfig` on disk. Enough for a test about what the daemon does with a
 /// configuration, as opposed to one about where the configuration came from.
-let daemonEnvironment (fs: IFileSystem) (readConfiguration: string -> EditorConfig.EditorConfigResult option) =
+let daemonEnvironment
+    (fs: IFileSystem)
+    (readConfiguration: string -> EditorConfig.EditorConfigResult option)
+    : DaemonEnvironment =
     { FileSystem = fs
       ReadConfiguration = readConfiguration
       Log = silentLogger }

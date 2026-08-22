@@ -194,6 +194,19 @@ fsharp_max_function_binding_width=40
     config.MaxValueBindingWidth == 40
     config.MaxFunctionBindingWidth == 40
 
+// A section header with no keys under it sets nothing, so there is no configuration to hand back
+// and nothing to complain about.
+[<Test>]
+let ``an editorconfig that sets nothing reads as no configuration at all`` () =
+    let rootDir = tempName ()
+
+    use _configFixture =
+        new ConfigurationFile(defaultConfig, rootDir, content = "\n[*.fs]\n")
+
+    use fsharpFile = new FSharpFile(rootDir)
+
+    EditorConfig.tryReadConfiguration fsharpFile.FSharpFile == None
+
 [<Test>]
 let ``non existing file should return defaults for readConfiguration`` () =
     let rootDir = tempName ()
@@ -731,6 +744,41 @@ let ``an unparsable value for a Fantomas setting is still reported`` () =
 
     problems
     == [ EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_max_record_width", "banana") ]
+
+// A mistake in `max_line_length` was silently ignored exactly as a mistake in a `fsharp_` setting
+// was, and it is the same mistake.
+[<Test>]
+let ``a misspelling of an unprefixed setting is reported too`` () =
+    let _, problems = parse [ "max_line_lenght", "100" ]
+
+    problems
+    == [ EditorConfig.EditorConfigProblem.UnknownSetting "max_line_lenght" ]
+
+// The reason the distance for unprefixed keys is tighter than the one a suggestion is offered at.
+// `indent_style` is three edits from `indent_size` and sits in very nearly every `.editorconfig`
+// ever written; warning about it would put a false report in front of almost every user.
+[<Test>]
+let ``settings other tools really use are not read as misspellings of ours`` () =
+    let _, problems =
+        parse
+            [ "indent_style", "space"
+              "tab_width", "4"
+              "trim_trailing_whitespace", "true"
+              "charset", "utf-8"
+              "root", "true"
+              "quote_type", "double"
+              "dotnet_diagnostic_CA1000_severity", "none" ]
+
+    problems == []
+
+[<Test>]
+let ``a negative width is not a width`` () =
+    let config, problems = parse [ "fsharp_max_record_width", "-5" ]
+
+    problems
+    == [ EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_max_record_width", "-5") ]
+
+    config.MaxRecordWidth == defaultConfig.MaxRecordWidth
 
 [<Test>]
 let ``settings belonging to other tools are left alone`` () =

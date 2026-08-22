@@ -30,7 +30,8 @@ type internal IDaemon =
     /// than the way the folder asking for it resolves now.
     abstract StartInfo: FantomasToolStartInfo
 
-    /// Whether the process behind it is still up.
+    /// Whether it can still serve a request: the process is up and the connection to it has not
+    /// ended. A daemon failing either half is disposed and replaced.
     abstract IsRunning: bool
 
 /// How the cache reaches the world. Only the two things it cannot answer for itself: everything a

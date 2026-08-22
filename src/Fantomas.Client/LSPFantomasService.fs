@@ -57,11 +57,11 @@ let startDaemon
     (state: ServiceState<'daemon>)
     : Result<'daemon, GetDaemonError> * ServiceState<'daemon> =
     match operations.Create startInfo with
+    | Error error -> Error(GetDaemonError.FantomasProcessStart error), forgetVersion version state
     | Ok daemon ->
         Ok daemon,
         { Daemons = Map.add version daemon state.Daemons
           FolderToVersion = Map.add folder version state.FolderToVersion }
-    | Error error -> Error(GetDaemonError.FantomasProcessStart error), forgetVersion version state
 
 let rec resolveDaemon
     (operations: DaemonOperations<'daemon>)
@@ -106,8 +106,17 @@ let rec resolveDaemon
                     FolderToVersion = Map.add folder version state.FolderToVersion }
             | running ->
                 // A daemon that crashed is replaced, but dispose it first so the handles it still
-                // holds are released.
-                running |> Option.iter (fun daemon -> (daemon :> IDaemon).Dispose())
+                // holds are released. The replacement is started the way the dead one was, not the
+                // way this folder resolves now, so that a daemon two folders share does not change
+                // working directory depending on which of them happened to notice it had died.
+                let startInfo =
+                    match running with
+                    | None -> startInfo
+                    | Some daemon ->
+                        let asItWasStarted = (daemon :> IDaemon).StartInfo
+                        (daemon :> IDaemon).Dispose()
+                        asItWasStarted
+
                 startDaemon operations version startInfo folder state
         | Error FantomasToolError.NoCompatibleVersionFound -> Error GetDaemonError.InCompatibleVersionFound, state
         | Error(FantomasToolError.DotNetListError error) -> Error(GetDaemonError.DotNetToolListError error), state
@@ -120,7 +129,13 @@ type CachedDaemon(tool: RunningFantomasTool) =
 
     interface IDaemon with
         member _.StartInfo = tool.StartInfo
-        member _.IsRunning = not tool.Process.HasExited
+
+        member _.IsRunning =
+            // Both halves matter. A process that is up but whose connection has ended can never
+            // answer again, and handing its `RpcClient` out means every request from then on fails
+            // against a daemon the cache still believes in.
+            not tool.Process.HasExited && not tool.RpcClient.Completion.IsCompleted
+
         member _.Dispose() = (tool :> IDisposable).Dispose()
 
 let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWarning -> unit) : MailboxProcessor<Msg> =

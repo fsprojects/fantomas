@@ -69,11 +69,14 @@ type RunningFantomasTool =
 
     interface IDisposable with
         member this.Dispose() : unit =
+            // Connection first: a call still pending faults on a closed connection, which it is
+            // written to expect, rather than on a stream that vanished under it.
+            this.RpcClient.Dispose()
+
             if not this.Process.HasExited then
                 this.Process.Kill()
 
             this.Process.Dispose()
-            this.RpcClient.Dispose()
 
 [<RequireQualifiedAccess>]
 type ProcessStartError =

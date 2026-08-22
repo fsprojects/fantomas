@@ -77,7 +77,9 @@ let parseSettingValue (defaultValue: obj) (value: string) : obj option =
     match defaultValue with
     | :? int ->
         match System.Int32.TryParse(value) with
-        | true, number -> Some(box number)
+        // No setting Fantomas has means anything below zero, and a run that took one would format
+        // to nonsense widths without ever saying so.
+        | true, number when number >= 0 -> Some(box number)
         | _ -> None
     | :? bool ->
         if value = "true" then Some(box true)
@@ -136,9 +138,73 @@ let supportedSettings: string list =
 let supportedSettingLookup: HashSet<string> =
     HashSet<string>(settingNames, System.StringComparer.OrdinalIgnoreCase)
 
+/// How many single character edits turn one setting name into the other, capped at `limit`.
+///
+/// The cap answers without measuring when the two lengths already differ by more than it. Anything
+/// past that is measured in full, so two names of the same length are compared character by
+/// character however unalike they are.
+let editDistance (limit: int) (left: string) (right: string) : int =
+    if abs (left.Length - right.Length) > limit then
+        limit + 1
+    else
+        let mutable previous = Array.init (right.Length + 1) id
+        let mutable current = Array.zeroCreate<int> (right.Length + 1)
+
+        for row in 1 .. left.Length do
+            current[0] <- row
+
+            for column in 1 .. right.Length do
+                let substitution =
+                    previous[column - 1] + (if left[row - 1] = right[column - 1] then 0 else 1)
+
+                current[column] <- min (min (current[column - 1] + 1) (previous[column] + 1)) substitution
+
+            let swap = previous
+            previous <- current
+            current <- swap
+
+        min previous[right.Length] (limit + 1)
+
+/// The supported setting closest to `setting`, when one is within `limit` edits of it.
+///
+/// Two candidates the same distance away are separated by the order of `supportedSettings`, since
+/// `List.sortBy` is stable. Not a case anyone reaches by mistyping: the two closest settings
+/// Fantomas has are three edits apart, so a tie takes a string built on purpose to sit between
+/// them.
+let nearestSetting (limit: int) (setting: string) : string option =
+    supportedSettings
+    |> List.choose (fun candidate ->
+        match editDistance limit setting candidate with
+        | distance when distance <= limit -> Some(candidate, distance)
+        | _ -> None)
+    |> List.sortBy snd
+    |> List.tryHead
+    |> Option.map fst
+
+/// How far an unprefixed key may be from a setting Fantomas has before it is read as a misspelling
+/// of it rather than as something belonging to another tool.
+///
+/// Tighter than the distance a suggestion is offered at, and it has to be. `indent_style` is three
+/// edits from `indent_size`, and it is in very nearly every `.editorconfig` ever written; warning
+/// about it would put a false report in front of almost every user. Two edits reaches every
+/// realistic typo, `max_line_lenght` included, and reaches nothing anyone meant to write.
+[<Literal>]
+let MaximumUnprefixedTypoDistance = 2
+
+/// Whether an unprefixed key looks like a misspelling of a setting Fantomas has, rather than a
+/// setting belonging to some other tool. `fsharp_`-prefixed keys are ours by construction, so this
+/// only has to judge the ones that carry no prefix.
+let looksLikeAMisspelling (setting: string) : bool =
+    (nearestSetting MaximumUnprefixedTypoDistance setting).IsSome
+
 let unknownFantomasSettings (settings: string seq) : EditorConfigProblem list =
     settings
-    |> Seq.filter isFantomasSetting
+    |> Seq.filter (fun setting ->
+        // Anything carrying our prefix is ours to complain about. Anything without one belongs to
+        // another tool unless it is close enough to one of ours to be a typo of it: a mistake in
+        // `max_line_length` is silently ignored exactly as a mistake in a `fsharp_` setting was,
+        // and it is the same mistake.
+        isFantomasSetting setting || looksLikeAMisspelling setting)
     |> Seq.sortWith compareSettings
     |> Seq.choose (fun setting ->
         if supportedSettingLookup.Contains setting then
@@ -156,7 +222,7 @@ let parseOptionsFromEditorConfig
     // here rather than in one caller: a key that differs only in case would otherwise match no
     // setting and raise no warning either. Each entry carries the spelling it was written with,
     // so a problem names what the author typed rather than the folded form.
-    let properties =
+    let properties: Dictionary<string, struct (string * string)> =
         let properties =
             Dictionary<string, struct (string * string)>(System.StringComparer.OrdinalIgnoreCase)
 
@@ -165,7 +231,8 @@ let parseOptionsFromEditorConfig
 
         properties
 
-    let unrecognizedValues = ResizeArray<string * string>()
+    let unrecognizedValues: ResizeArray<string * string> =
+        ResizeArray<string * string>()
 
     let newValues =
         getFantomasFields fallbackConfig
