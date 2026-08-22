@@ -123,11 +123,16 @@ This is what [Getting Started](./GettingStarted.html) has always described, so n
 needed if you followed the documentation. If you relied on the flattening to collect a tree of
 files into a single folder, that step now has to be done by whatever calls Fantomas.
 
+An output folder that sits inside the input folder is left out of the scan. Up to `v7`, running
+`dotnet fantomas src --out src/formatted` picked the previous run's output back up as input,
+which the flattening hid; with the tree preserved it would nest one folder deeper on every run.
+
 #### `--out` creates the folders it writes into
 
-Up to `v7`, naming an output path whose folder did not exist failed with `Failed to format file`
-and exit code 1. Subfolders of the output folder had to exist up front. From `v8`, Fantomas
-creates them, for both `--out <file>` and `--out <folder>`:
+Up to `v7`, `--out <file>` failed with `Failed to format file` and exit code 1 when the folder
+of the path given to it did not exist. The root of an `--out <folder>` was always created for
+you. From `v8`, Fantomas creates whatever folder it has to write into, which includes the
+subfolders the mirroring above needs:
 
 ```bash
 # v7: fails unless ./output exists
