@@ -18,7 +18,7 @@ let ``errors are written to standard error and not to standard out`` () =
 
     exitCode |> should equal 1
     output |> should equal ""
-    Assert.That(error, Does.Contain "Could not parse the file.")
+    Assert.That(error, Does.Contain "error FS0010:")
 
 [<Test>]
 let ``progress messages are written to standard out and not to standard error`` () =
@@ -45,3 +45,31 @@ let ``version is written to standard out`` () =
     exitCode |> should equal 0
     Assert.That(output, Does.Contain "Fantomas v")
     error |> should equal ""
+
+// A parse failure is the one error an agent or a CI job can act on without opening the file,
+// provided it is told where the failure is.
+[<Test>]
+let ``a parse failure is reported with its position and the source around it`` () =
+    use fileFixture = new TemporaryFileCodeSample("module A\n\nlet a = (1 + 2\n")
+
+    let { ExitCode = exitCode
+          Output = output
+          Error = error } =
+        formatCode [ fileFixture.Filename ]
+
+    exitCode |> should equal 1
+    output |> should equal ""
+    Assert.That(error, Does.Contain $"%s{fileFixture.Filename}(3,9): error FS0583: Unmatched '('")
+    Assert.That(error, Does.Contain "3 | let a = (1 + 2")
+    Assert.That(error, Does.Contain "  |         ^")
+
+[<Test>]
+let ``--check reports a parse failure the same way a format run does`` () =
+    use fileFixture = new TemporaryFileCodeSample("module A\n\nlet a = (1 + 2\n")
+
+    let { ExitCode = exitCode; Error = error } =
+        runFantomasTool [ "--check"; fileFixture.Filename ]
+
+    exitCode |> should equal 1
+    Assert.That(error, Does.Contain $"%s{fileFixture.Filename}(3,9): error FS0583: Unmatched '('")
+    Assert.That(error, Does.Not.Contain "at Fantomas.Core.CodeFormatterImpl")

@@ -181,14 +181,22 @@ let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
             return FormatResult.Error(file, ex)
     }
 
-let private reportCheckResults (checkResult: CheckResult) =
-    checkResult.Errors
-    |> List.map (fun (filename, exn) -> $"error: Failed to format %s{filename}: %s{exn.ToString()}")
-    |> Seq.iter elog
+// The context lines a parse failure's snippet is drawn from come from the file itself. This is
+// the error path's last act before the tool gives up on the file, so reading it again is free.
+let sourceOf (file: string) : string =
+    try
+        File.ReadAllText file
+    with _ ->
+        String.Empty
 
-    checkResult.Formatted
-    |> List.map (fun filename -> $"%s{filename} needs formatting")
-    |> Seq.iter stdlog
+let reportCheckResults (checkResult: CheckResult) =
+    for filename, exn in checkResult.Errors do
+        match Diagnostics.describeParseFailure filename (sourceOf filename) exn with
+        | Some parseFailure -> elog parseFailure
+        | None -> elog $"error: Failed to format %s{filename}: %s{exn.ToString()}"
+
+    for filename in checkResult.Formatted do
+        stdlog $"%s{filename} needs formatting"
 
 let runCheckCommand (inputPath: InputPath) : int =
     let check files =
@@ -414,29 +422,32 @@ let main argv =
 
     let reportFormatResults (results: #(FormatResult seq)) =
         let reportError (file: string, exn: Exception) =
-            let message =
-                match verbosity with
-                | VerbosityLevel.Normal ->
-                    match exn with
-                    | :? ParseException -> "Could not parse the file."
-                    | :? DefineParseException as dpe ->
-                        let combinations =
-                            dpe.Combinations
-                            |> List.map (fun c -> if c = "no defines" then "no defines" else $"[%s{c}]")
-                            |> String.concat ", "
+            let describeOther () : string =
+                let message =
+                    match verbosity with
+                    | VerbosityLevel.Normal ->
+                        match exn with
+                        | :? DefineParseException as dpe ->
+                            let combinations =
+                                dpe.Combinations
+                                |> List.map (fun c -> if c = "no defines" then "no defines" else $"[%s{c}]")
+                                |> String.concat ", "
 
-                        $"When Fantomas encounters #if directives in a file, it tries to format all possible combinations of defines and will merge all different versions back into one.\nFor %s{combinations}, however, we were not able to parse the file.\nWhile you may not use this combination in your project, Fantomas requires it to produce valid code.\nConsider fixing the code or ignoring this file.\nFor more information see: https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html"
-                    | :? FormatException as fe -> fe.Message
-                    | _ -> ""
-                | VerbosityLevel.Detailed -> $"%A{exn}"
+                            $"When Fantomas encounters #if directives in a file, it tries to format all possible combinations of defines and will merge all different versions back into one.\nFor %s{combinations}, however, we were not able to parse the file.\nWhile you may not use this combination in your project, Fantomas requires it to produce valid code.\nConsider fixing the code or ignoring this file.\nFor more information see: https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html"
+                        | :? FormatException as fe -> fe.Message
+                        | _ -> ""
+                    | VerbosityLevel.Detailed -> $"%A{exn}"
 
-            let message =
                 if String.IsNullOrEmpty message then
-                    message
+                    $"Failed to format file: %s{file}"
                 else
-                    $" : %s{message}"
+                    $"Failed to format file: %s{file} : %s{message}"
 
-            elog $"Failed to format file: %s{file}%s{message}"
+            // A parse failure describes itself, positions and all, rather than being reduced to a
+            // single line saying only that it happened.
+            match Diagnostics.describeParseFailure file (sourceOf file) exn with
+            | Some parseFailure -> elog parseFailure
+            | None -> elog (describeOther ())
 
         let reportProfileInfos (results: (string * ProfileInfo option) list) =
             if profile && not (List.isEmpty results) then
