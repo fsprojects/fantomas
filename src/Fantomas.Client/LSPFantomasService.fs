@@ -31,13 +31,15 @@ type Msg =
     | GetDaemon of folder: Folder * replyChannel: AsyncReplyChannel<Result<JsonRpc, GetDaemonError>>
     | Reset of AsyncReplyChannel<unit>
 
+type IDaemon =
+    inherit IDisposable
+    abstract StartInfo: FantomasToolStartInfo
+    abstract IsRunning: bool
+
 [<NoComparison; NoEquality>]
-type DaemonOperations<'daemon> =
+type DaemonOperations<'daemon when 'daemon :> IDaemon> =
     { FindTool: Folder -> Result<FantomasToolFound, FantomasToolError>
-      Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError>
-      StartInfo: 'daemon -> FantomasToolStartInfo
-      IsRunning: 'daemon -> bool
-      Dispose: 'daemon -> unit }
+      Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError> }
 
 /// Forget a version, and with it every folder that resolved to it. Leaving those folders behind
 /// would pin them to a version with no daemon, which is the one state `resolveDaemon` cannot get
@@ -70,15 +72,15 @@ let resolveDaemon
     match Map.tryFind folder state.FolderToVersion with
     | Some version ->
         match Map.tryFind version state.Daemons with
-        | Some daemon when operations.IsRunning daemon ->
+        | Some daemon when (daemon :> IDaemon).IsRunning ->
             Ok daemon,
             { state with
                 FolderToVersion = Map.add folder version state.FolderToVersion }
         | Some daemon ->
             // A weird situation where the process has crashed. Dispose what is left of it so the
             // handles it still holds are released, then reboot it the way it was started.
-            let startInfo = operations.StartInfo daemon
-            operations.Dispose daemon
+            let startInfo = (daemon :> IDaemon).StartInfo
+            (daemon :> IDaemon).Dispose()
             startDaemon operations version startInfo folder state
         | None ->
             // This is a strange situation, we know what version is linked to that folder but there
@@ -96,20 +98,31 @@ let resolveDaemon
             // The reused daemon keeps the StartInfo it was created with, so a restart after a crash
             // resolves the tool the way the first folder did rather than the way this one just did.
             match Map.tryFind version state.Daemons with
-            | Some daemon when operations.IsRunning daemon ->
+            | Some daemon when (daemon :> IDaemon).IsRunning ->
                 Ok daemon,
                 { state with
                     FolderToVersion = Map.add folder version state.FolderToVersion }
             | running ->
                 // A daemon that crashed is replaced, but dispose it first so the handles it still
                 // holds are released.
-                Option.iter operations.Dispose running
+                running |> Option.iter (fun daemon -> (daemon :> IDaemon).Dispose())
                 startDaemon operations version startInfo folder state
         | Error FantomasToolError.NoCompatibleVersionFound -> Error GetDaemonError.InCompatibleVersionFound, state
         | Error(FantomasToolError.DotNetListError error) -> Error(GetDaemonError.DotNetToolListError error), state
 
+/// A `RunningFantomasTool` as the cache sees it. A wrapper rather than an implementation on the
+/// type itself, so that `IDaemon` stays inside this module: `RunningFantomasTool` is part of the
+/// package, and it has no business growing an interface that exists to describe a cache.
+type CachedDaemon(tool: RunningFantomasTool) =
+    member _.Tool: RunningFantomasTool = tool
+
+    interface IDaemon with
+        member _.StartInfo = tool.StartInfo
+        member _.IsRunning = not tool.Process.HasExited
+        member _.Dispose() = (tool :> IDisposable).Dispose()
+
 let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWarning -> unit) : MailboxProcessor<Msg> =
-    let operations: DaemonOperations<RunningFantomasTool> =
+    let operations: DaemonOperations<CachedDaemon> =
         { FindTool = findFantomasTool
           Create =
             fun startInfo ->
@@ -118,14 +131,11 @@ let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWa
                     // Subscribed here rather than where the daemon is handed out, so that it happens
                     // once per daemon however many folders end up sharing it.
                     daemon.ConfigurationWarnings.Add onConfigurationWarning
-                    daemon)
-          StartInfo = fun daemon -> daemon.StartInfo
-          IsRunning = fun daemon -> not daemon.Process.HasExited
-          Dispose = fun daemon -> (daemon :> IDisposable).Dispose() }
+                    new CachedDaemon(daemon)) }
 
     MailboxProcessor.Start(
         (fun inbox ->
-            let rec messageLoop (state: ServiceState<RunningFantomasTool>) =
+            let rec messageLoop (state: ServiceState<CachedDaemon>) =
                 async {
                     let! msg = inbox.Receive()
 
@@ -133,11 +143,11 @@ let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWa
                         match msg with
                         | GetDaemon(folder, replyChannel) ->
                             let daemon, nextState = resolveDaemon operations state folder
-                            replyChannel.Reply(Result.map (fun daemon -> daemon.RpcClient) daemon)
+                            replyChannel.Reply(Result.map (fun (daemon: CachedDaemon) -> daemon.Tool.RpcClient) daemon)
                             nextState
                         | Reset replyChannel ->
                             Map.toList state.Daemons
-                            |> List.iter (fun (_, daemon) -> operations.Dispose daemon)
+                            |> List.iter (fun (_, daemon) -> (daemon :> IDaemon).Dispose())
 
                             replyChannel.Reply()
                             ServiceState.Empty

@@ -2,9 +2,8 @@ module Fantomas.Client.LSPFantomasService
 
 open Fantomas.Client.LSPFantomasServiceTypes
 
-/// Which daemon serves which folder. Written over an abstract daemon rather than over
-/// `RunningFantomasTool` so that the cache can be exercised without starting a process: nothing
-/// here does IO, every effect goes through `DaemonOperations`.
+/// Which daemon serves which folder. `'daemon` is anything satisfying `IDaemon`; the tool itself
+/// uses a `RunningFantomasTool`, and a test uses a record with a flag on it.
 [<NoComparison; NoEquality>]
 type internal ServiceState<'daemon> =
     { Daemons: Map<FantomasVersion, 'daemon>
@@ -21,14 +20,28 @@ type internal GetDaemonError =
     /// cache in that state; reaching it means something else emptied `Daemons`.
     | CompatibleVersionIsKnownButNoDaemonIsRunning of version: FantomasVersion
 
-/// Everything the cache does to a daemon and to the world, so that a test can supply all of it.
+/// What the cache needs of a daemon it is holding: enough to tell a live one from a crashed one,
+/// to start a replacement the way the original was started, and to let one go.
+///
+/// This, rather than `RunningFantomasTool`, is what `'daemon` stands for everywhere in this module.
+/// It is an interface so that the cache can be exercised without starting a process: everything
+/// here is a question about a daemon, and none of it needs the daemon to be a real one.
+type internal IDaemon =
+    inherit System.IDisposable
+
+    /// How this daemon was started, so a crashed one can be replaced the way it was created rather
+    /// than the way the folder asking for it resolves now.
+    abstract StartInfo: FantomasToolStartInfo
+
+    /// Whether the process behind it is still up.
+    abstract IsRunning: bool
+
+/// How the cache reaches the world. Only the two things it cannot answer for itself: everything a
+/// daemon knows about itself is on `IDaemon`.
 [<NoComparison; NoEquality>]
-type internal DaemonOperations<'daemon> =
+type internal DaemonOperations<'daemon when 'daemon :> IDaemon> =
     { FindTool: Folder -> Result<FantomasToolFound, FantomasToolError>
-      Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError>
-      StartInfo: 'daemon -> FantomasToolStartInfo
-      IsRunning: 'daemon -> bool
-      Dispose: 'daemon -> unit }
+      Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError> }
 
 /// Hand out the daemon serving `folder`, starting one if no running daemon serves its version yet,
 /// along with the cache that leaves behind. Daemons are keyed by version rather than by folder, so
@@ -38,6 +51,7 @@ val internal resolveDaemon:
     state: ServiceState<'daemon> ->
     folder: Folder ->
         Result<'daemon, GetDaemonError> * ServiceState<'daemon>
+        when 'daemon :> IDaemon
 
 type LSPFantomasService =
     interface Contracts.FantomasService

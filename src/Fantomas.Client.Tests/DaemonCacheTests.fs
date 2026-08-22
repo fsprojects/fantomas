@@ -4,31 +4,33 @@ open NUnit.Framework
 open Fantomas.Client.LSPFantomasService
 open Fantomas.Client.LSPFantomasServiceTypes
 
-/// A stand-in for a running daemon. `resolveDaemon` is written over an abstract daemon precisely
-/// so this can be a number: a real `RunningFantomasTool` needs a process, and the questions here
-/// are all about which daemon the cache hands out and what it forgets, not about processes.
-type private FakeDaemon =
-    { Id: int
-      StartInfo: FantomasToolStartInfo
-      mutable Running: bool
-      mutable Disposed: bool }
+/// A stand-in for a running daemon: everything `IDaemon` asks for and nothing else. A real
+/// `RunningFantomasTool` needs a live process, and the questions here are all about which daemon
+/// the cache hands out and what it forgets, not about processes.
+type private FakeDaemon(id: int, startInfo: FantomasToolStartInfo) =
+    member val Running = true with get, set
+    member val Disposed = false with get, set
+    member _.Id: int = id
+
+    interface IDaemon with
+        member _.StartInfo = startInfo
+        member this.IsRunning = this.Running
+
+        member this.Dispose() =
+            this.Disposed <- true
+            this.Running <- false
 
 type private Recorder() =
     let created = ResizeArray<FakeDaemon>()
-    let disposed = ResizeArray<FakeDaemon>()
 
     member _.Created: FakeDaemon list = List.ofSeq created
-    member _.Disposed: FakeDaemon list = List.ofSeq disposed
-
     member _.Record(daemon: FakeDaemon) = created.Add daemon
-    member _.RecordDisposed(daemon: FakeDaemon) = disposed.Add daemon
 
 let private version = FantomasVersion "8.0.0"
 let private otherVersion = FantomasVersion "7.0.5"
 let private folder = Folder "/repo"
 let private nested = Folder "/repo/nested"
 
-/// Operations that find `version` for every folder and start a daemon that stays up.
 let private operationsFor
     (recorder: Recorder)
     (find: Folder -> Result<FantomasToolFound, FantomasToolError>)
@@ -39,26 +41,14 @@ let private operationsFor
         fun startInfo ->
             let created = create startInfo
             created |> Result.iter recorder.Record
-            created
-      StartInfo = fun daemon -> daemon.StartInfo
-      IsRunning = fun daemon -> daemon.Running
-      Dispose =
-        fun daemon ->
-            daemon.Disposed <- true
-            daemon.Running <- false
-            recorder.RecordDisposed daemon }
+            created }
 
 let private findsVersion (version: FantomasVersion) (folder: Folder) =
     Ok(FantomasToolFound(version, FantomasToolStartInfo.LocalTool folder))
 
 let private startsFine (nextId: int ref) (startInfo: FantomasToolStartInfo) =
     nextId.Value <- nextId.Value + 1
-
-    Ok
-        { Id = nextId.Value
-          StartInfo = startInfo
-          Running = true
-          Disposed = false }
+    Ok(FakeDaemon(nextId.Value, startInfo))
 
 let private neverStarts (_: FantomasToolStartInfo) =
     Error(ProcessStartError.UnExpectedException("dotnet", "fantomas --daemon", "boom"))
@@ -117,7 +107,7 @@ let ``a daemon that crashed is replaced, and the one it replaces is disposed`` (
     Assert.That(second.Id, Is.Not.EqualTo first.Id)
     Assert.That(first.Disposed, Is.True)
     // Restarted the way the daemon it replaces was started, not the way this folder resolves now.
-    Assert.That(second.StartInfo, Is.EqualTo first.StartInfo)
+    Assert.That((second :> IDaemon).StartInfo, Is.EqualTo (first :> IDaemon).StartInfo)
 
 // The regression this is here for: dropping a version from the cache used to leave every folder
 // that resolved to it pointing at a version with no daemon. That is the one state resolveDaemon
