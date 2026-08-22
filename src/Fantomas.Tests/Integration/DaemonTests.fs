@@ -640,6 +640,20 @@ let ``two requests for the same file do not overlap`` () =
     use codeFile = new TemporaryFileCodeSample(sourceCode)
     overlapOf codeFile.Filename codeFile.Filename |> should equal 1
 
+// One file reached through two spellings is still one file on Windows and on a default macOS
+// volume, and nothing canonicalises the path on the way in, so the gates fold case.
+[<Test>]
+let ``two spellings of one file share a gate`` () =
+    use codeFile = new TemporaryFileCodeSample(sourceCode)
+
+    let shouted =
+        System.IO.Path.Combine(
+            System.IO.Path.GetDirectoryName codeFile.Filename,
+            (System.IO.Path.GetFileName codeFile.Filename).ToUpperInvariant()
+        )
+
+    overlapOf codeFile.Filename shouted |> should equal 1
+
 // Only the same file waits. Formatting a repository is the whole point of having several in flight.
 [<Test>]
 let ``two requests for different files still run at the same time`` () =

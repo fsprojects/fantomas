@@ -154,7 +154,13 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
     ///
     /// A gate per file, kept for the life of the daemon. Bounded by the number of distinct files one
     /// session formats, and a `SemaphoreSlim` nobody is waiting on costs very little.
-    let fileGates = ConcurrentDictionary<string, SemaphoreSlim>()
+    /// Keyed without regard to case, as editorconfig keys are read in this branch, so that one file
+    /// reached through two spellings does not get two gates and quietly lose the guarantee. Windows
+    /// and a default macOS volume both make that reachable, and the client checks a path is absolute
+    /// without canonicalising it. On a case sensitive file system this can make two genuinely
+    /// different files share a gate, which costs a little concurrency and nothing else.
+    let fileGates =
+        ConcurrentDictionary<string, SemaphoreSlim>(StringComparer.OrdinalIgnoreCase)
 
     let oneAtATimePerFile (filePath: string) (work: unit -> Task<'response>) : Task<'response> =
         task {
@@ -187,6 +193,10 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
             traceListener.Dispose()
             disconnectEvent.Dispose()
 
+            // Not waited on. A request still in flight at this point can find a disposed gate and
+            // come back as an exception response, which nobody reads: the client is going away,
+            // which is why we are here. Deliberate, rather than awaiting `rpc.Completion` and
+            // hanging shutdown on a daemon that is stuck.
             for gate in fileGates.Values do
                 gate.Dispose()
 

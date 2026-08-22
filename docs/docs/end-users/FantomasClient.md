@@ -94,6 +94,10 @@ Worth knowing:
   order you asked for them, because the daemon serves one request at a time per file, so an empty
   one never overtakes problems that are still current. Requests for different files are served
   concurrently and their warnings interleave; `FilePath` is what tells them apart.
+- Nothing is coalesced. Several requests queued for one file each run to completion in turn, so a
+  tool that fires a burst of them will see latency grow with the length of the queue. None of them
+  is served stale input, because each request carries its own `SourceCode`, but if you format on
+  every keystroke you want to be dropping your own superseded requests rather than sending them.
 - `EditorConfigFiles` holds the absolute paths of the `.editorconfig` files that contributed. Which
   one a given problem came from is not knowable, because editorconfig merges the whole chain into a
   single set of properties before Fantomas sees it. There is no line number either, so name the

@@ -322,7 +322,12 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
                   ConfigurationWarnings = configurationWarnings.Publish }
         with ex ->
             let error =
-                if daemonProcess.HasExited then
+                // A timeout says nothing about what was being waited for, so say it here. The next
+                // field report should carry a number someone can argue about rather than "it said
+                // something timed out".
+                if (ex :? TimeoutException) then
+                    $"Daemon did not answer the version request within %i{handshakeTimeoutInMs} ms."
+                elif daemonProcess.HasExited then
                     // `HasExited` only says the process is gone; the handler above is fed
                     // asynchronously and can still be behind. `WaitForExit` with no timeout is the
                     // one overload that waits for the readers to drain too, so without it the
