@@ -62,7 +62,7 @@ let ``a single file that could not be parsed is reported with the path it was gi
     let { ExitCode = exitCode; Error = error } = formatCode [ path ]
 
     exitCode |> should equal 1
-    error |> should contain $"Failed to format file: %s{path}"
+    error |> should contain $"Fantomas could not parse %s{path}:"
 
 [<Test>]
 let ``a file that could not be parsed is reported the same way among several files`` () =
@@ -80,4 +80,4 @@ let ``a file that could not be parsed is reported the same way among several fil
         formatCode [ path; otherFixture.Filename ]
 
     exitCode |> should equal 1
-    error |> should contain $"Failed to format file: %s{path}"
+    error |> should contain $"Fantomas could not parse %s{path}:"

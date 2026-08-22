@@ -98,7 +98,8 @@ fsharp_experimental_stroustrup_style = true
 ### console application
 - Target framework is now `net10.0`.
 - Warnings and errors are written to standard error instead of standard out. A script that captured standard out to detect failures needs to capture standard error as well. Informational output stays on standard out, including `--version` and the files `--check` reports as needing formatting.
-- A run over a single file reports the path it was given rather than only the file name, so `fantomas src/A.fs` prints `src/A.fs was formatted.` where it printed `A.fs was formatted.`. The same applies to the unchanged, ignored and `Failed to format file` messages. A run over several files already reported the path, so a script that handled both cases can now treat them alike.
+- A run over a single file reports the path it was given rather than only the file name, so `fantomas src/A.fs` prints `src/A.fs was formatted.` where it printed `A.fs was formatted.`. The same applies to the unchanged, ignored and failure messages. A run over several files already reported the path, so a script that handled both cases can now treat them alike.
+- A file that cannot be parsed is reported with the position of each diagnostic instead of `Could not parse the file.`, one line per diagnostic in the shape `src/A.fs(3,9): error FS0583: Unmatched '('`, followed by the source around the failure with a caret under it. `--check` reported the same failure as an exception dump with a stack trace and now uses this as well. A script that matched on `Could not parse the file.` needs to match on the new text.
 - The `--help` page is written by Fantomas instead of by Argu, and `-h` is accepted alongside `--help`. An argument error prints its complaint on standard error followed by a pointer to `--help`, where it used to print Argu's usage block.
 
 ### Formatting
