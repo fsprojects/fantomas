@@ -115,7 +115,7 @@ let renderParseFailure (file: string) (source: string) (diagnostics: FSharpParse
       yield "" ]
     |> String.concat "\n"
 
-let describeParseFailure (file: string) (source: string) (error: exn) : string option =
+let describeParseFailure (file: string) (source: unit -> string) (error: exn) : string option =
     match error with
-    | ParseException diagnostics -> Some(renderParseFailure file source diagnostics)
+    | ParseException diagnostics -> Some(renderParseFailure file (source ()) diagnostics)
     | _ -> None

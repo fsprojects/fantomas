@@ -3,8 +3,17 @@ module Fantomas.Tests.TestHelpers
 open System
 open System.Diagnostics
 open System.IO
+open System.IO.Abstractions
 open System.Text
+open Serilog
+open Serilog.Core
+open Serilog.Events
+open Spectre.Console
 open Fantomas
+open Fantomas.Cli
+open Fantomas.Core
+open Fantomas.Logging
+open Fantomas.Daemon
 
 [<RequireQualifiedAccess>]
 module String =
@@ -108,23 +117,144 @@ type FantomasIgnoreFile internal (content: string) =
             if File.Exists(filename) then
                 File.Delete(filename)
 
+/// Create every file, and the folders leading to it, in the given file system.
+let makeFileHierarchy (fs: IFileSystem) (filePaths: string list) : unit =
+    for path in filePaths do
+        let fileInfo: IFileInfo = fs.FileInfo.New path
+        fileInfo.Directory.Create()
+        fs.File.WriteAllText(fileInfo.FullName, "some text")
+
+/// The root a `MockFileSystem` hangs its paths from, so that a test never writes a path by hand
+/// and never has to know which platform it is running on.
+let mockRoot (fs: IFileSystem) : string =
+    fs.Path.GetTempPath() |> fs.Path.GetPathRoot
+
+/// A logger that writes nowhere, for a test that does not care what was logged.
+let silentLogger: ILogger = LoggerConfiguration().CreateLogger()
+
+/// What a run wrote, gathered per level rather than per stream: which stream a level lands on is
+/// `Logging.createLogger`'s business, and this is about the messages.
+type CollectedLog =
+    { Information: string list
+      Warning: string list
+      Error: string list
+      Fatal: string list
+      Debug: string list }
+
+type private CollectingSink() =
+    let events: ResizeArray<LogEvent> = ResizeArray()
+
+    member _.Events: LogEvent list = lock events (fun () -> List.ofSeq events)
+
+    interface ILogEventSink with
+        member _.Emit(logEvent: LogEvent) : unit =
+            lock events (fun () -> events.Add logEvent)
+
+/// A logger that keeps what was written, and a way to read it back.
+let collectingLogger () : ILogger * (unit -> CollectedLog) =
+    let sink: CollectingSink = CollectingSink()
+
+    let logger: ILogger =
+        LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Sink(sink).CreateLogger()
+
+    let collected () : CollectedLog =
+        let atLevel (level: LogEventLevel) : string list =
+            sink.Events
+            |> List.choose (fun (e: LogEvent) -> if e.Level = level then Some(e.RenderMessage()) else None)
+
+        { Information = atLevel LogEventLevel.Information
+          Warning = atLevel LogEventLevel.Warning
+          Error = atLevel LogEventLevel.Error
+          Fatal = atLevel LogEventLevel.Fatal
+          Debug = atLevel LogEventLevel.Debug }
+
+    logger, collected
+
+/// A Spectre console that draws into a string rather than onto a terminal. Colour and width are
+/// pinned so that what it draws does not depend on the terminal the tests happen to run in.
+let recordingConsole () : IAnsiConsole * (unit -> string) =
+    let writer: StringWriter = new StringWriter()
+
+    let console: IAnsiConsole =
+        AnsiConsole.Create(
+            AnsiConsoleSettings(
+                Ansi = AnsiSupport.No,
+                ColorSystem = ColorSystemSupport.NoColors,
+                Out = AnsiConsoleOutput(writer)
+            )
+        )
+
+    console.Profile.Width <- 200
+    console, (fun () -> writer.ToString())
+
+/// A `CliEnvironment` that keeps whatever a run writes, with the two ways to read it back.
+[<NoComparison; NoEquality>]
+type RecordedRun =
+    {
+        Environment: CliEnvironment
+        /// What was logged, per level.
+        Log: unit -> CollectedLog
+        /// What Spectre drew, as text.
+        Drawn: unit -> string
+    }
+
+/// An environment over the given file system that records rather than prints, honouring the given
+/// ignore file and reading no `.editorconfig`.
+let recordingEnvironment (fs: IFileSystem) (ignoreFile: IgnoreFile option) : RecordedRun =
+    let logger, collected = collectingLogger ()
+    let console, drawn = recordingConsole ()
+
+    { Environment =
+        { FileSystem = fs
+          IgnoreFile = ignoreFile
+          ReadConfiguration =
+            fun _ ->
+                { FormatConfig.Default with
+                    EndOfLine = EndOfLineStyle.LF }
+          Log = logger
+          Console = console }
+      Log = collected
+      Drawn = drawn }
+
+/// The settings a run gets when nothing was asked for on the command line.
+let defaultSettings: CliSettings =
+    { Force = false
+      Profile = false
+      Verbosity = VerbosityLevel.Normal }
+
+/// A `DaemonEnvironment` over the real file system, as the tool itself builds one.
+let realDaemonEnvironment: DaemonEnvironment =
+    { FileSystem = FileSystem()
+      ReadConfiguration = EditorConfig.readConfiguration
+      Log = Log.Logger }
+
+/// A `CliEnvironment` over the real file system, honouring no ignore file. Enough for a test that
+/// wants the tool's own behaviour without standing up a mock.
+let realEnvironment: CliEnvironment =
+    { FileSystem = FileSystem()
+      IgnoreFile = None
+      ReadConfiguration = EditorConfig.readConfiguration
+      Log = Log.Logger
+      Console = AnsiConsole.Console }
+
 type FantomasToolResult =
     { ExitCode: int
       Output: string
       Error: string }
 
-let getFantomasToolStartInfo arguments : ProcessStartInfo =
-    let pwd = Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
-
-    let configuration =
+let getFantomasToolStartInfo (arguments: string list) : ProcessStartInfo =
+    let configuration: string =
 #if DEBUG
         "debug"
 #else
         "release"
 #endif
 
-    let fantomasDll =
-        Path.Combine(pwd, "..", "..", "Fantomas", configuration, "fantomas.dll")
+    // Resolved from where this file sits rather than from where the test assembly is running,
+    // because those are not the same place under a coverage run: AltCover executes the tests from
+    // an instrumented copy of the output folder.
+    let fantomasDll: string =
+        Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "artifacts", "bin", "Fantomas", configuration, "fantomas.dll")
         |> Path.GetFullPath
 
     if not (File.Exists fantomasDll) then

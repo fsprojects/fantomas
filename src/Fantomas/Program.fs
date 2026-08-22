@@ -1,318 +1,58 @@
+module Program
+
 open System
-open System.IO
+open System.IO.Abstractions
 open Fantomas.Core
 open Fantomas
 open Fantomas.Daemon
 open Fantomas.Logging
+open Fantomas.Arguments
+open Fantomas.Cli
+open Fantomas.FormatCommand
+open Fantomas.Report
+open Fantomas.CheckCommand
 open Argu
-open System.Text
+open Serilog
 open Spectre.Console
 
-let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
-
-[<HelpFlags("--help", "-h")>]
-type Arguments =
-    | [<Unique>] Force
-    | [<Unique>] Profile
-    | [<Unique>] Out of string
-    | [<Unique>] Check
-    | [<Unique>] Daemon
-    | [<Unique>] Version
-    | [<Unique; AltCommandLine("-v")>] Verbosity of string
-    | [<MainCommand>] Input of string list
-
-    interface IArgParserTemplate with
-        member s.Usage =
-            match s with
-            | Force -> "Print the output even if it is not valid F# code. For debugging purposes only."
-            | Out _ ->
-                "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only. Multiple files/folders are not supported."
-            | Profile -> "Print performance profiling information."
-            | Check ->
-                "Report which files need formatting and write nothing. Exits with 0 when every file is already formatted, with 99 when some file needs formatting, and with 1 when an error occurred."
-            | Daemon -> "Daemon mode, launches an LSP-like server that can be used by editor tooling."
-            | Version -> "Displays the version of Fantomas"
-            | Input _ ->
-                sprintf
-                    "Input paths: can be multiple folders or files with %s extension."
-                    (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
-            | Verbosity _ -> "Set the verbosity level. Allowed values are n[ormal] and d[etailed]."
-
-[<RequireQualifiedAccess>]
-type InputPath =
-    | File of string
-    | Folder of string
-    | Multiple of files: string list * folder: string list
-    | NoFSharpFile of string
-    | NotFound of string
-    | Unspecified
-
-[<RequireQualifiedAccess>]
-type OutputPath =
-    | IO of string
-    | NotKnown
-
-type Table with
-
-    member x.SetBorder(border: TableBorder) =
-        x.Border <- border
-        x
-
-let isInExcludedDir (fullPath: string) =
-    set [| "obj"; ".fable"; "fable_modules"; "node_modules" |]
-    |> Set.map (fun dir -> sprintf "%c%s%c" Path.DirectorySeparatorChar dir Path.DirectorySeparatorChar)
-    |> Set.exists fullPath.Contains
-
-let isFSharpFile (s: string) =
-    Set.contains (Path.GetExtension s) extensions
-
-/// Get all appropriate files, recursively.
-let findAllFilesRecursively path =
-    let searchOption = SearchOption.AllDirectories
-
-    Directory.GetFiles(path, "*.*", searchOption)
-    |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
-
-/// Create the folders leading up to a file, so that writing to a path the user named but never
-/// created succeeds. Path.GetDirectoryName yields an empty string for a bare file name.
-let ensureParentFolderExists (file: string) : unit =
-    let folder = Path.GetDirectoryName(file)
-
-    if not (String.IsNullOrEmpty folder) then
-        Directory.CreateDirectory(folder) |> ignore
-
-/// Do two paths name the same location? `src` and `./src` do, and comparing them as they were
-/// typed does not say so. This is about spelling, not about the file system: a path reached
-/// through a symbolic link, or through a spelling a case insensitive volume accepts, is not
-/// recognised here. Nothing may depend on a negative answer to avoid destroying a file.
-let isSamePath (left: string) (right: string) : bool =
-    String.Equals(Path.GetFullPath left, Path.GetFullPath right, StringComparison.Ordinal)
-
-/// Is a file located inside a folder, at any depth?
-let isInFolder (folder: string) (file: string) : bool =
-    let folder =
-        String.Concat(
-            Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar),
-            string<char> Path.DirectorySeparatorChar
-        )
-
-    Path.GetFullPath(file).StartsWith(folder, StringComparison.Ordinal)
-
-/// Fantomas assumes the input files are UTF-8
-/// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
-let private hasByteOrderMark file =
-    async {
-        if File.Exists(file) then
-            let preamble = Encoding.UTF8.GetPreamble()
-
-            use file = new FileStream(file, FileMode.Open, FileAccess.Read)
-
-            let mutable bom = Array.zeroCreate 3
-            do! file.ReadAsync(bom, 0, 3) |> Async.AwaitTask |> Async.Ignore<int>
-            return bom = preamble
-        else
-            return false
-    }
-
-let private invalidResultException (file: string) =
-    FormatException($"Formatting %s{file} leads to invalid F# code")
-
-/// Format a source string using given config and write to a text writer
-let processSourceString (force: bool) (profile: bool) s (fileName: string) config =
-    let writeResult (formatted: string) =
-        async {
-            let! hasBom = hasByteOrderMark fileName
-
-            if hasBom then
-                do! File.WriteAllTextAsync(fileName, formatted, Encoding.UTF8) |> Async.AwaitTask
-            else
-                do! File.WriteAllTextAsync(fileName, formatted) |> Async.AwaitTask
-
-            logGrEqDetailed $"%s{fileName} has been written."
-        }
-
-    async {
-        let formatParams = FormatParams.Create(config, false, profile, fileName)
-        let! formatted = s |> Format.formatContentAsync formatParams
-
-        match formatted with
-        | FormatResult.Formatted(_, formattedContent, _) as r ->
-            do! formattedContent |> writeResult
-            return r
-        | FormatResult.InvalidCode(file, formattedContent) when force ->
-            stdlog $"%s{file} was not valid after formatting."
-            do! formattedContent |> writeResult
-            return FormatResult.Formatted(fileName, formattedContent, None)
-        | FormatResult.Unchanged(file, _) as r ->
-            logGrEqDetailed $"'%s{file}' was unchanged"
-            return r
-        | FormatResult.IgnoredFile file as r ->
-            logGrEqDetailed $"'%s{file}' was ignored"
-            return r
-        | FormatResult.Error _ as r -> return r
-        | FormatResult.InvalidCode(file, _) ->
-            let ex = invalidResultException file
-            return FormatResult.Error(file, ex)
-    }
-
-/// Format inFile and write to text writer
-let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
-    async {
-        let! formatted = FormatParams.Create(false, profile, inFile) |> Format.formatFileAsync
-
-        match formatted with
-        | FormatResult.Formatted(_, formattedContent, _) as r ->
-            do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
-            return r
-        | FormatResult.InvalidCode(file, formattedContent) when force ->
-            stdlog $"%s{file} was not valid after formatting."
-            do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
-            return FormatResult.Formatted(inFile, formattedContent, None)
-        | FormatResult.Unchanged _ as r ->
-            let! input = inFile |> File.ReadAllTextAsync |> Async.AwaitTask
-            do! input |> tw.WriteAsync |> Async.AwaitTask
-            return r
-        | FormatResult.IgnoredFile file as r ->
-            logGrEqDetailed $"'%s{file}' was ignored"
-            return r
-        | FormatResult.Error _ as r -> return r
-        | FormatResult.InvalidCode(file, _) ->
-            let ex = invalidResultException file
-            return FormatResult.Error(file, ex)
-    }
-
-// The context lines a parse failure's snippet is drawn from come from the file itself. This is
-// the error path's last act before the tool gives up on the file, so reading it again is free.
-let sourceOf (file: string) : string =
-    try
-        File.ReadAllText file
-    with _ ->
-        String.Empty
-
-let reportCheckResults (checkResult: CheckResult) =
-    for filename, exn in checkResult.Errors do
-        match Diagnostics.describeParseFailure filename (sourceOf filename) exn with
-        | Some parseFailure -> elog parseFailure
-        | None -> elog $"error: Failed to format %s{filename}: %s{exn.ToString()}"
-
-    for filename in checkResult.Formatted do
-        stdlog $"%s{filename} needs formatting"
-
-let runCheckCommand (inputPath: InputPath) : int =
-    let check files =
-        Async.RunSynchronously(Format.checkCode files)
-
-    let processCheckResult (checkResult: CheckResult) =
-        if checkResult.IsValid then
-            logGrEqDetailed "No changes required."
-            0
-        else
-            reportCheckResults checkResult
-            if checkResult.HasErrors then 1 else 99
-
-    match inputPath with
-    | InputPath.NoFSharpFile s ->
-        elog $"Input path '%s{s}' is unsupported file type"
-        1
-    | InputPath.NotFound s ->
-        elog $"Input path '%s{s}' not found"
-        1
-    | InputPath.Unspecified ->
-        elog "No input path provided. Call with --help for usage information."
-        1
-    | InputPath.File f when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
-        logGrEqDetailed $"'%s{f}' was ignored"
-        0
-    | InputPath.File path -> path |> Seq.singleton |> check |> processCheckResult
-    | InputPath.Folder path -> path |> findAllFilesRecursively |> check |> processCheckResult
-    | InputPath.Multiple(files, folders) ->
-        let allFilesToCheck =
-            seq {
-                yield! files
-                yield! (Seq.collect findAllFilesRecursively folders)
-            }
-
-        allFilesToCheck |> check |> processCheckResult
-
+/// Parse the command line and run whichever command it names: printing the version, serving the
+/// daemon, checking whether files need formatting, or formatting them. Returns the exit code the
+/// process should end with.
 [<EntryPoint>]
 let main argv =
     // Argu never gets to render a usage text of its own: HelpPage.exiter answers --help with
     // the Fantomas help page and reduces an argument error to its first line.
-    let parser =
+    let parser: ArgumentParser<Arguments> =
         ArgumentParser.Create<Arguments>(programName = "fantomas", errorHandler = HelpPage.exiter)
 
-    let results = parser.ParseCommandLine argv
+    let results: ParseResults<Arguments> = parser.ParseCommandLine argv
 
-    let outputPath =
+    let outputPath: OutputPath =
         match results.TryGetResult <@ Arguments.Out @> with
         | Some output -> OutputPath.IO output
         | None -> OutputPath.NotKnown
 
-    let inputPath =
-        let maybeInput = results.TryGetResult <@ Arguments.Input @>
+    let fileSystem: IFileSystem = FileSystem()
 
-        match maybeInput with
-        | Some [ input ] ->
-            if Directory.Exists(input) then
-                InputPath.Folder input
-            elif File.Exists input && isFSharpFile input then
-                InputPath.File input
-            elif File.Exists input then
-                InputPath.NoFSharpFile input
-            else
-                InputPath.NotFound input
-        | Some inputs ->
-            let missing =
-                inputs |> List.tryFind (fun x -> not (Directory.Exists(x) || File.Exists(x)))
+    let inputPath: InputPath =
+        results.TryGetResult <@ Arguments.Input @> |> classifyInputPath fileSystem
 
-            match missing with
-            | Some x -> InputPath.NotFound x
-            | None ->
-                let isFolder (path: string) =
-                    String.IsNullOrWhiteSpace(Path.GetExtension(path))
+    let force: bool = results.Contains <@ Arguments.Force @>
+    let profile: bool = results.Contains <@ Arguments.Profile @>
+    let version: Arguments option = results.TryGetResult <@ Arguments.Version @>
 
-                let rec loop
-                    (files: string list)
-                    (finalContinuation: string list * string list -> string list * string list)
-                    =
-                    match files with
-                    | [] -> finalContinuation ([], [])
-                    | h :: rest ->
-                        loop rest (fun (files, folders) ->
-                            if isFolder h then
-                                files, (h :: folders)
-                            else
-                                (h :: files), folders
-                            |> finalContinuation)
-
-                let filesAndFolders = loop inputs id
-                InputPath.Multiple filesAndFolders
-        | None -> InputPath.Unspecified
-
-    let force = results.Contains <@ Arguments.Force @>
-    let profile = results.Contains <@ Arguments.Profile @>
-    let version = results.TryGetResult <@ Arguments.Version @>
-
-    let maybeVerbosity =
-        results.TryGetResult <@ Arguments.Verbosity @>
-        |> Option.map (fun v -> v.ToLowerInvariant())
-
-    let verbosityLevel =
-        match maybeVerbosity with
-        | None
-        | Some "n"
-        | Some "normal" -> VerbosityLevel.Normal
-        | Some "d"
-        | Some "detailed" -> VerbosityLevel.Detailed
-        | Some _ ->
-            // The logger is not up yet, so this cannot go through elog.
+    let verbosityLevel: VerbosityLevel =
+        match parseVerbosity (results.TryGetResult <@ Arguments.Verbosity @>) with
+        | Some level -> level
+        | None ->
+            // The logger is not configured yet, so this cannot go through it.
             eprintfn "Invalid verbosity level"
             exit 1
 
-    let isDaemon = results.Contains <@ Arguments.Daemon @>
+    let isDaemon: bool = results.Contains <@ Arguments.Daemon @>
 
     // In daemon mode standard out carries the JSON-RPC protocol, so the logger must stay off it.
-    let verbosity =
+    let verbosity: VerbosityLevel =
         if isDaemon then
             initDaemonLogger verbosityLevel
         else
@@ -320,247 +60,61 @@ let main argv =
 
     AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> closeAndFlushLog ())
 
-    // The formatted text is collected in memory and the output file is opened only once there
-    // is something to put in it. Opening it up front truncates it before the input is read,
-    // which empties the input when both paths turn out to name the same file, and leaves a
-    // zero byte file behind whenever formatting does not complete.
-    let fileToFile (force: bool) (inFile: string) (outFile: string) : Async<FormatResult> =
-        async {
-            logGrEqDetailed $"Processing %s{inFile}"
-            use buffer = new StringWriter()
-            let! processResult = processSourceFile force profile inFile buffer
+    // The logger the calls above configured, now handed down rather than reached for.
+    let log: ILogger = Log.Logger
 
-            match processResult with
-            | FormatResult.Formatted _
-            | FormatResult.Unchanged _ ->
-                let! hasByteOrderMark = hasByteOrderMark inFile
-                ensureParentFolderExists outFile
-                let contents = buffer.ToString()
+    let check: bool = results.Contains <@ Arguments.Check @>
 
-                if hasByteOrderMark then
-                    do! File.WriteAllTextAsync(outFile, contents, Encoding.UTF8) |> Async.AwaitTask
-                else
-                    do! File.WriteAllTextAsync(outFile, contents) |> Async.AwaitTask
-
-                logGrEqDetailed $"%s{outFile} has been written."
-            | FormatResult.IgnoredFile _
-            | FormatResult.InvalidCode _
-            | FormatResult.Error _ -> ()
-
-            return processResult
-        }
-
-    let stringToFile (force: bool) (s: string) (outFile: string) config =
-        async { return! processSourceString force profile s outFile config }
-
-    let processFile (force: bool) (inputFile: string) (outputFile: string) : Async<FormatResult> =
-        async {
-            try
-                if not (isSamePath inputFile outputFile) then
-                    return! fileToFile force inputFile outputFile
-                else
-                    logGrEqDetailed $"Processing %s{inputFile}"
-                    let! content = File.ReadAllTextAsync inputFile |> Async.AwaitTask
-                    let config = EditorConfig.readConfiguration inputFile
-                    return! stringToFile force content inputFile config
-            with e ->
-                return FormatResult.Error(inputFile, e)
-        }
-
-    let processFolder (force: bool) (inputFolder: string) (outputFolder: string) : Async<FormatResult> list =
-        if not <| Directory.Exists(outputFolder) then
-            Directory.CreateDirectory(outputFolder) |> ignore
-
-        let inPlace = isSamePath inputFolder outputFolder
-
-        findAllFilesRecursively inputFolder
-        // An output folder inside the input folder is walked over as well, so the previous run's
-        // results would be formatted again and nested one level deeper every time.
-        |> Seq.filter (fun i -> inPlace || not (isInFolder outputFolder i))
-        |> Seq.toList
-        |> List.map (fun i ->
-
-            let o =
-                if inPlace then
-                    i
-                else
-                    // The output folder mirrors the input tree. Keeping only the file name would
-                    // let two files with the same name in different subfolders overwrite each other.
-                    // fileToFile creates the folders leading up to the file.
-                    Path.Combine(outputFolder, Path.GetRelativePath(inputFolder, i))
-
-            processFile force i o)
-
-    let filesAndFolders force (files: string list) (folders: string list) =
-        let fileTasks =
-            files
-            |> List.map (fun file ->
-                if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
-                    logGrEqDetailed $"'%s{file}' was ignored"
-                    async.Return(FormatResult.IgnoredFile(file))
-                else
-                    processFile force file file)
-
-        let folderTasks =
-            folders |> List.collect (fun folder -> processFolder force folder folder)
-
-        (fileTasks @ folderTasks)
-
-    let check = results.Contains <@ Arguments.Check @>
-
-    let partitionResults (results: #(FormatResult seq)) =
-        (([], [], [], []), results)
-        ||> Seq.fold (fun (oks, ignores, unchanged, errors) next ->
-            match next with
-            | FormatResult.Formatted(file, _, p) -> ((file, p) :: oks, ignores, unchanged, errors)
-            | FormatResult.IgnoredFile i -> (oks, i :: ignores, unchanged, errors)
-            | FormatResult.Unchanged(file, p) -> (oks, ignores, (file, p) :: unchanged, errors)
-            | FormatResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors)
-            | FormatResult.InvalidCode(file, _) ->
-                let ex = invalidResultException file
-                (oks, ignores, unchanged, (file, ex) :: errors))
-
-    let reportFormatResults (results: #(FormatResult seq)) =
-        let reportError (file: string, exn: Exception) =
-            let describeOther () : string =
-                let message =
-                    match verbosity with
-                    | VerbosityLevel.Normal ->
-                        match exn with
-                        | :? DefineParseException as dpe ->
-                            let combinations =
-                                dpe.Combinations
-                                |> List.map (fun c -> if c = "no defines" then "no defines" else $"[%s{c}]")
-                                |> String.concat ", "
-
-                            $"When Fantomas encounters #if directives in a file, it tries to format all possible combinations of defines and will merge all different versions back into one.\nFor %s{combinations}, however, we were not able to parse the file.\nWhile you may not use this combination in your project, Fantomas requires it to produce valid code.\nConsider fixing the code or ignoring this file.\nFor more information see: https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html"
-                        | :? FormatException as fe -> fe.Message
-                        | _ -> ""
-                    | VerbosityLevel.Detailed -> $"%A{exn}"
-
-                if String.IsNullOrEmpty message then
-                    $"Failed to format file: %s{file}"
-                else
-                    $"Failed to format file: %s{file} : %s{message}"
-
-            // A parse failure describes itself, positions and all, rather than being reduced to a
-            // single line saying only that it happened.
-            match Diagnostics.describeParseFailure file (sourceOf file) exn with
-            | Some parseFailure -> elog parseFailure
-            | None -> elog (describeOther ())
-
-        let reportProfileInfos (results: (string * ProfileInfo option) list) =
-            if profile && not (List.isEmpty results) then
-                let table = Table().AddColumns([| "File"; "Line count"; "Time taken" |])
-
-                results
-                |> List.choose (fun (f, p) -> p |> Option.map (fun p -> f, p))
-                |> List.sortBy fst
-                |> List.fold
-                    (fun (t: Table) (f, p) ->
-                        t.AddRow([| f; string<int> p.LineCount; p.TimeTaken.ToString("mm\:ss\.fff") |]))
-                    table
-                |> AnsiConsole.Write
-
-        match Seq.tryExactlyOne results with
-        | Some singleResult ->
-            let reportProfileInfo (f, p: ProfileInfo option) =
-                match profile, p with
-                | true, Some pI -> stdlog $"%s{f} Line count: %d{pI.LineCount} Time taken %A{pI.TimeTaken}"
-                | _ -> ()
-
-            match singleResult with
-            | FormatResult.Formatted(f, _, p) ->
-                stdlog $"%s{f} was formatted."
-                reportProfileInfo (f, p)
-            | FormatResult.IgnoredFile f -> stdlog $"%s{f} was ignored."
-            | FormatResult.Unchanged(f, p) ->
-                stdlog $"%s{f} was unchanged."
-                reportProfileInfo (f, p)
-            | FormatResult.Error(f, e) ->
-                reportError (f, e)
-                exit 1
-            | FormatResult.InvalidCode(f, _) ->
-                let ex = invalidResultException f
-                reportError (f, ex)
-                exit 1
-
-        | None ->
-            let oks, ignored, unchanged, errored = partitionResults results
-            let centeredColumn (v: string) = TableColumn(v).Centered()
-
-            Table()
-                .AddColumns(
-                    [| "[green]Formatted[/]"
-                       string<int> oks.Length
-                       "Ignored"
-                       string<int> ignored.Length
-                       "[blue]Unchanged[/]"
-                       string<int> unchanged.Length
-                       "[red]Errored[/]"
-                       string<int> errored.Length |]
-                    |> Array.map centeredColumn
-                )
-                .SetBorder(TableBorder.MinimalDoubleHead)
-            |> AnsiConsole.Write
-
-            for e in errored do
-                reportError e
-
-            reportProfileInfos (oks @ unchanged)
-
-            if errored.Length > 0 then
-                exit 1
-
-    let asyncRunner = Async.Parallel >> Async.RunSynchronously
-
-    let versionLog =
-        let version = CodeFormatter.GetVersion()
+    let versionLog: string =
+        let version: string = CodeFormatter.GetVersion()
         $"Fantomas v%s{version}"
 
     if Option.isNone version then
-        logGrEqDetailed versionLog
+        log.Debug versionLog
 
     if Option.isSome version then
-        stdlog versionLog
+        log.Information versionLog
+        0
     elif isDaemon then
-        let daemon =
-            new FantomasDaemon(Console.OpenStandardOutput(), Console.OpenStandardInput())
+        let daemon: FantomasDaemon =
+            new FantomasDaemon(
+                Console.OpenStandardOutput(),
+                Console.OpenStandardInput(),
+                { FileSystem = fileSystem
+                  ReadConfiguration = EditorConfig.readConfiguration
+                  Log = log }
+            )
 
         AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> (daemon :> IDisposable).Dispose())
 
         daemon.WaitForClose.GetAwaiter().GetResult()
-        exit 0
-    elif check then
-        inputPath |> runCheckCommand |> exit
+        0
     else
+        // Reading `.fantomasignore` can fail on a pattern the ignore library will not compile, and
+        // building the environment is the first thing either command needs, so it happens under
+        // the same guard the commands run under rather than before it.
         try
-            match inputPath, outputPath with
-            | InputPath.NoFSharpFile s, _ ->
-                elog $"Input path '%s{s}' is unsupported file type."
-                exit 1
-            | InputPath.NotFound s, _ ->
-                elog $"Input path '%s{s}' not found."
-                exit 1
-            | InputPath.Unspecified, _ ->
-                elog "Input path is missing. Call with --help for usage information."
-                exit 1
-            | InputPath.File f, _ when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
-                logGrEqDetailed $"'%s{f}' was ignored"
-            | InputPath.Folder p1, OutputPath.NotKnown ->
-                processFolder force p1 p1 |> asyncRunner |> reportFormatResults
-            | InputPath.File p1, OutputPath.NotKnown ->
-                processFile force p1 p1 |> List.singleton |> asyncRunner |> reportFormatResults
-            | InputPath.File p1, OutputPath.IO p2 ->
-                processFile force p1 p2 |> List.singleton |> asyncRunner |> reportFormatResults
-            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder force p1 p2 |> asyncRunner |> reportFormatResults
-            | InputPath.Multiple(files, folders), OutputPath.NotKnown ->
-                filesAndFolders force files folders |> asyncRunner |> reportFormatResults
-            | InputPath.Multiple _, OutputPath.IO _ ->
-                elog "Multiple input files are not supported with the --out flag."
-                exit 1
-        with exn ->
-            elog $"%s{exn.Message}"
-            exit 1
+            let environment: CliEnvironment =
+                { FileSystem = fileSystem
+                  IgnoreFile =
+                    IgnoreFile.findInDirectory
+                        fileSystem
+                        Environment.CurrentDirectory
+                        (IgnoreFile.loadIgnoreList fileSystem)
+                  ReadConfiguration = EditorConfig.readConfiguration
+                  Log = log
+                  Console = AnsiConsole.Console }
 
-    0
+            let settings: CliSettings =
+                { Force = force
+                  Profile = profile
+                  Verbosity = verbosity }
+
+            if check then
+                runCheckCommand environment inputPath |> reportCheckCommand environment
+            else
+                runFormatCommand environment settings inputPath outputPath
+                |> reportFormatCommand environment settings
+        with exn ->
+            log.Error $"%s{exn.Message}"
+            1

@@ -2,7 +2,7 @@ namespace Fantomas
 
 open System.IO.Abstractions
 open Ignore
-open Fantomas.Logging
+open Serilog
 
 type AbsoluteFilePath =
     private
@@ -15,8 +15,6 @@ type AbsoluteFilePath =
     static member Create (fs: IFileSystem) (filePath: string) =
         fs.Path.GetFullPath filePath |> AbsoluteFilePath
 
-/// The string argument is taken relative to the location
-/// of the ignore-file.
 type IsPathIgnored = AbsoluteFilePath -> bool
 
 [<NoComparison; NoEquality>]
@@ -30,10 +28,6 @@ module IgnoreFile =
     [<Literal>]
     let IgnoreFileName = ".fantomasignore"
 
-    /// Find the `.fantomasignore` file above the given filepath, if one exists.
-    /// Note that this is intended for use only in the daemon; the command-line tool
-    /// does not support `.fantomasignore` files anywhere other than the current
-    /// working directory.
     let find (fs: IFileSystem) (loadIgnoreList: string -> IsPathIgnored) (filePath: string) : IgnoreFile option =
         let rec walkUp (currentDirectory: IDirectoryInfo) : IgnoreFile option =
             if isNull currentDirectory then
@@ -52,43 +46,51 @@ module IgnoreFile =
         walkUp (fs.FileInfo.New(filePath).Directory)
 
     let loadIgnoreList (fs: IFileSystem) (ignoreFilePath: string) : IsPathIgnored =
-        let lines = fs.File.ReadAllLines(ignoreFilePath)
+        let lines: string array = fs.File.ReadAllLines(ignoreFilePath)
 
-        let fantomasIgnore =
+        let fantomasIgnore: Ignore =
             (Ignore(), lines)
             ||> Array.fold (fun (ig: Ignore) (line: string) -> ig.Add(line))
+
+        // The folder holding the ignore file does not change between calls, and looking it up
+        // again for every file walked meant a directory lookup per file.
+        let ignoreRoot: string = fs.Directory.GetParent(ignoreFilePath).FullName
 
         fun (absoluteFilePath: AbsoluteFilePath) ->
             // See https://git-scm.com/docs/gitignore
             // We transform the incoming path relative to the .ignoreFilePath folder.
             // In a cli scenario that is the current directory, for the daemon it is the first found ignore file.
             // .gitignore uses forward slashes to path separators
-            let relativePath =
-                fs.Path
-                    .GetRelativePath(fs.Directory.GetParent(ignoreFilePath).FullName, absoluteFilePath.Path)
-                    .Replace("\\", "/")
+            let relativePath: string =
+                fs.Path.GetRelativePath(ignoreRoot, absoluteFilePath.Path).Replace("\\", "/")
 
             fantomasIgnore.IsIgnored(relativePath)
 
-    let internal current' (fs: IFileSystem) (currentDirectory: string) (loadIgnoreList: string -> IsPathIgnored) =
-        lazy find fs loadIgnoreList (fs.Path.Combine(currentDirectory, "_"))
+    let findInDirectory
+        (fs: IFileSystem)
+        (currentDirectory: string)
+        (loadIgnoreList: string -> IsPathIgnored)
+        : IgnoreFile option =
+        // `find` walks up from a file, so it is given a name that need not exist in the directory.
+        find fs loadIgnoreList (fs.Path.Combine(currentDirectory, "_"))
 
-    /// When executed from the command line, Fantomas will not dynamically locate
-    /// the most appropriate `.fantomasignore` for each input file; it only finds
-    /// a single `.fantomasignore` file. This is that file.
-    let current: Lazy<IgnoreFile option> =
-        let fs = FileSystem()
-        current' fs System.Environment.CurrentDirectory (loadIgnoreList fs)
-
-    let isIgnoredFile (ignoreFile: IgnoreFile option) (file: string) : bool =
+    let isIgnoredFile (log: ILogger) (ignoreFile: IgnoreFile option) (file: string) : bool =
         match ignoreFile with
         | None -> false
         | Some ignoreFile ->
-            let fs = ignoreFile.Location.FileSystem
-            let fullPath = AbsoluteFilePath.Create fs file
+            let fs: IFileSystem = ignoreFile.Location.FileSystem
+            let fullPath: AbsoluteFilePath = AbsoluteFilePath.Create fs file
 
             try
                 ignoreFile.IsIgnored fullPath
             with ex ->
-                elog $"%A{ex}"
+                // Matching a path against the ignore file is not something that should fail. If it
+                // does, say which file and which ignore file could not be told apart, and go on to
+                // format the file rather than abandon the run over it.
+                log.Error
+                    $"Could not tell whether '%s{file}' is matched by %s{ignoreFile.Location.FullName}: %s{ex.Message}"
+
+                // The line above is the one to act on; this keeps the type and the stack trace for
+                // whoever asks for detail.
+                log.Debug $"%A{ex}"
                 false

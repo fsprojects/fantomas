@@ -1,6 +1,7 @@
 namespace Fantomas
 
 open System.IO.Abstractions
+open Serilog
 
 type AbsoluteFilePath =
     private
@@ -32,15 +33,12 @@ module IgnoreFile =
 
     val loadIgnoreList: fs: IFileSystem -> ignoreFilePath: string -> IsPathIgnored
 
-    val internal current':
-        fs: IFileSystem ->
-        currentDirectory: string ->
-        loadIgnoreList: (string -> IsPathIgnored) ->
-            Lazy<IgnoreFile option>
+    /// The `.fantomasignore` the command line tool honours: the single one at or above the
+    /// directory the tool was started from. The daemon instead finds the closest one to each
+    /// file it is asked about.
+    val findInDirectory:
+        fs: IFileSystem -> currentDirectory: string -> loadIgnoreList: (string -> IsPathIgnored) -> IgnoreFile option
 
-    /// When executed from the command line, Fantomas will not dynamically locate
-    /// the most appropriate `.fantomasignore` for each input file; it only finds
-    /// a single `.fantomasignore` file. This is that file.
-    val current: Lazy<IgnoreFile option>
-
-    val isIgnoredFile: ignoreFile: IgnoreFile option -> file: string -> bool
+    /// Is the file matched by the ignore file? Deciding that is not something that should fail;
+    /// if it does, the failure is reported through the sink and the file counts as not ignored.
+    val isIgnoredFile: log: ILogger -> ignoreFile: IgnoreFile option -> file: string -> bool

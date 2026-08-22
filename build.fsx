@@ -29,8 +29,25 @@ let packagesDir = artifactsDir </> "package" </> "release"
 let analysisReportsDir = __SOURCE_DIRECTORY__ </> "analysisreports"
 let coverageReportDir = __SOURCE_DIRECTORY__ </> "coveragereport"
 
-let coverageXml =
-    __SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core.Tests" </> "coverage.xml"
+/// Every test project, by name. Each writes its raw coverage beside its own project file.
+let coverageProjects: string list =
+    [ "Fantomas.Core.Tests"; "Fantomas.Tests"; "Fantomas.Client.Tests" ]
+
+let coverageXmlFiles: string list =
+    coverageProjects
+    |> List.map (fun (name: string) -> __SOURCE_DIRECTORY__ </> "src" </> name </> "coverage.xml")
+
+/// Run one test project under AltCover, measuring the one assembly it is there to exercise.
+///
+/// The filter is a negative lookahead: instrument that assembly and nothing else, which keeps the
+/// generated Fantomas.FCS parser and the test assembly itself out of the report and makes the run
+/// fast. It cannot name several assemblies at once, because AltCover reads `|` as the separator
+/// between filters rather than as alternation, so each project is run with its own.
+let coverageCommand (name: string) (assemblyPattern: string) : string =
+    let project: string = __SOURCE_DIRECTORY__ </> "src" </> name </> $"{name}.fsproj"
+
+    $"dotnet test {project} -c Release /p:AltCover=true "
+    + $"\"/p:AltCoverAssemblyFilter=^(?!{assemblyPattern}$)\""
 
 let benchmarkAssembly =
     binDir </> "Fantomas.Benchmarks" </> "release" </> "Fantomas.Benchmarks.dll"
@@ -108,29 +125,54 @@ pipeline "Benchmark" {
     runIfOnlySpecified true
 }
 
-// Line and branch coverage for Fantomas.Core, via AltCover's MSBuild integration.
+// Line and branch coverage for the three projects Fantomas ships, via AltCover's MSBuild
+// integration. Every test project is run under AltCover, each measuring the one assembly it is
+// there to exercise, and ReportGenerator merges the three results into a single report.
 //
-// The filter is a negative lookahead: instrument Fantomas.Core and nothing else, which keeps the
-// generated Fantomas.FCS parser (and the test assembly itself) out of the report and makes the
-// run fast. AltCover writes OpenCover XML, which is for tooling rather than reading, so
-// ReportGenerator turns it into a browsable HTML report afterwards.
+// So `Fantomas.Core`'s figure comes from `Fantomas.Core.Tests` alone, even though `Fantomas.Tests`
+// exercises Core heavily through real formatting. Core is understated here rather than wrong.
+//
+// The filter is a negative lookahead naming the three assemblies to instrument. Everything else
+// is left alone, which keeps the generated Fantomas.FCS parser and the test assemblies
+// themselves out of the report. AltCover writes OpenCover XML, which is for tooling rather than
+// reading, so ReportGenerator turns it into a browsable HTML report afterwards.
+//
+// A test that starts the fantomas process, as those in Fantomas.Tests/Integration do, adds
+// nothing here, because the child process is not instrumented. That is the point rather than a
+// flaw: what this measures is how much of the tool can be reached without starting one.
 //
 // Produces:
-//   src/Fantomas.Core.Tests/coverage.xml   raw OpenCover XML
-//   coveragereport/index.html              browsable report, per file and per line
+//   src/<project>/coverage.xml    raw OpenCover XML, one per test project
+//   coveragereport/index.html     browsable report, per file and per line
 pipeline "Coverage" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
-    stage "Clean" { run (cleanFolders [| coverageReportDir |]) }
+
+    stage "Clean" {
+        run (cleanFolders [| coverageReportDir |])
+        // A stale coverage.xml from an earlier run would otherwise be merged into the report.
+        run (fun _ ->
+            async {
+                for file in coverageXmlFiles do
+                    if File.Exists file then
+                        File.Delete file
+
+                return 0
+            })
+    }
 
     stage "Coverage" {
-        run
-            @"dotnet test src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj -c Release /p:AltCover=true ""/p:AltCoverAssemblyFilter=^(?!Fantomas\.Core$)"""
+        run (coverageCommand "Fantomas.Core.Tests" @"Fantomas\.Core")
+        run (coverageCommand "Fantomas.Tests" "fantomas")
+        run (coverageCommand "Fantomas.Client.Tests" @"Fantomas\.Client")
     }
 
     stage "Report" {
-        run
-            $"dotnet reportgenerator -reports:{coverageXml} -targetdir:{coverageReportDir} -reporttypes:Html;TextSummary"
+        run (
+            $"dotnet reportgenerator -reports:{String.Join(';', coverageXmlFiles)} "
+            + $"-targetdir:{coverageReportDir} -reporttypes:Html;TextSummary"
+        )
+
         run (fun _ ->
             async {
                 let summary = coverageReportDir </> "Summary.txt"

@@ -33,10 +33,4 @@ let initLogger (level: VerbosityLevel) : VerbosityLevel =
 let initDaemonLogger (level: VerbosityLevel) : VerbosityLevel =
     createLogger level LogEventLevel.Verbose
 
-let stdlog (s: string) = Log.Logger.Information(s)
-
-let elog (s: string) = Log.Logger.Error(s)
-
-let logGrEqDetailed s = Log.Logger.Debug(s)
-
-let closeAndFlushLog () = Log.CloseAndFlush()
+let closeAndFlushLog () : unit = Log.CloseAndFlush()

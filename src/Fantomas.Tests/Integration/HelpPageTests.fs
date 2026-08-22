@@ -4,10 +4,14 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelpers
 
+// What the page says is settled in HelpPageTests, against `HelpPage.render`. What is left here is
+// what only a real process shows: which stream the page goes to, and how much colour the terminal
+// it is attached to actually gets.
+
 [<Test>]
 [<TestCase("--help")>]
 [<TestCase("-h")>]
-let ``help page is written to standard out`` (flag: string) =
+let ``both spellings of the flag write the page to standard out`` (flag: string) =
     let { ExitCode = exitCode
           Output = output
           Error = error } =
@@ -16,40 +20,6 @@ let ``help page is written to standard out`` (flag: string) =
     exitCode |> should equal 0
     error |> should equal ""
     Assert.That(output, Does.Contain "Usage: fantomas [...flags] [...paths]")
-
-[<Test>]
-let ``help page lists every flag`` () =
-    let { Output = output } = runFantomasTool [ "--help" ]
-
-    for flag in
-        [ "--check"
-          "--out"
-          "--force"
-          "--profile"
-          "--daemon"
-          "--verbosity"
-          "--version"
-          "--help" ] do
-        Assert.That(output, Does.Contain flag)
-
-[<Test>]
-let ``help page carries the version`` () =
-    let { Output = output } = runFantomasTool [ "--help" ]
-    let version = Fantomas.Core.CodeFormatter.GetVersion()
-    let versionNumber = version.Split('+').[0]
-
-    Assert.That(output, Does.Contain versionNumber)
-
-[<Test>]
-let ``help page links the documentation, the Discord and the llms files`` () =
-    let { Output = output } = runFantomasTool [ "--help" ]
-
-    for link in
-        [ "https://fsprojects.github.io/fantomas/docs"
-          "https://discord.com/channels/196693847965696000/1493226271767924747"
-          "https://fsprojects.github.io/fantomas/llms.txt"
-          "https://fsprojects.github.io/fantomas/llms-full.txt" ] do
-        Assert.That(output, Does.Contain link)
 
 // Standard out is redirected here, so the page has to come back as plain text.
 [<Test>]

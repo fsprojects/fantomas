@@ -15,13 +15,5 @@ val initLogger: level: VerbosityLevel -> VerbosityLevel
 /// corrupt the protocol stream and fault the client connection.
 val initDaemonLogger: level: VerbosityLevel -> VerbosityLevel
 
-/// log a message
-val stdlog: s: string -> unit
-
-/// log an error
-val elog: s: string -> unit
-
-/// log a message if the verbosity level is >= Detailed
-val logGrEqDetailed: s: string -> unit
-
+/// Flush anything the logger is still holding and shut it down.
 val closeAndFlushLog: unit -> unit

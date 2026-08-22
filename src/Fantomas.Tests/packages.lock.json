@@ -2,6 +2,12 @@
   "version": 2,
   "dependencies": {
     "net10.0": {
+      "altcover": {
+        "type": "Direct",
+        "requested": "[9.0.102, )",
+        "resolved": "9.0.102",
+        "contentHash": "q3Rf5t0M9kXlcO5qhsaAe6NrFSNd5enrhKmF/Ezgmomqw34PbUTbRSYjSDNhS3YGDyUrPTkyPn14EfLDJWztcA=="
+      },
       "FsCheck": {
         "type": "Direct",
         "requested": "[3.3.2, )",

@@ -13,8 +13,15 @@ open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Core
 open Fantomas.EditorConfig
+open Serilog
 
-type FantomasDaemon(sender: Stream, reader: Stream) as this =
+[<NoComparison; NoEquality>]
+type DaemonEnvironment =
+    { FileSystem: IFileSystem
+      ReadConfiguration: string -> FormatConfig
+      Log: ILogger }
+
+type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironment) as this =
     let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)
     let traceListener = new DefaultTraceListener()
 
@@ -27,7 +34,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
 
     let exit () = disconnectEvent.Set() |> ignore
 
-    let fs = FileSystem()
+    let fs: IFileSystem = environment.FileSystem
 
     do rpc.Disconnected.Add(fun _ -> exit ())
 
@@ -36,7 +43,6 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
             traceListener.Dispose()
             disconnectEvent.Dispose()
 
-    /// returns a hot task that resolves when the stream has terminated
     member this.WaitForClose = rpc.Completion
 
     [<JsonRpcMethod(Methods.Version)>]
@@ -47,6 +53,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
         task {
             if
                 IgnoreFile.isIgnoredFile
+                    environment.Log
                     (IgnoreFile.find fs (IgnoreFile.loadIgnoreList fs) request.FilePath)
                     request.FilePath
             then
@@ -55,9 +62,9 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                 let config =
                     match request.Config with
                     | Some configProperties ->
-                        let config = readConfiguration request.FilePath
+                        let config = environment.ReadConfiguration request.FilePath
                         parseOptionsFromEditorConfig config configProperties
-                    | None -> readConfiguration request.FilePath
+                    | None -> environment.ReadConfiguration request.FilePath
 
                 let cursor =
                     request.Cursor
@@ -87,7 +94,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                     // A ParseException's own Message is an %A dump of the diagnostic records, and
                     // it is the editor's user who would have been shown it.
                     let message =
-                        Diagnostics.describeParseFailure request.FilePath request.SourceCode ex
+                        Diagnostics.describeParseFailure request.FilePath (fun () -> request.SourceCode) ex
                         |> Option.defaultValue ex.Message
 
                     return FormatDocumentResponse.Error(request.FilePath, message)
@@ -99,9 +106,9 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
             let config =
                 match request.Config with
                 | Some configProperties ->
-                    let config = readConfiguration request.FilePath
+                    let config = environment.ReadConfiguration request.FilePath
                     parseOptionsFromEditorConfig config configProperties
-                | None -> readConfiguration request.FilePath
+                | None -> environment.ReadConfiguration request.FilePath
 
             let selection =
                 let r = request.Range
@@ -126,7 +133,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                 return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
             with ex ->
                 let message =
-                    Diagnostics.describeParseFailure request.FilePath request.SourceCode ex
+                    Diagnostics.describeParseFailure request.FilePath (fun () -> request.SourceCode) ex
                     |> Option.defaultValue ex.Message
 
                 return FormatSelectionResponse.Error(request.FilePath, message)
