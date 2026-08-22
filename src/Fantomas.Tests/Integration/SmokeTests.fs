@@ -37,7 +37,10 @@ let ``a file named on the command line is formatted where it lies`` () =
 
     exitCode |> should equal 0
     output |> should contain "was formatted"
-    File.ReadAllText fileFixture.Filename |> should equal "let a = 1\n"
+
+    File.ReadAllText fileFixture.Filename
+    |> String.normalizeNewLine
+    |> should equal "let a = 1\n"
 
 [<Test>]
 let ``an out path is written to and the input is left alone`` () =
@@ -49,7 +52,10 @@ let ``an out path is written to and the input is left alone`` () =
 
     exitCode |> should equal 0
     File.ReadAllText inputFixture.Filename |> should equal NeedsFormatting
-    File.ReadAllText outputFixture.Filename |> should equal "let a = 1\n"
+
+    File.ReadAllText outputFixture.Filename
+    |> String.normalizeNewLine
+    |> should equal "let a = 1\n"
 
 // 0, 99 and 1 are what a build script branches on, so each has to reach the operating system.
 [<Test>]

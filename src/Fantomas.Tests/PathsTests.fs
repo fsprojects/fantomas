@@ -129,8 +129,8 @@ let ``a trailing separator names the same path`` () =
     let fs: IFileSystem = MockFileSystem()
     let src: string = fs.Path.Combine(mockRoot fs, "src")
 
-    isSamePath fs src (src + string separator) |> shouldEqual true
-    isSamePath fs (src + string separator) src |> shouldEqual true
+    isSamePath fs src (src + string<char> separator) |> shouldEqual true
+    isSamePath fs (src + string<char> separator) src |> shouldEqual true
 
 [<Test>]
 let ``two different locations are not the same path`` () =

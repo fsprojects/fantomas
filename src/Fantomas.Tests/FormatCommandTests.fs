@@ -333,6 +333,25 @@ let ``profiling collects a line count and a time for the file it formatted`` () 
     | other -> failwith $"Expected a profiled result, got %A{other}"
 
 [<Test>]
+let ``the line count does not depend on which line endings the file uses`` () =
+    // It used to count occurrences of the platform's newline, so a file written with line feeds
+    // counted zero lines on Windows and a file written with carriage returns counted zero on
+    // anything else.
+    let lineCountOf (content: string) : int =
+        let fs: IFileSystem = MockFileSystem()
+        let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
+        write fs file content
+
+        let settings: CliSettings = { defaultSettings with Profile = true }
+
+        match formatWith settings None fs (InputPath.File file) OutputPath.NotKnown |> results with
+        | [| FormatResult.Formatted(_, _, Some profile) |] -> profile.LineCount
+        | other -> failwith $"Expected a profiled result, got %A{other}"
+
+    lineCountOf "let  a =   1\nlet  b =   2\n" |> shouldEqual 2
+    lineCountOf "let  a =   1\r\nlet  b =   2\r\n" |> shouldEqual 2
+
+[<Test>]
 let ``nothing is profiled unless profiling was asked for`` () =
     let fs: IFileSystem = MockFileSystem()
     let file: string = fs.Path.Combine(mockRoot fs, "A.fs")

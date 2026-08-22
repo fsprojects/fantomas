@@ -6,7 +6,7 @@ open Argu
 open Spectre.Console
 open Fantomas.Core
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; Struct>]
 type Palette =
     | NoColour
     | FourBit

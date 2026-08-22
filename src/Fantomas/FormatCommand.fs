@@ -45,8 +45,9 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
 
                         sw.Stop()
 
-                        let count: int =
-                            originalContent.Length - originalContent.Replace(Environment.NewLine, "").Length
+                        // Counting line feeds rather than the platform's newline: a file written
+                        // with the other platform's line endings has just as many lines.
+                        let count: int = originalContent.Length - originalContent.Replace("\n", "").Length
 
                         let profileInfo: ProfileInfo =
                             { LineCount = count

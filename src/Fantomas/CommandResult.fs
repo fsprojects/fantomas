@@ -25,7 +25,7 @@ type CheckResult =
 let invalidResultException (file: string) : FormatException =
     FormatException($"Formatting %s{file} leads to invalid F# code")
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; Struct>]
 type InputProblem =
     | UnsupportedFileType of path: string
     | NotFound of path: string

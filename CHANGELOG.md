@@ -29,6 +29,7 @@
 - A file whose extension is not lowercase, such as `A.FS`, was refused as an unsupported file type, and one found while walking a folder was skipped. The extension is now compared without case, which is what a volume that ignores case, as macOS and Windows usually do, means by the same file. [#3406](https://github.com/fsprojects/fantomas/pull/3406)
 - Given several input paths, a folder whose name contains a dot, such as `fantomas my.stuff src`, was taken for a file and reported as `Failed to format file`. A file with no extension was taken for a folder. Which one a path is, is now asked of the file system rather than guessed from the name. A single input path was already classified this way. [#3406](https://github.com/fsprojects/fantomas/pull/3406)
 - A `.fantomasignore` pattern that cannot be matched against a path reported the raw exception, with its stack trace, through `%A`. It now names the file and the ignore file that could not be told apart, and keeps the exception for detailed verbosity. [#3406](https://github.com/fsprojects/fantomas/pull/3406)
+- `--profile` reported `Line count: 0` for a file whose line endings are not the ones the platform uses, because it counted occurrences of the platform's newline rather than line breaks. A file saved with line feeds counted nothing on Windows, and one saved with carriage returns counted nothing elsewhere. [#3406](https://github.com/fsprojects/fantomas/pull/3406)
 
 ## [8.0.0-alpha-014] - 2026-08-20
 

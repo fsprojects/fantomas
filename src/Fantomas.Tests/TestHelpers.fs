@@ -160,8 +160,7 @@ let collectingLogger () : ILogger * (unit -> CollectedLog) =
     let collected () : CollectedLog =
         let atLevel (level: LogEventLevel) : string list =
             sink.Events
-            |> List.filter (fun (e: LogEvent) -> e.Level = level)
-            |> List.map (fun (e: LogEvent) -> e.RenderMessage())
+            |> List.choose (fun (e: LogEvent) -> if e.Level = level then Some(e.RenderMessage()) else None)
 
         { Information = atLevel LogEventLevel.Information
           Warning = atLevel LogEventLevel.Warning
@@ -208,7 +207,10 @@ let recordingEnvironment (fs: IFileSystem) (ignoreFile: IgnoreFile option) : Rec
     { Environment =
         { FileSystem = fs
           IgnoreFile = ignoreFile
-          ReadConfiguration = fun _ -> FormatConfig.Default
+          ReadConfiguration =
+            fun _ ->
+                { FormatConfig.Default with
+                    EndOfLine = EndOfLineStyle.LF }
           Log = logger
           Console = console }
       Log = collected

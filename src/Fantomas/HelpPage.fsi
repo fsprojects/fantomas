@@ -1,7 +1,7 @@
 module Fantomas.HelpPage
 
 /// How much colour the page may use.
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; Struct>]
 type Palette =
     | NoColour
     | FourBit

@@ -44,7 +44,7 @@ type InputPath =
     | NotFound of string
     | Unspecified
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; Struct>]
 type OutputPath =
     | IO of string
     | NotKnown

@@ -28,7 +28,7 @@ type InputPath =
     | Unspecified
 
 /// Where the result should be written, which is back over the input unless `--out` said otherwise.
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; Struct>]
 type OutputPath =
     | IO of string
     | NotKnown

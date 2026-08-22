@@ -136,7 +136,7 @@ let ``a folder spelled with a trailing separator is still formatted in place`` (
 
     // `fantomas src/ --out src`. Taken as two different folders, every file below src counts as a
     // previous run's output and the plan comes out empty.
-    planOn fs (InputPath.Folder(src + string fs.Path.DirectorySeparatorChar)) (OutputPath.IO src)
+    planOn fs (InputPath.Folder(src + string<char> fs.Path.DirectorySeparatorChar)) (OutputPath.IO src)
     |> shouldPlan [ WorkItem.Format(a, a) ]
 
 [<Test>]

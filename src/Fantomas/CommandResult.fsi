@@ -30,7 +30,7 @@ val invalidResultException: file: string -> Fantomas.Core.FormatException
 
 /// A reason the input paths cannot be worked with. Both commands can end this way and both are
 /// described from here, which is what keeps their wording from drifting apart.
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; Struct>]
 type InputProblem =
     | UnsupportedFileType of path: string
     | NotFound of path: string
