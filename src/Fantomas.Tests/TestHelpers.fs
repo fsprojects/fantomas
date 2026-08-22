@@ -3,8 +3,10 @@ module Fantomas.Tests.TestHelpers
 open System
 open System.Diagnostics
 open System.IO
+open System.IO.Abstractions
 open System.Text
 open Fantomas
+open Fantomas.Cli
 
 [<RequireQualifiedAccess>]
 module String =
@@ -107,6 +109,13 @@ type FantomasIgnoreFile internal (content: string) =
         member this.Dispose() : unit =
             if File.Exists(filename) then
                 File.Delete(filename)
+
+/// A `CliEnvironment` over the real file system, honouring no ignore file. Enough for a test that
+/// wants the tool's own behaviour without standing up a mock.
+let realEnvironment: CliEnvironment =
+    { FileSystem = FileSystem()
+      IgnoreFile = None
+      ReadConfiguration = EditorConfig.readConfiguration }
 
 type FantomasToolResult =
     { ExitCode: int

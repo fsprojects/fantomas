@@ -33,6 +33,8 @@
     <Compile Include="Daemon.fs" />
     <Compile Include="HelpPage.fsi" />
     <Compile Include="HelpPage.fs" />
+    <Compile Include="Cli.fsi" />
+    <Compile Include="Cli.fs" />
     <Compile Include="Paths.fsi" />
     <Compile Include="Paths.fs" />
     <Compile Include="Arguments.fsi" />

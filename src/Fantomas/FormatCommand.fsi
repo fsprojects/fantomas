@@ -1,8 +1,8 @@
 module Fantomas.FormatCommand
 
-open Fantomas
 open Fantomas.Core
 open Fantomas.Arguments
+open Fantomas.Cli
 open Fantomas.CommandResult
 
 type FormatParams =
@@ -11,8 +11,6 @@ type FormatParams =
       Profile: bool
       File: string }
 
-    /// Read the configuration for the file from the `.editorconfig` files above it.
-    static member Create: bool * bool * string -> FormatParams
     static member Create: FormatConfig * bool * bool * string -> FormatParams
 
 /// Format content that is already in hand. Whether the file should have been formatted at all is
@@ -23,9 +21,8 @@ val formatContentAsync: formatParams: FormatParams -> originalContent: string ->
 /// happened is returned rather than printed, so that a caller can inspect it before any of it
 /// reaches a console.
 val runFormatCommand:
-    force: bool ->
-    profile: bool ->
-    ignoreFile: IgnoreFile option ->
+    env: CliEnvironment ->
+    settings: CliSettings ->
     inputPath: InputPath ->
     outputPath: OutputPath ->
         FormatCommandResult

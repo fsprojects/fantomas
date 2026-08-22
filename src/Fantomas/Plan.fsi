@@ -1,5 +1,6 @@
 module Fantomas.Plan
 
+open System.IO.Abstractions
 open Fantomas
 open Fantomas.Arguments
 open Fantomas.CommandResult
@@ -15,6 +16,7 @@ type WorkItem =
 /// already worked out. This is where a folder becomes its files, where an output tree is mirrored
 /// onto an input tree, and where the ignore file is consulted.
 val plan:
+    fs: IFileSystem ->
     ignoreFile: IgnoreFile option ->
     inputPath: InputPath ->
     outputPath: OutputPath ->

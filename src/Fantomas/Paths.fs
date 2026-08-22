@@ -2,37 +2,36 @@ module Fantomas.Paths
 
 open System
 open System.IO
+open System.IO.Abstractions
 
-let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
+let extensions: Set<string> = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
 
-let isInExcludedDir (fullPath: string) =
+let isInExcludedDir (fullPath: string) : bool =
     set [| "obj"; ".fable"; "fable_modules"; "node_modules" |]
     |> Set.map (fun dir -> sprintf "%c%s%c" Path.DirectorySeparatorChar dir Path.DirectorySeparatorChar)
     |> Set.exists fullPath.Contains
 
-let isFSharpFile (s: string) =
+let isFSharpFile (s: string) : bool =
     Set.contains (Path.GetExtension s) extensions
 
-let findAllFilesRecursively path =
-    let searchOption = SearchOption.AllDirectories
-
-    Directory.GetFiles(path, "*.*", searchOption)
+let findAllFilesRecursively (fs: IFileSystem) (path: string) : string seq =
+    fs.Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
     |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
 
-let ensureParentFolderExists (file: string) : unit =
-    let folder = Path.GetDirectoryName(file)
+let ensureParentFolderExists (fs: IFileSystem) (file: string) : unit =
+    let folder: string = fs.Path.GetDirectoryName(file)
 
     if not (String.IsNullOrEmpty folder) then
-        Directory.CreateDirectory(folder) |> ignore
+        fs.Directory.CreateDirectory(folder) |> ignore
 
-let isSamePath (left: string) (right: string) : bool =
-    String.Equals(Path.GetFullPath left, Path.GetFullPath right, StringComparison.Ordinal)
+let isSamePath (fs: IFileSystem) (left: string) (right: string) : bool =
+    String.Equals(fs.Path.GetFullPath left, fs.Path.GetFullPath right, StringComparison.Ordinal)
 
-let isInFolder (folder: string) (file: string) : bool =
-    let folder =
+let isInFolder (fs: IFileSystem) (folder: string) (file: string) : bool =
+    let folder: string =
         String.Concat(
-            Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar),
-            string<char> Path.DirectorySeparatorChar
+            fs.Path.GetFullPath(folder).TrimEnd(fs.Path.DirectorySeparatorChar),
+            string<char> fs.Path.DirectorySeparatorChar
         )
 
-    Path.GetFullPath(file).StartsWith(folder, StringComparison.Ordinal)
+    fs.Path.GetFullPath(file).StartsWith(folder, StringComparison.Ordinal)

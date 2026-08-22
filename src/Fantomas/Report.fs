@@ -1,21 +1,22 @@
 module Fantomas.Report
 
 open System
-open System.IO
+open System.IO.Abstractions
 open Spectre.Console
 // Fantomas.Core has a FormatResult of its own. Opening Fantomas last is what makes the
 // FormatResult named here the one this project defines.
 open Fantomas.Core
 open Fantomas
+open Fantomas.Cli
 open Fantomas.CommandResult
 open Fantomas.Logging
 open Fantomas.CommandResult
 
 // The context lines a parse failure's snippet is drawn from come from the file itself. This is
 // the error path's last act before the tool gives up on the file, so reading it again is free.
-let sourceOf (file: string) : string =
+let sourceOf (fs: IFileSystem) (file: string) : string =
     try
-        File.ReadAllText file
+        fs.File.ReadAllText file
     with _ ->
         String.Empty
 
@@ -30,17 +31,17 @@ let partitionResults
         | FormatResult.Unchanged(file, p) -> (oks, ignores, (file, p) :: unchanged, errors)
         | FormatResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors)
         | FormatResult.InvalidCode(file, _) ->
-            let ex = invalidResultException file
+            let ex: FormatException = invalidResultException file
             (oks, ignores, unchanged, (file, ex :> Exception) :: errors))
 
-let reportError (verbosity: VerbosityLevel) (file: string, exn: Exception) : unit =
+let reportError (fs: IFileSystem) (verbosity: VerbosityLevel) (file: string, exn: Exception) : unit =
     let describeOther () : string =
-        let message =
+        let message: string =
             match verbosity with
             | VerbosityLevel.Normal ->
                 match exn with
                 | :? DefineParseException as dpe ->
-                    let combinations =
+                    let combinations: string =
                         dpe.Combinations
                         |> List.map (fun c -> if c = "no defines" then "no defines" else $"[%s{c}]")
                         |> String.concat ", "
@@ -57,7 +58,7 @@ let reportError (verbosity: VerbosityLevel) (file: string, exn: Exception) : uni
 
     // A parse failure describes itself, positions and all, rather than being reduced to a
     // single line saying only that it happened.
-    match Diagnostics.describeParseFailure file (sourceOf file) exn with
+    match Diagnostics.describeParseFailure file (sourceOf fs file) exn with
     | Some parseFailure -> elog parseFailure
     | None -> elog (describeOther ())
 
@@ -68,7 +69,7 @@ let reportProfileInfo (profile: bool) (file: string, profileInfo: ProfileInfo op
 
 let reportProfileInfos (profile: bool) (results: (string * ProfileInfo option) list) : unit =
     if profile && not (List.isEmpty results) then
-        let table = Table().AddColumns([| "File"; "Line count"; "Time taken" |])
+        let table: Table = Table().AddColumns([| "File"; "Line count"; "Time taken" |])
 
         results
         |> List.choose (fun (f, p) -> p |> Option.map (fun p -> f, p))
@@ -78,7 +79,12 @@ let reportProfileInfos (profile: bool) (results: (string * ProfileInfo option) l
             table
         |> AnsiConsole.Write
 
-let reportFormatResults (profile: bool) (verbosity: VerbosityLevel) (results: #(FormatResult seq)) : int =
+let reportFormatResults
+    (fs: IFileSystem)
+    (profile: bool)
+    (verbosity: VerbosityLevel)
+    (results: #(FormatResult seq))
+    : int =
     match Seq.tryExactlyOne results with
     | Some singleResult ->
         match singleResult with
@@ -94,18 +100,18 @@ let reportFormatResults (profile: bool) (verbosity: VerbosityLevel) (results: #(
             reportProfileInfo profile (f, p)
             0
         | FormatResult.Error(f, e) ->
-            reportError verbosity (f, e)
+            reportError fs verbosity (f, e)
             1
         | FormatResult.InvalidCode(f, _) ->
-            let ex = invalidResultException f
-            reportError verbosity (f, ex)
+            let ex: FormatException = invalidResultException f
+            reportError fs verbosity (f, ex)
             1
 
     | None ->
         let oks, ignored, unchanged, errored = partitionResults results
         let centeredColumn (v: string) = TableColumn(v).Centered()
 
-        let summary =
+        let summary: Table =
             Table()
                 .AddColumns(
                     [| "[green]Formatted[/]"
@@ -123,15 +129,15 @@ let reportFormatResults (profile: bool) (verbosity: VerbosityLevel) (results: #(
         AnsiConsole.Write summary
 
         for e in errored do
-            reportError verbosity e
+            reportError fs verbosity e
 
         reportProfileInfos profile (oks @ unchanged)
 
         if errored.Length > 0 then 1 else 0
 
-let reportCheckResults (checkResult: CheckResult) =
+let reportCheckResults (fs: IFileSystem) (checkResult: CheckResult) =
     for filename, exn in checkResult.Errors do
-        match Diagnostics.describeParseFailure filename (sourceOf filename) exn with
+        match Diagnostics.describeParseFailure filename (sourceOf fs filename) exn with
         | Some parseFailure -> elog parseFailure
         | None -> elog $"error: Failed to format %s{filename}: %s{exn.ToString()}"
 
@@ -145,7 +151,7 @@ let describeInputProblem (problem: InputProblem) : string =
     | InputProblem.NoPathGiven -> "No input path provided. Call with --help for usage information."
     | InputProblem.MultiplePathsWithOut -> "Multiple input files are not supported with the --out flag."
 
-let reportFormatCommand (profile: bool) (verbosity: VerbosityLevel) (result: FormatCommandResult) : int =
+let reportFormatCommand (env: CliEnvironment) (settings: CliSettings) (result: FormatCommandResult) : int =
     match result with
     | FormatCommandResult.InvalidInput problem ->
         elog (describeInputProblem problem)
@@ -153,9 +159,10 @@ let reportFormatCommand (profile: bool) (verbosity: VerbosityLevel) (result: For
     | FormatCommandResult.Failed error ->
         elog $"%s{error.Message}"
         1
-    | FormatCommandResult.Completed results -> reportFormatResults profile verbosity results
+    | FormatCommandResult.Completed results ->
+        reportFormatResults env.FileSystem settings.Profile settings.Verbosity results
 
-let reportCheckCommand (result: CheckCommandResult) : int =
+let reportCheckCommand (env: CliEnvironment) (result: CheckCommandResult) : int =
     match result with
     | CheckCommandResult.InvalidInput problem ->
         elog (describeInputProblem problem)
@@ -168,5 +175,5 @@ let reportCheckCommand (result: CheckCommandResult) : int =
             logGrEqDetailed "No changes required."
             0
         else
-            reportCheckResults checkResult
+            reportCheckResults env.FileSystem checkResult
             if checkResult.HasErrors then 1 else 99

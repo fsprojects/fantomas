@@ -1,7 +1,7 @@
 module Fantomas.Arguments
 
 open System
-open System.IO
+open System.IO.Abstractions
 open Argu
 open Fantomas.Logging
 open Fantomas.Paths
@@ -49,26 +49,27 @@ type OutputPath =
     | IO of string
     | NotKnown
 
-let classifyInputPath (maybeInput: string list option) : InputPath =
+let classifyInputPath (fs: IFileSystem) (maybeInput: string list option) : InputPath =
     match maybeInput with
     | Some [ input ] ->
-        if Directory.Exists(input) then
+        if fs.Directory.Exists(input) then
             InputPath.Folder input
-        elif File.Exists input && isFSharpFile input then
+        elif fs.File.Exists input && isFSharpFile input then
             InputPath.File input
-        elif File.Exists input then
+        elif fs.File.Exists input then
             InputPath.NoFSharpFile input
         else
             InputPath.NotFound input
     | Some inputs ->
-        let missing =
-            inputs |> List.tryFind (fun x -> not (Directory.Exists(x) || File.Exists(x)))
+        let missing: string option =
+            inputs
+            |> List.tryFind (fun x -> not (fs.Directory.Exists(x) || fs.File.Exists(x)))
 
         match missing with
         | Some x -> InputPath.NotFound x
         | None ->
             let isFolder (path: string) =
-                String.IsNullOrWhiteSpace(Path.GetExtension(path))
+                String.IsNullOrWhiteSpace(fs.Path.GetExtension(path))
 
             let rec loop
                 (files: string list)

@@ -23,21 +23,27 @@ Scripts require a debug build first (`dotnet build src/Fantomas/Fantomas.fsproj`
 
 ## Code Style
 
-Annotate every parameter and the return type on a function, even where inference would manage
-without it:
+Annotate every `let` binding, even where inference would manage without it. On a function that
+means every parameter and the return type; on a value it means the type:
 
 ```fsharp
 let writeRow (column: int) (left: string) (right: string) : unit = ...
+
+let extensions: Set<string> = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
 ```
 
-A written signature reads as documentation, and a wrong assumption fails at the definition
-rather than at a call site somewhere else. Both matter more when the reader is skimming
-unfamiliar code, which is most of the time. Modules with a signature file already state this at
-the boundary; annotate the implementation as well.
+A written type reads as documentation, and a wrong assumption fails at the definition rather than
+at a call site somewhere else. Both matter more when the reader is skimming unfamiliar code, which
+is most of the time, and a reader should not have to run the inference in their head to find out
+what a name holds. Modules with a signature file already state this at the boundary; annotate the
+implementation as well.
+
+This applies inside a function as much as at the top level: a local `let` in a long body is
+exactly where a reader loses track of what something is.
 
 This is guidance for code you are writing or revisiting, not a reason to sweep the codebase.
-When you touch a function for some other reason, add the annotations it is missing. Leave the
-functions you had no reason to open alone.
+When you touch a binding for some other reason, add the annotations it is missing. Leave the
+bindings you had no reason to open alone.
 
 In a file that has a signature file, the signature file is the visibility boundary: anything it
 does not list is already hidden. Do not write `let private` there. The keyword adds nothing and

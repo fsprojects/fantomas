@@ -2,11 +2,13 @@ module Fantomas.FormatCommand
 
 open System
 open System.IO
+open System.IO.Abstractions
 open System.Text
 open Fantomas.Core
 open Fantomas
 open Fantomas.Logging
 open Fantomas.Arguments
+open Fantomas.Cli
 open Fantomas.CommandResult
 open Fantomas.Paths
 open Fantomas.Plan
@@ -23,33 +25,27 @@ type FormatParams =
           Profile = profile
           File = file }
 
-    static member Create(compareWithoutLineEndings: bool, profile: bool, file: string) =
-        { Config = EditorConfig.readConfiguration file
-          CompareWithoutLineEndings = compareWithoutLineEndings
-          Profile = profile
-          File = file }
-
 let private carriageReturn = Text.RegularExpressions.Regex(@"\r")
 
 let formatContentAsync (formatParams: FormatParams) (originalContent: string) : Async<FormatResult> =
     async {
         try
-            let isSignatureFile = Path.GetExtension(formatParams.File) = ".fsi"
+            let isSignatureFile: bool = Path.GetExtension(formatParams.File) = ".fsi"
 
             let! { Code = formattedContent }, profileInfo =
                 if formatParams.Profile then
                     async {
-                        let sw = Diagnostics.Stopwatch.StartNew()
+                        let sw: Diagnostics.Stopwatch = Diagnostics.Stopwatch.StartNew()
 
                         let! res =
                             CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, formatParams.Config)
 
                         sw.Stop()
 
-                        let count =
+                        let count: int =
                             originalContent.Length - originalContent.Replace(Environment.NewLine, "").Length
 
-                        let profileInfo =
+                        let profileInfo: ProfileInfo =
                             { LineCount = count
                               TimeTaken = sw.Elapsed }
 
@@ -63,7 +59,7 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
                         return res, None
                     }
 
-            let contentChanged =
+            let contentChanged: bool =
                 if formatParams.CompareWithoutLineEndings then
                     let stripNewlines (s: string) = carriageReturn.Replace(s, String.Empty)
 
@@ -89,41 +85,46 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
             return FormatResult.Error(formatParams.File, ex)
     }
 
-let hasByteOrderMark (file: string) : Async<bool> =
+let hasByteOrderMark (fs: IFileSystem) (file: string) : Async<bool> =
     async {
-        if File.Exists(file) then
-            let preamble = Encoding.UTF8.GetPreamble()
+        if fs.File.Exists(file) then
+            let preamble: byte array = Encoding.UTF8.GetPreamble()
 
-            use file = new FileStream(file, FileMode.Open, FileAccess.Read)
+            use stream = fs.File.OpenRead(file)
 
-            let mutable bom = Array.zeroCreate 3
-            do! file.ReadAsync(bom, 0, 3) |> Async.AwaitTask |> Async.Ignore<int>
+            let mutable bom: byte array = Array.zeroCreate 3
+            do! stream.ReadAsync(bom, 0, 3) |> Async.AwaitTask |> Async.Ignore<int>
             return bom = preamble
         else
             return false
     }
 
 let processSourceString
-    (force: bool)
-    (profile: bool)
+    (env: CliEnvironment)
+    (settings: CliSettings)
     (s: string)
     (fileName: string)
     (config: FormatConfig)
     : Async<FormatResult> =
+    let fs: IFileSystem = env.FileSystem
+    let force: bool = settings.Force
+
     let writeResult (formatted: string) =
         async {
-            let! hasBom = hasByteOrderMark fileName
+            let! hasBom = hasByteOrderMark fs fileName
 
             if hasBom then
-                do! File.WriteAllTextAsync(fileName, formatted, Encoding.UTF8) |> Async.AwaitTask
+                do! fs.File.WriteAllTextAsync(fileName, formatted, Encoding.UTF8) |> Async.AwaitTask
             else
-                do! File.WriteAllTextAsync(fileName, formatted) |> Async.AwaitTask
+                do! fs.File.WriteAllTextAsync(fileName, formatted) |> Async.AwaitTask
 
             logGrEqDetailed $"%s{fileName} has been written."
         }
 
     async {
-        let formatParams = FormatParams.Create(config, false, profile, fileName)
+        let formatParams: FormatParams =
+            FormatParams.Create(config, false, settings.Profile, fileName)
+
         let! formatted = formatContentAsync formatParams s
 
         match formatted with
@@ -142,10 +143,21 @@ let processSourceString
         | FormatResult.InvalidCode(file, _) -> return FormatResult.Error(file, invalidResultException file)
     }
 
-let processSourceFile (force: bool) (profile: bool) (inFile: string) (tw: TextWriter) : Async<FormatResult> =
+let processSourceFile
+    (env: CliEnvironment)
+    (settings: CliSettings)
+    (inFile: string)
+    (tw: TextWriter)
+    : Async<FormatResult> =
+    let force: bool = settings.Force
+
     async {
-        let! originalContent = File.ReadAllTextAsync inFile |> Async.AwaitTask
-        let! formatted = formatContentAsync (FormatParams.Create(false, profile, inFile)) originalContent
+        let! originalContent = env.FileSystem.File.ReadAllTextAsync inFile |> Async.AwaitTask
+
+        let formatParams: FormatParams =
+            FormatParams.Create(env.ReadConfiguration inFile, false, settings.Profile, inFile)
+
+        let! formatted = formatContentAsync formatParams originalContent
 
         match formatted with
         | FormatResult.Formatted(_, formattedContent, _) as r ->
@@ -169,23 +181,25 @@ let processSourceFile (force: bool) (profile: bool) (inFile: string) (tw: TextWr
 // is something to put in it. Opening it up front truncates it before the input is read,
 // which empties the input when both paths turn out to name the same file, and leaves a
 // zero byte file behind whenever formatting does not complete.
-let fileToFile (force: bool) (profile: bool) (inFile: string) (outFile: string) : Async<FormatResult> =
+let fileToFile (env: CliEnvironment) (settings: CliSettings) (inFile: string) (outFile: string) : Async<FormatResult> =
+    let fs: IFileSystem = env.FileSystem
+
     async {
         logGrEqDetailed $"Processing %s{inFile}"
         use buffer = new StringWriter()
-        let! processResult = processSourceFile force profile inFile buffer
+        let! processResult = processSourceFile env settings inFile buffer
 
         match processResult with
         | FormatResult.Formatted _
         | FormatResult.Unchanged _ ->
-            let! hasByteOrderMark = hasByteOrderMark inFile
-            ensureParentFolderExists outFile
-            let contents = buffer.ToString()
+            let! hasByteOrderMark = hasByteOrderMark fs inFile
+            ensureParentFolderExists fs outFile
+            let contents: string = buffer.ToString()
 
             if hasByteOrderMark then
-                do! File.WriteAllTextAsync(outFile, contents, Encoding.UTF8) |> Async.AwaitTask
+                do! fs.File.WriteAllTextAsync(outFile, contents, Encoding.UTF8) |> Async.AwaitTask
             else
-                do! File.WriteAllTextAsync(outFile, contents) |> Async.AwaitTask
+                do! fs.File.WriteAllTextAsync(outFile, contents) |> Async.AwaitTask
 
             logGrEqDetailed $"%s{outFile} has been written."
         | FormatResult.IgnoredFile _
@@ -195,43 +209,48 @@ let fileToFile (force: bool) (profile: bool) (inFile: string) (outFile: string) 
         return processResult
     }
 
-let processFile (force: bool) (profile: bool) (inputFile: string) (outputFile: string) : Async<FormatResult> =
+let processFile
+    (env: CliEnvironment)
+    (settings: CliSettings)
+    (inputFile: string)
+    (outputFile: string)
+    : Async<FormatResult> =
     async {
         try
-            if not (isSamePath inputFile outputFile) then
-                return! fileToFile force profile inputFile outputFile
+            if not (isSamePath env.FileSystem inputFile outputFile) then
+                return! fileToFile env settings inputFile outputFile
             else
                 logGrEqDetailed $"Processing %s{inputFile}"
-                let! content = File.ReadAllTextAsync inputFile |> Async.AwaitTask
-                let config = EditorConfig.readConfiguration inputFile
-                return! processSourceString force profile content inputFile config
+                let! content = env.FileSystem.File.ReadAllTextAsync inputFile |> Async.AwaitTask
+                return! processSourceString env settings content inputFile (env.ReadConfiguration inputFile)
         with e ->
             return FormatResult.Error(inputFile, e)
     }
 
 let runFormatCommand
-    (force: bool)
-    (profile: bool)
-    (ignoreFile: IgnoreFile option)
+    (env: CliEnvironment)
+    (settings: CliSettings)
     (inputPath: InputPath)
     (outputPath: OutputPath)
     : FormatCommandResult =
+    let fs: IFileSystem = env.FileSystem
+
     try
         // An output folder is created even when the run turns out to have nothing to put in it,
         // which is what a folder that is empty, or entirely ignored, comes to.
         match inputPath, outputPath with
-        | InputPath.Folder _, OutputPath.IO outputFolder when not (Directory.Exists outputFolder) ->
-            Directory.CreateDirectory outputFolder |> ignore
+        | InputPath.Folder _, OutputPath.IO outputFolder when not (fs.Directory.Exists outputFolder) ->
+            fs.Directory.CreateDirectory outputFolder |> ignore
         | _ -> ()
 
-        match plan ignoreFile inputPath outputPath with
+        match plan fs env.IgnoreFile inputPath outputPath with
         | Error problem -> FormatCommandResult.InvalidInput problem
         | Ok items ->
             items
             |> List.map (fun item ->
                 match item with
                 | WorkItem.Ignored file -> async.Return(FormatResult.IgnoredFile file)
-                | WorkItem.Format(inputFile, outputFile) -> processFile force profile inputFile outputFile)
+                | WorkItem.Format(inputFile, outputFile) -> processFile env settings inputFile outputFile)
             |> Async.Parallel
             |> Async.RunSynchronously
             |> FormatCommandResult.Completed

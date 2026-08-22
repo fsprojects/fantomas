@@ -1,13 +1,13 @@
 module Program
 
 open System
-// Fantomas.Core has a FormatResult of its own. Opening Fantomas last is what makes the
-// FormatResult named here the one this project defines.
+open System.IO.Abstractions
 open Fantomas.Core
 open Fantomas
 open Fantomas.Daemon
 open Fantomas.Logging
 open Fantomas.Arguments
+open Fantomas.Cli
 open Fantomas.FormatCommand
 open Fantomas.Report
 open Fantomas.CheckCommand
@@ -17,23 +17,26 @@ open Argu
 let main argv =
     // Argu never gets to render a usage text of its own: HelpPage.exiter answers --help with
     // the Fantomas help page and reduces an argument error to its first line.
-    let parser =
+    let parser: ArgumentParser<Arguments> =
         ArgumentParser.Create<Arguments>(programName = "fantomas", errorHandler = HelpPage.exiter)
 
-    let results = parser.ParseCommandLine argv
+    let results: ParseResults<Arguments> = parser.ParseCommandLine argv
 
-    let outputPath =
+    let outputPath: OutputPath =
         match results.TryGetResult <@ Arguments.Out @> with
         | Some output -> OutputPath.IO output
         | None -> OutputPath.NotKnown
 
-    let inputPath = results.TryGetResult <@ Arguments.Input @> |> classifyInputPath
+    let fileSystem: IFileSystem = FileSystem()
 
-    let force = results.Contains <@ Arguments.Force @>
-    let profile = results.Contains <@ Arguments.Profile @>
-    let version = results.TryGetResult <@ Arguments.Version @>
+    let inputPath: InputPath =
+        results.TryGetResult <@ Arguments.Input @> |> classifyInputPath fileSystem
 
-    let verbosityLevel =
+    let force: bool = results.Contains <@ Arguments.Force @>
+    let profile: bool = results.Contains <@ Arguments.Profile @>
+    let version: Arguments option = results.TryGetResult <@ Arguments.Version @>
+
+    let verbosityLevel: VerbosityLevel =
         match parseVerbosity (results.TryGetResult <@ Arguments.Verbosity @>) with
         | Some level -> level
         | None ->
@@ -41,10 +44,10 @@ let main argv =
             eprintfn "Invalid verbosity level"
             exit 1
 
-    let isDaemon = results.Contains <@ Arguments.Daemon @>
+    let isDaemon: bool = results.Contains <@ Arguments.Daemon @>
 
     // In daemon mode standard out carries the JSON-RPC protocol, so the logger must stay off it.
-    let verbosity =
+    let verbosity: VerbosityLevel =
         if isDaemon then
             initDaemonLogger verbosityLevel
         else
@@ -52,10 +55,10 @@ let main argv =
 
     AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> closeAndFlushLog ())
 
-    let check = results.Contains <@ Arguments.Check @>
+    let check: bool = results.Contains <@ Arguments.Check @>
 
-    let versionLog =
-        let version = CodeFormatter.GetVersion()
+    let versionLog: string =
+        let version: string = CodeFormatter.GetVersion()
         $"Fantomas v%s{version}"
 
     if Option.isNone version then
@@ -65,7 +68,7 @@ let main argv =
         stdlog versionLog
         0
     elif isDaemon then
-        let daemon =
+        let daemon: FantomasDaemon =
             new FantomasDaemon(Console.OpenStandardOutput(), Console.OpenStandardInput())
 
         AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> (daemon :> IDisposable).Dispose())
@@ -73,10 +76,22 @@ let main argv =
         daemon.WaitForClose.GetAwaiter().GetResult()
         0
     else
-        let ignoreFile = IgnoreFile.current.Force()
+        let environment: CliEnvironment =
+            { FileSystem = fileSystem
+              IgnoreFile =
+                IgnoreFile.findInDirectory
+                    fileSystem
+                    Environment.CurrentDirectory
+                    (IgnoreFile.loadIgnoreList fileSystem)
+              ReadConfiguration = EditorConfig.readConfiguration }
+
+        let settings: CliSettings =
+            { Force = force
+              Profile = profile
+              Verbosity = verbosity }
 
         if check then
-            runCheckCommand ignoreFile inputPath |> reportCheckCommand
+            runCheckCommand environment inputPath |> reportCheckCommand environment
         else
-            runFormatCommand force profile ignoreFile inputPath outputPath
-            |> reportFormatCommand profile verbosity
+            runFormatCommand environment settings inputPath outputPath
+            |> reportFormatCommand environment settings

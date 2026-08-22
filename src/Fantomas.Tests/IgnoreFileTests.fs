@@ -132,7 +132,7 @@ let ``IgnoreFile.find can find the fantomasignore one layer up from the source f
     getLoads () |> shouldEqual (Set.ofList [ target ])
 
 [<Test>]
-let ``IgnoreFile.current' does not load more than once`` () =
+let ``IgnoreFile.findInDirectory loads the ignore file above the directory, exactly once`` () =
     let fs = MockFileSystem()
     let root = fs.Path.GetTempPath() |> fs.Path.GetPathRoot
 
@@ -144,17 +144,12 @@ let ``IgnoreFile.current' does not load more than once`` () =
     let loadIgnoreList, getLoads = oneShotLoader (fun _ -> failwith "never called")
 
     let ignoreFile =
-        IgnoreFile.current' fs (fs.Path.GetDirectoryName target) loadIgnoreList
+        IgnoreFile.findInDirectory fs (fs.Path.GetDirectoryName target) loadIgnoreList
 
-    getLoads () |> shouldBeEmpty
+    match ignoreFile with
+    | Some found -> found.Location.FullName |> shouldEqual target
+    | None -> failwith "Expected to find the ignore file above the directory"
 
-    for _ in 1..2 do
-        let forced =
-            match ignoreFile.Force() with
-            | Some f -> f
-            | None -> failwith $"calling %s{nameof ignoreFile.Force} failed"
-
-        forced.Location.FullName |> shouldEqual target
-        // The second invocation would throw if we were somehow getting the
-        // singleton wrong and re-invoking the find-and-load.
-        getLoads () |> shouldEqual (Set.ofList [ target ])
+    // oneShotLoader throws on a second load of the same file, so this says the walk up stopped at
+    // the first ignore file it met rather than carrying on and loading another.
+    getLoads () |> shouldEqual (Set.ofList [ target ])

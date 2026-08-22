@@ -1,6 +1,6 @@
 module Fantomas.Plan
 
-open System.IO
+open System.IO.Abstractions
 open Fantomas
 open Fantomas.Arguments
 open Fantomas.CommandResult
@@ -12,6 +12,7 @@ type WorkItem =
     | Format of inputFile: string * outputFile: string
 
 let plan
+    (fs: IFileSystem)
     (ignoreFile: IgnoreFile option)
     (inputPath: InputPath)
     (outputPath: OutputPath)
@@ -23,22 +24,27 @@ let plan
             WorkItem.Format(inputFile, outputFile)
 
     let folder (inputFolder: string) (outputFolder: string) : WorkItem list =
-        let inPlace = isSamePath inputFolder outputFolder
+        let inPlace: bool = isSamePath fs inputFolder outputFolder
 
-        findAllFilesRecursively inputFolder
+        // The output folder mirrors the input tree. Keeping only the file name would let two files
+        // with the same name in different subfolders overwrite each other.
+        let destinationOf (inputFile: string) : string =
+            if inPlace then
+                inputFile
+            else
+                fs.Path.Combine(outputFolder, fs.Path.GetRelativePath(inputFolder, inputFile))
+
         // An output folder inside the input folder is walked over as well, so the previous run's
         // results would be formatted again and nested one level deeper every time.
-        |> Seq.filter (fun i -> inPlace || not (isInFolder outputFolder i))
-        |> Seq.map (fun i ->
-            let o =
-                if inPlace then
-                    i
-                else
-                    // The output folder mirrors the input tree. Keeping only the file name would
-                    // let two files with the same name in different subfolders overwrite each other.
-                    Path.Combine(outputFolder, Path.GetRelativePath(inputFolder, i))
+        let isPreviousOutput (inputFile: string) : bool =
+            not inPlace && isInFolder fs outputFolder inputFile
 
-            item i o)
+        findAllFilesRecursively fs inputFolder
+        |> Seq.choose (fun i ->
+            if isPreviousOutput i then
+                None
+            else
+                Some(item i (destinationOf i)))
         |> Seq.toList
 
     match inputPath, outputPath with
