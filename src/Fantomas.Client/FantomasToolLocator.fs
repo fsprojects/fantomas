@@ -12,21 +12,23 @@ open Fantomas.Client.LSPFantomasServiceTypes
 // Only 4.6.0-alpha-004 has daemon capabilities
 let private supportedRange = SemanticVersioning.Range(">=v4.6.0-alpha-004")
 
+[<return: Struct>]
 let private (|CompatibleVersion|_|) (version: string) =
     match SemanticVersioning.Version.TryParse version with
     | true, parsedVersion ->
         if supportedRange.IsSatisfied(parsedVersion, includePrerelease = true) then
-            Some version
+            ValueSome version
         else
-            None
-    | _ -> None
+            ValueNone
+    | _ -> ValueNone
 
 // In the past, fantomas was named fantomas-tool.
+[<return: Struct>]
 let private (|CompatibleToolName|_|) toolName =
     if toolName = "fantomas-tool" || toolName = "fantomas" then
-        Some toolName
+        ValueSome toolName
     else
-        None
+        ValueNone
 
 let private readOutputStreamAsLines (outputStream: StreamReader) : string list =
     let rec readLines (outputStream: StreamReader) (continuation: string list -> string list) =
@@ -87,7 +89,9 @@ let private runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Resu
 
 let private packageSidVersionRegex = Regex(@"^Package\sId\s+Version.+$")
 
+[<return: Struct>]
 let private (|CompatibleTool|_|) lines =
+    // These are local bindings, which cannot carry an attribute, so they stay on option.
     let (|HeaderLine|_|) line =
         if packageSidVersionRegex.IsMatch line then Some() else None
 
@@ -117,8 +121,8 @@ let private (|CompatibleTool|_|) lines =
                     | _ -> false)
                 tools
 
-        Option.map (snd >> FantomasVersion) tool
-    | _ -> None
+        tool |> ValueOption.ofOption |> ValueOption.map (snd >> FantomasVersion)
+    | _ -> ValueNone
 
 let private isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 

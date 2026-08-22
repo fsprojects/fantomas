@@ -4,7 +4,7 @@ open System
 open Serilog
 open Serilog.Events
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; Struct>]
 type VerbosityLevel =
     | Normal
     | Detailed

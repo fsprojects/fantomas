@@ -18,8 +18,8 @@
         <PackageVersion Include="Ionide.KeepAChangelog.Tasks" Version="0.3.3"/>
         <PackageVersion Include="DotNet.ReproducibleBuilds" Version="2.0.2"/>
 
-        <PackageVersion Include="G-Research.FSharp.Analyzers" Version="0.22.0" />
-        <PackageVersion Include="Ionide.Analyzers" Version="0.15.0" />
+        <PackageVersion Include="G-Research.FSharp.Analyzers" Version="0.23.0" />
+        <PackageVersion Include="Ionide.Analyzers" Version="0.17.0" />
 
         <PackageVersion Include="StreamJsonRpc" Version="2.25.29" />
         <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />

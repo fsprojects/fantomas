@@ -3,6 +3,7 @@ namespace Fantomas
 open System.IO.Abstractions
 open Serilog
 
+[<Struct>]
 type AbsoluteFilePath =
     private
     | AbsoluteFilePath of string

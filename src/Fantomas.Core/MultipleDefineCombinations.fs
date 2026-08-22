@@ -123,7 +123,7 @@ type SplitHashState =
           LastLineInfo = LastLineInfo.None
           LinesCollected = 0 }
 
-and [<RequireQualifiedAccess>] LastLineInfo =
+and [<RequireQualifiedAccess; Struct>] LastLineInfo =
     | None
     | HashLine
     | Content

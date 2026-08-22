@@ -90,13 +90,14 @@ let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
             )
         )
 
+[<return: Struct>]
 let (|ParenExpr|_|) (e: Expr) =
     match e with
     | Expr.Paren _
     | Expr.ParenLambda _
     | Expr.ParenFunctionNameWithStar _
-    | Expr.Constant(Constant.Unit _) -> Some e
-    | _ -> None
+    | Expr.Constant(Constant.Unit _) -> ValueSome e
+    | _ -> ValueNone
 
 let genTrivia (node: Node) (trivia: TriviaNode) (ctx: Context) =
     let currentLineContent = ctx.WriterEvents.CurrentLineContent()
@@ -2880,48 +2881,52 @@ let genPrefixApp
      +> genSingleTextNode greaterThan)
         ctx
 
+[<return: Struct>]
 let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
     if not (config.ExperimentalElmish || config.IsStroustrupStyle) then
-        None
+        ValueNone
     else
         let mutable otherArgs = ListCollector<Expr>()
 
         let rec visit (args: Expr list) =
             match args with
-            | [] -> None
-            | [ Expr.ArrayOrList firstList; Expr.ArrayOrList lastList ] -> Some(otherArgs.Close(), firstList, lastList)
+            | [] -> ValueNone
+            | [ Expr.ArrayOrList firstList; Expr.ArrayOrList lastList ] ->
+                ValueSome(otherArgs.Close(), firstList, lastList)
             | arg :: args ->
                 otherArgs.Add(arg)
                 visit args
 
         visit appNode.Arguments
 
+[<return: Struct>]
 let (|EndsWithSingleListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
     if not (config.ExperimentalElmish || config.IsStroustrupStyle) then
-        None
+        ValueNone
     else
         let mutable otherArgs = ListCollector<Expr>()
 
         let rec visit (args: Expr list) =
             match args with
-            | [] -> None
-            | [ Expr.ArrayOrList singleList ] -> Some(otherArgs.Close(), singleList)
+            | [] -> ValueNone
+            | [ Expr.ArrayOrList singleList ] -> ValueSome(otherArgs.Close(), singleList)
             | arg :: args ->
                 otherArgs.Add(arg)
                 visit args
 
         visit appNode.Arguments
 
+[<return: Struct>]
 let (|EndsWithSingleRecordApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
     if not config.IsStroustrupStyle then
-        None
+        ValueNone
     else
         let mutable otherArgs = ListCollector<Expr>()
 
         let rec visit (args: Expr list) =
             match args with
-            | [] -> None
-            | [ Expr.Record _ | Expr.AnonStructRecord _ as singleRecord ] -> Some(otherArgs.Close(), singleRecord)
+            | [] -> ValueNone
+            | [ Expr.Record _ | Expr.AnonStructRecord _ as singleRecord ] -> ValueSome(otherArgs.Close(), singleRecord)
             | arg :: args ->
                 otherArgs.Add(arg)
                 visit args

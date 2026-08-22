@@ -6,6 +6,7 @@ This is the changelog for the Fantomas.Client package specifically. It's distinc
 
 ### Changed
 - Bump `StreamJsonRpc` to `2.25.29`. [#3393](https://github.com/fsprojects/fantomas/pull/3393)
+- Breaking: no longer binary compatible with `0.11.0`. Several discriminated unions are structs now, which changes nothing about how they are written or matched, but an assembly compiled against `0.11.0` has to be rebuilt. [#3407](https://github.com/fsprojects/fantomas/pull/3407)
 
 ## [0.11.0] - 2026-04-16
 
