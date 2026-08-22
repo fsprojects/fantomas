@@ -32,11 +32,11 @@ let ``every problem is named, and the origin with them`` () =
     | None -> Assert.Fail "Expected a report"
     | Some report ->
         Assert.That(report, Does.Contain "/repo/.editorconfig")
-        Assert.That(report, Does.Contain "fsharp_wibble is not a Fantomas setting")
+        Assert.That(report, Does.Contain "'fsharp_wibble' is not a Fantomas setting")
 
         Assert.That(
             report,
-            Does.Contain "fsharp_experimental_elmish does not accept the value yes, so the default is used instead"
+            Does.Contain "'fsharp_experimental_elmish' does not accept the value 'yes', so the default is used instead"
         )
 
 [<Test>]
@@ -135,6 +135,23 @@ let ``the supported settings are written at debug verbosity, once per run`` () =
     let debug = (collected ()).Debug
     debug |> List.length == 1
     Assert.That(List.head debug, Does.Contain "fsharp_multiline_bracket_style")
+
+// A value is whatever someone typed after the `=`. Unquoted, an empty one vanished and one with
+// spaces in it ran into the sentence around it: "does not accept the value not a bool, so there,
+// so the default is used instead."
+[<TestCase("", "''")>]
+[<TestCase("strous trup", "'strous trup'")>]
+[<TestCase("not a bool, so there", "'not a bool, so there'")>]
+let ``an awkward value is delimited so the sentence still reads`` (value: string, expected: string) =
+    match describe "/repo/.editorconfig" [ unrecognized ("fsharp_experimental_elmish", value) ] with
+    | None -> Assert.Fail "Expected a report"
+    | Some report -> Assert.That(report, Does.Contain $"does not accept the value %s{expected}, so the default")
+
+[<Test>]
+let ``a suggestion is delimited too, so the question mark is not read as part of the name`` () =
+    match describe "/repo/.editorconfig" [ unknown "fsharp_max_line_length" ] with
+    | None -> Assert.Fail "Expected a report"
+    | Some report -> Assert.That(report, Does.Contain "Did you mean 'max_line_length'?")
 
 [<Test>]
 let ``a value carrying braces is not read as a message template`` () =

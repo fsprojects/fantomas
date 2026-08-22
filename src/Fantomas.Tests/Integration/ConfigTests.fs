@@ -122,11 +122,12 @@ some_other_tool_setting = 42
 
     // Advice, not a failure: the file is still formatted, with defaults for what could not be read.
     exitCode |> should equal 0
-    Assert.That(error, Does.Contain "fsharp_bogus_option is not a Fantomas setting")
+    Assert.That(error, Does.Contain "'fsharp_bogus_option' is not a Fantomas setting")
 
     Assert.That(
         error,
-        Does.Contain "fsharp_experimental_elmish does not accept the value not_a_bool, so the default is used instead"
+        Does.Contain
+            "'fsharp_experimental_elmish' does not accept the value 'not_a_bool', so the default is used instead"
     )
 
     // A setting without the fsharp_ prefix belongs to some other tool and is none of our business.
