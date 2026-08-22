@@ -208,31 +208,65 @@ let runCmd file (arguments: string) =
         return result.ExitCode
     }
 
+/// The files git reports as changed in the working tree, as paths relative to the repository root.
+///
+/// The porcelain format is two status columns, a space, and then the path, so the path starts at
+/// the fourth character. A rename reads as `old -> new`, of which only the new path still exists.
+/// Deleted files are dropped: there is nothing left to look at.
+///
+/// Untracked files are asked for one by one. Git otherwise reports a new folder as a single entry
+/// and the files inside it are never named, which is exactly the case of a feature that arrives as
+/// a new folder of sources.
+let changedFiles () : Async<string list> =
+    async {
+        let! exitCode, stdout, stdErr = runGitCommand "status --porcelain --untracked-files=all"
+
+        if exitCode <> 0 then
+            failwith $"Could not read the git status.\n{stdErr}"
+
+        return
+            stdout.Split('\n')
+            |> Array.choose (fun (line: string) ->
+                let line: string = line.TrimEnd('\r')
+
+                if line.Length < 4 || line[0] = 'D' || line[1] = 'D' then
+                    None
+                else
+                    let path: string = line.Substring 3
+
+                    let path: string =
+                        match path.IndexOf(" -> ", StringComparison.Ordinal) with
+                        | -1 -> path
+                        | arrow -> path.Substring(arrow + 4)
+
+                    Some(path.Trim('"').Replace('\\', '/')))
+            |> List.ofArray
+    }
+
+let hasExtension (extensions: string list) (path: string) : bool =
+    extensions
+    |> List.exists (fun (extension: string) -> path.EndsWith(extension, StringComparison.Ordinal))
+
 pipeline "FormatChanged" {
     workingDir __SOURCE_DIRECTORY__
     stage "Format" {
         run (fun _ ->
             async {
-                let! exitCode, stdout, _stdErr = runGitCommand "status --porcelain"
-                if exitCode <> 0 then
-                    return exitCode
-                else
-                    let files =
-                        stdout.Split('\n')
-                        |> Array.choose (fun line ->
-                            let line = line.Trim()
-                            if
-                                (line.StartsWith("AM", StringComparison.Ordinal)
-                                 || line.StartsWith("M", StringComparison.Ordinal))
-                                && (line.EndsWith(".fs", StringComparison.Ordinal)
-                                    || line.EndsWith(".fsx", StringComparison.Ordinal)
-                                    || line.EndsWith(".fsi", StringComparison.Ordinal))
-                            then
-                                Some(line.Replace("AM ", "").Replace("MM ", "").Replace("M ", ""))
-                            else
-                                None)
+                let! files = changedFiles ()
+                let sources: string list =
+                    List.filter (hasExtension [ ".fs"; ".fsx"; ".fsi" ]) files
+
+                match sources with
+                | [] ->
+                    printfn "No changed F# files to format."
+                    return 0
+                | sources ->
+                    let arguments: string =
+                        sources
+                        |> List.map (fun (source: string) -> $"\"{source}\"")
                         |> String.concat " "
-                    return! runCmd "dotnet" $"fantomas {files}"
+
+                    return! runCmd "dotnet" $"fantomas {arguments}"
             })
     }
     runIfOnlySpecified true
@@ -884,6 +918,43 @@ let projectsToAnalyze: string list =
     |> Seq.sortByDescending sourceSize
     |> Seq.toList
 
+/// One project to hand to the analyzers, and which of its files to look at.
+///
+/// `Files` holds absolute paths, because that is the only form `--include-files` matches: give it a
+/// path relative to the repository root and it matches nothing, says nothing about it and reports a
+/// clean project. An empty list asks for every file of the project.
+type AnalysisTarget = { Project: string; Files: string list }
+
+/// What to analyze for a set of changed files: every project that owns one, along with the files of
+/// its own that changed. A project owns everything under its own folder, which is how every project
+/// of this solution is laid out. The order is the one `projectsToAnalyze` puts them in.
+///
+/// Only compiled sources and project files count. A script, a document or a test data file is not
+/// part of any compilation, so changing one leaves the analyzers with nothing new to say.
+///
+/// A changed project file asks for the whole project: what it compiles is no longer what it
+/// compiled before, and there is no single source file that stands for that.
+let targetsFor (files: string list) : AnalysisTarget list =
+    let sources: string list = List.filter (hasExtension [ ".fs"; ".fsi" ]) files
+    let projectFiles: string list = List.filter (hasExtension [ ".fsproj" ]) files
+
+    projectsToAnalyze
+    |> List.choose (fun (project: string) ->
+        let folder: string = project.Substring(0, project.LastIndexOf '/' + 1)
+
+        let owns (file: string) : bool =
+            file.StartsWith(folder, StringComparison.Ordinal)
+
+        if List.exists owns projectFiles then
+            Some { Project = project; Files = [] }
+        else
+            match List.filter owns sources with
+            | [] -> None
+            | owned ->
+                Some
+                    { Project = project
+                      Files = List.map (fun (file: string) -> __SOURCE_DIRECTORY__ </> file) owned })
+
 /// Where the analyzers live on disk. Both are ordinary package references, so MSBuild already knows
 /// the restored path of each and there is no second place to keep the version in sync.
 let analyzerPaths () : Async<string list> =
@@ -974,16 +1045,23 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
         File.WriteAllText(target, merged.ToString())
     | _ -> failwith "The analyzers wrote no report to merge."
 
-/// Runs the analyzers over the solution, one process per project, several at a time.
+/// Runs the analyzers over the given targets, one process per project, several at a time.
 ///
 /// A single process walking every project in turn takes minutes and says nothing until the last one
 /// is done, which is a long time to stare at a blank terminal. Each project is instead analyzed on
 /// its own, and its output is held back and printed in one piece as that project finishes, so
 /// findings arrive while the run is still going and no two projects can interleave their lines.
 ///
+/// A target that names files is analyzed for those files alone. The project is still loaded and
+/// type checked, but a whole project is checked file by file, so looking at one file of
+/// `Fantomas.Core.Tests` takes seconds where the whole project takes minutes.
+///
+/// Whatever is analyzed here is what `analysis.sarif` holds afterwards, so a run over a couple of
+/// files replaces the report of an earlier run over the solution.
+///
 /// Returns the highest exit code of the runs, so a project the analyzers could not process fails
 /// the stage rather than passing for want of findings.
-let analyzeSolution () : Async<int> =
+let analyzeTargets (targets: AnalysisTarget list) : Async<int> =
     async {
         let! analyzers = analyzerPaths ()
 
@@ -993,15 +1071,20 @@ let analyzeSolution () : Async<int> =
         Directory.CreateDirectory analysisReportsDir |> ignore
 
         let names =
-            projectsToAnalyze
-            |> List.map Path.GetFileNameWithoutExtension
+            targets
+            |> List.map (fun (target: AnalysisTarget) -> Path.GetFileNameWithoutExtension target.Project)
             |> String.concat ", "
 
-        printfn $"Analyzing {projectsToAnalyze.Length} projects: {names}"
+        let count: string =
+            match targets.Length with
+            | 1 -> "1 project"
+            | n -> $"{n} projects"
 
-        let analyzeProject (project: string) =
+        printfn $"Analyzing {count}: {names}"
+
+        let analyzeProject (target: AnalysisTarget) =
             async {
-                let name = Path.GetFileNameWithoutExtension project
+                let name = Path.GetFileNameWithoutExtension target.Project
                 let report = analysisReportsDir </> $"{name}.sarif"
                 let started = DateTime.UtcNow
 
@@ -1010,12 +1093,15 @@ let analyzeSolution () : Async<int> =
                       for analyzer in analyzers do
                           "--analyzers-path"
                           analyzer
+                      for file in target.Files do
+                          "--include-files"
+                          file
                       "--code-root"
                       __SOURCE_DIRECTORY__
                       "--report"
                       report
                       "--project"
-                      __SOURCE_DIRECTORY__ </> project ]
+                      __SOURCE_DIRECTORY__ </> target.Project ]
 
                 let! result =
                     Cli
@@ -1036,7 +1122,13 @@ let analyzeSolution () : Async<int> =
                     | 1 -> "1 finding"
                     | n -> $"{n} findings"
 
-                printfn $"\n=== {name}: {summary} in {elapsed.TotalSeconds:F1}s"
+                let scope =
+                    match target.Files with
+                    | [] -> ""
+                    | [ _ ] -> " (1 file)"
+                    | files -> $" ({files.Length} files)"
+
+                printfn $"\n=== {name}{scope}: {summary} in {elapsed.TotalSeconds:F1}s"
                 printf "%s" result.StandardOutput
                 eprintf "%s" result.StandardError
 
@@ -1045,7 +1137,7 @@ let analyzeSolution () : Async<int> =
 
         // Every analyzer process type checks a whole project, so a handful at a time is what keeps
         // the machine busy without the runs starving each other of memory.
-        let! results = Async.Parallel(List.map analyzeProject projectsToAnalyze, max 2 (Environment.ProcessorCount / 2))
+        let! results = Async.Parallel(List.map analyzeProject targets, max 2 (Environment.ProcessorCount / 2))
 
         mergeSarifReports (results |> Array.map fst |> List.ofArray) (__SOURCE_DIRECTORY__ </> "analysis.sarif")
 
@@ -1056,7 +1148,39 @@ pipeline "Analyze" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "RestoreSolution" { run "dotnet restore --tl" }
-    stage "Analyze" { run (fun _ -> analyzeSolution ()) }
+    stage "Analyze" {
+        run (fun _ ->
+            projectsToAnalyze
+            |> List.map (fun (project: string) -> { Project = project; Files = [] })
+            |> analyzeTargets)
+    }
+    runIfOnlySpecified true
+}
+
+/// The same analyzers, over the files the working tree touches.
+///
+/// A project is only loaded when it owns a changed file, and is then analyzed for that file alone,
+/// which is the difference between minutes and seconds on the test projects. What this cannot see
+/// is a finding a change causes in a file other than the ones you edited, which is what the full
+/// `Analyze` pipeline is still for before opening a pull request.
+pipeline "AnalyzeChanged" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "RestoreTools" { run "dotnet tool restore" }
+    stage "RestoreSolution" { run "dotnet restore --tl" }
+
+    stage "Analyze" {
+        run (fun _ ->
+            async {
+                let! files = changedFiles ()
+
+                match targetsFor files with
+                | [] ->
+                    printfn "No changed file belongs to a project that is analyzed."
+                    return 0
+                | targets -> return! analyzeTargets targets
+            })
+    }
+
     runIfOnlySpecified true
 }
 
