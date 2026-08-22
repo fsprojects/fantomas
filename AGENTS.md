@@ -73,13 +73,18 @@ dotnet fsi build.fsx -- -p FormatAll
 dotnet fsi build.fsx -- -p Analyze
 ```
 
-Output goes to `analysis.sarif` in the repo root. This is safe to run whenever you need it; it no
-longer saturates the machine.
+Every project of the solution is analyzed in its own process, so findings are printed per project
+as that project finishes rather than all at the end. The smallest projects report within seconds,
+`Fantomas.Core.Tests` takes a couple of minutes and decides how long the run takes.
 
-**Read `analysis.sarif` afterwards.** The pipeline writes its findings there and exits 0 whatever
-it found, so a run finishing tells you nothing. GitHub raises the same findings as code scanning
-alerts on the pull request, which is a slower way to learn about them.
+The findings also land in `analysis.sarif` in the repo root, merged from the per-project reports in
+`analysisreports/`. **Read one of them afterwards.** The pipeline exits 0 whatever it found, so a
+run finishing tells you nothing. GitHub raises the same findings as code scanning alerts on the
+pull request, which is a slower way to learn about them.
 
-When you read it, read the results for every project you touched. Filtering the paths down to
-`src/Fantomas/` looks right and silently drops `src/Fantomas.Tests/`, which does not contain that
-substring. Match on `src/` and look at what comes back.
+When you read the SARIF, read the results for every project you touched. Filtering the paths down
+to `src/Fantomas/` looks right and silently drops `src/Fantomas.Tests/`, which does not contain
+that substring. Match on `src/` and look at what comes back.
+
+`Fantomas.FCS` and `Fantomas.FCS.BuildTasks` are left out: both are vendored compiler sources, so a
+finding in either is something to report upstream rather than something to fix here.

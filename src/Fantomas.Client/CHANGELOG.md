@@ -6,6 +6,7 @@ This is the changelog for the Fantomas.Client package specifically. It's distinc
 
 ### Changed
 - Bump `StreamJsonRpc` to `2.25.29`. [#3393](https://github.com/fsprojects/fantomas/pull/3393)
+- Breaking: `FantomasVersion`, `FantomasExecutableFile` and `Folder` are struct single case unions. Nothing about how they are written or matched changes, but a consumer that references the assembly has to recompile against the new one. [#3407](https://github.com/fsprojects/fantomas/pull/3407)
 
 ## [0.11.0] - 2026-04-16
 

@@ -5,16 +5,22 @@ open Fantomas.FCS.Text
 open Fantomas.Core
 open Fantomas.Core.SyntaxOak
 
+[<return: Struct>]
 let (|CommentOrDefineEvent|_|) we =
     match we with
-    | WriteTrivia _ -> Some we
-    | _ -> None
+    | WriteTrivia _ -> ValueSome we
+    | _ -> ValueNone
 
+[<return: Struct>]
 let (|EmptyWrite|_|) (we: WriterEvent) =
     match we with
     | Write v
-    | WriteTrivia v -> if String.IsNullOrWhiteSpace v then Some() else None
-    | _ -> None
+    | WriteTrivia v ->
+        if String.IsNullOrWhiteSpace v then
+            ValueSome()
+        else
+            ValueNone
+    | _ -> ValueNone
 
 type ShortExpressionInfo =
     { MaxWidth: int

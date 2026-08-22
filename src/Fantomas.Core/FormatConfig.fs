@@ -43,6 +43,7 @@ type DefineParseException(combinations: string list) =
 
 type Num = int
 
+[<Struct>]
 type MultilineFormatterType =
     | CharacterWidth
     | NumberOfItems
@@ -58,6 +59,7 @@ type MultilineFormatterType =
         | "number_of_items" -> Some MultilineFormatterType.NumberOfItems
         | _ -> None
 
+[<Struct>]
 type MultilineBracketStyle =
     | Cramped
     | Aligned
@@ -76,7 +78,7 @@ type MultilineBracketStyle =
         | "stroustrup" -> Some Stroustrup
         | _ -> None
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; Struct>]
 type EndOfLineStyle =
     | LF
     | CR

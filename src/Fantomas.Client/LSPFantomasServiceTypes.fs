@@ -45,8 +45,13 @@ type FormatDocumentResponse =
     | Error of filename: string * formattingError: string
     | IgnoredFile of filename: string
 
+[<Struct>]
 type FantomasVersion = FantomasVersion of string
+
+[<Struct>]
 type FantomasExecutableFile = FantomasExecutableFile of string
+
+[<Struct>]
 type Folder = Folder of path: string
 
 [<RequireQualifiedAccess>]

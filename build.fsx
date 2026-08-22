@@ -859,11 +859,175 @@ pipeline "PublishAlpha" {
     runIfOnlySpecified true
 }
 
+/// The projects the analyzers run over: every project in the solution, minus the ones whose source
+/// is not ours to change. Fantomas.FCS is generated from the vendored compiler sources, and
+/// Fantomas.FCS.BuildTasks compiles a single vendored compiler file, so a finding in either is
+/// something to report upstream rather than something to fix here. Reading the solution rather than
+/// globbing keeps build tooling out on its own: a project only gets analyzed once it is a real part
+/// of the product.
+let projectsToAnalyze: string list =
+    let excluded = set [ "Fantomas.FCS" ]
+
+    // Analyzing a project costs roughly what type checking it costs, so the largest one decides how
+    // long the whole run takes. Starting with it means it is never the one left waiting for a slot.
+    let sourceSize (project: string) =
+        Directory.EnumerateFiles(
+            Path.GetDirectoryName(__SOURCE_DIRECTORY__ </> project),
+            "*.fs",
+            SearchOption.AllDirectories
+        )
+        |> Seq.sumBy (fun file -> FileInfo(file).Length)
+
+    XDocument.Load(__SOURCE_DIRECTORY__ </> "fantomas.slnx").XPathSelectElements("//Project")
+    |> Seq.map (fun project -> project.Attribute(XName.Get "Path").Value.Replace('\\', '/'))
+    |> Seq.filter (fun path -> not (excluded.Contains(Path.GetFileNameWithoutExtension path)))
+    |> Seq.sortByDescending sourceSize
+    |> Seq.toList
+
+/// Where the analyzers live on disk. Both are ordinary package references, so MSBuild already knows
+/// the restored path of each and there is no second place to keep the version in sync.
+let analyzerPaths () : Async<string list> =
+    async {
+        let! result =
+            Cli
+                .Wrap("dotnet")
+                .WithArguments(
+                    "msbuild src/Fantomas/Fantomas.fsproj -getProperty:PkgIonide_Analyzers "
+                    + "-getProperty:PkgG-Research_FSharp_Analyzers"
+                )
+                .WithWorkingDirectory(__SOURCE_DIRECTORY__)
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteBufferedAsync()
+                .Task
+            |> Async.AwaitTask
+
+        if result.ExitCode <> 0 then
+            failwith $"Could not resolve the analyzer packages. Run `dotnet restore` first.\n{result.StandardError}"
+
+        let properties = JsonValue.Parse(result.StandardOutput).GetProperty("Properties")
+
+        return
+            [ for property in properties.Properties() ->
+                  let name, value = property
+
+                  match value.AsString() with
+                  | "" -> failwith $"MSBuild has no value for {name}. Run `dotnet restore` first."
+                  | path -> path </> "analyzers" </> "dotnet" </> "fs" ]
+    }
+
+/// The number of results a single analyzer report holds, used to report what a project turned up
+/// the moment it finishes.
+let sarifResultCount (report: string) : int =
+    if not (File.Exists report) then
+        0
+    else
+        JsonValue.Parse(File.ReadAllText report).GetProperty("runs").AsArray()
+        |> Array.sumBy (fun run ->
+            match run.TryGetProperty "results" with
+            | Some results -> results.AsArray().Length
+            | None -> 0)
+
+/// SARIF carries one run per tool invocation, so the per-project reports merge by concatenating
+/// their runs. GitHub code scanning reads the result as a single upload.
+let mergeSarifReports (reports: string list) (target: string) : unit =
+    let runs =
+        reports
+        |> List.filter File.Exists
+        |> List.collect (fun report ->
+            JsonValue.Parse(File.ReadAllText report).GetProperty("runs").AsArray()
+            |> List.ofArray)
+
+    let merged =
+        JsonValue.Record
+            [| "$schema", JsonValue.String "https://json.schemastore.org/sarif-2.1.0.json"
+               "version", JsonValue.String "2.1.0"
+               "runs", JsonValue.Array(Array.ofList runs) |]
+
+    File.WriteAllText(target, merged.ToString())
+
+/// Runs the analyzers over the solution, one process per project, several at a time.
+///
+/// A single process walking every project in turn takes minutes and says nothing until the last one
+/// is done, which is a long time to stare at a blank terminal. Each project is instead analyzed on
+/// its own, and its output is held back and printed in one piece as that project finishes, so
+/// findings arrive while the run is still going and no two projects can interleave their lines.
+///
+/// Returns the highest exit code of the runs, so a project the analyzers could not process fails
+/// the stage rather than passing for want of findings.
+let analyzeSolution () : Async<int> =
+    async {
+        let! analyzers = analyzerPaths ()
+
+        if Directory.Exists analysisReportsDir then
+            Directory.Delete(analysisReportsDir, true)
+
+        Directory.CreateDirectory analysisReportsDir |> ignore
+
+        let names =
+            projectsToAnalyze
+            |> List.map Path.GetFileNameWithoutExtension
+            |> String.concat ", "
+
+        printfn $"Analyzing {projectsToAnalyze.Length} projects: {names}"
+
+        let analyzeProject (project: string) =
+            async {
+                let name = Path.GetFileNameWithoutExtension project
+                let report = analysisReportsDir </> $"{name}.sarif"
+                let started = DateTime.UtcNow
+
+                let arguments =
+                    [ "fsharp-analyzers"
+                      for analyzer in analyzers do
+                          "--analyzers-path"
+                          analyzer
+                      "--code-root"
+                      __SOURCE_DIRECTORY__
+                      "--report"
+                      report
+                      "--project"
+                      __SOURCE_DIRECTORY__ </> project ]
+
+                let! result =
+                    Cli
+                        .Wrap("dotnet")
+                        .WithArguments(arguments)
+                        .WithWorkingDirectory(__SOURCE_DIRECTORY__)
+                        .WithValidation(CommandResultValidation.None)
+                        .ExecuteBufferedAsync()
+                        .Task
+                    |> Async.AwaitTask
+
+                let elapsed = DateTime.UtcNow - started
+                let findings = sarifResultCount report
+
+                let summary =
+                    match findings with
+                    | 0 -> "no findings"
+                    | 1 -> "1 finding"
+                    | n -> $"{n} findings"
+
+                printfn $"\n=== {name}: {summary} in {elapsed.TotalSeconds:F1}s"
+                printf "%s" result.StandardOutput
+                eprintf "%s" result.StandardError
+
+                return report, result.ExitCode
+            }
+
+        // Every analyzer process type checks a whole project, so a handful at a time is what keeps
+        // the machine busy without the runs starving each other of memory.
+        let! results = Async.Parallel(List.map analyzeProject projectsToAnalyze, max 2 (Environment.ProcessorCount / 2))
+
+        mergeSarifReports (results |> Array.map fst |> List.ofArray) (__SOURCE_DIRECTORY__ </> "analysis.sarif")
+
+        return results |> Array.map snd |> Array.fold max 0
+    }
+
 pipeline "Analyze" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "RestoreSolution" { run "dotnet restore --tl" }
-    stage "Analyze" { run "dotnet msbuild /t:AnalyzeSolution" }
+    stage "Analyze" { run (fun _ -> analyzeSolution ()) }
     runIfOnlySpecified true
 }
 

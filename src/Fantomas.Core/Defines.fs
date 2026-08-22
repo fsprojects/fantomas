@@ -75,6 +75,7 @@ module private DefineCombinationSolver =
 
         expr |> mapUntilNotChanged [ doubleNegative; deMorgan; expandOr ]
 
+    [<Struct>]
     type Literal =
         | Positive of string
         | Negative of string

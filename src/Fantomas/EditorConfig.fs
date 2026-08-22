@@ -59,22 +59,29 @@ let getFantomasFields (fallbackConfig: FormatConfig) =
 
         (editorConfigName, defaultValue))
 
+[<return: Struct>]
 let (|Number|_|) (d: string) =
     match System.Int32.TryParse(d) with
-    | true, d -> Some(box d)
-    | _ -> None
+    | true, d -> ValueSome(box d)
+    | _ -> ValueNone
 
+[<return: Struct>]
 let (|MultilineFormatterType|_|) mft =
-    MultilineFormatterType.OfConfigString mft
+    MultilineFormatterType.OfConfigString mft |> ValueOption.ofOption
 
-let (|BracketStyle|_|) bs = MultilineBracketStyle.OfConfigString bs
+[<return: Struct>]
+let (|BracketStyle|_|) bs =
+    MultilineBracketStyle.OfConfigString bs |> ValueOption.ofOption
 
-let (|EndOfLineStyle|_|) eol = EndOfLineStyle.OfConfigString eol
+[<return: Struct>]
+let (|EndOfLineStyle|_|) eol =
+    EndOfLineStyle.OfConfigString eol |> ValueOption.ofOption
 
+[<return: Struct>]
 let (|Boolean|_|) b =
-    if b = "true" then Some(box true)
-    elif b = "false" then Some(box false)
-    else None
+    if b = "true" then ValueSome(box true)
+    elif b = "false" then ValueSome(box false)
+    else ValueNone
 
 let parseOptionsFromEditorConfig
     (fallbackConfig: FormatConfig)

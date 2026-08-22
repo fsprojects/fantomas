@@ -4,6 +4,7 @@ open System.IO.Abstractions
 open Ignore
 open Serilog
 
+[<Struct>]
 type AbsoluteFilePath =
     private
     | AbsoluteFilePath of string

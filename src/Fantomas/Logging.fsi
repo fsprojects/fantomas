@@ -1,6 +1,6 @@
 module Fantomas.Logging
 
-[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess; Struct>]
 type VerbosityLevel =
     | Normal
     | Detailed
