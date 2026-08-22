@@ -66,6 +66,61 @@ let ``a single formatted file is reported as a sentence naming it`` () =
     drawn |> shouldEqual ""
 
 [<Test>]
+let ``a file is reported by the path it was given, not by its name alone`` () =
+    // Reducing the path to its file name is the regression this guards: `sub/A.fs` has to come
+    // back as `sub/A.fs`, whatever spelling the caller used.
+    let path: string = "sub/A.fs"
+
+    let formatted, log, _ =
+        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Formatted(path, "", None) |])
+
+    let _, unchangedLog, _ =
+        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Unchanged(path, None) |])
+
+    let _, ignoredLog, _ =
+        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.IgnoredFile path |])
+
+    formatted |> shouldEqual 0
+    log.Information |> shouldEqual [ "sub/A.fs was formatted." ]
+    unchangedLog.Information |> shouldEqual [ "sub/A.fs was unchanged." ]
+    ignoredLog.Information |> shouldEqual [ "sub/A.fs was ignored." ]
+
+[<Test>]
+let ``a file that failed is reported by the path it was given`` () =
+    let _, log, _ =
+        reportFormat
+            defaultSettings
+            (FormatCommandResult.Completed [| FormatResult.Error("sub/A.fs", Exception "boom") |])
+
+    log.Error |> shouldEqual [ "Failed to format file: sub/A.fs" ]
+
+[<Test>]
+let ``a check names the files it found by the path it was given`` () =
+    let _, log =
+        reportCheck (
+            CheckCommandResult.Completed(
+                [],
+                { Errors = []
+                  Formatted = [ "sub/A.fs" ] }
+            )
+        )
+
+    log.Information |> shouldEqual [ "sub/A.fs needs formatting" ]
+
+[<Test>]
+let ``the files a run ignored are named at detailed verbosity`` () =
+    // A single result is named outright; among several, only the counts table is drawn, so this
+    // debug line is the only place a folder run says which files it skipped.
+    let _, log, _ =
+        reportFormat
+            defaultSettings
+            (FormatCommandResult.Completed
+                [| FormatResult.Formatted("A.fs", "", None)
+                   FormatResult.IgnoredFile "sub/B.fs" |])
+
+    log.Debug |> shouldEqual [ "'sub/B.fs' was ignored" ]
+
+[<Test>]
 let ``a single unchanged file is reported as unchanged`` () =
     let code, log, _ =
         reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Unchanged("A.fs", None) |])

@@ -37,7 +37,6 @@ let coverageXmlFiles: string list =
     coverageProjects
     |> List.map (fun (name: string) -> __SOURCE_DIRECTORY__ </> "src" </> name </> "coverage.xml")
 
-
 /// Run one test project under AltCover, measuring the one assembly it is there to exercise.
 ///
 /// The filter is a negative lookahead: instrument that assembly and nothing else, which keeps the
@@ -127,8 +126,11 @@ pipeline "Benchmark" {
 }
 
 // Line and branch coverage for the three projects Fantomas ships, via AltCover's MSBuild
-// integration. Every test project is run, and whichever shipped assembly it touches is measured,
-// so the merged report says what the whole suite reaches rather than what one project does.
+// integration. Every test project is run under AltCover, each measuring the one assembly it is
+// there to exercise, and ReportGenerator merges the three results into a single report.
+//
+// So `Fantomas.Core`'s figure comes from `Fantomas.Core.Tests` alone, even though `Fantomas.Tests`
+// exercises Core heavily through real formatting. Core is understated here rather than wrong.
 //
 // The filter is a negative lookahead naming the three assemblies to instrument. Everything else
 // is left alone, which keeps the generated Fantomas.FCS parser and the test assemblies

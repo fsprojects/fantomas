@@ -148,7 +148,7 @@ let writeFlag
         List.iter (writeContinuation write descriptionColumn) rest
 
 let writeExample (write: string -> unit) (palette: Palette) (command: string, description: string) : unit =
-    let name, arguments =
+    let name, arguments: string * string =
         match command.IndexOf ' ' with
         | -1 -> command, ""
         | i -> command.Substring(0, i), command.Substring(i)

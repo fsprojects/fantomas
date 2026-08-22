@@ -96,6 +96,20 @@ let ``every file below a folder is checked`` () =
     result.Formatted |> shouldEqual [ needs ]
 
 [<Test>]
+let ``files and folders named together are all checked`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let loose: string = fs.Path.Combine(root, "Loose.fs")
+    let src: string = fs.Path.Combine(root, "src")
+    let inFolder: string = fs.Path.Combine(src, "A.fs")
+    write fs loose NeedsFormatting
+    write fs inFolder Formatted
+
+    let _, result = check fs None (InputPath.Multiple([ loose ], [ src ])) |> completed
+
+    result.Formatted |> shouldEqual [ loose ]
+
+[<Test>]
 let ``an ignored file is neither checked nor counted, and is reported as ignored`` () =
     let fs: IFileSystem = MockFileSystem()
     let root: string = mockRoot fs

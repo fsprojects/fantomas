@@ -104,7 +104,7 @@ let reportFormatResults (env: CliEnvironment) (settings: CliSettings) (results: 
 
     | None ->
         let oks, ignored, unchanged, errored = partitionResults results
-        let centeredColumn (v: string) = TableColumn(v).Centered()
+        let centeredColumn (v: string) : TableColumn = TableColumn(v).Centered()
 
         let summary: Table =
             Table()
@@ -122,6 +122,9 @@ let reportFormatResults (env: CliEnvironment) (settings: CliSettings) (results: 
 
         summary.Border <- TableBorder.MinimalDoubleHead
         env.Console.Write summary
+
+        for file in ignored do
+            env.Log.Debug $"'%s{file}' was ignored"
 
         for e in errored do
             reportError env settings.Verbosity e

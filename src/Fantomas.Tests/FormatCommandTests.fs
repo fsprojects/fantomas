@@ -32,6 +32,20 @@ let private formatWith
 let private format (fs: IFileSystem) (inputPath: InputPath) (outputPath: OutputPath) : FormatCommandResult =
     formatWith defaultSettings None fs inputPath outputPath
 
+/// Run the format command, keeping both the result and what it logged.
+let private formatLogging
+    (settings: CliSettings)
+    (fs: IFileSystem)
+    (inputPath: InputPath)
+    (outputPath: OutputPath)
+    : FormatCommandResult * CollectedLog =
+    let recorded: RecordedRun = recordingEnvironment fs None
+
+    let result: FormatCommandResult =
+        runFormatCommand recorded.Environment settings inputPath outputPath
+
+    result, recorded.Log()
+
 let private write (fs: IFileSystem) (path: string) (content: string) : unit =
     fs.FileInfo.New(path).Directory.Create()
     fs.File.WriteAllText(path, content)
@@ -262,6 +276,71 @@ let ``without force, output that is not valid F# is not written`` () =
         error.Message |> shouldContainText "leads to invalid F# code"
         fs.File.Exists output |> shouldEqual false
     | other -> failwith $"Expected the invalid output to be withheld, got %A{other}"
+
+[<Test>]
+let ``a run says what it is doing at detailed verbosity`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let input: string = fs.Path.Combine(root, "A.fs")
+    let output: string = fs.Path.Combine(root, "out", "A.fs")
+    write fs input NeedsFormatting
+
+    let _, log =
+        formatLogging defaultSettings fs (InputPath.File input) (OutputPath.IO output)
+
+    log.Debug |> shouldContain $"Processing %s{input}"
+    log.Debug |> shouldContain $"%s{output} has been written."
+
+[<Test>]
+let ``an unchanged file says so at detailed verbosity`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
+    write fs file Formatted
+
+    let _, log =
+        formatLogging defaultSettings fs (InputPath.File file) OutputPath.NotKnown
+
+    log.Debug |> shouldContain $"'%s{file}' was unchanged"
+
+[<Test>]
+let ``with force, the output being invalid is said out loud`` () =
+    let source: string =
+        System.IO.Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "tests", "data", "CheckDeclarations.fs")
+        |> System.IO.Path.GetFullPath
+        |> System.IO.File.ReadAllText
+
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let input: string = fs.Path.Combine(root, "CheckDeclarations.fs")
+    let output: string = fs.Path.Combine(root, "out", "CheckDeclarations.fs")
+    write fs input source
+
+    let settings: CliSettings = { defaultSettings with Force = true }
+    let _, log = formatLogging settings fs (InputPath.File input) (OutputPath.IO output)
+
+    log.Information |> shouldContain $"%s{input} was not valid after formatting."
+
+[<Test>]
+let ``profiling collects a line count and a time for the file it formatted`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
+    write fs file "let  a =   1\nlet  b =   2\n"
+
+    let settings: CliSettings = { defaultSettings with Profile = true }
+
+    match formatWith settings None fs (InputPath.File file) OutputPath.NotKnown |> results with
+    | [| FormatResult.Formatted(_, _, Some profile) |] -> profile.LineCount |> shouldBeGreaterThan 0
+    | other -> failwith $"Expected a profiled result, got %A{other}"
+
+[<Test>]
+let ``nothing is profiled unless profiling was asked for`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
+    write fs file NeedsFormatting
+
+    match format fs (InputPath.File file) OutputPath.NotKnown |> results with
+    | [| FormatResult.Formatted(_, _, None) |] -> ()
+    | other -> failwith $"Expected no profile, got %A{other}"
 
 [<Test>]
 let ``an unusable input path never reaches the file system`` () =

@@ -33,9 +33,9 @@ type OutputPath =
     | IO of string
     | NotKnown
 
-/// Decide what the paths on the command line name. A single path is classified by asking the
-/// file system about it. Several paths are all required to exist first, and are then told apart
-/// by whether they carry a file extension, so `src` is taken as a folder and `src.fs` as a file.
+/// Decide what the paths on the command line name, by asking the file system. Several paths are
+/// all required to exist before any of them is classified, so one path that is not there is
+/// reported rather than the rest being worked on.
 val classifyInputPath: fs: IFileSystem -> maybeInput: string list option -> InputPath
 
 /// Read the `--verbosity` value. `None` means the value was not one Fantomas knows.

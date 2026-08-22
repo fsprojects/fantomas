@@ -20,7 +20,8 @@ type CliEnvironment =
         /// because the editorconfig parser reads the disk itself and cannot be given one.
         ReadConfiguration: string -> FormatConfig
         /// Where the tool writes. A test hands over a logger with a collecting sink instead of
-        /// reading a console. Which stream a level lands on is settled by `Logging.createLogger`.
+        /// reading a console. Which stream a level lands on is the logger's own configuration,
+        /// not this record's.
         Log: ILogger
         /// Spectre's console, for the one thing drawn rather than written: the summary table.
         Console: IAnsiConsole

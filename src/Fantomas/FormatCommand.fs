@@ -19,13 +19,16 @@ type FormatParams =
       Profile: bool
       File: string }
 
-    static member Create(config: FormatConfig, compareWithoutLineEndings: bool, profile: bool, file: string) =
+    static member Create
+        (config: FormatConfig, compareWithoutLineEndings: bool, profile: bool, file: string)
+        : FormatParams =
         { Config = config
           CompareWithoutLineEndings = compareWithoutLineEndings
           Profile = profile
           File = file }
 
-let private carriageReturn = Text.RegularExpressions.Regex(@"\r")
+let carriageReturn: Text.RegularExpressions.Regex =
+    Text.RegularExpressions.Regex(@"\r")
 
 let formatContentAsync (formatParams: FormatParams) (originalContent: string) : Async<FormatResult> =
     async {
@@ -61,7 +64,7 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
 
             let contentChanged: bool =
                 if formatParams.CompareWithoutLineEndings then
-                    let stripNewlines (s: string) = carriageReturn.Replace(s, String.Empty)
+                    let stripNewlines (s: string) : string = carriageReturn.Replace(s, String.Empty)
 
                     (stripNewlines originalContent) <> (stripNewlines formattedContent)
                 else
@@ -109,7 +112,7 @@ let processSourceString
     let fs: IFileSystem = env.FileSystem
     let force: bool = settings.Force
 
-    let writeResult (formatted: string) =
+    let writeResult (formatted: string) : Async<unit> =
         async {
             let! hasBom = hasByteOrderMark fs fileName
 

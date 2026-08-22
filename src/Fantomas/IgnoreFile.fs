@@ -15,8 +15,6 @@ type AbsoluteFilePath =
     static member Create (fs: IFileSystem) (filePath: string) =
         fs.Path.GetFullPath filePath |> AbsoluteFilePath
 
-/// The string argument is taken relative to the location
-/// of the ignore-file.
 type IsPathIgnored = AbsoluteFilePath -> bool
 
 [<NoComparison; NoEquality>]
@@ -30,10 +28,6 @@ module IgnoreFile =
     [<Literal>]
     let IgnoreFileName = ".fantomasignore"
 
-    /// Find the `.fantomasignore` file above the given filepath, if one exists.
-    /// Note that this is intended for use only in the daemon; the command-line tool
-    /// does not support `.fantomasignore` files anywhere other than the current
-    /// working directory.
     let find (fs: IFileSystem) (loadIgnoreList: string -> IsPathIgnored) (filePath: string) : IgnoreFile option =
         let rec walkUp (currentDirectory: IDirectoryInfo) : IgnoreFile option =
             if isNull currentDirectory then
@@ -94,4 +88,7 @@ module IgnoreFile =
                 log.Error
                     $"Could not tell whether '%s{file}' is matched by %s{ignoreFile.Location.FullName}: %s{ex.Message}"
 
+                // The line above is the one to act on; this keeps the type and the stack trace for
+                // whoever asks for detail.
+                log.Debug $"%A{ex}"
                 false

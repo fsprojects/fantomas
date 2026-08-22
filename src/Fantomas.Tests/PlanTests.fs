@@ -172,6 +172,30 @@ let ``an ignored file is skipped when found by walking a folder too`` () =
     |> shouldPlan [ WorkItem.Format(kept, kept); WorkItem.Ignored skipped ]
 
 [<Test>]
+let ``an ignore pattern naming a nested path matches only that path`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let src: string = fs.Path.Combine(mockRoot fs, "src")
+    let skipped: string = fs.Path.Combine(src, "generated", "A.fs")
+    let kept: string = fs.Path.Combine(src, "handwritten", "A.fs")
+    [ skipped; kept ] |> makeFileHierarchy fs
+
+    // Patterns are read relative to the folder holding the ignore file, with forward slashes,
+    // whatever separator the platform uses for the paths themselves.
+    planIgnoring fs "src/generated/A.fs" (InputPath.Folder src) OutputPath.NotKnown
+    |> shouldPlan [ WorkItem.Ignored skipped; WorkItem.Format(kept, kept) ]
+
+[<Test>]
+let ``an ignore pattern naming a folder skips everything below it`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let src: string = fs.Path.Combine(mockRoot fs, "src")
+    let skipped: string = fs.Path.Combine(src, "generated", "deep", "A.fs")
+    let kept: string = fs.Path.Combine(src, "B.fs")
+    [ skipped; kept ] |> makeFileHierarchy fs
+
+    planIgnoring fs "src/generated/" (InputPath.Folder src) OutputPath.NotKnown
+    |> shouldPlan [ WorkItem.Ignored skipped; WorkItem.Format(kept, kept) ]
+
+[<Test>]
 let ``an ignored file with an output path is skipped, so nothing is written there`` () =
     let fs: IFileSystem = MockFileSystem()
     let root: string = mockRoot fs

@@ -42,7 +42,7 @@ let main argv =
         match parseVerbosity (results.TryGetResult <@ Arguments.Verbosity @>) with
         | Some level -> level
         | None ->
-            // The logger is not up yet, so this cannot go through elog.
+            // The logger is not configured yet, so this cannot go through it.
             eprintfn "Invalid verbosity level"
             exit 1
 

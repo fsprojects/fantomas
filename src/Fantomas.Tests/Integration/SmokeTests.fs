@@ -13,6 +13,11 @@ open Fantomas.Tests.TestHelpers
 // that an exit code makes it out to the operating system, that a working directory and a real file
 // on a real disk behave the way the mock says they do. That is what is left here, one case per
 // thing, rather than a case per behaviour.
+//
+// Three files beside this one are kept for the same reason and are not repeated here: ConfigTests,
+// because `.editorconfig` is deliberately never mocked and its parser reads the disk itself;
+// StandardStreamTests, because which stream a message lands on is invisible from inside the
+// process; and HelpPageTests, for how much colour a terminal is given.
 
 [<Literal>]
 let private NeedsFormatting = "let  a =   1"

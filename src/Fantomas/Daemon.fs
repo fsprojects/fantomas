@@ -43,7 +43,6 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
             traceListener.Dispose()
             disconnectEvent.Dispose()
 
-    /// returns a hot task that resolves when the stream has terminated
     member this.WaitForClose = rpc.Completion
 
     [<JsonRpcMethod(Methods.Version)>]

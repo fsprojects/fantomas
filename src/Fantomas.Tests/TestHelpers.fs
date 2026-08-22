@@ -136,7 +136,9 @@ let silentLogger: ILogger = LoggerConfiguration().CreateLogger()
 /// `Logging.createLogger`'s business, and this is about the messages.
 type CollectedLog =
     { Information: string list
+      Warning: string list
       Error: string list
+      Fatal: string list
       Debug: string list }
 
 type private CollectingSink() =
@@ -162,7 +164,9 @@ let collectingLogger () : ILogger * (unit -> CollectedLog) =
             |> List.map (fun (e: LogEvent) -> e.RenderMessage())
 
         { Information = atLevel LogEventLevel.Information
+          Warning = atLevel LogEventLevel.Warning
           Error = atLevel LogEventLevel.Error
+          Fatal = atLevel LogEventLevel.Fatal
           Debug = atLevel LogEventLevel.Debug }
 
     logger, collected
