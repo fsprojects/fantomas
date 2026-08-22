@@ -5,4 +5,40 @@
         <PackageReference Include="Ionide.KeepAChangelog.Tasks" PrivateAssets="all" />
         <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all" />
     </ItemGroup>
+
+    <!--
+      Overrides the CallFsYacc target from the FsLexYacc package. This file is imported after the
+      package's targets, so this definition is the one that runs.
+
+      fsyacc prints every shift/reduce and reduce/reduce conflict it finds, unconditionally: there
+      is no quiet or nowarn flag. For pars.fsy that is over 1400 lines of conflict reports on every
+      run. We vendor the grammar files verbatim from dotnet/fsharp, pinned by FCSCommitHash, and
+      never author or change them, so the reports say nothing we can act on and only bury the rest
+      of the build log. StandardOutputImportance="low" hides them at normal verbosity while leaving
+      them available at -v:detailed. The trade is that a genuinely regressed grammar arriving with
+      an FCSCommitHash bump surfaces as a compile error rather than a conflict report.
+      Reported upstream as fsprojects/FsLexYacc#241.
+
+      The target is copied rather than wrapped because the package's version has two bugs:
+
+        1. Outputs lists only %(Filename).fs and omits the .fsi, so a missing or stale .fsi on its
+           own does not trigger a regeneration. dotnet/fsharp's own copy of this target in
+           buildtools/buildtools.targets lists both. See fsprojects/FsLexYacc#231.
+        2. The FileWrites ItemGroup is a copy-paste of the one in CallFsLex and registers the fslex
+           output paths, so the generated parsers are never removed by dotnet clean.
+
+      Once those are fixed and released, this override can go away.
+    -->
+    <Target Name="CallFsYacc"
+            Inputs="@(FsYacc)"
+            Outputs="@(FsYacc->'$(FsYaccOutputFolder)%(Filename).fs');@(FsYacc->'$(FsYaccOutputFolder)%(Filename).fsi')"
+            Condition="'@(FsYacc)'!=''"
+            BeforeTargets="CoreCompile">
+        <MakeDir Directories="$(FsYaccOutputFolder)" />
+        <Exec Command="$(FsLexYaccToolRunner)&quot;$(FsYaccToolPath)\$(FsYaccToolExe)&quot; -o &quot;$(FsYaccOutputFolder)%(FsYacc.Filename).fs&quot; %(FsYacc.OtherFlags) %(FsYacc.Identity)"
+              StandardOutputImportance="low" />
+        <ItemGroup>
+            <FileWrites Include="$(FsYaccOutputFolder)%(FsYacc.Filename).fs;$(FsYaccOutputFolder)%(FsYacc.Filename).fsi" />
+        </ItemGroup>
+    </Target>
 </Project>
