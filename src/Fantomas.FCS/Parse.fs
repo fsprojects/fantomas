@@ -849,17 +849,19 @@ let getSyntaxErrorMessage ctxt =
             |> List.exists (fun prods ->
                 match
                     prods
-                    |> List.map Parser.prodIdxToNonTerminal
-                    |> List.map (function
-                        | NONTERM_Category_Type -> Parser.NONTERM_typ
-                        | NONTERM_Category_Expr -> Parser.NONTERM_declExpr
-                        | NONTERM_Category_Pattern -> Parser.NONTERM_atomicPattern
-                        | NONTERM_Category_IfThenElse -> Parser.NONTERM_ifExprThen
-                        | NONTERM_Category_SignatureFile -> Parser.NONTERM_signatureFile
-                        | NONTERM_Category_ImplementationFile -> Parser.NONTERM_implementationFile
-                        | NONTERM_Category_Definition -> Parser.NONTERM_moduleDefn
-                        | NONTERM_Category_Interaction -> Parser.NONTERM_interaction
-                        | nt -> nt)
+                    |> List.map (
+                        Parser.prodIdxToNonTerminal
+                        >> function
+                            | NONTERM_Category_Type -> Parser.NONTERM_typ
+                            | NONTERM_Category_Expr -> Parser.NONTERM_declExpr
+                            | NONTERM_Category_Pattern -> Parser.NONTERM_atomicPattern
+                            | NONTERM_Category_IfThenElse -> Parser.NONTERM_ifExprThen
+                            | NONTERM_Category_SignatureFile -> Parser.NONTERM_signatureFile
+                            | NONTERM_Category_ImplementationFile -> Parser.NONTERM_implementationFile
+                            | NONTERM_Category_Definition -> Parser.NONTERM_moduleDefn
+                            | NONTERM_Category_Interaction -> Parser.NONTERM_interaction
+                            | nt -> nt
+                    )
                     |> Set.ofList
                     |> Set.toList
                 with
@@ -983,11 +985,11 @@ let getSyntaxErrorMessage ctxt =
 
         match
             (ctxt.ShiftTokens
-             |> List.map Parser.tokenTagToTokenId
-             |> List.filter (function
+             |> List.choose (fun tokenTag ->
+                 match Parser.tokenTagToTokenId tokenTag with
                  | Parser.TOKEN_error
-                 | Parser.TOKEN_EOF -> false
-                 | _ -> true)
+                 | Parser.TOKEN_EOF -> None
+                 | tokenId -> Some tokenId)
              |> List.map tokenIdToText
              |> Set.ofList
              |> Set.toList)
