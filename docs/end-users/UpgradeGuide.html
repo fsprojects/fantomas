@@ -553,6 +553,10 @@ indents normally. This affects calls with and without a receiver alike. At <code
 <h3><a name="Fantomas-Core-API" class="anchor" href="#Fantomas-Core-API">Fantomas.Core API</a></h3>
 <p>These only affect you if you consume <code>Fantomas.Core</code> as a library. Formatting source text through
 <code>CodeFormatter.FormatDocumentAsync</code> is unaffected.</p>
+<h4><a name="No-longer-binary-compatible-with" class="anchor" href="#No-longer-binary-compatible-with">No longer binary compatible with <code>v7</code></a></h4>
+<p>Several discriminated unions are structs now. That changes nothing about how they are constructed,
+matched or compared, so no source of yours has to be edited, but an assembly compiled against <code>v7</code>
+has to be rebuilt against <code>v8</code>.</p>
 <h4><a name="Exceptions" class="anchor" href="#Exceptions">Exceptions</a></h4>
 <ul>
 <li>

@@ -275,6 +275,12 @@ let dotted ifaces =
 These only affect you if you consume `Fantomas.Core` as a library. Formatting source text through
 `CodeFormatter.FormatDocumentAsync` is unaffected.
 
+#### No longer binary compatible with `v7`
+
+Several discriminated unions are structs now. That changes nothing about how they are constructed,
+matched or compared, so no source of yours has to be edited, but an assembly compiled against `v7`
+has to be rebuilt against `v8`.
+
 #### Exceptions
 
 * `InvariantViolationException` was added. It derives from `FormatException` and is raised when Fantomas reaches a state its own model says is impossible, which always means a bug in Fantomas rather than a problem with your code.
