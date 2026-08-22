@@ -92,6 +92,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.html" class="nav-link" > Formatting from an editor with Fantomas.Client
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
 </a></li>
 
@@ -239,6 +242,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.html" class="nav-link" > Formatting from an editor with Fantomas.Client
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
 </a></li>
 
@@ -333,7 +339,7 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
 <p>When working with a HTML inspired DSL (typically a function call with one or two lists), you can use <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_experimental_elmish">fsharp_experimental_elmish</a></p>
 <h3><a name="Fable-React" class="anchor" href="#Fable-React">Fable.React</a></h3>
 <h3><a name="Elmish" class="anchor" href="#Elmish">Elmish</a></h3>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="46" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="47" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">div</span>
 <span class="s">    []</span>
@@ -361,7 +367,7 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
     hr []
 ]</code></pre></td></tr></table>
 <h3><a name="Feliz" class="anchor" href="#Feliz">Feliz</a></h3>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="47" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="48" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">Html.div</span>
 <span class="s">    [</span>
@@ -385,7 +391,7 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
     ]
 ]</code></pre></td></tr></table>
 <h3><a name="Giraffe" class="anchor" href="#Giraffe">Giraffe</a></h3>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="48" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="49" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">let indexView =</span>
 <span class="s">    html</span>
@@ -409,7 +415,7 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
         ]
     ]</code></pre></td></tr></table>
 <h3><a name="Falco" class="anchor" href="#Falco">Falco</a></h3>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="49" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="50" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">let markup =</span>
 <span class="s">    Elem.div</span>
@@ -432,7 +438,7 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
     ] // HTML encodes text before rendering</code></pre></td></tr></table>
 <h2><a name="Expecto" class="anchor" href="#Expecto">Expecto</a></h2>
 <p>The <a href="https://github.com/haf/expecto">Expect</a> test framework can benefit from <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_multiline_bracket_style">Stroustrup</a> style when defining test lists.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="50" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="51" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">let tests =</span>
 <span class="s">    testList</span>
@@ -477,7 +483,7 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
 <p>At the end of a <a href="https://fake.build/">FAKE</a> script, the target dependencies are typically listed using custom operators.<br />
 Using <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_max_infix_operator_expression">fsharp_max_infix_operator_expression</a>
 you can tweak when they should go to the next line.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="51" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="52" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">&quot;Build&quot;</span>
 <span class="s">==&gt; &quot;EnsureCanScaffoldCodeFix&quot;</span>
@@ -506,7 +512,7 @@ you can tweak when they should go to the next line.</p>
 <h2><a name="Paragraphs" class="anchor" href="#Paragraphs">Paragraphs</a></h2>
 <p>When expressions are multiline Fantomas will put a blank line before and after them.
 This helps for code to stay consistent in teams.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="52" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="53" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">let Foo =</span>
 <span class="s">    try // Start paragraph 1</span>
@@ -534,7 +540,7 @@ This helps for code to stay consistent in teams.</p>
 Full control is not possible but outside top level expressions this can be done via <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_blank_lines_around_nested_multiline_expressions">fsharp_blank_lines_around_nested_multiline_expressions = false</a>.</p>
 <p>⚠️ This approach is generally advised against because it gives the code author control over newlines.
 Within teams, this can lead to debates, which is precisely what using Fantomas aims to eliminate: code style discussions. ⚠️</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="53" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="54" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">let Foo =</span>
 <span class="s">    try // Start paragraph 1</span>
@@ -562,7 +568,7 @@ Within teams, this can lead to debates, which is precisely what using Fantomas a
 <h2><a name="Early-returns" class="anchor" href="#Early-returns">Early returns</a></h2>
 <p>In F# there is no such concept as early returns. However, sometimes we do want to return an empty or error result when a certain condition is not met.
 To avoid extreme indentation in our happy path, you can use <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_experimental_keep_indent_in_branch">fsharp_experimental_keep_indent_in_branch = true</a>.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="54" class="fn">formatCode</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="55" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">let fix (getParseResultsForFile: GetParseResultsForFile) : CodeFix =</span>
 <span class="s">    Run.ifDiagnosticByCode (set [ &quot;20&quot; ]) (fun diagnostic (codeActionParams: CodeActionParams) -&gt;</span>
@@ -695,7 +701,7 @@ type StringSplitOptions =
 <div popover class="fsdocs-tip" id="fs21">union case Option.None: Option&lt;&#39;T&gt;</div>
 <div popover class="fsdocs-tip" id="fs22">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
 <div popover class="fsdocs-tip" id="fs23">val readOnlyDict: keyValuePairs: (&#39;Key * &#39;Value) seq -&gt; Collections.Generic.IReadOnlyDictionary&lt;&#39;Key,&#39;Value&gt; (requires equality)</div>
-<div popover class="fsdocs-tip" id="fs24">val parseOptionsFromEditorConfig: fallbackConfig: FormatConfig -&gt; editorConfigProperties: Collections.Generic.IReadOnlyDictionary&lt;string,string&gt; -&gt; FormatConfig</div>
+<div popover class="fsdocs-tip" id="fs24">val parseOptionsFromEditorConfig: fallbackConfig: FormatConfig -&gt; editorConfigProperties: Collections.Generic.IReadOnlyDictionary&lt;string,string&gt; -&gt; FormatConfig * EditorConfigProblem list</div>
 <div popover class="fsdocs-tip" id="fs25">type FormatConfig =
   {
     IndentSize: Num
@@ -713,8 +719,9 @@ type StringSplitOptions =
   member IsStroustrupStyle: bool
   static member Default: FormatConfig</div>
 <div popover class="fsdocs-tip" id="fs26">property FormatConfig.Default: FormatConfig with get</div>
-<div popover class="fsdocs-tip" id="fs27">val result: FormatResult</div>
-<div popover class="fsdocs-tip" id="fs28">type CodeFormatter =
+<div popover class="fsdocs-tip" id="fs27">val fst: tuple: (&#39;T1 * &#39;T2) -&gt; &#39;T1</div>
+<div popover class="fsdocs-tip" id="fs28">val result: FormatResult</div>
+<div popover class="fsdocs-tip" id="fs29">type CodeFormatter =
   static member FormatASTAsync: ast: ParsedInput -&gt; Async&lt;string&gt; + 3 overloads
   static member FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt; + 2 overloads
   static member FormatOakAsync: oak: Oak -&gt; Async&lt;string&gt; + 1 overload
@@ -726,12 +733,12 @@ type StringSplitOptions =
   static member MakeRange: fileName: string * startLine: int * startCol: int * endLine: int * endCol: int -&gt; range
   static member ParseAsync: isSignature: bool * source: string -&gt; Async&lt;(ParsedInput * string list) array&gt;
   ...</div>
-<div popover class="fsdocs-tip" id="fs29">static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig * cursor: Fantomas.FCS.Text.pos -&gt; Async&lt;FormatResult&gt;</div>
-<div popover class="fsdocs-tip" id="fs30">val printf: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
-<div popover class="fsdocs-tip" id="fs31">FormatResult.Code: string<br /><em>&lt;summary&gt;
+<div popover class="fsdocs-tip" id="fs30">static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig * cursor: Fantomas.FCS.Text.pos -&gt; Async&lt;FormatResult&gt;</div>
+<div popover class="fsdocs-tip" id="fs31">val printf: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs32">FormatResult.Code: string<br /><em>&lt;summary&gt;
  Formatted code
 &lt;/summary&gt;</em></div>
-<div popover class="fsdocs-tip" id="fs32">Multiple items<br />module Async
+<div popover class="fsdocs-tip" id="fs33">Multiple items<br />module Async
 
 from Fantomas.Core<br /><br />--------------------<br />type Async =
   static member AsBeginEnd: computation: (&#39;Arg -&gt; Async&lt;&#39;T&gt;) -&gt; (&#39;Arg * AsyncCallback * objnull -&gt; IAsyncResult) * (IAsyncResult -&gt; &#39;T) * (IAsyncResult -&gt; unit)
@@ -745,7 +752,7 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
   static member FromBeginEnd: beginAction: (AsyncCallback * objnull -&gt; IAsyncResult) * endAction: (IAsyncResult -&gt; &#39;T) * ?cancelAction: (unit -&gt; unit) -&gt; Async&lt;&#39;T&gt; + 3 overloads
   static member FromContinuations: callback: ((&#39;T -&gt; unit) * (exn -&gt; unit) * (OperationCanceledException -&gt; unit) -&gt; unit) -&gt; Async&lt;&#39;T&gt;
   ...<br /><br />--------------------<br />type Async&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs33">static member Async.RunSynchronously: computation: Async&lt;&#39;T&gt; * ?timeout: int * ?cancellationToken: Threading.CancellationToken -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs34">static member Async.RunSynchronously: computation: Async&lt;&#39;T&gt; * ?timeout: int * ?cancellationToken: Threading.CancellationToken -&gt; &#39;T</div>
 
     </div>
 </main>

@@ -89,6 +89,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.html" class="nav-link" > Formatting from an editor with Fantomas.Client
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
 </a></li>
 
@@ -234,6 +237,9 @@
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.html" class="nav-link" > Formatting from an editor with Fantomas.Client
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
@@ -382,7 +388,65 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="4134" data-fsdocs-tip-unique="4134">
+              <code data-fsdocs-tip="4162" data-fsdocs-tip-unique="4162">
+                <p>
+                  <a id="ConfigurationWarnings">
+                    <a href="#ConfigurationWarnings">
+                      <code>ConfigurationWarnings</code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="4162">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code>ConfigurationWarnings</code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Field type: 
+                    <code><span>IEvent&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-contracts-configurationwarning.html">ConfigurationWarning</a>&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Raised when this daemon reports settings it could not act on, on whichever thread its
+ message arrived on. Subscribed to by `createFor` before the connection starts
+ listening, so no notification can outrun a subscriber added there. A daemon older than
+ Fantomas 8 does not send these, so the event simply never fires.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Field type: 
+                  </span>
+                  <code><span>IEvent&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-contracts-configurationwarning.html">ConfigurationWarning</a>&gt;</span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="4163" data-fsdocs-tip-unique="4163">
                 <p>
                   <a id="Process">
                     <a href="#Process">
@@ -391,7 +455,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="4134">
+              <div popover="" class="fsdocs-tip" id="4163">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code>Process</code>
@@ -428,7 +492,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="4135" data-fsdocs-tip-unique="4135">
+              <code data-fsdocs-tip="4164" data-fsdocs-tip-unique="4164">
                 <p>
                   <a id="RpcClient">
                     <a href="#RpcClient">
@@ -437,7 +501,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="4135">
+              <div popover="" class="fsdocs-tip" id="4164">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code>RpcClient</code>
@@ -474,7 +538,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="4136" data-fsdocs-tip-unique="4136">
+              <code data-fsdocs-tip="4165" data-fsdocs-tip-unique="4165">
                 <p>
                   <a id="StartInfo">
                     <a href="#StartInfo">
@@ -483,7 +547,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="4136">
+              <div popover="" class="fsdocs-tip" id="4165">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code>StartInfo</code>

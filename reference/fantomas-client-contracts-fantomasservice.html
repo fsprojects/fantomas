@@ -89,6 +89,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.html" class="nav-link" > Formatting from an editor with Fantomas.Client
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
 </a></li>
 
@@ -234,6 +237,9 @@
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.html" class="nav-link" > Formatting from an editor with Fantomas.Client
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
@@ -385,7 +391,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="4064" data-fsdocs-tip-unique="4064">
+              <code data-fsdocs-tip="4078" data-fsdocs-tip-unique="4078">
                 <p>
                   <a id="ClearCache">
                     <a href="#ClearCache">
@@ -394,7 +400,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="4064">
+              <div popover="" class="fsdocs-tip" id="4078">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.ClearCache</span></code>
@@ -431,7 +437,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="4065" data-fsdocs-tip-unique="4065">
+              <code data-fsdocs-tip="4079" data-fsdocs-tip-unique="4079">
                 <p>
                   <a id="ConfigurationAsync">
                     <a href="#ConfigurationAsync">
@@ -440,7 +446,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="4065">
+              <div popover="" class="fsdocs-tip" id="4079">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.ConfigurationAsync</span></code>
@@ -518,7 +524,89 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="4066" data-fsdocs-tip-unique="4066">
+              <code data-fsdocs-tip="4080" data-fsdocs-tip-unique="4080">
+                <p>
+                  <a id="ConfigurationWarnings">
+                    <a href="#ConfigurationWarnings">
+                      <code><span>this.ConfigurationWarnings</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="4080">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.ConfigurationWarnings</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>IEvent&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-contracts-configurationwarning.html">ConfigurationWarning</a>&gt;</span></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Raised for every format request, with the settings in the resolved configuration that
+ Fantomas could not act on. Raised with an empty `Problems` list when there is nothing
+ wrong, so a subscriber can clear what it reported earlier, and raised before the request it
+ belongs to answers.
+
+ Raised on whichever thread the daemon's answer arrived on, never on the caller's. A
+ subscriber that touches a UI has to marshal, and one that throws is swallowed rather than
+ allowed to fault the connection.
+
+ Warnings for one file arrive in the order the requests for it were made, however many of
+ them you have in flight: the daemon serves one request at a time per file. That is what
+ makes the clearing rule sound, so an empty one never overtakes problems that are still
+ current.
+
+ Requests for different files are served concurrently and their warnings interleave freely.
+ `FilePath` is what tells them apart.
+
+ Only Fantomas 8 daemons send these; an older one never raises it, so no version check is
+ needed.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Client.Contracts.FantomasService.ConfigurationWarnings\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Client.Contracts.FantomasService.ConfigurationWarnings`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span>IEvent&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-contracts-configurationwarning.html">ConfigurationWarning</a>&gt;</span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="4081" data-fsdocs-tip-unique="4081">
                 <p>
                   <a id="FormatDocumentAsync">
                     <a href="#FormatDocumentAsync">
@@ -527,7 +615,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="4066">
+              <div popover="" class="fsdocs-tip" id="4081">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.FormatDocumentAsync</span></code>
@@ -605,7 +693,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="4067" data-fsdocs-tip-unique="4067">
+              <code data-fsdocs-tip="4082" data-fsdocs-tip-unique="4082">
                 <p>
                   <a id="FormatSelectionAsync">
                     <a href="#FormatSelectionAsync">
@@ -614,7 +702,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="4067">
+              <div popover="" class="fsdocs-tip" id="4082">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.FormatSelectionAsync</span></code>
@@ -692,7 +780,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="4068" data-fsdocs-tip-unique="4068">
+              <code data-fsdocs-tip="4083" data-fsdocs-tip-unique="4083">
                 <p>
                   <a id="VersionAsync">
                     <a href="#VersionAsync">
@@ -701,7 +789,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="4068">
+              <div popover="" class="fsdocs-tip" id="4083">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.VersionAsync</span></code>

@@ -89,6 +89,9 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
 </a></li>
 
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.html" class="nav-link" > Formatting from an editor with Fantomas.Client
+</a></li>
+
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
 </a></li>
 
@@ -234,6 +237,9 @@
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.html" class="nav-link" > Formatting from an editor with Fantomas.Client
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
@@ -416,6 +422,73 @@
             <div>
               <code data-fsdocs-tip="2" data-fsdocs-tip-unique="2">
                 <p>
+                  <a id="ConfigurationWarning">
+                    <a href="#ConfigurationWarning">
+                      <code><span>Methods.ConfigurationWarning&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="2">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Methods.ConfigurationWarning&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Sent by the daemon to the client for every format request, before the request answers,
+ naming the settings in the resolved configuration that Fantomas could not act on. Purely
+ informational: the request still succeeds, using defaults for whatever could not be read.
+
+ The notification carries one `ConfigurationWarning`, serialized as it is written here:
+ `{"FilePath": "...", "EditorConfigFiles": ["..."], "Problems": [{"Code": 1, "Source": 1,
+ "Setting": "fsharp_bogus_option", "Value": null}]}`.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Client.Contracts.Methods.ConfigurationWarning\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Client.Contracts.Methods.ConfigurationWarning`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code>string</code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="3" data-fsdocs-tip-unique="3">
+                <p>
                   <a id="FormatDocument">
                     <a href="#FormatDocument">
                       <code><span>Methods.FormatDocument&#32;<span></span></span></code>
@@ -423,7 +496,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2">
+              <div popover="" class="fsdocs-tip" id="3">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Methods.FormatDocument&#32;<span></span></span></code>
@@ -460,7 +533,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="3" data-fsdocs-tip-unique="3">
+              <code data-fsdocs-tip="4" data-fsdocs-tip-unique="4">
                 <p>
                   <a id="FormatSelection">
                     <a href="#FormatSelection">
@@ -469,7 +542,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="3">
+              <div popover="" class="fsdocs-tip" id="4">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Methods.FormatSelection&#32;<span></span></span></code>
@@ -506,7 +579,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="4" data-fsdocs-tip-unique="4">
+              <code data-fsdocs-tip="5" data-fsdocs-tip-unique="5">
                 <p>
                   <a id="Version">
                     <a href="#Version">
@@ -515,7 +588,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="4">
+              <div popover="" class="fsdocs-tip" id="5">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Methods.Version&#32;<span></span></span></code>
