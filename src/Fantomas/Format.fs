@@ -43,12 +43,12 @@ type CheckResult =
 
 module Format =
 
-    let private formatR = System.Text.RegularExpressions.Regex(@"\r")
+    let invalidResultException (file: string) : FormatException =
+        FormatException($"Formatting %s{file} leads to invalid F# code")
 
-    let private formatContentInternalAsync
-        (formatParams: FormatParams)
-        (originalContent: string)
-        : Async<FormatResult> =
+    let formatR = System.Text.RegularExpressions.Regex(@"\r")
+
+    let formatContentInternalAsync (formatParams: FormatParams) (originalContent: string) : Async<FormatResult> =
         if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) formatParams.File then
             async { return FormatResult.IgnoredFile formatParams.File }
         else
@@ -123,7 +123,7 @@ module Format =
 
     let formatContentAsync = formatContentInternalAsync
 
-    let private formatFileInternalAsync (parms: FormatParams) =
+    let formatFileInternalAsync (parms: FormatParams) =
         if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) parms.File then
             async { return FormatResult.IgnoredFile parms.File }
         else

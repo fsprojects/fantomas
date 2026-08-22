@@ -39,13 +39,21 @@ This is guidance for code you are writing or revisiting, not a reason to sweep t
 When you touch a function for some other reason, add the annotations it is missing. Leave the
 functions you had no reason to open alone.
 
+In a file that has a signature file, the signature file is the visibility boundary: anything it
+does not list is already hidden. Do not write `let private` there. The keyword adds nothing and
+suggests the `.fsi` says something it does not.
+
+Documentation comments belong in the signature file only, never in both. A `///` in the `.fs`
+alongside one in the `.fsi` is a second copy to keep in step, and the one readers and tooling see
+is the signature.
+
 ## Changelog
 
 When updating `CHANGELOG.md`, add new entries to the **end** of the relevant section (e.g. `### Fixed`), not the top. One entry per issue.
 
 ## Post-task Steps
 
-Run these after completing a task, not during iterative development — analyzers can be slow.
+Run these after completing a task rather than during iterative development.
 
 ### Format
 
@@ -59,4 +67,5 @@ dotnet fsi build.fsx -- -p FormatAll
 dotnet fsi build.fsx -- -p Analyze
 ```
 
-Output goes to `analysis.sarif` in the repo root.
+Output goes to `analysis.sarif` in the repo root. This is safe to run whenever you need it; it no
+longer saturates the machine.

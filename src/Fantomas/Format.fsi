@@ -34,6 +34,10 @@ type CheckResult =
     member NeedsFormatting: bool
 
 module Format =
+    /// The failure that a `FormatResult.InvalidCode` stands for. Formatting produced something
+    /// that is not F#, which is a bug in Fantomas rather than in the file it was given.
+    val invalidResultException: file: string -> FormatException
+
     val formatContentAsync: (FormatParams -> string -> Async<FormatResult>)
 
     val formatFileAsync: (FormatParams -> Async<FormatResult>)

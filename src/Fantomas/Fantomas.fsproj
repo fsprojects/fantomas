@@ -35,6 +35,18 @@
     <Compile Include="Daemon.fs" />
     <Compile Include="HelpPage.fsi" />
     <Compile Include="HelpPage.fs" />
+    <Compile Include="Paths.fsi" />
+    <Compile Include="Paths.fs" />
+    <Compile Include="Arguments.fsi" />
+    <Compile Include="Arguments.fs" />
+    <Compile Include="CommandResult.fsi" />
+    <Compile Include="CommandResult.fs" />
+    <Compile Include="FormatCommand.fsi" />
+    <Compile Include="FormatCommand.fs" />
+    <Compile Include="CheckCommand.fsi" />
+    <Compile Include="CheckCommand.fs" />
+    <Compile Include="Report.fsi" />
+    <Compile Include="Report.fs" />
     <Compile Include="Program.fsi" />
     <Compile Include="Program.fs" />
   </ItemGroup>
