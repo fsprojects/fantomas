@@ -416,6 +416,9 @@ Note that <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>
 <h3><a name="console-application-3" class="anchor" href="#console-application-3">console application</a></h3>
 <ul>
 <li>Target framework is now <code>net10.0</code>.</li>
+<li>Warnings and errors are written to standard error instead of standard out. A script that captured standard out to detect failures needs to capture standard error as well. Informational output stays on standard out, including <code>--version</code> and the files <code>--check</code> reports as needing formatting.</li>
+<li>A run over a single file reports the path it was given rather than only the file name, so <code>fantomas src/A.fs</code> prints <code>src/A.fs was formatted.</code> where it printed <code>A.fs was formatted.</code>. The same applies to the unchanged, ignored and <code>Failed to format file</code> messages. A run over several files already reported the path, so a script that handled both cases can now treat them alike.</li>
+<li>The <code>--help</code> page is written by Fantomas instead of by Argu, and <code>-h</code> is accepted alongside <code>--help</code>. An argument error prints its complaint on standard error followed by a pointer to <code>--help</code>, where it used to print Argu's usage block.</li>
 </ul>
 <h3><a name="Formatting" class="anchor" href="#Formatting">Formatting</a></h3>
 <p>Chains (dotted member access and calls) are laid out by a new set of rules, written up in full in
