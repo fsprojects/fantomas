@@ -1,6 +1,5 @@
 module Fantomas.Arguments
 
-open System
 open System.IO.Abstractions
 open Argu
 open Fantomas.Logging

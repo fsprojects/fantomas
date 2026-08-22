@@ -10,7 +10,7 @@ type FormatResult =
     | Formatted of filename: string * formattedContent: string * profileInfo: ProfileInfo option
     | Unchanged of filename: string * profileInfo: ProfileInfo option
     | InvalidCode of filename: string * formattedContent: string
-    | Error of filename: string * formattingError: Exception
+    | Error of filename: string * formattingError: exn
     | IgnoredFile of filename: string
 
 [<NoComparison>]

@@ -185,6 +185,28 @@ let ``a byte order mark the input carried is put back on the output`` () =
     |> shouldEqual preamble
 
 [<Test>]
+let ``content already at the output path is replaced when the input carries a mark`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let input: string = fs.Path.Combine(root, "A.fs")
+    let output: string = fs.Path.Combine(root, "out", "A.fs")
+    fs.FileInfo.New(input).Directory.Create()
+    fs.File.WriteAllText(input, NeedsFormatting, UTF8Encoding true)
+    // A mark used to mean the output was opened without being truncated, so the tail of whatever
+    // was there before survived a write of shorter content.
+    write fs output "// leftovers leftovers leftovers leftovers leftovers leftovers\n"
+
+    format fs (InputPath.File input) (OutputPath.IO output) |> results |> ignore
+
+    read fs output |> shouldEqual Formatted
+
+    let preamble: byte array = Encoding.UTF8.GetPreamble()
+
+    fs.File.ReadAllBytes output
+    |> Array.truncate preamble.Length
+    |> shouldEqual preamble
+
+[<Test>]
 let ``a file without a byte order mark does not gain one`` () =
     let fs: IFileSystem = MockFileSystem()
     let root: string = mockRoot fs
@@ -360,6 +382,16 @@ let ``nothing is profiled unless profiling was asked for`` () =
     match format fs (InputPath.File file) OutputPath.NotKnown |> results with
     | [| FormatResult.Formatted(_, _, None) |] -> ()
     | other -> failwith $"Expected no profile, got %A{other}"
+
+[<Test>]
+let ``no input path at all is refused`` () =
+    format (MockFileSystem()) InputPath.Unspecified OutputPath.NotKnown
+    |> shouldEqual (FormatCommandResult.InvalidInput InputProblem.NoPathGiven)
+
+[<Test>]
+let ``a file Fantomas does not format is refused`` () =
+    format (MockFileSystem()) (InputPath.NoFSharpFile "A.md") OutputPath.NotKnown
+    |> shouldEqual (FormatCommandResult.InvalidInput(InputProblem.UnsupportedFileType "A.md"))
 
 [<Test>]
 let ``an unusable input path never reaches the file system`` () =

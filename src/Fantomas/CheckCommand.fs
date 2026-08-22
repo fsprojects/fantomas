@@ -12,7 +12,7 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
             filenames
             |> Seq.map (fun filename ->
                 async {
-                    let! content = env.FileSystem.File.ReadAllTextAsync filename |> Async.AwaitTask
+                    let! (content: string) = env.FileSystem.File.ReadAllTextAsync filename |> Async.AwaitTask
 
                     let formatParams: FormatParams =
                         FormatParams.Create(env.ReadConfiguration filename, true, false, filename)

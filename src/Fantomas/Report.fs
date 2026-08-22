@@ -22,7 +22,7 @@ let sourceOf (fs: IFileSystem) (file: string) : string =
 
 let partitionResults
     (results: #(FormatResult seq))
-    : (string * ProfileInfo option) list * string list * (string * ProfileInfo option) list * (string * Exception) list =
+    : (string * ProfileInfo option) list * string list * (string * ProfileInfo option) list * (string * exn) list =
     (([], [], [], []), results)
     ||> Seq.fold (fun (oks, ignores, unchanged, errors) next ->
         match next with
@@ -32,14 +32,14 @@ let partitionResults
         | FormatResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors)
         | FormatResult.InvalidCode(file, _) ->
             let ex: FormatException = invalidResultException file
-            (oks, ignores, unchanged, (file, ex :> Exception) :: errors))
+            (oks, ignores, unchanged, (file, ex :> exn) :: errors))
 
-let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string, exn: Exception) : unit =
+let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string, error: exn) : unit =
     let describeOther () : string =
         let message: string =
             match verbosity with
             | VerbosityLevel.Normal ->
-                match exn with
+                match error with
                 | :? DefineParseException as dpe ->
                     let combinations: string =
                         dpe.Combinations
@@ -49,7 +49,7 @@ let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string,
                     $"When Fantomas encounters #if directives in a file, it tries to format all possible combinations of defines and will merge all different versions back into one.\nFor %s{combinations}, however, we were not able to parse the file.\nWhile you may not use this combination in your project, Fantomas requires it to produce valid code.\nConsider fixing the code or ignoring this file.\nFor more information see: https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html"
                 | :? FormatException as fe -> fe.Message
                 | _ -> ""
-            | VerbosityLevel.Detailed -> $"%A{exn}"
+            | VerbosityLevel.Detailed -> $"%A{error}"
 
         if String.IsNullOrEmpty message then
             $"Failed to format file: %s{file}"
@@ -58,7 +58,7 @@ let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string,
 
     // A parse failure describes itself, positions and all, rather than being reduced to a
     // single line saying only that it happened.
-    match Diagnostics.describeParseFailure file (fun () -> sourceOf env.FileSystem file) exn with
+    match Diagnostics.describeParseFailure file (fun () -> sourceOf env.FileSystem file) error with
     | Some parseFailure -> env.Log.Error parseFailure
     | None -> env.Log.Error(describeOther ())
 

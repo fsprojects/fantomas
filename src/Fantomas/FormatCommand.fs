@@ -27,6 +27,7 @@ type FormatParams =
           Profile = profile
           File = file }
 
+// Built once rather than inside `stripNewlines`, which runs twice for every file checked.
 let carriageReturn: Text.RegularExpressions.Regex =
     Text.RegularExpressions.Regex(@"\r")
 
@@ -72,7 +73,7 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
                     originalContent <> formattedContent
 
             if contentChanged then
-                let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isSignatureFile, formattedContent)
+                let! (isValid: bool) = CodeFormatter.IsValidFSharpCodeAsync(isSignatureFile, formattedContent)
 
                 if not isValid then
                     return FormatResult.InvalidCode(filename = formatParams.File, formattedContent = formattedContent)
@@ -104,7 +105,7 @@ let readSourceFile (fs: IFileSystem) (file: string) : Async<SourceFile> =
         use reader =
             new StreamReader(stream, UTF8Encoding(false), detectEncodingFromByteOrderMarks = true)
 
-        let! content = reader.ReadToEndAsync() |> Async.AwaitTask
+        let! (content: string) = reader.ReadToEndAsync() |> Async.AwaitTask
 
         // Opening the file again to look at its first three bytes would be needless: the reader has
         // already read them to settle on an encoding. A file that carried a mark comes back as
@@ -131,7 +132,7 @@ let formatSource
         let formatParams: FormatParams =
             FormatParams.Create(config, false, settings.Profile, file)
 
-        let! formatted = formatContentAsync formatParams source.Content
+        let! (formatted: FormatResult) = formatContentAsync formatParams source.Content
 
         match formatted with
         | FormatResult.InvalidCode(f, formattedContent) when settings.Force ->
@@ -159,9 +160,9 @@ let processFile
     async {
         try
             env.Log.Debug $"Processing %s{inputFile}"
-            let! source = readSourceFile fs inputFile
+            let! (source: SourceFile) = readSourceFile fs inputFile
             let inPlace: bool = isSamePath fs inputFile outputFile
-            let! result = formatSource env settings source inputFile (env.ReadConfiguration inputFile)
+            let! (result: FormatResult) = formatSource env settings source inputFile (env.ReadConfiguration inputFile)
 
             let toWrite: string option =
                 match result with

@@ -80,7 +80,7 @@ let shortVersion () : string =
     | [| number; commit |] when commit.Length > 9 -> String.Concat(number, "+", commit.Substring(0, 9))
     | _ -> version
 
-let flags =
+let flags: (string * string * string * string list) list =
     [ ("",
        "--check",
        "",
@@ -107,13 +107,13 @@ let flags =
       ("", "--version", "", [ "Print the version and exit" ])
       ("-h", "--help", "", [ "Display this menu and exit" ]) ]
 
-let examples =
+let examples: (string * string) list =
     [ ("fantomas .", "Format every F# file below the current folder")
       ("fantomas src/App.fs", "Format a single file in place")
       ("fantomas --check .", "Report what needs formatting, write nothing")
       ("fantomas --out build src", "Copy the formatted files to another folder") ]
 
-let links =
+let links: (string * string list) list =
     [ ("Learn more about Fantomas:", [ "https://fsprojects.github.io/fantomas/docs" ])
       ("Configure Fantomas:", [ "https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" ])
       ("Join the F# Discord:", [ "https://discord.com/channels/196693847965696000/1493226271767924747" ])

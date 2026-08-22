@@ -16,16 +16,10 @@ let extensionLookup: HashSet<string> =
 
 // The names to look for, with a separator either side so that `objects` is not read as `obj`.
 // Worked out once: building them per file made walking a folder several times slower than it
-// needs to be. Both separators are covered, since a path can reach us spelled either way.
+// needs to be.
 let excludedDirFragments: string array =
-    let separators: char array =
-        if Path.DirectorySeparatorChar = Path.AltDirectorySeparatorChar then
-            [| Path.DirectorySeparatorChar |]
-        else
-            [| Path.DirectorySeparatorChar; Path.AltDirectorySeparatorChar |]
-
-    [| for dir in [| "obj"; ".fable"; "fable_modules"; "node_modules" |] do
-           for separator in separators -> String.Concat(string<char> separator, dir, string<char> separator) |]
+    [| for dir in [| "obj"; ".fable"; "fable_modules"; "node_modules" |] ->
+           String.Concat(string<char> Path.DirectorySeparatorChar, dir, string<char> Path.DirectorySeparatorChar) |]
 
 let isInExcludedDir (fullPath: string) : bool =
     excludedDirFragments

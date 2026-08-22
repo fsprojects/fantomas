@@ -46,7 +46,7 @@ let ``an existing file Fantomas does not format is reported as such`` () =
     |> shouldEqual (InputPath.NoFSharpFile file)
 
 [<Test>]
-let ``several paths are told apart by whether they carry an extension`` () =
+let ``several paths are told apart into files and folders`` () =
     let fs: IFileSystem = MockFileSystem()
     let root: string = mockRoot fs
     let file: string = fs.Path.Combine(root, "A.fs")

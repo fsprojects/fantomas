@@ -46,9 +46,9 @@ module IgnoreFile =
         walkUp (fs.FileInfo.New(filePath).Directory)
 
     let loadIgnoreList (fs: IFileSystem) (ignoreFilePath: string) : IsPathIgnored =
-        let lines = fs.File.ReadAllLines(ignoreFilePath)
+        let lines: string array = fs.File.ReadAllLines(ignoreFilePath)
 
-        let fantomasIgnore =
+        let fantomasIgnore: Ignore =
             (Ignore(), lines)
             ||> Array.fold (fun (ig: Ignore) (line: string) -> ig.Add(line))
 
@@ -61,7 +61,7 @@ module IgnoreFile =
             // We transform the incoming path relative to the .ignoreFilePath folder.
             // In a cli scenario that is the current directory, for the daemon it is the first found ignore file.
             // .gitignore uses forward slashes to path separators
-            let relativePath =
+            let relativePath: string =
                 fs.Path.GetRelativePath(ignoreRoot, absoluteFilePath.Path).Replace("\\", "/")
 
             fantomasIgnore.IsIgnored(relativePath)

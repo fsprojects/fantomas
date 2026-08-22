@@ -11,11 +11,20 @@ open Fantomas.Plan
 open Fantomas.Tests.TestHelpers
 
 /// Plan against the given file system, honouring no ignore file.
-let private planOn (fs: IFileSystem) (inputPath: InputPath) (outputPath: OutputPath) =
+let private planOn
+    (fs: IFileSystem)
+    (inputPath: InputPath)
+    (outputPath: OutputPath)
+    : Result<WorkItem list, InputProblem> =
     plan fs silentLogger None inputPath outputPath
 
 /// Plan against the given file system, honouring a `.fantomasignore` written at its root.
-let private planIgnoring (fs: IFileSystem) (patterns: string) (inputPath: InputPath) (outputPath: OutputPath) =
+let private planIgnoring
+    (fs: IFileSystem)
+    (patterns: string)
+    (inputPath: InputPath)
+    (outputPath: OutputPath)
+    : Result<WorkItem list, InputProblem> =
     let root: string = mockRoot fs
     fs.File.WriteAllText(fs.Path.Combine(root, IgnoreFile.IgnoreFileName), patterns)
 

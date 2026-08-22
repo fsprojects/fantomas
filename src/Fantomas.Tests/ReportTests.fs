@@ -13,12 +13,15 @@ open Fantomas.Tests.TestHelpers
 let private run () : RecordedRun =
     recordingEnvironment (MockFileSystem()) None
 
-let private reportFormat (settings: Fantomas.Cli.CliSettings) (result: FormatCommandResult) =
+let private reportFormat
+    (settings: Fantomas.Cli.CliSettings)
+    (result: FormatCommandResult)
+    : int * CollectedLog * string =
     let recorded: RecordedRun = run ()
     let code: int = reportFormatCommand recorded.Environment settings result
     code, recorded.Log(), recorded.Drawn()
 
-let private reportCheck (result: CheckCommandResult) =
+let private reportCheck (result: CheckCommandResult) : int * CollectedLog =
     let recorded: RecordedRun = run ()
     let code: int = reportCheckCommand recorded.Environment result
     code, recorded.Log()
@@ -208,7 +211,9 @@ let ``profiling reports the line count and the time taken for a single file`` ()
     let _, log, _ =
         reportFormat settings (FormatCommandResult.Completed [| FormatResult.Formatted("A.fs", "", profile) |])
 
-    log.Information |> List.last |> shouldContainText "Line count: 12"
+    log.Information
+    |> List.filter (fun (line: string) -> line.Contains "Line count")
+    |> shouldEqual [ "A.fs Line count: 12 Time taken 00:00:01" ]
 
 [<Test>]
 let ``nothing is profiled unless profiling was asked for`` () =
