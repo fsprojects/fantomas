@@ -101,6 +101,51 @@ fsharp_experimental_stroustrup_style = true
 - A run over a single file reports the path it was given rather than only the file name, so `fantomas src/A.fs` prints `src/A.fs was formatted.` where it printed `A.fs was formatted.`. The same applies to the unchanged, ignored and failure messages. A run over several files already reported the path, so a script that handled both cases can now treat them alike.
 - A file that cannot be parsed is reported with the position of each diagnostic instead of `Could not parse the file.`, one line per diagnostic in the shape `src/A.fs(3,9): error FS0583: Unmatched '('`, followed by the source around the failure with a caret under it. `--check` reported the same failure as an exception dump with a stack trace and now uses this as well. A script that matched on `Could not parse the file.` needs to match on the new text.
 - The `--help` page is written by Fantomas instead of by Argu, and `-h` is accepted alongside `--help`. An argument error prints its complaint on standard error followed by a pointer to `--help`, where it used to print Argu's usage block.
+- `--out` now mirrors the structure of the input folder, and creates the folders it needs.
+
+#### `--out <folder>` mirrors the input folder
+
+Up to `v7`, every file found under the input folder was written straight into the root of the
+output folder, whatever its depth. Nesting collapsed, and two files with the same name in
+different subfolders overwrote each other without a warning. From `v8`, the path of each file
+relative to the input folder is preserved:
+
+```
+# input
+src/A.fs
+src/nested/A.fs
+
+# v7: dotnet fantomas src --out out
+out/A.fs           # whichever of the two was formatted last
+
+# v8: dotnet fantomas src --out out
+out/A.fs
+out/nested/A.fs
+```
+
+This is what [Getting Started](./GettingStarted.html) has always described, so no action is
+needed if you followed the documentation. If you relied on the flattening to collect a tree of
+files into a single folder, that step now has to be done by whatever calls Fantomas.
+
+An output folder that sits inside the input folder is left out of the scan. Up to `v7`, running
+`dotnet fantomas src --out src/formatted` picked the previous run's output back up as input,
+which the flattening hid; with the tree preserved it would nest one folder deeper on every run.
+
+#### `--out` creates the folders it writes into
+
+Up to `v7`, `--out <file>` failed with `Failed to format file` and exit code 1 when the folder
+of the path given to it did not exist. The root of an `--out <folder>` was always created for
+you. From `v8`, Fantomas creates whatever folder it has to write into, which includes the
+subfolders the mirroring above needs:
+
+```bash
+# v7: fails unless ./output exists
+# v8: creates ./output
+dotnet fantomas ./input/array.fs --out ./output/array.fs
+```
+
+If your build script creates the output folders before calling Fantomas, it can keep doing so.
+`mkdir -p` and its equivalents are unaffected by this change.
 
 ### Formatting
 
