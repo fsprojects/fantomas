@@ -52,59 +52,214 @@ let toEditorConfigName value =
         else
             $"fsharp_%s{name}"
 
-let getFantomasFields (fallbackConfig: FormatConfig) =
-    Reflection.getRecordFields fallbackConfig
-    |> Array.map (fun (recordField, defaultValue) ->
-        let editorConfigName = toEditorConfigName recordField.PropertyName
+/// The editorconfig name of every `FormatConfig` field, in record field order. Worked out once:
+/// the names cannot change while the process runs, and `parseOptionsFromEditorConfig` runs for
+/// every file that gets formatted.
+let settingNames: string array =
+    Microsoft.FSharp.Reflection.FSharpType.GetRecordFields(typeof<FormatConfig>)
+    |> Array.map (fun property -> toEditorConfigName property.Name)
 
-        (editorConfigName, defaultValue))
+/// Every field of `fallbackConfig`, paired with the editorconfig name it is written under.
+let getFantomasFields (fallbackConfig: FormatConfig) : (string * obj) array =
+    Microsoft.FSharp.Reflection.FSharpValue.GetRecordFields fallbackConfig
+    |> Array.zip settingNames
 
-[<return: Struct>]
-let (|Number|_|) (d: string) =
-    match System.Int32.TryParse(d) with
-    | true, d -> ValueSome(box d)
-    | _ -> ValueNone
+/// Read one setting's value into the type the matching `FormatConfig` field has. Which parser
+/// applies is decided by that type rather than by trying each of them in turn: `cr` means
+/// something to `end_of_line` and nothing to any other setting, and trying every parser on every
+/// setting made `fsharp_max_record_width = cr` fail the whole run with a message about line
+/// endings.
+///
+/// Values are matched without regard to case, as editorconfig defines them.
+let parseSettingValue (defaultValue: obj) (value: string) : obj option =
+    let value = value.ToLowerInvariant()
 
-[<return: Struct>]
-let (|MultilineFormatterType|_|) mft =
-    MultilineFormatterType.OfConfigString mft |> ValueOption.ofOption
+    match defaultValue with
+    | :? int ->
+        match System.Int32.TryParse(value) with
+        // No setting Fantomas has means anything below zero, and a run that took one would format
+        // to nonsense widths without ever saying so.
+        | true, number when number >= 0 -> Some(box number)
+        | _ -> None
+    | :? bool ->
+        if value = "true" then Some(box true)
+        elif value = "false" then Some(box false)
+        else None
+    | :? MultilineFormatterType -> MultilineFormatterType.OfConfigString value |> Option.map box
+    | :? EndOfLineStyle -> EndOfLineStyle.OfConfigString value |> Option.map box
+    | :? MultilineBracketStyle -> MultilineBracketStyle.OfConfigString value |> Option.map box
+    | _ -> None
 
-[<return: Struct>]
-let (|BracketStyle|_|) bs =
-    MultilineBracketStyle.OfConfigString bs |> ValueOption.ofOption
+[<RequireQualifiedAccess>]
+type EditorConfigProblem =
+    | UnknownSetting of setting: string
+    | UnrecognizedValue of setting: string * value: string
 
-[<return: Struct>]
-let (|EndOfLineStyle|_|) eol =
-    EndOfLineStyle.OfConfigString eol |> ValueOption.ofOption
+[<NoComparison>]
+type EditorConfigResult =
+    { Config: FormatConfig
+      EditorConfigFiles: string list
+      Problems: EditorConfigProblem list }
 
-[<return: Struct>]
-let (|Boolean|_|) b =
-    if b = "true" then ValueSome(box true)
-    elif b = "false" then ValueSome(box false)
-    else ValueNone
+let isFantomasSetting (setting: string) : bool =
+    setting.StartsWith("fsharp_", System.StringComparison.OrdinalIgnoreCase)
+
+/// Values the editorconfig spec gives a meaning that is not a value. `unset` says a setting from
+/// a parent file no longer applies, `indent_size = tab` says to follow `tab_width`, and
+/// `max_line_length = off` says there is no limit. Fantomas cannot act on any of them, but they
+/// are not mistakes, and the library derives `indent_size = tab` on its own from
+/// `indent_style = tab`, so reporting them blames an author for something they never wrote.
+///
+/// Only these exact values are excused. Anything else, `indent_size = banana` included, is a
+/// mistake and is reported like any other.
+let isSpecDefinedNonValue (setting: string) (value: string) : bool =
+    let value = value.ToLowerInvariant()
+
+    value = "unset"
+    || (setting = "indent_size" && value = "tab")
+    || (setting = "max_line_length" && value = "off")
+
+/// Settings are ordered the same way everywhere here: without regard to case, as they are matched.
+let compareSettings (left: string) (right: string) : int =
+    System.String.Compare(left, right, System.StringComparison.OrdinalIgnoreCase)
+
+let supportedSettings: string list =
+    settingNames
+    |> List.ofArray
+    |> List.sortWith (fun left right ->
+        // The settings editorconfig itself defines come first, then the ones belonging to
+        // Fantomas, each group ordered the same way everywhere else here.
+        match compare (isFantomasSetting left) (isFantomasSetting right) with
+        | 0 -> compareSettings left right
+        | difference -> difference)
+
+/// The same names again, for looking one up rather than reading the list. A `.editorconfig` is
+/// read once per formatted file, so a scan of the whole list per setting is worth avoiding.
+let supportedSettingLookup: HashSet<string> =
+    HashSet<string>(settingNames, System.StringComparer.OrdinalIgnoreCase)
+
+/// How many single character edits turn one setting name into the other, capped at `limit`.
+///
+/// The cap answers without measuring when the two lengths already differ by more than it. Anything
+/// past that is measured in full, so two names of the same length are compared character by
+/// character however unalike they are.
+let editDistance (limit: int) (left: string) (right: string) : int =
+    if abs (left.Length - right.Length) > limit then
+        limit + 1
+    else
+        let mutable previous = Array.init (right.Length + 1) id
+        let mutable current = Array.zeroCreate<int> (right.Length + 1)
+
+        for row in 1 .. left.Length do
+            current[0] <- row
+
+            for column in 1 .. right.Length do
+                let substitution =
+                    previous[column - 1] + (if left[row - 1] = right[column - 1] then 0 else 1)
+
+                current[column] <- min (min (current[column - 1] + 1) (previous[column] + 1)) substitution
+
+            let swap = previous
+            previous <- current
+            current <- swap
+
+        min previous[right.Length] (limit + 1)
+
+/// The supported setting closest to `setting`, when one is within `limit` edits of it.
+///
+/// Two candidates the same distance away are separated by the order of `supportedSettings`, since
+/// `List.sortBy` is stable. Not a case anyone reaches by mistyping: the two closest settings
+/// Fantomas has are three edits apart, so a tie takes a string built on purpose to sit between
+/// them.
+let nearestSetting (limit: int) (setting: string) : string option =
+    supportedSettings
+    |> List.choose (fun candidate ->
+        match editDistance limit setting candidate with
+        | distance when distance <= limit -> Some(candidate, distance)
+        | _ -> None)
+    |> List.sortBy snd
+    |> List.tryHead
+    |> Option.map fst
+
+/// How far an unprefixed key may be from a setting Fantomas has before it is read as a misspelling
+/// of it rather than as something belonging to another tool.
+///
+/// Tighter than the distance a suggestion is offered at, and it has to be. `indent_style` is three
+/// edits from `indent_size`, and it is in very nearly every `.editorconfig` ever written; warning
+/// about it would put a false report in front of almost every user. Two edits reaches every
+/// realistic typo, `max_line_lenght` included, and reaches nothing anyone meant to write.
+[<Literal>]
+let MaximumUnprefixedTypoDistance = 2
+
+/// Whether an unprefixed key looks like a misspelling of a setting Fantomas has, rather than a
+/// setting belonging to some other tool. `fsharp_`-prefixed keys are ours by construction, so this
+/// only has to judge the ones that carry no prefix.
+let looksLikeAMisspelling (setting: string) : bool =
+    (nearestSetting MaximumUnprefixedTypoDistance setting).IsSome
+
+let unknownFantomasSettings (settings: string seq) : EditorConfigProblem list =
+    settings
+    |> Seq.filter (fun setting ->
+        // Anything carrying our prefix is ours to complain about. Anything without one belongs to
+        // another tool unless it is close enough to one of ours to be a typo of it: a mistake in
+        // `max_line_length` is silently ignored exactly as a mistake in a `fsharp_` setting was,
+        // and it is the same mistake.
+        isFantomasSetting setting || looksLikeAMisspelling setting)
+    |> Seq.sortWith compareSettings
+    |> Seq.choose (fun setting ->
+        if supportedSettingLookup.Contains setting then
+            None
+        else
+            Some(EditorConfigProblem.UnknownSetting setting))
+    |> Seq.toList
 
 let parseOptionsFromEditorConfig
     (fallbackConfig: FormatConfig)
     (editorConfigProperties: IReadOnlyDictionary<string, string>)
-    : FormatConfig =
-    getFantomasFields fallbackConfig
-    |> Array.map (fun (editorConfigName, defaultValue) ->
-        match editorConfigProperties.TryGetValue(editorConfigName) with
-        | true, Number n -> n
-        | true, Boolean b -> b
-        | true, MultilineFormatterType mft -> box mft
-        | true, EndOfLineStyle eol -> box eol
-        | true, BracketStyle bs -> box bs
-        | false, _ -> defaultValue
-        | true, invalidValue ->
-            eprintfn
-                $"warning: unrecognized value '%s{invalidValue}' for property '%s{editorConfigName}' in .editorconfig, using default."
+    : FormatConfig * EditorConfigProblem list =
+    // editorconfig keys are case insensitive. The library lowercases the ones it reads from a
+    // file, but a dictionary an editor hands us is untouched, so match without regard to case
+    // here rather than in one caller: a key that differs only in case would otherwise match no
+    // setting and raise no warning either. Each entry carries the spelling it was written with,
+    // so a problem names what the author typed rather than the folded form.
+    let properties: Dictionary<string, struct (string * string)> =
+        let properties =
+            Dictionary<string, struct (string * string)>(System.StringComparer.OrdinalIgnoreCase)
 
-            defaultValue)
-    |> fun newValues ->
+        for setting in editorConfigProperties do
+            properties[setting.Key] <- struct (setting.Key, setting.Value)
 
-        let formatConfigType = FormatConfig.Default.GetType()
-        Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(formatConfigType, newValues) :?> FormatConfig
+        properties
+
+    let unrecognizedValues: ResizeArray<string * string> =
+        ResizeArray<string * string>()
+
+    let newValues =
+        getFantomasFields fallbackConfig
+        |> Array.map (fun (setting, defaultValue) ->
+            match properties.TryGetValue setting with
+            | false, _ -> defaultValue
+            | true, struct (written, value) ->
+                match parseSettingValue defaultValue value with
+                | Some parsed -> parsed
+                | None ->
+                    if not (isSpecDefinedNonValue setting value) then
+                        unrecognizedValues.Add(written, value)
+
+                    defaultValue)
+
+    let config =
+        Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(typeof<FormatConfig>, newValues) :?> FormatConfig
+
+    let unrecognized =
+        unrecognizedValues
+        |> Seq.sortWith (fun (left, _) (right, _) -> compareSettings left right)
+        |> Seq.map EditorConfigProblem.UnrecognizedValue
+        |> Seq.toList
+
+    let written = properties.Values |> Seq.map (fun (struct (written, _)) -> written)
+
+    config, unknownFantomasSettings written @ unrecognized
 
 let configToEditorConfig (config: FormatConfig) : string =
     Reflection.getRecordFields config
@@ -128,14 +283,22 @@ let configToEditorConfig (config: FormatConfig) : string =
 
 let editorConfigParser = EditorConfigParser(EditorConfigFileCache.GetOrCreate)
 
-let tryReadConfiguration (fsharpFile: string) : FormatConfig option =
+let tryReadConfiguration (fsharpFile: string) : EditorConfigResult option =
     let editorConfigSettings: FileConfiguration =
         editorConfigParser.Parse(fileName = fsharpFile)
 
     if editorConfigSettings.Properties.Count = 0 then
         None
     else
-        Some(parseOptionsFromEditorConfig FormatConfig.Default editorConfigSettings.Properties)
+        let config, problems =
+            parseOptionsFromEditorConfig FormatConfig.Default editorConfigSettings.Properties
 
-let readConfiguration (fsharpFile: string) : FormatConfig =
-    tryReadConfiguration fsharpFile |> Option.defaultValue FormatConfig.Default
+        let editorConfigFiles =
+            editorConfigSettings.EditorConfigFiles
+            |> Seq.map (fun file -> System.IO.Path.GetFullPath(System.IO.Path.Combine(file.Directory, file.FileName)))
+            |> Seq.toList
+
+        Some
+            { Config = config
+              EditorConfigFiles = editorConfigFiles
+              Problems = problems }

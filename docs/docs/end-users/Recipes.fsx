@@ -42,7 +42,7 @@ let formatCode input (settings: string) =
                         Some(parts.[0], parts.[1]))
                 |> readOnlyDict
 
-            parseOptionsFromEditorConfig FormatConfig.Default editorConfigProperties
+            parseOptionsFromEditorConfig FormatConfig.Default editorConfigProperties |> fst
 
         let! result = CodeFormatter.FormatDocumentAsync(false, input, config)
         printf $"%s{result.Code}"

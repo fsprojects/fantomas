@@ -1,19 +1,21 @@
 module Fantomas.Client.FantomasToolLocator
 
 open System
+open System.Collections.Generic
 open System.ComponentModel
 open System.Diagnostics
 open System.IO
 open System.Text.RegularExpressions
 open System.Runtime.InteropServices
 open StreamJsonRpc
+open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 
 // Only 4.6.0-alpha-004 has daemon capabilities
-let private supportedRange = SemanticVersioning.Range(">=v4.6.0-alpha-004")
+let supportedRange = SemanticVersioning.Range(">=v4.6.0-alpha-004")
 
 [<return: Struct>]
-let private (|CompatibleVersion|_|) (version: string) =
+let (|CompatibleVersion|_|) (version: string) : string voption =
     match SemanticVersioning.Version.TryParse version with
     | true, parsedVersion ->
         if supportedRange.IsSatisfied(parsedVersion, includePrerelease = true) then
@@ -24,13 +26,13 @@ let private (|CompatibleVersion|_|) (version: string) =
 
 // In the past, fantomas was named fantomas-tool.
 [<return: Struct>]
-let private (|CompatibleToolName|_|) toolName =
+let (|CompatibleToolName|_|) (toolName: string) : string voption =
     if toolName = "fantomas-tool" || toolName = "fantomas" then
         ValueSome toolName
     else
         ValueNone
 
-let private readOutputStreamAsLines (outputStream: StreamReader) : string list =
+let readOutputStreamAsLines (outputStream: StreamReader) : string list =
     let rec readLines (outputStream: StreamReader) (continuation: string list -> string list) =
         let nextLine = outputStream.ReadLine()
 
@@ -41,7 +43,7 @@ let private readOutputStreamAsLines (outputStream: StreamReader) : string list =
 
     readLines outputStream id
 
-let private startProcess (ps: ProcessStartInfo) : Result<Process, ProcessStartError> =
+let startProcess (ps: ProcessStartInfo) : Result<Process, ProcessStartError> =
     try
         Ok(Process.Start ps)
     with
@@ -59,7 +61,7 @@ let private startProcess (ps: ProcessStartInfo) : Result<Process, ProcessStartEr
         )
     | ex -> Error(ProcessStartError.UnExpectedException(ps.FileName, ps.Arguments, ex.Message))
 
-let private runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Result<string list, DotNetToolListError> =
+let runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Result<string list, DotNetToolListError> =
     let ps = ProcessStartInfo("dotnet")
     ps.WorkingDirectory <- workingDir
 
@@ -87,10 +89,10 @@ let private runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Resu
             Error(DotNetToolListError.ExitCodeNonZero(ps.FileName, ps.Arguments, exitCode, error))
     | Error err -> Error(DotNetToolListError.ProcessStartError err)
 
-let private packageSidVersionRegex = Regex(@"^Package\sId\s+Version.+$")
+let packageSidVersionRegex = Regex(@"^Package\sId\s+Version.+$")
 
 [<return: Struct>]
-let private (|CompatibleTool|_|) lines =
+let (|CompatibleTool|_|) (lines: string list) : FantomasVersion voption =
     // These are local bindings, which cannot carry an attribute, so they stay on option.
     let (|HeaderLine|_|) line =
         if packageSidVersionRegex.IsMatch line then Some() else None
@@ -113,7 +115,7 @@ let private (|CompatibleTool|_|) lines =
 
     match lines with
     | HeaderLine :: Dashes :: Tools tools ->
-        let tool =
+        let tool: (string * string) option =
             List.tryFind
                 (fun (packageId, version) ->
                     match packageId, version with
@@ -121,13 +123,51 @@ let private (|CompatibleTool|_|) lines =
                     | _ -> false)
                 tools
 
-        tool |> ValueOption.ofOption |> ValueOption.map (snd >> FantomasVersion)
+        // Folded to match `normalizeVersion`. Daemons are cached under this string and the two
+        // producers are compared as plain strings, so both sides have to normalise the same way.
+        match tool with
+        | None -> ValueNone
+        | Some(_, version) -> ValueSome(FantomasVersion(version.ToLowerInvariant()))
     | _ -> ValueNone
 
-let private isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+let isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+
+/// The version `fantomas --version` printed, as `dotnet tool list` would have written it.
+///
+/// `--version` answers `Fantomas v8.0.0-alpha-014+e4a1c9d...`, `dotnet tool list` answers
+/// `8.0.0-alpha-014`. Daemons are cached by this string, so both the leading `v` and the commit
+/// hash have to go: with either of them left on, the same Fantomas resolved once from the manifest
+/// and once from the PATH counts as two versions and gets two processes.
+let normalizeVersion (printed: string) : string =
+    let dropPrefix (prefix: string) (text: string) : string =
+        if text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) then
+            text.Substring(prefix.Length).Trim()
+        else
+            text
+
+    let printed: string = printed.Trim() |> dropPrefix "fantomas" |> dropPrefix "v"
+
+    let buildMetadata: int = printed.IndexOf('+')
+
+    let withoutBuildMetadata: string =
+        if buildMetadata = -1 then
+            printed
+        else
+            printed.Substring(0, buildMetadata)
+
+    // Folded, and folded on the other side too, in `CompatibleTool`. Doing it here alone would be
+    // worse than not doing it: the two producers have to agree, and they are compared as plain
+    // strings. Semver reads prerelease identifiers case sensitively, so this is a deliberate
+    // decision that `8.0.0-Alpha-014` and `8.0.0-alpha-014` name one Fantomas, which is true of
+    // every package either path can resolve.
+    withoutBuildMetadata.ToLowerInvariant()
+
+/// How long a freshly started daemon has to answer the version handshake before it is given up on.
+[<Literal>]
+let handshakeTimeoutInMs = 30_000
 
 // Find an executable fantomas file on the PATH
-let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option =
+let fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option =
     let fantomasExecutableOnPathOpt =
         match Option.ofObj (Environment.GetEnvironmentVariable("PATH")) with
         | Some s -> s.Split([| if isWindows then ';' else ':' |], StringSplitOptions.RemoveEmptyEntries)
@@ -154,7 +194,6 @@ let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion
     |> Option.bind (fun fantomasExecutablePath ->
         let processStart = ProcessStartInfo(fantomasExecutablePath)
         processStart.Arguments <- "--version"
-        processStart.RedirectStandardOutput <- true
         processStart.CreateNoWindow <- true
         processStart.RedirectStandardOutput <- true
         processStart.RedirectStandardError <- true
@@ -162,14 +201,19 @@ let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion
 
         match startProcess processStart with
         | Ok p ->
-            p.WaitForExit()
+            // Standard error is redirected, so something has to read it, or a version that wrote
+            // more to it than the pipe holds would block on the write and never exit. This drains
+            // it with no subscriber attached, which is all that is wanted: nothing here reads what
+            // it says.
+            p.BeginErrorReadLine()
+
             let stdOut = p.StandardOutput.ReadToEnd()
+            p.WaitForExit()
 
             stdOut
             |> Option.ofObj
             |> Option.map (fun s ->
-                let version = s.ToLowerInvariant().Replace("fantomas", String.Empty).Trim()
-                FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(version))
+                FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(normalizeVersion s))
         | Error(ProcessStartError.ExecutableFileNotFound _)
         | Error(ProcessStartError.UnExpectedException _) -> None)
 
@@ -232,29 +276,101 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
 
     match startProcess processStart with
     | Ok daemonProcess ->
+        // Standard error is redirected, so something has to read it. Left alone it fills the pipe
+        // the operating system gives the two processes, 4KB by default on Windows, and the daemon
+        // then blocks inside whatever it was doing when it wrote the line that did not fit. Keep
+        // the last of it for the failure message below and throw the rest away.
+        let recentStandardError = Queue<string>()
+
+        daemonProcess.ErrorDataReceived.Add(fun message ->
+            if not (isNull message.Data) then
+                lock recentStandardError (fun () ->
+                    recentStandardError.Enqueue message.Data
+
+                    while recentStandardError.Count > 50 do
+                        recentStandardError.Dequeue() |> ignore))
+
+        daemonProcess.BeginErrorReadLine()
+
         let client =
             new JsonRpc(daemonProcess.StandardInput.BaseStream, daemonProcess.StandardOutput.BaseStream)
+
+        let configurationWarnings = Event<ConfigurationWarning>()
+
+        // Has to happen before StartListening, for two reasons: StreamJsonRpc refuses to add local
+        // methods once the connection is listening, and a subscriber added before the daemon can
+        // send anything is a subscriber that cannot be raced by the first notification. A daemon
+        // that never sends these simply never triggers it.
+        client.AddLocalRpcMethod(
+            Methods.ConfigurationWarning,
+            Action<ConfigurationWarning>(fun warning ->
+                try
+                    configurationWarnings.Trigger warning
+                with _ ->
+                    // A subscriber that throws must not take the connection down with it. An
+                    // exception out of a synchronous local method is not turned into an error
+                    // response: it escapes the dispatcher and disconnects the client, which would
+                    // fault every format request from then on over a message that only carries
+                    // advice.
+                    ())
+        )
 
         do client.StartListening()
 
         try
-            // Get the version first as a sanity check that connection is possible
+            // Get the version first as a sanity check that connection is possible.
+            //
+            // Bounded, because this is what every caller waits behind: `LSPFantomasService` resolves
+            // daemons on one mailbox, so a process that starts and then never answers would hold up
+            // every format request for the rest of the session with nothing to show for it. Generous
+            // enough that a cold start on a loaded machine is not mistaken for a hang; a daemon that
+            // is still silent by then is one the cleanup below should get its hands on.
             let _version =
                 client.InvokeAsync<string>(Fantomas.Client.Contracts.Methods.Version)
                 |> Async.AwaitTask
-                |> Async.RunSynchronously
+                |> fun handshake -> Async.RunSynchronously(handshake, timeout = handshakeTimeoutInMs)
 
             Ok
                 { RpcClient = client
                   Process = daemonProcess
-                  StartInfo = startInfo }
+                  StartInfo = startInfo
+                  ConfigurationWarnings = configurationWarnings.Publish }
         with ex ->
             let error =
-                if daemonProcess.HasExited then
-                    let stdErr = daemonProcess.StandardError.ReadToEnd()
+                // A timeout says nothing about what was being waited for, so say it here. The next
+                // field report should carry a number someone can argue about rather than "it said
+                // something timed out".
+                if (ex :? TimeoutException) then
+                    $"Daemon did not answer the version request within %i{handshakeTimeoutInMs} ms."
+                elif daemonProcess.HasExited then
+                    // `HasExited` only says the process is gone; the handler above is fed
+                    // asynchronously and can still be behind. `WaitForExit` with no timeout is the
+                    // one overload that waits for the readers to drain too, so without it the
+                    // message here would be missing the lines that explain the failure.
+                    daemonProcess.WaitForExit()
+
+                    let stdErr =
+                        lock recentStandardError (fun () -> String.Join(Environment.NewLine, recentStandardError))
+
                     $"Daemon std error: %s{stdErr}.\nJsonRpc exception:%s{ex.Message}"
                 else
                     ex.Message
+
+            // The handshake failed, so nothing will ever hand this daemon out and nothing will
+            // ever dispose it. Kill it here rather than leave the process running for the rest of
+            // the session with no way to reach it.
+            try
+                client.Dispose()
+            with _ ->
+                ()
+
+            try
+                if not daemonProcess.HasExited then
+                    daemonProcess.Kill()
+
+                daemonProcess.Dispose()
+            with _ ->
+                ()
 
             Error(ProcessStartError.UnExpectedException(processStart.FileName, processStart.Arguments, error))
     | Error err -> Error err

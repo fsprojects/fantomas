@@ -7,6 +7,10 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
   <ItemGroup>
+    <!-- The daemon cache in LSPFantomasService is internal, and its tests live next door. -->
+    <InternalsVisibleTo Include="Fantomas.Client.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="CHANGELOG.md" />
     <Compile Include="Contracts.fsi" />
     <Compile Include="Contracts.fs" />

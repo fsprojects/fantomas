@@ -10,12 +10,12 @@ open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Client.FantomasToolLocator
 
-[<NoComparison>]
-type ServiceState =
-    { Daemons: Map<FantomasVersion, RunningFantomasTool>
+[<NoComparison; NoEquality>]
+type ServiceState<'daemon> =
+    { Daemons: Map<FantomasVersion, 'daemon>
       FolderToVersion: Map<Folder, FantomasVersion> }
 
-    static member Empty: ServiceState =
+    static member Empty: ServiceState<'daemon> =
         { Daemons = Map.empty
           FolderToVersion = Map.empty }
 
@@ -24,91 +24,147 @@ type GetDaemonError =
     | DotNetToolListError of error: DotNetToolListError
     | FantomasProcessStart of error: ProcessStartError
     | InCompatibleVersionFound
-    | CompatibleVersionIsKnownButNoDaemonIsRunning of version: FantomasVersion
 
 [<NoComparison>]
 type Msg =
     | GetDaemon of folder: Folder * replyChannel: AsyncReplyChannel<Result<JsonRpc, GetDaemonError>>
     | Reset of AsyncReplyChannel<unit>
 
-let private createAgent (ct: CancellationToken) =
+type IDaemon =
+    inherit IDisposable
+    abstract StartInfo: FantomasToolStartInfo
+    abstract IsRunning: bool
+
+[<NoComparison; NoEquality>]
+type DaemonOperations<'daemon when 'daemon :> IDaemon> =
+    { FindTool: Folder -> Result<FantomasToolFound, FantomasToolError>
+      Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError> }
+
+/// Forget a version, and with it every folder that resolved to it. Leaving those folders behind
+/// would pin them to a version with no daemon, which is the one state `resolveDaemon` cannot get
+/// out of: it answers `CompatibleVersionIsKnownButNoDaemonIsRunning` and changes nothing, so the
+/// next request answers the same way, for the rest of the session. Dropping them lets the next
+/// request resolve the tool from scratch.
+let forgetVersion (version: FantomasVersion) (state: ServiceState<'daemon>) : ServiceState<'daemon> =
+    { Daemons = Map.remove version state.Daemons
+      FolderToVersion = state.FolderToVersion |> Map.filter (fun _ known -> known <> version) }
+
+let startDaemon
+    (operations: DaemonOperations<'daemon>)
+    (version: FantomasVersion)
+    (startInfo: FantomasToolStartInfo)
+    (folder: Folder)
+    (state: ServiceState<'daemon>)
+    : Result<'daemon, GetDaemonError> * ServiceState<'daemon> =
+    match operations.Create startInfo with
+    | Error error -> Error(GetDaemonError.FantomasProcessStart error), forgetVersion version state
+    | Ok daemon ->
+        Ok daemon,
+        { Daemons = Map.add version daemon state.Daemons
+          FolderToVersion = Map.add folder version state.FolderToVersion }
+
+let rec resolveDaemon
+    (operations: DaemonOperations<'daemon>)
+    (state: ServiceState<'daemon>)
+    (folder: Folder)
+    : Result<'daemon, GetDaemonError> * ServiceState<'daemon> =
+    match Map.tryFind folder state.FolderToVersion with
+    | Some version ->
+        match Map.tryFind version state.Daemons with
+        | Some daemon when (daemon :> IDaemon).IsRunning ->
+            Ok daemon,
+            { state with
+                FolderToVersion = Map.add folder version state.FolderToVersion }
+        | Some daemon ->
+            // A weird situation where the process has crashed. Dispose what is left of it so the
+            // handles it still holds are released, then reboot it the way it was started.
+            let startInfo = (daemon :> IDaemon).StartInfo
+            (daemon :> IDaemon).Dispose()
+            startDaemon operations version startInfo folder state
+        | None ->
+            // A folder pinned to a version with no daemon behind it. Nothing here produces that
+            // any more, because every path that drops a version forgets the folders pinned to it,
+            // but it used to be answered with an error that changed nothing, so the folder gave
+            // the same answer for the rest of the session. Forget the version and resolve the tool
+            // from scratch: a cache that has lost track of a daemon should cost a lookup, not the
+            // ability to format.
+            resolveDaemon operations (forgetVersion version state) folder
+    | None ->
+        match operations.FindTool folder with
+        | Ok(FantomasToolFound(version, startInfo)) ->
+            // Daemons are keyed by version, not by folder. Two folders that pin the same Fantomas
+            // share one, so a running daemon for this version has to be reused: starting a second
+            // would overwrite the first in the map and leave its process running with nothing left
+            // to dispose it.
+            //
+            // The reused daemon keeps the StartInfo it was created with, so a restart after a crash
+            // resolves the tool the way the first folder did rather than the way this one just did.
+            match Map.tryFind version state.Daemons with
+            | Some daemon when (daemon :> IDaemon).IsRunning ->
+                Ok daemon,
+                { state with
+                    FolderToVersion = Map.add folder version state.FolderToVersion }
+            | running ->
+                // A daemon that crashed is replaced, but dispose it first so the handles it still
+                // holds are released. The replacement is started the way the dead one was, not the
+                // way this folder resolves now, so that a daemon two folders share does not change
+                // working directory depending on which of them happened to notice it had died.
+                let startInfo =
+                    match running with
+                    | None -> startInfo
+                    | Some daemon ->
+                        let asItWasStarted = (daemon :> IDaemon).StartInfo
+                        (daemon :> IDaemon).Dispose()
+                        asItWasStarted
+
+                startDaemon operations version startInfo folder state
+        | Error FantomasToolError.NoCompatibleVersionFound -> Error GetDaemonError.InCompatibleVersionFound, state
+        | Error(FantomasToolError.DotNetListError error) -> Error(GetDaemonError.DotNetToolListError error), state
+
+/// A `RunningFantomasTool` as the cache sees it. A wrapper rather than an implementation on the
+/// type itself, so that `IDaemon` stays inside this module: `RunningFantomasTool` is part of the
+/// package, and it has no business growing an interface that exists to describe a cache.
+type CachedDaemon(tool: RunningFantomasTool) =
+    member _.Tool: RunningFantomasTool = tool
+
+    interface IDaemon with
+        member _.StartInfo = tool.StartInfo
+
+        member _.IsRunning =
+            // Both halves matter. A process that is up but whose connection has ended can never
+            // answer again, and handing its `RpcClient` out means every request from then on fails
+            // against a daemon the cache still believes in.
+            not tool.Process.HasExited && not tool.RpcClient.Completion.IsCompleted
+
+        member _.Dispose() = (tool :> IDisposable).Dispose()
+
+let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWarning -> unit) : MailboxProcessor<Msg> =
+    let operations: DaemonOperations<CachedDaemon> =
+        { FindTool = findFantomasTool
+          Create =
+            fun startInfo ->
+                createFor startInfo
+                |> Result.map (fun daemon ->
+                    // Subscribed here rather than where the daemon is handed out, so that it happens
+                    // once per daemon however many folders end up sharing it.
+                    daemon.ConfigurationWarnings.Add onConfigurationWarning
+                    new CachedDaemon(daemon)) }
+
     MailboxProcessor.Start(
         (fun inbox ->
-            let rec messageLoop (state: ServiceState) =
+            let rec messageLoop (state: ServiceState<CachedDaemon>) =
                 async {
                     let! msg = inbox.Receive()
 
                     let nextState =
                         match msg with
                         | GetDaemon(folder, replyChannel) ->
-                            // get the version for that folder
-                            // look in the cache first
-                            let versionFromCache = Map.tryFind folder state.FolderToVersion
-
-                            match versionFromCache with
-                            | Some version ->
-                                let daemon = Map.tryFind version state.Daemons
-
-                                match daemon with
-                                | Some daemon ->
-                                    // We have a daemon for the required version in the cache, check if we can still use it.
-                                    if daemon.Process.HasExited then
-                                        // weird situation where the process has crashed.
-                                        // Trying to reboot
-                                        (daemon :> IDisposable).Dispose()
-
-                                        let newDaemonResult = createFor daemon.StartInfo
-
-                                        match newDaemonResult with
-                                        | Ok newDaemon ->
-                                            replyChannel.Reply(Ok newDaemon.RpcClient)
-
-                                            { FolderToVersion = Map.add folder version state.FolderToVersion
-                                              Daemons = Map.add version newDaemon state.Daemons }
-                                        | Error pse ->
-                                            replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
-                                            state
-                                    else
-                                        // return running client
-                                        replyChannel.Reply(Ok daemon.RpcClient)
-
-                                        { state with
-                                            FolderToVersion = Map.add folder version state.FolderToVersion }
-                                | None ->
-                                    // This is a strange situation, we know what version is linked to that folder but there is no daemon
-                                    // The moment a version is added, is also the moment a daemon is re-used or created
-                                    replyChannel.Reply(
-                                        Error(GetDaemonError.CompatibleVersionIsKnownButNoDaemonIsRunning version)
-                                    )
-
-                                    state
-                            | None ->
-                                // Try and find a version of fantomas daemon for our current folder
-                                let fantomasToolResult: Result<FantomasToolFound, FantomasToolError> =
-                                    findFantomasTool folder
-
-                                match fantomasToolResult with
-                                | Ok(FantomasToolFound(version, startInfo)) ->
-                                    let createDaemonResult = createFor startInfo
-
-                                    match createDaemonResult with
-                                    | Ok daemon ->
-                                        replyChannel.Reply(Ok daemon.RpcClient)
-
-                                        { Daemons = Map.add version daemon state.Daemons
-                                          FolderToVersion = Map.add folder version state.FolderToVersion }
-                                    | Error pse ->
-                                        replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
-                                        state
-                                | Error FantomasToolError.NoCompatibleVersionFound ->
-                                    replyChannel.Reply(Error GetDaemonError.InCompatibleVersionFound)
-                                    state
-                                | Error(FantomasToolError.DotNetListError dotNetToolListError) ->
-                                    replyChannel.Reply(Error(GetDaemonError.DotNetToolListError dotNetToolListError))
-                                    state
+                            let daemon, nextState = resolveDaemon operations state folder
+                            replyChannel.Reply(Result.map (fun (daemon: CachedDaemon) -> daemon.Tool.RpcClient) daemon)
+                            nextState
                         | Reset replyChannel ->
                             Map.toList state.Daemons
-                            |> List.iter (fun (_, daemon) -> (daemon :> IDisposable).Dispose())
+                            |> List.iter (fun (_, daemon) -> (daemon :> IDaemon).Dispose())
 
                             replyChannel.Reply()
                             ServiceState.Empty
@@ -143,13 +199,13 @@ let isPathAbsolute (path: string) : bool =
         else
             pathRoot.Trim('\\').IndexOf('\\') <> -1 // A UNC server name without a share name (e.g "\\NAME" or "\\NAME\") is invalid
 
-let private isCancellationRequested (requested: bool) : Result<unit, FantomasServiceError> =
+let isCancellationRequested (requested: bool) : Result<unit, FantomasServiceError> =
     if requested then
         Error FantomasServiceError.CancellationWasRequested
     else
         Ok()
 
-let private getFolderFor (filePath: string) () : Result<Folder, FantomasServiceError> =
+let getFolderFor (filePath: string) () : Result<Folder, FantomasServiceError> =
     if not (isPathAbsolute filePath) then
         Error FantomasServiceError.FilePathIsNotAbsolute
     elif not (File.Exists filePath) then
@@ -157,14 +213,14 @@ let private getFolderFor (filePath: string) () : Result<Folder, FantomasServiceE
     else
         Path.GetDirectoryName filePath |> Folder |> Ok
 
-let private getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<JsonRpc, FantomasServiceError> =
+let getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<JsonRpc, FantomasServiceError> =
     let daemon = agent.PostAndReply(fun replyChannel -> GetDaemon(folder, replyChannel))
 
     match daemon with
     | Ok daemon -> Ok daemon
     | Error gde -> Error(FantomasServiceError.DaemonNotFound gde)
 
-let private fileNotFoundResponse filePath : Task<FantomasResponse> =
+let fileNotFoundResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.FileNotFound
       FilePath = filePath
       Content = Some $"File \"%s{filePath}\" does not exist."
@@ -172,7 +228,7 @@ let private fileNotFoundResponse filePath : Task<FantomasResponse> =
       Cursor = None }
     |> Task.FromResult
 
-let private fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
+let fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.FilePathIsNotAbsolute
       FilePath = filePath
       Content = Some $"\"%s{filePath}\" is not an absolute file path. Relative paths are not supported."
@@ -180,7 +236,7 @@ let private fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
       Cursor = None }
     |> Task.FromResult
 
-let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasResponse> =
+let daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasResponse> =
     let content, code =
         match error with
         | GetDaemonError.DotNetToolListError(DotNetToolListError.ProcessStartError(ProcessStartError.ExecutableFileNotFound(executableFile,
@@ -210,9 +266,6 @@ let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<Fanto
         | GetDaemonError.InCompatibleVersionFound ->
             "Fantomas.Client did not found a compatible dotnet tool version to launch as daemon process",
             FantomasResponseCode.ToolNotFound
-        | GetDaemonError.CompatibleVersionIsKnownButNoDaemonIsRunning(FantomasVersion version) ->
-            $"Fantomas.Client found a compatible version `%s{version}` but no daemon could be launched.",
-            FantomasResponseCode.DaemonCreationFailed
 
     { Code = int code
       FilePath = filePath
@@ -221,7 +274,7 @@ let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<Fanto
       Cursor = None }
     |> Task.FromResult
 
-let private cancellationWasRequestedResponse filePath : Task<FantomasResponse> =
+let cancellationWasRequestedResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.CancellationWasRequested
       FilePath = filePath
       Content = Some "FantomasService is being or has been disposed."
@@ -335,7 +388,8 @@ let decodeFormatResult (inputFilePath: string) (json: JObject) : FantomasRespons
 
 type LSPFantomasService() =
     let cts = new CancellationTokenSource()
-    let agent = createAgent cts.Token
+    let configurationWarnings = Event<ConfigurationWarning>()
+    let agent = createAgent cts.Token configurationWarnings.Trigger
 
     interface FantomasService with
         member this.Dispose() =
@@ -411,5 +465,7 @@ type LSPFantomasService() =
                           SelectedRange = None
                           Cursor = None }))
             |> mapResultToResponse filePath
+
+        member _.ConfigurationWarnings = configurationWarnings.Publish
 
         member _.ClearCache() = agent.PostAndReply Reset

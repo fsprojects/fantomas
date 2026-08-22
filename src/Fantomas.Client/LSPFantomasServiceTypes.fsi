@@ -46,9 +46,17 @@ type FantomasToolStartInfo =
 
 [<NoComparison>]
 type RunningFantomasTool =
-    { Process: System.Diagnostics.Process
-      RpcClient: StreamJsonRpc.JsonRpc
-      StartInfo: FantomasToolStartInfo }
+    {
+        Process: System.Diagnostics.Process
+        RpcClient: StreamJsonRpc.JsonRpc
+        StartInfo: FantomasToolStartInfo
+
+        /// Raised when this daemon reports settings it could not act on, on whichever thread its
+        /// message arrived on. Subscribed to by `createFor` before the connection starts
+        /// listening, so no notification can outrun a subscriber added there. A daemon older than
+        /// Fantomas 8 does not send these, so the event simply never fires.
+        ConfigurationWarnings: IEvent<ConfigurationWarning>
+    }
 
     interface System.IDisposable
 
