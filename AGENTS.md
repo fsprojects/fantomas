@@ -75,3 +75,11 @@ dotnet fsi build.fsx -- -p Analyze
 
 Output goes to `analysis.sarif` in the repo root. This is safe to run whenever you need it; it no
 longer saturates the machine.
+
+**Read `analysis.sarif` afterwards.** The pipeline writes its findings there and exits 0 whatever
+it found, so a run finishing tells you nothing. GitHub raises the same findings as code scanning
+alerts on the pull request, which is a slower way to learn about them.
+
+When you read it, read the results for every project you touched. Filtering the paths down to
+`src/Fantomas/` looks right and silently drops `src/Fantomas.Tests/`, which does not contain that
+substring. Match on `src/` and look at what comes back.
