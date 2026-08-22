@@ -1,6 +1,7 @@
 module Fantomas.Tests.Integration.DaemonTests
 
 open System
+open System.Threading.Tasks
 open Fantomas
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Daemon
@@ -581,6 +582,70 @@ let ``a configuration that cannot be read at all is an error, and clears the war
         |> Async.RunSynchronously
 
     (theOnlyWarning warnings).Problems |> should be Empty
+
+/// A `ReadConfiguration` that holds each caller inside it long enough to overlap with another, and
+/// remembers how many were ever inside at once.
+let private countingOverlaps () =
+    let inFlight = ref 0
+    let peak = ref 0
+
+    let readConfiguration (_: string) : EditorConfig.EditorConfigResult option =
+        let now = System.Threading.Interlocked.Increment inFlight
+
+        let rec recordPeak () =
+            let seen = peak.Value
+
+            if now > seen then
+                if System.Threading.Interlocked.CompareExchange(peak, now, seen) <> seen then
+                    recordPeak ()
+
+        recordPeak ()
+        System.Threading.Thread.Sleep 100
+        System.Threading.Interlocked.Decrement inFlight |> ignore
+        None
+
+    readConfiguration, (fun () -> peak.Value)
+
+/// Send two format requests without waiting for the first, and report how many of them were ever
+/// inside `ReadConfiguration` at the same time.
+let private overlapOf (firstFile: string) (secondFile: string) : int =
+    let readConfiguration, peak = countingOverlaps ()
+
+    let environment =
+        daemonEnvironment (new System.IO.Abstractions.FileSystem()) readConfiguration
+
+    let struct (serverStream, clientStream) = FullDuplexStream.CreatePair()
+    let daemon = new FantomasDaemon(serverStream, serverStream, environment)
+    let client = new JsonRpc(clientStream, clientStream)
+    client.StartListening()
+
+    try
+        let send (file: string) =
+            client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, documentRequest file None)
+
+        // Started together, awaited afterwards, so both are in flight at once.
+        let first = send firstFile
+        let second = send secondFile
+        Task.WaitAll(first :> Task, second :> Task)
+        peak ()
+    finally
+        client.Dispose()
+        (daemon :> IDisposable).Dispose()
+
+// A configuration warning carries a file path and nothing that says which request it belongs to, so
+// two requests in flight for one file could deliver theirs in either order and a client had no way
+// to tell. The daemon serves one request at a time per file instead.
+[<Test>]
+let ``two requests for the same file do not overlap`` () =
+    use codeFile = new TemporaryFileCodeSample(sourceCode)
+    overlapOf codeFile.Filename codeFile.Filename |> should equal 1
+
+// Only the same file waits. Formatting a repository is the whole point of having several in flight.
+[<Test>]
+let ``two requests for different files still run at the same time`` () =
+    use firstFile = new TemporaryFileCodeSample(sourceCode)
+    use secondFile = new TemporaryFileCodeSample(sourceCode)
+    overlapOf firstFile.Filename secondFile.Filename |> should equal 2
 
 [<Test>]
 let ``format selection reports configuration warnings too`` () =

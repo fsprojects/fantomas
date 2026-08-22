@@ -90,6 +90,10 @@ Worth knowing:
 - The event is raised for **every** format request, and before that request answers, with an
   empty `Problems` array when the configuration is fine. That is what lets you clear a warning
   once the user fixes it.
+- You can have as many format requests in flight as you like. Warnings for one file arrive in the
+  order you asked for them, because the daemon serves one request at a time per file, so an empty
+  one never overtakes problems that are still current. Requests for different files are served
+  concurrently and their warnings interleave; `FilePath` is what tells them apart.
 - `EditorConfigFiles` holds the absolute paths of the `.editorconfig` files that contributed. Which
   one a given problem came from is not knowable, because editorconfig merges the whole chain into a
   single set of properties before Fantomas sees it. There is no line number either, so name the

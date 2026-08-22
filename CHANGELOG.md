@@ -24,6 +24,7 @@
 
 ### Fixed
 
+- The daemon held its JSON-RPC message loop while reading an `.editorconfig`, so a request that arrived during it was not read until that finished. It hands the loop back first now, and serves one request at a time per file so that the configuration warnings for a file still arrive in the order the requests did. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
 - A value that meant something to one setting decided the outcome for every other setting, because each value was tried against every parser in turn. `fsharp_max_record_width = cr` failed the whole run with `Carriage returns are not valid for F# code`; it is now reported as a value that setting does not accept. A value is only read as the type its own setting has. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
 - `--verbosity` with an unrecognised value exited with code 1 and printed nothing, because the message was logged before the logger was configured. It now reports `Invalid verbosity level` on standard error. [#3399](https://github.com/fsprojects/fantomas/pull/3399)
 - `--out <folder>` flattened the input tree: every file landed directly in the output folder, so two files with the same name in different subfolders silently overwrote each other. The output folder now mirrors the structure of the input folder, as the documentation already promised. [#3403](https://github.com/fsprojects/fantomas/pull/3403)

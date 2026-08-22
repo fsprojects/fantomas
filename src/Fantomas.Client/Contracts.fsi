@@ -173,6 +173,14 @@ type FantomasService =
     /// subscriber that touches a UI has to marshal, and one that throws is swallowed rather than
     /// allowed to fault the connection.
     ///
+    /// Warnings for one file arrive in the order the requests for it were made, however many of
+    /// them you have in flight: the daemon serves one request at a time per file. That is what
+    /// makes the clearing rule sound, so an empty one never overtakes problems that are still
+    /// current.
+    ///
+    /// Requests for different files are served concurrently and their warnings interleave freely.
+    /// `FilePath` is what tells them apart.
+    ///
     /// Only Fantomas 8 daemons send these; an older one never raises it, so no version check is
     /// needed.
     abstract ConfigurationWarnings: IEvent<ConfigurationWarning>

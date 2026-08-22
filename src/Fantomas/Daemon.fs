@@ -1,6 +1,7 @@
 ﻿module Fantomas.Daemon
 
 open System
+open System.Collections.Concurrent
 open System.Collections.Generic
 open System.Diagnostics
 open System.IO
@@ -140,6 +141,39 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                 return onError message
         }
 
+    /// One request at a time per file.
+    ///
+    /// Requests are dispatched concurrently, and two in flight for the same file used to interleave:
+    /// their configuration warnings could arrive in either order, so an empty one could clear
+    /// problems that were still current, and there is no request identity on the wire for a client
+    /// to sort them out with. Their results raced each other too, so which one the caller ended up
+    /// with was down to timing.
+    ///
+    /// Only requests for the same file wait on each other. Formatting a repository, which is what a
+    /// caller with many requests in flight is usually doing, is untouched.
+    ///
+    /// A gate per file, kept for the life of the daemon. Bounded by the number of distinct files one
+    /// session formats, and a `SemaphoreSlim` nobody is waiting on costs very little.
+    let fileGates = ConcurrentDictionary<string, SemaphoreSlim>()
+
+    let oneAtATimePerFile (filePath: string) (work: unit -> Task<'response>) : Task<'response> =
+        task {
+            // Hand the message loop back before doing any of the work. Reading an `.editorconfig`
+            // is disk work and it happens before this request's first await, so without this the
+            // loop is held for the length of it and the next request is not even read yet. That
+            // made requests look serialised when they are not, which is a poor thing to leave the
+            // ordering of these notifications resting on.
+            do! Task.Yield()
+
+            let gate = fileGates.GetOrAdd(filePath, (fun _ -> new SemaphoreSlim(1, 1)))
+            do! gate.WaitAsync()
+
+            try
+                return! work ()
+            finally
+                gate.Release() |> ignore<int>
+        }
+
     let disconnectEvent = new ManualResetEvent(false)
 
     let exit () = disconnectEvent.Set() |> ignore
@@ -153,6 +187,9 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
             traceListener.Dispose()
             disconnectEvent.Dispose()
 
+            for gate in fileGates.Values do
+                gate.Dispose()
+
     member this.WaitForClose = rpc.Completion
 
     [<JsonRpcMethod(Methods.Version)>]
@@ -160,95 +197,101 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
 
     [<JsonRpcMethod(Methods.FormatDocument, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatDocumentAsync(request: FormatDocumentRequest) : Task<FormatDocumentResponse> =
-        task {
-            if
-                IgnoreFile.isIgnoredFile
-                    environment.Log
-                    (IgnoreFile.find fs (IgnoreFile.loadIgnoreList fs) request.FilePath)
-                    request.FilePath
-            then
-                // Still reported, with nothing in it, so a client can clear what an earlier request
-                // showed for this file rather than leaving a stale warning behind.
-                do! notifyConfigurationWarning (noConfigurationProblems request.FilePath)
-
-                return FormatDocumentResponse.IgnoredFile request.FilePath
-            else
-                let cursor =
-                    request.Cursor
-                    |> Option.map (fun cursor -> CodeFormatter.MakePosition(cursor.Line, cursor.Column))
-
-                return!
-                    withConfiguration
+        oneAtATimePerFile request.FilePath (fun () ->
+            task {
+                if
+                    IgnoreFile.isIgnoredFile
+                        environment.Log
+                        (IgnoreFile.find fs (IgnoreFile.loadIgnoreList fs) request.FilePath)
                         request.FilePath
-                        request.SourceCode
-                        request.Config
-                        (fun config ->
-                            task {
-                                let! formatResponse =
-                                    match cursor with
-                                    | None ->
-                                        CodeFormatter.FormatDocumentAsync(
-                                            request.IsSignatureFile,
-                                            request.SourceCode,
-                                            config
-                                        )
-                                    | Some cursor ->
-                                        CodeFormatter.FormatDocumentAsync(
-                                            request.IsSignatureFile,
-                                            request.SourceCode,
-                                            config,
-                                            cursor
-                                        )
+                then
+                    // Still reported, with nothing in it, so a client can clear what an earlier request
+                    // showed for this file rather than leaving a stale warning behind.
+                    do! notifyConfigurationWarning (noConfigurationProblems request.FilePath)
 
-                                if formatResponse.Code = request.SourceCode then
-                                    return FormatDocumentResponse.Unchanged request.FilePath
-                                else
-                                    let cursor =
-                                        formatResponse.Cursor
-                                        |> Option.map (fun cursorPos ->
-                                            FormatCursorPosition(cursorPos.Line, cursorPos.Column))
+                    return FormatDocumentResponse.IgnoredFile request.FilePath
+                else
+                    let cursor =
+                        request.Cursor
+                        |> Option.map (fun cursor -> CodeFormatter.MakePosition(cursor.Line, cursor.Column))
 
-                                    return
-                                        FormatDocumentResponse.Formatted(request.FilePath, formatResponse.Code, cursor)
-                            })
-                        (fun message -> FormatDocumentResponse.Error(request.FilePath, message))
-        }
+                    return!
+                        withConfiguration
+                            request.FilePath
+                            request.SourceCode
+                            request.Config
+                            (fun config ->
+                                task {
+                                    let! formatResponse =
+                                        match cursor with
+                                        | None ->
+                                            CodeFormatter.FormatDocumentAsync(
+                                                request.IsSignatureFile,
+                                                request.SourceCode,
+                                                config
+                                            )
+                                        | Some cursor ->
+                                            CodeFormatter.FormatDocumentAsync(
+                                                request.IsSignatureFile,
+                                                request.SourceCode,
+                                                config,
+                                                cursor
+                                            )
+
+                                    if formatResponse.Code = request.SourceCode then
+                                        return FormatDocumentResponse.Unchanged request.FilePath
+                                    else
+                                        let cursor =
+                                            formatResponse.Cursor
+                                            |> Option.map (fun cursorPos ->
+                                                FormatCursorPosition(cursorPos.Line, cursorPos.Column))
+
+                                        return
+                                            FormatDocumentResponse.Formatted(
+                                                request.FilePath,
+                                                formatResponse.Code,
+                                                cursor
+                                            )
+                                })
+                            (fun message -> FormatDocumentResponse.Error(request.FilePath, message))
+            })
 
     [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
-        let selection =
-            let r = request.Range
+        oneAtATimePerFile request.FilePath (fun () ->
+            let selection =
+                let r = request.Range
 
-            Range.mkRange
+                Range.mkRange
+                    request.FilePath
+                    (Position.mkPos r.StartLine r.StartColumn)
+                    (Position.mkPos r.EndLine r.EndColumn)
+
+            withConfiguration
                 request.FilePath
-                (Position.mkPos r.StartLine r.StartColumn)
-                (Position.mkPos r.EndLine r.EndColumn)
+                request.SourceCode
+                request.Config
+                (fun config ->
+                    task {
+                        let! formatted, actualSelection =
+                            CodeFormatter.FormatSelectionAsync(
+                                request.IsSignatureFile,
+                                request.SourceCode,
+                                selection,
+                                config
+                            )
 
-        withConfiguration
-            request.FilePath
-            request.SourceCode
-            request.Config
-            (fun config ->
-                task {
-                    let! formatted, actualSelection =
-                        CodeFormatter.FormatSelectionAsync(
-                            request.IsSignatureFile,
-                            request.SourceCode,
-                            selection,
-                            config
-                        )
+                        let actualSelection =
+                            FormatSelectionRange(
+                                actualSelection.StartLine,
+                                actualSelection.StartColumn,
+                                actualSelection.EndLine,
+                                actualSelection.EndColumn
+                            )
 
-                    let actualSelection =
-                        FormatSelectionRange(
-                            actualSelection.StartLine,
-                            actualSelection.StartColumn,
-                            actualSelection.EndLine,
-                            actualSelection.EndColumn
-                        )
-
-                    return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
-                })
-            (fun message -> FormatSelectionResponse.Error(request.FilePath, message))
+                        return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
+                    })
+                (fun message -> FormatSelectionResponse.Error(request.FilePath, message)))
 
     [<JsonRpcMethod(Methods.Configuration)>]
     member _.Configuration() : string =
