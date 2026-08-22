@@ -48,7 +48,7 @@ let private findsVersion (version: FantomasVersion) (folder: Folder) =
 
 let private startsFine (nextId: int ref) (startInfo: FantomasToolStartInfo) =
     nextId.Value <- nextId.Value + 1
-    Ok(FakeDaemon(nextId.Value, startInfo))
+    Ok(new FakeDaemon(nextId.Value, startInfo))
 
 let private neverStarts (_: FantomasToolStartInfo) =
     Error(ProcessStartError.UnExpectedException("dotnet", "fantomas --daemon", "boom"))
@@ -202,6 +202,24 @@ let ``forgetting one version leaves the folders on another version alone`` () =
     let remaining: (Folder * FantomasVersion) list = Map.toList state.FolderToVersion
     Assert.That(remaining, Is.EqualTo<(Folder * FantomasVersion) list> [ nested, otherVersion ])
     Assert.That(state.Daemons |> Map.find otherVersion, Is.SameAs survivor)
+
+// resolveDaemon never produces this state, but it is constructible, and it used to be a dead end:
+// the folder was answered "a compatible version is known but no daemon is running", the cache was
+// left exactly as it was, and so the next request answered the same, for the rest of the session.
+[<Test>]
+let ``a cache that lost track of a daemon resolves the tool again rather than giving up`` () =
+    let recorder = Recorder()
+    let operations = operationsFor recorder (findsVersion version) (startsFine (ref 0))
+
+    let lostTrack =
+        { Daemons = Map.empty
+          FolderToVersion = Map.ofList [ folder, version ] }
+
+    let recovered, state = resolveDaemon operations lostTrack folder
+
+    expectOk recovered |> ignore
+    Assert.That(Map.count state.Daemons, Is.EqualTo 1)
+    Assert.That(state.FolderToVersion |> Map.containsKey folder, Is.True)
 
 [<Test>]
 let ``no compatible version is reported without touching the cache`` () =

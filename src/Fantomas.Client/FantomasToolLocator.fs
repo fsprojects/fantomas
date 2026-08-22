@@ -147,6 +147,10 @@ let normalizeVersion (printed: string) : string =
     | -1 -> printed
     | index -> printed.Substring(0, index)
 
+/// How long a freshly started daemon has to answer the version handshake before it is given up on.
+[<Literal>]
+let handshakeTimeoutInMs = 30_000
+
 // Find an executable fantomas file on the PATH
 let fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option =
     let fantomasExecutableOnPathOpt =
@@ -183,9 +187,9 @@ let fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option
         match startProcess processStart with
         | Ok p ->
             // Standard error is redirected, so something has to read it, or a version that wrote
-            // more to it than the pipe holds would block on the write and never exit. Nothing here
-            // wants what it says.
-            p.ErrorDataReceived.Add(ignore)
+            // more to it than the pipe holds would block on the write and never exit. This drains
+            // it with no subscriber attached, which is all that is wanted: nothing here reads what
+            // it says.
             p.BeginErrorReadLine()
 
             let stdOut = p.StandardOutput.ReadToEnd()
@@ -299,11 +303,17 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
         do client.StartListening()
 
         try
-            // Get the version first as a sanity check that connection is possible
+            // Get the version first as a sanity check that connection is possible.
+            //
+            // Bounded, because this is what every caller waits behind: `LSPFantomasService` resolves
+            // daemons on one mailbox, so a process that starts and then never answers would hold up
+            // every format request for the rest of the session with nothing to show for it. Generous
+            // enough that a cold start on a loaded machine is not mistaken for a hang; a daemon that
+            // is still silent by then is one the cleanup below should get its hands on.
             let _version =
                 client.InvokeAsync<string>(Fantomas.Client.Contracts.Methods.Version)
                 |> Async.AwaitTask
-                |> Async.RunSynchronously
+                |> fun handshake -> Async.RunSynchronously(handshake, timeout = handshakeTimeoutInMs)
 
             Ok
                 { RpcClient = client

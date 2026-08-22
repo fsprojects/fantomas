@@ -141,7 +141,11 @@ let readConfiguration (report: EditorConfigReporter) (fsharpFile: string) : Form
     | Some result ->
         let origin =
             match result.EditorConfigFiles with
-            | [] -> fsharpFile
+            // The editorconfig library only reports settings it read from a file, so it should
+            // always name at least one. Keep a way through anyway, because that is its invariant
+            // and not ours, but do not name the F# file as the origin: nothing is wrong with it,
+            // and pointing at it sends someone looking in the wrong place.
+            | [] -> $"the .editorconfig that applies to %s{fsharpFile}"
             | files -> String.concat ", " files
 
         report origin result.Problems

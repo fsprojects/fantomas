@@ -13,12 +13,14 @@ This is the changelog for the Fantomas.Client package specifically. It's distinc
 - Bump `StreamJsonRpc` to `2.25.29`. [#3393](https://github.com/fsprojects/fantomas/pull/3393)
 - Breaking: no longer binary compatible with `0.11.0`. Several discriminated unions are structs now, which changes nothing about how they are written or matched, but an assembly compiled against `0.11.0` has to be rebuilt. [#3407](https://github.com/fsprojects/fantomas/pull/3407)
 - Breaking: `FantomasService` gained the `ConfigurationWarnings` member, and `RunningFantomasTool` gained a field. Source-breaking only for code that *implements* `FantomasService` or *constructs* `RunningFantomasTool`; calling either is unaffected, at source and at binary level. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
+- The `DaemonCreationFailed` response no longer reports "found a compatible version but no daemon could be launched". The cache state behind that message cannot arise now that a version is forgotten along with the folders pinned to it, and a cache handed that state resolves the tool again rather than reporting it. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
 
 ### Fixed
 - Opening a second folder that pins the same Fantomas version started a second daemon and dropped the first one from the cache without disposing it, leaving an orphaned process behind for the rest of the session. Daemons are keyed by version, so a running one for that version is now reused. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
 - A daemon that failed to start left every folder resolved to its version pinned to a version with no daemon behind it, which answered `CompatibleVersionIsKnownButNoDaemonIsRunning` for the rest of the session rather than trying again. Those folders are forgotten along with the version, so the next request resolves the tool from scratch. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
 - A Fantomas resolved from the `PATH` counted as a different version from the same Fantomas resolved from a `dotnet-tools.json`, and got a second daemon: `fantomas --version` prints `Fantomas v8.0.0+<commit>` where `dotnet tool list` prints `8.0.0`. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
 - When a daemon failed its handshake, the standard error quoted in the reported message was whatever had arrived by then rather than all of it, so the lines explaining the failure were usually missing. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
+- The version handshake with a freshly started daemon had no timeout. A process that started but never answered held up every later request, because daemons are resolved on a single mailbox. It is now given 30 seconds, after which it is killed like any other failed handshake. [#3401](https://github.com/fsprojects/fantomas/pull/3401)
 
 ## [0.11.0] - 2026-04-16
 

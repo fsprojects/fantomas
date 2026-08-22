@@ -24,7 +24,6 @@ type GetDaemonError =
     | DotNetToolListError of error: DotNetToolListError
     | FantomasProcessStart of error: ProcessStartError
     | InCompatibleVersionFound
-    | CompatibleVersionIsKnownButNoDaemonIsRunning of version: FantomasVersion
 
 [<NoComparison>]
 type Msg =
@@ -64,7 +63,7 @@ let startDaemon
           FolderToVersion = Map.add folder version state.FolderToVersion }
     | Error error -> Error(GetDaemonError.FantomasProcessStart error), forgetVersion version state
 
-let resolveDaemon
+let rec resolveDaemon
     (operations: DaemonOperations<'daemon>)
     (state: ServiceState<'daemon>)
     (folder: Folder)
@@ -83,10 +82,13 @@ let resolveDaemon
             (daemon :> IDaemon).Dispose()
             startDaemon operations version startInfo folder state
         | None ->
-            // This is a strange situation, we know what version is linked to that folder but there
-            // is no daemon. The moment a version is added is also the moment a daemon is re-used or
-            // created.
-            Error(GetDaemonError.CompatibleVersionIsKnownButNoDaemonIsRunning version), state
+            // A folder pinned to a version with no daemon behind it. Nothing here produces that
+            // any more, because every path that drops a version forgets the folders pinned to it,
+            // but it used to be answered with an error that changed nothing, so the folder gave
+            // the same answer for the rest of the session. Forget the version and resolve the tool
+            // from scratch: a cache that has lost track of a daemon should cost a lookup, not the
+            // ability to format.
+            resolveDaemon operations (forgetVersion version state) folder
     | None ->
         match operations.FindTool folder with
         | Ok(FantomasToolFound(version, startInfo)) ->
@@ -249,9 +251,6 @@ let daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasRespo
         | GetDaemonError.InCompatibleVersionFound ->
             "Fantomas.Client did not found a compatible dotnet tool version to launch as daemon process",
             FantomasResponseCode.ToolNotFound
-        | GetDaemonError.CompatibleVersionIsKnownButNoDaemonIsRunning(FantomasVersion version) ->
-            $"Fantomas.Client found a compatible version `%s{version}` but no daemon could be launched.",
-            FantomasResponseCode.DaemonCreationFailed
 
     { Code = int code
       FilePath = filePath

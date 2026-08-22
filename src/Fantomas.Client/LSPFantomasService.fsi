@@ -16,9 +16,6 @@ type internal GetDaemonError =
     | DotNetToolListError of error: DotNetToolListError
     | FantomasProcessStart of error: ProcessStartError
     | InCompatibleVersionFound
-    /// A folder resolved to a version with no daemon behind it. `resolveDaemon` never leaves the
-    /// cache in that state; reaching it means something else emptied `Daemons`.
-    | CompatibleVersionIsKnownButNoDaemonIsRunning of version: FantomasVersion
 
 /// What the cache needs of a daemon it is holding: enough to tell a live one from a crashed one,
 /// to start a replacement the way the original was started, and to let one go.
@@ -46,6 +43,9 @@ type internal DaemonOperations<'daemon when 'daemon :> IDaemon> =
 /// Hand out the daemon serving `folder`, starting one if no running daemon serves its version yet,
 /// along with the cache that leaves behind. Daemons are keyed by version rather than by folder, so
 /// two folders that pin the same Fantomas share one process.
+///
+/// Never leaves a folder pinned to a version with no daemon behind it, and recovers rather than
+/// erroring if it is ever handed a cache in that state.
 val internal resolveDaemon:
     operations: DaemonOperations<'daemon> ->
     state: ServiceState<'daemon> ->

@@ -96,6 +96,50 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                 ()
         }
 
+    /// Resolve the configuration for a request, report it to the client, and hand it to `format`.
+    ///
+    /// Owns the whole ordering contract in one place, for both format methods: the notification is
+    /// started before formatting, so the write is not on the way to a formatted document, and it is
+    /// awaited before returning, so a client never sees the answer to a request before the warning
+    /// that belongs to it. That has to hold on the way out through the error path too, which is why
+    /// the started task is awaited in the `with` as well as the happy path.
+    ///
+    /// Reading the configuration can raise rather than come back with a problem, `end_of_line = cr`
+    /// being the one that does. Then nothing has been sent, so an empty warning goes out instead,
+    /// rather than leaving the client showing what the previous request left it with.
+    let withConfiguration
+        (filePath: string)
+        (sourceCode: string)
+        (requestConfig: IReadOnlyDictionary<string, string> option)
+        (format: FormatConfig -> Task<'response>)
+        (onError: string -> 'response)
+        : Task<'response> =
+        task {
+            let mutable notified: Task = null
+
+            try
+                let config, warning =
+                    configurationFor environment.ReadConfiguration filePath requestConfig
+
+                notified <- notifyConfigurationWarning warning
+                let! response = format config
+                do! notified
+                return response
+            with ex ->
+                if isNull notified then
+                    do! notifyConfigurationWarning (noConfigurationProblems filePath)
+                else
+                    do! notified
+
+                // A ParseException's own Message is an %A dump of the diagnostic records, and it is
+                // the editor's user who would have been shown it.
+                let message =
+                    Diagnostics.describeParseFailure filePath (fun () -> sourceCode) ex
+                    |> Option.defaultValue ex.Message
+
+                return onError message
+        }
+
     let disconnectEvent = new ManualResetEvent(false)
 
     let exit () = disconnectEvent.Set() |> ignore
@@ -133,106 +177,78 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                     request.Cursor
                     |> Option.map (fun cursor -> CodeFormatter.MakePosition(cursor.Line, cursor.Column))
 
-                // Whether the warning that belongs to this request has gone out yet. Reading the
-                // configuration can raise rather than come back with a problem, `end_of_line = cr`
-                // being the one that does, and then nothing has been sent and the client is still
-                // showing whatever the previous request left it with.
-                let warningSent = ref false
+                return!
+                    withConfiguration
+                        request.FilePath
+                        request.SourceCode
+                        request.Config
+                        (fun config ->
+                            task {
+                                let! formatResponse =
+                                    match cursor with
+                                    | None ->
+                                        CodeFormatter.FormatDocumentAsync(
+                                            request.IsSignatureFile,
+                                            request.SourceCode,
+                                            config
+                                        )
+                                    | Some cursor ->
+                                        CodeFormatter.FormatDocumentAsync(
+                                            request.IsSignatureFile,
+                                            request.SourceCode,
+                                            config,
+                                            cursor
+                                        )
 
-                try
-                    // Reading the configuration belongs inside this: the client should hear about a
-                    // value that raises as an Error response like any other failure, not as a
-                    // remote invocation exception.
-                    let config, warning =
-                        configurationFor environment.ReadConfiguration request.FilePath request.Config
+                                if formatResponse.Code = request.SourceCode then
+                                    return FormatDocumentResponse.Unchanged request.FilePath
+                                else
+                                    let cursor =
+                                        formatResponse.Cursor
+                                        |> Option.map (fun cursorPos ->
+                                            FormatCursorPosition(cursorPos.Line, cursorPos.Column))
 
-                    // Started here rather than awaited here. The write is not on the way to a
-                    // formatted document, but it has to have finished before the response goes out,
-                    // so that a client never sees the answer to a request before the warning that
-                    // belongs to it.
-                    let notified = notifyConfigurationWarning warning
-                    warningSent.Value <- true
-
-                    let! formatResponse =
-                        match cursor with
-                        | None -> CodeFormatter.FormatDocumentAsync(request.IsSignatureFile, request.SourceCode, config)
-                        | Some cursor ->
-                            CodeFormatter.FormatDocumentAsync(
-                                request.IsSignatureFile,
-                                request.SourceCode,
-                                config,
-                                cursor
-                            )
-
-                    do! notified
-
-                    if formatResponse.Code = request.SourceCode then
-                        return FormatDocumentResponse.Unchanged request.FilePath
-                    else
-                        let cursor =
-                            formatResponse.Cursor
-                            |> Option.map (fun cursorPos -> FormatCursorPosition(cursorPos.Line, cursorPos.Column))
-
-                        return FormatDocumentResponse.Formatted(request.FilePath, formatResponse.Code, cursor)
-                with ex ->
-                    if not warningSent.Value then
-                        do! notifyConfigurationWarning (noConfigurationProblems request.FilePath)
-
-                    // A ParseException's own Message is an %A dump of the diagnostic records, and
-                    // it is the editor's user who would have been shown it.
-                    let message =
-                        Diagnostics.describeParseFailure request.FilePath (fun () -> request.SourceCode) ex
-                        |> Option.defaultValue ex.Message
-
-                    return FormatDocumentResponse.Error(request.FilePath, message)
+                                    return
+                                        FormatDocumentResponse.Formatted(request.FilePath, formatResponse.Code, cursor)
+                            })
+                        (fun message -> FormatDocumentResponse.Error(request.FilePath, message))
         }
 
     [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
-        task {
-            let selection =
-                let r = request.Range
+        let selection =
+            let r = request.Range
 
-                Range.mkRange
-                    request.FilePath
-                    (Position.mkPos r.StartLine r.StartColumn)
-                    (Position.mkPos r.EndLine r.EndColumn)
+            Range.mkRange
+                request.FilePath
+                (Position.mkPos r.StartLine r.StartColumn)
+                (Position.mkPos r.EndLine r.EndColumn)
 
-            let warningSent = ref false
+        withConfiguration
+            request.FilePath
+            request.SourceCode
+            request.Config
+            (fun config ->
+                task {
+                    let! formatted, actualSelection =
+                        CodeFormatter.FormatSelectionAsync(
+                            request.IsSignatureFile,
+                            request.SourceCode,
+                            selection,
+                            config
+                        )
 
-            try
-                // Inside the try for the same reason as FormatDocumentAsync: a configuration value
-                // that raises has to reach the client as an Error response.
-                let config, warning =
-                    configurationFor environment.ReadConfiguration request.FilePath request.Config
+                    let actualSelection =
+                        FormatSelectionRange(
+                            actualSelection.StartLine,
+                            actualSelection.StartColumn,
+                            actualSelection.EndLine,
+                            actualSelection.EndColumn
+                        )
 
-                let notified = notifyConfigurationWarning warning
-                warningSent.Value <- true
-
-                let! formatted, actualSelection =
-                    CodeFormatter.FormatSelectionAsync(request.IsSignatureFile, request.SourceCode, selection, config)
-
-                do! notified
-
-                let actualSelection =
-                    FormatSelectionRange(
-                        actualSelection.StartLine,
-                        actualSelection.StartColumn,
-                        actualSelection.EndLine,
-                        actualSelection.EndColumn
-                    )
-
-                return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
-            with ex ->
-                if not warningSent.Value then
-                    do! notifyConfigurationWarning (noConfigurationProblems request.FilePath)
-
-                let message =
-                    Diagnostics.describeParseFailure request.FilePath (fun () -> request.SourceCode) ex
-                    |> Option.defaultValue ex.Message
-
-                return FormatSelectionResponse.Error(request.FilePath, message)
-        }
+                    return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
+                })
+            (fun message -> FormatSelectionResponse.Error(request.FilePath, message))
 
     [<JsonRpcMethod(Methods.Configuration)>]
     member _.Configuration() : string =

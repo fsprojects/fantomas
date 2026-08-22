@@ -87,8 +87,9 @@ service.ConfigurationWarnings.Add(fun warning ->
 
 Worth knowing:
 
-- The event is raised after **every** format request, with an empty `Problems` array when the
-  configuration is fine. That is what lets you clear a warning once the user fixes it.
+- The event is raised for **every** format request, and before that request answers, with an
+  empty `Problems` array when the configuration is fine. That is what lets you clear a warning
+  once the user fixes it.
 - `EditorConfigFiles` holds the absolute paths of the `.editorconfig` files that contributed. Which
   one a given problem came from is not knowable, because editorconfig merges the whole chain into a
   single set of properties before Fantomas sees it. There is no line number either, so name the
