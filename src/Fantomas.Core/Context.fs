@@ -6,13 +6,13 @@ open Fantomas.Core
 open Fantomas.Core.SyntaxOak
 
 [<return: Struct>]
-let (|CommentOrDefineEvent|_|) (we: WriterEvent) : WriterEvent voption =
+let (|CommentOrDefineEvent|_|) we =
     match we with
     | WriteTrivia _ -> ValueSome we
     | _ -> ValueNone
 
 [<return: Struct>]
-let (|EmptyWrite|_|) (we: WriterEvent) : unit voption =
+let (|EmptyWrite|_|) (we: WriterEvent) =
     match we with
     | Write v
     | WriteTrivia v ->
