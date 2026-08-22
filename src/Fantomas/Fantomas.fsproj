@@ -49,7 +49,6 @@
     <Compile Include="CheckCommand.fs" />
     <Compile Include="Report.fsi" />
     <Compile Include="Report.fs" />
-    <Compile Include="Program.fsi" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

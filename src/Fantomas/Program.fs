@@ -15,6 +15,9 @@ open Argu
 open Serilog
 open Spectre.Console
 
+/// Parse the command line and run whichever command it names: printing the version, serving the
+/// daemon, checking whether files need formatting, or formatting them. Returns the exit code the
+/// process should end with.
 [<EntryPoint>]
 let main argv =
     // Argu never gets to render a usage text of its own: HelpPage.exiter answers --help with
