@@ -59,7 +59,10 @@ let caretRun (line: string) (range: range) : string * string =
     // Both the indent and the run are measured on the expanded text, so a tab inside the range
     // widens the carets by as much as it widened the line.
     let indent = (expandTabs (line.Substring(0, startColumn))).Length
-    let width = max 1 (expandTabs (line.Substring(startColumn, endColumn - startColumn))).Length
+
+    let width =
+        max 1 (expandTabs (line.Substring(startColumn, endColumn - startColumn))).Length
+
     String(' ', indent), String('^', width)
 
 let snippet (lines: string array) (range: range) : string list =
