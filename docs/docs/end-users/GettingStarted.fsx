@@ -6,7 +6,7 @@ index: 1
 ---
 # Getting Started
 
-Fantomas should be installed as a [.NET tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools).  
+Fantomas should be installed as a [.NET tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools).
 It is recommended to install it as a local tool and stick to a certain version per repository.
 
 ## Installation
@@ -34,7 +34,7 @@ For the overview how to use the tool, you can type the command
 open System.Diagnostics
 
 let fantomasDll =
-    System.IO.Path.Combine(__SOURCE_DIRECTORY__, "../../../artifacts/bin/fantomas/release/fantomas.dll")
+    System.IO.Path.Combine(__SOURCE_DIRECTORY__, "../../../artifacts/bin/Fantomas/release/fantomas.dll")
 
 let output =
     let psi = ProcessStartInfo("dotnet", $"{fantomasDll} --help")
@@ -50,13 +50,13 @@ printfn $"%s{output}"
 (*** include-output  ***)
 
 (**
-You have to specify an input path and optionally an output path. 
+You have to specify an input path and optionally an output path.
 The output path is prompted by `--out` e.g.
 
-	dotnet fantomas ./input/array.fs --out ./output/array.fs 
+	dotnet fantomas ./input/array.fs --out ./output/array.fs
 
-Both paths have to be files or folders at the same time. 
-If they are folders, the structure of input folder will be reflected in the output one. 
+Both paths have to be files or folders at the same time.
+If they are folders, the structure of input folder will be reflected in the output one.
 The tool will explore the input folder recursively.
 If you omit the output path, Fantomas will overwrite the input files unless the content did not change.
 
@@ -65,8 +65,8 @@ If you omit the output path, Fantomas will overwrite the input files unless the 
 
 *starting version 4.5*
 
-Multiple paths can be passed as last argument, these can be both files and folders.  
-This cannot be combined with the `--out` flag.  
+Multiple paths can be passed as last argument, these can be both files and folders.
+This cannot be combined with the `--out` flag.
 
 One interesting use-case of passing down multiple paths is that you can easily control the selection and filtering of paths from the current shell.
 
@@ -76,7 +76,7 @@ Consider the following PowerShell script:
 # Filter all added and modified files in git
 # A useful function to add to your $PROFILE
 function Format-Changed(){
-    $files = 
+    $files =
         git status --porcelain `
         | Where-Object { ($_.StartsWith(" M", "Ordinal") -or $_.StartsWith("AM", "Ordinal")) `
         -and (Test-FSharpExtension $_) } | ForEach-Object { $_.substring(3) }
