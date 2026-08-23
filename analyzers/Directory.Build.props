@@ -1,0 +1,16 @@
+<Project>
+    <!--
+    Deliberately does not import the repository root Directory.Build.props, which stops MSBuild
+    walking any further up. The projects here are build tooling, not product: they target net8.0
+    rather than net10.0, they are never packed, and they cannot restore under the repository's
+    central package management, because FSharp.Analyzers.SDK pins FSharp.Core to a version the
+    product does not use. Inheriting the root would also hand them the packaging metadata, the
+    lock file settings and the analyzer package references, none of which mean anything here.
+    -->
+    <PropertyGroup>
+        <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+        <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+        <WarningsAsErrors>FS0025;FS1182</WarningsAsErrors>
+        <WarnOn>1182;3390;1178;$(WarnOn)</WarnOn>
+    </PropertyGroup>
+</Project>

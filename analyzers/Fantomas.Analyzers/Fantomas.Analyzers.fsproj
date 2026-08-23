@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!--
+    net8.0 is what the fsharp-analyzers tool targets and what Ionide.Analyzers and
+    G-Research.FSharp.Analyzers ship. A net10.0 assembly fails to load when the tool runs on the
+    .NET 8 runtime.
+    -->
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- The SDK only ever looks at files matching *Analyzer*.dll, so the name is load bearing. -->
+    <AssemblyName>Fantomas.Analyzers</AssemblyName>
+    <RootNamespace>Fantomas.Analyzers</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <!--
+    FSharp.Analyzers.SDK depends on FSharp.Core at exactly 10.1.201, where the repository pins
+    10.0.100 centrally. Under central package management that is NU1109, a hard error, so this
+    project opts out and carries its versions inline. Keeping them here also puts the SDK version
+    next to the analyzers rather than in the product's package list.
+    -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <!-- Build tooling rather than product: a lock file here buys nothing. -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <RestoreLockedMode>false</RestoreLockedMode>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- The analyzer assembly is loaded on its own, so its dependencies have to sit next to it. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Common.fsi" />
+    <Compile Include="Common.fs" />
+    <Compile Include="PipeBackAnalyzer.fsi" />
+    <Compile Include="PipeBackAnalyzer.fs" />
+    <Compile Include="PrivateAccessAnalyzer.fsi" />
+    <Compile Include="PrivateAccessAnalyzer.fs" />
+    <Compile Include="ArmOrderAnalyzer.fsi" />
+    <Compile Include="ArmOrderAnalyzer.fs" />
+    <Compile Include="AnnotationAnalyzer.fsi" />
+    <Compile Include="AnnotationAnalyzer.fs" />
+    <Compile Include="XmlDocAnalyzer.fsi" />
+    <Compile Include="XmlDocAnalyzer.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Must track the fsharp-analyzers version pinned in .config/dotnet-tools.json. -->
+    <PackageReference Include="FSharp.Analyzers.SDK" Version="0.37.2" />
+    <PackageReference Include="FSharp.Core" Version="10.1.201" />
+  </ItemGroup>
+</Project>
