@@ -104,7 +104,8 @@ let ``a check names the files it found by the path it was given`` () =
             CheckCommandResult.Completed(
                 [],
                 { Errors = []
-                  Formatted = [ "sub/A.fs" ] }
+                  Formatted = [ "sub/A.fs" ]
+                  Unchanged = [] }
             )
         )
 
@@ -248,7 +249,14 @@ let ``a check that failed outright is reported and exits 1`` () =
 [<Test>]
 let ``a check with nothing to do exits 0`` () =
     let code, log =
-        reportCheck (CheckCommandResult.Completed([], { Errors = []; Formatted = [] }))
+        reportCheck (
+            CheckCommandResult.Completed(
+                [],
+                { Errors = []
+                  Formatted = []
+                  Unchanged = [] }
+            )
+        )
 
     code |> shouldEqual 0
     log.Debug |> shouldEqual [ "No changes required." ]
@@ -256,7 +264,14 @@ let ``a check with nothing to do exits 0`` () =
 [<Test>]
 let ``a check reports the files it ignored`` () =
     let code, log =
-        reportCheck (CheckCommandResult.Completed([ "A.fs" ], { Errors = []; Formatted = [] }))
+        reportCheck (
+            CheckCommandResult.Completed(
+                [ "A.fs" ],
+                { Errors = []
+                  Formatted = []
+                  Unchanged = [] }
+            )
+        )
 
     code |> shouldEqual 0
     log.Debug |> shouldContain "'A.fs' was ignored"
@@ -268,7 +283,8 @@ let ``a check that found files needing formatting exits 99`` () =
             CheckCommandResult.Completed(
                 [],
                 { Errors = []
-                  Formatted = [ "A.fs"; "B.fs" ] }
+                  Formatted = [ "A.fs"; "B.fs" ]
+                  Unchanged = [] }
             )
         )
 
@@ -284,7 +300,8 @@ let ``a check that could not format a file exits 1 rather than 99`` () =
             CheckCommandResult.Completed(
                 [],
                 { Errors = [ "A.fs", Exception "boom" ]
-                  Formatted = [ "A.fs" ] }
+                  Formatted = [ "A.fs" ]
+                  Unchanged = [] }
             )
         )
 

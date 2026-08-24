@@ -8,6 +8,36 @@ open Fantomas.Arguments
 open Fantomas.Logging
 open Fantomas.Tests.TestHelpers
 
+// Every one of these used to be accepted alongside --daemon and then silently ignored.
+[<Test>]
+let ``the arguments that say what to format are refused alongside --daemon`` () =
+    argumentsRefusedWithDaemon
+        [ Arguments.Daemon
+          Arguments.Check
+          Arguments.Json
+          Arguments.Force
+          Arguments.Profile
+          Arguments.Out "out"
+          Arguments.Input [ "A.fs" ] ]
+    |> shouldEqual [ "--check"; "--force"; "--json"; "--out"; "--profile"; "input paths" ]
+
+// `--verbosity` sets the level the daemon logs at, so it is the one argument here that does
+// something. `--version` is answered and exited on before this rule is ever asked.
+[<Test>]
+let ``--verbosity and --version are allowed alongside --daemon`` () =
+    argumentsRefusedWithDaemon [ Arguments.Daemon; Arguments.Verbosity "d"; Arguments.Version ]
+    |> shouldBeEmpty
+
+[<Test>]
+let ``a daemon on its own is refused nothing`` () =
+    argumentsRefusedWithDaemon [ Arguments.Daemon ] |> shouldBeEmpty
+
+// `--out a --out b` is two results and one complaint.
+[<Test>]
+let ``an argument given twice is named once`` () =
+    argumentsRefusedWithDaemon [ Arguments.Daemon; Arguments.Out "a"; Arguments.Out "b" ]
+    |> shouldEqual [ "--out" ]
+
 [<Test>]
 let ``no input path at all is unspecified`` () =
     classifyInputPath (MockFileSystem()) None |> shouldEqual InputPath.Unspecified

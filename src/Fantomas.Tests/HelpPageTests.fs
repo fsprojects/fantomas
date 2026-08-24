@@ -18,6 +18,7 @@ let ``the page lists every flag`` () =
           "--out"
           "--force"
           "--profile"
+          "--json"
           "--daemon"
           "--verbosity"
           "--version"

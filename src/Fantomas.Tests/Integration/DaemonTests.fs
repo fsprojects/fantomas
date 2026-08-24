@@ -13,6 +13,30 @@ open Fantomas.Client.Contracts
 open Nerdbank.Streams
 open StreamJsonRpc
 
+// Which arguments are refused is settled in ArgumentsTests. What is left here is that the process
+// acts on it: standard out in daemon mode carries the JSON-RPC protocol, so a run that would have
+// written anything else to it must not start at all.
+[<Test>]
+[<TestCase("--json")>]
+[<TestCase("--check")>]
+[<TestCase("--force")>]
+let ``an argument that means nothing to a daemon stops it starting`` (argument: string) : unit =
+    let { ExitCode = exitCode
+          Output = output
+          Error = error } =
+        runFantomasTool [ "--daemon"; argument ]
+
+    exitCode |> should equal 1
+    output |> should equal ""
+    Assert.That(error, Does.Contain $"--daemon cannot be combined with %s{argument}")
+
+[<Test>]
+let ``every argument that means nothing to a daemon is named at once`` () =
+    let { Error = error } =
+        runFantomasTool [ "--daemon"; "--force"; "--out"; "build"; "A.fs" ]
+
+    Assert.That(error, Does.Contain "--daemon cannot be combined with --force, --out, input paths")
+
 let private assertFormatted (actual: string) (expected: string) : unit =
     String.normalizeNewLine actual
     |> should equal (String.normalizeNewLine expected)

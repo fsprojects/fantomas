@@ -34,22 +34,27 @@ let partitionResults
             let ex: FormatException = invalidResultException file
             (oks, ignores, unchanged, (file, ex :> exn) :: errors))
 
+// A DefineParseException is a FormatException, so it has to be matched first or its own wording
+// is never reached.
+let describeFailure (error: exn) : string option =
+    match error with
+    | :? DefineParseException as dpe ->
+        let combinations: string =
+            dpe.Combinations
+            |> List.map (fun c -> if c = "no defines" then "no defines" else $"[%s{c}]")
+            |> String.concat ", "
+
+        Some
+            $"When Fantomas encounters #if directives in a file, it tries to format all possible combinations of defines and will merge all different versions back into one.\nFor %s{combinations}, however, we were not able to parse the file.\nWhile you may not use this combination in your project, Fantomas requires it to produce valid code.\nConsider fixing the code or ignoring this file.\nFor more information see: https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html"
+    | :? FormatException as fe -> Some fe.Message
+    | _ -> None
+
 let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string, error: exn) : unit =
     let describeOther () : string =
         let message: string =
             match verbosity with
-            | VerbosityLevel.Normal ->
-                match error with
-                | :? DefineParseException as dpe ->
-                    let combinations: string =
-                        dpe.Combinations
-                        |> List.map (fun c -> if c = "no defines" then "no defines" else $"[%s{c}]")
-                        |> String.concat ", "
-
-                    $"When Fantomas encounters #if directives in a file, it tries to format all possible combinations of defines and will merge all different versions back into one.\nFor %s{combinations}, however, we were not able to parse the file.\nWhile you may not use this combination in your project, Fantomas requires it to produce valid code.\nConsider fixing the code or ignoring this file.\nFor more information see: https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html"
-                | :? FormatException as fe -> fe.Message
-                | _ -> ""
             | VerbosityLevel.Detailed -> $"%A{error}"
+            | VerbosityLevel.Normal -> describeFailure error |> Option.defaultValue String.Empty
 
         if String.IsNullOrEmpty message then
             $"Failed to format file: %s{file}"
@@ -79,28 +84,21 @@ let reportProfileInfos (console: IAnsiConsole) (profile: bool) (results: (string
             table
         |> console.Write
 
-let reportFormatResults (env: CliEnvironment) (settings: CliSettings) (results: #(FormatResult seq)) : int =
+let reportFormatResults (env: CliEnvironment) (settings: CliSettings) (results: #(FormatResult seq)) : unit =
     match Seq.tryExactlyOne results with
     | Some singleResult ->
         match singleResult with
+        | FormatResult.IgnoredFile f -> env.Log.Information $"%s{f} was ignored."
+        | FormatResult.Error(f, e) -> reportError env settings.Verbosity (f, e)
         | FormatResult.Formatted(f, _, p) ->
             env.Log.Information $"%s{f} was formatted."
             reportProfileInfo env.Log settings.Profile (f, p)
-            0
-        | FormatResult.IgnoredFile f ->
-            env.Log.Information $"%s{f} was ignored."
-            0
         | FormatResult.Unchanged(f, p) ->
             env.Log.Information $"%s{f} was unchanged."
             reportProfileInfo env.Log settings.Profile (f, p)
-            0
-        | FormatResult.Error(f, e) ->
-            reportError env settings.Verbosity (f, e)
-            1
         | FormatResult.InvalidCode(f, _) ->
             let ex: FormatException = invalidResultException f
             reportError env settings.Verbosity (f, ex)
-            1
 
     | None ->
         let oks, ignored, unchanged, errored = partitionResults results
@@ -131,8 +129,6 @@ let reportFormatResults (env: CliEnvironment) (settings: CliSettings) (results: 
 
         reportProfileInfos env.Console settings.Profile (oks @ unchanged)
 
-        if errored.Length > 0 then 1 else 0
-
 let reportCheckResults (env: CliEnvironment) (checkResult: CheckResult) : unit =
     for filename, exn in checkResult.Errors do
         match Diagnostics.describeParseFailure filename (fun () -> sourceOf env.FileSystem filename) exn with
@@ -149,31 +145,27 @@ let describeInputProblem (problem: InputProblem) : string =
     | InputProblem.NoPathGiven -> "No input path provided. Call with --help for usage information."
     | InputProblem.MultiplePathsWithOut -> "Multiple input files are not supported with the --out flag."
 
+// What is printed and what the process ends with are decided apart from each other, so that this
+// reporter and the JSON one cannot end the same run with different codes.
 let reportFormatCommand (env: CliEnvironment) (settings: CliSettings) (result: FormatCommandResult) : int =
     match result with
-    | FormatCommandResult.InvalidInput problem ->
-        env.Log.Error(describeInputProblem problem)
-        1
-    | FormatCommandResult.Failed error ->
-        env.Log.Error $"%s{error.Message}"
-        1
+    | FormatCommandResult.InvalidInput problem -> env.Log.Error(describeInputProblem problem)
+    | FormatCommandResult.Failed error -> env.Log.Error $"%s{error.Message}"
     | FormatCommandResult.Completed results -> reportFormatResults env settings results
+
+    result.ExitCode
 
 let reportCheckCommand (env: CliEnvironment) (result: CheckCommandResult) : int =
     match result with
-    | CheckCommandResult.InvalidInput problem ->
-        env.Log.Error(describeInputProblem problem)
-        1
-    | CheckCommandResult.Failed error ->
-        env.Log.Error $"%s{error.Message}"
-        1
+    | CheckCommandResult.InvalidInput problem -> env.Log.Error(describeInputProblem problem)
+    | CheckCommandResult.Failed error -> env.Log.Error $"%s{error.Message}"
     | CheckCommandResult.Completed(ignored, checkResult) ->
         for file in ignored do
             env.Log.Debug $"'%s{file}' was ignored"
 
         if checkResult.IsValid then
             env.Log.Debug "No changes required."
-            0
         else
             reportCheckResults env checkResult
-            if checkResult.HasErrors then 1 else 99
+
+    result.ExitCode

@@ -98,7 +98,17 @@ let flags: (string * string * string * string list) list =
        [ "Write the output even when it is not valid F# code."
          "For debugging purposes only." ])
       ("", "--profile", "", [ "Print the line count and the time taken for every file." ])
-      ("", "--daemon", "", [ "Run an LSP-like server that editor tooling can talk to." ])
+      ("",
+       "--json",
+       "",
+       [ "Report what the run did as one JSON document on standard out,"
+         "naming every file and positioning what went wrong. The usual"
+         "messages are not printed; warnings go to standard error." ])
+      ("",
+       "--daemon",
+       "",
+       [ "Run an LSP-like server that editor tooling can talk to."
+         "Takes no other flags or paths, apart from --verbosity." ])
       ("-v",
        "--verbosity",
        "<level>",

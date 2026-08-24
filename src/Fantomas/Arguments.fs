@@ -12,6 +12,7 @@ type Arguments =
     | Profile
     | Out of string
     | Check
+    | Json
     | Daemon
     | Version
     | Verbosity of string
@@ -26,6 +27,8 @@ type Arguments =
             | Profile -> "Print performance profiling information."
             | Check ->
                 "Report which files need formatting and write nothing. Exits with 0 when every file is already formatted, with 99 when some file needs formatting, and with 1 when an error occurred."
+            | Json ->
+                "Write one JSON document to standard out describing what the run did, naming every file and carrying the diagnostics of any that failed. The usual messages are not printed, and warnings still go to standard error."
             | Daemon -> "Daemon mode, launches an LSP-like server that can be used by editor tooling."
             | Version -> "Displays the version of Fantomas"
             | Input _ ->
@@ -75,6 +78,35 @@ let classifyInputPath (fs: IFileSystem) (maybeInput: string list option) : Input
 
             InputPath.Multiple(files, folders)
     | None -> InputPath.Unspecified
+
+let describeArgument (argument: Arguments) : string =
+    match argument with
+    | Force -> "--force"
+    | Profile -> "--profile"
+    | Out _ -> "--out"
+    | Check -> "--check"
+    | Json -> "--json"
+    | Daemon -> "--daemon"
+    | Version -> "--version"
+    | Verbosity _ -> "--verbosity"
+    | Input _ -> "input paths"
+
+let argumentsRefusedWithDaemon (given: Arguments list) : string list =
+    let refused (argument: Arguments) : string option =
+        match argument with
+        | Daemon
+        | Version
+        | Verbosity _ -> None
+        | Force
+        | Profile
+        | Out _
+        | Check
+        | Json
+        | Input _ -> Some(describeArgument argument)
+
+    // Distinct because `--out a --out b` is two results and one complaint, and sorted so that the
+    // order the flags were typed in does not change the message.
+    given |> List.choose refused |> List.distinct |> List.sort
 
 let parseVerbosity (value: string option) : VerbosityLevel option =
     match value |> Option.map (fun v -> v.ToLowerInvariant()) with

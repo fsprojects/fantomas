@@ -11,6 +11,7 @@ open Fantomas.Cli
 open Fantomas.FormatCommand
 open Fantomas.Report
 open Fantomas.CheckCommand
+open Fantomas.CommandResult
 open Argu
 open Serilog
 open Spectre.Console
@@ -27,6 +28,19 @@ let main argv =
 
     let results: ParseResults<Arguments> = parser.ParseCommandLine argv
 
+    let versionBanner: string =
+        let version: string = CodeFormatter.GetVersion()
+        $"Fantomas v%s{version}"
+
+    // `--version` answers on its own and stops, whatever else was asked for. Nothing is validated
+    // first: a version you can only read once the rest of the command line is already correct is no
+    // use for finding out what you are running. It is written straight to standard out rather than
+    // through the logger, so it reads the same at any verbosity, and standard out is where
+    // Fantomas.Client looks for it when it discovers the tool.
+    if results.Contains <@ Arguments.Version @> then
+        Console.Out.WriteLine versionBanner
+        exit 0
+
     let outputPath: OutputPath =
         match results.TryGetResult <@ Arguments.Out @> with
         | Some output -> OutputPath.IO output
@@ -39,7 +53,6 @@ let main argv =
 
     let force: bool = results.Contains <@ Arguments.Force @>
     let profile: bool = results.Contains <@ Arguments.Profile @>
-    let version: Arguments option = results.TryGetResult <@ Arguments.Version @>
 
     let verbosityLevel: VerbosityLevel =
         match parseVerbosity (results.TryGetResult <@ Arguments.Verbosity @>) with
@@ -50,13 +63,31 @@ let main argv =
             exit 1
 
     let isDaemon: bool = results.Contains <@ Arguments.Daemon @>
+    let json: bool = results.Contains <@ Arguments.Json @>
 
-    // In daemon mode standard out carries the JSON-RPC protocol, so the logger must stay off it.
-    let verbosity: VerbosityLevel =
+    // Everything here used to be accepted alongside --daemon and then silently ignored.
+    match
         if isDaemon then
-            initDaemonLogger verbosityLevel
+            argumentsRefusedWithDaemon (results.GetAllResults())
         else
-            initLogger verbosityLevel
+            []
+    with
+    | [] -> ()
+    | refused ->
+        // The logger is not configured yet, so this cannot go through it.
+        eprintfn
+            "--daemon cannot be combined with %s. A daemon is told what to format over JSON-RPC on standard in and answers on standard out, so there is nothing else for it to do and no stream left to report on."
+            (String.concat ", " refused)
+
+        eprintfn "Run fantomas --help for usage information."
+        exit 1
+
+    // `--json` puts one document on standard out, so the logger moves off it entirely, the way it
+    // does in daemon mode, where standard out carries the JSON-RPC protocol.
+    let verbosity: VerbosityLevel =
+        if isDaemon then initDaemonLogger verbosityLevel
+        elif json then initJsonLogger verbosityLevel
+        else initLogger verbosityLevel
 
     AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> closeAndFlushLog ())
 
@@ -65,17 +96,9 @@ let main argv =
 
     let check: bool = results.Contains <@ Arguments.Check @>
 
-    let versionLog: string =
-        let version: string = CodeFormatter.GetVersion()
-        $"Fantomas v%s{version}"
+    log.Debug versionBanner
 
-    if Option.isNone version then
-        log.Debug versionLog
-
-    if Option.isSome version then
-        log.Information versionLog
-        0
-    elif isDaemon then
+    if isDaemon then
         let daemon: FantomasDaemon =
             new FantomasDaemon(
                 Console.OpenStandardOutput(),
@@ -111,10 +134,35 @@ let main argv =
                   Verbosity = verbosity }
 
             if check then
-                runCheckCommand environment inputPath |> reportCheckCommand environment
+                let result: CheckCommandResult = runCheckCommand environment inputPath
+
+                if json then
+                    JsonReport.reportCheckCommand Environment.CurrentDirectory Console.Out result
+                else
+                    reportCheckCommand environment result
             else
-                runFormatCommand environment settings inputPath outputPath
-                |> reportFormatCommand environment settings
+                let result: FormatCommandResult =
+                    runFormatCommand environment settings inputPath outputPath
+
+                if json then
+                    JsonReport.reportFormatCommand Environment.CurrentDirectory Console.Out result
+                else
+                    reportFormatCommand environment settings result
         with exn ->
-            log.Error $"%s{exn.Message}"
-            1
+            // The document is what a caller asked for, so a run that fell over before it reached a
+            // file still gets one, carrying what went wrong. It is the whole report, here as
+            // everywhere else, so nothing is logged alongside it.
+            if json then
+                if check then
+                    JsonReport.reportCheckCommand
+                        Environment.CurrentDirectory
+                        Console.Out
+                        (CheckCommandResult.Failed exn)
+                else
+                    JsonReport.reportFormatCommand
+                        Environment.CurrentDirectory
+                        Console.Out
+                        (FormatCommandResult.Failed exn)
+            else
+                log.Error $"%s{exn.Message}"
+                1
