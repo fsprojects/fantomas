@@ -233,7 +233,15 @@ pipeline "FormatAll" {
 
 pipeline "EnsureRepoConfig" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Git" { run "git config core.hooksPath .githooks" }
+    stage "Git" {
+        run "git config core.hooksPath .githooks"
+        // Without this, `.git-blame-ignore-revs` is a file git only reads when asked to on the
+        // command line. GitHub's blame view honours it on its own; a clone does not.
+        run "git config blame.ignoreRevsFile .git-blame-ignore-revs"
+        // Mark a line whose real author had to be guessed past an ignored commit, so a skipped
+        // attribution is not read as a genuine one.
+        run "git config blame.markIgnoredLines true"
+    }
     runIfOnlySpecified true
 }
 
