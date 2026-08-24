@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <!--
+    net10.0, unlike the analyzer project it references, which has to be net8.0 for the tool to load
+    it. Nothing here is loaded by the tool, so this follows global.json instead, which is also the
+    framework the test harness builds its throwaway project for.
+    -->
+    <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <!-- See the analyzer project: FSharp.Analyzers.SDK cannot restore under the repository's
          central package management, so these versions live here. -->

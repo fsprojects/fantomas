@@ -156,11 +156,15 @@ reporting on the project that defines it: the pipelines build the analyzers befo
 what looks at this code is the build the run started with.
 
 They do not inherit the repository root `Directory.Build.props`. The one in this folder stops the
-walk up, because these projects target `net8.0` rather than `net10.0`, which is what the
-`fsharp-analyzers` tool loads, and they cannot restore under the repository's central package
-management: `FSharp.Analyzers.SDK` pins `FSharp.Core` to a version the product does not use, which
-is a hard NU1109 rather than a warning. Inheriting the root would also hand them version-less
-package references that only resolve under central package management.
+walk up, because they cannot restore under the repository's central package management:
+`FSharp.Analyzers.SDK` pins `FSharp.Core` to a version the product does not use, which is a hard
+NU1109 rather than a warning. Inheriting the root would also hand them version-less package
+references that only resolve under central package management.
+
+The two projects target different frameworks on purpose. `Fantomas.Analyzers` is `net8.0`, because
+that is what the `fsharp-analyzers` tool loads, and a `net10.0` assembly fails to load when the tool
+runs on the .NET 8 runtime. `Fantomas.Analyzers.Tests` is `net10.0`, like the rest of the solution,
+because nothing loads it as an analyzer.
 
 ## Two ways a rule silently does nothing
 
@@ -178,8 +182,10 @@ rather than that the run succeeded.
 
 Every rule is registered twice, as a `CliAnalyzer` and as an `EditorAnalyzer`, with both attributes
 in the signature file. The pipelines use the first; the second is what makes the rule show up in
-Ionide as you type. All five rules read only the untyped tree, the source text and
-`ctx.ProjectOptions.SourceFiles`, which `EditorContext` carries as well as `CliContext` does.
+Ionide as you type. Between them the five rules read exactly three things, `ctx.FileName`,
+`ctx.ProjectOptions.SourceFiles` and `ctx.ParseFileResults.ParseTree`, all of which `EditorContext`
+carries as well as `CliContext` does. Reach for the typed tree and that stops being true, and the
+editor registration has to go.
 
 Where a rule needs to know whether a file has a signature file, ask `ctx.ProjectOptions.SourceFiles`
 rather than the filesystem. An `.fsi` that is not compiled says nothing about what is visible, and a
@@ -188,9 +194,41 @@ test that builds its sources in memory has no filesystem to look at.
 A new rule needs a section above, because `HelpUri` links to it. Anything a person is told to do
 belongs there rather than only in the message.
 
-Tests live in `Fantomas.Analyzers.Tests` and use `FSharp.Analyzers.SDK.Testing`. `analyzeSource`
-covers a single snippet; `analyzeWithSignature` builds an implementation file with a signature file
-beside it, which is what the rules keyed on the signature file need. A snippet has to begin with a
-module declaration, because the harness type checks it as part of a project and raises on any
-compiler diagnostic. Give every rule a test for the finding and a test for each shape that looks like
-it but is not.
+Tests live in `Fantomas.Analyzers.Tests` and go through `cliAnalyzer`, using
+`FSharp.Analyzers.SDK.Testing` to build a real `CliContext`. That is deliberately the entry point
+the pipelines use, so the wiring is covered rather than bypassed: read `ctx.FileName` or
+`ctx.ProjectOptions.SourceFiles` wrongly and a test notices. `analyzeSource` covers a single
+snippet, `analyzeWithSignature` builds an implementation with a signature file beside it, which is
+what the two rules keyed on the signature file need. A snippet has to begin with a module
+declaration, because the harness type checks it as part of a project and raises on any compiler
+error. Give every rule a test for the finding and a test for each shape that looks like it but is
+not.
+
+Two things about that harness are worth knowing, because both have already cost a day.
+
+`mkOptionsFromProject` is not cheap or hermetic. It runs `dotnet new classlib` and `dotnet build` in
+a temporary folder and reads the binlog, caching it in the temp directory. The framework it is given
+has to be one the machine can actually build: it was `net8.0` first, which passed on a developer
+machine with an old SDK lying around and failed every test in the dev container, which carries only
+.NET 10. It is `net10.0` now, matching `global.json`, so it works wherever this repository builds at
+all. It also catches its own failures and hands back empty options, which surfaces later as an
+exception about critical errors in the project options and names nothing useful, so the fixture
+checks the options came back non-empty and says so plainly if they did not.
+
+The options it returns are a fresh project's defaults, not this repository's. Of everything
+`Directory.Build.props` adds, only `--strict-indentation+` reaches the parser, and the fixture
+appends it. `--realsig+` and the `--test:` switches are for later compiler phases and cannot change
+a tree, and LangVersion is never set here at all. If you want to check that for yourself, a design
+time build prints the real command line in about half a second:
+
+```bash
+dotnet msbuild src/Fantomas.Core/Fantomas.Core.fsproj -t:CoreCompile \
+  -p:SkipCompilerExecution=true -p:ProvideCommandLineArgs=true \
+  -p:BuildProjectReferences=false -p:DesignTimeBuild=true -getItem:FscCommandLineArgs
+```
+
+None of this is currently load bearing. Parsing every file of `Fantomas.Core` under the default
+options, both define sets, `--strict-indentation+` and `--langversion:preview` produces identical
+findings from all five rules, which is what you would expect of rules that read only the untyped
+tree. The defines are the only option that could change a verdict, since they decide which branch of
+an `#if` reaches the tree, and `DEBUG` in `Selection.fs` is the only one in real source anywhere.
