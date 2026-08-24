@@ -43,7 +43,7 @@ dotnet fantomas --help
 ```
 
 ```
-Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-014+463e1adab)
+Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-015+cfd315e95)
 
 Usage: fantomas [...flags] [...paths]
 
@@ -62,7 +62,11 @@ Flags:
       --force                Write the output even when it is not valid F# code.
                              For debugging purposes only.
       --profile              Print the line count and the time taken for every file.
+      --json                 Report what the run did as one JSON document on standard out,
+                             naming every file and positioning what went wrong. The usual
+                             messages are not printed; warnings go to standard error.
       --daemon               Run an LSP-like server that editor tooling can talk to.
+                             Takes no other flags or paths, apart from --verbosity.
   -v, --verbosity <level>    How much to print: normal or detailed. Defaults to normal.
                              n and d are accepted as well.
       --version              Print the version and exit
@@ -92,6 +96,80 @@ Both paths have to be files or folders at the same time.
 If they are folders, the structure of input folder will be reflected in the output one.
 The tool will explore the input folder recursively.
 If you omit the output path, Fantomas will overwrite the input files unless the content did not change.
+
+### JSON output
+
+*starting version 8.0*
+
+`--json` writes one JSON document to standard out describing what the run did, instead of the
+usual messages. It is meant for a script or an agent that has to act on the result rather than
+read it:
+
+dotnet fantomas --json ./src
+
+{
+  "version": 1,
+  "command": "format",
+  "workingDirectory": "/home/you/my-project",
+  "exitCode": 0,
+  "error": null,
+  "files": [
+    { "path": "./src/App.fs", "status": "formatted" },
+    { "path": "./src/Library.fs", "status": "unchanged" }
+  ]
+}
+
+Standard out carries the document and nothing else, so it can be piped straight into a parser.
+Warnings, such as an `.editorconfig` setting Fantomas does not know, still go to standard error.
+The exit code is unchanged from a run without the flag, and is in the document as well, so a
+caller that captured the output has it either way.
+
+Both commands list every file they looked at. `status` is one of `formatted`, `unchanged`,
+`ignored`, `needs-formatting` or `error`. Which of them can appear depends on `command`, which is
+`format` or `check`: a check writes nothing, so it reports `needs-formatting` where a format run
+reports `formatted`.
+
+A file's `path` is the one you gave, so it is usually relative. `workingDirectory` is what it is
+relative to, and the absolute path is the two joined. They are apart rather than resolved per file
+so that a run over a thousand files does not repeat the same prefix a thousand times.
+
+A file with status `error` carries two more keys, and no other file does. A run where one file
+could not be parsed reports the whole thing like this:
+
+{
+  "version": 1,
+  "command": "format",
+  "workingDirectory": "/home/you/my-project",
+  "exitCode": 1,
+  "error": null,
+  "files": [
+    { "path": "./src/App.fs", "status": "formatted" },
+    {
+      "path": "./src/Broken.fs",
+      "status": "error",
+      "message": "Fantomas could not parse ./src/Broken.fs",
+      "diagnostics": [
+        {
+          "severity": "error",
+          "code": "FS0583",
+          "message": "Unmatched '('",
+          "range": { "startLine": 3, "startColumn": 9, "endLine": 3, "endColumn": 10 }
+        }
+      ]
+    }
+  ]
+}
+
+Lines and columns are both one based, the way the F# compiler prints them. Note that the top level
+`error` is still `null` here: it is not where a file's failure is reported, but what stopped the run
+before it reached any file at all, such as an input path that does not exist. The other files are
+formatted as usual, and the run ends with exit code 1.
+
+`version` is the version of the document itself. It goes up when a key changes meaning or leaves,
+not when one is added, so a reader that ignores what it does not recognise keeps working.
+
+`--json` cannot be combined with `--daemon`, where standard out already carries the JSON-RPC
+protocol.
 
 ### Multiple paths
 

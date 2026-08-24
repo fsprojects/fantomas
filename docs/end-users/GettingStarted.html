@@ -346,7 +346,7 @@ You can skip this step if you wish to install Fantomas globally.</p>
 <p>For the overview how to use the tool, you can type the command</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="o">--</span><span class="id">help</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code>Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-014+463e1adab)
+<table class="pre"><tr><td><pre><code>Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-015+cfd315e95)
 
 Usage: fantomas [...flags] [...paths]
 
@@ -365,7 +365,11 @@ Flags:
       --force                Write the output even when it is not valid F# code.
                              For debugging purposes only.
       --profile              Print the line count and the time taken for every file.
+      --json                 Report what the run did as one JSON document on standard out,
+                             naming every file and positioning what went wrong. The usual
+                             messages are not printed; warnings go to standard error.
       --daemon               Run an LSP-like server that editor tooling can talk to.
+                             Takes no other flags or paths, apart from --verbosity.
   -v, --verbosity &lt;level&gt;    How much to print: normal or detailed. Defaults to normal.
                              n and d are accepted as well.
       --version              Print the version and exit
@@ -389,6 +393,70 @@ The output path is prompted by <code>--out</code> e.g.</p>
 If they are folders, the structure of input folder will be reflected in the output one.
 The tool will explore the input folder recursively.
 If you omit the output path, Fantomas will overwrite the input files unless the content did not change.</p>
+<h3><a name="JSON-output" class="anchor" href="#JSON-output">JSON output</a></h3>
+<p><em>starting version 8.0</em></p>
+<p><code>--json</code> writes one JSON document to standard out describing what the run did, instead of the
+usual messages. It is meant for a script or an agent that has to act on the result rather than
+read it:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fantomas --json ./src
+</code></pre></td></tr></table>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="json">{
+  "version": 1,
+  "command": "format",
+  "workingDirectory": "/home/you/my-project",
+  "exitCode": 0,
+  "error": null,
+  "files": [
+    { "path": "./src/App.fs", "status": "formatted" },
+    { "path": "./src/Library.fs", "status": "unchanged" }
+  ]
+}
+</code></pre></td></tr></table>
+<p>Standard out carries the document and nothing else, so it can be piped straight into a parser.
+Warnings, such as an <code>.editorconfig</code> setting Fantomas does not know, still go to standard error.
+The exit code is unchanged from a run without the flag, and is in the document as well, so a
+caller that captured the output has it either way.</p>
+<p>Both commands list every file they looked at. <code>status</code> is one of <code>formatted</code>, <code>unchanged</code>,
+<code>ignored</code>, <code>needs-formatting</code> or <code>error</code>. Which of them can appear depends on <code>command</code>, which is
+<code>format</code> or <code>check</code>: a check writes nothing, so it reports <code>needs-formatting</code> where a format run
+reports <code>formatted</code>.</p>
+<p>A file's <code>path</code> is the one you gave, so it is usually relative. <code>workingDirectory</code> is what it is
+relative to, and the absolute path is the two joined. They are apart rather than resolved per file
+so that a run over a thousand files does not repeat the same prefix a thousand times.</p>
+<p>A file with status <code>error</code> carries two more keys, and no other file does. A run where one file
+could not be parsed reports the whole thing like this:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="json">{
+  "version": 1,
+  "command": "format",
+  "workingDirectory": "/home/you/my-project",
+  "exitCode": 1,
+  "error": null,
+  "files": [
+    { "path": "./src/App.fs", "status": "formatted" },
+    {
+      "path": "./src/Broken.fs",
+      "status": "error",
+      "message": "Fantomas could not parse ./src/Broken.fs",
+      "diagnostics": [
+        {
+          "severity": "error",
+          "code": "FS0583",
+          "message": "Unmatched '('",
+          "range": { "startLine": 3, "startColumn": 9, "endLine": 3, "endColumn": 10 }
+        }
+      ]
+    }
+  ]
+}
+</code></pre></td></tr></table>
+<p>Lines and columns are both one based, the way the F# compiler prints them. Note that the top level
+<code>error</code> is still <code>null</code> here: it is not where a file's failure is reported, but what stopped the run
+before it reached any file at all, such as an input path that does not exist. The other files are
+formatted as usual, and the run ends with exit code 1.</p>
+<p><code>version</code> is the version of the document itself. It goes up when a key changes meaning or leaves,
+not when one is added, so a reader that ignores what it does not recognise keeps working.</p>
+<p><code>--json</code> cannot be combined with <code>--daemon</code>, where standard out already carries the JSON-RPC
+protocol.</p>
 <h3><a name="Multiple-paths" class="anchor" href="#Multiple-paths">Multiple paths</a></h3>
 <p><em>starting version 4.5</em></p>
 <p>Multiple paths can be passed as last argument, these can be both files and folders.
@@ -487,6 +555,11 @@ function Format-Changed(){
   <li class="level-2">
     <a href="#Usage">
       Usage
+    </a>
+  </li>
+  <li class="level-3">
+    <a href="#JSON-output">
+      JSON output
     </a>
   </li>
   <li class="level-3">

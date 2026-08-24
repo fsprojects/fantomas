@@ -393,6 +393,28 @@ This translates to running <code>dotnet fantomas ourSourceFolder --check</code>.
 <p>You want to restore your local <code>fantomas</code> tool using <code>dotnet tool restore</code>.
 Next, you want to run <code>dotnet fantomas &lt;input&gt; --check</code> and make sure your continuous integration environment <strong>fails</strong> your job when <strong>a non-zero exit code</strong> is returned.</p>
 <p><strong>Pro-tip</strong>: print the command users need to run to fix the formatting in the output log when the check failed. This is useful for open-source projects where new contributors might never have been exposed to formatting.</p>
+<h3><a name="Reading-the-result-from-a-script" class="anchor" href="#Reading-the-result-from-a-script">Reading the result from a script</a></h3>
+<p><em>starting version 8.0</em></p>
+<p>If your pipeline needs to do something with the files rather than only fail, add <code>--json</code> and the
+run reports what it found as a document on standard out:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fantomas --check --json ./src
+</code></pre></td></tr></table>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="json">{
+  "version": 1,
+  "command": "check",
+  "workingDirectory": "/home/you/my-project",
+  "exitCode": 99,
+  "error": null,
+  "files": [
+    { "path": "./src/App.fs", "status": "needs-formatting" },
+    { "path": "./src/Library.fs", "status": "unchanged" }
+  ]
+}
+</code></pre></td></tr></table>
+<p>Every file the check looked at is listed, so the ones that are already formatted are there too,
+with status <code>unchanged</code>. Paths are relative to <code>workingDirectory</code>. The exit codes are unchanged,
+so the branch above still works. See <a href="GettingStarted.html">Getting Started</a> for what the document
+contains.</p>
 <h2><a name="A-git-blame-ignore-revs-file" class="anchor" href="#A-git-blame-ignore-revs-file">A git-blame-ignore-revs file</a></h2>
 <p>By default, Fantomas adheres to the Microsoft <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting">F# code formatting guidelines</a>.
 If these change, Fantomas will follow accordingly. Due to this reason, the output cannot be guaranteed to remain the same when upgrading to a new minor version.</p>
@@ -448,6 +470,11 @@ It really helps us spotting problems early on and we can more easily pinpoint th
   <li class="level-3">
     <a href="#Any-other-continuous-integration-environment">
       Any other continuous integration environment
+    </a>
+  </li>
+  <li class="level-3">
+    <a href="#Reading-the-result-from-a-script">
+      Reading the result from a script
     </a>
   </li>
   <li class="level-2">

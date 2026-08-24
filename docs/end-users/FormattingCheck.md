@@ -92,6 +92,36 @@ Next, you want to run `dotnet fantomas <input> --check` and make sure your conti
 
 **Pro-tip**: print the command users need to run to fix the formatting in the output log when the check failed. This is useful for open-source projects where new contributors might never have been exposed to formatting.
 
+### Reading the result from a script
+
+*starting version 8.0*
+
+If your pipeline needs to do something with the files rather than only fail, add `--json` and the
+run reports what it found as a document on standard out:
+
+```bash
+dotnet fantomas --check --json ./src
+```
+
+```json
+{
+  "version": 1,
+  "command": "check",
+  "workingDirectory": "/home/you/my-project",
+  "exitCode": 99,
+  "error": null,
+  "files": [
+    { "path": "./src/App.fs", "status": "needs-formatting" },
+    { "path": "./src/Library.fs", "status": "unchanged" }
+  ]
+}
+```
+
+Every file the check looked at is listed, so the ones that are already formatted are there too,
+with status `unchanged`. Paths are relative to `workingDirectory`. The exit codes are unchanged,
+so the branch above still works. See [Getting Started](GettingStarted.html) for what the document
+contains.
+
 ## A git-blame-ignore-revs file
 
 By default, Fantomas adheres to the Microsoft [F# code formatting guidelines](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting).
