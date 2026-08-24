@@ -1,12 +1,9 @@
 #r "nuget: CliWrap, 3.6.4"
 #r "nuget: FSharp.Data, 6.3.0"
 
-open System
 open System.IO
 open System.Xml.Linq
 open System.Xml.XPath
-open CliWrap
-open CliWrap.Buffered
 open FSharp.Data
 // Loaded by `build.fsx`, after `BuildCommon.fsx`. An error here saying BuildCommon is not defined
 // means this file was run on its own; it is a library, so run a pipeline from build.fsx instead.

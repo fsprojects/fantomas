@@ -18,14 +18,6 @@ open System
 open System.IO
 open Fun.Build
 open CliWrap
-open CliWrap.Buffered
-open FSharp.Data
-open System.Xml.Linq
-open System.Xml.XPath
-open Ionide.KeepAChangelog
-open Ionide.KeepAChangelog.Domain
-open SemVersion
-open Humanizer
 open BuildCommon
 open BuildAnalyzers
 open BuildRelease
@@ -65,7 +57,7 @@ pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
-    stage "CheckFormat" { run "dotnet fantomas src analyzers docs scripts build.fsx --check" }
+    stage "CheckFormat" { run "dotnet fantomas src analyzers docs scripts build.fsx --check --json" }
     stage "Build" { run "dotnet build -c Release --tl" }
     stage "UnitTests" { run "dotnet test -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
@@ -172,7 +164,23 @@ pipeline "FormatChanged" {
                         |> List.map (fun (source: string) -> $"\"{source}\"")
                         |> String.concat " "
 
-                    return! runCmd "dotnet" $"fantomas {arguments}"
+                    // CliWrap discards the child's output unless it is given somewhere to put
+                    // it, and what fantomas has to say about the files is the point of the run.
+                    let toConsole: PipeTarget =
+                        PipeTarget.ToDelegate(fun (line: string) -> printfn "%s" line)
+
+                    let! result =
+                        Cli
+                            .Wrap("dotnet")
+                            .WithArguments($"fantomas --json {arguments}")
+                            .WithStandardOutputPipe(toConsole)
+                            .WithStandardErrorPipe(toConsole)
+                            .WithValidation(CommandResultValidation.None)
+                            .ExecuteAsync()
+                            .Task
+                        |> Async.AwaitTask
+
+                    return result.ExitCode
             })
     }
     runIfOnlySpecified true
@@ -219,7 +227,7 @@ pipeline "Docs" {
 
 pipeline "FormatAll" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Fantomas" { run "dotnet fantomas src analyzers docs scripts build.fsx" }
+    stage "Fantomas" { run "dotnet fantomas --json src analyzers docs scripts build.fsx" }
     runIfOnlySpecified true
 }
 
