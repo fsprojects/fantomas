@@ -16,6 +16,7 @@
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
     <File Path=".gitpod.yml" />
+    <File Path="analyzers/AGENTS.md" />
     <File Path="build.fsx" />
     <File Path="CHANGELOG.md" />
     <File Path="CODE_OF_CONDUCT.md" />
@@ -24,6 +25,8 @@
     <File Path="LICENSE.md" />
     <File Path="README.md" />
   </Folder>
+  <Project Path="analyzers/Fantomas.Analyzers/Fantomas.Analyzers.fsproj" />
+  <Project Path="analyzers/Fantomas.Analyzers.Tests/Fantomas.Analyzers.Tests.fsproj" />
   <Project Path="src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj" />
   <Project Path="src/Fantomas.Client.Tests/Fantomas.Client.Tests.fsproj" />
   <Project Path="src/Fantomas.Client/Fantomas.Client.fsproj" />

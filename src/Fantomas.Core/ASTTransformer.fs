@@ -363,12 +363,12 @@ let rec collectComputationExpressionStatements
     | expr -> finalContinuation [ ComputationExpressionStatement.OtherStatement(mkExpr creationAide expr) ]
 
 /// Process compiler-generated matches in an appropriate way
-let rec private skipGeneratedLambdas expr =
+let rec skipGeneratedLambdas (expr: SynExpr) : SynExpr =
     match expr with
     | SynExpr.Lambda(inLambdaSeq = true; body = bodyExpr) -> skipGeneratedLambdas bodyExpr
     | _ -> expr
 
-and skipGeneratedMatch expr =
+and skipGeneratedMatch (expr: SynExpr) : SynExpr =
     match expr with
     | SynExpr.Match(_, _, [ SynMatchClause.SynMatchClause(resultExpr = innerExpr) as clause ], matchRange, _) when
         matchRange.Start = clause.Range.Start
@@ -376,8 +376,8 @@ and skipGeneratedMatch expr =
         skipGeneratedMatch innerExpr
     | _ -> expr
 
-let inline private getLambdaBodyExpr expr =
-    let skippedLambdas = skipGeneratedLambdas expr
+let inline getLambdaBodyExpr (expr: SynExpr) : SynExpr =
+    let skippedLambdas: SynExpr = skipGeneratedLambdas expr
     skipGeneratedMatch skippedLambdas
 
 let mkLambda creationAide pats mArrow body (StartRange 3 (mFun, m)) : ExprLambdaNode =

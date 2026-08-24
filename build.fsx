@@ -103,7 +103,7 @@ pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
-    stage "CheckFormat" { run "dotnet fantomas src docs scripts build.fsx --check" }
+    stage "CheckFormat" { run "dotnet fantomas src analyzers docs scripts build.fsx --check" }
     stage "Build" { run "dotnet build -c Release --tl" }
     stage "UnitTests" { run "dotnet test -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
@@ -247,6 +247,91 @@ let hasExtension (extensions: string list) (path: string) : bool =
     extensions
     |> List.exists (fun (extension: string) -> path.EndsWith(extension, StringComparison.Ordinal))
 
+/// How much of a file the working tree touched.
+type ChangedLines =
+    /// Every line, which is what a file that git has never seen amounts to.
+    | WholeFile
+    /// The lines a diff hunk added or altered.
+    | Lines of Set<int>
+
+/// The lines the working tree changed, per file, keyed by repository relative path.
+///
+/// `git diff HEAD` covers staged and unstaged changes alike, and `-U0` asks for no context lines,
+/// so every hunk header names exactly the lines that differ. An untracked file has no diff to read
+/// and is new in its entirety.
+let changedLines () : Async<Map<string, ChangedLines>> =
+    async {
+        let! files = changedFiles ()
+        let! exitCode, stdout, stdErr = runGitCommand "diff -U0 HEAD --"
+
+        if exitCode <> 0 then
+            failwith $"Could not read the git diff.\n{stdErr}"
+
+        let hunk: Text.RegularExpressions.Regex =
+            Text.RegularExpressions.Regex(@"^@@ -\S+ \+(?<start>\d+)(,(?<count>\d+))? @@")
+
+        let mutable scopes: Map<string, ChangedLines> = Map.empty
+        let mutable current: string option = None
+
+        for line in stdout.Split('\n') do
+            let line: string = line.TrimEnd('\r')
+
+            if line.StartsWith("+++ b/", StringComparison.Ordinal) then
+                current <- Some(line.Substring 6)
+            elif line.StartsWith("+++ ", StringComparison.Ordinal) then
+                current <- None
+            else
+                let m: Text.RegularExpressions.Match = hunk.Match line
+
+                match current with
+                | None -> ()
+                | Some file when m.Success ->
+                    let start: int = int m.Groups["start"].Value
+
+                    let count: int =
+                        if m.Groups["count"].Success then
+                            int m.Groups["count"].Value
+                        else
+                            1
+
+                    // A pure deletion reports a count of zero. Nothing of it survives to report on.
+                    let added: Set<int> = set [ start .. start + count - 1 ]
+
+                    let merged: ChangedLines =
+                        match Map.tryFind file scopes with
+                        | Some(Lines existing) -> Lines(Set.union existing added)
+                        | _ -> Lines added
+
+                    scopes <- Map.add file merged scopes
+                | Some _ -> ()
+
+        // Anything git named as changed but has no diff hunk is untracked, so all of it is new.
+        for file in files do
+            if not (Map.containsKey file scopes) then
+                scopes <- Map.add file WholeFile scopes
+
+        return scopes
+    }
+
+/// Whether a finding at this line is on code the working tree actually touched.
+///
+/// Fails open. A path the diff says nothing about is kept rather than dropped, so this can only
+/// ever quieten a finding it positively knows to be on untouched code.
+let isOnChangedLine (scopes: Map<string, ChangedLines>) (path: string) (line: int) : bool =
+    let normalized: string = path.Replace('\\', '/')
+
+    let scope: ChangedLines option =
+        scopes
+        |> Map.tryPick (fun (file: string) (scope: ChangedLines) ->
+            if normalized.EndsWith(file, StringComparison.Ordinal) then
+                Some scope
+            else
+                None)
+
+    match scope with
+    | Some(Lines lines) -> Set.contains line lines
+    | _ -> true
+
 pipeline "FormatChanged" {
     workingDir __SOURCE_DIRECTORY__
     stage "Format" {
@@ -311,7 +396,7 @@ pipeline "Docs" {
 
 pipeline "FormatAll" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Fantomas" { run "dotnet fantomas src docs scripts build.fsx" }
+    stage "Fantomas" { run "dotnet fantomas src analyzers docs scripts build.fsx" }
     runIfOnlySpecified true
 }
 
@@ -897,8 +982,11 @@ pipeline "PublishAlpha" {
 /// is not ours to change. Fantomas.FCS is generated from the vendored compiler sources, and
 /// Fantomas.FCS.BuildTasks compiles a single vendored compiler file, so a finding in either is
 /// something to report upstream rather than something to fix here. Reading the solution rather than
-/// globbing keeps build tooling out on its own: a project only gets analyzed once it is a real part
-/// of the product.
+/// globbing keeps the rest of the build tooling out.
+///
+/// This includes the analyzers themselves, which are in the solution like everything else. There is
+/// nothing circular about a rule reporting on the project that defines it: the pipelines build the
+/// analyzers before running them, so what looks at this code is the build the run started with.
 let projectsToAnalyze: string list =
     let excluded = set [ "Fantomas.FCS" ]
 
@@ -955,10 +1043,35 @@ let targetsFor (files: string list) : AnalysisTarget list =
                     { Project = project
                       Files = List.map (fun (file: string) -> __SOURCE_DIRECTORY__ </> file) owned })
 
-/// Where the analyzers live on disk. Both are ordinary package references, so MSBuild already knows
-/// the restored path of each and there is no second place to keep the version in sync.
+/// Where the analyzer project this repository owns is built to. It is deliberately outside the
+/// solution and does not inherit the root `Directory.Build.props`, so this is an ordinary
+/// `bin` folder rather than anything under `artifacts`.
+///
+/// `--analyzers-path` is handed this folder rather than `analyzers`, because the SDK searches
+/// recursively for `*Analyzer*.dll` and would otherwise also find `Fantomas.Analyzers.Tests.dll`.
+let localAnalyzerPath: string =
+    __SOURCE_DIRECTORY__
+    </> "analyzers"
+    </> "Fantomas.Analyzers"
+    </> "bin"
+    </> "Release"
+    </> "net8.0"
+
+/// The analyzers are in the solution, so `Build` compiles and tests them along with everything
+/// else. The `Analyze` pipelines do not depend on `Build` having run, so they build them again,
+/// which is cheap and means editing a rule and rerunning the analysis is a single command.
+let buildLocalAnalyzers: string =
+    "dotnet build analyzers/Fantomas.Analyzers -c Release --tl"
+
+/// Where the analyzers live on disk. The two packages are ordinary package references, so MSBuild
+/// already knows the restored path of each and there is no second place to keep the version in
+/// sync. The third is ours, and is built by the pipeline that is about to use it.
 let analyzerPaths () : Async<string list> =
     async {
+        if not (File.Exists(localAnalyzerPath </> "Fantomas.Analyzers.dll")) then
+            failwith
+                $"The local analyzers are not built. Expected an assembly in {localAnalyzerPath}.\nRun `dotnet build analyzers/Fantomas.Analyzers -c Release` first."
+
         let! result =
             Cli
                 .Wrap("dotnet")
@@ -978,12 +1091,14 @@ let analyzerPaths () : Async<string list> =
         let properties = JsonValue.Parse(result.StandardOutput).GetProperty("Properties")
 
         return
-            [ for property in properties.Properties() ->
+            [ for property in properties.Properties() do
                   let name, value = property
 
                   match value.AsString() with
                   | "" -> failwith $"MSBuild has no value for {name}. Run `dotnet restore` first."
-                  | path -> path </> "analyzers" </> "dotnet" </> "fs" ]
+                  | path -> path </> "analyzers" </> "dotnet" </> "fs"
+
+              localAnalyzerPath ]
     }
 
 /// The number of results a single analyzer report holds, used to report what a project turned up
@@ -1059,9 +1174,102 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
 /// Whatever is analyzed here is what `analysis.sarif` holds afterwards, so a run over a couple of
 /// files replaces the report of an earlier run over the solution.
 ///
+/// The local rules that report at error severity, and so fail a run when they fire.
+///
+/// `AnalyzeChanged` demotes these, because the run you do while working should report everything
+/// and stop for nothing. `Analyze` leaves them alone, so CI is where they bite.
+let localErrorRules: string list =
+    [ "FANTOMAS-PIPEBACK-001"; "FANTOMAS-PRIVATE-001" ]
+
+/// The local analyzers that are kept out of the full run.
+///
+/// Both report on debt that predates them, and a finding in `Analyze` becomes a code scanning alert
+/// on the pull request whatever its severity. `AnalyzeChanged` still runs them, over the files you
+/// touched, which is the scope the rules ask for. Drop this once the debt is gone.
+let localAdvisoryAnalyzers: string list = [ "AnnotationAnalyzer"; "XmlDocAnalyzer" ]
+
+/// The codes of those same rules, which is what a finding carries.
+let localAdvisoryCodes: Set<string> =
+    set [ "FANTOMAS-ANNOTATE-001"; "FANTOMAS-XMLDOC-001" ]
+
+/// Decides whether an advisory finding is worth showing. `Analyze` shows all of them; only
+/// `AnalyzeChanged` narrows.
+type AdvisoryFilter = string -> int -> bool
+
+let everyAdvisoryFinding: AdvisoryFilter = fun _ _ -> true
+
+/// Drops the advisory findings that sit on lines the working tree did not touch.
+///
+/// `AnalyzeChanged` scopes itself to the files you edited, which for these two rules is much
+/// coarser than the rules ask for: one line changed in a file of several thousand surfaces every
+/// unannotated binding in it, and the annotation rule explicitly says to leave the bindings you had
+/// no reason to open alone. The other rules are left alone, because a finding from one of those is
+/// worth seeing wherever it is.
+///
+/// Reads the tool's own output format. Anything it cannot parse is kept, so a change upstream makes
+/// this stop narrowing rather than start hiding.
+let narrowAdvisoryOutput (keep: AdvisoryFilter) (output: string) : string =
+    let finding: Text.RegularExpressions.Regex =
+        Text.RegularExpressions.Regex(@"^(?<path>.+?)\((?<line>\d+),\d+\): \w+ (?<code>[A-Z][A-Z0-9-]*) :")
+
+    output.Split('\n')
+    |> Array.filter (fun (line: string) ->
+        let m: Text.RegularExpressions.Match =
+            finding.Match(line.TrimStart('\u001b').TrimStart())
+
+        if not m.Success || not (localAdvisoryCodes.Contains m.Groups["code"].Value) then
+            true
+        else
+            keep m.Groups["path"].Value (int m.Groups["line"].Value))
+    |> String.concat "\n"
+
+/// The same narrowing, over the report a project just wrote, so that `analysis.sarif` and what was
+/// printed say the same thing.
+let narrowAdvisoryReport (keep: AdvisoryFilter) (report: string) : unit =
+    if File.Exists report then
+        let document: JsonValue = JsonValue.Parse(File.ReadAllText report)
+
+        let keepResult (result: JsonValue) : bool =
+            match result.TryGetProperty "ruleId" with
+            | None -> true
+            | Some ruleId ->
+                if not (localAdvisoryCodes.Contains(ruleId.AsString())) then
+                    true
+                else
+                    let location: JsonValue =
+                        result.GetProperty("locations").AsArray().[0].GetProperty("physicalLocation")
+
+                    let path: string =
+                        location.GetProperty("artifactLocation").GetProperty("uri").AsString()
+                    let line: int = location.GetProperty("region").GetProperty("startLine").AsInteger()
+                    keep path line
+
+        let runs: JsonValue array =
+            document.GetProperty("runs").AsArray()
+            |> Array.map (fun (run: JsonValue) ->
+                match run.TryGetProperty "results" with
+                | None -> run
+                | Some results ->
+                    let kept: JsonValue = JsonValue.Array(Array.filter keepResult (results.AsArray()))
+
+                    JsonValue.Record
+                        [| for name, value in run.Properties() -> if name = "results" then name, kept else name, value |])
+
+        let narrowed: JsonValue =
+            JsonValue.Record
+                [| for name, value in document.Properties() ->
+                       if name = "runs" then
+                           name, JsonValue.Array runs
+                       else
+                           name, value |]
+
+        File.WriteAllText(report, narrowed.ToString())
+
 /// Returns the highest exit code of the runs, so a project the analyzers could not process fails
 /// the stage rather than passing for want of findings.
-let analyzeTargets (targets: AnalysisTarget list) : Async<int> =
+///
+/// `extraArguments` is passed to every invocation, and is how the two pipelines differ.
+let analyzeTargets (extraArguments: string list) (keep: AdvisoryFilter) (targets: AnalysisTarget list) : Async<int> =
     async {
         let! analyzers = analyzerPaths ()
 
@@ -1090,16 +1298,26 @@ let analyzeTargets (targets: AnalysisTarget list) : Async<int> =
 
                 let arguments =
                     [ "fsharp-analyzers"
+                      // The test SDK generates this entry point into the compilation from the
+                      // package cache. It is part of what gets type checked but it is not ours.
+                      "--exclude-files"
+                      "**/Microsoft.NET.Test.Sdk.Program.fs"
                       for analyzer in analyzers do
                           "--analyzers-path"
                           analyzer
-                      for file in target.Files do
+                      // One flag, then every file. Repeating the flag is an error, and the tool
+                      // answers it by printing its help and finding nothing, which reads as a
+                      // clean project.
+                      match target.Files with
+                      | [] -> ()
+                      | files ->
                           "--include-files"
-                          file
+                          yield! files
                       "--code-root"
                       __SOURCE_DIRECTORY__
                       "--report"
                       report
+                      yield! extraArguments
                       "--project"
                       __SOURCE_DIRECTORY__ </> target.Project ]
 
@@ -1113,14 +1331,21 @@ let analyzeTargets (targets: AnalysisTarget list) : Async<int> =
                         .Task
                     |> Async.AwaitTask
 
+                narrowAdvisoryReport keep report
+
                 let elapsed = DateTime.UtcNow - started
                 let findings = sarifResultCount report
 
+                // A non-zero exit is worth saying out loud. The tool exits non-zero both for a
+                // finding at error severity and for a run that never happened, and a bare
+                // "no findings" would read the same either way.
                 let summary =
-                    match findings with
-                    | 0 -> "no findings"
-                    | 1 -> "1 finding"
-                    | n -> $"{n} findings"
+                    match result.ExitCode, findings with
+                    | 0, 0 -> "no findings"
+                    | 0, 1 -> "1 finding"
+                    | 0, n -> $"{n} findings"
+                    | code, 0 -> $"no findings, exit code {code}"
+                    | code, n -> $"{n} findings, exit code {code}"
 
                 let scope =
                     match target.Files with
@@ -1129,7 +1354,7 @@ let analyzeTargets (targets: AnalysisTarget list) : Async<int> =
                     | files -> $" ({files.Length} files)"
 
                 printfn $"\n=== {name}{scope}: {summary} in {elapsed.TotalSeconds:F1}s"
-                printf "%s" result.StandardOutput
+                printf "%s" (narrowAdvisoryOutput keep result.StandardOutput)
                 eprintf "%s" result.StandardError
 
                 return report, result.ExitCode
@@ -1144,40 +1369,53 @@ let analyzeTargets (targets: AnalysisTarget list) : Async<int> =
         return results |> Array.map snd |> Array.fold max 0
     }
 
+/// Each of these takes a list of values after a single flag. Repeating the flag is an error.
+let excludeLocalAdvisory: string list =
+    "--exclude-analyzers" :: localAdvisoryAnalyzers
+
 pipeline "Analyze" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "RestoreSolution" { run "dotnet restore --tl" }
+    stage "BuildAnalyzers" { run buildLocalAnalyzers }
     stage "Analyze" {
         run (fun _ ->
             projectsToAnalyze
             |> List.map (fun (project: string) -> { Project = project; Files = [] })
-            |> analyzeTargets)
+            |> analyzeTargets excludeLocalAdvisory everyAdvisoryFinding)
     }
     runIfOnlySpecified true
 }
 
-/// The same analyzers, over the files the working tree touches.
-///
-/// A project is only loaded when it owns a changed file, and is then analyzed for that file alone,
-/// which is the difference between minutes and seconds on the test projects. What this cannot see
-/// is a finding a change causes in a file other than the ones you edited, which is what the full
-/// `Analyze` pipeline is still for before opening a pull request.
+// The same analyzers, over the files the working tree touches.
+//
+// A project is only loaded when it owns a changed file, and is then analyzed for that file alone,
+// which is the difference between minutes and seconds on the test projects. What this cannot see
+// is a finding a change causes in a file other than the ones you edited, which is what the full
+// `Analyze` pipeline is still for before opening a pull request.
 pipeline "AnalyzeChanged" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "RestoreSolution" { run "dotnet restore --tl" }
+    stage "BuildAnalyzers" { run buildLocalAnalyzers }
 
     stage "Analyze" {
         run (fun _ ->
             async {
                 let! files = changedFiles ()
 
+                // Everything reports and nothing fails. Warning rather than something lower
+                // because these are still findings to act on, and the tool prints every severity
+                // either way; the only thing being given up here is the non-zero exit.
+                let demoteLocalErrors: string list = "--treat-as-warning" :: localErrorRules
+
                 match targetsFor files with
                 | [] ->
                     printfn "No changed file belongs to a project that is analyzed."
                     return 0
-                | targets -> return! analyzeTargets targets
+                | targets ->
+                    let! scopes = changedLines ()
+                    return! analyzeTargets demoteLocalErrors (isOnChangedLine scopes) targets
             })
     }
 

@@ -23,58 +23,21 @@ Scripts require a debug build first (`dotnet build src/Fantomas/Fantomas.fsproj`
 
 ## Code Style
 
-Annotate every `let` binding, even where inference would manage without it. On a function that
-means every parameter and the return type; on a value it means the type:
+The style rules for this repository are analyzers rather than prose, so the feedback arrives while
+you work instead of in review. They live in `analyzers/`, and the `Analyze` and `AnalyzeChanged`
+pipelines run them alongside the two analyzer packages.
 
-```fsharp
-let writeRow (column: int) (left: string) (right: string) : unit = ...
+| Code | Rule | Severity |
+| --- | --- | --- |
+| `FANTOMAS-PIPEBACK-001` | No backward pipe | Error |
+| `FANTOMAS-PRIVATE-001` | No `let private` beside a signature file | Error |
+| `FANTOMAS-ARMORDER-001` | Shortest match arm first | Warning |
+| `FANTOMAS-ANNOTATE-001` | Annotate every `let` binding | Warning |
+| `FANTOMAS-XMLDOC-001` | No doc comment beside a signature file | Warning |
 
-let extensions: Set<string> = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
-```
-
-A written type reads as documentation, and a wrong assumption fails at the definition rather than
-at a call site somewhere else. Both matter more when the reader is skimming unfamiliar code, which
-is most of the time, and a reader should not have to run the inference in their head to find out
-what a name holds. Modules with a signature file already state this at the boundary; annotate the
-implementation as well.
-
-This applies inside a function as much as at the top level: a local `let` in a long body is
-exactly where a reader loses track of what something is.
-
-This is guidance for code you are writing or revisiting, not a reason to sweep the codebase.
-When you touch a binding for some other reason, add the annotations it is missing. Leave the
-bindings you had no reason to open alone.
-
-In a file that has a signature file, the signature file is the visibility boundary: anything it
-does not list is already hidden. Do not write `let private` there. The keyword adds nothing and
-suggests the `.fsi` says something it does not.
-
-Documentation comments belong in the signature file only, never in both. A `///` in the `.fs`
-alongside one in the `.fsi` is a second copy to keep in step, and the one readers and tooling see
-is the signature.
-
-In a `match`, put the shortest arm first:
-
-```fsharp
-match tool with
-| None -> ValueNone
-| Some(_, version) -> ValueSome(FantomasVersion(version.ToLowerInvariant()))
-```
-
-The short arm is nearly always the one that gets out of the way, and reading it first says what the
-rest of the expression is not about. It is also the order `fsharp_experimental_keep_indent_in_branch`
-wants: with the long arm last, its body can hold the indentation of the match instead of stepping in
-another level. Nothing here is formatted with that setting on, but writing the arms in the order
-that suits it costs nothing.
-
-Never write `<|`. Parenthesise instead:
-
-```fsharp
-oneAtATimePerFile request.FilePath (fun () -> task { ... })
-```
-
-It reads against the direction everything around it is written in, and it puts no visible boundary
-where the argument starts.
+[analyzers/AGENTS.md](analyzers/AGENTS.md) has what each one asks for and why, how to suppress a
+finding, and what to know before writing another. `dotnet fsi build.fsx -- -p AnalyzeChanged` will
+tell you the same thing about the code in front of you.
 
 ## Changelog
 
@@ -110,6 +73,12 @@ asks for the whole project, because what it compiles is no longer what it compil
 Scoping it to the changed files is what makes this quick: analyzing one file of
 `Fantomas.Core.Tests` takes seconds where the whole project takes minutes.
 
+Nothing here fails the run, and the two rules that report on pre-existing debt,
+`FANTOMAS-ANNOTATE-001` and `FANTOMAS-XMLDOC-001`, are narrowed to the lines `git diff` says you
+touched. A file is a much coarser scope than those two rules ask for: one line changed in
+`ASTTransformer.fs` otherwise surfaces every unannotated binding in it. Every other rule reports
+wherever it fires in a file you edited.
+
 ```bash
 dotnet fsi build.fsx -- -p Analyze
 ```
@@ -124,9 +93,10 @@ that project finishes rather than all at the end.
 
 The findings also land in `analysis.sarif` in the repo root, merged from the per-project reports in
 `analysisreports/`. Both files hold the last run and nothing more, so after `AnalyzeChanged` they
-cover only the files it looked at. **Read one of them afterwards.** The pipeline exits 0 whatever
-it found, so a run finishing tells you nothing. GitHub raises the same findings as code
-scanning alerts on the pull request, which is a slower way to learn about them.
+cover only the files it looked at. **Read one of them afterwards.** `AnalyzeChanged` exits 0
+whatever it found, so a run finishing tells you nothing. `Analyze` does fail on a finding at error
+severity, which today means the two local rules that carry it. GitHub raises everything else as
+code scanning alerts on the pull request, which is a slower way to learn about them.
 
 When you read the SARIF, read the results for every project you touched. Filtering the paths down
 to `src/Fantomas/` looks right and silently drops `src/Fantomas.Tests/`, which does not contain

@@ -110,7 +110,7 @@ module WriterModel =
                             m.Indent + x }
             | UnIndentBy x ->
                 { m with
-                    Indent = max m.AtColumn <| m.Indent - x }
+                    Indent = max m.AtColumn (m.Indent - x) }
             | SetAtColumn c -> { m with AtColumn = c }
             | RestoreAtColumn c -> { m with AtColumn = c }
             | SetIndent c -> { m with Indent = c }
@@ -1026,12 +1026,14 @@ let sepSemi (ctx: Context) =
                      SpaceAfterSemicolon = after } } =
         ctx
 
-    match before, after with
-    | false, false -> !-";"
-    | true, false -> !-" ;"
-    | false, true -> !-"; "
-    | true, true -> !-" ; "
-    <| ctx
+    let separator: Context -> Context =
+        match before, after with
+        | false, false -> !-";"
+        | true, false -> !-" ;"
+        | false, true -> !-"; "
+        | true, true -> !-" ; "
+
+    separator ctx
 
 let ifAlignOrStroustrupBrackets f g =
     ifElseCtx
