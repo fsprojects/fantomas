@@ -11,7 +11,7 @@ dotnet test src/Fantomas.Core.Tests/
 
 ## Diagnostic Scripts
 
-All scripts accept a file path or stdin, with optional `--signature` and `--editorconfig <content>` flags.
+All of these accept a file path or stdin, with optional `--signature` and `--editorconfig <content>` flags.
 
 - `scripts/ast.fsx` — untyped AST
 - `scripts/oak.fsx` — Oak tree
@@ -73,11 +73,17 @@ asks for the whole project, because what it compiles is no longer what it compil
 Scoping it to the changed files is what makes this quick: analyzing one file of
 `Fantomas.Core.Tests` takes seconds where the whole project takes minutes.
 
-Nothing here fails the run, and the two rules that report on pre-existing debt,
-`FANTOMAS-ANNOTATE-001` and `FANTOMAS-XMLDOC-001`, are narrowed to the lines `git diff` says you
-touched. A file is a much coarser scope than those two rules ask for: one line changed in
+Nothing here fails the run, and everything it reports is a finding in a file `git status` names as
+changed. A finding in a file you did not touch is dropped, whatever its rule: without that, a
+changed `.fsproj` pulling in the whole project buries the two files you added under the project's
+existing debt.
+
+Within a file that did change, the two rules that report on pre-existing debt,
+`FANTOMAS-ANNOTATE-001` and `FANTOMAS-XMLDOC-001`, are narrowed further to the lines `git diff`
+says you touched. A file is a much coarser scope than those two rules ask for: one line changed in
 `ASTTransformer.fs` otherwise surfaces every unannotated binding in it. Every other rule reports
-wherever it fires in a file you edited.
+wherever it fires in a file you edited. A file git has never seen is new in its entirety, so
+everything in it is reported.
 
 ```bash
 dotnet fsi build.fsx -- -p Analyze
