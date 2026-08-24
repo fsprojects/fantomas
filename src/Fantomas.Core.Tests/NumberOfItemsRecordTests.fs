@@ -7,7 +7,8 @@ open Fantomas.Core
 
 let config =
     { config with
-        RecordMultilineFormatter = NumberOfItems }
+        RecordMultilineFormatter = NumberOfItems
+    }
 
 [<Test>]
 let ``single member record stays on one line`` () =
@@ -33,7 +34,8 @@ let ``record instance`` () =
       Number = 42 }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -59,7 +61,8 @@ let ``nested record`` () =
       Number = 42 }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -84,7 +87,8 @@ let ``update record`` () =
              Progress = "fooey" }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -120,7 +124,8 @@ let ``record instance with inherit keyword`` () =
           targetPlatformData = targetPlatformData }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -176,7 +181,8 @@ let ``anonymous record`` () =
        Number = 42 |}
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -209,7 +215,8 @@ let ``anonymous record with multiple field update`` () =
 """
         { config with
             MaxRecordWidth = 35
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -226,7 +233,8 @@ let ``anonymous type`` () =
         """type a = {| foo : string; bar : string |}
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -242,7 +250,8 @@ let ``anonymous record with single field`` () =
         """let a = {| A = "meh" |}
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -261,7 +270,8 @@ let anonRecord =
        D = { D1 = "bar" } |}
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -284,7 +294,8 @@ let ``record as parameter to function`` () =
     buildConfiguration { XXXXXXXXXXXX = "XXXXXXXXXXXXX"; YYYYYYYYYYYY = "YYYYYYYYYYYYYYY" }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -306,7 +317,8 @@ let ``records in list`` () =
     ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -333,7 +345,8 @@ let ``anonymous records in list`` () =
     ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -357,7 +370,8 @@ let ``records in array`` () =
     |]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -378,7 +392,8 @@ let ``object expression`` () =
 let obj1 = { new System.Object() with member x.ToString() = "F#" }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -399,7 +414,8 @@ let a =
     ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -461,7 +477,8 @@ type Range =
         { config with
             MaxValueBindingWidth = 120
             NewlineBetweenTypeDefinitionAndMembers = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -483,7 +500,8 @@ type MyRecord =
 """
         { config with
             NewlineBetweenTypeDefinitionAndMembers = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -501,7 +519,8 @@ let ``SynPat.Record in pattern match, 1173`` () =
 | _ -> "8"
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -526,7 +545,8 @@ let ``record declaration`` () =
       Number: int }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -551,7 +571,8 @@ type MyRecord =
       Number: int }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -580,7 +601,8 @@ type MyRecord =
 """
         { config with
             NewlineBetweenTypeDefinitionAndMembers = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -611,7 +633,8 @@ type ShortExpressionInfo =
 """
         { config with
             NewlineBetweenTypeDefinitionAndMembers = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -633,7 +656,8 @@ let ``internal keyword before multiline record type, 1171`` () =
         """
     type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }"""
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -651,7 +675,8 @@ let ``internal keyword before multiline record type in signature file, 1171`` ()
 
     type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }"""
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -670,7 +695,8 @@ let ``indent update record fields far enough, 817`` () =
         "let expected = { ThisIsAThing.Empty with TheNewValue = 1; ThatValue = 2 }"
         { config with
             IndentSize = 2
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -687,7 +713,8 @@ let ``indent update anonymous record fields far enough`` () =
         "let expected = {| ThisIsAThing.Empty with TheNewValue = 1; ThatValue = 2 |}"
         { config with
             IndentSize = 2
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -703,7 +730,8 @@ let ``update record with standard indent`` () =
     formatSourceString
         "let expected = { ThisIsAThing.Empty with TheNewValue = 1; ThatValue = 2 }"
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -730,7 +758,8 @@ module Foo =
     let r = 3
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -760,7 +789,8 @@ type TestType =
         }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -789,7 +819,8 @@ let config = {
 }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -817,7 +848,8 @@ let person =
     } // end person
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -839,7 +871,8 @@ type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
     """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -863,7 +896,8 @@ type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
     """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal
@@ -896,7 +930,8 @@ g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
     """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -954,7 +989,8 @@ g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
     """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal
@@ -1016,7 +1052,8 @@ g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
     """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1074,7 +1111,8 @@ g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
     """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal
@@ -1129,7 +1167,8 @@ type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1163,7 +1202,8 @@ type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal

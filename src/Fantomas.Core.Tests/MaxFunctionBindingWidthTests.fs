@@ -6,7 +6,8 @@ open Fantomas.Core.Tests.TestHelpers
 
 let config =
     { config with
-        MaxFunctionBindingWidth = 20 }
+        MaxFunctionBindingWidth = 20
+    }
 
 [<Test>]
 let ``should apply to function definition`` () =
@@ -67,7 +68,8 @@ let ``should not apply to short member function definition`` () =
     member this.c d = d + 2
     """
         { config with
-            MaxFunctionBindingWidth = 30 }
+            MaxFunctionBindingWidth = 30
+        }
     |> should
         equal
         """type T =

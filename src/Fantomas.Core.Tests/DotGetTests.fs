@@ -49,7 +49,8 @@ let ``split chained method call expression, 246`` () =
                System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion)
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -529,7 +530,8 @@ SomeFunction(name = SearchForName(
 )).ChainedFunctionCall()
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -571,7 +573,8 @@ type IWebHostBuilderExtensions() =
         { config with
             MaxLineLength = 100
             SpaceBeforeUppercaseInvocation = true
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -612,7 +615,8 @@ Log.Logger <-
 """
         { config with
             SpaceBeforeUppercaseInvocation = true
-            MaxLineLength = 40 }
+            MaxLineLength = 40
+        }
     |> prepend newline
     |> should
         equal
@@ -636,7 +640,8 @@ Log.Logger <-
 """
         { config with
             SpaceBeforeUppercaseInvocation = true
-            MaxLineLength = 40 }
+            MaxLineLength = 40
+        }
     |> prepend newline
     |> should
         equal
@@ -669,7 +674,8 @@ let blah =
             MultilineBracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -705,7 +711,8 @@ let blah =
             MultilineBracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -731,7 +738,8 @@ let x =
 """
         { config with
             SpaceBeforeUppercaseInvocation = true
-            SpaceBeforeMember = true }
+            SpaceBeforeMember = true
+        }
     |> prepend newline
     |> should
         equal
@@ -753,7 +761,8 @@ let x =
 """
         { config with
             SpaceBeforeUppercaseInvocation = true
-            SpaceBeforeMember = true }
+            SpaceBeforeMember = true
+        }
     |> prepend newline
     |> should
         equal
@@ -777,7 +786,8 @@ let blah =
         { config with
             SpaceBeforeUppercaseInvocation = true
             SpaceBeforeMember = true
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -955,7 +965,8 @@ module Foo =
             SpaceBeforeSemicolon = true
             MultilineBracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -993,7 +1004,8 @@ module Foo =
             SpaceBeforeSemicolon = true
             MultilineBracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal

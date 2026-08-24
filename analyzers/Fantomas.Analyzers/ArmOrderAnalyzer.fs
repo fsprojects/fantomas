@@ -115,19 +115,22 @@ let analyze (parsedInput: ParsedInput) : Message list =
                     | SynMatchClause(pat = pattern; range = clauseRange) ->
                         let name: string = defaultArg (caseNameOf pattern) "this"
                         findings.Add(clauseRange, name)
-                | _ -> () }
+                | _ -> ()
+        }
 
     walkAst walker parsedInput
 
     findings
     |> Seq.map (fun (clause: range, name: string) ->
-        { Type = Name
-          Message =
-            $"Put the shorter arm first. `%s{name}` is a one liner and the arm above it is not, and the two cannot both match, so swapping them changes nothing but the reading."
-          Code = Code
-          Severity = Severity.Warning
-          Range = clause
-          Fixes = [] })
+        {
+            Type = Name
+            Message =
+                $"Put the shorter arm first. `%s{name}` is a one liner and the arm above it is not, and the two cannot both match, so swapping them changes nothing but the reading."
+            Code = Code
+            Severity = Severity.Warning
+            Range = clause
+            Fixes = []
+        })
     |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =

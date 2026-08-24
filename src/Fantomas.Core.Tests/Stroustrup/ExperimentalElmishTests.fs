@@ -7,7 +7,8 @@ open Fantomas.Core
 
 let config =
     { config with
-        ExperimentalElmish = true }
+        ExperimentalElmish = true
+    }
 
 [<Test>]
 let ``input without attributes`` () =
@@ -215,7 +216,8 @@ let ``div with long children but a long setting`` () =
     ]
 """
         { config with
-            MaxArrayOrListWidth = 150 }
+            MaxArrayOrListWidth = 150
+        }
     |> prepend newline
     |> should
         equal
@@ -318,7 +320,8 @@ let viewEntry todo dispatch =
 """
         { config with
             MaxArrayOrListWidth = 40
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -481,7 +484,8 @@ let view (CurrentTime time) dispatch =
 """
         { config with
             IndentSize = 2
-            MaxArrayOrListWidth = 40 }
+            MaxArrayOrListWidth = 40
+        }
     |> prepend newline
     |> should
         equal
@@ -837,7 +841,8 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
             SpaceBeforeColon = true
             MaxArrayOrListWidth = 40
             MaxInfixOperatorExpression = 50
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1092,7 +1097,8 @@ let Dashboard () =
             RecordMultilineFormatter = MultilineFormatterType.NumberOfItems
             MaxArrayOrListWidth = 20
             // MaxElmishWidth = 10
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1294,7 +1300,8 @@ let stillCramped = [
 ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1361,7 +1368,8 @@ let alsoStroup = [
 ]
 """
         { FormatConfig.Default with
-            MultilineBracketStyle = Stroustrup }
+            MultilineBracketStyle = Stroustrup
+        }
     |> prepend newline
     |> should
         equal

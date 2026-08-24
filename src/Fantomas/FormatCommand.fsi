@@ -6,10 +6,12 @@ open Fantomas.Cli
 open Fantomas.CommandResult
 
 type FormatParams =
-    { Config: FormatConfig
-      CompareWithoutLineEndings: bool
-      Profile: bool
-      File: string }
+    {
+        Config: FormatConfig
+        CompareWithoutLineEndings: bool
+        Profile: bool
+        File: string
+    }
 
     static member Create: FormatConfig * bool * bool * string -> FormatParams
 

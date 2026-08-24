@@ -30,13 +30,13 @@ type FormatDocumentResponse =
     | IgnoredFile of filename: string
 
 [<Struct>]
-type FantomasVersion = FantomasVersion of string
+type FantomasVersion = | FantomasVersion of string
 
 [<Struct>]
-type FantomasExecutableFile = FantomasExecutableFile of string
+type FantomasExecutableFile = | FantomasExecutableFile of string
 
 [<Struct>]
-type Folder = Folder of path: string
+type Folder = | Folder of path: string
 
 [<RequireQualifiedAccess>]
 type FantomasToolStartInfo =
@@ -75,7 +75,7 @@ type DotNetToolListError =
     | ProcessStartError of ProcessStartError
     | ExitCodeNonZero of executableFile: string * arguments: string * exitCode: int * error: string
 
-type FantomasToolFound = FantomasToolFound of version: FantomasVersion * startInfo: FantomasToolStartInfo
+type FantomasToolFound = | FantomasToolFound of version: FantomasVersion * startInfo: FantomasToolStartInfo
 
 [<RequireQualifiedAccess>]
 type FantomasToolError =

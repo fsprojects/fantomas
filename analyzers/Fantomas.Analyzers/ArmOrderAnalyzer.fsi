@@ -9,7 +9,8 @@ val Code: string = "FANTOMAS-ARMORDER-001"
 val Name: string = "ArmOrderAnalyzer"
 
 [<Literal>]
-val ShortDescription: string = "Detects a two armed match whose long arm comes first, where the arms are disjoint and swapping them cannot change meaning."
+val ShortDescription: string =
+    "Detects a two armed match whose long arm comes first, where the arms are disjoint and swapping them cannot change meaning."
 
 [<Literal>]
 val HelpUri: string = "https://github.com/fsprojects/fantomas/blob/main/analyzers/AGENTS.md#fantomas-armorder-001"

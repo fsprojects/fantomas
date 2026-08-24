@@ -7,7 +7,8 @@ open Fantomas.Core
 
 let config =
     { config with
-        MultilineBracketStyle = Cramped }
+        MultilineBracketStyle = Cramped
+    }
 
 [<Test>]
 let ``record declaration`` () =
@@ -163,7 +164,8 @@ let ``should not break inside of if statements in records`` () =
 
     """
         { config with
-            MaxIfThenElseShortWidth = 52 }
+            MaxIfThenElseShortWidth = 52
+        }
     |> should
         equal
         """let XpkgDefaults () =
@@ -255,7 +257,8 @@ let newDocument = //somecomment
     |> JsonConvert.SerializeObject
 """
         { config with
-            MaxInfixOperatorExpression = 75 }
+            MaxInfixOperatorExpression = 75
+        }
     |> prepend newline
     |> should
         equal
@@ -1074,7 +1077,8 @@ let ``short record type with member definitions should be multi line`` () =
     formatSourceString
         "type Foo = { A: int; B:   string } with member this.Foo () = ()"
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1095,7 +1099,8 @@ type X = {
     member x.Z = ()
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1265,7 +1270,8 @@ type ShortExpressionInfo =
     member x.Foo() = ()
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1291,7 +1297,8 @@ type XX =
   static member foo = 30
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1312,7 +1319,8 @@ type XX =
   static member foo : int = 30
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1333,7 +1341,8 @@ type XX =
     static member private foo: int = 30
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = true }
+            NewlineBetweenTypeDefinitionAndMembers = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1513,7 +1522,8 @@ module Foo =
 """
         { config with
             MaxLineLength = 40
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1991,7 +2001,8 @@ let defaultTestOptions fwk common (o: DotNet.TestOptions) =
 """
         { config with
             MaxInfixOperatorExpression = 50
-            MaxRecordWidth = 55 }
+            MaxRecordWidth = 55
+        }
     |> prepend newline
     |> should
         equal

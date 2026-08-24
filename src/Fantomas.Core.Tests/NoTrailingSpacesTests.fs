@@ -19,7 +19,8 @@ let ``should not confuse me with an extra space at end of line v2`` () =
         { config with
             MaxInfixOperatorExpression = 90
             MaxArrayOrListWidth = 40
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> should
         equal
         """let ``should not extrude without positive distance`` () =

@@ -154,7 +154,8 @@ type SynExprTryWithTrivia =
     }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -179,7 +180,8 @@ type SynExprTryWithTrivia =
     }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

@@ -67,7 +67,8 @@ let ``idempotency problem when _.Property shorthand, 3050`` () =
 "ABC" |> _.ToLower()
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -82,7 +83,8 @@ let ``idempotency problem with _.Property shorthand with record value, 3120`` ()
 _.A.ToLower()
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -97,7 +99,8 @@ let ``idempotency problem when _.property shorthand lowercase, 3050`` () =
 "ABC" |> _.toLower()
 """
         { config with
-            SpaceBeforeLowercaseInvocation = true }
+            SpaceBeforeLowercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -112,7 +115,8 @@ let ``idempotency problem when _.property shorthand quoted, 3050`` () =
 "ABC" |> _.``to Lower``()
 """
         { config with
-            SpaceBeforeLowercaseInvocation = true }
+            SpaceBeforeLowercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -133,7 +137,8 @@ let b = Bar()
 b |> _.Foo(Meh ())
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -182,7 +187,8 @@ let ``no space before unit invocation in chained dot lambda body, 3364`` () =
 "yow" |> _.Substring(0, 16).ToLower()
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal

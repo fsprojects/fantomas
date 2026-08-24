@@ -21,9 +21,11 @@ open StreamJsonRpc
 [<TestCase("--check")>]
 [<TestCase("--force")>]
 let ``an argument that means nothing to a daemon stops it starting`` (argument: string) : unit =
-    let { ExitCode = exitCode
-          Output = output
-          Error = error } =
+    let {
+            ExitCode = exitCode
+            Output = output
+            Error = error
+        } =
         runFantomasTool [ "--daemon"; argument ]
 
     exitCode |> should equal 1
@@ -59,7 +61,8 @@ let private runWithDaemon (fn: JsonRpc -> Async<unit>) : Async<unit> =
 let private runWithDaemonCollectingWarnings
     (environment: DaemonEnvironment)
     (fn: JsonRpc -> Async<unit>)
-    : Async<ConfigurationWarning list> =
+    : Async<ConfigurationWarning list>
+    =
     async {
         let struct (serverStream, clientStream) = FullDuplexStream.CreatePair()
 
@@ -130,7 +133,8 @@ let ``version request`` () =
         async {
             let! version = client.InvokeAsync<string>(Methods.Version) |> Async.AwaitTask
             version |> should equal (CodeFormatter.GetVersion())
-        })
+        }
+    )
 
 [<Test>]
 let ``config request`` () =
@@ -143,8 +147,10 @@ let ``config request`` () =
             |> fun s -> s.Split('\n')
             |> Seq.map (fun line -> line.Split('=').[0])
             |> Seq.iter (fun setting ->
-                Assert.That(config.Contains(setting), Is.True, $"Setting %s{setting} not found"))
-        })
+                Assert.That(config.Contains(setting), Is.True, $"Setting %s{setting} not found")
+            )
+        }
+    )
 
 [<Test>]
 let ``format implementation file`` () =
@@ -154,10 +160,12 @@ let ``format implementation file`` () =
             use codeFile = new TemporaryFileCodeSample(sourceCode)
 
             let request =
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = None
-                  Cursor = None }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = None
+                    Cursor = None
+                }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -170,7 +178,8 @@ let ``format implementation file`` () =
                     "module Foobar
 "
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 [<Test>]
 let ``format implementation file, unchanged`` () =
@@ -180,10 +189,12 @@ let ``format implementation file, unchanged`` () =
             use codeFile = new TemporaryFileCodeSample(sourceCode)
 
             let request =
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = Some(readOnlyDict [ "end_of_line", "lf" ])
-                  Cursor = None }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = Some(readOnlyDict [ "end_of_line", "lf" ])
+                    Cursor = None
+                }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -192,7 +203,8 @@ let ``format implementation file, unchanged`` () =
             match response with
             | FormatDocumentResponse.Unchanged _ -> Assert.Pass()
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 [<Test>]
 let ``format implementation file, error`` () =
@@ -202,10 +214,12 @@ let ``format implementation file, error`` () =
             use codeFile = new TemporaryFileCodeSample(sourceCode)
 
             let request =
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = None
-                  Cursor = None }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = None
+                    Cursor = None
+                }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -214,7 +228,8 @@ let ``format implementation file, error`` () =
             match response with
             | FormatDocumentResponse.Error _ -> Assert.Pass()
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 [<Test>]
 let ``format implementation file, ignored file`` () =
@@ -225,10 +240,12 @@ let ``format implementation file, ignored file`` () =
             use _ignoreFixture = new FantomasIgnoreFile("*.fs")
 
             let request =
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = None
-                  Cursor = None }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = None
+                    Cursor = None
+                }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -237,7 +254,8 @@ let ``format implementation file, ignored file`` () =
             match response with
             | FormatDocumentResponse.IgnoredFile _ -> Assert.Pass()
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 [<Test>]
 let ``format signature file`` () =
@@ -248,10 +266,12 @@ let ``format signature file`` () =
             use codeFile = new TemporaryFileCodeSample(sourceCode, extension = "fsi")
 
             let request =
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = None
-                  Cursor = None }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = None
+                    Cursor = None
+                }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -266,7 +286,8 @@ let ``format signature file`` () =
 val meh: int
 "
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 [<Test>]
 let ``format document respecting .editorconfig file`` () =
@@ -276,10 +297,12 @@ let ``format document respecting .editorconfig file`` () =
             use codeFile = new ConfiguredCodeSample("[*.fs]\nindent_size=2", sourceCode)
 
             let request =
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = None
-                  Cursor = None }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = None
+                    Cursor = None
+                }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -295,7 +318,8 @@ let a = //
   4
 "
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 [<Test>]
 let ``custom configuration has precedence over .editorconfig file`` () =
@@ -305,10 +329,12 @@ let ``custom configuration has precedence over .editorconfig file`` () =
             use codeFile = new ConfiguredCodeSample("[*.fs]\nindent_size=2", sourceCode)
 
             let request =
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = Some(readOnlyDict [ "indent_size", "4" ])
-                  Cursor = None }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = Some(readOnlyDict [ "indent_size", "4" ])
+                    Cursor = None
+                }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -324,7 +350,8 @@ let a = //
     4
 "
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 [<Test>]
 let ``format selection`` () =
@@ -342,10 +369,12 @@ let    y     = 5
             let request: FormatSelectionRequest =
                 let range = FormatSelectionRange(3, 0, 3, 16)
 
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = None
-                  Range = range }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = None
+                    Range = range
+                }
 
             let! response =
                 client.InvokeAsync<FormatSelectionResponse>(Methods.FormatSelection, request)
@@ -356,7 +385,8 @@ let    y     = 5
                 fileName |> should equal codeFile.Filename
                 assertFormatted formatted "let x = 4"
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 [<Test>]
 let ``format selection, fsi`` () =
@@ -374,10 +404,12 @@ val    y     : string
             let request: FormatSelectionRequest =
                 let range = FormatSelectionRange(3, 0, 3, 18)
 
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = None
-                  Range = range }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = None
+                    Range = range
+                }
 
             let! response =
                 client.InvokeAsync<FormatSelectionResponse>(Methods.FormatSelection, request)
@@ -388,7 +420,8 @@ val    y     : string
                 fileName |> should equal codeFile.Filename
                 assertFormatted formatted "val x: int"
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 [<Test>]
 let ``format document with both .editorconfig file and custom config`` () =
@@ -399,10 +432,12 @@ let ``format document with both .editorconfig file and custom config`` () =
             use codeFile = new ConfiguredCodeSample("[*.fs]\nindent_size=2", sourceCode)
 
             let request =
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = Some(readOnlyDict [ "fsharp_space_before_colon", "true" ])
-                  Cursor = None }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = Some(readOnlyDict [ "fsharp_space_before_colon", "true" ])
+                    Cursor = None
+                }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -418,29 +453,36 @@ let add (a : int) (b : int) = //
   a + b
 "
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 let private sourceCode = "module Foo\n\nlet add a  b = a + b"
 
 let private documentRequest (filePath: string) (config: (string * string) list option) : FormatDocumentRequest =
-    { SourceCode = sourceCode
-      FilePath = filePath
-      Config = config |> Option.map readOnlyDict
-      Cursor = None }
+    {
+        SourceCode = sourceCode
+        FilePath = filePath
+        Config = config |> Option.map readOnlyDict
+        Cursor = None
+    }
 
 /// Format one document over the given environment and collect what the daemon reported about it.
 let private warningsForDocument
     (environment: DaemonEnvironment)
     (request: FormatDocumentRequest)
-    : ConfigurationWarning list =
-    runWithDaemonCollectingWarnings environment (fun client ->
-        async {
-            let! _response =
-                client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
-                |> Async.AwaitTask
+    : ConfigurationWarning list
+    =
+    runWithDaemonCollectingWarnings
+        environment
+        (fun client ->
+            async {
+                let! _response =
+                    client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
+                    |> Async.AwaitTask
 
-            return ()
-        })
+                return ()
+            }
+        )
     |> Async.RunSynchronously
 
 [<Test>]
@@ -459,14 +501,16 @@ let ``a configuration warning is sent for settings the daemon cannot use`` () =
     problemsOf warning
     |> should
         equal
-        [| int ConfigurationProblemCode.UnknownSetting,
-           int ConfigurationProblemSource.Request,
-           "fsharp_bogus_option",
-           null
-           int ConfigurationProblemCode.UnrecognizedValue,
-           int ConfigurationProblemSource.Request,
-           "fsharp_experimental_elmish",
-           "not_a_bool" |]
+        [|
+            int ConfigurationProblemCode.UnknownSetting,
+            int ConfigurationProblemSource.Request,
+            "fsharp_bogus_option",
+            null
+            int ConfigurationProblemCode.UnrecognizedValue,
+            int ConfigurationProblemSource.Request,
+            "fsharp_experimental_elmish",
+            "not_a_bool"
+        |]
 
 [<Test>]
 let ``a configuration warning with no problems is sent when the configuration is fine`` () =
@@ -504,7 +548,8 @@ let ``format document with a custom config the daemon cannot use`` () =
             | FormatDocumentResponse.Formatted(formattedContent = formatted) ->
                 assertFormatted formatted "module Foo\n\nlet add a b = a + b\n"
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 [<Test>]
 let ``settings read from disk are reported as coming from the editorconfig, with the files`` () =
@@ -514,11 +559,15 @@ let ``settings read from disk are reported as coming from the editorconfig, with
     // daemon passes on what it was given, tagged as having come from a file rather than a request.
     let readConfiguration _ : EditorConfig.EditorConfigResult option =
         Some
-            { Config = FormatConfig.Default
-              EditorConfigFiles = [ "/repo/.editorconfig"; "/repo/src/.editorconfig" ]
-              Problems =
-                [ EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_bogus_option"
-                  EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_experimental_elmish", "not_a_bool") ] }
+            {
+                Config = FormatConfig.Default
+                EditorConfigFiles = [ "/repo/.editorconfig"; "/repo/src/.editorconfig" ]
+                Problems =
+                    [
+                        EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_bogus_option"
+                        EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_experimental_elmish", "not_a_bool")
+                    ]
+            }
 
     let environment =
         daemonEnvironment (new System.IO.Abstractions.FileSystem()) readConfiguration
@@ -531,14 +580,16 @@ let ``settings read from disk are reported as coming from the editorconfig, with
     problemsOf warning
     |> should
         equal
-        [| int ConfigurationProblemCode.UnknownSetting,
-           int ConfigurationProblemSource.EditorConfig,
-           "fsharp_bogus_option",
-           null
-           int ConfigurationProblemCode.UnrecognizedValue,
-           int ConfigurationProblemSource.EditorConfig,
-           "fsharp_experimental_elmish",
-           "not_a_bool" |]
+        [|
+            int ConfigurationProblemCode.UnknownSetting,
+            int ConfigurationProblemSource.EditorConfig,
+            "fsharp_bogus_option",
+            null
+            int ConfigurationProblemCode.UnrecognizedValue,
+            int ConfigurationProblemSource.EditorConfig,
+            "fsharp_experimental_elmish",
+            "not_a_bool"
+        |]
 
     // The files that contributed, so a client can point the user at them.
     warning.EditorConfigFiles
@@ -550,9 +601,11 @@ let ``the editorconfig on disk and the request are reported side by side`` () =
 
     let readConfiguration _ : EditorConfig.EditorConfigResult option =
         Some
-            { Config = FormatConfig.Default
-              EditorConfigFiles = [ "/repo/.editorconfig" ]
-              Problems = [ EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_from_the_file" ] }
+            {
+                Config = FormatConfig.Default
+                EditorConfigFiles = [ "/repo/.editorconfig" ]
+                Problems = [ EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_from_the_file" ]
+            }
 
     let environment =
         daemonEnvironment (new System.IO.Abstractions.FileSystem()) readConfiguration
@@ -566,8 +619,10 @@ let ``the editorconfig on disk and the request are reported side by side`` () =
     |> Array.map (fun problem -> problem.Setting, problem.Source)
     |> should
         equal
-        [| "fsharp_from_the_file", int ConfigurationProblemSource.EditorConfig
-           "fsharp_from_the_request", int ConfigurationProblemSource.Request |]
+        [|
+            "fsharp_from_the_file", int ConfigurationProblemSource.EditorConfig
+            "fsharp_from_the_request", int ConfigurationProblemSource.Request
+        |]
 
 [<Test>]
 let ``a request setting is reported the way the editor spelled it`` () =
@@ -590,19 +645,22 @@ let ``a configuration that cannot be read at all is an error, and clears the war
     use codeFile = new TemporaryFileCodeSample(sourceCode)
 
     let warnings =
-        runWithDaemonCollectingWarnings noEditorConfig (fun client ->
-            async {
-                let request = documentRequest codeFile.Filename (Some [ "end_of_line", "cr" ])
+        runWithDaemonCollectingWarnings
+            noEditorConfig
+            (fun client ->
+                async {
+                    let request = documentRequest codeFile.Filename (Some [ "end_of_line", "cr" ])
 
-                let! response =
-                    client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
-                    |> Async.AwaitTask
+                    let! response =
+                        client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
+                        |> Async.AwaitTask
 
-                match response with
-                | FormatDocumentResponse.Error(_, message) ->
-                    Assert.That(message, Does.Contain "Carriage returns are not valid")
-                | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-            })
+                    match response with
+                    | FormatDocumentResponse.Error(_, message) ->
+                        Assert.That(message, Does.Contain "Carriage returns are not valid")
+                    | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
+                }
+            )
         |> Async.RunSynchronously
 
     (theOnlyWarning warnings).Problems |> should be Empty
@@ -690,20 +748,25 @@ let ``format selection reports configuration warnings too`` () =
     use codeFile = new TemporaryFileCodeSample(sourceCode)
 
     let warnings =
-        runWithDaemonCollectingWarnings noEditorConfig (fun client ->
-            async {
-                let request =
-                    { SourceCode = sourceCode
-                      FilePath = codeFile.Filename
-                      Config = Some(readOnlyDict [ "fsharp_bogus_option", "true" ])
-                      Range = FormatSelectionRange(3, 0, 3, 19) }
+        runWithDaemonCollectingWarnings
+            noEditorConfig
+            (fun client ->
+                async {
+                    let request =
+                        {
+                            SourceCode = sourceCode
+                            FilePath = codeFile.Filename
+                            Config = Some(readOnlyDict [ "fsharp_bogus_option", "true" ])
+                            Range = FormatSelectionRange(3, 0, 3, 19)
+                        }
 
-                let! _response =
-                    client.InvokeAsync<FormatSelectionResponse>(Methods.FormatSelection, request)
-                    |> Async.AwaitTask
+                    let! _response =
+                        client.InvokeAsync<FormatSelectionResponse>(Methods.FormatSelection, request)
+                        |> Async.AwaitTask
 
-                return ()
-            })
+                    return ()
+                }
+            )
         |> Async.RunSynchronously
 
     (theOnlyWarning warnings).Problems
@@ -745,10 +808,12 @@ let ``format nested ignored file`` () =
             use _ignoreFixture = new FantomasIgnoreFile("src/Compiler/Checking/NicePrint.fs")
 
             let request =
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = None
-                  Cursor = None }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = None
+                    Cursor = None
+                }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -757,7 +822,8 @@ let ``format nested ignored file`` () =
             match response with
             | FormatDocumentResponse.IgnoredFile _ -> Assert.Pass()
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )
 
 [<Test>]
 let ``format cursor`` () =
@@ -772,10 +838,12 @@ let a =
             use codeFile = new TemporaryFileCodeSample(sourceCode)
 
             let request =
-                { SourceCode = sourceCode
-                  FilePath = codeFile.Filename
-                  Config = None
-                  Cursor = Some(FormatCursorPosition(3, 8)) }
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = None
+                    Cursor = Some(FormatCursorPosition(3, 8))
+                }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -786,4 +854,5 @@ let a =
                 Assert.AreEqual(1, cursor.Line)
                 Assert.AreEqual(12, cursor.Column)
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
-        })
+        }
+    )

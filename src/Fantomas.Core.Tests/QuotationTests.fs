@@ -69,7 +69,8 @@ let action =
     @>
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -151,7 +152,8 @@ let ``overly aggressive de-indentation, 2110`` () =
 """
         { config with
             IndentSize = 2
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

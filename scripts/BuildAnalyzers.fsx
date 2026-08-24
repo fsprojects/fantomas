@@ -76,8 +76,10 @@ let targetsFor (files: string list) : AnalysisTarget list =
             | [] -> None
             | owned ->
                 Some
-                    { Project = project
-                      Files = List.map (fun (file: string) -> repositoryRoot </> file) owned })
+                    {
+                        Project = project
+                        Files = List.map (fun (file: string) -> repositoryRoot </> file) owned
+                    })
 
 /// Where the analyzer project this repository owns is built to. It is deliberately outside the
 /// solution and does not inherit the root `Directory.Build.props`, so this is an ordinary
@@ -127,14 +129,16 @@ let analyzerPaths () : Async<string list> =
         let properties = JsonValue.Parse(result.StandardOutput).GetProperty("Properties")
 
         return
-            [ for property in properties.Properties() do
-                  let name, value = property
+            [
+                for property in properties.Properties() do
+                    let name, value = property
 
-                  match value.AsString() with
-                  | "" -> failwith $"MSBuild has no value for {name}. Run `dotnet restore` first."
-                  | path -> path </> "analyzers" </> "dotnet" </> "fs"
+                    match value.AsString() with
+                    | "" -> failwith $"MSBuild has no value for {name}. Run `dotnet restore` first."
+                    | path -> path </> "analyzers" </> "dotnet" </> "fs"
 
-              localAnalyzerPath ]
+                localAnalyzerPath
+            ]
     }
 
 /// The number of results a single analyzer report holds, used to report what a project turned up
@@ -163,11 +167,13 @@ let sarifResultCount (report: string) : int =
 /// The same record with one property replaced, leaving every other property where it was.
 let withProperty (name: string) (value: JsonValue) (record: JsonValue) : JsonValue =
     JsonValue.Record
-        [| for existing, current in record.Properties() ->
-               if existing = name then
-                   existing, value
-               else
-                   existing, current |]
+        [|
+            for existing, current in record.Properties() ->
+                if existing = name then
+                    existing, value
+                else
+                    existing, current
+        |]
 
 /// A run's `tool.driver.rules`, which is empty when it has none.
 let rulesOf (run: JsonValue) : JsonValue array =
@@ -263,15 +269,21 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
 
         let merged =
             JsonValue.Record
-                [| "$schema", firstDocument.GetProperty("$schema")
-                   "version", firstDocument.GetProperty("version")
-                   "runs",
-                   JsonValue.Array
-                       [| JsonValue.Record
-                              [| "tool", (withRules (Array.ofList rules) firstRun).GetProperty("tool")
-                                 "columnKind", firstRun.GetProperty("columnKind")
-                                 "results", JsonValue.Array(Array.ofList results)
-                                 "invocations", concat "invocations" |] |] |]
+                [|
+                    "$schema", firstDocument.GetProperty("$schema")
+                    "version", firstDocument.GetProperty("version")
+                    "runs",
+                    JsonValue.Array
+                        [|
+                            JsonValue.Record
+                                [|
+                                    "tool", (withRules (Array.ofList rules) firstRun).GetProperty("tool")
+                                    "columnKind", firstRun.GetProperty("columnKind")
+                                    "results", JsonValue.Array(Array.ofList results)
+                                    "invocations", concat "invocations"
+                                |]
+                        |]
+                |]
 
         File.WriteAllText(target, merged.ToString())
     | _ -> failwith "The analyzers wrote no report to merge."
@@ -427,11 +439,13 @@ let narrowReport (keep: FindingFilter) (report: string) : unit =
 
         let narrowed: JsonValue =
             JsonValue.Record
-                [| for name, value in document.Properties() ->
-                       if name = "runs" then
-                           name, JsonValue.Array runs
-                       else
-                           name, value |]
+                [|
+                    for name, value in document.Properties() ->
+                        if name = "runs" then
+                            name, JsonValue.Array runs
+                        else
+                            name, value
+                |]
 
         File.WriteAllText(report, narrowed.ToString())
 
@@ -467,29 +481,31 @@ let analyzeTargets (extraArguments: string list) (keep: FindingFilter) (targets:
                 let started = DateTime.UtcNow
 
                 let arguments =
-                    [ "fsharp-analyzers"
-                      // The test SDK generates this entry point into the compilation from the
-                      // package cache. It is part of what gets type checked but it is not ours.
-                      "--exclude-files"
-                      "**/Microsoft.NET.Test.Sdk.Program.fs"
-                      for analyzer in analyzers do
-                          "--analyzers-path"
-                          analyzer
-                      // One flag, then every file. Repeating the flag is an error, and the tool
-                      // answers it by printing its help and finding nothing, which reads as a
-                      // clean project.
-                      match target.Files with
-                      | [] -> ()
-                      | files ->
-                          "--include-files"
-                          yield! files
-                      "--code-root"
-                      repositoryRoot
-                      "--report"
-                      report
-                      yield! extraArguments
-                      "--project"
-                      repositoryRoot </> target.Project ]
+                    [
+                        "fsharp-analyzers"
+                        // The test SDK generates this entry point into the compilation from the
+                        // package cache. It is part of what gets type checked but it is not ours.
+                        "--exclude-files"
+                        "**/Microsoft.NET.Test.Sdk.Program.fs"
+                        for analyzer in analyzers do
+                            "--analyzers-path"
+                            analyzer
+                        // One flag, then every file. Repeating the flag is an error, and the tool
+                        // answers it by printing its help and finding nothing, which reads as a
+                        // clean project.
+                        match target.Files with
+                        | [] -> ()
+                        | files ->
+                            "--include-files"
+                            yield! files
+                        "--code-root"
+                        repositoryRoot
+                        "--report"
+                        report
+                        yield! extraArguments
+                        "--project"
+                        repositoryRoot </> target.Project
+                    ]
 
                 let! result =
                     Cli
@@ -532,7 +548,8 @@ let analyzeTargets (extraArguments: string list) (keep: FindingFilter) (targets:
 
         // Every analyzer process type checks a whole project, so a handful at a time is what keeps
         // the machine busy without the runs starving each other of memory.
-        let! results = Async.Parallel(List.map analyzeProject targets, max 2 (Environment.ProcessorCount / 2))
+        let! results =
+            Async.Parallel(List.map analyzeProject targets, max 2 (Environment.ProcessorCount / 2))
 
         mergeSarifReports (results |> Array.map fst |> List.ofArray) (mergedAnalysisReport)
 

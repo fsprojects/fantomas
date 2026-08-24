@@ -73,13 +73,15 @@ let snippet (lines: string array) (range: range) : string list =
         let lastLine = min lines.Length (range.StartLine + contextLines)
         let gutter = String.length (string<int> lastLine)
 
-        [ for number in firstLine..lastLine do
-              let lineNumber = (string<int> number).PadLeft(gutter)
-              yield $"%s{lineNumber} | %s{expandTabs lines.[number - 1]}"
+        [
+            for number in firstLine..lastLine do
+                let lineNumber = (string<int> number).PadLeft(gutter)
+                yield $"%s{lineNumber} | %s{expandTabs lines.[number - 1]}"
 
-              if number = range.StartLine then
-                  let indent, carets = caretRun lines.[number - 1] range
-                  yield $"%s{String(' ', gutter)} | %s{indent}%s{carets}" ]
+                if number = range.StartLine then
+                    let indent, carets = caretRun lines.[number - 1] range
+                    yield $"%s{String(' ', gutter)} | %s{indent}%s{carets}"
+        ]
 
 let renderParseFailure (file: string) (source: string) (diagnostics: FSharpParserDiagnostic list) : string =
     let ordered = List.sortBy position diagnostics
@@ -95,7 +97,8 @@ let renderParseFailure (file: string) (source: string) (diagnostics: FSharpParse
                 |> List.tryPick (fun diagnostic ->
                     match diagnostic.Severity, diagnostic.Range with
                     | FSharpDiagnosticSeverity.Error, Some range -> Some range
-                    | _ -> None)
+                    | _ -> None
+                )
 
             match firstError with
             | None -> []
@@ -108,11 +111,13 @@ let renderParseFailure (file: string) (source: string) (diagnostics: FSharpParse
 
     // The report ends with a blank line as well as starting with one, so that a run over several
     // files does not have one file's snippet running into the next file's header.
-    [ yield $"Fantomas could not parse %s{file}:"
-      yield ""
-      yield! List.map (headline file) ordered
-      yield! snippetLines
-      yield "" ]
+    [
+        yield $"Fantomas could not parse %s{file}:"
+        yield ""
+        yield! List.map (headline file) ordered
+        yield! snippetLines
+        yield ""
+    ]
     |> String.concat "\n"
 
 let describeParseFailure (file: string) (source: unit -> string) (error: exn) : string option =

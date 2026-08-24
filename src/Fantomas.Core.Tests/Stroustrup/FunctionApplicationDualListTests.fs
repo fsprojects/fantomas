@@ -7,7 +7,8 @@ open Fantomas.Core
 
 let config =
     { config with
-        ExperimentalElmish = true }
+        ExperimentalElmish = true
+    }
 
 [<Test>]
 let ``two short lists`` () =

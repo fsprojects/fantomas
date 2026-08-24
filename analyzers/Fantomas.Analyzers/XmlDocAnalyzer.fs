@@ -58,19 +58,22 @@ let analyze (fileName: string) (sourceFiles: string list) (parsedInput: ParsedIn
 
                 override _.WalkField(_path: SyntaxVisitorPath, field: SynField) : unit =
                     match field with
-                    | SynField(xmlDoc = doc) -> collect doc }
+                    | SynField(xmlDoc = doc) -> collect doc
+            }
 
         walkAst walker parsedInput
 
         ranges
         |> Seq.map (fun (doc: range) ->
-            { Type = Name
-              Message =
-                "Move this documentation comment to the signature file. Keeping a copy in both is a second one to keep in step, and the signature is the one readers and tooling see."
-              Code = Code
-              Severity = Severity.Warning
-              Range = doc
-              Fixes = [] })
+            {
+                Type = Name
+                Message =
+                    "Move this documentation comment to the signature file. Keeping a copy in both is a second one to keep in step, and the signature is the one readers and tooling see."
+                Code = Code
+                Severity = Severity.Warning
+                Range = doc
+                Fixes = []
+            })
         |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =

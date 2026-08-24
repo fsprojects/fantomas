@@ -8,9 +8,11 @@ open Fantomas.Core.SyntaxOak
 // =============================================================================
 
 type ShortExpressionInfo =
-    { MaxWidth: int
-      StartColumn: int
-      ConfirmedMultiline: bool }
+    {
+        MaxWidth: int
+        StartColumn: int
+        ConfirmedMultiline: bool
+    }
 
     member IsTooLong: maxPageWidth: int -> currentColumn: int -> bool
 
@@ -64,7 +66,7 @@ type Context =
     member Column: int
 
 [<NoComparison; NoEqualityAttribute>]
-type ColMultilineItem = ColMultilineItem of expr: (Context -> Context) * sepNln: (Context -> Context)
+type ColMultilineItem = | ColMultilineItem of expr: (Context -> Context) * sepNln: (Context -> Context)
 
 // =============================================================================
 // Core event machinery

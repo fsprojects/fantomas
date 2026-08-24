@@ -19,17 +19,19 @@ let hasSignatureFile (fileName: string) (sourceFiles: string list) : bool =
 
 let testAttributes: Set<string> =
     set
-        [ "Test"
-          "TestCase"
-          "TestCaseSource"
-          "Theory"
-          "Property"
-          "SetUp"
-          "TearDown"
-          "OneTimeSetUp"
-          "OneTimeTearDown"
-          "Explicit"
-          "Ignore" ]
+        [
+            "Test"
+            "TestCase"
+            "TestCaseSource"
+            "Theory"
+            "Property"
+            "SetUp"
+            "TearDown"
+            "OneTimeSetUp"
+            "OneTimeTearDown"
+            "Explicit"
+            "Ignore"
+        ]
 
 let isTest (attributes: SynAttributes) : bool =
     attributes

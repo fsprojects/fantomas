@@ -17,7 +17,8 @@ let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: rang
                 if String.isNotNullOrWhitespace line then
                     Some(lineNumber, line)
                 else
-                    None)
+                    None
+        )
 
     match Array.tryHead lines, Array.tryLast lines with
     | Some(startLineNumber, startLine), Some(endLineNumber, endLine) ->
@@ -356,7 +357,8 @@ let formatSelection
     (isSignature: bool)
     (selection: range)
     (sourceText: ISourceText)
-    : Async<string * range> =
+    : Async<string * range>
+    =
     async {
         let baseUntypedTree, baseDiagnostics =
             Fantomas.FCS.Parse.parseFile isSignature sourceText []
@@ -386,7 +388,8 @@ let formatSelection
             let selectionConfig =
                 { config with
                     InsertFinalNewline = false
-                    MaxLineLength = maxLineLength }
+                    MaxLineLength = maxLineLength
+                }
 
             let formattedSelection =
                 let context = Context.Context.Create selectionConfig

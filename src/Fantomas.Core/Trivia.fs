@@ -19,7 +19,8 @@ let internal collectTriviaFromCodeComments
     (source: ISourceText)
     (codeComments: CommentTrivia list)
     (codeRange: range)
-    : TriviaNode list =
+    : TriviaNode list
+    =
     codeComments
     |> List.choose (fun ct ->
         if not (RangeHelpers.rangeContainsRange codeRange ct.Range) then
@@ -58,7 +59,8 @@ let internal collectTriviaFromCodeComments
                     else
                         LineCommentAfterSourceCode content
 
-                Some(TriviaNode(content, r)))
+                Some(TriviaNode(content, r))
+    )
 
 let internal collectTriviaFromBlankLines
     (config: FormatConfig)
@@ -66,7 +68,8 @@ let internal collectTriviaFromBlankLines
     (rootNode: Node)
     (codeComments: CommentTrivia list)
     (codeRange: range)
-    : TriviaNode list =
+    : TriviaNode list
+    =
     if codeRange.StartLine = 0 && codeRange.EndLine = 0 then
         // weird edge cases where there is no source code but only hash defines
         []
@@ -98,9 +101,11 @@ let internal collectTriviaFromBlankLines
 
         let blockCommentLines =
             codeComments
-            |> List.collect (function
+            |> List.collect (
+                function
                 | CommentTrivia.BlockComment r -> captureLinesIfMultiline r
-                | CommentTrivia.LineComment _ -> [])
+                | CommentTrivia.LineComment _ -> []
+            )
 
         let ignoreLines =
             Set(
@@ -131,7 +136,8 @@ let internal collectTriviaFromBlankLines
                     if count < config.KeepMaxNumberOfBlankLines then
                         (count + 1), Some(TriviaNode(Newline, range))
                     else
-                        count, None)
+                        count, None
+        )
 
 type ConditionalDirectiveTrivia with
 
@@ -146,7 +152,8 @@ let internal collectTriviaFromDirectiveRanges
     (source: ISourceText)
     (directiveRanges: range list)
     (codeRange: range)
-    : TriviaNode list =
+    : TriviaNode list
+    =
     directiveRanges
     |> List.choose (fun directiveRange ->
         if not (RangeHelpers.rangeContainsRange codeRange directiveRange) then
@@ -154,7 +161,8 @@ let internal collectTriviaFromDirectiveRanges
         else
             let text = (source.GetSubTextFromRange directiveRange).TrimEnd()
             let content = Directive text
-            Some(TriviaNode(content, directiveRange)))
+            Some(TriviaNode(content, directiveRange))
+    )
 
 let rec findNodeWhereRangeFitsIn (root: Node) (range: range) : Node option =
     let doesSelectionFitInNode = RangeHelpers.rangeContainsRange root.Range range
@@ -247,7 +255,8 @@ let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia:
     result
     |> Option.iter (fun node ->
         let node = visitLastChildNode node
-        node.AddAfter(trivia))
+        node.AddAfter(trivia)
+    )
 
 /// Find a node that ended before the trivia and whose start column matches the trivia's column.
 /// Searches depth-first to find the deepest (most specific) match.
@@ -274,7 +283,8 @@ let rec findNodeBeforeWithMatchingColumn (node: Node) (triviaRange: range) : Nod
             if child.Range.StartColumn = triviaColumn then
                 Some child
             else
-                None)
+                None
+    )
 
 /// Assigns a trivia node (comment, blank line, directive) to the appropriate child
 /// of containerNode as either ContentBefore or ContentAfter.
@@ -357,7 +367,8 @@ let blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) :
 
             (range.StartLine > trivia.Range.StartLine)
             || (range.StartLine = trivia.Range.StartLine
-                && range.StartColumn > trivia.Range.StartColumn))
+                && range.StartColumn > trivia.Range.StartColumn)
+        )
 
     let nodeBefore =
         containerNode.Children
@@ -365,7 +376,8 @@ let blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) :
             let range = tn.Range
 
             range.EndLine <= trivia.Range.StartLine
-            && range.EndColumn <= trivia.Range.StartColumn)
+            && range.EndColumn <= trivia.Range.StartColumn
+        )
         |> Option.map visitLastChildNode
 
     let triviaWith newlineBefore newlineAfter =
@@ -495,9 +507,11 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
         let directiveRanges =
             (parsedTrivia.ConditionalDirectives |> List.map _.Range)
             @ (parsedTrivia.WarnDirectives
-               |> List.map (function
+               |> List.map (
+                   function
                    | WarnDirectiveTrivia.Nowarn(m)
-                   | WarnDirectiveTrivia.Warnon(m) -> m))
+                   | WarnDirectiveTrivia.Warnon(m) -> m
+               ))
 
         let directives =
             collectTriviaFromDirectiveRanges sourceText directiveRanges fullTreeRange

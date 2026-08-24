@@ -7,7 +7,8 @@ open Fantomas.Core
 
 let config =
     { config with
-        MultilineBracketStyle = Stroustrup }
+        MultilineBracketStyle = Stroustrup
+    }
 
 [<Test>]
 let ``anonymous struct record with trivia`` () =

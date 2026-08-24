@@ -7,7 +7,8 @@ open Fantomas.Core
 
 let config =
     { config with
-        BlankLinesAroundNestedMultilineExpressions = false }
+        BlankLinesAroundNestedMultilineExpressions = false
+    }
 
 [<Test>]
 let ``basic behavior`` () =
@@ -150,7 +151,8 @@ type MNIST(path:string, ?urls:seq<string>, ?train:bool, ?transform:Tensor->Tenso
 """
         { config with
             MaxLineLength = 100
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

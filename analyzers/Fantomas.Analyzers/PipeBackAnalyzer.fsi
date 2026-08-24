@@ -9,7 +9,8 @@ val Code: string = "FANTOMAS-PIPEBACK-001"
 val Name: string = "PipeBackAnalyzer"
 
 [<Literal>]
-val ShortDescription: string = "Detects the backward pipe operator, which reads against the direction the surrounding code is written in."
+val ShortDescription: string =
+    "Detects the backward pipe operator, which reads against the direction the surrounding code is written in."
 
 [<Literal>]
 val HelpUri: string = "https://github.com/fsprojects/fantomas/blob/main/analyzers/AGENTS.md#fantomas-pipeback-001"

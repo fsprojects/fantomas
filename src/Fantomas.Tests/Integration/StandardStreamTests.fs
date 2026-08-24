@@ -11,9 +11,11 @@ let WithErrors = """let a ="""
 let ``errors are written to standard error and not to standard out`` () =
     use fileFixture = new TemporaryFileCodeSample(WithErrors)
 
-    let { ExitCode = exitCode
-          Output = output
-          Error = error } =
+    let {
+            ExitCode = exitCode
+            Output = output
+            Error = error
+        } =
         formatCode [ fileFixture.Filename ]
 
     exitCode |> should equal 1
@@ -24,9 +26,11 @@ let ``errors are written to standard error and not to standard out`` () =
 let ``progress messages are written to standard out and not to standard error`` () =
     use fileFixture = new TemporaryFileCodeSample("let a =   0")
 
-    let { ExitCode = exitCode
-          Output = output
-          Error = error } =
+    let {
+            ExitCode = exitCode
+            Output = output
+            Error = error
+        } =
         formatCode [ fileFixture.Filename ]
 
     exitCode |> should equal 0
@@ -37,9 +41,11 @@ let ``progress messages are written to standard out and not to standard error`` 
 // Moving this to standard error would break every editor integration.
 [<Test>]
 let ``version is written to standard out`` () =
-    let { ExitCode = exitCode
-          Output = output
-          Error = error } =
+    let {
+            ExitCode = exitCode
+            Output = output
+            Error = error
+        } =
         runFantomasTool [ "--version" ]
 
     exitCode |> should equal 0
@@ -83,9 +89,11 @@ let ``version is answered even when the rest of the command line is not valid`` 
 let ``a parse failure is reported with its position and the source around it`` () =
     use fileFixture = new TemporaryFileCodeSample("module A\n\nlet a = (1 + 2\n")
 
-    let { ExitCode = exitCode
-          Output = output
-          Error = error } =
+    let {
+            ExitCode = exitCode
+            Output = output
+            Error = error
+        } =
         formatCode [ fileFixture.Filename ]
 
     exitCode |> should equal 1

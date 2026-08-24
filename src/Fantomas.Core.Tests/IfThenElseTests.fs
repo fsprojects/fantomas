@@ -11,7 +11,8 @@ let ``single line if without else`` () =
         "if foo then bar"
         { config with
             InsertFinalNewline = false
-            MaxIfThenShortWidth = 15 }
+            MaxIfThenShortWidth = 15
+        }
     |> should equal "if foo then bar"
 
 [<Test>]
@@ -66,7 +67,8 @@ let ``multiline if without else`` () =
 if foo && bar && meh then aha
 """
         { config with
-            MaxInfixOperatorExpression = 5 }
+            MaxInfixOperatorExpression = 5
+        }
     |> prepend newline
     |> should
         equal
@@ -910,7 +912,8 @@ else
     -1
 """
         { config with
-            MaxInfixOperatorExpression = 55 }
+            MaxInfixOperatorExpression = 55
+        }
     |> prepend newline
     |> should
         equal
@@ -973,7 +976,8 @@ let (|Integer|_|) (str: string) =
    else None
 """
         { config with
-            MaxIfThenElseShortWidth = 70 }
+            MaxIfThenElseShortWidth = 70
+        }
     |> prepend newline
     |> should
         equal
@@ -989,7 +993,8 @@ let ``longer elif condition`` () =
         """if a then b elif somethingABitLongerToForceDifferentStyle then c else d
 """
         { config with
-            MaxIfThenElseShortWidth = 53 }
+            MaxIfThenElseShortWidth = 53
+        }
     |> prepend newline
     |> should
         equal
@@ -1006,7 +1011,8 @@ let ``impact of MaxIfThenElseShortWidth setting, longer bool expression`` () =
     formatSourceString
         source
         { config with
-            MaxIfThenElseShortWidth = 10 }
+            MaxIfThenElseShortWidth = 10
+        }
     |> prepend newline
     |> should
         equal
@@ -1040,7 +1046,8 @@ if a then (tare + netWeight) + 10000 else 0
     formatSourceString
         source
         { config with
-            MaxIfThenElseShortWidth = 40 }
+            MaxIfThenElseShortWidth = 40
+        }
     |> prepend newline
     |> should
         equal
@@ -1066,7 +1073,8 @@ if a then 0 else (tare + netWeight) + 10
     formatSourceString
         source
         { config with
-            MaxIfThenElseShortWidth = 20 }
+            MaxIfThenElseShortWidth = 20
+        }
     |> prepend newline
     |> should
         equal
@@ -1090,7 +1098,8 @@ module String =
                 if String.length a' < String.length b' then a' else b'
 """
         { config with
-            MaxIfThenElseShortWidth = 100 }
+            MaxIfThenElseShortWidth = 100
+        }
     |> prepend newline
     |> should
         equal
@@ -1227,7 +1236,8 @@ let ``don't add additional new line before nested if/then, 1035`` () =
         { config with
             MaxValueBindingWidth = 50
             MaxFunctionBindingWidth = 50
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1464,7 +1474,8 @@ let code =
 "
         { config with
             MaxLineLength = 60
-            IndentSize = 2 }
+            IndentSize = 2
+        }
     |> prepend newline
     |> should
         equal
@@ -1546,7 +1557,8 @@ elif cccccccccccccccccccccccc then d
 else f
 """
         { config with
-            MaxIfThenElseShortWidth = 20 }
+            MaxIfThenElseShortWidth = 20
+        }
     |> prepend newline
     |> should
         equal
@@ -1830,7 +1842,8 @@ module Configuration =
     then config.Save file
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1908,7 +1921,8 @@ module Configuration =
     then config.Save file
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1969,7 +1983,8 @@ let lessonsForm (f:ValidatedForm<Request.CreateLessons>) dispatch =
     ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2031,7 +2046,8 @@ let ``multiline infix expression in if expression, 1584`` () =
                 return formattedSourceCode
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2184,7 +2200,8 @@ else
     failwith ""
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2244,7 +2261,8 @@ else
     failwith ""
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2294,7 +2312,8 @@ let ``multiple multiline elifs`` () =
             failAndExit ()
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2405,7 +2424,8 @@ let ``multiline if/then/else followed by infix, no parenthesis needed`` () =
 """
         { config with
             IndentSize = 2
-            MaxIfThenElseShortWidth = 9000 }
+            MaxIfThenElseShortWidth = 9000
+        }
     |> prepend newline
     |> should
         equal
@@ -2427,7 +2447,8 @@ if
         None
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2453,7 +2474,8 @@ if
         None
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2573,7 +2595,8 @@ else
     res
 """
         { config with
-            KeepMaxNumberOfBlankLines = 1 }
+            KeepMaxNumberOfBlankLines = 1
+        }
     |> prepend newline
     |> should
         equal
@@ -2605,7 +2628,8 @@ let ``always force list items to be on separate lines in if/then/else, 2972`` ()
 ]
 """
         { config with
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal

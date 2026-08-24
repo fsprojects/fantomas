@@ -103,9 +103,11 @@ let main argv =
             new FantomasDaemon(
                 Console.OpenStandardOutput(),
                 Console.OpenStandardInput(),
-                { FileSystem = fileSystem
-                  ReadConfiguration = EditorConfig.tryReadConfiguration
-                  Log = log }
+                {
+                    FileSystem = fileSystem
+                    ReadConfiguration = EditorConfig.tryReadConfiguration
+                    Log = log
+                }
             )
 
         AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> (daemon :> IDisposable).Dispose())
@@ -118,20 +120,24 @@ let main argv =
         // the same guard the commands run under rather than before it.
         try
             let environment: CliEnvironment =
-                { FileSystem = fileSystem
-                  IgnoreFile =
-                    IgnoreFile.findInDirectory
-                        fileSystem
-                        Environment.CurrentDirectory
-                        (IgnoreFile.loadIgnoreList fileSystem)
-                  ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter log)
-                  Log = log
-                  Console = AnsiConsole.Console }
+                {
+                    FileSystem = fileSystem
+                    IgnoreFile =
+                        IgnoreFile.findInDirectory
+                            fileSystem
+                            Environment.CurrentDirectory
+                            (IgnoreFile.loadIgnoreList fileSystem)
+                    ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter log)
+                    Log = log
+                    Console = AnsiConsole.Console
+                }
 
             let settings: CliSettings =
-                { Force = force
-                  Profile = profile
-                  Verbosity = verbosity }
+                {
+                    Force = force
+                    Profile = profile
+                    Verbosity = verbosity
+                }
 
             if check then
                 let result: CheckCommandResult = runCheckCommand environment inputPath

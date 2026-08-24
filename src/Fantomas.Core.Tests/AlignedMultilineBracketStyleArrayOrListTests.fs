@@ -9,7 +9,8 @@ let config =
     { config with
         MultilineBracketStyle = Aligned
         SpaceBeforeColon = true
-        SpaceBeforeSemicolon = true }
+        SpaceBeforeSemicolon = true
+    }
 
 [<Test>]
 let ``array values`` () =
@@ -404,7 +405,8 @@ module Foo =
             MultilineBracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             MultiLineLambdaClosingNewline = true
-            MaxArrayOrListWidth = 40 }
+            MaxArrayOrListWidth = 40
+        }
     |> prepend newline
     |> should
         equal

@@ -9,7 +9,8 @@ let defaultConfig = config
 
 let config =
     { config with
-        MultiLineLambdaClosingNewline = true }
+        MultiLineLambdaClosingNewline = true
+    }
 
 [<Test>]
 let ``function with single multiline lambda`` () =
@@ -28,7 +29,8 @@ List.collect (fun (a, element) ->
 )
 """
         { config with
-            MaxInfixOperatorExpression = 35 }
+            MaxInfixOperatorExpression = 35
+        }
     |> prepend newline
     |> should
         equal
@@ -105,7 +107,8 @@ let printListWithOffset a list1 =
     ) list1
 """
         { defaultConfig with
-            MaxInfixOperatorExpression = 5 }
+            MaxInfixOperatorExpression = 5
+        }
     |> prepend newline
     |> should
         equal
@@ -222,7 +225,8 @@ let printListWithOffset a list1 =
     )
 """
         { config with
-            MaxInfixOperatorExpression = 10 }
+            MaxInfixOperatorExpression = 10
+        }
     |> prepend newline
     |> should
         equal
@@ -293,7 +297,8 @@ let foldList a list1 =
     |> List.fold (((+) a) >> printfn "%d") someVeryLongAccumulatorNameThatMakesTheWholeConstructMultilineBecauseOfTheLongName
 """
         { defaultConfig with
-            MaxInfixOperatorExpression = 35 }
+            MaxInfixOperatorExpression = 35
+        }
     |> prepend newline
     |> should
         equal
@@ -329,7 +334,8 @@ myValue.UppercaseMemberCall(fun x ->
     x + y)
 """
         { config with
-            SpaceBeforeUppercaseInvocation = false }
+            SpaceBeforeUppercaseInvocation = false
+        }
     |> prepend newline
     |> should
         equal
@@ -358,7 +364,8 @@ myValue.UppercaseMemberCall(fun x ->
     x + y)
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -387,7 +394,8 @@ myValue.lowercaseMemberCall(fun x ->
     x + y)
 """
         { config with
-            SpaceBeforeLowercaseInvocation = false }
+            SpaceBeforeLowercaseInvocation = false
+        }
     |> prepend newline
     |> should
         equal
@@ -416,7 +424,8 @@ myValue.lowercaseMemberCall(fun x ->
     x + y)
 """
         { config with
-            SpaceBeforeLowercaseInvocation = true }
+            SpaceBeforeLowercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -502,7 +511,8 @@ let choose chooser source =
         Set.empty
 """
         { config with
-            SpaceBeforeLowercaseInvocation = false }
+            SpaceBeforeLowercaseInvocation = false
+        }
     |> prepend newline
     |> should
         equal
@@ -531,7 +541,8 @@ module Caching =
 """
         { config with
             MaxLineLength = 80
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -571,7 +582,8 @@ module Foo =
             SpaceBeforeSemicolon = true
             MultilineBracketStyle = Aligned
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+        }
     |> prepend newline
     |> should
         equal
@@ -649,7 +661,8 @@ module Foo =
 """
         { config with
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+        }
     |> prepend newline
     |> should
         equal
@@ -709,7 +722,8 @@ module Foo =
 """
         { config with
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+        }
     |> prepend newline
     |> should
         equal

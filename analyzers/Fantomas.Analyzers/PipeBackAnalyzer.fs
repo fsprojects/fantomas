@@ -38,18 +38,21 @@ let analyze (parsedInput: ParsedInput) : Message list =
                 | SynExpr.Ident ident
                 | SynExpr.LongIdent(longDotId = SynLongIdent(id = [ ident ])) when backwardPipes.Contains ident.idText ->
                     ranges.Add ident.idRange
-                | _ -> () }
+                | _ -> ()
+        }
 
     walkAst walker parsedInput
 
     ranges
     |> Seq.map (fun (operator: range) ->
-        { Type = Name
-          Message = "Do not use the backward pipe operator. Parenthesise the argument instead."
-          Code = Code
-          Severity = Severity.Error
-          Range = operator
-          Fixes = [] })
+        {
+            Type = Name
+            Message = "Do not use the backward pipe operator. Parenthesise the argument instead."
+            Code = Code
+            Severity = Severity.Error
+            Range = operator
+            Fixes = []
+        })
     |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =

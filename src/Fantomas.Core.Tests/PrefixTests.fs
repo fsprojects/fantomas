@@ -116,26 +116,28 @@ let ``prefix application with interpolated string, 1414`` () =
 """
 
 let operator_application_literal_values_with_sign =
-    [ "-86y"
-      "-86s"
-      "-86"
-      "-86l"
-      "-123n"
-      "-86L"
-      "-4.41F"
-      "-4.14"
-      "-12456I"
-      "-0.7833M"
-      "+46y"
-      "+46s"
-      "+46"
-      "+46l"
-      "+423n"
-      "+46L"
-      "+3.41F"
-      "+3.14"
-      "+32456I"
-      "+0.7833M" ]
+    [
+        "-86y"
+        "-86s"
+        "-86"
+        "-86l"
+        "-123n"
+        "-86L"
+        "-4.41F"
+        "-4.14"
+        "-12456I"
+        "-0.7833M"
+        "+46y"
+        "+46s"
+        "+46"
+        "+46l"
+        "+423n"
+        "+46L"
+        "+3.41F"
+        "+3.14"
+        "+32456I"
+        "+0.7833M"
+    ]
 
 [<TestCaseSource("operator_application_literal_values_with_sign")>]
 let ``operators maintain spacing from literal values which start with + or -`` (literalValue: string) =
@@ -152,16 +154,18 @@ let subtractTwo = + %s{literalValue}
 """
 
 let operator_application_literal_values_without_sign =
-    [ "86uy"
-      "86us"
-      "86u"
-      "86ul"
-      "0x00002D3Fun"
-      "86UL"
-      "'a'"
-      "\"text\""
-      "'a'B"
-      "\"text\"B" ]
+    [
+        "86uy"
+        "86us"
+        "86u"
+        "86ul"
+        "0x00002D3Fun"
+        "86UL"
+        "'a'"
+        "\"text\""
+        "'a'B"
+        "\"text\"B"
+    ]
 
 [<TestCaseSource("operator_application_literal_values_without_sign")>]
 let ``no space added between prefix operators and literal values that do not start with a symbol``

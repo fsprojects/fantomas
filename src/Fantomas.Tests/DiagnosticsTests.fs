@@ -11,11 +11,13 @@ open Fantomas.FCS.Text
 // numbers the parser produces move when the vendored compiler is bumped, and what these tests
 // are about is the rendering.
 let private diagnostic severity errorNumber message (startLine, startColumn) (endLine, endColumn) =
-    { Severity = severity
-      SubCategory = "parse"
-      Range = Some(Range.mkRange "tmp.fsx" (Position.mkPos startLine startColumn) (Position.mkPos endLine endColumn))
-      ErrorNumber = Some errorNumber
-      Message = message }
+    {
+        Severity = severity
+        SubCategory = "parse"
+        Range = Some(Range.mkRange "tmp.fsx" (Position.mkPos startLine startColumn) (Position.mkPos endLine endColumn))
+        ErrorNumber = Some errorNumber
+        Message = message
+    }
 
 let private error errorNumber message start finish =
     diagnostic FSharpDiagnosticSeverity.Error errorNumber message start finish
@@ -36,10 +38,12 @@ let ``a diagnostic is reported as an MSBuild style line with a one based column`
     lines rendered
     |> should
         equal
-        [ "Fantomas could not parse /tmp/bad.fs:"
-          ""
-          "/tmp/bad.fs(3,9): error FS0583: Unmatched '('"
-          "" ]
+        [
+            "Fantomas could not parse /tmp/bad.fs:"
+            ""
+            "/tmp/bad.fs(3,9): error FS0583: Unmatched '('"
+            ""
+        ]
 
 [<Test>]
 let ``the file the caller names is reported, not the one the parser was handed`` () =
@@ -54,17 +58,21 @@ let ``diagnostics are ordered by position, not by the order the parser produced 
         Diagnostics.renderParseFailure
             "bad.fs"
             ""
-            [ error 58 "Offside" (4, 0) (4, 3)
-              error 3118 "Incomplete value or function definition" (3, 0) (3, 3) ]
+            [
+                error 58 "Offside" (4, 0) (4, 3)
+                error 3118 "Incomplete value or function definition" (3, 0) (3, 3)
+            ]
 
     lines rendered
     |> should
         equal
-        [ "Fantomas could not parse bad.fs:"
-          ""
-          "bad.fs(3,1): error FS3118: Incomplete value or function definition"
-          "bad.fs(4,1): error FS0058: Offside"
-          "" ]
+        [
+            "Fantomas could not parse bad.fs:"
+            ""
+            "bad.fs(3,1): error FS3118: Incomplete value or function definition"
+            "bad.fs(4,1): error FS0058: Offside"
+            ""
+        ]
 
 [<Test>]
 let ``a warning keeps its severity`` () =
@@ -90,11 +98,15 @@ let ``a diagnostic without a range is still reported`` () =
         Diagnostics.renderParseFailure
             "bad.fs"
             ""
-            [ { Severity = FSharpDiagnosticSeverity.Error
-                SubCategory = "parse"
-                Range = None
-                ErrorNumber = None
-                Message = "Something went wrong" } ]
+            [
+                {
+                    Severity = FSharpDiagnosticSeverity.Error
+                    SubCategory = "parse"
+                    Range = None
+                    ErrorNumber = None
+                    Message = "Something went wrong"
+                }
+            ]
 
     rendered |> should contain "bad.fs: error FS0000: Something went wrong"
 
@@ -106,17 +118,19 @@ let ``the snippet shows two lines either side with a caret under the range`` () 
     lines rendered
     |> should
         equal
-        [ "Fantomas could not parse bad.fs:"
-          ""
-          "bad.fs(3,9): error FS0583: Unmatched '('"
-          ""
-          "1 | module A"
-          "2 | "
-          "3 | let a = (1 + 2"
-          "  |         ^"
-          "4 | "
-          "5 | let b = 2"
-          "" ]
+        [
+            "Fantomas could not parse bad.fs:"
+            ""
+            "bad.fs(3,9): error FS0583: Unmatched '('"
+            ""
+            "1 | module A"
+            "2 | "
+            "3 | let a = (1 + 2"
+            "  |         ^"
+            "4 | "
+            "5 | let b = 2"
+            ""
+        ]
 
 [<Test>]
 let ``the caret goes on the first error, not on a warning that sorts ahead of it`` () =
@@ -124,8 +138,10 @@ let ``the caret goes on the first error, not on a warning that sorts ahead of it
         Diagnostics.renderParseFailure
             "bad.fs"
             source
-            [ warning 1104 "Reserved" (1, 0) (1, 6)
-              error 583 "Unmatched '('" (3, 8) (3, 9) ]
+            [
+                warning 1104 "Reserved" (1, 0) (1, 6)
+                error 583 "Unmatched '('" (3, 8) (3, 9)
+            ]
 
     rendered |> should contain "3 | let a = (1 + 2"
     rendered |> should contain "  |         ^"
@@ -138,14 +154,16 @@ let ``the window is clipped at the start and the end of the file`` () =
     lines rendered
     |> should
         equal
-        [ "Fantomas could not parse bad.fs:"
-          ""
-          "bad.fs(1,1): error FS0010: Unexpected"
-          ""
-          "1 | let a = 1"
-          "  | ^^^"
-          "2 | "
-          "" ]
+        [
+            "Fantomas could not parse bad.fs:"
+            ""
+            "bad.fs(1,1): error FS0010: Unexpected"
+            ""
+            "1 | let a = 1"
+            "  | ^^^"
+            "2 | "
+            ""
+        ]
 
 [<Test>]
 let ``tabs are expanded in the line and under the caret, so the two stay aligned`` () =
@@ -158,16 +176,18 @@ let ``tabs are expanded in the line and under the caret, so the two stay aligned
     lines rendered
     |> should
         equal
-        [ "Fantomas could not parse bad.fs:"
-          ""
-          "bad.fs(3,10): error FS0583: Unmatched '('"
-          ""
-          "1 | module A"
-          "2 | "
-          "3 |     let a = (1"
-          "  |             ^"
-          "4 | "
-          "" ]
+        [
+            "Fantomas could not parse bad.fs:"
+            ""
+            "bad.fs(3,10): error FS0583: Unmatched '('"
+            ""
+            "1 | module A"
+            "2 | "
+            "3 |     let a = (1"
+            "  |             ^"
+            "4 | "
+            ""
+        ]
 
 [<Test>]
 let ``a tab inside the range widens the caret run by as much as it widened the line`` () =
@@ -177,16 +197,18 @@ let ``a tab inside the range widens the caret run by as much as it widened the l
     lines rendered
     |> should
         equal
-        [ "Fantomas could not parse bad.fs:"
-          ""
-          "bad.fs(3,4): error FS0010: Unexpected"
-          ""
-          "1 | module A"
-          "2 | "
-          "3 | let a    = 1"
-          "  |    ^^^^^^^"
-          "4 | "
-          "" ]
+        [
+            "Fantomas could not parse bad.fs:"
+            ""
+            "bad.fs(3,4): error FS0010: Unexpected"
+            ""
+            "1 | module A"
+            "2 | "
+            "3 | let a    = 1"
+            "  |    ^^^^^^^"
+            "4 | "
+            ""
+        ]
 
 [<Test>]
 let ``a range that runs past its first line is underlined to the end of that line`` () =
@@ -203,10 +225,12 @@ let ``a range beyond the end of the file leaves the snippet out rather than thro
     lines rendered
     |> should
         equal
-        [ "Fantomas could not parse bad.fs:"
-          ""
-          "bad.fs(40,1): error FS0010: Unexpected"
-          "" ]
+        [
+            "Fantomas could not parse bad.fs:"
+            ""
+            "bad.fs(40,1): error FS0010: Unexpected"
+            ""
+        ]
 
 [<Test>]
 let ``without source there is no snippet`` () =

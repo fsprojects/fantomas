@@ -119,13 +119,15 @@ let mkGithubRelease (v: SemanticVersion, d: DateTime, cd: ChangelogData option) 
         let publishDate = getPublishedDate version
 
         let sections =
-            [ "Added", cd.Added
-              "Changed", cd.Changed
-              "Fixed", cd.Fixed
-              "Deprecated", cd.Deprecated
-              "Removed", cd.Removed
-              "Security", cd.Security
-              yield! (Map.toList cd.Custom) ]
+            [
+                "Added", cd.Added
+                "Changed", cd.Changed
+                "Fixed", cd.Fixed
+                "Deprecated", cd.Deprecated
+                "Removed", cd.Removed
+                "Security", cd.Security
+                yield! (Map.toList cd.Custom)
+            ]
             |> List.choose (fun (header, lines) ->
                 if lines.IsEmpty then
                     None
@@ -142,11 +144,13 @@ let mkGithubRelease (v: SemanticVersion, d: DateTime, cd: ChangelogData option) 
 
 {sections}"""
 
-        { Version = version
-          Title = title
-          Date = d
-          PublishedDate = publishDate
-          Draft = draft }
+        {
+            Version = version
+            Title = title
+            Date = d
+            PublishedDate = publishDate
+            Draft = draft
+        }
 
 let getReleaseNotes (currentRelease: GithubRelease) (lastPublishedDate: string option) : string =
     let date =

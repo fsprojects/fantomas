@@ -8,7 +8,8 @@ open Fantomas.Core.Tests.TestHelpers
 let config =
     { config with
         MultilineBracketStyle = Stroustrup
-        MaxArrayOrListWidth = 40 }
+        MaxArrayOrListWidth = 40
+    }
 
 [<Test>]
 let ``synbinding function with record instance `` () =

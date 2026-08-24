@@ -64,7 +64,8 @@ let ``parsed oak can be formatted back to source`` () =
         CodeFormatter.FormatOakAsync(
             oak,
             { FormatConfig.Default with
-                InsertFinalNewline = false }
+                InsertFinalNewline = false
+            }
         )
         |> Async.RunSynchronously
 
@@ -135,15 +136,19 @@ let ``GetWriterEventsAsync emits NodeStart and NodeEnd events`` () =
 
     let nodeStarts =
         events
-        |> Array.choose (function
+        |> Array.choose (
+            function
             | WriterEvent.NodeStart(nodeType, _) -> Some nodeType
-            | _ -> None)
+            | _ -> None
+        )
 
     let nodeEnds =
         events
-        |> Array.choose (function
+        |> Array.choose (
+            function
             | WriterEvent.NodeEnd(nodeType, _) -> Some nodeType
-            | _ -> None)
+            | _ -> None
+        )
 
     Assert.That(nodeStarts, Is.Not.Empty)
     Assert.That(nodeEnds, Is.Not.Empty)

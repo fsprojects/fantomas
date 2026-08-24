@@ -30,6 +30,8 @@ type CliEnvironment =
 /// What the user asked for. Kept apart from the environment because a test varies these on every
 /// case and the environment on almost none.
 type CliSettings =
-    { Force: bool
-      Profile: bool
-      Verbosity: VerbosityLevel }
+    {
+        Force: bool
+        Profile: bool
+        Verbosity: VerbosityLevel
+    }

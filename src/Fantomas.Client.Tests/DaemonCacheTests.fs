@@ -35,13 +35,16 @@ let private operationsFor
     (recorder: Recorder)
     (find: Folder -> Result<FantomasToolFound, FantomasToolError>)
     (create: FantomasToolStartInfo -> Result<FakeDaemon, ProcessStartError>)
-    : DaemonOperations<FakeDaemon> =
-    { FindTool = find
-      Create =
-        fun startInfo ->
-            let created = create startInfo
-            created |> Result.iter recorder.Record
-            created }
+    : DaemonOperations<FakeDaemon>
+    =
+    {
+        FindTool = find
+        Create =
+            fun startInfo ->
+                let created = create startInfo
+                created |> Result.iter recorder.Record
+                created
+    }
 
 let private findsVersion (version: FantomasVersion) (folder: Folder) : Result<FantomasToolFound, FantomasToolError> =
     Ok(FantomasToolFound(version, FantomasToolStartInfo.LocalTool folder))
@@ -233,8 +236,10 @@ let ``a cache that lost track of a daemon resolves the tool again rather than gi
     let operations = operationsFor recorder (findsVersion version) (startsFine (ref 0))
 
     let lostTrack =
-        { Daemons = Map.empty
-          FolderToVersion = Map.ofList [ folder, version ] }
+        {
+            Daemons = Map.empty
+            FolderToVersion = Map.ofList [ folder, version ]
+        }
 
     let recovered, state = resolveDaemon operations lostTrack folder
 

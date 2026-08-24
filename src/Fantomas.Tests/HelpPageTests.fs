@@ -14,15 +14,17 @@ let private anyEscapeSequence: Regex = Regex(@"\[[0-9;]*m")
 [<Test>]
 let ``the page lists every flag`` () =
     for flag in
-        [ "--check"
-          "--out"
-          "--force"
-          "--profile"
-          "--json"
-          "--daemon"
-          "--verbosity"
-          "--version"
-          "--help" ] do
+        [
+            "--check"
+            "--out"
+            "--force"
+            "--profile"
+            "--json"
+            "--daemon"
+            "--verbosity"
+            "--version"
+            "--help"
+        ] do
         plainPage |> shouldContainText flag
 
 [<Test>]
@@ -46,11 +48,13 @@ let ``the commit hash is trimmed to the short form git itself shows`` () =
 [<Test>]
 let ``the page links the documentation, the Discord and the llms files`` () =
     for url in
-        [ "https://fsprojects.github.io/fantomas/docs"
-          "https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html"
-          "https://discord.com/channels/196693847965696000/1493226271767924747"
-          "https://fsprojects.github.io/fantomas/llms.txt"
-          "https://fsprojects.github.io/fantomas/llms-full.txt" ] do
+        [
+            "https://fsprojects.github.io/fantomas/docs"
+            "https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html"
+            "https://discord.com/channels/196693847965696000/1493226271767924747"
+            "https://fsprojects.github.io/fantomas/llms.txt"
+            "https://fsprojects.github.io/fantomas/llms-full.txt"
+        ] do
         plainPage |> shouldContainText url
 
 [<Test>]

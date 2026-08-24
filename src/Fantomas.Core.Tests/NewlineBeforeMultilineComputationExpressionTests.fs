@@ -8,7 +8,8 @@ open Fantomas.Core
 let config =
     { config with
         NewlineBeforeMultilineComputationExpression = false
-        MaxArrayOrListWidth = 40 }
+        MaxArrayOrListWidth = 40
+    }
 
 [<Test>]
 let ``prefer computation expression name on same line`` () =
@@ -681,7 +682,8 @@ fun _ -> task { // foo
                 () }
 """
         { FormatConfig.Default with
-            MultilineBracketStyle = Stroustrup }
+            MultilineBracketStyle = Stroustrup
+        }
     |> prepend newline
     |> should
         equal

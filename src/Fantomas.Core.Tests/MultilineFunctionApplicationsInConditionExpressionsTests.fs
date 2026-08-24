@@ -112,7 +112,8 @@ let c =
 """
         { config with
             MaxLineLength = 40
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -268,7 +269,8 @@ let c =
 """
         { config with
             MaxLineLength = 40
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal

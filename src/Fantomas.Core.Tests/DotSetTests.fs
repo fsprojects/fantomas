@@ -12,7 +12,8 @@ let ``function application with parentheses should not respect SpaceBeforeUpperc
 c.P.Add(x).Value <- v
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -29,7 +30,8 @@ let foo =
     "fooo"
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -46,7 +48,8 @@ let ``dotSet with unit param on lhs`` () =
 app().foo <- thing
 """
         { config with
-            SpaceBeforeLowercaseInvocation = true }
+            SpaceBeforeLowercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -61,7 +64,8 @@ let ``dotSet with DotGet then unit param on lhs`` () =
 app.last().foo <- foo().thing.other().thing
 """
         { config with
-            SpaceBeforeLowercaseInvocation = true }
+            SpaceBeforeLowercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -84,7 +88,8 @@ app().foo <- {|
 """
         { config with
             SpaceBeforeLowercaseInvocation = true
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

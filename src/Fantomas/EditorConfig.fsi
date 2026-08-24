@@ -5,10 +5,12 @@ open Fantomas.Core
 module Reflection =
 
     type FSharpRecordField =
-        { PropertyName: string
-          Category: string option
-          DisplayName: string option
-          Description: string option }
+        {
+            PropertyName: string
+            Category: string option
+            DisplayName: string option
+            Description: string option
+        }
 
     val inline getRecordFields: x: 'a -> (FSharpRecordField * obj) array
 

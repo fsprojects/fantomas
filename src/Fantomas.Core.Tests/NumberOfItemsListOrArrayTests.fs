@@ -16,7 +16,8 @@ List.map (fun x -> x * x) [1;2;]
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -52,7 +53,8 @@ List.map (fun x -> x * x) [|1;2;|]
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -87,7 +89,8 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            ExperimentalElmish = true }
+            ExperimentalElmish = true
+        }
     |> prepend newline
     |> should
         equal
@@ -121,7 +124,8 @@ List.map (fun x -> x * x) [1;2;]
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal
@@ -162,7 +166,8 @@ List.map (fun x -> x * x) [|1;2;|]
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal
@@ -202,7 +207,8 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            ExperimentalElmish = true }
+            ExperimentalElmish = true
+        }
     |> prepend newline
     |> should
         equal
@@ -235,7 +241,8 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            ExperimentalElmish = true }
+            ExperimentalElmish = true
+        }
     |> prepend newline
     |> should
         equal
@@ -266,7 +273,8 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            ExperimentalElmish = true }
+            ExperimentalElmish = true
+        }
     |> prepend newline
     |> should
         equal
@@ -294,7 +302,8 @@ let ``long expressions with number of items set to 3 will get split due to max l
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
             MaxArrayOrListNumberOfItems = 3
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -313,7 +322,8 @@ let z = [ longValueThatIsALotOfCharactersSoooooLong; 100; 123 ]
     """
         { config with
             MaxArrayOrListWidth = 70
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

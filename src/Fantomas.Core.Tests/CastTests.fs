@@ -20,7 +20,8 @@ longMethodName
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             AlignFunctionSignatureToIndentation = true
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+        }
     |> prepend newline
     |> should
         equal
@@ -46,7 +47,8 @@ longMethodName
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             AlignFunctionSignatureToIndentation = true
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+        }
     |> prepend newline
     |> should
         equal
@@ -147,7 +149,8 @@ module Foo =
         { config with
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -183,7 +186,8 @@ module Foo =
         { config with
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

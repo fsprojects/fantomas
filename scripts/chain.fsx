@@ -57,11 +57,13 @@ let printChain (chain: ExprChain) =
 
 // Recursively collect all ExprChain nodes in the Oak's Node tree.
 let rec collectChains (node: Node) : ExprChain list =
-    [ match node with
-      | :? ExprChain as chain -> yield chain
-      | _ -> ()
-      for child in node.Children do
-          yield! collectChains child ]
+    [
+        match node with
+        | :? ExprChain as chain -> yield chain
+        | _ -> ()
+        for child in node.Children do
+            yield! collectChains child
+    ]
 
 match Array.tryHead fsi.CommandLineArgs with
 | Some scriptPath ->

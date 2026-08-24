@@ -12,10 +12,12 @@ val SchemaVersion: int = 1
 /// Where in a file a diagnostic points. Lines and columns are both one based, matching what the F#
 /// compiler prints for the same file and what the text report writes.
 type Range =
-    { StartLine: int
-      StartColumn: int
-      EndLine: int
-      EndColumn: int }
+    {
+        StartLine: int
+        StartColumn: int
+        EndLine: int
+        EndColumn: int
+    }
 
 /// One thing the parser had to say about a file. `Severity` is `error`, `warning` or `info`, and
 /// `Code` is the compiler's number for it in the `FSnnnn` form, `FS0000` when it has none.
@@ -23,10 +25,12 @@ type Range =
 /// A parse failure carries every diagnostic the parser produced, warnings included, because a
 /// warning is often what explains the error next to it.
 type Diagnostic =
-    { Severity: string
-      Code: string
-      Message: string
-      Range: Range option }
+    {
+        Severity: string
+        Code: string
+        Message: string
+        Range: Range option
+    }
 
 /// What became of one file. `Formatted` only ever comes from a format run and `NeedsFormatting` only
 /// from a `--check` run, because a check writes nothing and a format run leaves nothing needing it.
@@ -58,11 +62,13 @@ type Command =
 /// run over a thousand files would otherwise repeat the same prefix a thousand times.
 [<NoComparison>]
 type RunReport =
-    { Command: Command
-      WorkingDirectory: string
-      ExitCode: int
-      Error: string option
-      Files: FileReport list }
+    {
+        Command: Command
+        WorkingDirectory: string
+        ExitCode: int
+        Error: string option
+        Files: FileReport list
+    }
 
 /// What a format run did: every file it looked at, ordered by path. `workingDirectory` is the folder
 /// the paths are relative to, which for the tool is the folder it was run in.

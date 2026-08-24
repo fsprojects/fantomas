@@ -19,7 +19,8 @@ let ``should keep the (string * string) list type signature in records`` () =
 
     """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> should
         equal
         """type MSBuildParams =
@@ -76,7 +77,8 @@ let ``should not add parens in signature`` () =
         { config with
             MaxFunctionBindingWidth = 120
             NewlineBetweenTypeDefinitionAndMembers = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> should
         equal
         """type Route =
@@ -111,7 +113,8 @@ let ``should keep the (string option * Node) list type signature`` () =
 
     """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> should
         equal
         """type Node =
@@ -559,7 +562,8 @@ type T with
     member Foo: int
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -707,7 +711,8 @@ let ``internal keyword before long record type`` () =
 
     type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }"""
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -753,7 +758,8 @@ type Foo =
 """
         { config with
             SpaceBeforeColon = true
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1074,7 +1080,8 @@ type TestType =
 """
         { config with
             MaxRecordWidth = 10
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1104,7 +1111,8 @@ type TestType =
         }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1485,7 +1493,8 @@ and [<CustomEquality>] Bang =
 """
         { config with
             MultilineBracketStyle = Aligned
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1551,7 +1560,8 @@ type Bar =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             AlignFunctionSignatureToIndentation = true
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1589,7 +1599,8 @@ type Foo =
 """
         { config with
             NewlineBetweenTypeDefinitionAndMembers = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

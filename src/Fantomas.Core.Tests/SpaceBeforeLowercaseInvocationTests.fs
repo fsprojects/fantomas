@@ -6,7 +6,8 @@ open Fantomas.Core.Tests.TestHelpers
 
 let noSpaceBefore =
     { config with
-        SpaceBeforeLowercaseInvocation = false }
+        SpaceBeforeLowercaseInvocation = false
+    }
 
 /// Space before () in lowercase function call
 
@@ -161,7 +162,8 @@ let untypedResLong =
     checker.parseFile(fileName, sourceText, parsingOptionsWithDefines, somethingElseWithARatherLongVariableName)
 """
         { noSpaceBefore with
-            MaxLineLength = 60 }
+            MaxLineLength = 60
+        }
     |> prepend newline
     |> should
         equal

@@ -370,7 +370,8 @@ type Foo
     member x.Foo = ()
 """
         { config with
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+        }
     |> prepend newline
     |> should
         equal
@@ -795,7 +796,8 @@ let ``anon record expr`` () =
 |}
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -814,7 +816,8 @@ let ``obj expr`` () =
         member x.Blur = () }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -970,7 +973,8 @@ let ``paren with closing lambda`` () =
                      a)
 """
         { config with
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -993,7 +997,8 @@ let ``paren lambda, long list of parameters`` () =
         )
 """
         { config with
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1145,7 +1150,8 @@ x +>
             a0
 """
         { config with
-            MaxInfixOperatorExpression = 0 }
+            MaxInfixOperatorExpression = 0
+        }
     |> prepend newline
     |> should
         equal
@@ -1400,7 +1406,8 @@ fn (fun x ->
     ())
 """
         { config with
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1493,7 +1500,8 @@ let ``multiple always break infix operators`` () =
       IdentifierOrDot.Ident(mkSynIdent ident) ])
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1770,7 +1778,8 @@ let someTest input1 input2 =
     }
 """
         { config with
-            MultilineBracketStyle = Stroustrup }
+            MultilineBracketStyle = Stroustrup
+        }
     |> prepend newline
     |> should
         equal

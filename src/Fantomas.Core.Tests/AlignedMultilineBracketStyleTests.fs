@@ -9,7 +9,8 @@ let config =
     { config with
         MultilineBracketStyle = Aligned
         SpaceBeforeColon = true
-        SpaceBeforeSemicolon = true }
+        SpaceBeforeSemicolon = true
+    }
 
 [<Test>]
 let ``single member record stays on one line`` () =
@@ -499,7 +500,8 @@ type Range =
     member this.Length = this.To - this.From
 """
         { config with
-            MaxValueBindingWidth = 120 }
+            MaxValueBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -655,7 +657,8 @@ type ShortExpressionInfo =
     member x.Foo() = ()
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1000,7 +1003,8 @@ module Foo =
 """
         { config with
             MaxLineLength = 40
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1036,7 +1040,8 @@ type RequestParser<'ctx, 'a> =
 
 """
         { config with
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1081,7 +1086,8 @@ module WatcherTests =
 """
         { config with
             MaxLineLength = 80
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal
@@ -1144,7 +1150,8 @@ type X = {
     member x.Z = ()
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1193,7 +1200,8 @@ let x = {| Foo.Create ([ bar.Create(Thing.Stuff, Thing.Stuff) ]) with Age = 41 |
         { config with
             ArrayOrListMultilineFormatter = MultilineFormatterType.CharacterWidth
             SpaceBeforeUppercaseInvocation = true
-            MaxArrayOrListWidth = 40 }
+            MaxArrayOrListWidth = 40
+        }
     |> prepend newline
     |> should
         equal
@@ -1484,7 +1492,8 @@ let compareThings (first: Thing) (second: Thing) =
             }
 """
         { config with
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal
@@ -1539,7 +1548,8 @@ let ``update record in stroustrup style`` () =
 let v = { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
 """
         { config with
-            MultilineBracketStyle = Stroustrup }
+            MultilineBracketStyle = Stroustrup
+        }
     |> prepend newline
     |> should
         equal

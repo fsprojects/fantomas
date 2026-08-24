@@ -68,12 +68,6 @@ let runGitCommand (arguments: string) =
         return result.ExitCode, result.StandardOutput, result.StandardError
     }
 
-let runCmd file (arguments: string) =
-    async {
-        let! result = Cli.Wrap(file).WithArguments(arguments).ExecuteAsync().Task |> Async.AwaitTask
-        return result.ExitCode
-    }
-
 /// The files git reports as changed in the working tree, as paths relative to the repository root.
 ///
 /// The porcelain format is two status columns, a space, and then the path, so the path starts at
@@ -85,7 +79,8 @@ let runCmd file (arguments: string) =
 /// a new folder of sources.
 let changedFiles () : Async<string list> =
     async {
-        let! exitCode, stdout, stdErr = runGitCommand "status --porcelain --untracked-files=all"
+        let! exitCode, stdout, stdErr =
+            runGitCommand "status --porcelain --untracked-files=all"
 
         if exitCode <> 0 then
             failwith $"Could not read the git status.\n{stdErr}"

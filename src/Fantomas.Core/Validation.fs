@@ -10,11 +10,13 @@ open Fantomas.FCS.Parse
 // for error codes
 let safeToIgnoreWarnings =
     set
-        [ 35 // Deprecated
-          42 // LibraryUseOnly
-          46 // ReservedKeyword
-          1104 // lexhlpIdentifiersContainingAtSymbolReserved
-          3535 ] // tcUsingInterfacesWithAbstractStaticMembers
+        [
+            35 // Deprecated
+            42 // LibraryUseOnly
+            46 // ReservedKeyword
+            1104 // lexhlpIdentifiersContainingAtSymbolReserved
+            3535 // tcUsingInterfacesWithAbstractStaticMembers
+        ]
 
 let noWarningOrErrorDiagnostics diagnostics =
     diagnostics
@@ -26,7 +28,8 @@ let noWarningOrErrorDiagnostics diagnostics =
         | FSharpDiagnosticSeverity.Warning ->
             match e.ErrorNumber with
             | None -> true
-            | Some errorNumber -> not (safeToIgnoreWarnings.Contains(errorNumber)))
+            | Some errorNumber -> not (safeToIgnoreWarnings.Contains(errorNumber))
+    )
     |> List.isEmpty
 
 /// Check whether an input string is invalid in F# by looking for errors and warnings in the diagnostics.
@@ -52,7 +55,8 @@ let isValidFSharpCode (isSignature: bool) (source: string) : Async<bool> =
                 defineCombinations
                 |> List.map (fun defineCombination ->
                     let _, diagnostics = parseFile isSignature sourceText defineCombination.Value
-                    noWarningOrErrorDiagnostics diagnostics)
+                    noWarningOrErrorDiagnostics diagnostics
+                )
 
             return Seq.forall id isValidForCombinations
     }

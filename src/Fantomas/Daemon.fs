@@ -20,28 +20,35 @@ open Serilog
 
 [<NoComparison; NoEquality>]
 type DaemonEnvironment =
-    { FileSystem: IFileSystem
-      ReadConfiguration: string -> EditorConfigResult option
-      Log: ILogger }
+    {
+        FileSystem: IFileSystem
+        ReadConfiguration: string -> EditorConfigResult option
+        Log: ILogger
+    }
 
 let toConfigurationProblem (source: ConfigurationProblemSource) (problem: EditorConfigProblem) : ConfigurationProblem =
     match problem with
     | EditorConfigProblem.UnknownSetting setting ->
-        { Code = int ConfigurationProblemCode.UnknownSetting
-          Source = int source
-          Setting = setting
-          Value = null }
+        {
+            Code = int ConfigurationProblemCode.UnknownSetting
+            Source = int source
+            Setting = setting
+            Value = null
+        }
     | EditorConfigProblem.UnrecognizedValue(setting, value) ->
-        { Code = int ConfigurationProblemCode.UnrecognizedValue
-          Source = int source
-          Setting = setting
-          Value = value }
+        {
+            Code = int ConfigurationProblemCode.UnrecognizedValue
+            Source = int source
+            Setting = setting
+            Value = value
+        }
 
 let configurationFor
     (readConfiguration: string -> EditorConfigResult option)
     (filePath: string)
     (requestConfig: IReadOnlyDictionary<string, string> option)
-    : FormatConfig * ConfigurationWarning =
+    : FormatConfig * ConfigurationWarning
+    =
     let config, editorConfigFiles, fileProblems =
         match readConfiguration filePath with
         | None -> FormatConfig.Default, [], []
@@ -60,20 +67,24 @@ let configurationFor
     let problems = List.toArray (fromEditorConfig @ fromRequest)
 
     config,
-    { FilePath = filePath
-      // Only worth sending when there is something to point at. It is the same list on every
-      // request for a file, and a client has nothing to do with it while nothing is wrong.
-      EditorConfigFiles =
-        if Array.isEmpty problems then
-            Array.empty
-        else
-            Array.ofList editorConfigFiles
-      Problems = problems }
+    {
+        FilePath = filePath
+        // Only worth sending when there is something to point at. It is the same list on every
+        // request for a file, and a client has nothing to do with it while nothing is wrong.
+        EditorConfigFiles =
+            if Array.isEmpty problems then
+                Array.empty
+            else
+                Array.ofList editorConfigFiles
+        Problems = problems
+    }
 
 let noConfigurationProblems (filePath: string) : ConfigurationWarning =
-    { FilePath = filePath
-      EditorConfigFiles = Array.empty
-      Problems = Array.empty }
+    {
+        FilePath = filePath
+        EditorConfigFiles = Array.empty
+        Problems = Array.empty
+    }
 
 type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironment) as this =
     let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)
@@ -114,7 +125,8 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
         (requestConfig: IReadOnlyDictionary<string, string> option)
         (format: FormatConfig -> Task<'response>)
         (onError: string -> 'response)
-        : Task<'response> =
+        : Task<'response>
+        =
         task {
             let mutable notified: Task = null
 
@@ -207,101 +219,110 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
 
     [<JsonRpcMethod(Methods.FormatDocument, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatDocumentAsync(request: FormatDocumentRequest) : Task<FormatDocumentResponse> =
-        oneAtATimePerFile request.FilePath (fun () ->
-            task {
-                if
-                    IgnoreFile.isIgnoredFile
-                        environment.Log
-                        (IgnoreFile.find fs (IgnoreFile.loadIgnoreList fs) request.FilePath)
-                        request.FilePath
-                then
-                    // Still reported, with nothing in it, so a client can clear what an earlier request
-                    // showed for this file rather than leaving a stale warning behind.
-                    do! notifyConfigurationWarning (noConfigurationProblems request.FilePath)
-
-                    return FormatDocumentResponse.IgnoredFile request.FilePath
-                else
-                    let cursor =
-                        request.Cursor
-                        |> Option.map (fun cursor -> CodeFormatter.MakePosition(cursor.Line, cursor.Column))
-
-                    return!
-                        withConfiguration
+        oneAtATimePerFile
+            request.FilePath
+            (fun () ->
+                task {
+                    if
+                        IgnoreFile.isIgnoredFile
+                            environment.Log
+                            (IgnoreFile.find fs (IgnoreFile.loadIgnoreList fs) request.FilePath)
                             request.FilePath
-                            request.SourceCode
-                            request.Config
-                            (fun config ->
-                                task {
-                                    let! formatResponse =
-                                        match cursor with
-                                        | None ->
-                                            CodeFormatter.FormatDocumentAsync(
-                                                request.IsSignatureFile,
-                                                request.SourceCode,
-                                                config
-                                            )
-                                        | Some cursor ->
-                                            CodeFormatter.FormatDocumentAsync(
-                                                request.IsSignatureFile,
-                                                request.SourceCode,
-                                                config,
-                                                cursor
-                                            )
+                    then
+                        // Still reported, with nothing in it, so a client can clear what an earlier request
+                        // showed for this file rather than leaving a stale warning behind.
+                        do! notifyConfigurationWarning (noConfigurationProblems request.FilePath)
 
-                                    if formatResponse.Code = request.SourceCode then
-                                        return FormatDocumentResponse.Unchanged request.FilePath
-                                    else
-                                        let cursor =
-                                            formatResponse.Cursor
-                                            |> Option.map (fun cursorPos ->
-                                                FormatCursorPosition(cursorPos.Line, cursorPos.Column))
+                        return FormatDocumentResponse.IgnoredFile request.FilePath
+                    else
+                        let cursor =
+                            request.Cursor
+                            |> Option.map (fun cursor -> CodeFormatter.MakePosition(cursor.Line, cursor.Column))
 
-                                        return
-                                            FormatDocumentResponse.Formatted(
-                                                request.FilePath,
-                                                formatResponse.Code,
-                                                cursor
-                                            )
-                                })
-                            (fun message -> FormatDocumentResponse.Error(request.FilePath, message))
-            })
+                        return!
+                            withConfiguration
+                                request.FilePath
+                                request.SourceCode
+                                request.Config
+                                (fun config ->
+                                    task {
+                                        let! formatResponse =
+                                            match cursor with
+                                            | None ->
+                                                CodeFormatter.FormatDocumentAsync(
+                                                    request.IsSignatureFile,
+                                                    request.SourceCode,
+                                                    config
+                                                )
+                                            | Some cursor ->
+                                                CodeFormatter.FormatDocumentAsync(
+                                                    request.IsSignatureFile,
+                                                    request.SourceCode,
+                                                    config,
+                                                    cursor
+                                                )
+
+                                        if formatResponse.Code = request.SourceCode then
+                                            return FormatDocumentResponse.Unchanged request.FilePath
+                                        else
+                                            let cursor =
+                                                formatResponse.Cursor
+                                                |> Option.map (fun cursorPos ->
+                                                    FormatCursorPosition(cursorPos.Line, cursorPos.Column)
+                                                )
+
+                                            return
+                                                FormatDocumentResponse.Formatted(
+                                                    request.FilePath,
+                                                    formatResponse.Code,
+                                                    cursor
+                                                )
+                                    }
+                                )
+                                (fun message -> FormatDocumentResponse.Error(request.FilePath, message))
+                }
+            )
 
     [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
-        oneAtATimePerFile request.FilePath (fun () ->
-            let selection =
-                let r = request.Range
+        oneAtATimePerFile
+            request.FilePath
+            (fun () ->
+                let selection =
+                    let r = request.Range
 
-                Range.mkRange
+                    Range.mkRange
+                        request.FilePath
+                        (Position.mkPos r.StartLine r.StartColumn)
+                        (Position.mkPos r.EndLine r.EndColumn)
+
+                withConfiguration
                     request.FilePath
-                    (Position.mkPos r.StartLine r.StartColumn)
-                    (Position.mkPos r.EndLine r.EndColumn)
+                    request.SourceCode
+                    request.Config
+                    (fun config ->
+                        task {
+                            let! formatted, actualSelection =
+                                CodeFormatter.FormatSelectionAsync(
+                                    request.IsSignatureFile,
+                                    request.SourceCode,
+                                    selection,
+                                    config
+                                )
 
-            withConfiguration
-                request.FilePath
-                request.SourceCode
-                request.Config
-                (fun config ->
-                    task {
-                        let! formatted, actualSelection =
-                            CodeFormatter.FormatSelectionAsync(
-                                request.IsSignatureFile,
-                                request.SourceCode,
-                                selection,
-                                config
-                            )
+                            let actualSelection =
+                                FormatSelectionRange(
+                                    actualSelection.StartLine,
+                                    actualSelection.StartColumn,
+                                    actualSelection.EndLine,
+                                    actualSelection.EndColumn
+                                )
 
-                        let actualSelection =
-                            FormatSelectionRange(
-                                actualSelection.StartLine,
-                                actualSelection.StartColumn,
-                                actualSelection.EndLine,
-                                actualSelection.EndColumn
-                            )
-
-                        return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
-                    })
-                (fun message -> FormatSelectionResponse.Error(request.FilePath, message)))
+                            return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
+                        }
+                    )
+                    (fun message -> FormatSelectionResponse.Error(request.FilePath, message))
+            )
 
     [<JsonRpcMethod(Methods.Configuration)>]
     member _.Configuration() : string =
@@ -327,9 +348,11 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
 
                 let meta =
                     List.concat
-                        [| optionalField "category" recordField.Category
-                           optionalField "displayName" recordField.DisplayName
-                           optionalField "description" recordField.Description |]
+                        [|
+                            optionalField "category" recordField.Category
+                            optionalField "displayName" recordField.DisplayName
+                            optionalField "description" recordField.Description
+                        |]
 
                 let type' =
                     match defaultValue with
@@ -349,24 +372,34 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                         |> List.map (fun (key, value) -> key, jsonString value)
                         |> jsonObject
 
-                    toEditorConfigName recordField.PropertyName, value))
+                    toEditorConfigName recordField.PropertyName, value
+                )
+            )
             |> jsonObject
 
         let enumOptions =
             jsonObject
-                [ "multilineFormatterType",
-                  jsonStringArray
-                      [ MultilineFormatterType.ToConfigString MultilineFormatterType.CharacterWidth
-                        MultilineFormatterType.ToConfigString MultilineFormatterType.NumberOfItems ]
-                  "endOfLineStyle",
-                  jsonStringArray
-                      [ EndOfLineStyle.ToConfigString EndOfLineStyle.LF
-                        EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF ]
-                  "multilineBracketStyle",
-                  jsonStringArray
-                      [ MultilineBracketStyle.ToConfigString Aligned
-                        MultilineBracketStyle.ToConfigString Cramped
-                        MultilineBracketStyle.ToConfigString Stroustrup ] ]
+                [
+                    "multilineFormatterType",
+                    jsonStringArray
+                        [
+                            MultilineFormatterType.ToConfigString MultilineFormatterType.CharacterWidth
+                            MultilineFormatterType.ToConfigString MultilineFormatterType.NumberOfItems
+                        ]
+                    "endOfLineStyle",
+                    jsonStringArray
+                        [
+                            EndOfLineStyle.ToConfigString EndOfLineStyle.LF
+                            EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF
+                        ]
+                    "multilineBracketStyle",
+                    jsonStringArray
+                        [
+                            MultilineBracketStyle.ToConfigString Aligned
+                            MultilineBracketStyle.ToConfigString Cramped
+                            MultilineBracketStyle.ToConfigString Stroustrup
+                        ]
+                ]
 
         let json = jsonObject [ "settings", settings; "enumOptions", enumOptions ]
 

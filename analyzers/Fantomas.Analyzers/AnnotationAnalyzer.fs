@@ -124,7 +124,8 @@ let analyze (parsedInput: ParsedInput) : Message list =
                             // exempt too. `SynBinding.range` stops before the right hand side.
                             exempt.Add binding.RangeOfBindingWithRhs
                         elif isLetBinding keyword then
-                            findings.AddRange(missingAnnotations binding) }
+                            findings.AddRange(missingAnnotations binding)
+            }
 
         walkAst walker parsedInput
 
@@ -137,12 +138,14 @@ let analyze (parsedInput: ParsedInput) : Message list =
                 None
             else
                 Some
-                    { Type = Name
-                      Message = text
-                      Code = Code
-                      Severity = Severity.Warning
-                      Range = name
-                      Fixes = [] })
+                    {
+                        Type = Name
+                        Message = text
+                        Code = Code
+                        Severity = Severity.Warning
+                        Range = name
+                        Fixes = []
+                    })
         |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =

@@ -109,7 +109,8 @@ let (|CompatibleTool|_|) (lines: string list) : FantomasVersion voption =
                 if parts.Length > 2 then
                     Some(parts.[0], parts.[1])
                 else
-                    None)
+                    None
+            )
 
         if List.isEmpty tools then None else Some tools
 
@@ -120,7 +121,8 @@ let (|CompatibleTool|_|) (lines: string list) : FantomasVersion voption =
                 (fun (packageId, version) ->
                     match packageId, version with
                     | CompatibleToolName _, CompatibleVersion _ -> true
-                    | _ -> false)
+                    | _ -> false
+                )
                 tools
 
         // Folded to match `normalizeVersion`. Daemons are cached under this string and the two
@@ -187,7 +189,8 @@ let fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option
 
                 if File.Exists fantomas then Some fantomas
                 elif File.Exists fantomasTool then Some fantomasTool
-                else None)
+                else None
+        )
         |> Seq.tryHead
 
     fantomasExecutableOnPathOpt
@@ -213,9 +216,11 @@ let fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option
             stdOut
             |> Option.ofObj
             |> Option.map (fun s ->
-                FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(normalizeVersion s))
+                FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(normalizeVersion s)
+            )
         | Error(ProcessStartError.ExecutableFileNotFound _)
-        | Error(ProcessStartError.UnExpectedException _) -> None)
+        | Error(ProcessStartError.UnExpectedException _) -> None
+    )
 
 let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasToolError> =
     // First try and find a local tool for the folder.
@@ -284,11 +289,15 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
 
         daemonProcess.ErrorDataReceived.Add(fun message ->
             if not (isNull message.Data) then
-                lock recentStandardError (fun () ->
-                    recentStandardError.Enqueue message.Data
+                lock
+                    recentStandardError
+                    (fun () ->
+                        recentStandardError.Enqueue message.Data
 
-                    while recentStandardError.Count > 50 do
-                        recentStandardError.Dequeue() |> ignore))
+                        while recentStandardError.Count > 50 do
+                            recentStandardError.Dequeue() |> ignore
+                    )
+        )
 
         daemonProcess.BeginErrorReadLine()
 
@@ -312,7 +321,8 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
                     // response: it escapes the dispatcher and disconnects the client, which would
                     // fault every format request from then on over a message that only carries
                     // advice.
-                    ())
+                    ()
+            )
         )
 
         do client.StartListening()
@@ -331,10 +341,12 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
                 |> fun handshake -> Async.RunSynchronously(handshake, timeout = handshakeTimeoutInMs)
 
             Ok
-                { RpcClient = client
-                  Process = daemonProcess
-                  StartInfo = startInfo
-                  ConfigurationWarnings = configurationWarnings.Publish }
+                {
+                    RpcClient = client
+                    Process = daemonProcess
+                    StartInfo = startInfo
+                    ConfigurationWarnings = configurationWarnings.Publish
+                }
         with ex ->
             let error =
                 // A timeout says nothing about what was being waited for, so say it here. The next

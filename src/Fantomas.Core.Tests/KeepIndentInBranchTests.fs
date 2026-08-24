@@ -7,7 +7,8 @@ open Fantomas.Core
 
 let config =
     { config with
-        ExperimentalKeepIndentInBranch = true }
+        ExperimentalKeepIndentInBranch = true
+    }
 
 [<Test>]
 let ``single expression in if branch, multiple expressions in else branch`` () =
@@ -269,7 +270,8 @@ module Foo =
         }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -325,7 +327,8 @@ module Foo =
         }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -863,7 +866,8 @@ module Foo =
         0
 """
         { config with
-            BlankLinesAroundNestedMultilineExpressions = false }
+            BlankLinesAroundNestedMultilineExpressions = false
+        }
     |> prepend newline
     |> should
         equal
@@ -931,7 +935,8 @@ let main (args : Options) =
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1006,7 +1011,8 @@ let main (args : Options) =
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1085,7 +1091,8 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
             ExperimentalKeepIndentInBranch = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1194,7 +1201,8 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1343,7 +1351,8 @@ module Foo =
         { config with
             MultiLineLambdaClosingNewline = true
             MultilineBracketStyle = Aligned
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1420,7 +1429,8 @@ let x y =
 """
         { config with
             MaxArrayOrListWidth = 40
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1468,7 +1478,8 @@ let x =
 """
         { config with
             MaxArrayOrListWidth = 40
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1519,7 +1530,8 @@ module Foo =
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1568,7 +1580,8 @@ module Foo =
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1750,7 +1763,8 @@ let ``tuple is consider as short branch, 1800`` () =
 """
         { config with
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1794,7 +1808,8 @@ let ``parenthesis tuple is consider as short branch`` () =
 """
         { config with
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1849,7 +1864,8 @@ module Foo =
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1907,7 +1923,8 @@ module Foo =
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1953,7 +1970,8 @@ module Foo =
             MultilineBracketStyle = Aligned
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1991,7 +2009,8 @@ module TestThing =
         |> Map.map (fun _ -> TypedTerm.force<int>)
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2031,7 +2050,8 @@ module Foo =
             MultilineBracketStyle = Aligned
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2065,7 +2085,8 @@ longName
 |> Map.map (fun _ -> TypedTerm.force<int>)
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2093,7 +2114,8 @@ longName
 |> Map.map (fun _ -> TypedTerm.force<int>)
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal

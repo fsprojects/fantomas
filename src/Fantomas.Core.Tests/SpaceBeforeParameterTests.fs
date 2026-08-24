@@ -6,7 +6,8 @@ open Fantomas.Core.Tests.TestHelpers
 
 let noSpaceBefore =
     { config with
-        SpaceBeforeParameter = false }
+        SpaceBeforeParameter = false
+    }
 
 // Space before unit in Uppercase function signature
 

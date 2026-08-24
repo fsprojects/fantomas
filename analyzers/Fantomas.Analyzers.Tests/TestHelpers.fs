@@ -31,7 +31,8 @@ type ProjectOptionsFixture() =
             // a design time build of Fantomas.Core confirms.
             let options: FSharpProjectOptions =
                 { fresh with
-                    OtherOptions = Array.append fresh.OtherOptions [| "--strict-indentation+" |] }
+                    OtherOptions = Array.append fresh.OtherOptions [| "--strict-indentation+" |]
+                }
 
             // `mkOptionsFromProject` catches whatever goes wrong and hands back options with
             // nothing in them, which shows up much later as an exception about critical errors in
@@ -52,12 +53,16 @@ let analyzeSource (analyzer: Analyzer<CliContext>) (source: string) : Message li
 /// the rules keyed on the signature file need in order to see one.
 let analyzeWithSignature (analyzer: Analyzer<CliContext>) (signature: string) (implementation: string) : Message list =
     let signatureFile: SourceFile =
-        { FileName = "M.fsi"
-          Source = signature }
+        {
+            FileName = "M.fsi"
+            Source = signature
+        }
 
     let implementationFile: SourceFile =
-        { FileName = "M.fs"
-          Source = implementation }
+        {
+            FileName = "M.fs"
+            Source = implementation
+        }
 
     let ctx: CliContext =
         getContextFor

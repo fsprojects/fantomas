@@ -607,7 +607,8 @@ a:hover {color: #ecc;}
         { config with
             MaxInfixOperatorExpression = 50
             MaxArrayOrListWidth = 40
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -699,7 +700,8 @@ let ``single digit constant`` () =
     formatSourceString
         "1"
         { config with
-            InsertFinalNewline = false }
+            InsertFinalNewline = false
+        }
     |> should equal "1"
 
 [<Test>]

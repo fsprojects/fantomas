@@ -19,9 +19,11 @@ type FormatResult =
 /// has a complaint about.
 [<NoComparison>]
 type CheckResult =
-    { Errors: (string * exn) list
-      Formatted: string list
-      Unchanged: string list }
+    {
+        Errors: (string * exn) list
+        Formatted: string list
+        Unchanged: string list
+    }
 
     member HasErrors: bool
 

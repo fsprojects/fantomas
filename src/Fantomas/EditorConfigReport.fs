@@ -64,25 +64,30 @@ let describe (origin: string) (problems: EditorConfigProblem list) : string opti
             |> List.exists (fun problem ->
                 match problem with
                 | EditorConfigProblem.UnknownSetting _ -> true
-                | EditorConfigProblem.UnrecognizedValue _ -> false)
+                | EditorConfigProblem.UnrecognizedValue _ -> false
+            )
 
-        [ yield ""
-          yield $"Fantomas cannot use some settings from %s{origin}:"
-          for problem in problems do
-              yield describeProblem problem
-          if namesAnyUnknownSetting then
-              yield
-                  $"Run fantomas with --verbosity d to see every .editorconfig setting fantomas %s{fantomasVersion} supports."
-          yield "" ]
+        [
+            yield ""
+            yield $"Fantomas cannot use some settings from %s{origin}:"
+            for problem in problems do
+                yield describeProblem problem
+            if namesAnyUnknownSetting then
+                yield
+                    $"Run fantomas with --verbosity d to see every .editorconfig setting fantomas %s{fantomasVersion} supports."
+            yield ""
+        ]
         |> String.concat Environment.NewLine
         |> Some
 
 let describeSupportedSettings () : string =
-    [ yield ""
-      yield $"fantomas %s{fantomasVersion} supports these .editorconfig settings:"
-      for setting in supportedSettings do
-          yield $"  %s{setting}"
-      yield "" ]
+    [
+        yield ""
+        yield $"fantomas %s{fantomasVersion} supports these .editorconfig settings:"
+        for setting in supportedSettings do
+            yield $"  %s{setting}"
+        yield ""
+    ]
     |> String.concat Environment.NewLine
 
 let createReporter (log: ILogger) : EditorConfigReporter =

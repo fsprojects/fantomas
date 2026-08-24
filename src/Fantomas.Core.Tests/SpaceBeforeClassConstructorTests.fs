@@ -7,7 +7,8 @@ open Fantomas.Core
 
 let spaceBeforeConfig =
     { config with
-        SpaceBeforeClassConstructor = true }
+        SpaceBeforeClassConstructor = true
+    }
 
 // Space before unit in Uppercase class definition
 
@@ -181,7 +182,8 @@ type ProtocolGlitchException =
         { inherit CommunicationUnsuccessfulException(message, innerException) }
 """
         { spaceBeforeConfig with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -216,7 +218,8 @@ type DerivedClass =
     new(str2) = { inherit BaseClass(); string2 = str2 }
 """
         { spaceBeforeConfig with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -253,7 +256,8 @@ type DerivedClass =
 """
         { config with
             SpaceBeforeClassConstructor = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -284,7 +288,8 @@ type DerivedClass =
           string2 = str2 }
 """
         { spaceBeforeConfig with
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal

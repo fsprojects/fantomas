@@ -6,7 +6,8 @@ open Fantomas.Core.Tests.TestHelpers
 
 let config =
     { config with
-        InsertFinalNewline = false }
+        InsertFinalNewline = false
+    }
 
 [<Test>]
 let ``respect insert_final_newline = false`` () =

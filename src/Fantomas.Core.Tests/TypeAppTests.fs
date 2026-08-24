@@ -37,7 +37,8 @@ let private asJson (arm: IArmResource) =
     |}>
 """
         { config with
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal
@@ -68,7 +69,8 @@ let private asJson (arm: IArmResource) =
     >
 """
         { config with
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal
@@ -103,7 +105,8 @@ let private asJson (arm: IArmResource) =
     >
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -134,7 +137,8 @@ let private asJson (arm: IArmResource) =
     >
 """
         { config with
-            MultilineBracketStyle = Stroustrup }
+            MultilineBracketStyle = Stroustrup
+        }
     |> prepend newline
     |> should
         equal
@@ -156,7 +160,8 @@ let private asJson (arm: IArmResource) =
 let alignedMaxLine30 =
     { config with
         MaxLineLength = 30
-        MultilineBracketStyle = Aligned }
+        MultilineBracketStyle = Aligned
+    }
 
 [<Test>]
 let ``type application including nested multiline function type`` () =
@@ -201,7 +206,8 @@ path.Replace<
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -229,7 +235,8 @@ path.Replace<
      >("../../../", "....")
 """
         { alignedMaxLine30 with
-            SpaceBeforeClassConstructor = true }
+            SpaceBeforeClassConstructor = true
+        }
     |> prepend newline
     |> should
         equal
@@ -386,7 +393,8 @@ div<
  > [ ClassName "container" ] [ str "meh" ]
 """
         { alignedMaxLine30 with
-            ExperimentalElmish = true }
+            ExperimentalElmish = true
+        }
     |> prepend newline
     |> should
         equal

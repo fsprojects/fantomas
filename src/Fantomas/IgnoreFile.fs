@@ -20,8 +20,10 @@ type IsPathIgnored = AbsoluteFilePath -> bool
 
 [<NoComparison; NoEquality>]
 type IgnoreFile =
-    { Location: IFileInfo
-      IsIgnored: IsPathIgnored }
+    {
+        Location: IFileInfo
+        IsIgnored: IsPathIgnored
+    }
 
 [<RequireQualifiedAccess>]
 module IgnoreFile =
@@ -38,8 +40,10 @@ module IgnoreFile =
                     fs.Path.Combine(currentDirectory.FullName, IgnoreFileName) |> fs.FileInfo.New
 
                 if potentialFile.Exists then
-                    { Location = potentialFile
-                      IsIgnored = loadIgnoreList potentialFile.FullName }
+                    {
+                        Location = potentialFile
+                        IsIgnored = loadIgnoreList potentialFile.FullName
+                    }
                     |> Some
                 else
                     walkUp currentDirectory.Parent
@@ -71,7 +75,8 @@ module IgnoreFile =
         (fs: IFileSystem)
         (currentDirectory: string)
         (loadIgnoreList: string -> IsPathIgnored)
-        : IgnoreFile option =
+        : IgnoreFile option
+        =
         // `find` walks up from a file, so it is given a name that need not exist in the directory.
         find fs loadIgnoreList (fs.Path.Combine(currentDirectory, "_"))
 

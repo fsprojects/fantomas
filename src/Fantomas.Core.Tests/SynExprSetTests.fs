@@ -89,7 +89,8 @@ let ``don't add additional new line after SynExpr.LongIndentSet, 1111`` () =
         { config with
             MaxArrayOrListWidth = 40
             MaxInfixOperatorExpression = 50
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -141,7 +142,8 @@ ctx.Response.SomeElseThatIsMutable <- [ "a"; "b"; "c" ]
 """
         { config with
             MaxLineLength = 80
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -165,7 +167,8 @@ let ``multi line NamedIndexedPropertySet`` () =
                                    |> StringValues
 """
         { config with
-            MaxInfixOperatorExpression = 10 }
+            MaxInfixOperatorExpression = 10
+        }
     |> prepend newline
     |> should
         equal
@@ -185,7 +188,8 @@ let ``multi line DotNamedIndexedPropertySet`` () =
                                     |> StringValues
 """
         { config with
-            MaxInfixOperatorExpression = 10 }
+            MaxInfixOperatorExpression = 10
+        }
     |> prepend newline
     |> should
         equal
@@ -222,7 +226,8 @@ let ``keep new line before SynExpr.DotIndexedSet, 1314`` () =
               lintFixes.[uri] <- fs
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -259,7 +264,8 @@ Log.Logger <-
         .CreateLogger()
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal

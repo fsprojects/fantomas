@@ -13,10 +13,12 @@ let toucheFileAndFormat (path: string) (service: FantomasService) : FantomasResp
     File.WriteAllText(path, dirtyContent)
 
     let request: FormatDocumentRequest =
-        { SourceCode = dirtyContent
-          FilePath = path
-          Config = None
-          Cursor = None }
+        {
+            SourceCode = dirtyContent
+            FilePath = path
+            Config = None
+            Cursor = None
+        }
 
     service.FormatDocumentAsync(request).Result
 

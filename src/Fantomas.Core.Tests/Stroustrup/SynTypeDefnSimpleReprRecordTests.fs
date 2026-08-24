@@ -7,7 +7,8 @@ open Fantomas.Core
 
 let config =
     { config with
-        MultilineBracketStyle = Stroustrup }
+        MultilineBracketStyle = Stroustrup
+    }
 
 [<Test>]
 let ``record type definition`` () =
@@ -115,7 +116,8 @@ type V =
     member this.Coordinate = (this.X, this.Y, this.Z)
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -138,7 +140,8 @@ type X = {
     member x.Z = ()
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -327,7 +330,8 @@ type SomeEvent =
 type UpdatedName = { PreviousName: string }
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -355,7 +359,8 @@ type SomeEvent =
 type UpdatedName = { PreviousName: string }
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal

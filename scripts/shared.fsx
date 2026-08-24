@@ -41,20 +41,22 @@ let parseArgs (args: string array) =
 
     // Collect flag indices to determine which arg (if any) is the input file
     let flagIndices =
-        [| match editorConfigIdx with
-           | Some idx ->
-               yield idx
-               yield idx + 1
-           | None -> ()
-           match defineIdx with
-           | Some idx ->
-               yield idx
-               yield idx + 1
-           | None -> ()
-           yield!
-               args
-               |> Array.indexed
-               |> Array.choose (fun (i, a) -> if a = "--signature" then Some i else None) |]
+        [|
+            match editorConfigIdx with
+            | Some idx ->
+                yield idx
+                yield idx + 1
+            | None -> ()
+            match defineIdx with
+            | Some idx ->
+                yield idx
+                yield idx + 1
+            | None -> ()
+            yield!
+                args
+                |> Array.indexed
+                |> Array.choose (fun (i, a) -> if a = "--signature" then Some i else None)
+        |]
 
     let positionalArgs =
         args

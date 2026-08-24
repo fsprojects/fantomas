@@ -14,18 +14,23 @@ open Fantomas.Paths
 open Fantomas.Plan
 
 type FormatParams =
-    { Config: FormatConfig
-      CompareWithoutLineEndings: bool
-      Profile: bool
-      File: string }
+    {
+        Config: FormatConfig
+        CompareWithoutLineEndings: bool
+        Profile: bool
+        File: string
+    }
 
     static member Create
         (config: FormatConfig, compareWithoutLineEndings: bool, profile: bool, file: string)
-        : FormatParams =
-        { Config = config
-          CompareWithoutLineEndings = compareWithoutLineEndings
-          Profile = profile
-          File = file }
+        : FormatParams
+        =
+        {
+            Config = config
+            CompareWithoutLineEndings = compareWithoutLineEndings
+            Profile = profile
+            File = file
+        }
 
 // Built once rather than inside `stripNewlines`, which runs twice for every file checked.
 let carriageReturn: Text.RegularExpressions.Regex =
@@ -51,8 +56,10 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
                         let count: int = originalContent.Length - originalContent.Replace("\n", "").Length
 
                         let profileInfo: ProfileInfo =
-                            { LineCount = count
-                              TimeTaken = sw.Elapsed }
+                            {
+                                LineCount = count
+                                TimeTaken = sw.Elapsed
+                            }
 
                         return res, Some profileInfo
                     }
@@ -73,7 +80,8 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
                     originalContent <> formattedContent
 
             if contentChanged then
-                let! (isValid: bool) = CodeFormatter.IsValidFSharpCodeAsync(isSignatureFile, formattedContent)
+                let! (isValid: bool) =
+                    CodeFormatter.IsValidFSharpCodeAsync(isSignatureFile, formattedContent)
 
                 if not isValid then
                     return FormatResult.InvalidCode(filename = formatParams.File, formattedContent = formattedContent)
@@ -93,8 +101,10 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
 /// A file as it was read: its text, and whether it began with a byte order mark. Both come out of
 /// one read, because the mark is in the same bytes the text is decoded from.
 type SourceFile =
-    { Content: string
-      HasByteOrderMark: bool }
+    {
+        Content: string
+        HasByteOrderMark: bool
+    }
 
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
@@ -115,8 +125,10 @@ let readSourceFile (fs: IFileSystem) (file: string) : Async<SourceFile> =
         let encoding: Encoding = reader.CurrentEncoding
 
         return
-            { Content = content
-              HasByteOrderMark = encoding.CodePage = Encoding.UTF8.CodePage && encoding.GetPreamble().Length > 0 }
+            {
+                Content = content
+                HasByteOrderMark = encoding.CodePage = Encoding.UTF8.CodePage && encoding.GetPreamble().Length > 0
+            }
     }
 
 /// Format content that is already in hand, settling there what `--force` means and what output
@@ -127,7 +139,8 @@ let formatSource
     (source: SourceFile)
     (file: string)
     (config: FormatConfig)
-    : Async<FormatResult> =
+    : Async<FormatResult>
+    =
     async {
         let formatParams: FormatParams =
             FormatParams.Create(config, false, settings.Profile, file)
@@ -154,7 +167,8 @@ let processFile
     (settings: CliSettings)
     (inputFile: string)
     (outputFile: string)
-    : Async<FormatResult> =
+    : Async<FormatResult>
+    =
     let fs: IFileSystem = env.FileSystem
 
     async {
@@ -162,7 +176,9 @@ let processFile
             env.Log.Debug $"Processing %s{inputFile}"
             let! (source: SourceFile) = readSourceFile fs inputFile
             let inPlace: bool = isSamePath fs inputFile outputFile
-            let! (result: FormatResult) = formatSource env settings source inputFile (env.ReadConfiguration inputFile)
+
+            let! (result: FormatResult) =
+                formatSource env settings source inputFile (env.ReadConfiguration inputFile)
 
             let toWrite: string option =
                 match result with
@@ -197,7 +213,8 @@ let runFormatCommand
     (settings: CliSettings)
     (inputPath: InputPath)
     (outputPath: OutputPath)
-    : FormatCommandResult =
+    : FormatCommandResult
+    =
     let fs: IFileSystem = env.FileSystem
 
     try
@@ -215,7 +232,8 @@ let runFormatCommand
             |> List.map (fun item ->
                 match item with
                 | WorkItem.Ignored file -> async.Return(FormatResult.IgnoredFile file)
-                | WorkItem.Format(inputFile, outputFile) -> processFile env settings inputFile outputFile)
+                | WorkItem.Format(inputFile, outputFile) -> processFile env settings inputFile outputFile
+            )
             |> Async.Parallel
             |> Async.RunSynchronously
             |> FormatCommandResult.Completed

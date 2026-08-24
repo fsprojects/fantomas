@@ -16,7 +16,8 @@ type Funcs =
         Func<_,_,_,_>(fun a b c -> f.Invoke(a,b,c))
     """
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> should
         equal
         """[<Extension>]
@@ -122,7 +123,8 @@ let ``type params`` () =
 let genericSumUnits ( x : float<'u>) (y: float<'u>) = x + y
 type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}"""
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -182,7 +184,8 @@ type Foo =
       Bar:string }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -254,7 +257,8 @@ let ``comments before attributes should be added correctly, issue 422`` () =
           Verified : bool }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -367,7 +371,8 @@ let main argv =
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
             SpaceAroundDelimiter = false
-            SpaceBeforeLowercaseInvocation = false }
+            SpaceBeforeLowercaseInvocation = false
+        }
     |> prepend newline
     |> should
         equal
@@ -597,7 +602,8 @@ type Commenter =
       DisplayName: string }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -714,7 +720,8 @@ type RoleAdminImportController(akkaService: AkkaService) =
         { config with
             MaxInfixOperatorExpression = 40
             MaxArrayOrListWidth = 40
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -811,7 +818,8 @@ and Y = B
         member  this.M() = true
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -942,7 +950,8 @@ module Foo =
 """
         { config with
             NewlineBetweenTypeDefinitionAndMembers = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1015,7 +1024,8 @@ module AsyncOptionCEExtensions =
         member inline __.Source(s: #seq<_>) = s
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1043,7 +1053,8 @@ module AsyncOptionCEExtensions =
 
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal

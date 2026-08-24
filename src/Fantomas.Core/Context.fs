@@ -23,9 +23,11 @@ let (|EmptyWrite|_|) (we: WriterEvent) : unit voption =
     | _ -> ValueNone
 
 type ShortExpressionInfo =
-    { MaxWidth: int
-      StartColumn: int
-      ConfirmedMultiline: bool }
+    {
+        MaxWidth: int
+        StartColumn: int
+        ConfirmedMultiline: bool
+    }
 
     member x.IsTooLong maxPageWidth currentColumn =
         currentColumn - x.StartColumn > x.MaxWidth // expression exceeds MaxWidth
@@ -63,12 +65,14 @@ type WriterModel =
 
 module WriterModel =
     let init =
-        { LineCount = 0
-          Indent = 0
-          AtColumn = 0
-          WriteBeforeNewline = ""
-          Mode = Standard
-          Column = 0 }
+        {
+            LineCount = 0
+            Indent = 0
+            AtColumn = 0
+            WriteBeforeNewline = ""
+            Mode = Standard
+            Column = 0
+        }
 
     /// Process a single WriterEvent and return the updated WriterModel.
     /// This only tracks lightweight metadata (line count, column, indent) — no string building.
@@ -77,12 +81,14 @@ module WriterModel =
         let doNewline m =
             let m =
                 { m with
-                    Indent = max m.Indent m.AtColumn }
+                    Indent = max m.Indent m.AtColumn
+                }
 
             { m with
                 LineCount = m.LineCount + 1
                 WriteBeforeNewline = ""
-                Column = m.Indent }
+                Column = m.Indent
+            }
 
         let updateCmd cmd =
             match cmd with
@@ -91,15 +97,18 @@ module WriterModel =
             | WriteLineInsideStringConst ->
                 { m with
                     LineCount = m.LineCount + 1
-                    Column = 0 }
+                    Column = 0
+                }
             | WriteLineInsideTrivia ->
                 { m with
                     LineCount = m.LineCount + 1
-                    Column = 0 }
+                    Column = 0
+                }
             | Write s
             | WriteTrivia s ->
                 { m with
-                    Column = m.Column + (String.visualWidth s) }
+                    Column = m.Column + (String.visualWidth s)
+                }
             | WriteBeforeNewline s -> { m with WriteBeforeNewline = s }
             | IndentBy x ->
                 { m with
@@ -107,10 +116,12 @@ module WriterModel =
                         if m.AtColumn >= m.Indent + x then
                             m.AtColumn + x
                         else
-                            m.Indent + x }
+                            m.Indent + x
+                }
             | UnIndentBy x ->
                 { m with
-                    Indent = max m.AtColumn (m.Indent - x) }
+                    Indent = max m.AtColumn (m.Indent - x)
+                }
             | SetAtColumn c -> { m with AtColumn = c }
             | RestoreAtColumn c -> { m with AtColumn = c }
             | SetIndent c -> { m with Indent = c }
@@ -140,11 +151,14 @@ module WriterModel =
                     let tooLong = info.IsTooLong maxPageWidth m.Column
 
                     { info with
-                        ConfirmedMultiline = tooLong || nextCmdCausesMultiline })
+                        ConfirmedMultiline = tooLong || nextCmdCausesMultiline
+                    }
+                )
 
             if List.exists (fun i -> i.ConfirmedMultiline) updatedInfos then
                 { m with
-                    Mode = ShortExpression(updatedInfos) }
+                    Mode = ShortExpression(updatedInfos)
+                }
             else
                 updateCmd cmd
 
@@ -174,10 +188,12 @@ module WriterEvents =
 
     let isMultiline (evs: EventList) =
         evs.ToSeq()
-        |> Seq.exists (function
+        |> Seq.exists (
+            function
             | WriteLine
             | WriteLineBecauseOfTrivia -> true
-            | _ -> false)
+            | _ -> false
+        )
 
 [<System.Diagnostics.DebuggerDisplay("\"{Dump()}\""); NoComparison>]
 type Context =
@@ -193,11 +209,13 @@ type Context =
 
     /// Initialize with a string writer and use space as delimiter
     static member Default =
-        { Config = FormatConfig.Default
-          WriterModel = WriterModel.init
-          WriterEvents = EventList()
-          FormattedCursor = None
-          DebugMode = false }
+        {
+            Config = FormatConfig.Default
+            WriterModel = WriterModel.init
+            WriterEvents = EventList()
+            FormattedCursor = None
+            DebugMode = false
+        }
 
     static member Create config : Context =
         { Context.Default with Config = config }
@@ -217,14 +235,17 @@ type Context =
                         if keepPageWidth then
                             x.Config.MaxLineLength
                         else
-                            Int32.MaxValue }
+                            Int32.MaxValue
+                }
 
             { x with
                 WriterModel =
                     { x.WriterModel with
                         Mode = Dummy
-                        WriteBeforeNewline = "" }
-                Config = config }
+                        WriteBeforeNewline = ""
+                    }
+                Config = config
+            }
 
         let result = f dummyCtx
         x.WriterEvents.RollbackTo(backupPoint)
@@ -232,9 +253,11 @@ type Context =
 
     member x.WithShortExpression(maxWidth, ?startColumn) =
         let info =
-            { MaxWidth = maxWidth
-              StartColumn = Option.defaultValue x.WriterModel.Column startColumn
-              ConfirmedMultiline = false }
+            {
+                MaxWidth = maxWidth
+                StartColumn = Option.defaultValue x.WriterModel.Column startColumn
+                ConfirmedMultiline = false
+            }
 
         match x.WriterModel.Mode with
         | ShortExpression infos ->
@@ -244,12 +267,16 @@ type Context =
                 { x with
                     WriterModel =
                         { x.WriterModel with
-                            Mode = ShortExpression(info :: infos) } }
+                            Mode = ShortExpression(info :: infos)
+                        }
+                }
         | _ ->
             { x with
                 WriterModel =
                     { x.WriterModel with
-                        Mode = ShortExpression([ info ]) } }
+                        Mode = ShortExpression([ info ])
+                    }
+            }
 
     member x.Column = x.WriterModel.Column
 
@@ -271,7 +298,8 @@ let writerEvent (e: WriterEvent) (ctx: Context) : Context =
         ctx.WriterEvents.Append(e) |> ignore
 
         { ctx with
-            WriterModel = WriterModel.update ctx.Config.MaxLineLength e ctx.WriterModel }
+            WriterModel = WriterModel.update ctx.Config.MaxLineLength e ctx.WriterModel
+        }
     else
         let evs = WriterEvents.normalize e
 
@@ -281,7 +309,8 @@ let writerEvent (e: WriterEvent) (ctx: Context) : Context =
         { ctx with
             WriterModel =
                 (ctx.WriterModel, evs)
-                ||> List.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m) }
+                ||> List.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m)
+        }
 
 let hasWriteBeforeNewlineContent ctx =
     String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline
@@ -342,8 +371,10 @@ let dump (isSelection: bool) (ctx: Context) =
 
     let code = if isSelection then code else code.TrimStart('\r', '\n')
 
-    { Code = code
-      Cursor = ctx.FormattedCursor }
+    {
+        Code = code
+        Cursor = ctx.FormattedCursor
+    }
 
 let dumpEvents (ctx: Context) : WriterEvent array = ctx.WriterEvents.ToSeq() |> Seq.toArray
 
@@ -653,7 +684,8 @@ let shortExpressionWithFallback
                 List.exists
                     (fun info ->
                         info.ConfirmedMultiline
-                        || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column)
+                        || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column
+                    )
                     infos
             then
                 // Restore DLL to before the short attempt, then run fallback
@@ -663,7 +695,9 @@ let shortExpressionWithFallback
                 { resultContext with
                     WriterModel =
                         { resultContext.WriterModel with
-                            Mode = ctx.WriterModel.Mode } }
+                            Mode = ctx.WriterModel.Mode
+                        }
+                }
         | _ ->
             // you should never hit this branch
             ctx.WriterEvents.RollbackTo(snapshot)
@@ -771,7 +805,8 @@ let expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr 
                 List.exists
                     (fun info ->
                         info.ConfirmedMultiline
-                        || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column)
+                        || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column
+                    )
                     infos
             then
                 // Restore DLL to before the short attempt, then run fallback
@@ -781,7 +816,9 @@ let expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr 
                 { resultContext with
                     WriterModel =
                         { resultContext.WriterModel with
-                            Mode = ctx.WriterModel.Mode } }
+                            Mode = ctx.WriterModel.Mode
+                        }
+                }
         | _ ->
             // you should never hit this branch
             ctx.WriterEvents.RollbackTo(snapshot)
@@ -802,13 +839,15 @@ let findTrailingTriviaNewline (events: EventList) : EventNode =
 
     // Skip past trailing non-content events (restore, unindent, indent, newlines from the outer context)
     while not (isNull current)
-          && (match current.Event with
+          && (
+              match current.Event with
               | RestoreIndent _
               | RestoreAtColumn _
               | UnIndentBy _
               | IndentBy _
               | WriteLine -> true
-              | _ -> false) do
+              | _ -> false
+          ) do
         current <- current.Prev
 
     if isNull current then
@@ -846,18 +885,21 @@ let indentSepNlnWithTriviaAwareness (ctx: Context) =
         let mutable start = triviaNewline
 
         while not (isNull start.Prev)
-              && (match start.Prev.Event with
+              && (
+                  match start.Prev.Event with
                   | WriteTrivia _
                   | WriteLineInsideTrivia
                   | WriteLineBecauseOfTrivia -> true
-                  | _ -> false) do
+                  | _ -> false
+              ) do
             start <- start.Prev
 
         // Splice IndentBy before the trivia block — the trivia's newline acts as sepNln
         ctx.WriterEvents.InsertBefore(start, IndentBy indentAmount) |> ignore
 
         { ctx with
-            WriterModel = WriterModel.update ctx.Config.MaxLineLength (IndentBy indentAmount) ctx.WriterModel }
+            WriterModel = WriterModel.update ctx.Config.MaxLineLength (IndentBy indentAmount) ctx.WriterModel
+        }
     else
         (indent +> sepNln) ctx
 
@@ -874,7 +916,8 @@ let unindentWithTriviaAwareness (ctx: Context) =
         |> ignore
 
         { ctx with
-            WriterModel = WriterModel.update ctx.Config.MaxLineLength (UnIndentBy unindentAmount) ctx.WriterModel }
+            WriterModel = WriterModel.update ctx.Config.MaxLineLength (UnIndentBy unindentAmount) ctx.WriterModel
+        }
     else
         writerEvent (UnIndentBy unindentAmount) ctx
 
@@ -988,7 +1031,8 @@ let colAutoNlnSkip0i f' (c: 'T seq) f (ctx: Context) =
             if i = 0 then
                 f i c
             else
-                autoNlnIfExpressionExceedsPageWidth (f i c))
+                autoNlnIfExpressionExceedsPageWidth (f i c)
+        )
         ctx
 
 /// Similar to col, skip auto newline for index 0
@@ -1022,8 +1066,12 @@ let sepComma (ctx: Context) =
         !- "," ctx
 
 let sepSemi (ctx: Context) =
-    let { Config = { SpaceBeforeSemicolon = before
-                     SpaceAfterSemicolon = after } } =
+    let {
+            Config = {
+                         SpaceBeforeSemicolon = before
+                         SpaceAfterSemicolon = after
+                     }
+        } =
         ctx
 
     let separator: Context -> Context =
@@ -1041,7 +1089,8 @@ let ifAlignOrStroustrupBrackets f g =
             match ctx.Config.MultilineBracketStyle with
             | Aligned
             | Stroustrup -> true
-            | Cramped -> false)
+            | Cramped -> false
+        )
         f
         g
 
@@ -1088,7 +1137,8 @@ let indentSepNlnUnindentUnlessStroustrup f (e: Expr) (ctx: Context) =
                 |> Seq.forall (fun x ->
                     match x.Content with
                     | TriviaContent.Directive _ -> false
-                    | _ -> true)
+                    | _ -> true
+                )
             | _ -> true
 
         let namedComputationNameFitsOnOneLine () =
@@ -1139,8 +1189,10 @@ type ColMultilineItem =
 
 [<NoComparison>]
 type ColMultilineItemsState =
-    { LastBlockMultiline: bool
-      Context: Context }
+    {
+        LastBlockMultiline: bool
+        Context: Context
+    }
 
 /// Checks if the events of an expression produces multiple lines of by user code.
 /// Leading or trailing trivia will not be counted as such.
@@ -1209,8 +1261,10 @@ let colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) 
             let initialIsMultiline, initialCtx = isMultilineItem initialExpr ctx
 
             let itemsState =
-                { Context = initialCtx
-                  LastBlockMultiline = initialIsMultiline }
+                {
+                    Context = initialCtx
+                    LastBlockMultiline = initialIsMultiline
+                }
 
             let rec loop (acc: ColMultilineItemsState) (items: ColMultilineItem list) =
                 match items with
@@ -1242,8 +1296,10 @@ let colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) 
                             nextCtx
 
                     loop
-                        { Context = nextCtx
-                          LastBlockMultiline = isMultiline }
+                        {
+                            Context = nextCtx
+                            LastBlockMultiline = isMultiline
+                        }
                         rest
 
             loop itemsState items

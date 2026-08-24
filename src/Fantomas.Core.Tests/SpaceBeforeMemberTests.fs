@@ -17,7 +17,8 @@ type Person() =
     member __.swim (duration:TimeSpan) = ()
 """
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -40,7 +41,8 @@ type Person() =
     member __.swim (duration:TimeSpan) = ()
 """
         { spaceBeforeConfig with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal

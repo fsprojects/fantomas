@@ -30,7 +30,8 @@ let v = // <- Lazy "1"
         |> idLongFunctionThing
         |> string"""
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal

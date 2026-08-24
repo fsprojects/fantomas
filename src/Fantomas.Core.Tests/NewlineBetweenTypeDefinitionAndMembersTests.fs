@@ -16,7 +16,8 @@ let ``newline between record type and members`` () =
 """
         { config with
             MaxValueBindingWidth = 120
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -41,7 +42,8 @@ let ``existing newline between record type and members should not be duplicate``
 """
         { config with
             MaxValueBindingWidth = 120
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -64,7 +66,8 @@ let ``no extra newline after record type with no members`` () =
 """
         { config with
             MaxRecordWidth = 39
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -147,7 +150,8 @@ type Range =
     member Length : unit -> int
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -262,7 +266,8 @@ type Color =
     member ToInt: unit -> int
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -304,7 +309,8 @@ type andSeq<'t> =
             | AndSeq xs -> xs.GetEnumerator() :> _
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = true }
+            NewlineBetweenTypeDefinitionAndMembers = true
+        }
     |> prepend newline
     |> should
         equal

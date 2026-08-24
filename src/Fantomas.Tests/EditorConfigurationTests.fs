@@ -25,7 +25,8 @@ type ConfigurationFile
         ?subFolder: string,
         ?isRoot: bool,
         ?content: string
-    ) =
+    )
+    =
     let rootDir = Path.Join(Path.GetTempPath(), rootFolderName)
 
     do
@@ -65,7 +66,8 @@ type ConfigurationFile
 
 type FSharpFile
     internal
-    (rootFolderName: string, ?fsharpFileExtension: string, ?subFolder: string, ?content: string, ?fileName: string) =
+    (rootFolderName: string, ?fsharpFileExtension: string, ?subFolder: string, ?content: string, ?fileName: string)
+    =
     let rootDir = Path.Join(Path.GetTempPath(), rootFolderName)
 
     do
@@ -137,7 +139,8 @@ let ``parent config should not be taking into account when child is root`` () =
     use parentConfig =
         new ConfigurationFile(
             { defaultConfig with
-                MaxRecordWidth = 10 },
+                MaxRecordWidth = 10
+            },
             rootFolder
         )
 
@@ -159,7 +162,8 @@ let ``configuration file should not affect file extension`` () =
     use configFixture =
         new ConfigurationFile(
             { defaultConfig with
-                MaxLineLength = 90 },
+                MaxLineLength = 90
+            },
             rootFolder
         )
 
@@ -386,7 +390,8 @@ end_of_line = cr
     let ex =
         Assert.Throws<FormatException>(fun () ->
             EditorConfigReport.readConfiguration ignoreProblems fsharpFile.FSharpFile
-            |> ignore)
+            |> ignore
+        )
 
     ex.Message
     == "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
@@ -603,7 +608,9 @@ let ``an unparsable value is reported and the default is used`` () =
     let config, problems = parse [ "fsharp_experimental_elmish", "not_a_bool" ]
 
     problems
-    == [ EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_experimental_elmish", "not_a_bool") ]
+    == [
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_experimental_elmish", "not_a_bool")
+    ]
 
     config.ExperimentalElmish == defaultConfig.ExperimentalElmish
 
@@ -619,7 +626,9 @@ let ``a misspelled setting is reported, and the spelling Fantomas expects is one
     let _, problems = parse [ "fsharp_multiline_brackets_style", "stroustrup" ]
 
     problems
-    == [ EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_multiline_brackets_style" ]
+    == [
+        EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_multiline_brackets_style"
+    ]
 
     Assert.That(EditorConfig.supportedSettings, Does.Contain "fsharp_multiline_bracket_style")
 
@@ -659,10 +668,12 @@ let ``values the editorconfig spec defines are not reported as mistakes`` () =
     // `indent_style = tab`. `unset` and `off` are spec values meaning "no value here".
     let _, problems =
         parse
-            [ "indent_size", "tab"
-              "max_line_length", "off"
-              "end_of_line", "unset"
-              "insert_final_newline", "unset" ]
+            [
+                "indent_size", "tab"
+                "max_line_length", "off"
+                "end_of_line", "unset"
+                "insert_final_newline", "unset"
+            ]
 
     problems == []
 
@@ -679,9 +690,11 @@ let ``keys are matched without regard to case`` () =
 let ``values are matched without regard to case as well`` () =
     let config, problems =
         parse
-            [ "fsharp_experimental_elmish", "TRUE"
-              "fsharp_multiline_bracket_style", "Stroustrup"
-              "end_of_line", "LF" ]
+            [
+                "fsharp_experimental_elmish", "TRUE"
+                "fsharp_multiline_bracket_style", "Stroustrup"
+                "end_of_line", "LF"
+            ]
 
     problems == []
     Assert.That(config.ExperimentalElmish, Is.True)
@@ -696,8 +709,10 @@ let ``a problem names the setting the way it was written`` () =
         parse [ "FSHARP_Bogus_Option", "true"; "Fsharp_Max_Record_Width", "banana" ]
 
     problems
-    == [ EditorConfig.EditorConfigProblem.UnknownSetting "FSHARP_Bogus_Option"
-         EditorConfig.EditorConfigProblem.UnrecognizedValue("Fsharp_Max_Record_Width", "banana") ]
+    == [
+        EditorConfig.EditorConfigProblem.UnknownSetting "FSHARP_Bogus_Option"
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("Fsharp_Max_Record_Width", "banana")
+    ]
 
 // Every parser used to be tried on every setting, so a value that means something to one of them
 // decided the outcome for all the others. `cr` is the one that does damage: `EndOfLineStyle` raises
@@ -707,7 +722,9 @@ let ``a value that means something to another setting is a problem, not a failur
     let config, problems = parse [ "fsharp_max_record_width", "cr" ]
 
     problems
-    == [ EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_max_record_width", "cr") ]
+    == [
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_max_record_width", "cr")
+    ]
 
     config.MaxRecordWidth == defaultConfig.MaxRecordWidth
 
@@ -716,12 +733,16 @@ let ``a value is only read as the type its own setting has`` () =
     // `stroustrup` is a bracket style and nothing else; `4` is a number and nothing else.
     let _, problems =
         parse
-            [ "fsharp_experimental_elmish", "stroustrup"
-              "fsharp_multiline_bracket_style", "4" ]
+            [
+                "fsharp_experimental_elmish", "stroustrup"
+                "fsharp_multiline_bracket_style", "4"
+            ]
 
     problems
-    == [ EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_experimental_elmish", "stroustrup")
-         EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_multiline_bracket_style", "4") ]
+    == [
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_experimental_elmish", "stroustrup")
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_multiline_bracket_style", "4")
+    ]
 
 [<Test>]
 let ``a value editorconfig does not define is reported, prefix or not`` () =
@@ -729,21 +750,27 @@ let ``a value editorconfig does not define is reported, prefix or not`` () =
     // a typo, and warned about the same as any other.
     let _, problems =
         parse
-            [ "indent_size", "banana"
-              "max_line_length", "wide"
-              "insert_final_newline", "maybe" ]
+            [
+                "indent_size", "banana"
+                "max_line_length", "wide"
+                "insert_final_newline", "maybe"
+            ]
 
     problems
-    == [ EditorConfig.EditorConfigProblem.UnrecognizedValue("indent_size", "banana")
-         EditorConfig.EditorConfigProblem.UnrecognizedValue("insert_final_newline", "maybe")
-         EditorConfig.EditorConfigProblem.UnrecognizedValue("max_line_length", "wide") ]
+    == [
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("indent_size", "banana")
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("insert_final_newline", "maybe")
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("max_line_length", "wide")
+    ]
 
 [<Test>]
 let ``an unparsable value for a Fantomas setting is still reported`` () =
     let _, problems = parse [ "fsharp_max_record_width", "banana" ]
 
     problems
-    == [ EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_max_record_width", "banana") ]
+    == [
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_max_record_width", "banana")
+    ]
 
 // A mistake in `max_line_length` was silently ignored exactly as a mistake in a `fsharp_` setting
 // was, and it is the same mistake.
@@ -761,13 +788,15 @@ let ``a misspelling of an unprefixed setting is reported too`` () =
 let ``settings other tools really use are not read as misspellings of ours`` () =
     let _, problems =
         parse
-            [ "indent_style", "space"
-              "tab_width", "4"
-              "trim_trailing_whitespace", "true"
-              "charset", "utf-8"
-              "root", "true"
-              "quote_type", "double"
-              "dotnet_diagnostic_CA1000_severity", "none" ]
+            [
+                "indent_style", "space"
+                "tab_width", "4"
+                "trim_trailing_whitespace", "true"
+                "charset", "utf-8"
+                "root", "true"
+                "quote_type", "double"
+                "dotnet_diagnostic_CA1000_severity", "none"
+            ]
 
     problems == []
 
@@ -776,7 +805,9 @@ let ``a negative width is not a width`` () =
     let config, problems = parse [ "fsharp_max_record_width", "-5" ]
 
     problems
-    == [ EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_max_record_width", "-5") ]
+    == [
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_max_record_width", "-5")
+    ]
 
     config.MaxRecordWidth == defaultConfig.MaxRecordWidth
 
@@ -784,9 +815,11 @@ let ``a negative width is not a width`` () =
 let ``settings belonging to other tools are left alone`` () =
     let _, problems =
         parse
-            [ "indent_style", "space"
-              "trim_trailing_whitespace", "true"
-              "some_other_tool_setting", "42" ]
+            [
+                "indent_style", "space"
+                "trim_trailing_whitespace", "true"
+                "some_other_tool_setting", "42"
+            ]
 
     problems == []
 
@@ -794,26 +827,34 @@ let ``settings belonging to other tools are left alone`` () =
 let ``every problem in one set of settings is reported together`` () =
     let _, problems =
         parse
-            [ "fsharp_bogus_option", "true"
-              "fsharp_another_bogus_option", "4"
-              "fsharp_experimental_elmish", "not_a_bool" ]
+            [
+                "fsharp_bogus_option", "true"
+                "fsharp_another_bogus_option", "4"
+                "fsharp_experimental_elmish", "not_a_bool"
+            ]
 
     problems
-    == [ EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_another_bogus_option"
-         EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_bogus_option"
-         EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_experimental_elmish", "not_a_bool") ]
+    == [
+        EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_another_bogus_option"
+        EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_bogus_option"
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_experimental_elmish", "not_a_bool")
+    ]
 
 [<Test>]
 let ``problems are reported by kind, and by setting name within a kind`` () =
     let _, problems =
         parse
-            [ "fsharp_space_before_colon", "not_a_bool"
-              "fsharp_zzz_bogus_option", "true"
-              "fsharp_experimental_elmish", "not_a_bool"
-              "fsharp_aaa_bogus_option", "true" ]
+            [
+                "fsharp_space_before_colon", "not_a_bool"
+                "fsharp_zzz_bogus_option", "true"
+                "fsharp_experimental_elmish", "not_a_bool"
+                "fsharp_aaa_bogus_option", "true"
+            ]
 
     problems
-    == [ EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_aaa_bogus_option"
-         EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_zzz_bogus_option"
-         EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_experimental_elmish", "not_a_bool")
-         EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_space_before_colon", "not_a_bool") ]
+    == [
+        EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_aaa_bogus_option"
+        EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_zzz_bogus_option"
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_experimental_elmish", "not_a_bool")
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_space_before_colon", "not_a_bool")
+    ]

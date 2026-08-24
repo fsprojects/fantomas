@@ -47,7 +47,9 @@ let formatFSharpString isFsiFile (s: string) config =
                 $"Comment trivia was not preserved.\nMissing: %A{missing}\nExtra: %A{extra}\nFormatted code:\n%s{formattedCode}"
 
         // Idempotency check
-        let! secondFormat = CodeFormatter.FormatDocumentAsync(isFsiFile, formattedCode, config)
+        let! secondFormat =
+            CodeFormatter.FormatDocumentAsync(isFsiFile, formattedCode, config)
+
         let secondFormattedCode = secondFormat.Code.Replace("\r\n", "\n")
 
         if formattedCode <> secondFormattedCode then

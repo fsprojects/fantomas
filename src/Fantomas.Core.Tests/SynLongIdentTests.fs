@@ -195,7 +195,8 @@ module Client =
             .Bind()
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -246,7 +247,8 @@ let ``don't repeat parenthesis for DotGet Paren, 989`` () =
   + another_thing_thats_really_long).A
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -350,29 +352,35 @@ let ``backticks can be added from AST only scenarios`` () =
                 true,
                 QualifiedNameOfFile testIdent,
                 [],
-                [ SynModuleOrNamespace(
-                      [ testIdent ],
-                      false,
-                      SynModuleOrNamespaceKind.AnonModule,
-                      [ SynModuleDecl.Expr(
-                            SynExpr.LongIdent(
-                                false,
-                                SynLongIdent(
-                                    [ Ident("new", Range.range0) ],
-                                    [],
-                                    [ Some(IdentTrivia.OriginalNotation "``new``") ]
+                [
+                    SynModuleOrNamespace(
+                        [ testIdent ],
+                        false,
+                        SynModuleOrNamespaceKind.AnonModule,
+                        [
+                            SynModuleDecl.Expr(
+                                SynExpr.LongIdent(
+                                    false,
+                                    SynLongIdent(
+                                        [ Ident("new", Range.range0) ],
+                                        [],
+                                        [ Some(IdentTrivia.OriginalNotation "``new``") ]
+                                    ),
+                                    None,
+                                    Range.range0
                                 ),
-                                None,
                                 Range.range0
-                            ),
-                            Range.range0
-                        ) ],
-                      PreXmlDoc.Empty,
-                      [],
-                      None,
-                      Range.range0,
-                      { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
-                  ) ],
+                            )
+                        ],
+                        PreXmlDoc.Empty,
+                        [],
+                        None,
+                        Range.range0,
+                        {
+                            LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None
+                        }
+                    )
+                ],
                 (true, false),
                 ParsedInputTrivia.Empty,
                 Set.empty
@@ -383,7 +391,8 @@ let ``backticks can be added from AST only scenarios`` () =
         tree,
         config =
             { config with
-                InsertFinalNewline = false }
+                InsertFinalNewline = false
+            }
     )
     |> Async.RunSynchronously
     |> should equal "``new``"

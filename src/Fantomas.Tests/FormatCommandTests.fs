@@ -25,7 +25,8 @@ let private formatWith
     (fs: IFileSystem)
     (inputPath: InputPath)
     (outputPath: OutputPath)
-    : FormatCommandResult =
+    : FormatCommandResult
+    =
     let recorded: RecordedRun = recordingEnvironment fs ignoreFile
     runFormatCommand recorded.Environment settings inputPath outputPath
 
@@ -38,7 +39,8 @@ let private formatLogging
     (fs: IFileSystem)
     (inputPath: InputPath)
     (outputPath: OutputPath)
-    : FormatCommandResult * CollectedLog =
+    : FormatCommandResult * CollectedLog
+    =
     let recorded: RecordedRun = recordingEnvironment fs None
 
     let result: FormatCommandResult =

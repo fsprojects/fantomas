@@ -18,14 +18,6 @@ open System
 open System.IO
 open Fun.Build
 open CliWrap
-open CliWrap.Buffered
-open FSharp.Data
-open System.Xml.Linq
-open System.Xml.XPath
-open Ionide.KeepAChangelog
-open Ionide.KeepAChangelog.Domain
-open SemVersion
-open Humanizer
 open BuildCommon
 open BuildAnalyzers
 open BuildRelease
@@ -65,15 +57,17 @@ pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
-    stage "CheckFormat" { run "dotnet fantomas src analyzers docs scripts build.fsx --check" }
+    stage "CheckFormat" { run "dotnet fantomas src analyzers docs scripts build.fsx --check --json" }
     stage "Build" { run "dotnet build -c Release --tl" }
     stage "UnitTests" { run "dotnet test -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
     stage "Docs" {
         whenNot { platformOSX }
         envVars
-            [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
-               "DOTNET_ROLL_FORWARD", "LatestMajor" |]
+            [|
+                "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
+                "DOTNET_ROLL_FORWARD", "LatestMajor"
+            |]
         run
             $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict --nonpublic"
     }
@@ -170,7 +164,23 @@ pipeline "FormatChanged" {
                         |> List.map (fun (source: string) -> $"\"{source}\"")
                         |> String.concat " "
 
-                    return! runCmd "dotnet" $"fantomas {arguments}"
+                    // CliWrap discards the child's output unless it is given somewhere to put
+                    // it, and what fantomas has to say about the files is the point of the run.
+                    let toConsole: PipeTarget =
+                        PipeTarget.ToDelegate(fun (line: string) -> printfn "%s" line)
+
+                    let! result =
+                        Cli
+                            .Wrap("dotnet")
+                            .WithArguments($"fantomas --json {arguments}")
+                            .WithStandardOutputPipe(toConsole)
+                            .WithStandardErrorPipe(toConsole)
+                            .WithValidation(CommandResultValidation.None)
+                            .ExecuteAsync()
+                            .Task
+                        |> Async.AwaitTask
+
+                    return result.ExitCode
             })
     }
     runIfOnlySpecified true
@@ -205,8 +215,10 @@ pipeline "Docs" {
     }
     stage "Watch" {
         envVars
-            [| "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
-               "DOTNET_ROLL_FORWARD", "LatestMajor" |]
+            [|
+                "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
+                "DOTNET_ROLL_FORWARD", "LatestMajor"
+            |]
         run
             $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --nonpublic"
     }
@@ -215,13 +227,21 @@ pipeline "Docs" {
 
 pipeline "FormatAll" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Fantomas" { run "dotnet fantomas src analyzers docs scripts build.fsx" }
+    stage "Fantomas" { run "dotnet fantomas --json src analyzers docs scripts build.fsx" }
     runIfOnlySpecified true
 }
 
 pipeline "EnsureRepoConfig" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Git" { run "git config core.hooksPath .githooks" }
+    stage "Git" {
+        run "git config core.hooksPath .githooks"
+        // Without this, `.git-blame-ignore-revs` is a file git only reads when asked to on the
+        // command line. GitHub's blame view honours it on its own; a clone does not.
+        run "git config blame.ignoreRevsFile .git-blame-ignore-revs"
+        // Mark a line whose real author had to be guessed past an ignored commit, so a skipped
+        // attribution is not read as a genuine one.
+        run "git config blame.markIgnoredLines true"
+    }
     runIfOnlySpecified true
 }
 
@@ -230,99 +250,100 @@ pipeline "Init" {
     stage "Download FCS files" {
         run (fun _ ->
             [|
-               // Not a compiler source. This is the MSBuild task that turns FSComp.txt into the SR
-               // module. Since dotnet/fsharp#20097 the generated diagnostic accessors return RichText
-               // instead of string, and the task shipped in the .NET SDK cannot generate those yet.
-               "src/FSharp.Build/FSharpEmbedResourceText.fs"
-               "src/Compiler/FSComp.txt"
-               "src/Compiler/FSStrings.resx"
-               "src/Compiler/Utilities/NullHelpers.fs"
-               "src/Compiler/Utilities/Activity.fsi"
-               "src/Compiler/Utilities/Activity.fs"
-               "src/Compiler/Utilities/Caches.fsi"
-               "src/Compiler/Utilities/Caches.fs"
-               "src/Compiler/Utilities/sformat.fsi"
-               "src/Compiler/Utilities/sformat.fs"
-               "src/Compiler/Utilities/sr.fsi"
-               "src/Compiler/Utilities/sr.fs"
-               "src/Compiler/Facilities/RichText.fsi"
-               "src/Compiler/Facilities/RichText.fs"
-               "src/Compiler/Utilities/ResizeArray.fsi"
-               "src/Compiler/Utilities/ResizeArray.fs"
-               "src/Compiler/Utilities/HashMultiMap.fsi"
-               "src/Compiler/Utilities/HashMultiMap.fs"
-               "src/Compiler/Utilities/ReadOnlySpan.fsi"
-               "src/Compiler/Utilities/ReadOnlySpan.fs"
-               "src/Compiler/Utilities/TaggedCollections.fsi"
-               "src/Compiler/Utilities/TaggedCollections.fs"
-               "src/Compiler/Utilities/illib.fsi"
-               "src/Compiler/Utilities/illib.fs"
-               "src/Compiler/Utilities/Cancellable.fsi"
-               "src/Compiler/Utilities/Cancellable.fs"
-               "src/Compiler/Utilities/FileSystem.fsi"
-               "src/Compiler/Utilities/FileSystem.fs"
-               "src/Compiler/Utilities/ildiag.fsi"
-               "src/Compiler/Utilities/ildiag.fs"
-               "src/Compiler/Utilities/zmap.fsi"
-               "src/Compiler/Utilities/zmap.fs"
-               "src/Compiler/Utilities/zset.fsi"
-               "src/Compiler/Utilities/zset.fs"
-               "src/Compiler/Utilities/XmlAdapters.fsi"
-               "src/Compiler/Utilities/XmlAdapters.fs"
-               "src/Compiler/Utilities/InternalCollections.fsi"
-               "src/Compiler/Utilities/InternalCollections.fs"
-               "src/Compiler/Utilities/lib.fsi"
-               "src/Compiler/Utilities/lib.fs"
-               "src/Compiler/Utilities/PathMap.fsi"
-               "src/Compiler/Utilities/PathMap.fs"
-               "src/Compiler/Utilities/range.fsi"
-               "src/Compiler/Utilities/range.fs"
-               "src/Compiler/Facilities/LanguageFeatures.fsi"
-               "src/Compiler/Facilities/LanguageFeatures.fs"
-               "src/Compiler/Facilities/DiagnosticOptions.fsi"
-               "src/Compiler/Facilities/DiagnosticOptions.fs"
-               "src/Compiler/Facilities/DiagnosticsLogger.fsi"
-               "src/Compiler/Facilities/DiagnosticsLogger.fs"
-               "src/Compiler/Facilities/Hashing.fsi"
-               "src/Compiler/Facilities/Hashing.fs"
-               "src/Compiler/Facilities/prim-lexing.fsi"
-               "src/Compiler/Facilities/prim-lexing.fs"
-               "src/Compiler/Facilities/prim-parsing.fsi"
-               "src/Compiler/Facilities/prim-parsing.fs"
-               "src/Compiler/AbstractIL/illex.fsl"
-               "src/Compiler/AbstractIL/ilpars.fsy"
-               "src/Compiler/AbstractIL/il.fsi"
-               "src/Compiler/AbstractIL/il.fs"
-               "src/Compiler/AbstractIL/ilascii.fsi"
-               "src/Compiler/AbstractIL/ilascii.fs"
-               "src/Compiler/SyntaxTree/PrettyNaming.fsi"
-               "src/Compiler/SyntaxTree/PrettyNaming.fs"
-               "src/Compiler/pplex.fsl"
-               "src/Compiler/pppars.fsy"
-               "src/Compiler/lex.fsl"
-               "src/Compiler/pars.fsy"
-               "src/Compiler/SyntaxTree/UnicodeLexing.fsi"
-               "src/Compiler/SyntaxTree/UnicodeLexing.fs"
-               "src/Compiler/SyntaxTree/XmlDocIncludeExpander.fsi"
-               "src/Compiler/SyntaxTree/XmlDocIncludeExpander.fs"
-               "src/Compiler/SyntaxTree/XmlDoc.fsi"
-               "src/Compiler/SyntaxTree/XmlDoc.fs"
-               "src/Compiler/SyntaxTree/SyntaxTrivia.fsi"
-               "src/Compiler/SyntaxTree/SyntaxTrivia.fs"
-               "src/Compiler/SyntaxTree/SyntaxTree.fsi"
-               "src/Compiler/SyntaxTree/SyntaxTree.fs"
-               "src/Compiler/SyntaxTree/SyntaxTreeOps.fsi"
-               "src/Compiler/SyntaxTree/SyntaxTreeOps.fs"
-               "src/Compiler/SyntaxTree/WarnScopes.fsi"
-               "src/Compiler/SyntaxTree/WarnScopes.fs"
-               "src/Compiler/SyntaxTree/LexerStore.fsi"
-               "src/Compiler/SyntaxTree/LexerStore.fs"
-               "src/Compiler/SyntaxTree/ParseHelpers.fsi"
-               "src/Compiler/SyntaxTree/ParseHelpers.fs"
-               "src/Compiler/SyntaxTree/LexHelpers.fsi"
-               "src/Compiler/SyntaxTree/LexHelpers.fs"
-               "src/Compiler/SyntaxTree/LexFilter.fsi"
-               "src/Compiler/SyntaxTree/LexFilter.fs" |]
+                // Not a compiler source. This is the MSBuild task that turns FSComp.txt into the SR
+                // module. Since dotnet/fsharp#20097 the generated diagnostic accessors return RichText
+                // instead of string, and the task shipped in the .NET SDK cannot generate those yet.
+                "src/FSharp.Build/FSharpEmbedResourceText.fs"
+                "src/Compiler/FSComp.txt"
+                "src/Compiler/FSStrings.resx"
+                "src/Compiler/Utilities/NullHelpers.fs"
+                "src/Compiler/Utilities/Activity.fsi"
+                "src/Compiler/Utilities/Activity.fs"
+                "src/Compiler/Utilities/Caches.fsi"
+                "src/Compiler/Utilities/Caches.fs"
+                "src/Compiler/Utilities/sformat.fsi"
+                "src/Compiler/Utilities/sformat.fs"
+                "src/Compiler/Utilities/sr.fsi"
+                "src/Compiler/Utilities/sr.fs"
+                "src/Compiler/Facilities/RichText.fsi"
+                "src/Compiler/Facilities/RichText.fs"
+                "src/Compiler/Utilities/ResizeArray.fsi"
+                "src/Compiler/Utilities/ResizeArray.fs"
+                "src/Compiler/Utilities/HashMultiMap.fsi"
+                "src/Compiler/Utilities/HashMultiMap.fs"
+                "src/Compiler/Utilities/ReadOnlySpan.fsi"
+                "src/Compiler/Utilities/ReadOnlySpan.fs"
+                "src/Compiler/Utilities/TaggedCollections.fsi"
+                "src/Compiler/Utilities/TaggedCollections.fs"
+                "src/Compiler/Utilities/illib.fsi"
+                "src/Compiler/Utilities/illib.fs"
+                "src/Compiler/Utilities/Cancellable.fsi"
+                "src/Compiler/Utilities/Cancellable.fs"
+                "src/Compiler/Utilities/FileSystem.fsi"
+                "src/Compiler/Utilities/FileSystem.fs"
+                "src/Compiler/Utilities/ildiag.fsi"
+                "src/Compiler/Utilities/ildiag.fs"
+                "src/Compiler/Utilities/zmap.fsi"
+                "src/Compiler/Utilities/zmap.fs"
+                "src/Compiler/Utilities/zset.fsi"
+                "src/Compiler/Utilities/zset.fs"
+                "src/Compiler/Utilities/XmlAdapters.fsi"
+                "src/Compiler/Utilities/XmlAdapters.fs"
+                "src/Compiler/Utilities/InternalCollections.fsi"
+                "src/Compiler/Utilities/InternalCollections.fs"
+                "src/Compiler/Utilities/lib.fsi"
+                "src/Compiler/Utilities/lib.fs"
+                "src/Compiler/Utilities/PathMap.fsi"
+                "src/Compiler/Utilities/PathMap.fs"
+                "src/Compiler/Utilities/range.fsi"
+                "src/Compiler/Utilities/range.fs"
+                "src/Compiler/Facilities/LanguageFeatures.fsi"
+                "src/Compiler/Facilities/LanguageFeatures.fs"
+                "src/Compiler/Facilities/DiagnosticOptions.fsi"
+                "src/Compiler/Facilities/DiagnosticOptions.fs"
+                "src/Compiler/Facilities/DiagnosticsLogger.fsi"
+                "src/Compiler/Facilities/DiagnosticsLogger.fs"
+                "src/Compiler/Facilities/Hashing.fsi"
+                "src/Compiler/Facilities/Hashing.fs"
+                "src/Compiler/Facilities/prim-lexing.fsi"
+                "src/Compiler/Facilities/prim-lexing.fs"
+                "src/Compiler/Facilities/prim-parsing.fsi"
+                "src/Compiler/Facilities/prim-parsing.fs"
+                "src/Compiler/AbstractIL/illex.fsl"
+                "src/Compiler/AbstractIL/ilpars.fsy"
+                "src/Compiler/AbstractIL/il.fsi"
+                "src/Compiler/AbstractIL/il.fs"
+                "src/Compiler/AbstractIL/ilascii.fsi"
+                "src/Compiler/AbstractIL/ilascii.fs"
+                "src/Compiler/SyntaxTree/PrettyNaming.fsi"
+                "src/Compiler/SyntaxTree/PrettyNaming.fs"
+                "src/Compiler/pplex.fsl"
+                "src/Compiler/pppars.fsy"
+                "src/Compiler/lex.fsl"
+                "src/Compiler/pars.fsy"
+                "src/Compiler/SyntaxTree/UnicodeLexing.fsi"
+                "src/Compiler/SyntaxTree/UnicodeLexing.fs"
+                "src/Compiler/SyntaxTree/XmlDocIncludeExpander.fsi"
+                "src/Compiler/SyntaxTree/XmlDocIncludeExpander.fs"
+                "src/Compiler/SyntaxTree/XmlDoc.fsi"
+                "src/Compiler/SyntaxTree/XmlDoc.fs"
+                "src/Compiler/SyntaxTree/SyntaxTrivia.fsi"
+                "src/Compiler/SyntaxTree/SyntaxTrivia.fs"
+                "src/Compiler/SyntaxTree/SyntaxTree.fsi"
+                "src/Compiler/SyntaxTree/SyntaxTree.fs"
+                "src/Compiler/SyntaxTree/SyntaxTreeOps.fsi"
+                "src/Compiler/SyntaxTree/SyntaxTreeOps.fs"
+                "src/Compiler/SyntaxTree/WarnScopes.fsi"
+                "src/Compiler/SyntaxTree/WarnScopes.fs"
+                "src/Compiler/SyntaxTree/LexerStore.fsi"
+                "src/Compiler/SyntaxTree/LexerStore.fs"
+                "src/Compiler/SyntaxTree/ParseHelpers.fsi"
+                "src/Compiler/SyntaxTree/ParseHelpers.fs"
+                "src/Compiler/SyntaxTree/LexHelpers.fsi"
+                "src/Compiler/SyntaxTree/LexHelpers.fs"
+                "src/Compiler/SyntaxTree/LexFilter.fsi"
+                "src/Compiler/SyntaxTree/LexFilter.fs"
+            |]
             |> Array.map (downloadCompilerFile fsharpCompilerHash)
             |> Async.Parallel
             |> Async.Ignore)
