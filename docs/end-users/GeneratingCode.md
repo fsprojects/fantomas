@@ -45,29 +45,33 @@ open Fantomas.Core.SyntaxOak
 let implementationSyntaxTree =
     Oak(
         [],
-        [ ModuleOrNamespaceNode(
-              None,
-              [ BindingNode(
-                    None,
-                    None,
-                    MultipleTextsNode([ SingleTextNode("let", Range.range0) ], Range.range0),
-                    false,
-                    None,
-                    None,
-                    Choice1Of2(
-                        IdentListNode([ IdentifierOrDot.Ident(SingleTextNode("a", Range.range0)) ], Range.range0)
-                    ),
-                    None,
-                    [],
-                    None,
-                    SingleTextNode("=", Range.range0),
-                    Expr.Constant(Constant.FromText(SingleTextNode("0", Range.range0))),
-                    None,
-                    Range.range0
-                )
-                |> ModuleDecl.TopLevelBinding ],
-              Range.range0
-          ) ],
+        [
+            ModuleOrNamespaceNode(
+                None,
+                [
+                    BindingNode(
+                        None,
+                        None,
+                        MultipleTextsNode([ SingleTextNode("let", Range.range0) ], Range.range0),
+                        false,
+                        None,
+                        None,
+                        Choice1Of2(
+                            IdentListNode([ IdentifierOrDot.Ident(SingleTextNode("a", Range.range0)) ], Range.range0)
+                        ),
+                        None,
+                        [],
+                        None,
+                        SingleTextNode("=", Range.range0),
+                        Expr.Constant(Constant.FromText(SingleTextNode("0", Range.range0))),
+                        None,
+                        Range.range0
+                    )
+                    |> ModuleDecl.TopLevelBinding
+                ],
+                Range.range0
+            )
+        ],
         Range.range0
     )
 
@@ -227,8 +231,10 @@ let lambdaExpr =
 
     ExprLambdaNode(
         text "fun",
-        [ Pattern.Named(PatNamedNode(None, text "a", Range.range0))
-          Pattern.Named(PatNamedNode(None, text "b", Range.range0)) ],
+        [
+            Pattern.Named(PatNamedNode(None, text "a", Range.range0))
+            Pattern.Named(PatNamedNode(None, text "b", Range.range0))
+        ],
         text "->",
         body,
         Range.range0
