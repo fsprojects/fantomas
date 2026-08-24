@@ -188,12 +188,6 @@ let withRules (rules: JsonValue array) (run: JsonValue) : JsonValue =
             let driver: JsonValue = withProperty "rules" (JsonValue.Array rules) driver
             withProperty "tool" (withProperty "driver" driver tool) run
 
-/// A result pointing at the rule it already pointed at, moved by `offset` positions.
-let shiftRuleIndex (offset: int) (result: JsonValue) : JsonValue =
-    match result.TryGetProperty "ruleIndex" with
-    | None -> result
-    | Some index -> withProperty "ruleIndex" (JsonValue.Number(decimal (index.AsInteger() + offset))) result
-
 let mergeSarifReports (reports: string list) (target: string) : unit =
     let documents =
         reports
@@ -215,22 +209,57 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
             |> Array.ofList
             |> JsonValue.Array
 
-        // `ruleIndex` addresses `tool.driver.rules` by position within its own run, so the rules
-        // have to be concatenated in the same order as the results and each run's results moved on
-        // by however many rules the runs before it contributed. Keeping the first run's rules and
-        // every run's results, as this used to, left every run after the first pointing into an
-        // array it was never numbered against.
+        // `ruleIndex` addresses `tool.driver.rules` by position within its own run, so merging the
+        // runs means pointing every result at where its own rule ended up. Keeping the first run's
+        // rules and every run's results, as this used to, left every run after the first pointing
+        // into an array it was never numbered against.
+        //
+        // Identical entries collapse. The analyzers write one entry per finding rather than one per
+        // rule, its `name` being that finding's message, so the same entry is written again for
+        // every finding that reads the same: two bindings called `filename` with no annotation
+        // produce the same id and the same message, in one project or in two. GitHub refuses to
+        // ingest a document whose rules array holds a duplicate, and it is the merged document that
+        // is uploaded.
         let rules, results =
-            (([], []), runs)
-            ||> List.fold (fun (rules: JsonValue list, results: JsonValue list) (run: JsonValue) ->
-                let runResults: JsonValue array =
-                    match run.TryGetProperty "results" with
-                    | None -> [||]
-                    | Some results -> results.AsArray()
+            let merged: ResizeArray<JsonValue> = ResizeArray()
 
-                rules @ List.ofArray (rulesOf run),
-                results
-                @ List.ofArray (Array.map (shiftRuleIndex (List.length rules)) runResults))
+            let seen: Collections.Generic.Dictionary<string, int> =
+                Collections.Generic.Dictionary()
+
+            let indexOf (rule: JsonValue) : int =
+                let key: string = rule.ToString()
+
+                match seen.TryGetValue key with
+                | true, index -> index
+                | false, _ ->
+                    let index: int = merged.Count
+                    merged.Add rule
+                    seen[key] <- index
+                    index
+
+            let results: JsonValue list =
+                runs
+                |> List.collect (fun (run: JsonValue) ->
+                    // Every rule of the run is placed, whether a result points at it or not, so that
+                    // this says the same as before about what the tool knows.
+                    let placed: int array = Array.map indexOf (rulesOf run)
+
+                    let repoint (result: JsonValue) : JsonValue =
+                        match result.TryGetProperty "ruleIndex" with
+                        | None -> result
+                        | Some index ->
+                            let original: int = index.AsInteger()
+
+                            if original >= 0 && original < placed.Length then
+                                withProperty "ruleIndex" (JsonValue.Number(decimal placed[original])) result
+                            else
+                                result
+
+                    match run.TryGetProperty "results" with
+                    | None -> []
+                    | Some results -> results.AsArray() |> Array.map repoint |> List.ofArray)
+
+            List.ofSeq merged, results
 
         let merged =
             JsonValue.Record
