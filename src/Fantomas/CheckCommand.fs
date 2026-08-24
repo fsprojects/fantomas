@@ -38,7 +38,22 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
 
         let errors: (string * exn) list = formatted |> Seq.choose getErrors |> Seq.toList
 
-        return { Errors = errors; Formatted = changes }
+        // A file the check found nothing to say about. Nothing branches on these, but a report that
+        // names every file the run looked at needs them, and only this knows which they were.
+        let getUnchangedFile: FormatResult -> string option =
+            function
+            | FormatResult.Unchanged(f, _) -> Some f
+            | FormatResult.IgnoredFile _
+            | FormatResult.Formatted _
+            | FormatResult.Error _
+            | FormatResult.InvalidCode _ -> None
+
+        let unchanged: string list = formatted |> Seq.choose getUnchangedFile |> Seq.toList
+
+        return
+            { Errors = errors
+              Formatted = changes
+              Unchanged = unchanged }
     }
 
 let runCheckCommand (env: CliEnvironment) (inputPath: InputPath) : CheckCommandResult =

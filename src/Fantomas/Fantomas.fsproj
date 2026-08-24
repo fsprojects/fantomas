@@ -51,6 +51,8 @@
     <Compile Include="CheckCommand.fs" />
     <Compile Include="Report.fsi" />
     <Compile Include="Report.fs" />
+    <Compile Include="JsonReport.fsi" />
+    <Compile Include="JsonReport.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

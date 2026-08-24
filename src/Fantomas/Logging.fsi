@@ -15,5 +15,10 @@ val initLogger: level: VerbosityLevel -> VerbosityLevel
 /// corrupt the protocol stream and fault the client connection.
 val initDaemonLogger: level: VerbosityLevel -> VerbosityLevel
 
+/// Initialise the logger for `--json`, where standard out carries one JSON document and nothing
+/// else. Everything is written to standard error, for the same reason as in daemon mode: a
+/// progress message on standard out would leave the document unparseable.
+val initJsonLogger: level: VerbosityLevel -> VerbosityLevel
+
 /// Flush anything the logger is still holding and shut it down.
 val closeAndFlushLog: unit -> unit

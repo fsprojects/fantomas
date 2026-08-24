@@ -10,6 +10,7 @@ type Arguments =
     | [<Unique>] Profile
     | [<Unique>] Out of string
     | [<Unique>] Check
+    | [<Unique>] Json
     | [<Unique>] Daemon
     | [<Unique>] Version
     | [<Unique; AltCommandLine("-v")>] Verbosity of string
@@ -40,3 +41,18 @@ val classifyInputPath: fs: IFileSystem -> maybeInput: string list option -> Inpu
 
 /// Read the `--verbosity` value. `None` means the value was not one Fantomas knows.
 val parseVerbosity: value: string option -> VerbosityLevel option
+
+/// How an argument is spelled on the command line, for a message that has to name one back.
+val describeArgument: argument: Arguments -> string
+
+/// The arguments given alongside `--daemon` that mean nothing there, spelled as they are typed and
+/// in a settled order, so a run that names several always names them the same way.
+///
+/// A daemon is told what to format over JSON-RPC and answers on standard out, so nothing that says
+/// what to format, where to put it, or how to report it has anything to apply to. Refusing them is
+/// the point: every one of these used to be accepted and then silently ignored.
+///
+/// Two are not refused. `--verbosity` sets the level the daemon logs at, so it is the one argument
+/// here that does something. `--version` is answered and exited on before this rule is ever asked,
+/// so it wins rather than being refused.
+val argumentsRefusedWithDaemon: given: Arguments list -> string list

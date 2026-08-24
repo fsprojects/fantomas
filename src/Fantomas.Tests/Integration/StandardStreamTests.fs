@@ -46,6 +46,37 @@ let ``version is written to standard out`` () =
     Assert.That(output, Does.Contain "Fantomas v")
     error |> should equal ""
 
+// The banner used to go through the logger, which at detailed verbosity prefixes what it writes
+// with a timestamp and a level. What Fantomas.Client parses should not depend on that.
+[<Test>]
+let ``version reads the same at any verbosity`` () =
+    let normal: FantomasToolResult = runFantomasTool [ "--version" ]
+    let detailed: FantomasToolResult = runFantomasTool [ "--version"; "-v"; "d" ]
+
+    detailed.ExitCode |> should equal 0
+    detailed.Output |> should equal normal.Output
+
+// `--version` answers whatever else was asked for, and before any of it is validated, so it can
+// always be used to find out what you are running.
+[<Test>]
+[<TestCase("--daemon")>]
+[<TestCase("--json")>]
+[<TestCase("--check")>]
+let ``version wins over any other argument`` (argument: string) =
+    let { ExitCode = exitCode; Output = output } =
+        runFantomasTool [ "--version"; argument ]
+
+    exitCode |> should equal 0
+    Assert.That(output, Does.Contain "Fantomas v")
+
+[<Test>]
+let ``version is answered even when the rest of the command line is not valid`` () =
+    let { ExitCode = exitCode; Output = output } =
+        runFantomasTool [ "--version"; "-v"; "not-a-level" ]
+
+    exitCode |> should equal 0
+    Assert.That(output, Does.Contain "Fantomas v")
+
 // A parse failure is the one error an agent or a CI job can act on without opening the file,
 // provided it is told where the failure is.
 [<Test>]

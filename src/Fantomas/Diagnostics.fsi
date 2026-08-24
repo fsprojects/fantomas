@@ -2,6 +2,14 @@ module Fantomas.Diagnostics
 
 open Fantomas.FCS.Parse
 
+/// The word for a diagnostic's severity: `error`, `warning` or `info`. Every report says it the
+/// same way, whether it is writing a line of text or a field of a document.
+val severityText: diagnostic: FSharpParserDiagnostic -> string
+
+/// The diagnostic's number in the `FSnnnn` form the compiler prints. A diagnostic that carries no
+/// number is `FS0000`, which is what the compiler prints when it has none to give.
+val errorNumber: diagnostic: FSharpParserDiagnostic -> string
+
 /// Render the diagnostics of a parse failure as text a person and a machine can both read.
 ///
 /// The first line names Fantomas and the file, because the parser Fantomas vendors can lag the

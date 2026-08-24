@@ -33,4 +33,7 @@ let initLogger (level: VerbosityLevel) : VerbosityLevel =
 let initDaemonLogger (level: VerbosityLevel) : VerbosityLevel =
     createLogger level LogEventLevel.Verbose
 
+let initJsonLogger (level: VerbosityLevel) : VerbosityLevel =
+    createLogger level LogEventLevel.Verbose
+
 let closeAndFlushLog () : unit = Log.CloseAndFlush()
