@@ -18,7 +18,8 @@ let plan
     (ignoreFile: IgnoreFile option)
     (inputPath: InputPath)
     (outputPath: OutputPath)
-    : Result<WorkItem list, InputProblem> =
+    : Result<WorkItem list, InputProblem>
+    =
     let item (inputFile: string) (outputFile: string) : WorkItem =
         if IgnoreFile.isIgnoredFile log ignoreFile inputFile then
             WorkItem.Ignored inputFile
@@ -46,7 +47,8 @@ let plan
             if isPreviousOutput i then
                 None
             else
-                Some(item i (destinationOf i)))
+                Some(item i (destinationOf i))
+        )
         |> Seq.toList
 
     match inputPath, outputPath with
@@ -60,5 +62,7 @@ let plan
     | InputPath.Folder p, OutputPath.IO o -> Ok(folder p o)
     | InputPath.Multiple(files, folders), OutputPath.NotKnown ->
         Ok
-            [ yield! List.map (fun f -> item f f) files
-              yield! List.collect (fun f -> folder f f) folders ]
+            [
+                yield! List.map (fun f -> item f f) files
+                yield! List.collect (fun f -> folder f f) folders
+            ]

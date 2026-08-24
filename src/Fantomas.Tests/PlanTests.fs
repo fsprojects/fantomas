@@ -15,7 +15,8 @@ let private planOn
     (fs: IFileSystem)
     (inputPath: InputPath)
     (outputPath: OutputPath)
-    : Result<WorkItem list, InputProblem> =
+    : Result<WorkItem list, InputProblem>
+    =
     plan fs silentLogger None inputPath outputPath
 
 /// Plan against the given file system, honouring a `.fantomasignore` written at its root.
@@ -24,7 +25,8 @@ let private planIgnoring
     (patterns: string)
     (inputPath: InputPath)
     (outputPath: OutputPath)
-    : Result<WorkItem list, InputProblem> =
+    : Result<WorkItem list, InputProblem>
+    =
     let root: string = mockRoot fs
     fs.File.WriteAllText(fs.Path.Combine(root, IgnoreFile.IgnoreFileName), patterns)
 
@@ -107,8 +109,10 @@ let ``an output folder mirrors the input tree rather than flattening it`` () =
 
     planOn fs (InputPath.Folder src) (OutputPath.IO out)
     |> shouldPlan
-        [ WorkItem.Format(a, fs.Path.Combine(out, "A.fs"))
-          WorkItem.Format(nestedA, fs.Path.Combine(out, "nested", "A.fs")) ]
+        [
+            WorkItem.Format(a, fs.Path.Combine(out, "A.fs"))
+            WorkItem.Format(nestedA, fs.Path.Combine(out, "nested", "A.fs"))
+        ]
 
 [<Test>]
 let ``an output folder inside the input folder is not formatted into itself again`` () =

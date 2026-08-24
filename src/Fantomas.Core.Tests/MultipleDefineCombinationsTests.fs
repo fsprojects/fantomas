@@ -8,13 +8,20 @@ let private mergeAndCompare (aDefines, aCode) (bDefines, bCode) expected =
     let result =
         MultipleDefineCombinations.mergeMultipleFormatResults
             { config with
-                EndOfLine = EndOfLineStyle.LF }
-            [ DefineCombination(aDefines),
-              { Code = String.normalizeNewLine aCode
-                Cursor = None }
-              DefineCombination(bDefines),
-              { Code = String.normalizeNewLine bCode
-                Cursor = None } ]
+                EndOfLine = EndOfLineStyle.LF
+            }
+            [
+                DefineCombination(aDefines),
+                {
+                    Code = String.normalizeNewLine aCode
+                    Cursor = None
+                }
+                DefineCombination(bDefines),
+                {
+                    Code = String.normalizeNewLine bCode
+                    Cursor = None
+                }
+            ]
 
     let normalizedExpected = String.normalizeNewLine expected
     normalizedExpected == result.Code
@@ -126,11 +133,14 @@ let ``triple merge`` () =
     let result =
         MultipleDefineCombinations.mergeMultipleFormatResults
             { config with
-                EndOfLine = EndOfLineStyle.LF }
-            [ DefineCombination([]),
-              { Code =
-                  String.normalizeNewLine
-                      """
+                EndOfLine = EndOfLineStyle.LF
+            }
+            [
+                DefineCombination([]),
+                {
+                    Code =
+                        String.normalizeNewLine
+                            """
 let v =
   #if A
 
@@ -142,11 +152,13 @@ let v =
     #endif 
   #endif
 """
-                Cursor = None }
-              DefineCombination([ "A" ]),
-              { Code =
-                  String.normalizeNewLine
-                      """
+                    Cursor = None
+                }
+                DefineCombination([ "A" ]),
+                {
+                    Code =
+                        String.normalizeNewLine
+                            """
 let v =
   #if A
     'A'
@@ -158,11 +170,13 @@ let v =
     #endif 
   #endif
 """
-                Cursor = None }
-              DefineCombination([ "B" ]),
-              { Code =
-                  String.normalizeNewLine
-                      """
+                    Cursor = None
+                }
+                DefineCombination([ "B" ]),
+                {
+                    Code =
+                        String.normalizeNewLine
+                            """
 let v =
   #if A
 
@@ -174,7 +188,9 @@ let v =
     #endif 
   #endif
 """
-                Cursor = None } ]
+                    Cursor = None
+                }
+            ]
 
     let expected =
         String.normalizeNewLine

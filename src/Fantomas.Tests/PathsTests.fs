@@ -55,9 +55,11 @@ let ``every F# file below a folder is found, at any depth`` () =
     let root: string = mockRoot fs
     let src: string = fs.Path.Combine(root, "src")
 
-    [ fs.Path.Combine(src, "A.fs")
-      fs.Path.Combine(src, "nested", "B.fsi")
-      fs.Path.Combine(src, "nested", "deeper", "C.fsx") ]
+    [
+        fs.Path.Combine(src, "A.fs")
+        fs.Path.Combine(src, "nested", "B.fsi")
+        fs.Path.Combine(src, "nested", "deeper", "C.fsx")
+    ]
     |> makeFileHierarchy fs
 
     findAllFilesRecursively fs src
@@ -72,9 +74,11 @@ let ``files that are not F# are left out of the walk`` () =
     let root: string = mockRoot fs
     let src: string = fs.Path.Combine(root, "src")
 
-    [ fs.Path.Combine(src, "A.fs")
-      fs.Path.Combine(src, "README.md")
-      fs.Path.Combine(src, "App.csproj") ]
+    [
+        fs.Path.Combine(src, "A.fs")
+        fs.Path.Combine(src, "README.md")
+        fs.Path.Combine(src, "App.csproj")
+    ]
     |> makeFileHierarchy fs
 
     findAllFilesRecursively fs src
@@ -88,9 +92,11 @@ let ``build output is left out of the walk`` () =
     let root: string = mockRoot fs
     let src: string = fs.Path.Combine(root, "src")
 
-    [ fs.Path.Combine(src, "A.fs")
-      fs.Path.Combine(src, "obj", "Generated.fs")
-      fs.Path.Combine(src, "node_modules", "thing", "B.fs") ]
+    [
+        fs.Path.Combine(src, "A.fs")
+        fs.Path.Combine(src, "obj", "Generated.fs")
+        fs.Path.Combine(src, "node_modules", "thing", "B.fs")
+    ]
     |> makeFileHierarchy fs
 
     findAllFilesRecursively fs src

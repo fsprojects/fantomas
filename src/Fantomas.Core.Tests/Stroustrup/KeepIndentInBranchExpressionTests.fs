@@ -11,7 +11,8 @@ let config =
     { config with
         ExperimentalKeepIndentInBranch = true
         MultilineBracketStyle = Stroustrup
-        MaxArrayOrListWidth = 40 }
+        MaxArrayOrListWidth = 40
+    }
 
 // There currently is no conflict with this setting, but I'm guessing the case was never brought up.
 // I would conclude that will never clash.

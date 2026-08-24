@@ -55,14 +55,17 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
                                     defineCombination.Value |> String.concat ", "
 
                             return Error defineNames
-                    })
+                    }
+                )
                 |> Async.Parallel
 
             let failures =
                 results
-                |> Array.choose (function
+                |> Array.choose (
+                    function
                     | Error name -> Some name
-                    | _ -> None)
+                    | _ -> None
+                )
                 |> Array.toList
 
             if not failures.IsEmpty then
@@ -70,9 +73,11 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
 
             return
                 results
-                |> Array.choose (function
+                |> Array.choose (
+                    function
                     | Ok result -> Some result
-                    | _ -> None)
+                    | _ -> None
+                )
         }
 
 /// Format an abstract syntax tree using given config
@@ -81,7 +86,8 @@ let formatAST
     (sourceText: ISourceText option)
     (config: FormatConfig)
     (cursor: pos option)
-    : FormatResult =
+    : FormatResult
+    =
     let context = Context.Context.Create config
 
     let oak =
@@ -103,7 +109,8 @@ let formatDocument
     (isSignature: bool)
     (source: ISourceText)
     (cursor: pos option)
-    : Async<FormatResult> =
+    : Async<FormatResult>
+    =
     async {
         let! asts = parse isSignature source
 
@@ -113,7 +120,8 @@ let formatDocument
                 async {
                     let formattedCode = formatAST ast' (Some source) config cursor
                     return (defineCombination, formattedCode)
-                })
+                }
+            )
             |> Async.Parallel
             |> Async.map Array.toList
 

@@ -22,7 +22,8 @@ let sourceOf (fs: IFileSystem) (file: string) : string =
 
 let partitionResults
     (results: #(FormatResult seq))
-    : (string * ProfileInfo option) list * string list * (string * ProfileInfo option) list * (string * exn) list =
+    : (string * ProfileInfo option) list * string list * (string * ProfileInfo option) list * (string * exn) list
+    =
     (([], [], [], []), results)
     ||> Seq.fold (fun (oks, ignores, unchanged, errors) next ->
         match next with
@@ -32,7 +33,8 @@ let partitionResults
         | FormatResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors)
         | FormatResult.InvalidCode(file, _) ->
             let ex: FormatException = invalidResultException file
-            (oks, ignores, unchanged, (file, ex :> exn) :: errors))
+            (oks, ignores, unchanged, (file, ex :> exn) :: errors)
+    )
 
 // A DefineParseException is a FormatException, so it has to be matched first or its own wording
 // is never reached.
@@ -107,14 +109,16 @@ let reportFormatResults (env: CliEnvironment) (settings: CliSettings) (results: 
         let summary: Table =
             Table()
                 .AddColumns(
-                    [| "[green]Formatted[/]"
-                       string<int> oks.Length
-                       "Ignored"
-                       string<int> ignored.Length
-                       "[blue]Unchanged[/]"
-                       string<int> unchanged.Length
-                       "[red]Errored[/]"
-                       string<int> errored.Length |]
+                    [|
+                        "[green]Formatted[/]"
+                        string<int> oks.Length
+                        "Ignored"
+                        string<int> ignored.Length
+                        "[blue]Unchanged[/]"
+                        string<int> unchanged.Length
+                        "[red]Errored[/]"
+                        string<int> errored.Length
+                    |]
                     |> Array.map centeredColumn
                 )
 

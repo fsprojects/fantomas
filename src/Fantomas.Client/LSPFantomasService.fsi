@@ -6,8 +6,10 @@ open Fantomas.Client.LSPFantomasServiceTypes
 /// uses a `RunningFantomasTool`, and a test uses a record with a flag on it.
 [<NoComparison; NoEquality>]
 type internal ServiceState<'daemon> =
-    { Daemons: Map<FantomasVersion, 'daemon>
-      FolderToVersion: Map<Folder, FantomasVersion> }
+    {
+        Daemons: Map<FantomasVersion, 'daemon>
+        FolderToVersion: Map<Folder, FantomasVersion>
+    }
 
     static member Empty: ServiceState<'daemon>
 
@@ -38,8 +40,10 @@ type internal IDaemon =
 /// daemon knows about itself is on `IDaemon`.
 [<NoComparison; NoEquality>]
 type internal DaemonOperations<'daemon when 'daemon :> IDaemon> =
-    { FindTool: Folder -> Result<FantomasToolFound, FantomasToolError>
-      Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError> }
+    {
+        FindTool: Folder -> Result<FantomasToolFound, FantomasToolError>
+        Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError>
+    }
 
 /// Hand out the daemon serving `folder`, starting one if no running daemon serves its version yet,
 /// along with the cache that leaves behind. Daemons are keyed by version rather than by folder, so

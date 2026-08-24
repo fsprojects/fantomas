@@ -41,7 +41,8 @@ if // comment makes expr multiline
    a then b
 """
         { config with
-            MaxIfThenShortWidth = 100 }
+            MaxIfThenShortWidth = 100
+        }
     |> prepend newline
     |> should
         equal

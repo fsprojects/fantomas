@@ -84,17 +84,21 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
                 true,
                 QualifiedNameOfFile(Ident("", Range.range0)),
                 [],
-                [ SynModuleOrNamespace(
-                      [],
-                      false,
-                      SynModuleOrNamespaceKind.AnonModule,
-                      [ SynModuleDecl.Expr(longArrayExpr, Range.range0) ],
-                      PreXmlDoc.Empty,
-                      [],
-                      None,
-                      Range.range0,
-                      { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
-                  ) ],
+                [
+                    SynModuleOrNamespace(
+                        [],
+                        false,
+                        SynModuleOrNamespaceKind.AnonModule,
+                        [ SynModuleDecl.Expr(longArrayExpr, Range.range0) ],
+                        PreXmlDoc.Empty,
+                        [],
+                        None,
+                        Range.range0,
+                        {
+                            LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None
+                        }
+                    )
+                ],
                 (false, false),
                 ParsedInputTrivia.Empty,
                 Set.empty

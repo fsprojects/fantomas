@@ -45,7 +45,8 @@ let f () =
     formatSourceString
         codeSnippet
         { config with
-            MaxValueBindingWidth = 50 }
+            MaxValueBindingWidth = 50
+        }
     |> should
         equal
         """let f () =
@@ -111,7 +112,8 @@ let tomorrow =
 """
         { config with
             MaxValueBindingWidth = 60
-            MaxLineLength = 70 }
+            MaxLineLength = 70
+        }
     |> prepend newline
     |> should
         equal
@@ -262,7 +264,8 @@ let ``newlines inside let binding should be not duplicated`` () =
     ()
 """
         { config with
-            MaxInfixOperatorExpression = 60 }
+            MaxInfixOperatorExpression = 60
+        }
     |> should
         equal
         """let foo =
@@ -446,7 +449,8 @@ let ``line comment before return type info should indent before colon, 565`` () 
         { config with
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
-            SpaceAroundDelimiter = false }
+            SpaceAroundDelimiter = false
+        }
     |> prepend newline
     |> should
         equal
@@ -470,7 +474,8 @@ let ``line comment before return type with AlignFunctionSignatureToIndentation``
     0
 """
         { config with
-            AlignFunctionSignatureToIndentation = true }
+            AlignFunctionSignatureToIndentation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -497,7 +502,8 @@ let ``has symbol in signature requires paren, 564`` () =
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
             SpaceAroundDelimiter = false
-            SpaceBeforeParameter = false }
+            SpaceBeforeParameter = false
+        }
     |> prepend newline
     |> should
         equal
@@ -794,7 +800,8 @@ let useEntries month year =
     (income, expenses)
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -952,7 +959,8 @@ let useOverviewPerMonth () =
     months
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1005,7 +1013,8 @@ let ``don't add newline before array, 1033`` () =
 """
         { config with
             MaxArrayOrListWidth = 40
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1033,7 +1042,8 @@ let ``preserve new line new instance of class, 1034`` () =
 """
         { config with
             MaxValueBindingWidth = 50
-            MaxFunctionBindingWidth = 50 }
+            MaxFunctionBindingWidth = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1338,7 +1348,8 @@ let internal sepSpace =
         else (!- " ") ctx
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1402,7 +1413,8 @@ printfn "%s" (lookupMonth 1)
 printfn "%s" (lookupMonth 13) // Throws an exception!
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1515,7 +1527,8 @@ let k = -1
 """
         { config with
             AlignFunctionSignatureToIndentation = true
-            MaxLineLength = 60 }
+            MaxLineLength = 60
+        }
     |> prepend newline
     |> should
         equal
@@ -1563,7 +1576,8 @@ let k = -1
 """
         { config with
             AlignFunctionSignatureToIndentation = true
-            MaxLineLength = 60 }
+            MaxLineLength = 60
+        }
     |> prepend newline
     |> should
         equal
@@ -1634,7 +1648,8 @@ stepLog.LogInformation (
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1698,7 +1713,8 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1742,7 +1758,8 @@ type Viewport =
       zoom: int }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1982,7 +1999,8 @@ let escapeEarth myVelocity mySpeed =
 """
         { config with
             MaxInfixOperatorExpression = 50
-            MaxIfThenElseShortWidth = 40 }
+            MaxIfThenElseShortWidth = 40
+        }
     |> prepend newline
     |> should
         equal
@@ -2249,7 +2267,8 @@ let bar
     ()
 """
         { config with
-            AlignFunctionSignatureToIndentation = true }
+            AlignFunctionSignatureToIndentation = true
+        }
     |> prepend newline
     |> should
         equal

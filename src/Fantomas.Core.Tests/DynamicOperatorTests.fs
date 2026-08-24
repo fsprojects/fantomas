@@ -31,7 +31,8 @@ let ``keep () when dynamic operator inside boolean expr, #476`` () =
     |> Input.Color
 """
         { config with
-            MaxIfThenElseShortWidth = 5 }
+            MaxIfThenElseShortWidth = 5
+        }
     |> prepend newline
     |> should
         equal
@@ -116,7 +117,8 @@ let doc2 = X?a("arg")?B("barg")?c("carg")
 """
         { config with
             SpaceBeforeLowercaseInvocation = false
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal

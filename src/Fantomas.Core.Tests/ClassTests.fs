@@ -98,7 +98,8 @@ type Shape2D(x0 : float, y0 : float) =
     default this.Rotate(angle) = rotAngle <- rotAngle + angle
     """
         { config with
-            MaxValueBindingWidth = 120 }
+            MaxValueBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -200,7 +201,8 @@ let ``classes and implicit constructors`` () =
        member this.PrintMessage() =
            printf "Creating MyClass2 with Data %d" data"""
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -221,7 +223,8 @@ let ``classes and private implicit constructors`` () =
        member this.PrintMessage() =
            printf "Creating MyClass2 with Data %d" data"""
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -245,7 +248,8 @@ and File(filename: string, containingFolder: Folder) =
    member __.Name = filename
    member __.ContainingFolder = containingFolder"""
         { config with
-            MaxValueBindingWidth = 120 }
+            MaxValueBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -466,7 +470,8 @@ type Exception with
 """
         { config with
             MaxValueBindingWidth = 120
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> should
         equal
         """open System
@@ -513,7 +518,8 @@ module Logging =
 """
         { config with
             MaxFunctionBindingWidth = 80
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -564,7 +570,8 @@ type A() =
 
     member this.MemberC = 0"""
         { config with
-            MaxValueBindingWidth = 120 }
+            MaxValueBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -733,7 +740,8 @@ indent_size=2
 \"\"\"
 "
         { config with
-            MaxInfixOperatorExpression = 40 }
+            MaxInfixOperatorExpression = 40
+        }
     |> prepend newline
     |> should
         equal
@@ -981,7 +989,8 @@ type C() =
     member _.Run() = 1
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1144,7 +1153,8 @@ let ``trivia before and keyword in SynMemberDefn.GetSet, 2372`` () =
     override this.``type``: string = "fakerun" }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1174,7 +1184,8 @@ type [<AllowNullLiteral>] Terminal =
     abstract onLineFeed: IEvent<unit> with get, set
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

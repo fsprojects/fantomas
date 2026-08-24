@@ -475,7 +475,8 @@ let ``should split constructor and function call correctly, double formatting`` 
     let config80 =
         { config with
             MaxLineLength = 80
-            MaxRecordWidth = 80 }
+            MaxRecordWidth = 80
+        }
 
     let original =
         """
@@ -793,7 +794,8 @@ let private update onSubmit msg model =
 """
         { config with
             SpaceBeforeColon = true
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -940,7 +942,8 @@ let draftToken =
         DraftToken.Create kind token
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1078,7 +1081,8 @@ let ``maintain indent if when condition is multiline`` () =
           getTriviaFromTokensThemSelves allTokens rest info
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1105,7 +1109,8 @@ match x (Map.tryFind somelongidentifier a + Option.defaultValue longidentifier) 
 | _ -> ()
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1134,7 +1139,8 @@ with
         { config with
             MaxLineLength = 100
             AlternativeLongMemberDefinitions = true
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1165,7 +1171,8 @@ with
             MaxLineLength = 100
             SpaceBeforeColon = true
             AlternativeLongMemberDefinitions = true
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1503,7 +1510,8 @@ match x with
 """
         { config with
             IndentSize = 2
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1538,7 +1546,8 @@ match x with
 |||> Some
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1674,7 +1683,8 @@ let ``don't add unnecessary parenthesis around SynPat.IsInst, 1660`` () =
 """
         { config with
             MaxIfThenElseShortWidth = 40
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1840,7 +1850,8 @@ match structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsComparison
 | _ -> ()
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1865,7 +1876,8 @@ match! structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsCompariso
 """
         { config with
             IndentSize = 2
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal

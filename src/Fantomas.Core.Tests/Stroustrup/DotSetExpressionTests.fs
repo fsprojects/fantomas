@@ -8,7 +8,8 @@ open Fantomas.Core
 let config =
     { config with
         MultilineBracketStyle = Stroustrup
-        MaxArrayOrListWidth = 40 }
+        MaxArrayOrListWidth = 40
+    }
 
 [<Test>]
 let ``dotSet with record instance`` () =
@@ -41,7 +42,8 @@ App().foo <-
       C = ziggyBarX }
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal

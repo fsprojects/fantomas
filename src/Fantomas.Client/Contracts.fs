@@ -24,10 +24,12 @@ module Methods =
 
 [<NoComparison>]
 type FormatDocumentRequest =
-    { SourceCode: string
-      FilePath: string
-      Config: IReadOnlyDictionary<string, string> option
-      Cursor: FormatCursorPosition option }
+    {
+        SourceCode: string
+        FilePath: string
+        Config: IReadOnlyDictionary<string, string> option
+        Cursor: FormatCursorPosition option
+    }
 
     member this.IsSignatureFile = this.FilePath.EndsWith(".fsi", StringComparison.Ordinal)
 
@@ -61,20 +63,25 @@ and FormatSelectionRange =
         val EndLine: int
         val EndColumn: int
 
-        new(startLine: int, startColumn: int, endLine: int, endColumn: int) =
-            { StartLine = startLine
-              StartColumn = startColumn
-              EndLine = endLine
-              EndColumn = endColumn }
+        new(startLine: int, startColumn: int, endLine: int, endColumn: int)
+            =
+            {
+                StartLine = startLine
+                StartColumn = startColumn
+                EndLine = endLine
+                EndColumn = endColumn
+            }
     end
 
 [<NoComparison>]
 type FantomasResponse =
-    { Code: int
-      FilePath: string
-      Content: string option
-      SelectedRange: FormatSelectionRange option
-      Cursor: FormatCursorPosition option }
+    {
+        Code: int
+        FilePath: string
+        Content: string option
+        SelectedRange: FormatSelectionRange option
+        Cursor: FormatCursorPosition option
+    }
 
 type ConfigurationProblemCode =
     | UnknownSetting = 1
@@ -86,16 +93,20 @@ type ConfigurationProblemSource =
 
 [<NoComparison>]
 type ConfigurationProblem =
-    { Code: int
-      Source: int
-      Setting: string
-      Value: string }
+    {
+        Code: int
+        Source: int
+        Setting: string
+        Value: string
+    }
 
 [<NoComparison>]
 type ConfigurationWarning =
-    { FilePath: string
-      EditorConfigFiles: string array
-      Problems: ConfigurationProblem array }
+    {
+        FilePath: string
+        EditorConfigFiles: string array
+        Problems: ConfigurationProblem array
+    }
 
 type FantomasService =
     interface

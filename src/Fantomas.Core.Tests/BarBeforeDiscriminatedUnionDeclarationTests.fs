@@ -8,7 +8,8 @@ let defaultConfig = config
 
 let config =
     { config with
-        BarBeforeDiscriminatedUnionDeclaration = true }
+        BarBeforeDiscriminatedUnionDeclaration = true
+    }
 
 [<Test>]
 let ``single DU without fields`` () =

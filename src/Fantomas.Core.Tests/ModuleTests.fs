@@ -64,7 +64,8 @@ let sortAndDedup by l =
     // comment2
     l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq"""
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -264,7 +265,8 @@ type SomeType() =
         global.System.Console.WriteLine("Hello World!")
     """
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -288,7 +290,8 @@ type SomeType() =
         System.Console.WriteLine("Hello World!")
     """
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -434,7 +437,8 @@ type UrlModel =
       Defines: string }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -486,7 +490,8 @@ type UrlModel =
       Defines: string }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

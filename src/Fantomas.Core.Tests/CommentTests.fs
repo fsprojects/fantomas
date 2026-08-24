@@ -117,7 +117,8 @@ type Model =
       Street: string }
     """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -314,7 +315,8 @@ let a =
     B = 7 }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -336,7 +338,8 @@ let a =
       B = 7 }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -360,7 +363,8 @@ let a =
 """
         { config with
             SpaceAroundDelimiter = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -591,7 +595,8 @@ module TriviaModule =
 (* ending with block comment *)
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -832,7 +837,8 @@ type substring =
 """
         { config with
             MaxInfixOperatorExpression = 60
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> should
         equal
         """(*
@@ -1281,7 +1287,8 @@ type T =
     delay : float }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1355,7 +1362,8 @@ open Something
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1639,7 +1647,8 @@ type TorDirectory =
         }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1879,7 +1888,8 @@ let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
     s
 """
         { config with
-            MaxIfThenElseShortWidth = 60 }
+            MaxIfThenElseShortWidth = 60
+        }
     |> prepend newline
     |> should
         equal
@@ -1906,7 +1916,8 @@ match meh with
         sprintf "%s:%s" s tag (* still being decided *)
 """
         { config with
-            MaxIfThenElseShortWidth = 60 }
+            MaxIfThenElseShortWidth = 60
+        }
     |> prepend newline
     |> should
         equal
@@ -1951,7 +1962,8 @@ let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
             sprintf "%s:%s" s tag (* still being decided *)
 """
         { config with
-            MaxIfThenElseShortWidth = 60 }
+            MaxIfThenElseShortWidth = 60
+        }
     |> prepend newline
     |> should
         equal
@@ -2339,7 +2351,8 @@ type ExprFolder<'State> =
       tmethodIntercept: ('State -> Expr -> 'State) -> 'State -> ObjExprMethod -> 'State option }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2457,7 +2470,8 @@ let Anonymous =
        FontSize = 48. |} // font-weight
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2687,7 +2701,8 @@ module I =
         ]
 """
         { config with
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal

@@ -9,7 +9,8 @@ val Code: string = "FANTOMAS-PRIVATE-001"
 val Name: string = "PrivateAccessAnalyzer"
 
 [<Literal>]
-val ShortDescription: string = "Detects a private let binding in an implementation file that has a signature file, where the signature file is already the visibility boundary."
+val ShortDescription: string =
+    "Detects a private let binding in an implementation file that has a signature file, where the signature file is already the visibility boundary."
 
 [<Literal>]
 val HelpUri: string = "https://github.com/fsprojects/fantomas/blob/main/analyzers/AGENTS.md#fantomas-private-001"

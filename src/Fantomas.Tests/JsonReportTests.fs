@@ -34,12 +34,15 @@ let private checked'
     (errors: (string * exn) list)
     (formatted: string list)
     (unchanged: string list)
-    : JsonElement =
+    : JsonElement
+    =
     CheckCommandResult.Completed(
         ignored,
-        { Errors = errors
-          Formatted = formatted
-          Unchanged = unchanged }
+        {
+            Errors = errors
+            Formatted = formatted
+            Unchanged = unchanged
+        }
     )
     |> checkReport workingDirectory
     |> parsed
@@ -48,20 +51,26 @@ let private unmatchedBracket: exn =
     let range: range = Range.mkRange "tmp.fsx" (Position.mkPos 3 8) (Position.mkPos 3 9)
 
     ParseException
-        [ { Severity = FSharpDiagnosticSeverity.Error
-            SubCategory = "parse"
-            Range = Some range
-            ErrorNumber = Some 583
-            Message = "Unmatched '('" } ]
+        [
+            {
+                Severity = FSharpDiagnosticSeverity.Error
+                SubCategory = "parse"
+                Range = Some range
+                ErrorNumber = Some 583
+                Message = "Unmatched '('"
+            }
+        ]
 
 [<Test>]
 let ``a format run reports one entry per file, with what became of it`` () =
     let document: JsonElement =
         completed
-            [ FormatResult.Formatted("a.fs", "", None)
-              FormatResult.Unchanged("b.fs", None)
-              FormatResult.IgnoredFile "c.fs"
-              FormatResult.Error("d.fs", Exception "the disk went away") ]
+            [
+                FormatResult.Formatted("a.fs", "", None)
+                FormatResult.Unchanged("b.fs", None)
+                FormatResult.IgnoredFile "c.fs"
+                FormatResult.Error("d.fs", Exception "the disk went away")
+            ]
 
     files document
     |> List.map statusOf
@@ -109,9 +118,11 @@ let ``a check that found files needing formatting reports 99 in the document`` (
     let result: CheckCommandResult =
         CheckCommandResult.Completed(
             [],
-            { Errors = []
-              Formatted = [ "a.fs" ]
-              Unchanged = [] }
+            {
+                Errors = []
+                Formatted = [ "a.fs" ]
+                Unchanged = []
+            }
         )
 
     let document: JsonElement = parsed (checkReport workingDirectory result)
@@ -218,17 +229,21 @@ let ``a check names the files it found nothing to say about`` () =
     |> files
     |> List.map statusOf
     |> shouldEqual
-        [ "a.fs", "unchanged"
-          "b.fs", "needs-formatting"
-          "c.fs", "unchanged"
-          "d.fs", "ignored" ]
+        [
+            "a.fs", "unchanged"
+            "b.fs", "needs-formatting"
+            "c.fs", "unchanged"
+            "d.fs", "ignored"
+        ]
 
 [<Test>]
 let ``files are ordered by path, whichever order the run produced them in`` () =
     completed
-        [ FormatResult.Unchanged("c.fs", None)
-          FormatResult.Unchanged("a.fs", None)
-          FormatResult.Unchanged("b.fs", None) ]
+        [
+            FormatResult.Unchanged("c.fs", None)
+            FormatResult.Unchanged("a.fs", None)
+            FormatResult.Unchanged("b.fs", None)
+        ]
     |> files
     |> List.map (statusOf >> fst)
     |> shouldEqual [ "a.fs"; "b.fs"; "c.fs" ]

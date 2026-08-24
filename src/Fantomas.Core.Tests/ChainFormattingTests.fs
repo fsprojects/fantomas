@@ -73,7 +73,8 @@ storage.SetConfigurationSettingPublisher(fun configName publisher -> publish con
 """
         { config with
             MaxLineLength = 80
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -129,7 +130,8 @@ builder.FirstThing<X>(fun lambda -> processFirst lambda).SecondThing<Y>(fun next
 """
         { config with
             MaxLineLength = 40
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -463,7 +465,8 @@ repo.Where(fun customer -> customer.IsActive && customer.Region = targetRegion).
 """
         { config with
             MaxLineLength = 70
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -799,7 +802,8 @@ builder.Configure(fun v -> handleSomeValue v |> andThenSomethingElse v).Build().
 """
         { config with
             MaxLineLength = 60
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -820,7 +824,8 @@ builder.Build().Configure(fun v -> handleSomeValue v |> andThenSomethingElse v)
 """
         { config with
             MaxLineLength = 60
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -840,7 +845,8 @@ builder.Configure(function Some v -> handleSome v | None -> handleNone ()).Build
 """
         { config with
             MaxLineLength = 60
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -863,7 +869,8 @@ builder.Build().Configure(function Some v -> handleSome v | None -> handleNone (
 """
         { config with
             MaxLineLength = 60
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal

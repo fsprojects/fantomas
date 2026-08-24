@@ -8,7 +8,9 @@ open Fantomas.Core.SyntaxOak
 type CodeFormatter =
     static member ParseAsync(isSignature, source) : Async<(ParsedInput * string list) array> =
         async {
-            let! results = CodeFormatterImpl.getSourceText source |> CodeFormatterImpl.parse isSignature
+            let! results =
+                CodeFormatterImpl.getSourceText source |> CodeFormatterImpl.parse isSignature
+
             return results |> Array.map (fun (ast, DefineCombination(defines)) -> ast, defines)
         }
 
@@ -75,7 +77,8 @@ type CodeFormatter =
                 |> Array.map (fun (ast, defines) ->
                     let oak = ASTTransformer.mkOak (Some sourceText) ast
                     let oak = Trivia.enrichTree FormatConfig.Default sourceText ast oak
-                    oak, defines.Value)
+                    oak, defines.Value
+                )
         }
 
     static member TransformAST ast = ASTTransformer.mkOak None ast
@@ -124,7 +127,8 @@ type CodeFormatter =
 
             let context =
                 { Context.Context.Create config with
-                    DebugMode = true }
+                    DebugMode = true
+                }
 
             let ctx = context |> CodePrinter.genFile oak
             return Context.dumpEvents ctx

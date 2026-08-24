@@ -49,7 +49,8 @@ let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3
   (3, 2, 6); (3, 3, 9)|]
     """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -135,7 +136,8 @@ let ``should keep -> notation`` () =
         e1.Key, e1.Value]
     """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -170,7 +172,8 @@ let a2 = [| 0 .. 99 |]
 let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]"""
         { config with
             MaxIfThenShortWidth = 25
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -281,7 +284,8 @@ let ``comment after string in list`` () =
                     "ffffffffffffffffffffffffffffffffffffffff"]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> should
         equal
         """let xxxxxxxxxxxx =
@@ -298,7 +302,8 @@ let ``multiline list should print each item on newline`` () =
                     "ffffffffffffffffffffffffffffffffffffffff"]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> should
         equal
         """let xxxxxxxxxxxx =
@@ -317,7 +322,8 @@ let ``multiline list of string should not add ;`` () =
 """
         { config with
             MaxLineLength = 80
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> should
         equal
         """[ "_Binaries/AltCover/Debug+AnyCPU/AltCover.exe"
@@ -337,7 +343,8 @@ let prismCli commando =
     ()
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -366,7 +373,8 @@ let prismCli commando =
 """
         { config with
             SpaceAroundDelimiter = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -390,7 +398,8 @@ let ``line comment inside list`` () =
 """
         { config with
             SpaceAroundDelimiter = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -408,7 +417,8 @@ let ``line comment inside array`` () =
 |]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -429,7 +439,8 @@ let input =
 let sample = [|0;3;0;1;-3|]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1533,7 +1544,8 @@ let f' includeWeekend =
     ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1592,7 +1604,8 @@ let nestedList: obj list = [
 """
         { config with
             MaxLineLength = 80
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1624,7 +1637,8 @@ let nestedList: obj list = [|
 """
         { config with
             MaxLineLength = 80
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1656,7 +1670,8 @@ let nestedList: obj list = [|
 """
         { config with
             MaxLineLength = 80
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1689,7 +1704,8 @@ let nestedList: obj list = [
 """
         { config with
             MaxLineLength = 80
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1723,7 +1739,8 @@ let nestedList: obj list = [|
 """
         { config with
             MaxLineLength = 80
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1840,7 +1857,8 @@ let run () =
 run() // Prints the same thing twice
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1912,7 +1930,8 @@ let original_input = [
             MaxIfThenElseShortWidth = 120
             MaxArrayOrListWidth = 120
             MaxIfThenShortWidth = 120
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1935,7 +1954,8 @@ let value = [
         { config with
             MaxIfThenElseShortWidth = 120
             MaxArrayOrListWidth = 120
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal
@@ -1958,7 +1978,8 @@ let wrong = [
 """
         { config with
             MaxIfThenShortWidth = 20
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1981,7 +2002,8 @@ let choices : Foo list =
     ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2005,7 +2027,8 @@ let choices : Foo list =
     ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2028,7 +2051,8 @@ let x = [
 ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2050,7 +2074,8 @@ let ``comment after closing list bracket, 1073`` () =
                             Arb.generate<_> Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat ] //
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2073,7 +2098,8 @@ let ``comment after closing array bracket`` () =
                             Arb.generate<_> Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat |] //
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2104,7 +2130,8 @@ type FSharpCompilerServiceChecker(backgroundServiceEnabled) =
 """
         { config with
             IndentSize = 2
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2143,7 +2170,8 @@ let private fn (xs: int[]) =
           s.DoSomething() ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2172,7 +2200,8 @@ let ``multiline function application inside array, 1382`` () =
   ) |]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2200,7 +2229,8 @@ let ``multiline function application inside list`` () =
 """
         { config with
             SpaceBeforeLowercaseInvocation = true
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2225,7 +2255,8 @@ let foo =
     ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2246,7 +2277,8 @@ let foo =
     |]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2269,7 +2301,8 @@ let fns =
      ]
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

@@ -31,7 +31,8 @@ let ``sepColon should not add a space when nothing proceeds it`` () =
 
     let config =
         { FormatConfig.Default with
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
 
     let ctx = { Context.Default with Config = config }
     let result = dump (expr ctx)
@@ -53,7 +54,8 @@ let ``sepColon should not add a space when space proceeds it`` () =
 
     let config =
         { FormatConfig.Default with
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
 
     let ctx = { Context.Default with Config = config }
     let result = dump (expr ctx)
@@ -102,7 +104,8 @@ let ``nested exceedsMultiline expression should bubble up to parent check`` () =
     let config =
         { FormatConfig.Default with
             MaxLineLength = 50
-            SpaceAroundDelimiter = false }
+            SpaceAroundDelimiter = false
+        }
 
     let initialContext = { Context.Default with Config = config }
 

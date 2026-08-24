@@ -103,7 +103,9 @@ let PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filename, impl)
             ComputeAnonModuleName (not (isNil defs)) defaultNamespace filename (trimRangeToLine m)
 
         let trivia: SynModuleOrNamespaceTrivia =
-            { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
+            {
+                LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None
+            }
 
         SynModuleOrNamespace(
             modname,
@@ -189,9 +191,11 @@ let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) =
 
             let existingPositions =
                 comments
-                |> List.choose (function
+                |> List.choose (
+                    function
                     | CommentTrivia.LineComment r when isTripleSlashComment r -> Some(r.StartLine, r.StartColumn)
-                    | _ -> None)
+                    | _ -> None
+                )
                 |> Set.ofList
 
             tripleSlashComments
@@ -199,20 +203,25 @@ let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) =
                 if Set.contains (r.StartLine, r.StartColumn) existingPositions then
                     None
                 else
-                    Some(CommentTrivia.LineComment r))
+                    Some(CommentTrivia.LineComment r)
+            )
 
     [ yield! comments; yield! uniqueTripleSlash ]
-    |> List.sortBy (function
+    |> List.sortBy (
+        function
         | CommentTrivia.LineComment r
-        | CommentTrivia.BlockComment r -> r.StartLine, r.StartColumn)
+        | CommentTrivia.BlockComment r -> r.StartLine, r.StartColumn
+    )
 
 let PostParseModuleImpls (defaultNamespace, filename, isLastCompiland, ParsedImplFile(hashDirectives, impls), lexbuf) =
     match
         impls
         |> List.rev
-        |> List.tryPick (function
+        |> List.tryPick (
+            function
             | ParsedImplFileFragment.NamedModule(SynModuleOrNamespace(longId = lid)) -> Some lid
-            | _ -> None)
+            | _ -> None
+        )
     with
     | Some lid when impls.Length > 1 -> errorR (Error(FSComp.SR.buildMultipleToplevelModules (), rangeOfLid lid))
     | _ -> ()
@@ -225,9 +234,11 @@ let PostParseModuleImpls (defaultNamespace, filename, isLastCompiland, ParsedImp
     let isScript = IsScript filename
 
     let trivia =
-        { ConditionalDirectives = IfdefStore.GetTrivia(lexbuf)
-          WarnDirectives = WarnScopes.getDirectiveTrivia (lexbuf)
-          CodeComments = collectCodeComments lexbuf }
+        {
+            ConditionalDirectives = IfdefStore.GetTrivia(lexbuf)
+            WarnDirectives = WarnScopes.getDirectiveTrivia (lexbuf)
+            CodeComments = collectCodeComments lexbuf
+        }
 
     ParsedInput.ImplFile(
         ParsedImplFileInput(filename, isScript, qualName, hashDirectives, impls, isLastCompiland, trivia, Set.empty)
@@ -268,7 +279,9 @@ let PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf)
             ComputeAnonModuleName (not (isNil defs)) defaultNamespace filename (trimRangeToLine m)
 
         let trivia: SynModuleOrNamespaceSigTrivia =
-            { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
+            {
+                LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None
+            }
 
         SynModuleOrNamespaceSig(
             modname,
@@ -301,9 +314,11 @@ let PostParseModuleSpecs
     match
         specs
         |> List.rev
-        |> List.tryPick (function
+        |> List.tryPick (
+            function
             | ParsedSigFileFragment.NamedModule(SynModuleOrNamespaceSig(longId = lid)) -> Some lid
-            | _ -> None)
+            | _ -> None
+        )
     with
     | Some lid when specs.Length > 1 -> errorR (Error(FSComp.SR.buildMultipleToplevelModules (), rangeOfLid lid))
     | _ -> ()
@@ -315,9 +330,11 @@ let PostParseModuleSpecs
     let qualName = QualFileNameOfSpecs filename specs
 
     let trivia =
-        { ConditionalDirectives = IfdefStore.GetTrivia(lexbuf)
-          WarnDirectives = WarnScopes.getDirectiveTrivia (lexbuf)
-          CodeComments = collectCodeComments lexbuf }
+        {
+            ConditionalDirectives = IfdefStore.GetTrivia(lexbuf)
+            WarnDirectives = WarnScopes.getDirectiveTrivia (lexbuf)
+            CodeComments = collectCodeComments lexbuf
+        }
 
     ParsedInput.SigFile(ParsedSigFileInput(filename, qualName, hashDirectives, specs, trivia, Set.empty))
 
@@ -329,7 +346,8 @@ let ParseInput
         defaultNamespace,
         filename,
         isLastCompiland
-    ) =
+    )
+    =
     // The assert below is almost ok, but it fires in two cases:
     //  - fsi.exe sometimes passes "stdin" as a dummy filename
     //  - if you have a #line directive, e.g.
@@ -396,7 +414,8 @@ let createLexerFunction (defines: string list) lexbuf (errorLogger: CapturingDia
 
     let lexargs =
         { lexargs with
-            applyLineDirectives = false }
+            applyLineDirectives = false
+        }
 
     let compilingFsLib = false
 
@@ -406,12 +425,14 @@ let createLexerFunction (defines: string list) lexbuf (errorLogger: CapturingDia
     (fun _ -> tokenizer.GetToken())
 
 type FSharpParserDiagnostic =
-    { Severity: FSharpDiagnosticSeverity
-      SubCategory: string
-      Range: range option
-      // GetDiagnosticNumber from dotnet/fsharp/src/fsharp/CompilerDiagnostics.fs
-      ErrorNumber: int option
-      Message: string }
+    {
+        Severity: FSharpDiagnosticSeverity
+        SubCategory: string
+        Range: range option
+        // GetDiagnosticNumber from dotnet/fsharp/src/fsharp/CompilerDiagnostics.fs
+        ErrorNumber: int option
+        Message: string
+    }
 
 let getErrorString key = SR.GetString key
 
@@ -967,7 +988,8 @@ let getSyntaxErrorMessage ctxt =
                 | [ Parser.NONTERM_typeArgsActual ] ->
                     os.Append(NONTERM_typeArgsActualE().Format) |> ignore
                     true
-                | _ -> false)
+                | _ -> false
+            )
 
 #if DEBUG
         if not foundInContext then
@@ -989,7 +1011,8 @@ let getSyntaxErrorMessage ctxt =
                  match Parser.tokenTagToTokenId tokenTag with
                  | Parser.TOKEN_error
                  | Parser.TOKEN_EOF -> None
-                 | tokenId -> Some tokenId)
+                 | tokenId -> Some tokenId
+             )
              |> List.map tokenIdToText
              |> Set.ofList
              |> Set.toList)
@@ -1030,25 +1053,29 @@ let parseFile
     (isSignature: bool)
     (sourceText: ISourceText)
     (defines: string list)
-    : ParsedInput * FSharpParserDiagnostic list =
+    : ParsedInput * FSharpParserDiagnostic list
+    =
     fileIndexTableWarmup.Force()
     let errorLogger = CapturingDiagnosticsLogger("ErrorHandler")
 
     let parseResult =
         let fileName = if isSignature then "tmp.fsi" else "tmp.fsx"
 
-        usingLexbufForParsing (createLexbuf "preview" sourceText, fileName) (fun lexbuf ->
+        usingLexbufForParsing
+            (createLexbuf "preview" sourceText, fileName)
+            (fun lexbuf ->
 
-            let lexfun = createLexerFunction defines lexbuf errorLogger
-            // both don't matter for Fantomas
-            let isLastCompiland = false
-            let isExe = false
+                let lexfun = createLexerFunction defines lexbuf errorLogger
+                // both don't matter for Fantomas
+                let isLastCompiland = false
+                let isExe = false
 
-            try
-                ParseInput(lexfun, errorLogger, lexbuf, None, fileName, (isLastCompiland, isExe))
-            with e ->
-                errorLogger.StopProcessingRecovery e range0 // don't re-raise any exceptions, we must return None.
-                EmptyParsedInput(fileName, (isLastCompiland, isExe)))
+                try
+                    ParseInput(lexfun, errorLogger, lexbuf, None, fileName, (isLastCompiland, isExe))
+                with e ->
+                    errorLogger.StopProcessingRecovery e range0 // don't re-raise any exceptions, we must return None.
+                    EmptyParsedInput(fileName, (isLastCompiland, isExe))
+            )
 
     let diagnostics =
         List.map
@@ -1066,11 +1093,14 @@ let parseFile
                     | :? ReservedKeyword as rkw -> Some rkw.Data1, rkw.Data0.Text, Some 46
                     | _ -> None, p.Exception.Message, None
 
-                { Severity = p.Severity
-                  SubCategory = "parse"
-                  Range = range
-                  ErrorNumber = errorNumber
-                  Message = message })
+                {
+                    Severity = p.Severity
+                    SubCategory = "parse"
+                    Range = range
+                    ErrorNumber = errorNumber
+                    Message = message
+                }
+            )
             errorLogger.Diagnostics
 
     parseResult, diagnostics

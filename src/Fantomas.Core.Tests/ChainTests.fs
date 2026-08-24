@@ -25,7 +25,8 @@ let ``appUnit DotSet identifier`` () =
 X().Y <- true
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -257,7 +258,8 @@ builder.
     .ThirdThing<Z>().X
 """
         { config with
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal
@@ -463,7 +465,8 @@ let ``tight receiver control case, a plain terminal call does take the space`` (
 obj.Bar()
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -478,7 +481,8 @@ let ``tight receiver, leading expression of a dynamic chain`` () =
 obj?A()?B()
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -493,7 +497,8 @@ let ``tight receiver, prefix operator applied to a unit call`` () =
 -obj.Bar()
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -508,7 +513,8 @@ let ``tight receiver, prefix operator applied to a paren call`` () =
 -obj.Bar(a)
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -523,7 +529,8 @@ let ``tight receiver, identifier of a new-style index`` () =
 a.Foo()[0]
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -628,7 +635,8 @@ let ``uppercase terminal after an uppercase intermediate call takes the space`` 
 a.Foo(x).Bar(y)
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -644,7 +652,8 @@ a.Foo(x).bar(y)
 """
         { config with
             SpaceBeforeUppercaseInvocation = true
-            SpaceBeforeLowercaseInvocation = false }
+            SpaceBeforeLowercaseInvocation = false
+        }
     |> prepend newline
     |> should
         equal
@@ -667,7 +676,8 @@ let x =
         | None -> handleNone ())
 """
         { config with
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal

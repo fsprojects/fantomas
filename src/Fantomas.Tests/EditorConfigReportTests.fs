@@ -83,7 +83,8 @@ let ``one report is written once, however many files it is found for`` () =
     let written =
         reportedBy (fun report ->
             for _ in 1..5 do
-                report "/repo/.editorconfig" [ unknown "fsharp_wibble" ])
+                report "/repo/.editorconfig" [ unknown "fsharp_wibble" ]
+        )
 
     written |> List.length == 1
 
@@ -92,7 +93,8 @@ let ``two editorconfigs with the same problem are both reported`` () =
     let written =
         reportedBy (fun report ->
             report "/repo/one/.editorconfig" [ unknown "fsharp_wibble" ]
-            report "/repo/two/.editorconfig" [ unknown "fsharp_wibble" ])
+            report "/repo/two/.editorconfig" [ unknown "fsharp_wibble" ]
+        )
 
     written |> List.length == 2
 
@@ -116,7 +118,8 @@ let ``a report is one message, problems and all`` () =
         reportedBy (fun report ->
             report
                 "/repo/.editorconfig"
-                [ unknown "fsharp_wibble"; unrecognized ("fsharp_max_record_width", "banana") ])
+                [ unknown "fsharp_wibble"; unrecognized ("fsharp_max_record_width", "banana") ]
+        )
 
     match written with
     | [ single ] ->

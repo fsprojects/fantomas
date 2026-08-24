@@ -57,19 +57,22 @@ let analyze (fileName: string) (sourceFiles: string list) (parsedInput: ParsedIn
                         match accessibilityOf headPattern with
                         | Some(SynAccess.Private range) -> ranges.Add range
                         | _ -> ()
-                    | _ -> () }
+                    | _ -> ()
+            }
 
         walkAst walker parsedInput
 
         ranges
         |> Seq.map (fun (keyword: range) ->
-            { Type = Name
-              Message =
-                "Remove `private`. The signature file is the visibility boundary, so anything it does not list is already hidden."
-              Code = Code
-              Severity = Severity.Error
-              Range = keyword
-              Fixes = [] })
+            {
+                Type = Name
+                Message =
+                    "Remove `private`. The signature file is the visibility boundary, so anything it does not list is already hidden."
+                Code = Code
+                Severity = Severity.Error
+                Range = keyword
+                Fixes = []
+            })
         |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =

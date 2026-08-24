@@ -15,9 +15,11 @@ type FormatResult =
 
 [<NoComparison>]
 type CheckResult =
-    { Errors: (string * exn) list
-      Formatted: string list
-      Unchanged: string list }
+    {
+        Errors: (string * exn) list
+        Formatted: string list
+        Unchanged: string list
+    }
 
     member this.HasErrors = List.isNotEmpty this.Errors
     member this.NeedsFormatting = List.isNotEmpty this.Formatted

@@ -178,7 +178,8 @@ type FSharpTokenizerColorState =
     | InitialState = 0
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

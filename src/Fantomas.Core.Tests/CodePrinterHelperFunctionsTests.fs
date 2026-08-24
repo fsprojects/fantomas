@@ -111,7 +111,9 @@ let ``other helper function respect configuration settings`` () =
         { Context.Default with
             Config =
                 { Context.Default.Config with
-                    SpaceBeforeColon = true } }
+                    SpaceBeforeColon = true
+                }
+        }
 
     let codeWithDefaultSettings: string = f defaultConfig |> dump
 
@@ -150,7 +152,9 @@ let ``newlines and indentation`` () =
         { Context.Default with
             Config =
                 { Context.Default.Config with
-                    EndOfLine = EndOfLineStyle.LF } }
+                    EndOfLine = EndOfLineStyle.LF
+                }
+        }
 
     let code = f (mkCtx ()) |> dump
     Assert.AreEqual("first line\nsecond line", code)
@@ -190,7 +194,9 @@ let ``trying multiple code paths`` () =
             Config =
                 { Context.Default.Config with
                     MaxLineLength = 10
-                    EndOfLine = EndOfLineStyle.LF } }
+                    EndOfLine = EndOfLineStyle.LF
+                }
+        }
 
     let code = f ctx |> dump
     Assert.AreEqual("This fits on\ntwo lines", code)
@@ -217,28 +223,32 @@ let a =
     let tree =
         Oak(
             [],
-            [ ModuleOrNamespaceNode(
-                  None,
-                  [ ModuleDecl.TopLevelBinding(
-                        BindingNode(
-                            None,
-                            None,
-                            MultipleTextsNode([ stn "let" ], zeroRange),
-                            false,
-                            None,
-                            None,
-                            Choice1Of2(IdentListNode([ IdentifierOrDot.Ident(stn "a") ], zeroRange)),
-                            None,
-                            [],
-                            None,
-                            stn "=",
-                            Expr.Ident(stn "b"),
-                            None,
-                            zeroRange
+            [
+                ModuleOrNamespaceNode(
+                    None,
+                    [
+                        ModuleDecl.TopLevelBinding(
+                            BindingNode(
+                                None,
+                                None,
+                                MultipleTextsNode([ stn "let" ], zeroRange),
+                                false,
+                                None,
+                                None,
+                                Choice1Of2(IdentListNode([ IdentifierOrDot.Ident(stn "a") ], zeroRange)),
+                                None,
+                                [],
+                                None,
+                                stn "=",
+                                Expr.Ident(stn "b"),
+                                None,
+                                zeroRange
+                            )
                         )
-                    ) ],
-                  zeroRange
-              ) ],
+                    ],
+                    zeroRange
+                )
+            ],
             zeroRange
         )
 
@@ -276,7 +286,9 @@ let a =
         { Context.Default with
             Config =
                 { Context.Default.Config with
-                    EndOfLine = EndOfLineStyle.LF } }
+                    EndOfLine = EndOfLineStyle.LF
+                }
+        }
 
     let codeWithoutTriviaPrinting = f genExpr tree (mkCtx ()) |> dump
     Assert.AreEqual("let a = b", codeWithoutTriviaPrinting)
@@ -348,20 +360,28 @@ let b = 2
     let tree =
         Oak(
             [],
-            [ ModuleOrNamespaceNode(
-                  None,
-                  [ ModuleDecl.TopLevelBinding(mkBinding "a" "1")
-                    ModuleDecl.TopLevelBinding(mkBinding "b" "2") ],
-                  zeroRange
-              ) ],
+            [
+                ModuleOrNamespaceNode(
+                    None,
+                    [
+                        ModuleDecl.TopLevelBinding(mkBinding "a" "1")
+                        ModuleDecl.TopLevelBinding(mkBinding "b" "2")
+                    ],
+                    zeroRange
+                )
+            ],
             zeroRange
         )
 
     let enterNode (node: Node) =
-        col sepNln node.ContentBefore (fun (tn: TriviaNode) ->
-            match tn.Content with
-            | Newline -> sepNln
-            | _ -> sepNone)
+        col
+            sepNln
+            node.ContentBefore
+            (fun (tn: TriviaNode) ->
+                match tn.Content with
+                | Newline -> sepNln
+                | _ -> sepNone
+            )
 
     let f (tree: Oak) =
         match tree.ModulesOrNamespaces.[0].Declarations with
@@ -403,7 +423,9 @@ let b = 2
         { Context.Default with
             Config =
                 { Context.Default.Config with
-                    EndOfLine = EndOfLineStyle.LF } }
+                    EndOfLine = EndOfLineStyle.LF
+                }
+        }
 
     let formattedCode = f tree (mkCtx ()) |> dump
     Assert.AreEqual("let a = 1\n\nlet b = 2", formattedCode)
@@ -478,7 +500,9 @@ let ``locking the indentation at a fixed column`` () =
         { Context.Default with
             Config =
                 { Context.Default.Config with
-                    EndOfLine = EndOfLineStyle.LF } }
+                    EndOfLine = EndOfLineStyle.LF
+                }
+        }
 
     let ctxAfter = f ctxBefore
     let code = dump ctxAfter
@@ -515,7 +539,9 @@ let private mkLfCtx () =
     { Context.Default with
         Config =
             { Context.Default.Config with
-                EndOfLine = EndOfLineStyle.LF } }
+                EndOfLine = EndOfLineStyle.LF
+            }
+    }
 
 [<Test>]
 let ``WriteLineInsideStringConst produces a raw newline without indentation`` () =
@@ -595,9 +621,11 @@ let ``sepNlnForTrivia emits WriteLineBecauseOfTrivia`` () =
 
     let hasTriviaNln =
         events
-        |> List.exists (function
+        |> List.exists (
+            function
             | WriteLineBecauseOfTrivia -> true
-            | _ -> false)
+            | _ -> false
+        )
 
     Assert.That(hasTriviaNln, Is.True, "Expected WriteLineBecauseOfTrivia event")
 
@@ -750,7 +778,9 @@ let ``autoIndentAndNlnIfExpressionExceedsPageWidth indents when expression is to
             Config =
                 { Context.Default.Config with
                     MaxLineLength = 20
-                    EndOfLine = EndOfLineStyle.LF } }
+                    EndOfLine = EndOfLineStyle.LF
+                }
+        }
 
     let code =
         (!-"let x =" +> autoIndentAndNlnIfExpressionExceedsPageWidth expr) ctx |> dump
@@ -786,7 +816,9 @@ let ``sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth indents when too long``
             Config =
                 { Context.Default.Config with
                     MaxLineLength = 15
-                    EndOfLine = EndOfLineStyle.LF } }
+                    EndOfLine = EndOfLineStyle.LF
+                }
+        }
 
     let code =
         (!-"let x =" +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr) ctx
@@ -815,7 +847,8 @@ let ``leadingExpressionResult reports line count and column`` () =
                 colBefore <- cb
                 lineAfter <- la
                 colAfter <- ca
-                ctx)
+                ctx
+            )
             (mkLfCtx ())
 
     Assert.AreEqual(0, lineBefore)
@@ -833,7 +866,8 @@ let ``leadingExpressionIsMultiline detects multiline`` () =
             leading
             (fun isMulti ctx ->
                 result <- isMulti
-                ctx)
+                ctx
+            )
             (mkLfCtx ())
 
     Assert.That(result, Is.True)
@@ -848,7 +882,8 @@ let ``leadingExpressionIsMultiline detects single line`` () =
             leading
             (fun isMulti ctx ->
                 result <- isMulti
-                ctx)
+                ctx
+            )
             (mkLfCtx ())
 
     Assert.That(result, Is.False)
@@ -860,9 +895,11 @@ let ``leadingExpressionIsMultiline detects single line`` () =
 [<Test>]
 let ``colWithNlnWhenItemIsMultiline with all single-line items`` () =
     let items =
-        [ ColMultilineItem(!-"let a = 1", sepNln)
-          ColMultilineItem(!-"let b = 2", sepNln)
-          ColMultilineItem(!-"let c = 3", sepNln) ]
+        [
+            ColMultilineItem(!-"let a = 1", sepNln)
+            ColMultilineItem(!-"let b = 2", sepNln)
+            ColMultilineItem(!-"let c = 3", sepNln)
+        ]
 
     let code = colWithNlnWhenItemIsMultiline items (mkLfCtx ()) |> dump
     Assert.AreEqual("let a = 1\nlet b = 2\nlet c = 3", code)
@@ -870,9 +907,11 @@ let ``colWithNlnWhenItemIsMultiline with all single-line items`` () =
 [<Test>]
 let ``colWithNlnWhenItemIsMultiline adds blank line around multiline item`` () =
     let items =
-        [ ColMultilineItem(!-"let a = 1", sepNln)
-          ColMultilineItem(!-"let b =" +> indentSepNlnUnindent (!-"longBody"), sepNln)
-          ColMultilineItem(!-"let c = 3", sepNln) ]
+        [
+            ColMultilineItem(!-"let a = 1", sepNln)
+            ColMultilineItem(!-"let b =" +> indentSepNlnUnindent (!-"longBody"), sepNln)
+            ColMultilineItem(!-"let c = 3", sepNln)
+        ]
 
     let code = colWithNlnWhenItemIsMultiline items (mkLfCtx ()) |> dump
     // Blank line before and after the multiline item
@@ -1028,7 +1067,9 @@ let ``autoIndentAndNlnIfExpressionExceedsPageWidth splices unindent before trail
             Config =
                 { Context.Default.Config with
                     MaxLineLength = 20
-                    EndOfLine = EndOfLineStyle.LF } }
+                    EndOfLine = EndOfLineStyle.LF
+                }
+        }
 
     let code =
         (!-"let x ="
@@ -1048,7 +1089,9 @@ let ``autoIndentAndNlnIfExpressionExceedsPageWidth without trailing trivia still
             Config =
                 { Context.Default.Config with
                     MaxLineLength = 20
-                    EndOfLine = EndOfLineStyle.LF } }
+                    EndOfLine = EndOfLineStyle.LF
+                }
+        }
 
     let code =
         (!-"let x ="

@@ -23,7 +23,8 @@ type UnhandledWebException =
 """
         { config with
             MaxLineLength = 100
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -52,7 +53,8 @@ type FieldNotFoundException<'T>(obj:'T, field:string, specLink:string) =
 """
         { config with
             SpaceBeforeClassConstructor = true
-            MaxLineLength = 90 }
+            MaxLineLength = 90
+        }
     |> prepend newline
     |> should
         equal
@@ -151,7 +153,8 @@ type StateMachine(
         x:int) as secondCtor = StateMachine()
 """
         { config with
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+        }
     |> prepend newline
     |> should
         equal
@@ -187,7 +190,8 @@ type CreateBuildingViewModel =
             vm.program <- p
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

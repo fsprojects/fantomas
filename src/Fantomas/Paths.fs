@@ -18,8 +18,10 @@ let extensionLookup: HashSet<string> =
 // Worked out once: building them per file made walking a folder several times slower than it
 // needs to be.
 let excludedDirFragments: string array =
-    [| for dir in [| "obj"; ".fable"; "fable_modules"; "node_modules" |] ->
-           String.Concat(string<char> Path.DirectorySeparatorChar, dir, string<char> Path.DirectorySeparatorChar) |]
+    [|
+        for dir in [| "obj"; ".fable"; "fable_modules"; "node_modules" |] ->
+            String.Concat(string<char> Path.DirectorySeparatorChar, dir, string<char> Path.DirectorySeparatorChar)
+    |]
 
 let isInExcludedDir (fullPath: string) : bool =
     excludedDirFragments

@@ -14,7 +14,8 @@ let parseAndFormat sourceCode =
 
     let config =
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
 
     let formattedCode =
         CodeFormatter.FormatASTAsync(ast, source = sourceCode, config = config)

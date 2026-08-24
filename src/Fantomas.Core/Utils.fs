@@ -40,7 +40,8 @@ module List =
         |> List.choose (fun x ->
             let s', r = f s x
             s <- s'
-            r)
+            r
+        )
 
     let isNotEmpty l = (List.isEmpty >> not) l
 
@@ -89,7 +90,8 @@ module List =
         (g: 'state -> 'item -> 'state)
         (initialState: 'state)
         (items: 'item list)
-        : 'state =
+        : 'state
+        =
         let rec visit acc xs =
             match xs with
             | [] -> acc

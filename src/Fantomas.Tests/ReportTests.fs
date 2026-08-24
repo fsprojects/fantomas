@@ -16,7 +16,8 @@ let private run () : RecordedRun =
 let private reportFormat
     (settings: Fantomas.Cli.CliSettings)
     (result: FormatCommandResult)
-    : int * CollectedLog * string =
+    : int * CollectedLog * string
+    =
     let recorded: RecordedRun = run ()
     let code: int = reportFormatCommand recorded.Environment settings result
     code, recorded.Log(), recorded.Drawn()
@@ -28,16 +29,20 @@ let private reportCheck (result: CheckCommandResult) : int * CollectedLog =
 
 [<Test>]
 let ``every way the input paths can fail has its own wording`` () =
-    [ InputProblem.UnsupportedFileType "A.md"
-      InputProblem.NotFound "A.fs"
-      InputProblem.NoPathGiven
-      InputProblem.MultiplePathsWithOut ]
+    [
+        InputProblem.UnsupportedFileType "A.md"
+        InputProblem.NotFound "A.fs"
+        InputProblem.NoPathGiven
+        InputProblem.MultiplePathsWithOut
+    ]
     |> List.map describeInputProblem
     |> shouldEqual
-        [ "Input path 'A.md' is an unsupported file type."
-          "Input path 'A.fs' not found."
-          "No input path provided. Call with --help for usage information."
-          "Multiple input files are not supported with the --out flag." ]
+        [
+            "Input path 'A.md' is an unsupported file type."
+            "Input path 'A.fs' not found."
+            "No input path provided. Call with --help for usage information."
+            "Multiple input files are not supported with the --out flag."
+        ]
 
 [<Test>]
 let ``an unusable input path is reported on error and exits 1`` () =
@@ -103,9 +108,11 @@ let ``a check names the files it found by the path it was given`` () =
         reportCheck (
             CheckCommandResult.Completed(
                 [],
-                { Errors = []
-                  Formatted = [ "sub/A.fs" ]
-                  Unchanged = [] }
+                {
+                    Errors = []
+                    Formatted = [ "sub/A.fs" ]
+                    Unchanged = []
+                }
             )
         )
 
@@ -119,8 +126,10 @@ let ``the files a run ignored are named at detailed verbosity`` () =
         reportFormat
             defaultSettings
             (FormatCommandResult.Completed
-                [| FormatResult.Formatted("A.fs", "", None)
-                   FormatResult.IgnoredFile "sub/B.fs" |])
+                [|
+                    FormatResult.Formatted("A.fs", "", None)
+                    FormatResult.IgnoredFile "sub/B.fs"
+                |])
 
     log.Debug |> shouldEqual [ "'sub/B.fs' was ignored" ]
 
@@ -162,7 +171,8 @@ let ``code that came out invalid is reported as a failure and exits 1`` () =
 let ``a detailed run reports the whole exception rather than a line`` () =
     let settings: Fantomas.Cli.CliSettings =
         { defaultSettings with
-            Verbosity = VerbosityLevel.Detailed }
+            Verbosity = VerbosityLevel.Detailed
+        }
 
     let code, log, _ =
         reportFormat settings (FormatCommandResult.Completed [| FormatResult.Error("A.fs", Exception "boom") |])
@@ -176,9 +186,11 @@ let ``several files are reported as a table of counts`` () =
         reportFormat
             defaultSettings
             (FormatCommandResult.Completed
-                [| FormatResult.Formatted("A.fs", "", None)
-                   FormatResult.Unchanged("B.fs", None)
-                   FormatResult.IgnoredFile "C.fs" |])
+                [|
+                    FormatResult.Formatted("A.fs", "", None)
+                    FormatResult.Unchanged("B.fs", None)
+                    FormatResult.IgnoredFile "C.fs"
+                |])
 
     code |> shouldEqual 0
     // No sentence per file: the table is the report.
@@ -194,8 +206,10 @@ let ``one failure among several files still exits 1`` () =
         reportFormat
             defaultSettings
             (FormatCommandResult.Completed
-                [| FormatResult.Formatted("A.fs", "", None)
-                   FormatResult.Error("B.fs", Exception "boom") |])
+                [|
+                    FormatResult.Formatted("A.fs", "", None)
+                    FormatResult.Error("B.fs", Exception "boom")
+                |])
 
     code |> shouldEqual 1
     log.Error |> shouldEqual [ "Failed to format file: B.fs" ]
@@ -206,8 +220,10 @@ let ``profiling reports the line count and the time taken for a single file`` ()
 
     let profile: ProfileInfo option =
         Some
-            { LineCount = 12
-              TimeTaken = TimeSpan.FromSeconds 1.0 }
+            {
+                LineCount = 12
+                TimeTaken = TimeSpan.FromSeconds 1.0
+            }
 
     let _, log, _ =
         reportFormat settings (FormatCommandResult.Completed [| FormatResult.Formatted("A.fs", "", profile) |])
@@ -220,8 +236,10 @@ let ``profiling reports the line count and the time taken for a single file`` ()
 let ``nothing is profiled unless profiling was asked for`` () =
     let profile: ProfileInfo option =
         Some
-            { LineCount = 12
-              TimeTaken = TimeSpan.FromSeconds 1.0 }
+            {
+                LineCount = 12
+                TimeTaken = TimeSpan.FromSeconds 1.0
+            }
 
     let _, log, _ =
         reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Formatted("A.fs", "", profile) |])
@@ -252,9 +270,11 @@ let ``a check with nothing to do exits 0`` () =
         reportCheck (
             CheckCommandResult.Completed(
                 [],
-                { Errors = []
-                  Formatted = []
-                  Unchanged = [] }
+                {
+                    Errors = []
+                    Formatted = []
+                    Unchanged = []
+                }
             )
         )
 
@@ -267,9 +287,11 @@ let ``a check reports the files it ignored`` () =
         reportCheck (
             CheckCommandResult.Completed(
                 [ "A.fs" ],
-                { Errors = []
-                  Formatted = []
-                  Unchanged = [] }
+                {
+                    Errors = []
+                    Formatted = []
+                    Unchanged = []
+                }
             )
         )
 
@@ -282,9 +304,11 @@ let ``a check that found files needing formatting exits 99`` () =
         reportCheck (
             CheckCommandResult.Completed(
                 [],
-                { Errors = []
-                  Formatted = [ "A.fs"; "B.fs" ]
-                  Unchanged = [] }
+                {
+                    Errors = []
+                    Formatted = [ "A.fs"; "B.fs" ]
+                    Unchanged = []
+                }
             )
         )
 
@@ -299,9 +323,11 @@ let ``a check that could not format a file exits 1 rather than 99`` () =
         reportCheck (
             CheckCommandResult.Completed(
                 [],
-                { Errors = [ "A.fs", Exception "boom" ]
-                  Formatted = [ "A.fs" ]
-                  Unchanged = [] }
+                {
+                    Errors = [ "A.fs", Exception "boom" ]
+                    Formatted = [ "A.fs" ]
+                    Unchanged = []
+                }
             )
         )
 

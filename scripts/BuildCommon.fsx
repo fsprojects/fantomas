@@ -70,7 +70,9 @@ let runGitCommand (arguments: string) =
 
 let runCmd file (arguments: string) =
     async {
-        let! result = Cli.Wrap(file).WithArguments(arguments).ExecuteAsync().Task |> Async.AwaitTask
+        let! result =
+            Cli.Wrap(file).WithArguments(arguments).ExecuteAsync().Task |> Async.AwaitTask
+
         return result.ExitCode
     }
 
@@ -85,7 +87,8 @@ let runCmd file (arguments: string) =
 /// a new folder of sources.
 let changedFiles () : Async<string list> =
     async {
-        let! exitCode, stdout, stdErr = runGitCommand "status --porcelain --untracked-files=all"
+        let! exitCode, stdout, stdErr =
+            runGitCommand "status --porcelain --untracked-files=all"
 
         if exitCode <> 0 then
             failwith $"Could not read the git status.\n{stdErr}"

@@ -115,9 +115,11 @@ some_other_tool_setting = 42
             "let a = 9\n"
         )
 
-    let { ExitCode = exitCode
-          Output = output
-          Error = error } =
+    let {
+            ExitCode = exitCode
+            Output = output
+            Error = error
+        } =
         formatCode [ fileFixture.Filename ]
 
     // Advice, not a failure: the file is still formatted, with defaults for what could not be read.

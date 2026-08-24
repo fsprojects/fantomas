@@ -22,7 +22,8 @@ exception BuildException of string*list<string>
     override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)"""
         { config with
             MaxInfixOperatorExpression = 60
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> should
         equal
         """/// An exception type to signal build errors.
@@ -148,7 +149,8 @@ type Test() =
     override this.AbstractMethod<'a, 'b>(x:'a, y:'b) =
          printfn "%A, %A" x y"""
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -197,7 +199,8 @@ type public MyClass<'a> public (x, y) as this =
                       and set(a) = z <- a
     member self.Method(a,b) = x + y + z + a + b"""
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -286,7 +289,8 @@ type MyClass() =
 type MyClass with
     member this.G() = 200"""
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -308,7 +312,8 @@ type System.Int32 with
        System.Int32.Parse(s)"""
         { config with
             MaxFunctionBindingWidth = 120
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -439,7 +444,8 @@ let CalculateFine (ticket : SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
     if delta < 20 then 50.0 else 100.0"""
         { config with
-            MaxValueBindingWidth = 120 }
+            MaxValueBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -748,7 +754,8 @@ let ``should keep the ? in optional parameters`` () =
 
     """
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> should
         equal
         """type Shell() =
@@ -784,7 +791,8 @@ let user_printers = ref([] : (string * (term -> unit)) list)
 let the_interface = ref([] : (string * (string * hol_type)) list)
     """
         { config with
-            MaxValueBindingWidth = 50 }
+            MaxValueBindingWidth = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -831,7 +839,8 @@ type BlobHelper(Account : CloudStorageAccount) =
         BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
     """
         { config with
-            MaxInfixOperatorExpression = 40 }
+            MaxInfixOperatorExpression = 40
+        }
     |> prepend newline
     |> should
         equal
@@ -1143,7 +1152,8 @@ let ``type abbreviation augmentation`` () =
     member __.X = ()
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> should
         equal
         """type T2 = T2
@@ -1158,7 +1168,8 @@ let ``operator in words should not print to symbol, 409`` () =
     static member op_LessThan(a, b) = a < b"""
         { config with
             SpaceBeforeMember = true
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> should
         equal
         """type T() =
@@ -1179,7 +1190,8 @@ let ``operator in words in member`` () =
         """type A() =
     member this.B(op_Inequality : string) = ()"""
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> should
         equal
         """type A() =
@@ -1200,7 +1212,8 @@ type TestExtensions =
     static member SomeOtherExtension(x) = ""
 """
         { config with
-            MaxValueBindingWidth = 120 }
+            MaxValueBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -1260,7 +1273,8 @@ and Room =
       Exits: Exits }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1310,7 +1324,8 @@ and [<Marker()>] Room =
       Exits: Exits }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1398,7 +1413,8 @@ let ``long type members should have parameters on separate lines, 719`` () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
         { config with
-            SpaceBeforeClassConstructor = true }
+            SpaceBeforeClassConstructor = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1420,7 +1436,8 @@ let ``long type member with return type should have parameters on separate lines
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : int =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
         { config with
-            SpaceBeforeClassConstructor = true }
+            SpaceBeforeClassConstructor = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1442,7 +1459,8 @@ let ``long constructors should have parameters on separate lines`` () =
     member this.X = 42
 """
         { config with
-            SpaceBeforeClassConstructor = true }
+            SpaceBeforeClassConstructor = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1488,7 +1506,8 @@ let ``keep correct indentation after multiline member definition, 845`` () =
 """
         { config with
             MaxLineLength = 80
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -1518,7 +1537,8 @@ let ``keep correct indentation after multiline typed member definition`` () =
 """
         { config with
             MaxLineLength = 80
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -1570,7 +1590,8 @@ type SomeType =
     static member SomeOtherMember () = printfn "c"
 """
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -1706,7 +1727,8 @@ type C() =
         { config with
             MaxLineLength = 80
             SpaceBeforeColon = true
-            MaxInfixOperatorExpression = 80 }
+            MaxInfixOperatorExpression = 80
+        }
     |> prepend newline
     |> should
         equal
@@ -1732,7 +1754,8 @@ type C() =
         { config with
             MaxLineLength = 80
             SpaceBeforeColon = true
-            MaxInfixOperatorExpression = 80 }
+            MaxInfixOperatorExpression = 80
+        }
     |> prepend newline
     |> should
         equal
@@ -1756,7 +1779,8 @@ type VersionMismatchDuringDeserializationException(message: string, innerExcepti
 """
         { config with
             MaxLineLength = 55
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1952,7 +1976,8 @@ type TestType =
         }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1979,7 +2004,8 @@ type OlapCube =
         }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2004,7 +2030,8 @@ type C () =
         { config with
             SpaceBeforeClassConstructor = true
             SpaceBeforeColon = true
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+        }
     |> prepend newline
     |> should
         equal
@@ -2031,7 +2058,8 @@ type C () =
         { config with
             SpaceBeforeClassConstructor = true
             SpaceBeforeColon = true
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+        }
     |> prepend newline
     |> should
         equal
@@ -2152,7 +2180,8 @@ type C(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
 """
         { config with
             AlternativeLongMemberDefinitions = true
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
     |> prepend newline
     |> should
         equal
@@ -2178,7 +2207,8 @@ type C internal (aVeryLongType: AVeryLongTypeThatYouNeedToUse,
 """
         { config with
             AlternativeLongMemberDefinitions = true
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
     |> prepend newline
     |> should
         equal
@@ -2257,7 +2287,8 @@ type Auth0User =
 """
         { config with
             SpaceBeforeColon = true
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2328,7 +2359,8 @@ type RequestParser<'ctx, 'a> = internal {
 }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2373,7 +2405,8 @@ let deserialize (e: RecordedEvent) : MyEvent =
     | t -> failwithf "Invalid EventType: %s" t
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2788,7 +2821,8 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -3002,7 +3036,8 @@ type V = // comment
       Z: ALongTypeName }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -3167,7 +3202,8 @@ type LdapClaimsTransformation(
 """
         { config with
             MaxLineLength = 60
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+        }
     |> prepend newline
     |> should
         equal
@@ -3231,7 +3267,8 @@ type Server<'a>
 """
         { config with
             AlternativeLongMemberDefinitions = true
-            MaxLineLength = 80 }
+            MaxLineLength = 80
+        }
     |> prepend newline
     |> should
         equal
@@ -3596,7 +3633,8 @@ type R =
     }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

@@ -17,7 +17,8 @@ let a =
     """
         { config with
             MaxLineLength = 80
-            MaxInfixOperatorExpression = 40 }
+            MaxInfixOperatorExpression = 40
+        }
     |> prepend newline
     |> should
         equal
@@ -473,7 +474,8 @@ let ``parenthesis around short composed function expression, tuple, 1700`` () =
     formatSourceString
         "((=) (ownerName, username))"
         { config with
-            InsertFinalNewline = false }
+            InsertFinalNewline = false
+        }
     |> should equal "((=) (ownerName, username))"
 
 [<Test>]
@@ -482,7 +484,8 @@ let ``parenthesis around short composed function expression, tuple in if, 1700``
         "if ((=) (ownerName, username)) then 6"
         { config with
             MaxIfThenShortWidth = 40
-            InsertFinalNewline = false }
+            InsertFinalNewline = false
+        }
     |> should equal "if ((=) (ownerName, username)) then 6"
 
 [<Test>]
@@ -490,7 +493,8 @@ let ``parenthesis around short composed function expression, no tuple, 1700`` ()
     formatSourceString
         """((=) ownerName)"""
         { config with
-            InsertFinalNewline = false }
+            InsertFinalNewline = false
+        }
     |> should equal """((=) ownerName)"""
 
 [<Test>]
@@ -499,7 +503,8 @@ let ``parenthesis around short composed function expression, no tuple in if, 170
         "if ((=) ownerName) then 6"
         { config with
             MaxIfThenShortWidth = 25
-            InsertFinalNewline = false }
+            InsertFinalNewline = false
+        }
     |> should equal "if ((=) ownerName) then 6"
 
 [<Test>]
@@ -651,7 +656,8 @@ let ``string interpolation should not affect multiline function applications, 17
 """
         { config with
             IndentSize = 2
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1117,7 +1123,8 @@ let ``extra indent in multiline application`` () =
 """
         { config with
             IndentSize = 2
-            MaxLineLength = 0 }
+            MaxLineLength = 0
+        }
     |> prepend newline
     |> should
         equal
@@ -1135,7 +1142,8 @@ let ``multiline application wrapped in parentheses that equal the indent_size, 2
 """
         { config with
             IndentSize = 2
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

@@ -13,16 +13,20 @@ open Fantomas.Report
 let SchemaVersion: int = 1
 
 type Range =
-    { StartLine: int
-      StartColumn: int
-      EndLine: int
-      EndColumn: int }
+    {
+        StartLine: int
+        StartColumn: int
+        EndLine: int
+        EndColumn: int
+    }
 
 type Diagnostic =
-    { Severity: string
-      Code: string
-      Message: string
-      Range: Range option }
+    {
+        Severity: string
+        Code: string
+        Message: string
+        Range: Range option
+    }
 
 [<RequireQualifiedAccess; NoComparison>]
 type FileOutcome =
@@ -42,27 +46,33 @@ type Command =
 
 [<NoComparison>]
 type RunReport =
-    { Command: Command
-      WorkingDirectory: string
-      ExitCode: int
-      Error: string option
-      Files: FileReport list }
+    {
+        Command: Command
+        WorkingDirectory: string
+        ExitCode: int
+        Error: string option
+        Files: FileReport list
+    }
 
 // The parser counts columns from zero and the compiler prints them from one. The text report
 // already resolved that in favour of the compiler, so this does the same rather than handing a
 // reader two conventions to keep straight.
 let describeRange (range: Fantomas.FCS.Text.range) : Range =
-    { StartLine = range.StartLine
-      StartColumn = range.StartColumn + 1
-      EndLine = range.EndLine
-      EndColumn = range.EndColumn + 1 }
+    {
+        StartLine = range.StartLine
+        StartColumn = range.StartColumn + 1
+        EndLine = range.EndLine
+        EndColumn = range.EndColumn + 1
+    }
 
 // The message keeps its newlines here, where the one line text form has to flatten them.
 let describeDiagnostic (diagnostic: FSharpParserDiagnostic) : Diagnostic =
-    { Severity = Diagnostics.severityText diagnostic
-      Code = Diagnostics.errorNumber diagnostic
-      Message = diagnostic.Message
-      Range = Option.map describeRange diagnostic.Range }
+    {
+        Severity = Diagnostics.severityText diagnostic
+        Code = Diagnostics.errorNumber diagnostic
+        Message = diagnostic.Message
+        Range = Option.map describeRange diagnostic.Range
+    }
 
 // A parse failure is the one error worth taking apart: its positions are what a caller can act on
 // without opening the file. Everything else has only a message, so it is carried as one.
@@ -84,20 +94,30 @@ let sortByPath (files: FileReport list) : FileReport list =
 let describeResult (result: FormatResult) : FileReport =
     match result with
     | FormatResult.IgnoredFile file ->
-        { Path = file
-          Outcome = FileOutcome.Ignored }
+        {
+            Path = file
+            Outcome = FileOutcome.Ignored
+        }
     | FormatResult.Unchanged(file, _) ->
-        { Path = file
-          Outcome = FileOutcome.Unchanged }
+        {
+            Path = file
+            Outcome = FileOutcome.Unchanged
+        }
     | FormatResult.Formatted(file, _, _) ->
-        { Path = file
-          Outcome = FileOutcome.Formatted }
+        {
+            Path = file
+            Outcome = FileOutcome.Formatted
+        }
     | FormatResult.Error(file, error) ->
-        { Path = file
-          Outcome = describeFileFailure file error }
+        {
+            Path = file
+            Outcome = describeFileFailure file error
+        }
     | FormatResult.InvalidCode(file, _) ->
-        { Path = file
-          Outcome = describeFileFailure file (invalidResultException file) }
+        {
+            Path = file
+            Outcome = describeFileFailure file (invalidResultException file)
+        }
 
 let formatReport (workingDirectory: string) (result: FormatCommandResult) : RunReport =
     let error, files: string option * FileReport list =
@@ -107,11 +127,13 @@ let formatReport (workingDirectory: string) (result: FormatCommandResult) : RunR
         | FormatCommandResult.Completed results ->
             None, results |> Array.map describeResult |> List.ofArray |> sortByPath
 
-    { Command = Command.Format
-      WorkingDirectory = workingDirectory
-      ExitCode = result.ExitCode
-      Error = error
-      Files = files }
+    {
+        Command = Command.Format
+        WorkingDirectory = workingDirectory
+        ExitCode = result.ExitCode
+        Error = error
+        Files = files
+    }
 
 let checkReport (workingDirectory: string) (result: CheckCommandResult) : RunReport =
     let error, files: string option * FileReport list =
@@ -124,30 +146,42 @@ let checkReport (workingDirectory: string) (result: CheckCommandResult) : RunRep
             let failed: Set<string> = checkResult.Errors |> List.map fst |> Set.ofList
 
             let files: FileReport list =
-                [ for file in ignored do
-                      { Path = file
-                        Outcome = FileOutcome.Ignored }
+                [
+                    for file in ignored do
+                        {
+                            Path = file
+                            Outcome = FileOutcome.Ignored
+                        }
 
-                  for file, error in checkResult.Errors do
-                      { Path = file
-                        Outcome = describeFileFailure file error }
+                    for file, error in checkResult.Errors do
+                        {
+                            Path = file
+                            Outcome = describeFileFailure file error
+                        }
 
-                  for file in checkResult.Formatted do
-                      if not (Set.contains file failed) then
-                          { Path = file
-                            Outcome = FileOutcome.NeedsFormatting }
+                    for file in checkResult.Formatted do
+                        if not (Set.contains file failed) then
+                            {
+                                Path = file
+                                Outcome = FileOutcome.NeedsFormatting
+                            }
 
-                  for file in checkResult.Unchanged do
-                      { Path = file
-                        Outcome = FileOutcome.Unchanged } ]
+                    for file in checkResult.Unchanged do
+                        {
+                            Path = file
+                            Outcome = FileOutcome.Unchanged
+                        }
+                ]
 
             None, sortByPath files
 
-    { Command = Command.Check
-      WorkingDirectory = workingDirectory
-      ExitCode = result.ExitCode
-      Error = error
-      Files = files }
+    {
+        Command = Command.Check
+        WorkingDirectory = workingDirectory
+        ExitCode = result.ExitCode
+        Error = error
+        Files = files
+    }
 
 let describeCommand (command: Command) : string =
     match command with

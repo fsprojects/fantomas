@@ -15,7 +15,8 @@ let private carouselSample =
     ,"CarouselSample")
 """
         { config with
-            MaxValueBindingWidth = 75 }
+            MaxValueBindingWidth = 75
+        }
     |> should
         equal
         """let private carouselSample =
@@ -205,7 +206,8 @@ let f =
     , 6
 """
         { config with
-            MaxInfixOperatorExpression = 5 }
+            MaxInfixOperatorExpression = 5
+        }
     |> prepend newline
     |> should
         equal
@@ -245,7 +247,8 @@ let y =
     , namesWithIndices
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -368,7 +371,8 @@ let f x =
     ()
 """
         { config with
-            MaxIfThenElseShortWidth = 40 }
+            MaxIfThenElseShortWidth = 40
+        }
     |> prepend newline
     |> should
         equal

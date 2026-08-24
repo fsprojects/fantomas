@@ -105,7 +105,8 @@ let factors number =
     |> Seq.filter (fun x -> number % x = 0L)"""
         { config with
             MaxInfixOperatorExpression = 65
-            MaxFunctionBindingWidth = 65 }
+            MaxFunctionBindingWidth = 65
+        }
     |> prepend newline
     |> should
         equal
@@ -421,7 +422,8 @@ let z =
     bar
 """
         { config with
-            MaxInfixOperatorExpression = 40 }
+            MaxInfixOperatorExpression = 40
+        }
     |> prepend newline
     |> should
         equal
@@ -927,7 +929,8 @@ let ``let + let + let bang + if/then/else in ce`` () =
     }
 """
         { config with
-            MaxIfThenElseShortWidth = 75 }
+            MaxIfThenElseShortWidth = 75
+        }
     |> prepend newline
     |> should
         equal
@@ -1273,7 +1276,8 @@ promise {
 }
 """
         { config with
-            MaxValueBindingWidth = 90 }
+            MaxValueBindingWidth = 90
+        }
     |> prepend newline
     |> should
         equal
@@ -1336,7 +1340,8 @@ let loginHandler =
         }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1539,7 +1544,8 @@ let ``new line between let and let bang, 879`` () =
             IndentSize = 2
             SpaceAroundDelimiter = false
             MultilineBracketStyle = Aligned
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1645,7 +1651,8 @@ let private removeSubscription (log : ILogger) (req : HttpRequest) =
 """
         { config with
             SpaceBeforeColon = true
-            MaxValueBindingWidth = 120 }
+            MaxValueBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -1736,7 +1743,8 @@ let f () =
   }
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1765,7 +1773,8 @@ let f () =
   }
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1860,7 +1869,8 @@ let create: Highlighter =
 """
         { config with
             MaxIfThenElseShortWidth = 80
-            MaxIfThenShortWidth = 80 }
+            MaxIfThenShortWidth = 80
+        }
     |> prepend newline
     |> should
         equal
@@ -2044,7 +2054,8 @@ let password =
     }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2123,7 +2134,8 @@ type ProjectController(checker: FSharpChecker) =
 """
         { config with
             IndentSize = 2
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2162,7 +2174,8 @@ type ProjectController(checker: FSharpChecker) =
 """
         { config with
             IndentSize = 2
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2237,7 +2250,8 @@ let ``keep new line before match bang, 1313`` () =
       "Incomplete pattern matches on this expression. For example"
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2301,7 +2315,8 @@ aggregateResult {
 """
         { config with
             MaxInfixOperatorExpression = 40
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2425,7 +2440,8 @@ let ``trivia after computation expression, 2466`` () =
                     } (*[/omit]*)
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

@@ -23,7 +23,8 @@ type NameStruct =
 
 let n = new NameStruct("Hippo")"""
         { config with
-            MaxValueBindingWidth = 120 }
+            MaxValueBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -168,7 +169,8 @@ struct // 1
     |} // 6 
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

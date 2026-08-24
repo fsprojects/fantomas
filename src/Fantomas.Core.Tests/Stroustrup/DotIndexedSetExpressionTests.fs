@@ -8,7 +8,8 @@ open Fantomas.Core
 let config =
     { config with
         MultilineBracketStyle = Stroustrup
-        MaxArrayOrListWidth = 40 }
+        MaxArrayOrListWidth = 40
+    }
 
 [<Test>]
 let ``dotIndexedSet with record instance `` () =

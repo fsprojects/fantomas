@@ -216,7 +216,8 @@ asyncResult {
     }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -376,7 +377,8 @@ let blah<'a> config : Type =
             MultilineBracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+        }
     |> prepend newline
     |> should
         equal

@@ -81,61 +81,82 @@ let shortVersion () : string =
     | _ -> version
 
 let flags: (string * string * string * string list) list =
-    [ ("",
-       "--check",
-       "",
-       [ "Report which files need formatting and write nothing."
-         "Exits 0 when every file is already formatted, 99 when some"
-         "file needs formatting, and 1 when an error occurred." ])
-      ("",
-       "--out",
-       "<path>",
-       [ "Write the result to this file or folder instead of formatting"
-         "in place. Takes a single input path." ])
-      ("",
-       "--force",
-       "",
-       [ "Write the output even when it is not valid F# code."
-         "For debugging purposes only." ])
-      ("", "--profile", "", [ "Print the line count and the time taken for every file." ])
-      ("",
-       "--json",
-       "",
-       [ "Report what the run did as one JSON document on standard out,"
-         "naming every file and positioning what went wrong. The usual"
-         "messages are not printed; warnings go to standard error." ])
-      ("",
-       "--daemon",
-       "",
-       [ "Run an LSP-like server that editor tooling can talk to."
-         "Takes no other flags or paths, apart from --verbosity." ])
-      ("-v",
-       "--verbosity",
-       "<level>",
-       [ "How much to print: normal or detailed. Defaults to normal."
-         "n and d are accepted as well." ])
-      ("", "--version", "", [ "Print the version and exit" ])
-      ("-h", "--help", "", [ "Display this menu and exit" ]) ]
+    [
+        ("",
+         "--check",
+         "",
+         [
+             "Report which files need formatting and write nothing."
+             "Exits 0 when every file is already formatted, 99 when some"
+             "file needs formatting, and 1 when an error occurred."
+         ])
+        ("",
+         "--out",
+         "<path>",
+         [
+             "Write the result to this file or folder instead of formatting"
+             "in place. Takes a single input path."
+         ])
+        ("",
+         "--force",
+         "",
+         [
+             "Write the output even when it is not valid F# code."
+             "For debugging purposes only."
+         ])
+        ("", "--profile", "", [ "Print the line count and the time taken for every file." ])
+        ("",
+         "--json",
+         "",
+         [
+             "Report what the run did as one JSON document on standard out,"
+             "naming every file and positioning what went wrong. The usual"
+             "messages are not printed; warnings go to standard error."
+         ])
+        ("",
+         "--daemon",
+         "",
+         [
+             "Run an LSP-like server that editor tooling can talk to."
+             "Takes no other flags or paths, apart from --verbosity."
+         ])
+        ("-v",
+         "--verbosity",
+         "<level>",
+         [
+             "How much to print: normal or detailed. Defaults to normal."
+             "n and d are accepted as well."
+         ])
+        ("", "--version", "", [ "Print the version and exit" ])
+        ("-h", "--help", "", [ "Display this menu and exit" ])
+    ]
 
 let examples: (string * string) list =
-    [ ("fantomas .", "Format every F# file below the current folder")
-      ("fantomas src/App.fs", "Format a single file in place")
-      ("fantomas --check .", "Report what needs formatting, write nothing")
-      ("fantomas --out build src", "Copy the formatted files to another folder") ]
+    [
+        ("fantomas .", "Format every F# file below the current folder")
+        ("fantomas src/App.fs", "Format a single file in place")
+        ("fantomas --check .", "Report what needs formatting, write nothing")
+        ("fantomas --out build src", "Copy the formatted files to another folder")
+    ]
 
 let links: (string * string list) list =
-    [ ("Learn more about Fantomas:", [ "https://fsprojects.github.io/fantomas/docs" ])
-      ("Configure Fantomas:", [ "https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" ])
-      ("Join the F# Discord:", [ "https://discord.com/channels/196693847965696000/1493226271767924747" ])
-      ("Docs for your LLM:",
-       [ "https://fsprojects.github.io/fantomas/llms.txt"
-         "https://fsprojects.github.io/fantomas/llms-full.txt" ]) ]
+    [
+        ("Learn more about Fantomas:", [ "https://fsprojects.github.io/fantomas/docs" ])
+        ("Configure Fantomas:", [ "https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" ])
+        ("Join the F# Discord:", [ "https://discord.com/channels/196693847965696000/1493226271767924747" ])
+        ("Docs for your LLM:",
+         [
+             "https://fsprojects.github.io/fantomas/llms.txt"
+             "https://fsprojects.github.io/fantomas/llms-full.txt"
+         ])
+    ]
 
 let writeFlag
     (write: string -> unit)
     (palette: Palette)
     (short: string, long: string, argument: string, description: string list)
-    : unit =
+    : unit
+    =
     let shortPart: string =
         if String.IsNullOrEmpty short then
             "    "
@@ -236,4 +257,5 @@ let exiter: IExiter =
             else
                 Console.Error.WriteLine(complaint message)
                 Console.Error.WriteLine("Run fantomas --help for usage information.")
-                exit (int errorCode) }
+                exit (int errorCode)
+    }

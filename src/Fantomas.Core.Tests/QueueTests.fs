@@ -24,7 +24,8 @@ let ``Queue.append`` () =
             result q |> should equivalent (expected xs)
 
             result (Queue.rev q |> Queue.ofSeq)
-            |> should equivalent (expected (List.rev xs)))
+            |> should equivalent (expected (List.rev xs))
+        )
     )
 
 [<Test>]
@@ -34,7 +35,8 @@ let ``Queue.tryHead`` () =
         (fun xs ->
             let result = Queue.ofList xs |> Queue.tryHead
             let expected = xs |> List.tryHead
-            result |> should equal expected)
+            result |> should equal expected
+        )
     )
 
 [<Test>]
@@ -44,7 +46,8 @@ let ``Queue.length`` () =
         (fun xs ->
             let result = Queue.ofList xs |> Queue.length
             let expected = xs |> List.length
-            result |> should equal expected)
+            result |> should equal expected
+        )
     )
 
 [<Test>]
@@ -55,7 +58,8 @@ let ``Queue.rev`` () =
             let result = Queue.ofList xs |> Queue.rev |> Seq.toList
 
             let expected = xs |> List.rev
-            result |> should equivalent expected)
+            result |> should equivalent expected
+        )
     )
 
 [<Test>]
@@ -66,7 +70,8 @@ let ``Queue.toSeq`` () =
             let result = Queue.ofList xs |> Queue.toSeq |> Seq.toList
 
             let expected = xs
-            result |> should equivalent expected)
+            result |> should equivalent expected
+        )
     )
 
 [<Test>]
@@ -80,7 +85,8 @@ let ``Queue.skipExists`` () =
             ==> lazy
                 (let result = Queue.ofLists xss |> Queue.skipExists n f (fun _ -> false)
                  let expected = xss |> List.collect id |> Seq.skip n |> Seq.exists f
-                 result |> should equal expected))
+                 result |> should equal expected)
+        )
     )
 
 [<Test>]
@@ -96,5 +102,6 @@ let ``Queue ref transp`` () =
             let expected3 = xs @ zs
             result1 |> should equivalent expected1
             result2 |> should equivalent expected2
-            result3 |> should equivalent expected3)
+            result3 |> should equivalent expected3
+        )
     )

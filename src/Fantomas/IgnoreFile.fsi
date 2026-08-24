@@ -17,8 +17,10 @@ type IsPathIgnored = AbsoluteFilePath -> bool
 
 [<NoComparison; NoEquality>]
 type IgnoreFile =
-    { Location: IFileInfo
-      IsIgnored: IsPathIgnored }
+    {
+        Location: IFileInfo
+        IsIgnored: IsPathIgnored
+    }
 
 [<RequireQualifiedAccess>]
 module IgnoreFile =

@@ -192,7 +192,8 @@ type LongerRecordName = {
 }
 """
         { config with
-            MultilineBracketStyle = Stroustrup }
+            MultilineBracketStyle = Stroustrup
+        }
     |> prepend newline
     |> should
         equal
@@ -621,7 +622,8 @@ let r = {
 }
 """
         { config with
-            MultilineBracketStyle = Stroustrup }
+            MultilineBracketStyle = Stroustrup
+        }
     |> prepend newline
     |> should
         equal
@@ -742,7 +744,8 @@ let r = {|
 |}
 """
         { config with
-            MultilineBracketStyle = Stroustrup }
+            MultilineBracketStyle = Stroustrup
+        }
     |> prepend newline
     |> should
         equal

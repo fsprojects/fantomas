@@ -12,9 +12,11 @@ open Fantomas.Tests.TestHelpers
 [<TestCase("--help")>]
 [<TestCase("-h")>]
 let ``both spellings of the flag write the page to standard out`` (flag: string) =
-    let { ExitCode = exitCode
-          Output = output
-          Error = error } =
+    let {
+            ExitCode = exitCode
+            Output = output
+            Error = error
+        } =
         runFantomasTool [ flag ]
 
     exitCode |> should equal 0
@@ -43,9 +45,11 @@ let ``help page is not coloured on a build agent`` (variable: string) =
 
 [<Test>]
 let ``an argument error is reported on standard error without Argu's usage text`` () =
-    let { ExitCode = exitCode
-          Output = output
-          Error = error } =
+    let {
+            ExitCode = exitCode
+            Output = output
+            Error = error
+        } =
         runFantomasTool [ "--out" ]
 
     exitCode |> should not' (equal 0)

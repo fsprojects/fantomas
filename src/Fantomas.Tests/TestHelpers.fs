@@ -29,7 +29,8 @@ type TemporaryFileCodeSample
         ?subFolder: string,
         ?subFolders: string array,
         ?extension: string
-    ) =
+    )
+    =
     let hasByteOrderMark = defaultArg hasByteOrderMark false
 
     let internalSubFolders =
@@ -73,7 +74,8 @@ type TemporaryFileCodeSample
             internalSubFolders
             |> Option.iter (fun sf ->
                 let path = Path.Join(Path.GetTempPath(), sf.[0])
-                Directory.Delete(path, true))
+                Directory.Delete(path, true)
+            )
 
 type OutputFile internal () =
     let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
@@ -149,11 +151,13 @@ let silentLogger: ILogger = LoggerConfiguration().CreateLogger()
 /// What a run wrote, gathered per level rather than per stream: which stream a level lands on is
 /// `Logging.createLogger`'s business, and this is about the messages.
 type CollectedLog =
-    { Information: string list
-      Warning: string list
-      Error: string list
-      Fatal: string list
-      Debug: string list }
+    {
+        Information: string list
+        Warning: string list
+        Error: string list
+        Fatal: string list
+        Debug: string list
+    }
 
 type private CollectingSink() =
     let events: ResizeArray<LogEvent> = ResizeArray()
@@ -176,11 +180,13 @@ let collectingLogger () : ILogger * (unit -> CollectedLog) =
             sink.Events
             |> List.choose (fun (e: LogEvent) -> if e.Level = level then Some(e.RenderMessage()) else None)
 
-        { Information = atLevel LogEventLevel.Information
-          Warning = atLevel LogEventLevel.Warning
-          Error = atLevel LogEventLevel.Error
-          Fatal = atLevel LogEventLevel.Fatal
-          Debug = atLevel LogEventLevel.Debug }
+        {
+            Information = atLevel LogEventLevel.Information
+            Warning = atLevel LogEventLevel.Warning
+            Error = atLevel LogEventLevel.Error
+            Fatal = atLevel LogEventLevel.Fatal
+            Debug = atLevel LogEventLevel.Debug
+        }
 
     logger, collected
 
@@ -218,23 +224,30 @@ let recordingEnvironment (fs: IFileSystem) (ignoreFile: IgnoreFile option) : Rec
     let logger, collected = collectingLogger ()
     let console, drawn = recordingConsole ()
 
-    { Environment =
-        { FileSystem = fs
-          IgnoreFile = ignoreFile
-          ReadConfiguration =
-            fun _ ->
-                { FormatConfig.Default with
-                    EndOfLine = EndOfLineStyle.LF }
-          Log = logger
-          Console = console }
-      Log = collected
-      Drawn = drawn }
+    {
+        Environment =
+            {
+                FileSystem = fs
+                IgnoreFile = ignoreFile
+                ReadConfiguration =
+                    fun _ ->
+                        { FormatConfig.Default with
+                            EndOfLine = EndOfLineStyle.LF
+                        }
+                Log = logger
+                Console = console
+            }
+        Log = collected
+        Drawn = drawn
+    }
 
 /// The settings a run gets when nothing was asked for on the command line.
 let defaultSettings: CliSettings =
-    { Force = false
-      Profile = false
-      Verbosity = VerbosityLevel.Normal }
+    {
+        Force = false
+        Profile = false
+        Verbosity = VerbosityLevel.Normal
+    }
 
 /// A `DaemonEnvironment` over the given file system, reading whatever configuration is handed in
 /// rather than an `.editorconfig` on disk. Enough for a test about what the daemon does with a
@@ -242,30 +255,39 @@ let defaultSettings: CliSettings =
 let daemonEnvironment
     (fs: IFileSystem)
     (readConfiguration: string -> EditorConfig.EditorConfigResult option)
-    : DaemonEnvironment =
-    { FileSystem = fs
-      ReadConfiguration = readConfiguration
-      Log = silentLogger }
+    : DaemonEnvironment
+    =
+    {
+        FileSystem = fs
+        ReadConfiguration = readConfiguration
+        Log = silentLogger
+    }
 
 /// A `DaemonEnvironment` over the real file system, as the tool itself builds one.
 let realDaemonEnvironment: DaemonEnvironment =
-    { FileSystem = FileSystem()
-      ReadConfiguration = EditorConfig.tryReadConfiguration
-      Log = Log.Logger }
+    {
+        FileSystem = FileSystem()
+        ReadConfiguration = EditorConfig.tryReadConfiguration
+        Log = Log.Logger
+    }
 
 /// A `CliEnvironment` over the real file system, honouring no ignore file. Enough for a test that
 /// wants the tool's own behaviour without standing up a mock.
 let realEnvironment: CliEnvironment =
-    { FileSystem = FileSystem()
-      IgnoreFile = None
-      ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter Log.Logger)
-      Log = Log.Logger
-      Console = AnsiConsole.Console }
+    {
+        FileSystem = FileSystem()
+        IgnoreFile = None
+        ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter Log.Logger)
+        Log = Log.Logger
+        Console = AnsiConsole.Console
+    }
 
 type FantomasToolResult =
-    { ExitCode: int
-      Output: string
-      Error: string }
+    {
+        ExitCode: int
+        Output: string
+        Error: string
+    }
 
 let getFantomasToolStartInfo (arguments: string list) : ProcessStartInfo =
     let configuration: string =
@@ -305,9 +327,11 @@ let runFantomasToolWithEnvironment (environment: (string * string) list) argumen
     let error = p.StandardError.ReadToEnd()
     p.WaitForExit()
 
-    { ExitCode = p.ExitCode
-      Output = output
-      Error = error }
+    {
+        ExitCode = p.ExitCode
+        Output = output
+        Error = error
+    }
 
 let runFantomasTool arguments : FantomasToolResult =
     runFantomasToolWithEnvironment [] arguments

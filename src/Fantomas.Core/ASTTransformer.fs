@@ -19,7 +19,9 @@ let invariantViolation (range: range) format =
 
 [<NoComparison>]
 type CreationAide =
-    { SourceText: ISourceText option }
+    {
+        SourceText: ISourceText option
+    }
 
     member x.TextFromSource fallback range =
         match x.SourceText with
@@ -68,8 +70,11 @@ let mkSynLongIdent (creationAide: CreationAide) (sli: SynLongIdent) =
             (sli.Dots, tail)
             ||> List.zip
             |> List.collect (fun (dot, ident) ->
-                [ IdentifierOrDot.KnownDot(stn "." dot)
-                  IdentifierOrDot.Ident(mkSynIdent creationAide ident) ])
+                [
+                    IdentifierOrDot.KnownDot(stn "." dot)
+                    IdentifierOrDot.Ident(mkSynIdent creationAide ident)
+                ]
+            )
 
         IdentListNode(IdentifierOrDot.Ident(mkSynIdent creationAide head) :: rest, sli.Range)
 
@@ -124,7 +129,8 @@ let mkConstString (creationAide: CreationAide) (stringKind: SynStringKind) (valu
 let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(ident, args, range)) =
     let args =
         args
-        |> List.map (function
+        |> List.map (
+            function
             | ParsedHashDirectiveArgument.String(value, stringKind, range) ->
                 mkConstString creationAide stringKind value range |> Choice1Of2
             | ParsedHashDirectiveArgument.SourceIdentifier(identifier, _, range) -> stn identifier range |> Choice1Of2
@@ -132,7 +138,8 @@ let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(iden
                 let text = creationAide.TextFromSource (fun () -> $"%A{value}") range
                 stn text range |> Choice1Of2
             | ParsedHashDirectiveArgument.Ident(value = ident) -> mkIdent ident |> Choice1Of2
-            | ParsedHashDirectiveArgument.LongIdent(value = lid) -> mkSynLongIdent creationAide lid |> Choice2Of2)
+            | ParsedHashDirectiveArgument.LongIdent(value = lid) -> mkSynLongIdent creationAide lid |> Choice2Of2
+        )
 
     ParsedHashDirectiveNode(ident, args, range)
 
@@ -306,9 +313,11 @@ let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range li
 [<TailCall>]
 let rec visitLetOrUses acc expr =
     match expr with
-    | SynExpr.LetOrUse { Bindings = xs
-                         Body = body
-                         Trivia = trivia } ->
+    | SynExpr.LetOrUse {
+                           Bindings = xs
+                           Body = body
+                           Trivia = trivia
+                       } ->
         let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
         visitLetOrUses (acc @ xs') body
     | _ -> acc, expr
@@ -325,21 +334,25 @@ let rec collectComputationExpressionStatements
     (creationAide: CreationAide)
     (e: SynExpr)
     (finalContinuation: ComputationExpressionStatement list -> ComputationExpressionStatement list)
-    : ComputationExpressionStatement list =
+    : ComputationExpressionStatement list
+    =
     match e with
     | LetOrUses(bindings, body) ->
         let bindings =
             bindings
             |> List.map (fun (b, inNode) ->
                 mkBinding creationAide b (Option.map (stn "in") inNode)
-                |> ComputationExpressionStatement.BindingStatement)
+                |> ComputationExpressionStatement.BindingStatement
+            )
 
-        collectComputationExpressionStatements creationAide body (fun bodyStatements ->
-            [ yield! bindings; yield! bodyStatements ] |> finalContinuation)
+        collectComputationExpressionStatements
+            creationAide
+            body
+            (fun bodyStatements -> [ yield! bindings; yield! bodyStatements ] |> finalContinuation)
     | SynExpr.Sequential(expr1 = e1; expr2 = e2; trivia = trivia) ->
         let continuations
             : ((ComputationExpressionStatement list -> ComputationExpressionStatement list)
-                  -> ComputationExpressionStatement list) list =
+                      -> ComputationExpressionStatement list) list =
             let c2 =
                 match trivia.SeparatorRange with
                 // detect then keyword in explicit constructor
@@ -351,7 +364,9 @@ let rec collectComputationExpressionStatements
 
                     fun finalContinuation ->
                         finalContinuation
-                            [ ComputationExpressionStatement.OtherStatement(Expr.ExplicitConstructorThenExpr node) ]
+                            [
+                                ComputationExpressionStatement.OtherStatement(Expr.ExplicitConstructorThenExpr node)
+                            ]
                 | _ -> collectComputationExpressionStatements creationAide e2
 
             [ collectComputationExpressionStatements creationAide e1; c2 ]
@@ -484,9 +499,13 @@ let (|SameInfixApps|_|) expr =
     let rec visitLeft sameOperator expr continuation =
         match expr with
         | InfixApp(lhs, operator, rhs) when operator.Text = sameOperator ->
-            visitLeft sameOperator lhs (fun (head, xs: Queue<SingleTextNode * SynExpr>) ->
-                xs.Enqueue(operator, rhs)
-                continuation (head, xs))
+            visitLeft
+                sameOperator
+                lhs
+                (fun (head, xs: Queue<SingleTextNode * SynExpr>) ->
+                    xs.Enqueue(operator, rhs)
+                    continuation (head, xs)
+                )
         | e -> continuation (e, Queue())
 
     let rec visitRight
@@ -494,7 +513,8 @@ let (|SameInfixApps|_|) expr =
         (expr: SynExpr)
         (headAndLastOperator: (SynExpr * SingleTextNode) option)
         (xs: Queue<SingleTextNode * SynExpr>)
-        : SynExpr * Queue<SingleTextNode * SynExpr> =
+        : SynExpr * Queue<SingleTextNode * SynExpr>
+        =
         match expr with
         | SynExpr.App(ExprAtomicFlag.NonAtomic,
                       false,
@@ -547,9 +567,12 @@ let (|NewlineInfixApps|_|) expr =
     let rec visit expr continuation =
         match expr with
         | InfixApp(lhs, operator, rhs) when newLineInfixOps.Contains operator.Text ->
-            visit lhs (fun (head, xs: Queue<SingleTextNode * SynExpr>) ->
-                xs.Enqueue(operator, rhs)
-                continuation (head, xs))
+            visit
+                lhs
+                (fun (head, xs: Queue<SingleTextNode * SynExpr>) ->
+                    xs.Enqueue(operator, rhs)
+                    continuation (head, xs)
+                )
         | e -> continuation (e, Queue())
 
     match expr with
@@ -610,7 +633,8 @@ let (|ElIf|_|) expr =
                                     "cannot merge a second else keyword into existing else if"
                         | None -> ifNode
 
-                (node, e1, thenKw, e2))
+                (node, e1, thenKw, e2)
+            )
 
         let elseInfo =
             match elseBody with
@@ -642,9 +666,12 @@ let (|App|_|) e =
         match expr with
         | IndexWithoutDot _ -> continuation (expr, Queue())
         | SynExpr.App(funcExpr = funcExpr; argExpr = argExpr) ->
-            visit funcExpr (fun (head, xs: Queue<SynExpr>) ->
-                xs.Enqueue(argExpr)
-                continuation (head, xs))
+            visit
+                funcExpr
+                (fun (head, xs: Queue<SynExpr>) ->
+                    xs.Enqueue(argExpr)
+                    continuation (head, xs)
+                )
         | e -> continuation (e, Queue())
 
     let head, xs = visit e id
@@ -689,7 +716,8 @@ let mkLinksFromSynLongIdent (sli: SynLongIdent) : LinkExpr list =
     let dots = List.map LinkExpr.Dot sli.Dots
 
     [ yield! idents; yield! dots ]
-    |> List.sortBy (function
+    |> List.sortBy (
+        function
         | LinkExpr.Identifier identifierExpr -> identifierExpr.Range.StartLine, identifierExpr.Range.StartColumn
         | LinkExpr.Dot m -> m.StartLine, m.StartColumn
         | LinkExpr.Expr _
@@ -700,7 +728,8 @@ let mkLinksFromSynLongIdent (sli: SynLongIdent) : LinkExpr list =
         | LinkExpr.IndexExpr _ ->
             invariantViolation
                 sli.Range
-                "mkLinksFromSynLongIdent produced a link that is neither an Identifier nor a Dot")
+                "mkLinksFromSynLongIdent produced a link that is neither an Identifier nor a Dot"
+    )
 
 [<return: Struct>]
 let (|UnitExpr|_|) e =
@@ -799,8 +828,10 @@ let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName:
             let leftLinks = mkLinksFromSynLongIdent sli
             let lastSynIdent = List.last synIdents
 
-            [ yield! List.cutOffLast leftLinks
-              yield (mkLongIdentExprFromSynIdent lastSynIdent |> mkLinkFromExpr) ]
+            [
+                yield! List.cutOffLast leftLinks
+                yield (mkLongIdentExprFromSynIdent lastSynIdent |> mkLinkFromExpr)
+            ]
     | e -> [ mkLinkFromExpr e ]
 
 /// Visits a SynExpr and produces a flat LinkExpr list representing the chain links.
@@ -817,135 +848,163 @@ let rec visitChainLinks (e: SynExpr) (continuation: LinkExpr list -> LinkExpr li
                                    typeArgsRange,
                                    _)
         argExpr = ParenExpr _ | UnitExpr _ as argExpr) ->
-        visitChainLinks funcExpr (fun leftLinks ->
-            let lastLink =
-                match List.tryLast leftLinks with
-                | Some(LinkExpr.Identifier identifierExpr) ->
-                    let typeApp =
-                        SynExpr.TypeApp(
-                            identifierExpr,
-                            lessRange,
-                            typeArgs,
-                            commaRanges,
-                            Some greaterRange,
-                            typeArgsRange,
-                            unionRanges identifierExpr.Range greaterRange
-                        )
+        visitChainLinks
+            funcExpr
+            (fun leftLinks ->
+                let lastLink =
+                    match List.tryLast leftLinks with
+                    | Some(LinkExpr.Identifier identifierExpr) ->
+                        let typeApp =
+                            SynExpr.TypeApp(
+                                identifierExpr,
+                                lessRange,
+                                typeArgs,
+                                commaRanges,
+                                Some greaterRange,
+                                typeArgsRange,
+                                unionRanges identifierExpr.Range greaterRange
+                            )
 
-                    match argExpr with
-                    | UnitExpr mUnit -> [ LinkExpr.AppUnit(typeApp, mUnit) ]
-                    | ParenExpr(lpr, innerExpr, rpr, pr) -> [ LinkExpr.AppParen(typeApp, lpr, innerExpr, rpr, pr) ]
-                    // Unreachable: the outer pattern already constrained argExpr to Paren or Unit.
+                        match argExpr with
+                        | UnitExpr mUnit -> [ LinkExpr.AppUnit(typeApp, mUnit) ]
+                        | ParenExpr(lpr, innerExpr, rpr, pr) -> [ LinkExpr.AppParen(typeApp, lpr, innerExpr, rpr, pr) ]
+                        // Unreachable: the outer pattern already constrained argExpr to Paren or Unit.
+                        | _ ->
+                            invariantViolation
+                                e.Range
+                                "generic call argument %A is neither a unit nor a parenthesised expression"
+                                argExpr
+                    // Unreachable: visiting a DotGet always ends the link list with an Identifier.
                     | _ ->
                         invariantViolation
                             e.Range
-                            "generic call argument %A is neither a unit nor a parenthesised expression"
-                            argExpr
-                // Unreachable: visiting a DotGet always ends the link list with an Identifier.
-                | _ ->
-                    invariantViolation
-                        e.Range
-                        "generic call has no identifier to attach its type arguments to (links: %A)"
-                        leftLinks
+                            "generic call has no identifier to attach its type arguments to (links: %A)"
+                            leftLinks
 
-            let leftLinks = List.cutOffLast leftLinks
-            continuation [ yield! leftLinks; yield! lastLink ])
+                let leftLinks = List.cutOffLast leftLinks
+                continuation [ yield! leftLinks; yield! lastLink ]
+            )
 
     | SynExpr.TypeApp(SynExpr.DotGet _ as dotGet, lessRange, typeArgs, commaRanges, Some greaterRange, typeArgsRange, _) ->
-        visitChainLinks dotGet (fun leftLinks ->
-            let lastLink =
-                match List.tryLast leftLinks with
-                | Some(LinkExpr.Identifier property) ->
-                    [ SynExpr.TypeApp(
-                          property,
-                          lessRange,
-                          typeArgs,
-                          commaRanges,
-                          Some greaterRange,
-                          typeArgsRange,
-                          unionRanges property.Range greaterRange
-                      )
-                      |> LinkExpr.Identifier ]
-                // Unreachable: visiting a DotGet always ends the link list with an Identifier.
-                | _ ->
-                    invariantViolation e.Range "type application has no identifier to attach to (links: %A)" leftLinks
+        visitChainLinks
+            dotGet
+            (fun leftLinks ->
+                let lastLink =
+                    match List.tryLast leftLinks with
+                    | Some(LinkExpr.Identifier property) ->
+                        [
+                            SynExpr.TypeApp(
+                                property,
+                                lessRange,
+                                typeArgs,
+                                commaRanges,
+                                Some greaterRange,
+                                typeArgsRange,
+                                unionRanges property.Range greaterRange
+                            )
+                            |> LinkExpr.Identifier
+                        ]
+                    // Unreachable: visiting a DotGet always ends the link list with an Identifier.
+                    | _ ->
+                        invariantViolation
+                            e.Range
+                            "type application has no identifier to attach to (links: %A)"
+                            leftLinks
 
-            let leftLinks = List.cutOffLast leftLinks
-            continuation [ yield! leftLinks; yield! lastLink ])
+                let leftLinks = List.cutOffLast leftLinks
+                continuation [ yield! leftLinks; yield! lastLink ]
+            )
 
     // Transform `x().y[0]` into `x()` , `dot`, `y[0]`
     | IndexWithoutDot(SynExpr.DotGet(expr, mDot, sli, _), indexExpr) ->
-        visitChainLinks expr (fun leftLinks ->
-            let middleLinks, lastExpr =
-                match List.tryLast sli.IdentsWithTrivia with
-                // Unreachable: a DotGet always carries at least one identifier after its dot.
-                | None -> invariantViolation e.Range "indexed member access has no identifier after the dot (%A)" sli
-                | Some lastMiddleLink ->
-                    let middleLinks = mkLinksFromSynLongIdent sli |> List.cutOffLast
+        visitChainLinks
+            expr
+            (fun leftLinks ->
+                let middleLinks, lastExpr =
+                    match List.tryLast sli.IdentsWithTrivia with
+                    // Unreachable: a DotGet always carries at least one identifier after its dot.
+                    | None ->
+                        invariantViolation e.Range "indexed member access has no identifier after the dot (%A)" sli
+                    | Some lastMiddleLink ->
+                        let middleLinks = mkLinksFromSynLongIdent sli |> List.cutOffLast
 
-                    let indexWithDotExpr =
-                        let identifierExpr = mkLongIdentExprFromSynIdent lastMiddleLink
+                        let indexWithDotExpr =
+                            let identifierExpr = mkLongIdentExprFromSynIdent lastMiddleLink
 
-                        // Create an adjacent range for the `[`,`]` in the index expression.
-                        let adjacentRange =
-                            mkRange
-                                indexExpr.Range.FileName
-                                (Position.mkPos identifierExpr.Range.StartLine (identifierExpr.Range.StartColumn + 1))
-                                (Position.mkPos indexExpr.Range.EndLine (indexExpr.Range.EndColumn - 1))
+                            // Create an adjacent range for the `[`,`]` in the index expression.
+                            let adjacentRange =
+                                mkRange
+                                    indexExpr.Range.FileName
+                                    (Position.mkPos
+                                        identifierExpr.Range.StartLine
+                                        (identifierExpr.Range.StartColumn + 1))
+                                    (Position.mkPos indexExpr.Range.EndLine (indexExpr.Range.EndColumn - 1))
 
-                        SynExpr.App(
-                            ExprAtomicFlag.Atomic,
-                            false,
-                            identifierExpr,
-                            SynExpr.ArrayOrListComputed(false, indexExpr, adjacentRange),
-                            unionRanges identifierExpr.Range indexExpr.Range
-                        )
+                            SynExpr.App(
+                                ExprAtomicFlag.Atomic,
+                                false,
+                                identifierExpr,
+                                SynExpr.ArrayOrListComputed(false, indexExpr, adjacentRange),
+                                unionRanges identifierExpr.Range indexExpr.Range
+                            )
 
-                    middleLinks, indexWithDotExpr
+                        middleLinks, indexWithDotExpr
 
-            continuation
-                [ yield! leftLinks
-                  yield LinkExpr.Dot mDot
-                  yield! middleLinks
-                  yield LinkExpr.Expr lastExpr ])
+                continuation
+                    [
+                        yield! leftLinks
+                        yield LinkExpr.Dot mDot
+                        yield! middleLinks
+                        yield LinkExpr.Expr lastExpr
+                    ]
+            )
 
     | SynExpr.App(isInfix = false; funcExpr = SynExpr.DotGet _ as funcExpr; argExpr = argExpr) ->
-        visitChainLinks funcExpr (fun leftLinks ->
-            match List.tryLast leftLinks with
-            | Some(LinkExpr.Identifier(identifierExpr)) ->
-                match argExpr with
-                | UnitExpr mUnit ->
-                    let leftLinks = List.cutOffLast leftLinks
+        visitChainLinks
+            funcExpr
+            (fun leftLinks ->
+                match List.tryLast leftLinks with
+                | Some(LinkExpr.Identifier(identifierExpr)) ->
+                    match argExpr with
+                    | UnitExpr mUnit ->
+                        let leftLinks = List.cutOffLast leftLinks
 
-                    // Compose a function application by taking the last identifier of the SynExpr.DotGet
-                    // and the following argument expression.
-                    // Example: X().Y() -> Take `Y` as function name and `()` as argument.
-                    let rightLink = LinkExpr.AppUnit(identifierExpr, mUnit)
+                        // Compose a function application by taking the last identifier of the SynExpr.DotGet
+                        // and the following argument expression.
+                        // Example: X().Y() -> Take `Y` as function name and `()` as argument.
+                        let rightLink = LinkExpr.AppUnit(identifierExpr, mUnit)
 
-                    continuation [ yield! leftLinks; yield rightLink ]
+                        continuation [ yield! leftLinks; yield rightLink ]
 
-                | ParenExpr(lpr, e, rpr, pr) ->
-                    let leftLinks = List.cutOffLast leftLinks
-                    // Example: A().B(fun b -> b)
-                    let rightLink = LinkExpr.AppParen(identifierExpr, lpr, e, rpr, pr)
-                    continuation [ yield! leftLinks; yield rightLink ]
+                    | ParenExpr(lpr, e, rpr, pr) ->
+                        let leftLinks = List.cutOffLast leftLinks
+                        // Example: A().B(fun b -> b)
+                        let rightLink = LinkExpr.AppParen(identifierExpr, lpr, e, rpr, pr)
+                        continuation [ yield! leftLinks; yield rightLink ]
 
-                // Unreachable: `(|ChainExpr|_|)` only routes Unit/Paren arguments here, and a
-                // dot-lambda body cannot be a space-separated application.
+                    // Unreachable: `(|ChainExpr|_|)` only routes Unit/Paren arguments here, and a
+                    // dot-lambda body cannot be a space-separated application.
+                    | _ ->
+                        invariantViolation
+                            e.Range
+                            "call argument %A is neither a unit nor a parenthesised expression"
+                            argExpr
+                // Unreachable: visiting a DotGet always ends the link list with an Identifier.
                 | _ ->
-                    invariantViolation
-                        e.Range
-                        "call argument %A is neither a unit nor a parenthesised expression"
-                        argExpr
-            // Unreachable: visiting a DotGet always ends the link list with an Identifier.
-            | _ -> invariantViolation e.Range "call has no identifier to apply its argument to (links: %A)" leftLinks)
+                    invariantViolation e.Range "call has no identifier to apply its argument to (links: %A)" leftLinks
+            )
 
     | SynExpr.DotGet(expr, rangeOfDot, longDotId, _) ->
-        visitChainLinks expr (fun links ->
-            continuation
-                [ yield! links
-                  yield LinkExpr.Dot rangeOfDot
-                  yield! mkLinksFromSynLongIdent longDotId ])
+        visitChainLinks
+            expr
+            (fun links ->
+                continuation
+                    [
+                        yield! links
+                        yield LinkExpr.Dot rangeOfDot
+                        yield! mkLinksFromSynLongIdent longDotId
+                    ]
+            )
 
     | SynExpr.App(isInfix = false; funcExpr = funcExpr; argExpr = UnitExpr mUnit) ->
         mkLinksFromFunctionName (fun e -> LinkExpr.AppUnit(e, mUnit)) funcExpr
@@ -956,24 +1015,32 @@ let rec visitChainLinks (e: SynExpr) (continuation: LinkExpr list -> LinkExpr li
         |> continuation
 
     | SynExpr.App(ExprAtomicFlag.Atomic, false, (SynExpr.LongIdent _ as funcExpr), (SynExpr.ArrayOrList _ as argExpr), _) ->
-        visitChainLinks funcExpr (fun leftLinks ->
-            let app =
-                match List.tryLast leftLinks with
-                | Some(LinkExpr.Identifier identifier) ->
-                    [ SynExpr.App(
-                          ExprAtomicFlag.Atomic,
-                          false,
-                          identifier,
-                          argExpr,
-                          unionRanges identifier.Range argExpr.Range
-                      )
-                      |> LinkExpr.Expr ]
-                // Unreachable: visiting a LongIdent always ends the link list with an Identifier.
-                | _ ->
-                    invariantViolation e.Range "indexed application has no identifier to index (links: %A)" leftLinks
+        visitChainLinks
+            funcExpr
+            (fun leftLinks ->
+                let app =
+                    match List.tryLast leftLinks with
+                    | Some(LinkExpr.Identifier identifier) ->
+                        [
+                            SynExpr.App(
+                                ExprAtomicFlag.Atomic,
+                                false,
+                                identifier,
+                                argExpr,
+                                unionRanges identifier.Range argExpr.Range
+                            )
+                            |> LinkExpr.Expr
+                        ]
+                    // Unreachable: visiting a LongIdent always ends the link list with an Identifier.
+                    | _ ->
+                        invariantViolation
+                            e.Range
+                            "indexed application has no identifier to index (links: %A)"
+                            leftLinks
 
-            let leftLinks = List.cutOffLast leftLinks
-            continuation [ yield! leftLinks; yield! app ])
+                let leftLinks = List.cutOffLast leftLinks
+                continuation [ yield! leftLinks; yield! app ]
+            )
 
     | SynExpr.TypeApp _ as typeApp -> mkLinksFromFunctionName LinkExpr.Identifier typeApp |> continuation
 
@@ -982,11 +1049,16 @@ let rec visitChainLinks (e: SynExpr) (continuation: LinkExpr list -> LinkExpr li
     | SynExpr.Ident _ -> continuation [ LinkExpr.Identifier e ]
 
     | SynExpr.DotIndexedGet(objectExpr, indexArgs, dotRange, _) ->
-        visitChainLinks objectExpr (fun leftLinks ->
-            continuation
-                [ yield! leftLinks
-                  yield LinkExpr.Dot dotRange
-                  yield LinkExpr.IndexExpr indexArgs ])
+        visitChainLinks
+            objectExpr
+            (fun leftLinks ->
+                continuation
+                    [
+                        yield! leftLinks
+                        yield LinkExpr.Dot dotRange
+                        yield LinkExpr.IndexExpr indexArgs
+                    ]
+            )
 
     | other -> continuation [ LinkExpr.Expr other ]
 
@@ -1006,7 +1078,8 @@ let mkChainFromLinks
     (links: LinkExpr list)
     (mkTerminal: ChainCall -> ChainTerminal)
     (range: range)
-    : Expr =
+    : Expr
+    =
 
     // The first link is the receiver; everything after it is dotted content. Because
     // visitChainLinks has already peeled every dot out into its own `Dot` link, whatever
@@ -1379,7 +1452,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                     List.map (fun b -> mkBinding creationAide b None) bs,
                     List.map (mkMemberDefn creationAide) members,
                     m
-                ))
+                )
+            )
 
         ExprObjExprNode(
             stn "{" mOpen,
@@ -1526,7 +1600,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                     | Some pa -> unionRanges memberExpr.Range pa.Range
                     | None -> memberExpr.Range
 
-                ExprDynamicChainItemNode(memberExpr', parenArg', itemRange))
+                ExprDynamicChainItemNode(memberExpr', parenArg', itemRange)
+            )
 
         ExprDynamicChainNode(mkAtomicExpr creationAide leading, chainItems, exprRange)
         |> Expr.DynamicChain
@@ -1718,7 +1793,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                         |> IfKeywordNode.ElseIf
 
                 let m = unionRanges ifKwNode.Range thenExpr.Range
-                ExprIfThenNode(ifKwNode, ifExprNode, thenNode, mkExpr creationAide thenExpr, m))
+                ExprIfThenNode(ifKwNode, ifExprNode, thenNode, mkExpr creationAide thenExpr, m)
+            )
 
         let optElse =
             match elseOpt with
@@ -1778,7 +1854,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.LibraryOnlyStaticOptimization(constraints, e, optExpr, _) ->
         let constraints =
             constraints
-            |> List.map (function
+            |> List.map (
+                function
                 | SynStaticOptimizationConstraint.WhenTyparTyconEqualsTycon(t1, t2, _) ->
                     StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode(
                         mkSynTypar t1,
@@ -1787,7 +1864,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                     )
                     |> StaticOptimizationConstraint.WhenTyparTyconEqualsTycon
                 | SynStaticOptimizationConstraint.WhenTyparIsStruct(t, _) ->
-                    mkSynTypar t |> StaticOptimizationConstraint.WhenTyparIsStruct)
+                    mkSynTypar t |> StaticOptimizationConstraint.WhenTyparIsStruct
+            )
 
         ExprLibraryOnlyStaticOptimizationNode(
             mkExpr creationAide optExpr,
@@ -1820,7 +1898,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                                 elif idx = lastIndex && not (String.endsWithOrdinal "\"" v) then
                                     $"}}%s{v}\""
                                 else
-                                    $"}}%s{v}%s{specifier}{{")
+                                    $"}}%s{v}%s{specifier}{{"
+                            )
                             r)
                         r
                     |> Choice1Of2
@@ -1846,7 +1925,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                         | Some ident -> unionRanges fillExpr.Range ident.idRange
                         | None -> unionRanges fillExpr.Range (Expr.Node expr).Range
 
-                    FillExprNode(expr, Option.map mkIdent format, m) |> Choice2Of2)
+                    FillExprNode(expr, Option.map mkIdent format, m) |> Choice2Of2
+            )
 
         ExprInterpolatedStringExprNode(parts, exprRange) |> Expr.InterpolatedStringExpr
     | SynExpr.IndexRange(None, _, None, _, _, _) -> stn "*" exprRange |> Expr.IndexRangeWildcard
@@ -1913,8 +1993,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.Typar(typar, _) -> mkSynTypar typar |> Expr.Typar
     | SynExpr.DotLambda(
         expr = e
-        trivia = { DotRange = mDot
-                   UnderscoreRange = mUnderscore }) ->
+        trivia = {
+                     DotRange = mDot
+                     UnderscoreRange = mUnderscore
+                 }) ->
         // Build the chain with `_` as head and the body links as segments.
         // Terminal uses NoSpaceAllowed — the F# compiler requires DotLambda bodies to be atomic.
         let bodyLinks = visitChainLinks e id
@@ -2017,7 +2099,11 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     | SynPat.LongIdent(synLongIdent,
                        _,
                        vtdo,
-                       SynArgPats.NamePatPairs(nps, _, { ParenRange = StartEndRange 1 (lpr, _, rpr) }),
+                       SynArgPats.NamePatPairs(nps,
+                                               _,
+                                               {
+                                                   ParenRange = StartEndRange 1 (lpr, _, rpr)
+                                               }),
                        _,
                        _) ->
         let typarDecls = mkSynValTyparDecls creationAide vtdo
@@ -2032,7 +2118,9 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
                         stn "=" eq,
                         mkPat creationAide pat,
                         unionRanges fieldName.Range pat.Range
-                    )))
+                    )
+                )
+            )
 
         PatNamePatPairsNode(
             mkSynLongIdent creationAide synLongIdent,
@@ -2073,7 +2161,8 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
             |> List.map (fun (NamePatPairField(fieldName = fieldName; equalsRange = eq; pat = pat) as np) ->
                 let range = np.Range // TODO: might be wrong unionRanges prefix.Range pat.Range
                 let eqNode = stn "=" (Option.defaultValue Range.range0 eq)
-                NamePatPairNode(mkSynLongIdent creationAide fieldName, eqNode, mkPat creationAide pat, range))
+                NamePatPairNode(mkSynLongIdent creationAide fieldName, eqNode, mkPat creationAide pat, range)
+            )
 
         PatRecordNode(stn "{" o, fields, stn "}" c, patternRange) |> Pattern.Record
     | SynPat.Const(c, r) -> mkConstant creationAide c r |> Pattern.Const
@@ -2090,7 +2179,9 @@ let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
             trivia.ColonRange
             |> Option.map (fun mColon ->
                 let m = unionRanges mColon t.Range
-                BindingReturnInfoNode(stn ":" mColon, mkType creationAide t, m)))
+                BindingReturnInfoNode(stn ":" mColon, mkType creationAide t, m)
+            )
+        )
         returnInfo
 
 [<return: Struct>]
@@ -2107,7 +2198,8 @@ let restoreRotatedReturnAttributes
     (attributes: SynAttributes)
     (SynValData(valInfo = SynValInfo(returnInfo = SynArgInfo(attributes = arityAttributes))))
     (returnInfo: SynBindingReturnInfo option)
-    : SynAttributes =
+    : SynAttributes
+    =
     let sortAttributes (attributes: SynAttribute list) =
         List.sortBy (fun (a: SynAttribute) -> a.Range.StartLine, a.Range.StartColumn) attributes
 
@@ -2126,7 +2218,8 @@ let restoreRotatedReturnAttributes
         arityAttributes
         |> List.collect (fun al -> al.Attributes)
         |> List.filter (fun a ->
-            not (List.exists (fun (rta: SynAttribute) -> equals rta.Range a.Range) returnTypeAttributes))
+            not (List.exists (fun (rta: SynAttribute) -> equals rta.Range a.Range) returnTypeAttributes)
+        )
 
     match rotated with
     | [] -> attributes
@@ -2141,7 +2234,9 @@ let restoreRotatedReturnAttributes
                 | [] -> al
                 | inThisList ->
                     { al with
-                        Attributes = sortAttributes (al.Attributes @ inThisList) })
+                        Attributes = sortAttributes (al.Attributes @ inThisList)
+                    }
+            )
 
         // An attribute list that held nothing but return attributes was removed altogether, so it
         // has to be recreated. Its own range is gone, the attribute range is the closest we have.
@@ -2151,7 +2246,8 @@ let restoreRotatedReturnAttributes
                 if List.exists (fun al -> wasWrittenIn al a) attributes then
                     None
                 else
-                    Some({ Attributes = [ a ]; Range = a.Range }: SynAttributeList))
+                    Some({ Attributes = [ a ]; Range = a.Range }: SynAttributeList)
+            )
 
         sortAttributeLists (restored @ recreated)
 
@@ -2166,9 +2262,11 @@ let mkBinding
         match sli.IdentsWithTrivia with
         | [ prefix; OperatorWithStar operatorNode ] ->
             IdentListNode(
-                [ IdentifierOrDot.Ident(mkSynIdent creationAide prefix)
-                  IdentifierOrDot.UnknownDot
-                  operatorNode ],
+                [
+                    IdentifierOrDot.Ident(mkSynIdent creationAide prefix)
+                    IdentifierOrDot.UnknownDot
+                    operatorNode
+                ],
                 sli.Range
             )
         | [ OperatorWithStar operatorNode ] -> IdentListNode([ operatorNode ], sli.Range)
@@ -2250,7 +2348,8 @@ let mkExternBinding
         returnInfo = returnInfo
         range = range
         trivia = trivia))
-    : ExternBindingNode =
+    : ExternBindingNode
+    =
     let m =
         if not xmlDoc.IsEmpty then
             unionRanges xmlDoc.Range pat.Range
@@ -2308,10 +2407,13 @@ let mkExternBinding
 
             let lidPieces =
                 lid.Content
-                |> List.mapWithLast id (function
+                |> List.mapWithLast
+                    id
+                    (function
                     | IdentifierOrDot.KnownDot dot -> IdentifierOrDot.KnownDot dot
                     | IdentifierOrDot.UnknownDot -> IdentifierOrDot.UnknownDot
-                    | IdentifierOrDot.Ident ident -> IdentifierOrDot.Ident(stn $"%s{ident.Text}%s{suffix}" ident.Range))
+                    | IdentifierOrDot.Ident ident -> IdentifierOrDot.Ident(stn $"%s{ident.Text}%s{suffix}" ident.Range)
+                    )
 
             Type.LongIdent(IdentListNode(lidPieces, t.Range))
         | SynType.App(typeName = typeName; isPostfix = true; typeArgs = [ argType ]) ->
@@ -2382,8 +2484,11 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             declRange
         )
         |> ModuleDecl.Exception
-    | SynModuleDecl.Let(bindings = [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) as binding ]) ->
-        mkExternBinding creationAide binding |> ModuleDecl.ExternBinding
+    | SynModuleDecl.Let(
+        bindings = [ SynBinding(
+                         trivia = {
+                                      LeadingKeyword = SynLeadingKeyword.Extern _
+                                  }) as binding ]) -> mkExternBinding creationAide binding |> ModuleDecl.ExternBinding
     | SynModuleDecl.Let(bindings = [ singleBinding ]; trivia = trivia) ->
         mkBinding creationAide singleBinding (Option.map (stn "in") trivia.InKeyword)
         |> ModuleDecl.TopLevelBinding
@@ -2395,8 +2500,10 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
                                  decls,
                                  _,
                                  _,
-                                 { ModuleKeyword = Some mModule
-                                   EqualsRange = Some mEq }) ->
+                                 {
+                                     ModuleKeyword = Some mModule
+                                     EqualsRange = Some mEq
+                                 }) ->
         NestedModuleNode(
             mkXmlDoc px,
             mkAttributes creationAide ats,
@@ -2581,19 +2688,23 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.Tuple(false, ts, _) ->
         let path =
             ts
-            |> List.map (function
+            |> List.map (
+                function
                 | SynTupleTypeSegment.Type t -> Choice1Of2(mkType creationAide t)
                 | SynTupleTypeSegment.Slash m -> Choice2Of2(stn "/" m)
-                | SynTupleTypeSegment.Star m -> Choice2Of2(stn "*" m))
+                | SynTupleTypeSegment.Star m -> Choice2Of2(stn "*" m)
+            )
 
         TypeTupleNode(path, typeRange) |> Type.Tuple
     | SynType.Tuple(true, ts, (StartRange 6 (mStruct, _) & StartEndRange 1 (_, _, closingParen))) ->
         let path =
             ts
-            |> List.map (function
+            |> List.map (
+                function
                 | SynTupleTypeSegment.Type t -> Choice1Of2(mkType creationAide t)
                 | SynTupleTypeSegment.Slash m -> Choice2Of2(stn "/" m)
-                | SynTupleTypeSegment.Star m -> Choice2Of2(stn "*" m))
+                | SynTupleTypeSegment.Star m -> Choice2Of2(stn "*" m)
+            )
 
         TypeStructTupleNode(stn "struct" mStruct, path, stn ")" closingParen, typeRange)
         |> Type.StructTuple
@@ -2673,7 +2784,8 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
                 if not isOptional then
                     identNode
                 else
-                    SingleTextNode($"?%s{identNode.Text}", ident.idRange))
+                    SingleTextNode($"?%s{identNode.Text}", ident.idRange)
+            )
 
         TypeSignatureParameterNode(mkAttributes creationAide attrs, identNode, mkType creationAide t, typeRange)
         |> Type.SignatureParameter
@@ -2695,10 +2807,12 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
 
             assert (ts.Length = trivia.AmpersandRanges.Length)
 
-            [ yield Choice1Of2 headNode
-              for t, mAmp in List.zip ts trivia.AmpersandRanges do
-                  yield Choice2Of2(stn "&" mAmp)
-                  yield Choice1Of2(mkType creationAide t) ]
+            [
+                yield Choice1Of2 headNode
+                for t, mAmp in List.zip ts trivia.AmpersandRanges do
+                    yield Choice2Of2(stn "&" mAmp)
+                    yield Choice1Of2(mkType creationAide t)
+            ]
 
         TypeIntersectionNode(typesAndSeparators, m) |> Type.Intersection
     | SynType.StaticConstantNull(m) -> stn "null" m |> Type.Var
@@ -2800,8 +2914,10 @@ let mkSynField
               px,
               ao,
               range,
-              { LeadingKeyword = lk
-                MutableKeyword = mk }))
+              {
+                  LeadingKeyword = lk
+                  MutableKeyword = mk
+              }))
     =
     FieldNode(
         mkXmlDoc px,
@@ -2817,7 +2933,8 @@ let mkSynField
 let mkSynUnionCase
     (creationAide: CreationAide)
     (SynUnionCase(attributes, ident, caseType, xmlDoc, _vis, m, trivia))
-    : UnionCaseNode =
+    : UnionCaseNode
+    =
     let fullRange =
         if not xmlDoc.IsEmpty then
             m
@@ -2847,7 +2964,8 @@ let mkImplicitCtor
     (pat: SynPat)
     (self: (range * Ident) option)
     (xmlDoc: PreXmlDoc)
-    : ImplicitConstructorNode =
+    : ImplicitConstructorNode
+    =
     let range =
         let startRange =
             if not xmlDoc.IsEmpty then xmlDoc.Range
@@ -2880,7 +2998,8 @@ let mkImplicitCtor
 let mkTypeDefn
     (creationAide: CreationAide)
     (SynTypeDefn(typeInfo, typeRepr, members, implicitConstructor, range, trivia))
-    : TypeDefn =
+    : TypeDefn
+    =
     let typeNameNode =
         match typeInfo with
         | SynComponentInfo(ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
@@ -2954,7 +3073,8 @@ let mkTypeDefn
                     stn "=" trivia.EqualsRange,
                     mkExpr creationAide valueExpr,
                     range
-                ))
+                )
+            )
 
         TypeDefnEnumNode(typeNameNode, enumCases, members, typeDefnRange)
         |> TypeDefn.Enum
@@ -3001,7 +3121,8 @@ let mkTypeDefn
             |> List.choose (fun md ->
                 match md with
                 | SynMemberDefn.ImplicitCtor _ -> None
-                | _ -> Some(mkMemberDefn creationAide md))
+                | _ -> Some(mkMemberDefn creationAide md)
+            )
 
         let endNode =
             match range with
@@ -3046,7 +3167,8 @@ let mkTypeDefn
                 |> List.choose (fun md ->
                     match md with
                     | SynMemberDefn.ImplicitCtor _ -> None
-                    | _ -> Some(mkMemberDefn creationAide md))
+                    | _ -> Some(mkMemberDefn creationAide md)
+                )
 
             [ yield! objectMembers; yield! members ]
 
@@ -3072,22 +3194,26 @@ let mkWithGetSet
             if rangeBeforePos mGet mSet.Start then
                 Some(
                     MultipleTextsNode(
-                        [ withNode
-                          yield! visNodes visGet
-                          stn "get," mGet
-                          yield! visNodes visSet
-                          stn "set" mSet ],
+                        [
+                            withNode
+                            yield! visNodes visGet
+                            stn "get," mGet
+                            yield! visNodes visSet
+                            stn "set" mSet
+                        ],
                         m
                     )
                 )
             else
                 Some(
                     MultipleTextsNode(
-                        [ withNode
-                          yield! visNodes visSet
-                          stn "set," mSet
-                          yield! visNodes visGet
-                          stn "get" mGet ],
+                        [
+                            withNode
+                            yield! visNodes visSet
+                            stn "set," mSet
+                            yield! visNodes visGet
+                            stn "get" mGet
+                        ],
                         m
                     )
                 )
@@ -3099,15 +3225,18 @@ let mkPropertyGetSetBinding
     (accessibility: SynAccess option)
     (leadingKeyword: SingleTextNode)
     (binding: SynBinding)
-    : PropertyGetSetBindingNode =
+    : PropertyGetSetBindingNode
+    =
     match binding with
     | SynBinding(
         attributes = attributes
         headPat = SynPat.LongIdent(extraId = Some extraIdent; argPats = SynArgPats.Pats ps)
         returnInfo = returnInfo
         expr = expr
-        trivia = { EqualsRange = Some mEq
-                   InlineKeyword = inlineKw }) ->
+        trivia = {
+                     EqualsRange = Some mEq
+                     InlineKeyword = inlineKw
+                 }) ->
         // Attribute are not accurate in this case.
         // The binding could contain attributes for the entire member and the getter or setter member.
         // We use the `with` or `and` keyword to filter them.
@@ -3117,7 +3246,9 @@ let mkPropertyGetSetBinding
                 { al with
                     Attributes =
                         al.Attributes
-                        |> List.filter (fun a -> Position.posGt a.Range.Start withOrAndKeyword.End) })
+                        |> List.filter (fun a -> Position.posGt a.Range.Start withOrAndKeyword.End)
+                }
+            )
 
         let e = parseExpressionInSynBinding returnInfo expr
         let returnTypeNode = mkBindingReturnInfo creationAide returnInfo
@@ -3141,13 +3272,15 @@ let mkPropertyGetSetBinding
                     | _ -> SynPat.Paren(SynPat.Tuple(false, tuplePs, commas, mTuple), mTuple)
                     |> mkPat creationAide
 
-                [ tuplePat
-                  match List.tryLast ps with
-                  | None ->
-                      invariantViolation
-                          binding.RangeOfBindingWithRhs
-                          "an indexed property setter has no indexer pattern"
-                  | Some indexerPat -> mkPat creationAide indexerPat ]
+                [
+                    tuplePat
+                    match List.tryLast ps with
+                    | None ->
+                        invariantViolation
+                            binding.RangeOfBindingWithRhs
+                            "an indexed property setter has no indexer pattern"
+                    | Some indexerPat -> mkPat creationAide indexerPat
+                ]
             | [ SynPat.Tuple(false, [ p1; p2 ], _, _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
             | ps -> List.map (mkPat creationAide) ps
 
@@ -3213,7 +3346,11 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         memberDefn = SynBinding(
             attributes = ats
             xmlDoc = px
-            valData = SynValData(memberFlags = Some { MemberKind = SynMemberKind.Constructor }; thisIdOpt = ido)
+            valData = SynValData(
+                memberFlags = Some {
+                                       MemberKind = SynMemberKind.Constructor
+                                   }
+                thisIdOpt = ido)
             headPat = SynPat.LongIdent(
                 longDotId = SynLongIdent(id = [ newIdent ]); argPats = SynArgPats.Pats [ pat ]; accessibility = ao)
             expr = expr
@@ -3245,8 +3382,10 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         | None -> invariantViolation md.Range "a successful parse produced an unfinished inherit member"
     | SynMemberDefn.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
     | SynMemberDefn.LetBindings(
-        bindings = [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) as binding ]) ->
-        mkExternBinding creationAide binding |> MemberDefn.ExternBinding
+        bindings = [ SynBinding(
+                         trivia = {
+                                      LeadingKeyword = SynLeadingKeyword.Extern _
+                                  }) as binding ]) -> mkExternBinding creationAide binding |> MemberDefn.ExternBinding
     | SynMemberDefn.LetBindings(bindings = [ SynBinding(kind = SynBindingKind.Do; expr = expr; trivia = trivia) ]) ->
         // This is a shortcut to support "static do"
         let leadingKw =
@@ -3267,7 +3406,8 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             List.mapi
                 (fun i b ->
                     let inKeyword = if i <> 0 then None else trivia.InKeyword
-                    mkBinding creationAide b (Option.map (stn "in") inKeyword))
+                    mkBinding creationAide b (Option.map (stn "in") inKeyword)
+                )
                 bindings,
             memberDefinitionRange
         )
@@ -3297,10 +3437,12 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         xmlDoc = px
         accessibility = SynValSigAccessAll(vis, getVis, setVis)
         synExpr = e
-        trivia = { LeadingKeyword = lk
-                   EqualsRange = Some mEq
-                   WithKeyword = mWith
-                   GetSetKeywords = mGS }) ->
+        trivia = {
+                     LeadingKeyword = lk
+                     EqualsRange = Some mEq
+                     WithKeyword = mWith
+                     GetSetKeywords = mGS
+                 }) ->
 
         MemberDefnAutoPropertyNode(
             mkXmlDoc px,
@@ -3343,11 +3485,13 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                      trivia = { LeadingKeyword = lk }) as getBinding),
                                  Some(SynBinding(headPat = SynPat.LongIdent(accessibility = visSet)) as setBinding),
                                  _,
-                                 { InlineKeyword = inlineKw
-                                   GetKeyword = Some getKeyword
-                                   SetKeyword = Some setKeyword
-                                   WithKeyword = withKeyword
-                                   AndKeyword = Some andKeyword }) ->
+                                 {
+                                     InlineKeyword = inlineKw
+                                     GetKeyword = Some getKeyword
+                                     SetKeyword = Some setKeyword
+                                     WithKeyword = withKeyword
+                                     AndKeyword = Some andKeyword
+                                 }) ->
 
         let firstAccessibility, firstBinding, firstKeyword, lastBinding, lastKeyword =
             if Position.posLt getKeyword.Start setKeyword.Start then
@@ -3362,7 +3506,8 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                 if rangeBeforePos vis.Range memberName.Range.Start then
                     Some vis
                 else
-                    None)
+                    None
+            )
 
         let firstBinding =
             match firstBinding with
@@ -3389,12 +3534,14 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                     { al with
                         Attributes =
                             al.Attributes
-                            |> List.filter (fun a -> Position.posLt a.Range.End lk.Range.Start) }
+                            |> List.filter (fun a -> Position.posLt a.Range.End lk.Range.Start)
+                    }
 
                 if filteredAttributeList.Attributes.IsEmpty then
                     None
                 else
-                    Some filteredAttributeList)
+                    Some filteredAttributeList
+            )
 
         MemberDefnPropertyGetSetNode(
             mkXmlDoc px,
@@ -3415,23 +3562,31 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                      attributes = ats
                                      xmlDoc = px
                                      headPat = SynPat.LongIdent(longDotId = memberName; accessibility = ao)
-                                     trivia = { LeadingKeyword = lk
-                                                InlineKeyword = inlineKw }) as binding),
+                                     trivia = {
+                                                  LeadingKeyword = lk
+                                                  InlineKeyword = inlineKw
+                                              }) as binding),
                                  _,
-                                 { WithKeyword = withKeyword
-                                   GetKeyword = getKeyword
-                                   SetKeyword = setKeyword })
+                                 {
+                                     WithKeyword = withKeyword
+                                     GetKeyword = getKeyword
+                                     SetKeyword = setKeyword
+                                 })
     | SynMemberDefn.GetSetMember(Some(SynBinding(
                                      attributes = ats
                                      xmlDoc = px
                                      headPat = SynPat.LongIdent(longDotId = memberName; accessibility = ao)
-                                     trivia = { LeadingKeyword = lk
-                                                InlineKeyword = inlineKw }) as binding),
+                                     trivia = {
+                                                  LeadingKeyword = lk
+                                                  InlineKeyword = inlineKw
+                                              }) as binding),
                                  None,
                                  _,
-                                 { WithKeyword = withKeyword
-                                   GetKeyword = getKeyword
-                                   SetKeyword = setKeyword }) ->
+                                 {
+                                     WithKeyword = withKeyword
+                                     GetKeyword = getKeyword
+                                     SetKeyword = setKeyword
+                                 }) ->
 
         let visMember, visProperty =
             match ao with
@@ -3485,7 +3640,8 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
 let mkVal
     (creationAide: CreationAide)
     (SynValSig(ats, synIdent, vtd, t, _vi, _isInline, isMutable, px, AccessSynValSigAccess(ao), eo, range, trivia))
-    : ValNode =
+    : ValNode
+    =
     let lk =
         match trivia.LeadingKeyword with
         | SynLeadingKeyword.New _ -> None
@@ -3574,7 +3730,8 @@ let rec mkModuleDecls
                     let inKeyword = if i <> 0 then None else inKeyword
 
                     mkBinding creationAide b (Option.map (stn "in") inKeyword)
-                    |> ModuleDecl.TopLevelBinding)
+                    |> ModuleDecl.TopLevelBinding
+                )
                 bindings
 
         mkModuleDecls creationAide rest (fun nodes -> [ yield! bindingNodes; yield! nodes ] |> finalContinuation)
@@ -3709,8 +3866,10 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
                                     isRecursive,
                                     decls,
                                     _,
-                                    { ModuleKeyword = Some mModule
-                                      EqualsRange = Some mEq }) ->
+                                    {
+                                        ModuleKeyword = Some mModule
+                                        EqualsRange = Some mEq
+                                    }) ->
         NestedModuleNode(
             mkXmlDoc px,
             mkAttributes creationAide ats,
@@ -3779,7 +3938,8 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                     stn "=" trivia.EqualsRange,
                     mkExpr creationAide valueExpr,
                     range
-                ))
+                )
+            )
 
         TypeDefnEnumNode(typeNameNode, enumCases, members, typeDefnRange)
         |> TypeDefn.Enum
@@ -3892,7 +4052,8 @@ let rec mkModuleSigDecls
     (creationAide: CreationAide)
     (decls: SynModuleSigDecl list)
     (finalContinuation: ModuleDecl list -> ModuleDecl list)
-    : ModuleDecl list =
+    : ModuleDecl list
+    =
     match decls with
     | [] -> finalContinuation []
     | OpenSigL(xs, ys) ->
@@ -3918,8 +4079,10 @@ let rec mkModuleSigDecls
         mkModuleSigDecls creationAide rest (fun nodes -> [ yield! typeNodes; yield! nodes ] |> finalContinuation)
 
     | head :: tail ->
-        mkModuleSigDecls creationAide tail (fun nodes ->
-            mkModuleSigDecl creationAide head :: nodes |> finalContinuation)
+        mkModuleSigDecls
+            creationAide
+            tail
+            (fun nodes -> mkModuleSigDecl creationAide head :: nodes |> finalContinuation)
 
 let mkModuleOrNamespaceSig
     (creationAide: CreationAide)
@@ -3998,27 +4161,29 @@ let mkSigFile
 
 let includeTrivia (baseRange: range) (trivia: ParsedInputTrivia) : range =
     let ranges =
-        [ yield!
-              List.map
-                  (function
-                  | CommentTrivia.LineComment m
-                  | CommentTrivia.BlockComment m -> m)
-                  trivia.CodeComments
-          yield!
-              List.map
-                  (function
-                  | ConditionalDirectiveTrivia.If(range = range)
-                  | ConditionalDirectiveTrivia.Else(range = range)
-                  | ConditionalDirectiveTrivia.Elif(range = range)
-                  | ConditionalDirectiveTrivia.EndIf(range = range) -> range)
-                  trivia.ConditionalDirectives
+        [
+            yield!
+                List.map
+                    (function
+                    | CommentTrivia.LineComment m
+                    | CommentTrivia.BlockComment m -> m)
+                    trivia.CodeComments
+            yield!
+                List.map
+                    (function
+                    | ConditionalDirectiveTrivia.If(range = range)
+                    | ConditionalDirectiveTrivia.Else(range = range)
+                    | ConditionalDirectiveTrivia.Elif(range = range)
+                    | ConditionalDirectiveTrivia.EndIf(range = range) -> range)
+                    trivia.ConditionalDirectives
 
-          yield!
-              List.map
-                  (function
-                  | WarnDirectiveTrivia.Nowarn(range)
-                  | WarnDirectiveTrivia.Warnon(range) -> range)
-                  trivia.WarnDirectives ]
+            yield!
+                List.map
+                    (function
+                    | WarnDirectiveTrivia.Nowarn(range)
+                    | WarnDirectiveTrivia.Warnon(range) -> range)
+                    trivia.WarnDirectives
+        ]
 
     (baseRange, ranges)
     ||> List.fold (fun acc triviaRange ->
@@ -4027,7 +4192,8 @@ let includeTrivia (baseRange: range) (trivia: ParsedInputTrivia) : range =
         elif triviaRange.EndLine > acc.EndLine then
             unionRanges acc triviaRange
         else
-            unionRanges triviaRange acc)
+            unionRanges triviaRange acc
+    )
 
 let mkSynModuleOrNamespaceFullRange (mn: SynModuleOrNamespace) =
     match mn with

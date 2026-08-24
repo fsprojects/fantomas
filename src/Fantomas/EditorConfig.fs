@@ -11,25 +11,31 @@ module Reflection =
     open FSharp.Reflection
 
     type FSharpRecordField =
-        { PropertyName: string
-          Category: string option
-          DisplayName: string option
-          Description: string option }
+        {
+            PropertyName: string
+            Category: string option
+            DisplayName: string option
+            Description: string option
+        }
 
     let inline getCustomAttribute<'t, 'v when 't :> Attribute and 't: null and 't: not struct>
         (projection: 't -> 'v)
         (property: PropertyInfo)
-        : 'v option =
+        : 'v option
+        =
         property.GetCustomAttribute<'t>() |> Option.ofObj |> Option.map projection
 
     let inline getRecordFields x =
         let names =
             FSharpType.GetRecordFields(x.GetType())
             |> Seq.map (fun x ->
-                { PropertyName = x.Name
-                  Category = getCustomAttribute<CategoryAttribute, string> (fun a -> a.Category) x
-                  DisplayName = getCustomAttribute<DisplayNameAttribute, string> (fun a -> a.DisplayName) x
-                  Description = getCustomAttribute<DescriptionAttribute, string> (fun a -> a.Description) x })
+                {
+                    PropertyName = x.Name
+                    Category = getCustomAttribute<CategoryAttribute, string> (fun a -> a.Category) x
+                    DisplayName = getCustomAttribute<DisplayNameAttribute, string> (fun a -> a.DisplayName) x
+                    Description = getCustomAttribute<DescriptionAttribute, string> (fun a -> a.Description) x
+                }
+            )
 
         let values = FSharpValue.GetRecordFields x
         Seq.zip names values |> Seq.toArray
@@ -43,7 +49,8 @@ let toEditorConfigName value =
         if System.Char.IsUpper(c) then
             $"_%s{c.ToString().ToLower()}"
         else
-            c.ToString())
+            c.ToString()
+    )
     |> String.concat ""
     |> fun s -> s.TrimStart([| '_' |])
     |> fun name ->
@@ -97,9 +104,11 @@ type EditorConfigProblem =
 
 [<NoComparison>]
 type EditorConfigResult =
-    { Config: FormatConfig
-      EditorConfigFiles: string list
-      Problems: EditorConfigProblem list }
+    {
+        Config: FormatConfig
+        EditorConfigFiles: string list
+        Problems: EditorConfigProblem list
+    }
 
 let isFantomasSetting (setting: string) : bool =
     setting.StartsWith("fsharp_", System.StringComparison.OrdinalIgnoreCase)
@@ -131,7 +140,8 @@ let supportedSettings: string list =
         // Fantomas, each group ordered the same way everywhere else here.
         match compare (isFantomasSetting left) (isFantomasSetting right) with
         | 0 -> compareSettings left right
-        | difference -> difference)
+        | difference -> difference
+    )
 
 /// The same names again, for looking one up rather than reading the list. A `.editorconfig` is
 /// read once per formatted file, so a scan of the whole list per setting is worth avoiding.
@@ -176,7 +186,8 @@ let nearestSetting (limit: int) (setting: string) : string option =
     |> List.choose (fun candidate ->
         match editDistance limit setting candidate with
         | distance when distance <= limit -> Some(candidate, distance)
-        | _ -> None)
+        | _ -> None
+    )
     |> List.sortBy snd
     |> List.tryHead
     |> Option.map fst
@@ -204,19 +215,22 @@ let unknownFantomasSettings (settings: string seq) : EditorConfigProblem list =
         // another tool unless it is close enough to one of ours to be a typo of it: a mistake in
         // `max_line_length` is silently ignored exactly as a mistake in a `fsharp_` setting was,
         // and it is the same mistake.
-        isFantomasSetting setting || looksLikeAMisspelling setting)
+        isFantomasSetting setting || looksLikeAMisspelling setting
+    )
     |> Seq.sortWith compareSettings
     |> Seq.choose (fun setting ->
         if supportedSettingLookup.Contains setting then
             None
         else
-            Some(EditorConfigProblem.UnknownSetting setting))
+            Some(EditorConfigProblem.UnknownSetting setting)
+    )
     |> Seq.toList
 
 let parseOptionsFromEditorConfig
     (fallbackConfig: FormatConfig)
     (editorConfigProperties: IReadOnlyDictionary<string, string>)
-    : FormatConfig * EditorConfigProblem list =
+    : FormatConfig * EditorConfigProblem list
+    =
     // editorconfig keys are case insensitive. The library lowercases the ones it reads from a
     // file, but a dictionary an editor hands us is untouched, so match without regard to case
     // here rather than in one caller: a key that differs only in case would otherwise match no
@@ -246,7 +260,8 @@ let parseOptionsFromEditorConfig
                     if not (isSpecDefinedNonValue setting value) then
                         unrecognizedValues.Add(written, value)
 
-                    defaultValue)
+                    defaultValue
+        )
 
     let config =
         Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(typeof<FormatConfig>, newValues) :?> FormatConfig
@@ -278,7 +293,8 @@ let configToEditorConfig (config: FormatConfig) : string =
         | :? MultilineBracketStyle as mbs ->
             $"%s{toEditorConfigName recordField.PropertyName}=%s{MultilineBracketStyle.ToConfigString mbs}"
             |> Some
-        | _ -> None)
+        | _ -> None
+    )
     |> String.concat "\n"
 
 let editorConfigParser = EditorConfigParser(EditorConfigFileCache.GetOrCreate)
@@ -299,6 +315,8 @@ let tryReadConfiguration (fsharpFile: string) : EditorConfigResult option =
             |> Seq.toList
 
         Some
-            { Config = config
-              EditorConfigFiles = editorConfigFiles
-              Problems = problems }
+            {
+                Config = config
+                EditorConfigFiles = editorConfigFiles
+                Problems = problems
+            }

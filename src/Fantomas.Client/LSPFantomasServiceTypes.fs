@@ -26,17 +26,21 @@ type FormatSelectionResponse =
     member this.AsFormatResponse() =
         match this with
         | FormatSelectionResponse.Formatted(name, content, formattedRange) ->
-            { Code = int FantomasResponseCode.Formatted
-              FilePath = name
-              Content = Some content
-              SelectedRange = Some formattedRange
-              Cursor = None }
+            {
+                Code = int FantomasResponseCode.Formatted
+                FilePath = name
+                Content = Some content
+                SelectedRange = Some formattedRange
+                Cursor = None
+            }
         | FormatSelectionResponse.Error(name, ex) ->
-            { Code = int FantomasResponseCode.Error
-              FilePath = name
-              Content = Some ex
-              SelectedRange = None
-              Cursor = None }
+            {
+                Code = int FantomasResponseCode.Error
+                FilePath = name
+                Content = Some ex
+                SelectedRange = None
+                Cursor = None
+            }
 
 [<RequireQualifiedAccess; NoComparison>]
 type FormatDocumentResponse =
@@ -46,13 +50,13 @@ type FormatDocumentResponse =
     | IgnoredFile of filename: string
 
 [<Struct>]
-type FantomasVersion = FantomasVersion of string
+type FantomasVersion = | FantomasVersion of string
 
 [<Struct>]
-type FantomasExecutableFile = FantomasExecutableFile of string
+type FantomasExecutableFile = | FantomasExecutableFile of string
 
 [<Struct>]
-type Folder = Folder of path: string
+type Folder = | Folder of path: string
 
 [<RequireQualifiedAccess>]
 type FantomasToolStartInfo =
@@ -62,10 +66,12 @@ type FantomasToolStartInfo =
 
 [<NoComparison>]
 type RunningFantomasTool =
-    { Process: Process
-      RpcClient: JsonRpc
-      StartInfo: FantomasToolStartInfo
-      ConfigurationWarnings: IEvent<ConfigurationWarning> }
+    {
+        Process: Process
+        RpcClient: JsonRpc
+        StartInfo: FantomasToolStartInfo
+        ConfigurationWarnings: IEvent<ConfigurationWarning>
+    }
 
     interface IDisposable with
         member this.Dispose() : unit =
@@ -93,7 +99,7 @@ type DotNetToolListError =
     | ProcessStartError of ProcessStartError
     | ExitCodeNonZero of executableFile: string * arguments: string * exitCode: int * error: string
 
-type FantomasToolFound = FantomasToolFound of version: FantomasVersion * startInfo: FantomasToolStartInfo
+type FantomasToolFound = | FantomasToolFound of version: FantomasVersion * startInfo: FantomasToolStartInfo
 
 [<RequireQualifiedAccess>]
 type FantomasToolError =

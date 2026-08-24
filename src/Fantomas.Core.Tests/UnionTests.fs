@@ -71,7 +71,8 @@ type Type
             | TyVar a -> a
             | TyCon (s, ts) -> s"""
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -259,7 +260,8 @@ type CustomerId =
     """
         { config with
             MaxFunctionBindingWidth = 120
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -674,7 +676,8 @@ type CardValue =
 """
         { config with
             MultilineBracketStyle = Aligned
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -1099,7 +1102,8 @@ type A =
     | B of {| A: int; LongerThanLengthDeclaration: string|}
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

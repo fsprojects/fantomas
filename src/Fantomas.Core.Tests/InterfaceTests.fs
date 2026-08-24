@@ -20,7 +20,8 @@ type Interface3 =
     inherit Interface2
     abstract member Method3 : int -> int"""
         { config with
-            MaxFunctionBindingWidth = 120 }
+            MaxFunctionBindingWidth = 120
+        }
     |> prepend newline
     |> should
         equal
@@ -49,7 +50,8 @@ let ``should not add with to interface definitions with no members`` () =
         member this.ToXml() = v :> obj
     """
         { config with
-            MaxValueBindingWidth = 120 }
+            MaxValueBindingWidth = 120
+        }
     |> should
         equal
         """type Text(text: string) =
@@ -65,7 +67,8 @@ let ``object expressions`` () =
     formatSourceString
         """let obj1 = { new System.Object() with member x.ToString() = "F#" }"""
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -87,7 +90,8 @@ let ``object expressions and interfaces`` () =
             member this.F() = ()
             member this.G() = () }"""
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -113,7 +117,8 @@ let f () =
         member x.GetEnumerator() = null }"""
         { config with
             MaxValueBindingWidth = 120
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -194,7 +199,8 @@ type MyLogInteface() =
         { config with
             MaxLineLength = 119
             MaxFunctionBindingWidth = 120
-            MaxIfThenElseShortWidth = 80 }
+            MaxIfThenElseShortWidth = 80
+        }
     |> prepend newline
     |> should
         equal
@@ -366,7 +372,8 @@ type IFoo =
 """
         { config with
             MaxLineLength = 50
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
     |> prepend newline
     |> should
         equal
@@ -388,7 +395,8 @@ type IFoo =
 """
         { config with
             MaxLineLength = 60
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
     |> prepend newline
     |> should
         equal
@@ -412,7 +420,8 @@ type IFoo =
 """
         { config with
             MaxLineLength = 60
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
     |> prepend newline
     |> should
         equal
@@ -433,7 +442,8 @@ type IFoo =
 """
         { config with
             MaxLineLength = 50
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
     |> prepend newline
     |> should
         equal
@@ -454,7 +464,8 @@ type IFoo =
 """
         { config with
             MaxLineLength = 60
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
     |> prepend newline
     |> should
         equal
@@ -480,7 +491,8 @@ let test () =
         override this.Dispose() = dispose somethingElse }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -599,7 +611,8 @@ type IInterface3 =
     abstract member X: unit -> unit
 """
         { config with
-            SpaceBeforeClassConstructor = true }
+            SpaceBeforeClassConstructor = true
+        }
     |> prepend newline
     |> should
         equal
@@ -624,7 +637,8 @@ let ``interface in obj expression, 2604`` () =
         member x.Blur = () }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -649,7 +663,8 @@ let create () =
           member _.Foo2 s = s }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

@@ -9,13 +9,17 @@ open Fantomas.Logging
 
 [<NoComparison; NoEquality>]
 type CliEnvironment =
-    { FileSystem: IFileSystem
-      IgnoreFile: IgnoreFile option
-      ReadConfiguration: string -> FormatConfig
-      Log: ILogger
-      Console: IAnsiConsole }
+    {
+        FileSystem: IFileSystem
+        IgnoreFile: IgnoreFile option
+        ReadConfiguration: string -> FormatConfig
+        Log: ILogger
+        Console: IAnsiConsole
+    }
 
 type CliSettings =
-    { Force: bool
-      Profile: bool
-      Verbosity: VerbosityLevel }
+    {
+        Force: bool
+        Profile: bool
+        Verbosity: VerbosityLevel
+    }

@@ -49,7 +49,8 @@ module private DefineCombinationSolver =
             expr
             |> Seq.unfold (fun e ->
                 let e' = oneStep e
-                if expressionsAreEquals e e' then None else Some(e', e'))
+                if expressionsAreEquals e e' then None else Some(e', e')
+            )
             |> Seq.tryLast
             |> Option.defaultValue expr
 
@@ -100,10 +101,12 @@ module private DefineCombinationSolver =
 
         let splitByNeg xs =
             xs
-            |> List.map (function
+            |> List.map (
+                function
                 | IfDirectiveExpression.Not(IfDirectiveExpression.Ident x) -> Negative x
                 | IfDirectiveExpression.Ident x -> Positive x
-                | _ -> failwithf "Expr not in CNF: %A" e)
+                | _ -> failwithf "Expr not in CNF: %A" e
+            )
             |> set
 
         e |> toAndList |> List.map (toOrList >> splitByNeg)
@@ -121,9 +124,11 @@ module private DefineCombinationSolver =
 
         let groupedLiterals ls =
             ls
-            |> Seq.groupBy (function
+            |> Seq.groupBy (
+                function
                 | Positive x
-                | Negative x -> x)
+                | Negative x -> x
+            )
             |> Seq.map (fun (key, g) -> key, g |> Seq.distinct |> Seq.toList)
             |> Seq.toList
 
@@ -142,7 +147,8 @@ module private DefineCombinationSolver =
             let toSolve =
                 toSolve
                 |> List.filter (fun (k, _) ->
-                    not (Set.contains (Positive k) solvedSet || Set.contains (Negative k) solvedSet))
+                    not (Set.contains (Positive k) solvedSet || Set.contains (Negative k) solvedSet)
+                )
 
             let rec genCombinations groups =
                 seq {
@@ -165,13 +171,16 @@ module private DefineCombinationSolver =
                             Some(
                                 Satisfiable(
                                     vals
-                                    |> List.choose (function
+                                    |> List.choose (
+                                        function
                                         | Positive x -> Some x
-                                        | _ -> None)
+                                        | _ -> None
+                                    )
                                 )
                             )
                         else
-                            None)
+                            None
+                )
                 |> Seq.tryPick id
                 |> Option.defaultValue Unsatisfiable
 
@@ -204,7 +213,8 @@ module private DefineCombinationSolver =
                 exprsIndexed
                 |> allPairs
                 |> Seq.tryPick (fun ((i, (x, _)), (j, (y, _))) ->
-                    pairSolve x y |> Option.map (fun r -> (i, x), (j, y), r))
+                    pairSolve x y |> Option.map (fun r -> (i, x), (j, y), r)
+                )
             with
             | None -> exprs
             | Some((i, x), (j, y), r) ->
@@ -232,10 +242,12 @@ module Defines =
             | IfDirectiveExpression.Ident s -> List.singleton s
 
         hashDirectives
-        |> List.collect (function
+        |> List.collect (
+            function
             | ConditionalDirectiveTrivia.If(expr, _r)
             | ConditionalDirectiveTrivia.Elif(expr, _r) -> visit expr
-            | _ -> [])
+            | _ -> []
+        )
         |> List.distinct
         |> List.map List.singleton
 
@@ -265,7 +277,8 @@ module Defines =
                     contextExprs,
                     IfDirectiveExpression.Not(contextExprs |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y)))
                     :: exprAcc
-                | ConditionalDirectiveTrivia.EndIf _ -> List.tail contextExprs, exprAcc)
+                | ConditionalDirectiveTrivia.EndIf _ -> List.tail contextExprs, exprAcc
+            )
             |> snd
             |> List.rev
 
@@ -284,8 +297,10 @@ module Defines =
         | xs -> xs
 
     let getDefineCombination (hashDirectives: ConditionalDirectiveTrivia list) : DefineCombination list =
-        [ yield [] // always include the empty defines set
-          yield! getOptimizedDefinesSets hashDirectives
-          yield! getIndividualDefine hashDirectives ]
+        [
+            yield [] // always include the empty defines set
+            yield! getOptimizedDefinesSets hashDirectives
+            yield! getIndividualDefine hashDirectives
+        ]
         |> List.distinct
         |> List.map DefineCombination

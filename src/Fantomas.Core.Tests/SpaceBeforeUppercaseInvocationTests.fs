@@ -6,7 +6,8 @@ open Fantomas.Core.Tests.TestHelpers
 
 let spaceBeforeConfig =
     { config with
-        SpaceBeforeUppercaseInvocation = true }
+        SpaceBeforeUppercaseInvocation = true
+    }
 
 /// Space before () in Uppercase function call
 
@@ -86,7 +87,8 @@ let ``space before uppercase function application cannot apply with dot-chaining
         """foo.Bar().[5]
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -100,7 +102,8 @@ let ``space before uppercase DotIndexedSet`` () =
         """foo.Bar().[5] <- 5
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -118,7 +121,8 @@ module SomeModule =
         someValue
 """
         { config with
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -137,7 +141,8 @@ let tree1 =
     BinaryNode(BinaryNode(BinaryValue 1, BinaryValue 2), BinaryNode(BinaryValue 3, BinaryValue 4))
 """
         { spaceBeforeConfig with
-            MaxLineLength = 80 }
+            MaxLineLength = 80
+        }
     |> prepend newline
     |> should
         equal
@@ -159,7 +164,8 @@ let otherThing =
     new Foobar(longname1, longname2, longname3, longname4, longname5, longname6, longname7)
 """
         { spaceBeforeConfig with
-            MaxLineLength = 90 }
+            MaxLineLength = 90
+        }
     |> prepend newline
     |> should
         equal
@@ -193,7 +199,8 @@ let untypedResLong =
     checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines, somethingElseWithARatherLongVariableName)
 """
         { spaceBeforeConfig with
-            MaxLineLength = 90 }
+            MaxLineLength = 90
+        }
     |> prepend newline
     |> should
         equal

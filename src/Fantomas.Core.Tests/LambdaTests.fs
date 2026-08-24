@@ -13,7 +13,8 @@ let ``keep comment after arrow`` () =
 """
         { config with
             IndentSize = 2
-            MaxLineLength = 90 }
+            MaxLineLength = 90
+        }
     |> prepend newline
     |> should
         equal
@@ -65,7 +66,8 @@ exportDefault badgeSample
 """
         { config with
             MaxArrayOrListWidth = 40
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -130,7 +132,8 @@ Target.create "Clean" (fun _ ->
 )
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -279,7 +282,8 @@ let ``line comment after lambda should not necessary make it multiline`` () =
         """let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
 """
         { config with
-            MaxFunctionBindingWidth = 150 }
+            MaxFunctionBindingWidth = 150
+        }
     |> prepend newline
     |> should
         equal
@@ -298,7 +302,8 @@ CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettin
             configSettingPublisher.Invoke(connectionString) |> ignore)
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -411,7 +416,8 @@ let projectIntoMap projection =
             SpaceAroundDelimiter = false
             MaxInfixOperatorExpression = 40
             MaxFunctionBindingWidth = 60
-            MultilineBracketStyle = Aligned }
+            MultilineBracketStyle = Aligned
+        }
     |> prepend newline
     |> should
         equal
@@ -489,7 +495,8 @@ let ``don't duplicate new line before LongIdentSet`` () =
 """
         { config with
             MaxValueBindingWidth = 50
-            MaxFunctionBindingWidth = 50 }
+            MaxFunctionBindingWidth = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -678,7 +685,8 @@ Decode.map3 (fun aggregateId event commitPayload ->
     | None -> None) (Decode.field "aggregate_id" Decode.string) (Decode.field "event" Decode.string) decodePayload
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -884,7 +892,8 @@ let elifs =
     |> List.collect (fun (e1, e2, _, _, _) -> [ visit e1; visit e2 ])
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -922,7 +931,8 @@ module Foo =
 """
         { config with
             MaxInfixOperatorExpression = 50
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1013,7 +1023,8 @@ let argExpr =
     )
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1075,7 +1086,8 @@ let g =
                processName = pn } -> p, r, pn)
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1143,7 +1155,8 @@ let ``function expression and argument expression with parenthesis, 1998`` () =
 (SomeModule.doSomething << SomeModule.doSomethingElse) (fun x -> x)
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -1163,7 +1176,8 @@ let dayOfWeekToNum (d: DayOfWeek) =
     |> DayNum
 """
         { config with
-            MaxInfixOperatorExpression = 45 }
+            MaxInfixOperatorExpression = 45
+        }
     |> prepend newline
     |> should
         equal
@@ -1208,7 +1222,8 @@ Task.Run<CommandResult> (task)
 |> ignore<Task<CommandResult>>
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal

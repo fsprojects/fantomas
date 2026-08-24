@@ -20,9 +20,11 @@ let private statuses (output: string) : (string * string) list =
 let ``standard out carries the document and nothing else`` () =
     use fileFixture = new TemporaryFileCodeSample("let a =   0")
 
-    let { ExitCode = exitCode
-          Output = output
-          Error = error } =
+    let {
+            ExitCode = exitCode
+            Output = output
+            Error = error
+        } =
         runFantomasTool [ "--json"; fileFixture.Filename ]
 
     exitCode |> should equal 0
@@ -37,9 +39,11 @@ let ``standard out carries the document and nothing else`` () =
 let ``a parse failure is reported in the document instead of on standard error`` () =
     use fileFixture = new TemporaryFileCodeSample("module A\n\nlet a = (1 + 2\n")
 
-    let { ExitCode = exitCode
-          Output = output
-          Error = error } =
+    let {
+            ExitCode = exitCode
+            Output = output
+            Error = error
+        } =
         runFantomasTool [ "--json"; fileFixture.Filename ]
 
     exitCode |> should equal 1

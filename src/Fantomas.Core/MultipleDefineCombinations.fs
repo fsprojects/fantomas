@@ -46,13 +46,17 @@ type CodeFragment =
     override x.GetHashCode() =
         match x with
         | HashLine(line, defineCombination) ->
-            {| line = line
-               defineCombination = defineCombination |}
+            {|
+                line = line
+                defineCombination = defineCombination
+            |}
                 .GetHashCode()
         | Content(code, lineCount, defines) ->
-            {| code = code
-               lineCount = lineCount
-               defines = defines |}
+            {|
+                code = code
+                lineCount = lineCount
+                defines = defines
+            |}
                 .GetHashCode()
         | NoContent defines -> {| defines = defines |}.GetHashCode()
 
@@ -107,21 +111,27 @@ type CodeFragment =
 
 [<NoComparison>]
 type FormatResultForDefines =
-    { Result: FormatResult
-      Defines: DefineCombination
-      Fragments: CodeFragment list }
+    {
+        Result: FormatResult
+        Defines: DefineCombination
+        Fragments: CodeFragment list
+    }
 
 /// Accumulator type used when building up the fragments.
 [<NoComparison>]
 type SplitHashState =
-    { CurrentBuilder: StringBuilder
-      LinesCollected: int
-      LastLineInfo: LastLineInfo }
+    {
+        CurrentBuilder: StringBuilder
+        LinesCollected: int
+        LastLineInfo: LastLineInfo
+    }
 
     static member Zero =
-        { CurrentBuilder = StringBuilder()
-          LastLineInfo = LastLineInfo.None
-          LinesCollected = 0 }
+        {
+            CurrentBuilder = StringBuilder()
+            LastLineInfo = LastLineInfo.None
+            LinesCollected = 0
+        }
 
 and [<RequireQualifiedAccess; Struct>] LastLineInfo =
     | None
@@ -131,10 +141,12 @@ and [<RequireQualifiedAccess; Struct>] LastLineInfo =
 /// Accumulator type used when folding over the selected CodeFragments.
 [<NoComparison>]
 type FragmentWeaverState =
-    { LastLine: int
-      Cursors: Map<DefineCombination, pos>
-      ContentBuilder: StringBuilder
-      FoundCursor: (DefineCombination * pos) option }
+    {
+        LastLine: int
+        Cursors: Map<DefineCombination, pos>
+        ContentBuilder: StringBuilder
+        FoundCursor: (DefineCombination * pos) option
+    }
 
 let stringBuilderResult (builder: StringBuilder) = builder.ToString()
 
@@ -173,9 +185,11 @@ let splitWhenHash (defines: DefineCombination) (newline: string) (source: string
             fragmentsBuilder.Add(CodeFragment.HashLine(line.TrimStart(), defines))
 
             // Reset the state
-            { CurrentBuilder = StringBuilder()
-              LinesCollected = 0
-              LastLineInfo = LastLineInfo.HashLine }
+            {
+                CurrentBuilder = StringBuilder()
+                LinesCollected = 0
+                LastLineInfo = LastLineInfo.HashLine
+            }
         else
             let nextBuilder =
                 if acc.LastLineInfo = LastLineInfo.Content then
@@ -185,9 +199,12 @@ let splitWhenHash (defines: DefineCombination) (newline: string) (source: string
 
             let nextBuilder = nextBuilder.Append line
 
-            { CurrentBuilder = nextBuilder
-              LinesCollected = acc.LinesCollected + 1
-              LastLineInfo = LastLineInfo.Content })
+            {
+                CurrentBuilder = nextBuilder
+                LinesCollected = acc.LinesCollected + 1
+                LastLineInfo = LastLineInfo.Content
+            }
+    )
     |> closeState
 
     fragmentsBuilder.Close()
@@ -198,9 +215,12 @@ let mergeMultipleFormatResults config (results: (DefineCombination * FormatResul
         |> List.map (fun (dc, result) ->
             let fragments = splitWhenHash dc config.EndOfLine.NewLineString result.Code
 
-            { Result = result
-              Defines = dc
-              Fragments = fragments })
+            {
+                Result = result
+                Defines = dc
+                Fragments = fragments
+            }
+        )
 
     let allHaveSameFragmentCount =
         let allWithCount = List.map (fun { Fragments = f } -> f.Length) allInFragments
@@ -210,7 +230,8 @@ let mergeMultipleFormatResults config (results: (DefineCombination * FormatResul
         let chunkReport =
             allInFragments
             |> List.map (fun result ->
-                sprintf "[%s] has %i fragments" (String.concat ", " result.Defines.Value) result.Fragments.Length)
+                sprintf "[%s] has %i fragments" (String.concat ", " result.Defines.Value) result.Fragments.Length
+            )
             |> String.concat config.EndOfLine.NewLineString
 
         raise (
@@ -228,7 +249,8 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
     let rec traverseFragments
         (input: CodeFragment list list)
         (continuation: CodeFragment list -> CodeFragment list)
-        : CodeFragment list =
+        : CodeFragment list
+        =
         let headItems = List.choose List.tryHead input
 
         if List.isEmpty headItems then
@@ -266,20 +288,25 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
         { Code = code; Cursor = None }
     else
         let weaver =
-            { LastLine = 1
-              FoundCursor = None
-              ContentBuilder = StringBuilder()
-              Cursors =
-                results
-                |> List.choose (fun (dc, formatResult) -> formatResult.Cursor |> Option.map (fun cursor -> dc, cursor))
-                |> Map.ofList }
+            {
+                LastLine = 1
+                FoundCursor = None
+                ContentBuilder = StringBuilder()
+                Cursors =
+                    results
+                    |> List.choose (fun (dc, formatResult) ->
+                        formatResult.Cursor |> Option.map (fun cursor -> dc, cursor)
+                    )
+                    |> Map.ofList
+            }
 
         let finalResult =
             let processFragment
                 (postContent: CodeFragment -> StringBuilder -> StringBuilder)
                 (acc: FragmentWeaverState)
                 (fragment: CodeFragment)
-                : FragmentWeaverState =
+                : FragmentWeaverState
+                =
                 let nextLastLine = acc.LastLine + fragment.LineCount
 
                 // Try and find a cursor for the current set of defines that falls within the range of the current block.
@@ -288,15 +315,19 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
                     { acc with
                         LastLine = acc.LastLine + fragment.LineCount
                         ContentBuilder = (appendContent fragment >> postContent fragment) acc.ContentBuilder
-                        FoundCursor = Some(fragment.Defines, cursor) }
+                        FoundCursor = Some(fragment.Defines, cursor)
+                    }
                 | Some _
                 | None ->
                     { acc with
                         LastLine = acc.LastLine + fragment.LineCount
-                        ContentBuilder = (appendContent fragment >> postContent fragment) acc.ContentBuilder }
+                        ContentBuilder = (appendContent fragment >> postContent fragment) acc.ContentBuilder
+                    }
 
             (weaver, selectedFragments)
             ||> List.foldWithLast (processFragment appendNewline) (processFragment (fun _ sb -> sb))
 
-        { Code = finalResult.ContentBuilder.ToString()
-          Cursor = Option.map snd finalResult.FoundCursor }
+        {
+            Code = finalResult.ContentBuilder.ToString()
+            Cursor = Option.map snd finalResult.FoundCursor
+        }

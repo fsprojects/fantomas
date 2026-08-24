@@ -12,12 +12,16 @@ open Fantomas.Client.FantomasToolLocator
 
 [<NoComparison; NoEquality>]
 type ServiceState<'daemon> =
-    { Daemons: Map<FantomasVersion, 'daemon>
-      FolderToVersion: Map<Folder, FantomasVersion> }
+    {
+        Daemons: Map<FantomasVersion, 'daemon>
+        FolderToVersion: Map<Folder, FantomasVersion>
+    }
 
     static member Empty: ServiceState<'daemon> =
-        { Daemons = Map.empty
-          FolderToVersion = Map.empty }
+        {
+            Daemons = Map.empty
+            FolderToVersion = Map.empty
+        }
 
 [<RequireQualifiedAccess>]
 type GetDaemonError =
@@ -37,8 +41,10 @@ type IDaemon =
 
 [<NoComparison; NoEquality>]
 type DaemonOperations<'daemon when 'daemon :> IDaemon> =
-    { FindTool: Folder -> Result<FantomasToolFound, FantomasToolError>
-      Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError> }
+    {
+        FindTool: Folder -> Result<FantomasToolFound, FantomasToolError>
+        Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError>
+    }
 
 /// Forget a version, and with it every folder that resolved to it. Leaving those folders behind
 /// would pin them to a version with no daemon, which is the one state `resolveDaemon` cannot get
@@ -46,8 +52,10 @@ type DaemonOperations<'daemon when 'daemon :> IDaemon> =
 /// next request answers the same way, for the rest of the session. Dropping them lets the next
 /// request resolve the tool from scratch.
 let forgetVersion (version: FantomasVersion) (state: ServiceState<'daemon>) : ServiceState<'daemon> =
-    { Daemons = Map.remove version state.Daemons
-      FolderToVersion = state.FolderToVersion |> Map.filter (fun _ known -> known <> version) }
+    {
+        Daemons = Map.remove version state.Daemons
+        FolderToVersion = state.FolderToVersion |> Map.filter (fun _ known -> known <> version)
+    }
 
 let startDaemon
     (operations: DaemonOperations<'daemon>)
@@ -55,26 +63,31 @@ let startDaemon
     (startInfo: FantomasToolStartInfo)
     (folder: Folder)
     (state: ServiceState<'daemon>)
-    : Result<'daemon, GetDaemonError> * ServiceState<'daemon> =
+    : Result<'daemon, GetDaemonError> * ServiceState<'daemon>
+    =
     match operations.Create startInfo with
     | Error error -> Error(GetDaemonError.FantomasProcessStart error), forgetVersion version state
     | Ok daemon ->
         Ok daemon,
-        { Daemons = Map.add version daemon state.Daemons
-          FolderToVersion = Map.add folder version state.FolderToVersion }
+        {
+            Daemons = Map.add version daemon state.Daemons
+            FolderToVersion = Map.add folder version state.FolderToVersion
+        }
 
 let rec resolveDaemon
     (operations: DaemonOperations<'daemon>)
     (state: ServiceState<'daemon>)
     (folder: Folder)
-    : Result<'daemon, GetDaemonError> * ServiceState<'daemon> =
+    : Result<'daemon, GetDaemonError> * ServiceState<'daemon>
+    =
     match Map.tryFind folder state.FolderToVersion with
     | Some version ->
         match Map.tryFind version state.Daemons with
         | Some daemon when (daemon :> IDaemon).IsRunning ->
             Ok daemon,
             { state with
-                FolderToVersion = Map.add folder version state.FolderToVersion }
+                FolderToVersion = Map.add folder version state.FolderToVersion
+            }
         | Some daemon ->
             // A weird situation where the process has crashed. Dispose what is left of it so the
             // handles it still holds are released, then reboot it the way it was started.
@@ -103,7 +116,8 @@ let rec resolveDaemon
             | Some daemon when (daemon :> IDaemon).IsRunning ->
                 Ok daemon,
                 { state with
-                    FolderToVersion = Map.add folder version state.FolderToVersion }
+                    FolderToVersion = Map.add folder version state.FolderToVersion
+                }
             | running ->
                 // A daemon that crashed is replaced, but dispose it first so the handles it still
                 // holds are released. The replacement is started the way the dead one was, not the
@@ -140,15 +154,18 @@ type CachedDaemon(tool: RunningFantomasTool) =
 
 let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWarning -> unit) : MailboxProcessor<Msg> =
     let operations: DaemonOperations<CachedDaemon> =
-        { FindTool = findFantomasTool
-          Create =
-            fun startInfo ->
-                createFor startInfo
-                |> Result.map (fun daemon ->
-                    // Subscribed here rather than where the daemon is handed out, so that it happens
-                    // once per daemon however many folders end up sharing it.
-                    daemon.ConfigurationWarnings.Add onConfigurationWarning
-                    new CachedDaemon(daemon)) }
+        {
+            FindTool = findFantomasTool
+            Create =
+                fun startInfo ->
+                    createFor startInfo
+                    |> Result.map (fun daemon ->
+                        // Subscribed here rather than where the daemon is handed out, so that it happens
+                        // once per daemon however many folders end up sharing it.
+                        daemon.ConfigurationWarnings.Add onConfigurationWarning
+                        new CachedDaemon(daemon)
+                    )
+        }
 
     MailboxProcessor.Start(
         (fun inbox ->
@@ -172,7 +189,8 @@ let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWa
                     return! messageLoop nextState
                 }
 
-            messageLoop ServiceState.Empty),
+            messageLoop ServiceState.Empty
+        ),
         cancellationToken = ct
     )
 
@@ -221,19 +239,23 @@ let getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<JsonRpc, 
     | Error gde -> Error(FantomasServiceError.DaemonNotFound gde)
 
 let fileNotFoundResponse filePath : Task<FantomasResponse> =
-    { Code = int FantomasResponseCode.FileNotFound
-      FilePath = filePath
-      Content = Some $"File \"%s{filePath}\" does not exist."
-      SelectedRange = None
-      Cursor = None }
+    {
+        Code = int FantomasResponseCode.FileNotFound
+        FilePath = filePath
+        Content = Some $"File \"%s{filePath}\" does not exist."
+        SelectedRange = None
+        Cursor = None
+    }
     |> Task.FromResult
 
 let fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
-    { Code = int FantomasResponseCode.FilePathIsNotAbsolute
-      FilePath = filePath
-      Content = Some $"\"%s{filePath}\" is not an absolute file path. Relative paths are not supported."
-      SelectedRange = None
-      Cursor = None }
+    {
+        Code = int FantomasResponseCode.FilePathIsNotAbsolute
+        FilePath = filePath
+        Content = Some $"\"%s{filePath}\" is not an absolute file path. Relative paths are not supported."
+        SelectedRange = None
+        Cursor = None
+    }
     |> Task.FromResult
 
 let daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasResponse> =
@@ -267,19 +289,23 @@ let daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasRespo
             "Fantomas.Client did not found a compatible dotnet tool version to launch as daemon process",
             FantomasResponseCode.ToolNotFound
 
-    { Code = int code
-      FilePath = filePath
-      Content = Some content
-      SelectedRange = None
-      Cursor = None }
+    {
+        Code = int code
+        FilePath = filePath
+        Content = Some content
+        SelectedRange = None
+        Cursor = None
+    }
     |> Task.FromResult
 
 let cancellationWasRequestedResponse filePath : Task<FantomasResponse> =
-    { Code = int FantomasResponseCode.CancellationWasRequested
-      FilePath = filePath
-      Content = Some "FantomasService is being or has been disposed."
-      SelectedRange = None
-      Cursor = None }
+    {
+        Code = int FantomasResponseCode.CancellationWasRequested
+        FilePath = filePath
+        Content = Some "FantomasService is being or has been disposed."
+        SelectedRange = None
+        Cursor = None
+    }
     |> Task.FromResult
 
 let mapResultToResponse (filePath: string) (result: Result<Task<FantomasResponse>, FantomasServiceError>) =
@@ -305,11 +331,13 @@ let mapResultToResponse (filePath: string) (result: Result<Task<FantomasResponse
 /// <param name="json">The raw JObject that send sent over the wire.</param>
 let decodeFormatResult (inputFilePath: string) (json: JObject) : FantomasResponse =
     let mkError msg =
-        { Code = int FantomasResponseCode.Error
-          FilePath = inputFilePath
-          Content = Some msg
-          SelectedRange = None
-          Cursor = None }
+        {
+            Code = int FantomasResponseCode.Error
+            FilePath = inputFilePath
+            Content = Some msg
+            SelectedRange = None
+            Cursor = None
+        }
 
     try
         if not (json.ContainsKey("Case")) || not (json.ContainsKey("Fields")) then
@@ -323,11 +351,13 @@ let decodeFormatResult (inputFilePath: string) (json: JObject) : FantomasRespons
                 let fileName = fields.[0].Value<string>()
                 let formattedContent = fields.[1].Value<string>()
 
-                { Code = int FantomasResponseCode.Formatted
-                  FilePath = fileName
-                  Content = Some formattedContent
-                  SelectedRange = None
-                  Cursor = None }
+                {
+                    Code = int FantomasResponseCode.Formatted
+                    FilePath = fileName
+                    Content = Some formattedContent
+                    SelectedRange = None
+                    Cursor = None
+                }
             | "Formatted" when fields.Count = 3 ->
                 let fileName = fields.[0].Value<string>()
                 let formattedContent = fields.[1].Value<string>()
@@ -348,37 +378,45 @@ let decodeFormatResult (inputFilePath: string) (json: JObject) : FantomasRespons
                             )
                         )
 
-                { Code = int FantomasResponseCode.Formatted
-                  FilePath = fileName
-                  Content = Some formattedContent
-                  SelectedRange = None
-                  Cursor = cursor }
+                {
+                    Code = int FantomasResponseCode.Formatted
+                    FilePath = fileName
+                    Content = Some formattedContent
+                    SelectedRange = None
+                    Cursor = cursor
+                }
 
             | "Unchanged" when fields.Count = 1 ->
                 let fileName = fields.[0].Value<string>()
 
-                { Code = int FantomasResponseCode.UnChanged
-                  FilePath = fileName
-                  Content = None
-                  SelectedRange = None
-                  Cursor = None }
+                {
+                    Code = int FantomasResponseCode.UnChanged
+                    FilePath = fileName
+                    Content = None
+                    SelectedRange = None
+                    Cursor = None
+                }
             | "Error" when fields.Count = 2 ->
                 let fileName = fields.[0].Value<string>()
                 let formattingError = fields.[1].Value<string>()
 
-                { Code = int FantomasResponseCode.Error
-                  FilePath = fileName
-                  Content = Some formattingError
-                  SelectedRange = None
-                  Cursor = None }
+                {
+                    Code = int FantomasResponseCode.Error
+                    FilePath = fileName
+                    Content = Some formattingError
+                    SelectedRange = None
+                    Cursor = None
+                }
             | "IgnoredFile" when fields.Count = 1 ->
                 let fileName = fields.[0].Value<string>()
 
-                { Code = int FantomasResponseCode.Ignored
-                  FilePath = fileName
-                  Content = None
-                  SelectedRange = None
-                  Cursor = None }
+                {
+                    Code = int FantomasResponseCode.Ignored
+                    FilePath = fileName
+                    Content = None
+                    SelectedRange = None
+                    Cursor = None
+                }
             | _ ->
                 mkError
                     $"Could not deserialize the message from the daemon, got unexpected case name %s{caseName} with %i{fields.Count} fields."
@@ -408,16 +446,21 @@ type LSPFantomasService() =
                         cancellationToken = Option.defaultValue cts.Token cancellationToken
                     )
                     .ContinueWith(fun (t: Task<string>) ->
-                        { Code = int FantomasResponseCode.Version
-                          Content = Some t.Result
-                          FilePath = filePath
-                          SelectedRange = None
-                          Cursor = None }))
+                        {
+                            Code = int FantomasResponseCode.Version
+                            Content = Some t.Result
+                            FilePath = filePath
+                            SelectedRange = None
+                            Cursor = None
+                        }
+                    )
+            )
             |> mapResultToResponse filePath
 
         member _.FormatDocumentAsync
             (formatDocumentOptions: FormatDocumentRequest, ?cancellationToken: CancellationToken)
-            : Task<FantomasResponse> =
+            : Task<FantomasResponse>
+            =
             isCancellationRequested cts.IsCancellationRequested
             |> Result.bind (getFolderFor formatDocumentOptions.FilePath)
             |> Result.bind (getDaemon agent)
@@ -428,7 +471,8 @@ type LSPFantomasService() =
                         argument = formatDocumentOptions,
                         cancellationToken = Option.defaultValue cts.Token cancellationToken
                     )
-                    .ContinueWith(fun (t: Task<JObject>) -> decodeFormatResult formatDocumentOptions.FilePath t.Result))
+                    .ContinueWith(fun (t: Task<JObject>) -> decodeFormatResult formatDocumentOptions.FilePath t.Result)
+            )
             |> mapResultToResponse formatDocumentOptions.FilePath
 
         member _.FormatSelectionAsync
@@ -444,7 +488,8 @@ type LSPFantomasService() =
                         argument = formatSelectionRequest,
                         cancellationToken = Option.defaultValue cts.Token cancellationToken
                     )
-                    .ContinueWith(fun (t: Task<FormatSelectionResponse>) -> t.Result.AsFormatResponse()))
+                    .ContinueWith(fun (t: Task<FormatSelectionResponse>) -> t.Result.AsFormatResponse())
+            )
             |> mapResultToResponse formatSelectionRequest.FilePath
 
         member _.ConfigurationAsync(filePath, ?cancellationToken: CancellationToken) : Task<FantomasResponse> =
@@ -459,11 +504,15 @@ type LSPFantomasService() =
                     )
                     .ContinueWith(fun (t: Task<string>) ->
 
-                        { Code = int FantomasResponseCode.Configuration
-                          FilePath = filePath
-                          Content = Some t.Result
-                          SelectedRange = None
-                          Cursor = None }))
+                        {
+                            Code = int FantomasResponseCode.Configuration
+                            FilePath = filePath
+                            Content = Some t.Result
+                            SelectedRange = None
+                            Cursor = None
+                        }
+                    )
+            )
             |> mapResultToResponse filePath
 
         member _.ConfigurationWarnings = configurationWarnings.Publish

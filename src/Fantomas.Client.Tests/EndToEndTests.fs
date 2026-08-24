@@ -52,12 +52,14 @@ type EndToEndTests() =
             let dotnetVersion = dotnetVersionResult.StandardOutput.Trim()
 
             let commands =
-                [ $"new globaljson --sdk-version %s{dotnetVersion} --roll-forward latestPatch"
-                  "new tool-manifest"
-                  $"tool install fantomas -v d --version %s{version} --add-source https://api.nuget.org/v3/index.json"
-                  // The tool answering here is what the tests below assume. Asking now keeps a
-                  // broken install from surfacing as a puzzling assertion failure inside a test.
-                  "fantomas --version" ]
+                [
+                    $"new globaljson --sdk-version %s{dotnetVersion} --roll-forward latestPatch"
+                    "new tool-manifest"
+                    $"tool install fantomas -v d --version %s{version} --add-source https://api.nuget.org/v3/index.json"
+                    // The tool answering here is what the tests below assume. Asking now keeps a
+                    // broken install from surfacing as a puzzling assertion failure inside a test.
+                    "fantomas --version"
+                ]
 
             let mutable failure: string option = None
 
@@ -217,38 +219,51 @@ end_of_line = lf
     [<TestCase("6.3.16")>]
     [<TestCase("7.0.5")>]
     member _.Version(version: string) =
-        withVersion version (fun fsharpFile ->
-            backgroundTask {
-                let! response = service.VersionAsync(fsharpFile)
-                do! expectResponse FantomasResponseCode.Version fsharpFile response
-            })
+        withVersion
+            version
+            (fun fsharpFile ->
+                backgroundTask {
+                    let! response = service.VersionAsync(fsharpFile)
+                    do! expectResponse FantomasResponseCode.Version fsharpFile response
+                }
+            )
 
     [<TestCase("6.3.16")>]
     [<TestCase("7.0.5")>]
     member _.FormatDocument(version: string) =
-        withVersion version (fun fsharpFile ->
-            backgroundTask {
-                let request: FormatDocumentRequest =
-                    { SourceCode = unformattedCode
-                      FilePath = fsharpFile
-                      Config = None
-                      Cursor = None }
+        withVersion
+            version
+            (fun fsharpFile ->
+                backgroundTask {
+                    let request: FormatDocumentRequest =
+                        {
+                            SourceCode = unformattedCode
+                            FilePath = fsharpFile
+                            Config = None
+                            Cursor = None
+                        }
 
-                let! response = service.FormatDocumentAsync(request)
-                do! expectResponse FantomasResponseCode.Formatted fsharpFile response
-            })
+                    let! response = service.FormatDocumentAsync(request)
+                    do! expectResponse FantomasResponseCode.Formatted fsharpFile response
+                }
+            )
 
     [<TestCase("6.3.16")>]
     [<TestCase("7.0.5")>]
     member _.``FormatDocument with Cursor``(version: string) =
-        withVersion version (fun fsharpFile ->
-            backgroundTask {
-                let request: FormatDocumentRequest =
-                    { SourceCode = unformattedCode
-                      FilePath = fsharpFile
-                      Config = None
-                      Cursor = Some(FormatCursorPosition(1, 12)) }
+        withVersion
+            version
+            (fun fsharpFile ->
+                backgroundTask {
+                    let request: FormatDocumentRequest =
+                        {
+                            SourceCode = unformattedCode
+                            FilePath = fsharpFile
+                            Config = None
+                            Cursor = Some(FormatCursorPosition(1, 12))
+                        }
 
-                let! response = service.FormatDocumentAsync(request)
-                do! expectResponse FantomasResponseCode.Formatted fsharpFile response
-            })
+                    let! response = service.FormatDocumentAsync(request)
+                    do! expectResponse FantomasResponseCode.Formatted fsharpFile response
+                }
+            )

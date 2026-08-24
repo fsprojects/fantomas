@@ -9,7 +9,8 @@ let config =
     { config with
         MultiLineLambdaClosingNewline = true
         MultilineBracketStyle = Stroustrup
-        MaxArrayOrListWidth = 40 }
+        MaxArrayOrListWidth = 40
+    }
 
 [<Test>]
 let ``paren lambda with record instance`` () =

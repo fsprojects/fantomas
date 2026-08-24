@@ -12,13 +12,15 @@ open Fantomas.Tests.TestHelpers
 [<Test>]
 let ``the arguments that say what to format are refused alongside --daemon`` () =
     argumentsRefusedWithDaemon
-        [ Arguments.Daemon
-          Arguments.Check
-          Arguments.Json
-          Arguments.Force
-          Arguments.Profile
-          Arguments.Out "out"
-          Arguments.Input [ "A.fs" ] ]
+        [
+            Arguments.Daemon
+            Arguments.Check
+            Arguments.Json
+            Arguments.Force
+            Arguments.Profile
+            Arguments.Out "out"
+            Arguments.Input [ "A.fs" ]
+        ]
     |> shouldEqual [ "--check"; "--force"; "--json"; "--out"; "--profile"; "input paths" ]
 
 // `--verbosity` sets the level the daemon logs at, so it is the one argument here that does

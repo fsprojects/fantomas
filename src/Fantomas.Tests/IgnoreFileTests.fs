@@ -90,11 +90,13 @@ let ``IgnoreFile.find preferentially finds the fantomasignore next to the source
     let source = fs.Path.Combine(root, "folder1", "folder2", "SomeSource.fs")
     let target = fs.Path.Combine(root, "folder1", "folder2", ".fantomasignore")
 
-    [ source
-      target
-      // Another couple, at higher levels of the hierarchy
-      fs.Path.Combine(root, "folder1", ".fantomasignore")
-      fs.Path.Combine(root, ".fantomasignore") ]
+    [
+        source
+        target
+        // Another couple, at higher levels of the hierarchy
+        fs.Path.Combine(root, "folder1", ".fantomasignore")
+        fs.Path.Combine(root, ".fantomasignore")
+    ]
     |> makeFileHierarchy fs
 
     let loadIgnoreList, getLoads = oneShotLoader (fun _ -> failwith "never called")
@@ -115,10 +117,12 @@ let ``IgnoreFile.find can find the fantomasignore one layer up from the source f
     let source = fs.Path.Combine(root, "folder1", "folder2", "SomeSource.fs")
     let target = fs.Path.Combine(root, "folder1", ".fantomasignore")
 
-    [ source
-      target
-      // Another one, at a higher level of the hierarchy
-      fs.Path.Combine(root, ".fantomasignore") ]
+    [
+        source
+        target
+        // Another one, at a higher level of the hierarchy
+        fs.Path.Combine(root, ".fantomasignore")
+    ]
     |> makeFileHierarchy fs
 
     let loadIgnoreList, getLoads = oneShotLoader (fun _ -> failwith "never called")

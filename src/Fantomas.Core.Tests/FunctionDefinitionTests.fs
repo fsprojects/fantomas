@@ -389,7 +389,8 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
         { config with
             MaxLineLength = 100
             SpaceBeforeColon = true
-            MaxInfixOperatorExpression = 70 }
+            MaxInfixOperatorExpression = 70
+        }
     |> prepend newline
     |> should
         equal
@@ -446,7 +447,8 @@ let ``internal keyword included in function signature length check`` () =
 """
         { config with
             MaxLineLength = 90
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
     |> prepend newline
     |> should
         equal
@@ -579,7 +581,8 @@ let ``long function signature should align with equal sign, 883`` () =
 """
         { config with
             IndentSize = 2
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
     |> prepend newline
     |> should
         equal
@@ -600,7 +603,8 @@ let ``long function signature should align with equal sign, no return type`` () 
         { config with
             IndentSize = 2
             SpaceBeforeColon = true
-            MaxLineLength = 80 }
+            MaxLineLength = 80
+        }
     |> prepend newline
     |> should
         equal
@@ -664,7 +668,8 @@ let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq) (input: 'Input) (inpu
 """
         { config with
             MaxLineLength = 60
-            AlignFunctionSignatureToIndentation = true }
+            AlignFunctionSignatureToIndentation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -687,7 +692,8 @@ let ``align long function signature to indentation with return type`` () =
         { config with
             IndentSize = 2
             SpaceBeforeColon = true
-            AlignFunctionSignatureToIndentation = true }
+            AlignFunctionSignatureToIndentation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -713,7 +719,8 @@ and logAnalyticsForRequest (log:ILogger) (httpRequest: HttpRequest) =
 """
         { config with
             MaxLineLength = 60
-            AlignFunctionSignatureToIndentation = true }
+            AlignFunctionSignatureToIndentation = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1071,7 +1078,8 @@ let longFunctionWithLongTupleParameter
 """
         { config with
             AlignFunctionSignatureToIndentation = true
-            SpaceBeforeColon = true }
+            SpaceBeforeColon = true
+        }
     |> prepend newline
     |> should
         equal
@@ -1173,7 +1181,8 @@ let longFunctionWithLongTupleParameterAndReturnType (aVeryLongParam: AVeryLongTy
         ()
 """
         { config with
-            AlignFunctionSignatureToIndentation = true }
+            AlignFunctionSignatureToIndentation = true
+        }
     |> prepend newline
     |> should
         equal

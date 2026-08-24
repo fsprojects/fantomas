@@ -7,7 +7,8 @@ open Fantomas.Core
 
 let config =
     { config with
-        MultilineBracketStyle = Stroustrup }
+        MultilineBracketStyle = Stroustrup
+    }
 
 [<Test>]
 let ``multiline field body expression where indent_size = 2`` () =

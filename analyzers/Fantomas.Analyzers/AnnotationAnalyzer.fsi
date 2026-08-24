@@ -9,7 +9,8 @@ val Code: string = "FANTOMAS-ANNOTATE-001"
 val Name: string = "AnnotationAnalyzer"
 
 [<Literal>]
-val ShortDescription: string = "Detects a let binding without a type annotation, where a written type would say what the name holds."
+val ShortDescription: string =
+    "Detects a let binding without a type annotation, where a written type would say what the name holds."
 
 [<Literal>]
 val HelpUri: string = "https://github.com/fsprojects/fantomas/blob/main/analyzers/AGENTS.md#fantomas-annotate-001"

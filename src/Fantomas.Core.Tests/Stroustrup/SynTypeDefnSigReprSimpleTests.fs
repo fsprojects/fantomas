@@ -7,7 +7,8 @@ open Fantomas.Core
 
 let config =
     { config with
-        MultilineBracketStyle = Stroustrup }
+        MultilineBracketStyle = Stroustrup
+    }
 
 [<Test>]
 let ``record type definition`` () =
@@ -74,7 +75,8 @@ type V =
     member Coordinate : SomeFieldType * OhSomethingElse * ALongTypeName
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal

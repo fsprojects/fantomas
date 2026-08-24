@@ -10,7 +10,8 @@ let checkFormat config source expected =
 
 let config x =
     { config with
-        KeepMaxNumberOfBlankLines = x }
+        KeepMaxNumberOfBlankLines = x
+    }
 
 [<Test>]
 let ``reduce 2 empty lines to 1`` () =

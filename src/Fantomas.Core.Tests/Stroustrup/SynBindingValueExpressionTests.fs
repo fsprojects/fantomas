@@ -8,7 +8,8 @@ open Fantomas.Core
 let config =
     { config with
         MultilineBracketStyle = Stroustrup
-        MaxArrayOrListWidth = 40 }
+        MaxArrayOrListWidth = 40
+    }
 
 [<Test>]
 let ``synbinding value with record instance `` () =
@@ -39,7 +40,8 @@ let astCtx =
     { astContext with IsInsideMatchClausePattern = true; OtherThing = "YOLO" }
 """
         { config with
-            RecordMultilineFormatter = NumberOfItems }
+            RecordMultilineFormatter = NumberOfItems
+        }
     |> prepend newline
     |> should
         equal
@@ -59,7 +61,8 @@ let astCtx =
     {| astContext with IsInsideMatchClausePattern = true; OtherThing = "YOLO" |}
 """
         { config with
-            RecordMultilineFormatter = NumberOfItems }
+            RecordMultilineFormatter = NumberOfItems
+        }
     |> prepend newline
     |> should
         equal
@@ -565,7 +568,8 @@ let newState = {
 }
 """
         { config with
-            RecordMultilineFormatter = NumberOfItems }
+            RecordMultilineFormatter = NumberOfItems
+        }
     |> prepend newline
     |> should
         equal
@@ -593,7 +597,8 @@ let newState = {|
 |}
 """
         { config with
-            RecordMultilineFormatter = NumberOfItems }
+            RecordMultilineFormatter = NumberOfItems
+        }
     |> prepend newline
     |> should
         equal
@@ -619,7 +624,8 @@ let newState =
         }
 """
         { config with
-            RecordMultilineFormatter = NumberOfItems }
+            RecordMultilineFormatter = NumberOfItems
+        }
     |> prepend newline
     |> should
         equal
@@ -643,7 +649,8 @@ let newState =
         }
 """
         { config with
-            RecordMultilineFormatter = NumberOfItems }
+            RecordMultilineFormatter = NumberOfItems
+        }
     |> prepend newline
     |> should
         equal
@@ -663,7 +670,8 @@ let newState =
     myFn a b c { D = d; E = e }
 """
         { config with
-            RecordMultilineFormatter = NumberOfItems }
+            RecordMultilineFormatter = NumberOfItems
+        }
     |> prepend newline
     |> should
         equal
@@ -683,7 +691,8 @@ let newState =
     myFn a b c {| D = d; E = e |}
 """
         { config with
-            RecordMultilineFormatter = NumberOfItems }
+            RecordMultilineFormatter = NumberOfItems
+        }
     |> prepend newline
     |> should
         equal

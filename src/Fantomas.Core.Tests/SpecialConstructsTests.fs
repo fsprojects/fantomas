@@ -32,7 +32,8 @@ x.G[].TryFind 3
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
             SpaceAroundDelimiter = false
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal

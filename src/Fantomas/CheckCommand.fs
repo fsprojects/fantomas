@@ -12,13 +12,15 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
             filenames
             |> Seq.map (fun filename ->
                 async {
-                    let! (content: string) = env.FileSystem.File.ReadAllTextAsync filename |> Async.AwaitTask
+                    let! (content: string) =
+                        env.FileSystem.File.ReadAllTextAsync filename |> Async.AwaitTask
 
                     let formatParams: FormatParams =
                         FormatParams.Create(env.ReadConfiguration filename, true, false, filename)
 
                     return! formatContentAsync formatParams content
-                })
+                }
+            )
             |> Async.Parallel
 
         let getChangedFile: FormatResult -> string option =
@@ -51,9 +53,11 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
         let unchanged: string list = formatted |> Seq.choose getUnchangedFile |> Seq.toList
 
         return
-            { Errors = errors
-              Formatted = changes
-              Unchanged = unchanged }
+            {
+                Errors = errors
+                Formatted = changes
+                Unchanged = unchanged
+            }
     }
 
 let runCheckCommand (env: CliEnvironment) (inputPath: InputPath) : CheckCommandResult =
@@ -67,14 +71,16 @@ let runCheckCommand (env: CliEnvironment) (inputPath: InputPath) : CheckCommandR
                 |> List.choose (fun item ->
                     match item with
                     | WorkItem.Ignored file -> Some file
-                    | WorkItem.Format _ -> None)
+                    | WorkItem.Format _ -> None
+                )
 
             let toCheck: string list =
                 items
                 |> List.choose (fun item ->
                     match item with
                     | WorkItem.Ignored _ -> None
-                    | WorkItem.Format(inputFile, _) -> Some inputFile)
+                    | WorkItem.Format(inputFile, _) -> Some inputFile
+                )
 
             CheckCommandResult.Completed(ignored, Async.RunSynchronously(checkCode env toCheck))
     with exn ->

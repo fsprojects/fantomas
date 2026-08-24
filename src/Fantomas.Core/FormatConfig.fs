@@ -111,190 +111,194 @@ type EndOfLineStyle =
 
 // NOTE: try to keep this list below in sync with docs/docs/end-users/Configuration.fsx
 type FormatConfig =
-    { [<Category("Indentation")>]
-      [<DisplayName("Indent spaces")>]
-      [<Description("Number of spaces to use for indentation")>]
-      IndentSize: Num
+    {
+        [<Category("Indentation")>]
+        [<DisplayName("Indent spaces")>]
+        [<Description("Number of spaces to use for indentation")>]
+        IndentSize: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Maximum line length")>]
-      [<Description("The column where we break to new lines")>]
-      MaxLineLength: Num
+        [<Category("Boundaries")>]
+        [<DisplayName("Maximum line length")>]
+        [<Description("The column where we break to new lines")>]
+        MaxLineLength: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Line-ending style")>]
-      EndOfLine: EndOfLineStyle
+        [<Category("Boundaries")>]
+        [<DisplayName("Line-ending style")>]
+        EndOfLine: EndOfLineStyle
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Insert final newline")>]
-      InsertFinalNewline: bool
+        [<Category("Boundaries")>]
+        [<DisplayName("Insert final newline")>]
+        InsertFinalNewline: bool
 
-      [<Category("Spacing")>]
-      [<DisplayName("Before parameter")>]
-      SpaceBeforeParameter: bool
+        [<Category("Spacing")>]
+        [<DisplayName("Before parameter")>]
+        SpaceBeforeParameter: bool
 
-      [<Category("Spacing")>]
-      [<DisplayName("Before lowercase invocation")>]
-      SpaceBeforeLowercaseInvocation: bool
+        [<Category("Spacing")>]
+        [<DisplayName("Before lowercase invocation")>]
+        SpaceBeforeLowercaseInvocation: bool
 
-      [<Category("Spacing")>]
-      [<DisplayName("Before uppercase invocation")>]
-      SpaceBeforeUppercaseInvocation: bool
+        [<Category("Spacing")>]
+        [<DisplayName("Before uppercase invocation")>]
+        SpaceBeforeUppercaseInvocation: bool
 
-      [<Category("Spacing")>]
-      [<DisplayName("Before class constructor")>]
-      SpaceBeforeClassConstructor: bool
+        [<Category("Spacing")>]
+        [<DisplayName("Before class constructor")>]
+        SpaceBeforeClassConstructor: bool
 
-      [<Category("Spacing")>]
-      [<DisplayName("Before member")>]
-      SpaceBeforeMember: bool
+        [<Category("Spacing")>]
+        [<DisplayName("Before member")>]
+        SpaceBeforeMember: bool
 
-      [<Category("Spacing")>]
-      [<DisplayName("Before colon")>]
-      SpaceBeforeColon: bool
+        [<Category("Spacing")>]
+        [<DisplayName("Before colon")>]
+        SpaceBeforeColon: bool
 
-      [<Category("Spacing")>]
-      [<DisplayName("After comma")>]
-      SpaceAfterComma: bool
+        [<Category("Spacing")>]
+        [<DisplayName("After comma")>]
+        SpaceAfterComma: bool
 
-      [<Category("Spacing")>]
-      [<DisplayName("Before semicolon")>]
-      SpaceBeforeSemicolon: bool
+        [<Category("Spacing")>]
+        [<DisplayName("Before semicolon")>]
+        SpaceBeforeSemicolon: bool
 
-      [<Category("Spacing")>]
-      [<DisplayName("After semicolon")>]
-      SpaceAfterSemicolon: bool
+        [<Category("Spacing")>]
+        [<DisplayName("After semicolon")>]
+        SpaceAfterSemicolon: bool
 
-      [<Category("Spacing")>]
-      [<DisplayName("Around delimiter")>]
-      SpaceAroundDelimiter: bool
+        [<Category("Spacing")>]
+        [<DisplayName("Around delimiter")>]
+        SpaceAroundDelimiter: bool
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Maximum if-then width")>]
-      MaxIfThenShortWidth: Num
+        [<Category("Boundaries")>]
+        [<DisplayName("Maximum if-then width")>]
+        MaxIfThenShortWidth: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Maximum if-then-else width")>]
-      MaxIfThenElseShortWidth: Num
+        [<Category("Boundaries")>]
+        [<DisplayName("Maximum if-then-else width")>]
+        MaxIfThenElseShortWidth: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Maximum infix-operator expression")>]
-      MaxInfixOperatorExpression: Num
+        [<Category("Boundaries")>]
+        [<DisplayName("Maximum infix-operator expression")>]
+        MaxInfixOperatorExpression: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Maximum record width")>]
-      MaxRecordWidth: Num
+        [<Category("Boundaries")>]
+        [<DisplayName("Maximum record width")>]
+        MaxRecordWidth: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Maximum items in a record")>]
-      MaxRecordNumberOfItems: Num
+        [<Category("Boundaries")>]
+        [<DisplayName("Maximum items in a record")>]
+        MaxRecordNumberOfItems: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Multi-line formatter for records")>]
-      RecordMultilineFormatter: MultilineFormatterType
+        [<Category("Boundaries")>]
+        [<DisplayName("Multi-line formatter for records")>]
+        RecordMultilineFormatter: MultilineFormatterType
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Maximum array or list width")>]
-      MaxArrayOrListWidth: Num
+        [<Category("Boundaries")>]
+        [<DisplayName("Maximum array or list width")>]
+        MaxArrayOrListWidth: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Maximum number of items in array/list")>]
-      MaxArrayOrListNumberOfItems: Num
+        [<Category("Boundaries")>]
+        [<DisplayName("Maximum number of items in array/list")>]
+        MaxArrayOrListNumberOfItems: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Multi-line formatter for array/list")>]
-      ArrayOrListMultilineFormatter: MultilineFormatterType
+        [<Category("Boundaries")>]
+        [<DisplayName("Multi-line formatter for array/list")>]
+        ArrayOrListMultilineFormatter: MultilineFormatterType
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Maximum value-binding width")>]
-      MaxValueBindingWidth: Num
+        [<Category("Boundaries")>]
+        [<DisplayName("Maximum value-binding width")>]
+        MaxValueBindingWidth: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Maximum function-binding width")>]
-      MaxFunctionBindingWidth: Num
+        [<Category("Boundaries")>]
+        [<DisplayName("Maximum function-binding width")>]
+        MaxFunctionBindingWidth: Num
 
-      [<Category("Convention")>]
-      [<DisplayName("Newline between type definition and members")>]
-      NewlineBetweenTypeDefinitionAndMembers: bool
+        [<Category("Convention")>]
+        [<DisplayName("Newline between type definition and members")>]
+        NewlineBetweenTypeDefinitionAndMembers: bool
 
-      [<Category("Convention")>]
-      [<DisplayName("Align function signature to indentation")>]
-      AlignFunctionSignatureToIndentation: bool
+        [<Category("Convention")>]
+        [<DisplayName("Align function signature to indentation")>]
+        AlignFunctionSignatureToIndentation: bool
 
-      [<Category("Convention")>]
-      [<DisplayName("Alternative long member definitions")>]
-      AlternativeLongMemberDefinitions: bool
+        [<Category("Convention")>]
+        [<DisplayName("Alternative long member definitions")>]
+        AlternativeLongMemberDefinitions: bool
 
-      [<Category("Boundaries")>]
-      [<DisplayName("MultiLine-lambda has closing newline")>]
-      MultiLineLambdaClosingNewline: bool
+        [<Category("Boundaries")>]
+        [<DisplayName("MultiLine-lambda has closing newline")>]
+        MultiLineLambdaClosingNewline: bool
 
-      [<Category("Indentation")>]
-      [<DisplayName("Keep indent in branch")>]
-      [<Description("Experimental feature, use at your own risk.")>]
-      ExperimentalKeepIndentInBranch: bool
+        [<Category("Indentation")>]
+        [<DisplayName("Keep indent in branch")>]
+        [<Description("Experimental feature, use at your own risk.")>]
+        ExperimentalKeepIndentInBranch: bool
 
-      [<Category("Convention")>]
-      [<DisplayName("Keep empty lines around nested multi-line expressions")>]
-      BlankLinesAroundNestedMultilineExpressions: bool
+        [<Category("Convention")>]
+        [<DisplayName("Keep empty lines around nested multi-line expressions")>]
+        BlankLinesAroundNestedMultilineExpressions: bool
 
-      [<Category("Convention")>]
-      [<DisplayName("Add a bar before Discriminated Union declarations")>]
-      BarBeforeDiscriminatedUnionDeclaration: bool
+        [<Category("Convention")>]
+        [<DisplayName("Add a bar before Discriminated Union declarations")>]
+        BarBeforeDiscriminatedUnionDeclaration: bool
 
-      [<Category("Convention")>]
-      [<DisplayName("How to format bracket expressions (arrays, objects, etc.) that span multiple lines")>]
-      [<Description("Possible options include cramped (default), aligned, and stroustrup")>]
-      MultilineBracketStyle: MultilineBracketStyle
+        [<Category("Convention")>]
+        [<DisplayName("How to format bracket expressions (arrays, objects, etc.) that span multiple lines")>]
+        [<Description("Possible options include cramped (default), aligned, and stroustrup")>]
+        MultilineBracketStyle: MultilineBracketStyle
 
-      [<Category("Convention")>]
-      [<DisplayName("Maximum number of consecutive blank lines to keep")>]
-      KeepMaxNumberOfBlankLines: Num
+        [<Category("Convention")>]
+        [<DisplayName("Maximum number of consecutive blank lines to keep")>]
+        KeepMaxNumberOfBlankLines: Num
 
-      [<Category("Convention")>]
-      [<DisplayName("Insert a newline before a computation expression that spans multiple lines")>]
-      NewlineBeforeMultilineComputationExpression: bool
+        [<Category("Convention")>]
+        [<DisplayName("Insert a newline before a computation expression that spans multiple lines")>]
+        NewlineBeforeMultilineComputationExpression: bool
 
-      [<Category("Convention")>]
-      [<DisplayName("Applies the Stroustrup style to the final (two) array or list argument(s) in a function application")>]
-      ExperimentalElmish: bool }
+        [<Category("Convention")>]
+        [<DisplayName("Applies the Stroustrup style to the final (two) array or list argument(s) in a function application")>]
+        ExperimentalElmish: bool
+    }
 
     member x.IsStroustrupStyle = x.MultilineBracketStyle = Stroustrup
 
     static member Default =
-        { IndentSize = 4
-          MaxLineLength = 120
-          EndOfLine = EndOfLineStyle.FromEnvironment
-          InsertFinalNewline = true
-          SpaceBeforeParameter = true
-          SpaceBeforeLowercaseInvocation = true
-          SpaceBeforeUppercaseInvocation = false
-          SpaceBeforeClassConstructor = false
-          SpaceBeforeMember = false
-          SpaceBeforeColon = false
-          SpaceAfterComma = true
-          SpaceBeforeSemicolon = false
-          SpaceAfterSemicolon = true
-          SpaceAroundDelimiter = true
-          MaxIfThenShortWidth = 0
-          MaxIfThenElseShortWidth = 60
-          MaxInfixOperatorExpression = 80
-          MaxRecordWidth = 40
-          MaxRecordNumberOfItems = 1
-          RecordMultilineFormatter = MultilineFormatterType.CharacterWidth
-          MaxArrayOrListWidth = 80
-          MaxArrayOrListNumberOfItems = 1
-          ArrayOrListMultilineFormatter = MultilineFormatterType.CharacterWidth
-          MaxValueBindingWidth = 80
-          MaxFunctionBindingWidth = 40
-          NewlineBetweenTypeDefinitionAndMembers = true
-          AlignFunctionSignatureToIndentation = false
-          AlternativeLongMemberDefinitions = false
-          MultiLineLambdaClosingNewline = false
-          ExperimentalKeepIndentInBranch = false
-          BlankLinesAroundNestedMultilineExpressions = true
-          BarBeforeDiscriminatedUnionDeclaration = false
-          MultilineBracketStyle = Aligned
-          KeepMaxNumberOfBlankLines = 100
-          NewlineBeforeMultilineComputationExpression = true
-          ExperimentalElmish = false }
+        {
+            IndentSize = 4
+            MaxLineLength = 120
+            EndOfLine = EndOfLineStyle.FromEnvironment
+            InsertFinalNewline = true
+            SpaceBeforeParameter = true
+            SpaceBeforeLowercaseInvocation = true
+            SpaceBeforeUppercaseInvocation = false
+            SpaceBeforeClassConstructor = false
+            SpaceBeforeMember = false
+            SpaceBeforeColon = false
+            SpaceAfterComma = true
+            SpaceBeforeSemicolon = false
+            SpaceAfterSemicolon = true
+            SpaceAroundDelimiter = true
+            MaxIfThenShortWidth = 0
+            MaxIfThenElseShortWidth = 60
+            MaxInfixOperatorExpression = 80
+            MaxRecordWidth = 40
+            MaxRecordNumberOfItems = 1
+            RecordMultilineFormatter = MultilineFormatterType.CharacterWidth
+            MaxArrayOrListWidth = 80
+            MaxArrayOrListNumberOfItems = 1
+            ArrayOrListMultilineFormatter = MultilineFormatterType.CharacterWidth
+            MaxValueBindingWidth = 80
+            MaxFunctionBindingWidth = 40
+            NewlineBetweenTypeDefinitionAndMembers = true
+            AlignFunctionSignatureToIndentation = false
+            AlternativeLongMemberDefinitions = false
+            MultiLineLambdaClosingNewline = false
+            ExperimentalKeepIndentInBranch = false
+            BlankLinesAroundNestedMultilineExpressions = true
+            BarBeforeDiscriminatedUnionDeclaration = false
+            MultilineBracketStyle = Aligned
+            KeepMaxNumberOfBlankLines = 100
+            NewlineBeforeMultilineComputationExpression = true
+            ExperimentalElmish = false
+        }

@@ -498,7 +498,8 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
 #endif
 """
         { config with
-            MaxInfixOperatorExpression = 75 }
+            MaxInfixOperatorExpression = 75
+        }
     |> prepend newline
     |> should
         equal
@@ -547,7 +548,8 @@ let ``some spacing is still lost in and around #if blocks, no defines`` () =
 #endif
 """
         { config with
-            MaxInfixOperatorExpression = 75 }
+            MaxInfixOperatorExpression = 75
+        }
     |> prepend newline
     |> should
         equal
@@ -595,7 +597,8 @@ let ``some spacing is still lost in and around #if blocks, NETCOREAPP2_0`` () =
 #endif
 """
         { config with
-            MaxInfixOperatorExpression = 75 }
+            MaxInfixOperatorExpression = 75
+        }
     |> prepend newline
     |> should
         equal
@@ -1830,7 +1833,8 @@ let config = {
 }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1865,7 +1869,8 @@ let config = {
 }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -1899,7 +1904,8 @@ let config = {
 }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2153,7 +2159,8 @@ let getDefaultProxyFor =
 """
         { config with
             MaxIfThenElseShortWidth = 50
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2215,7 +2222,8 @@ let loader (projectRoot: string) (siteContent: SiteContents) =
   disableLiveRefresh
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal
@@ -2269,7 +2277,8 @@ module ReactHookExtensions =
             deferred
 """
         { config with
-            NewlineBetweenTypeDefinitionAndMembers = false }
+            NewlineBetweenTypeDefinitionAndMembers = false
+        }
     |> prepend newline
     |> should
         equal
@@ -2417,7 +2426,8 @@ let ``empty hash directive block should not make expression multiline`` () =
         assemblyName.PublicKeyToken <- null
 """
         { config with
-            MaxInfixOperatorExpression = 75 }
+            MaxInfixOperatorExpression = 75
+        }
     |> prepend newline
     |> should
         equal
@@ -2443,7 +2453,8 @@ let ``comment after compiler define`` () =
 #endif
 """
         { config with
-            MaxIfThenElseShortWidth = 20 }
+            MaxIfThenElseShortWidth = 20
+        }
     |> prepend newline
     |> should
         equal
@@ -2494,7 +2505,8 @@ let inputFileFlagsFsiBase (_tcConfigB: TcConfigBuilder) =
 #endif
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2537,7 +2549,8 @@ let ``define before opening bracket of array, 1597`` () =
     }
 """
         { config with
-            MultilineBracketStyle = Cramped }
+            MultilineBracketStyle = Cramped
+        }
     |> prepend newline
     |> should
         equal
@@ -2621,7 +2634,8 @@ let isUnix =
 #endif
 """
         { config with
-            MaxInfixOperatorExpression = 40 }
+            MaxInfixOperatorExpression = 40
+        }
     |> prepend newline
     |> should
         equal
@@ -2811,7 +2825,8 @@ let Run(message: string, executionContext: ExecutionContext, log: TraceWriter) =
     message |> Out.Dialout.DialoutFunction.Accept logInfo getSetting
 """
         { config with
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+        }
     |> prepend newline
     |> should
         equal

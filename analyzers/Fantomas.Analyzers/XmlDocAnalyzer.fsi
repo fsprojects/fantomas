@@ -9,7 +9,8 @@ val Code: string = "FANTOMAS-XMLDOC-001"
 val Name: string = "XmlDocAnalyzer"
 
 [<Literal>]
-val ShortDescription: string = "Detects a documentation comment in an implementation file that has a signature file, where the signature is the copy readers and tooling see."
+val ShortDescription: string =
+    "Detects a documentation comment in an implementation file that has a signature file, where the signature is the copy readers and tooling see."
 
 [<Literal>]
 val HelpUri: string = "https://github.com/fsprojects/fantomas/blob/main/analyzers/AGENTS.md#fantomas-xmldoc-001"

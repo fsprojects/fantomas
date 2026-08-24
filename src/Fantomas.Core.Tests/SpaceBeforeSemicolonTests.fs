@@ -7,7 +7,8 @@ open Fantomas.Core.Tests.TestHelpers
 let beforeConfig =
     { config with
         SpaceBeforeSemicolon = true
-        SpaceAfterSemicolon = false }
+        SpaceAfterSemicolon = false
+    }
 
 [<Test>]
 let ``space before attributelist`` () =
@@ -84,7 +85,8 @@ let IsMatchByName record1 (name: string) =
 
 let beforeAndAfterConfig =
     { config with
-        SpaceBeforeSemicolon = true }
+        SpaceBeforeSemicolon = true
+    }
 
 [<Test>]
 let ``space before and after attributelist`` () =
