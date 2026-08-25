@@ -336,6 +336,7 @@
 - [Num](https://fsprojects.github.io/fantomas/reference/fantomas-core-num.html)
 - [ParseException](https://fsprojects.github.io/fantomas/reference/fantomas-core-parseexception.html)
 - [Queue<'T>](https://fsprojects.github.io/fantomas/reference/fantomas-core-queue-1.html)
+- [ValidationResult](https://fsprojects.github.io/fantomas/reference/fantomas-core-validationresult.html)
 - [WriterEvent](https://fsprojects.github.io/fantomas/reference/fantomas-core-writerevent.html)
 - [DiagnosticMessage](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-diagnosticmessage.html)
 - [ResourceString<'T>](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-diagnosticmessage-resourcestring-1.html)

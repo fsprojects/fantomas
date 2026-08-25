@@ -442,6 +442,7 @@ Note that <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>
 <li>A file that cannot be parsed is reported as <code>src/A.fs could not be parsed by Fantomas:</code> rather than <code>Fantomas could not parse src/A.fs:</code>, and a construct that could not be modelled as <code>src/A.fs could not be formatted by Fantomas:</code>. A script matching on the old text needs updating.</li>
 <li><code>--check</code> no longer reports a file that will not parse twice, once as an error and once as needing formatting.</li>
 <li><code>--force</code> announces invalid output as a warning on standard error rather than on standard out, and says what happened rather than only that it happened.</li>
+<li>Output that Fantomas will not accept from itself is reported as a bug in Fantomas rather than as a problem with your file, and says that nothing was written and where to report it. <code>Formatting A.fs leads to invalid F# code</code> became <code>src/A.fs could not be formatted by Fantomas:</code> followed by that explanation, what the parser said about the output, and the lines of the output around it with a caret under the failure. Those are lines of the output, which is written nowhere and is not your file, and the report says so; the diagnostics carry no line and column of their own for the same reason. Up to <code>v7</code> you were told only that something was invalid and left to run again with <code>--force</code> and find it yourself. <code>--check</code> reports it the same way. A script matching on the old text needs updating.</li>
 <li><code>--version</code> prints the commit hash trimmed to the short form the <code>--help</code> page has always shown, and the whole of it at <code>--verbosity d</code>. <code>Fantomas.Client</code> is unaffected: it cuts the version at <code>+</code>.</li>
 <li>A <code>.fantomasignore</code> in a subfolder is now honoured by the command line. See "<code>.fantomasignore</code> in a subfolder" below.</li>
 <li><code>--json</code> no longer names a file that <code>.fantomasignore</code> matched, and <code>ignored</code> is no longer a status a file can carry. See "What a run says about skipped files" below.</li>
@@ -650,10 +651,20 @@ If you catch <code>FormatException</code>, you already catch this.
 <li><code>EndOfLineStyle.OfConfigString "cr"</code> now raises <code>FormatException</code> instead of calling <code>failwith</code>.</li>
 </ul>
 <h4><a name="CodeFormatter" class="anchor" href="#CodeFormatter">CodeFormatter</a></h4>
-<p>All additions, nothing was removed:</p>
 <ul>
-<li><code>CodeFormatter.FormatASTAsync(ast, config, source)</code> was added, next to the existing <code>FormatASTAsync(ast, source)</code>.</li>
-<li><code>CodeFormatter.GetWriterEventsAsync</code> was added for debugging. It returns the writer events produced while formatting.</li>
+<li>
+<p><code>CodeFormatter.IsValidFSharpCodeAsync</code> was replaced by <code>CodeFormatter.ValidateFSharpCodeAsync</code>, which answers with a <code>ValidationResult</code> instead of a <code>bool</code>:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
+<span class="k">let!</span> <span class="id">isValid</span> <span class="o">=</span> <span class="id">CodeFormatter</span><span class="pn">.</span><span class="id">IsValidFSharpCodeAsync</span><span class="pn">(</span><span class="id">isSignature</span><span class="pn">,</span> <span class="id">source</span><span class="pn">)</span>
+
+<span class="c">// v8</span>
+<span class="k">let!</span> <span class="id">validation</span> <span class="o">=</span> <span class="id">CodeFormatter</span><span class="pn">.</span><span class="id">ValidateFSharpCodeAsync</span><span class="pn">(</span><span class="id">isSignature</span><span class="pn">,</span> <span class="id">source</span><span class="pn">)</span>
+<span class="k">let</span> <span class="id">isValid</span> <span class="o">=</span> <span class="id">validation</span><span class="pn">.</span><span class="id">IsValid</span>
+</code></pre>
+<p><code>ValidationResult.Diagnostics</code> carries what Fantomas refused: every error, and every warning it does not tolerate, positioned in the source it was given. It is empty exactly when <code>IsValid</code> is true. The boolean threw that away, so a caller that had to tell somebody why the source was refused had to parse it a second time to find out. This is what lets the command line show you the line of its own output that failed.</p>
+</li>
+<li><p><code>CodeFormatter.FormatASTAsync(ast, config, source)</code> was added, next to the existing <code>FormatASTAsync(ast, source)</code>.</p></li>
+<li><p><code>CodeFormatter.GetWriterEventsAsync</code> was added for debugging. It returns the writer events produced while formatting.</p></li>
 </ul>
 <h4><a name="Oak-chains" class="anchor" href="#Oak-chains">Oak: chains</a></h4>
 <p><code>Expr.Chain</code> no longer holds a flat <code>ChainLink list</code>. A chain is now a head expression, a list of

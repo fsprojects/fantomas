@@ -123,6 +123,7 @@ Note that `fsharp_multiline_block_brackets_on_same_column` and `fsharp_experimen
 * A file that cannot be parsed is reported as `src/A.fs could not be parsed by Fantomas:` rather than `Fantomas could not parse src/A.fs:`, and a construct that could not be modelled as `src/A.fs could not be formatted by Fantomas:`. A script matching on the old text needs updating.
 * `--check` no longer reports a file that will not parse twice, once as an error and once as needing formatting.
 * `--force` announces invalid output as a warning on standard error rather than on standard out, and says what happened rather than only that it happened.
+* Output that Fantomas will not accept from itself is reported as a bug in Fantomas rather than as a problem with your file, and says that nothing was written and where to report it. `Formatting A.fs leads to invalid F# code` became `src/A.fs could not be formatted by Fantomas:` followed by that explanation, what the parser said about the output, and the lines of the output around it with a caret under the failure. Those are lines of the output, which is written nowhere and is not your file, and the report says so; the diagnostics carry no line and column of their own for the same reason. Up to `v7` you were told only that something was invalid and left to run again with `--force` and find it yourself. `--check` reports it the same way. A script matching on the old text needs updating.
 * `--version` prints the commit hash trimmed to the short form the `--help` page has always shown, and the whole of it at `--verbosity d`. `Fantomas.Client` is unaffected: it cuts the version at `+`.
 * A `.fantomasignore` in a subfolder is now honoured by the command line. See "`.fantomasignore` in a subfolder" below.
 * `--json` no longer names a file that `.fantomasignore` matched, and `ignored` is no longer a status a file can carry. See "What a run says about skipped files" below.
@@ -393,10 +394,25 @@ If you catch `FormatException`, you already catch this.
 
 #### CodeFormatter
 
-All additions, nothing was removed:
+* `CodeFormatter.IsValidFSharpCodeAsync` was replaced by `CodeFormatter.ValidateFSharpCodeAsync`, which answers with a `ValidationResult` instead of a `bool`:
+  
+  ```fsharp
+  // v7
+  let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isSignature, source)
+  
+  // v8
+  let! validation = CodeFormatter.ValidateFSharpCodeAsync(isSignature, source)
+  let isValid = validation.IsValid
+  ```
+  
+  `ValidationResult.Diagnostics` carries what Fantomas refused: every error, and every warning it does not tolerate, positioned in the source it was given. It is empty exactly when `IsValid` is true. The boolean threw that away, so a caller that had to tell somebody why the source was refused had to parse it a second time to find out. This is what lets the command line show you the line of its own output that failed.
+  
 
 * `CodeFormatter.FormatASTAsync(ast, config, source)` was added, next to the existing `FormatASTAsync(ast, source)`.
+  
+
 * `CodeFormatter.GetWriterEventsAsync` was added for debugging. It returns the writer events produced while formatting.
+  
 
 #### Oak: chains
 
