@@ -95,6 +95,46 @@ let describeFailure (error: exn) : string option =
 let fileLine (theme: Theme) (glyph: string) (file: string) (tail: string) : string =
     String.Concat(glyph, " ", link theme file, " ", tail)
 
+/// The paths the caller typed, as far as they name files.
+///
+/// Every path on the command line is accounted for somewhere: a folder by the counts it produces, a
+/// file by a count it is part of or by a line of its own. Skipped is the one state no count can
+/// carry, because a count cannot see a folder that was never opened, so for a file somebody typed a
+/// line is the only place left. For a file the walk turned up inside a folder there is no such
+/// obligation, and listing them would put a vendored checkout on the screen.
+let namedOnTheCommandLine (inputPath: InputPath) : Set<string> =
+    match inputPath with
+    | InputPath.File file -> Set.singleton file
+    | InputPath.Multiple(files, _) -> Set.ofList files
+    | InputPath.Folder _
+    | InputPath.NoFSharpFile _
+    | InputPath.NotFound _ -> Set.empty
+
+/// Say a skipped file out loud when the caller named it, and only to whoever asked for detail when
+/// the walk turned it up. Both in one place, so that a file cannot get the sentence and the debug
+/// line at once, which is how the same event came to have two spellings before.
+///
+/// Answers whether anything was said out loud, since that is what decides whether the summary has
+/// something above it to be separated from.
+let reportIgnored
+    (env: CliEnvironment)
+    (theme: Theme)
+    (glyphs: StatusGlyphs)
+    (named: Set<string>)
+    (ignored: string list)
+    : bool
+    =
+    let mutable saidOutLoud: bool = false
+
+    for file in List.sort ignored do
+        if Set.contains file named then
+            saidOutLoud <- true
+            env.Log.Information(fileLine theme glyphs.Ignored file "was ignored by .fantomasignore.")
+        else
+            env.Log.Debug $"'%s{file}' was ignored"
+
+    saidOutLoud
+
 // A label that reads for one file as well as for many. The participles do not need this, since
 // "1 formatted" is as good as "2 formatted", but a verb and a noun both do.
 let plural (count: int) (singular: string) (many: string) : string = if count = 1 then singular else many
@@ -230,17 +270,15 @@ let reportFormatResults
         for e in outcome.Errored do
             reportError env settings.Verbosity e
 
-        // The two states a folder run does not list, so this is the only place it names them at all.
-        //
-        // Said here rather than where each file is formatted, because here is what knows whether the
-        // state has already been said out loud. `formatSource` logged the unchanged file itself, and
-        // a run over one file printed both that and the sentence below it: `'A.fs' was unchanged`
-        // and `= A.fs was unchanged.`, one event in two spellings.
+        let saidIgnored: bool =
+            reportIgnored env theme glyphs (namedOnTheCommandLine inputPath) outcome.Ignored
+
+        // Unchanged is carried by the count, so a folder run says no more about it than that. Said
+        // here rather than where each file is formatted, because here is what knows whether the
+        // state has already been said out loud: `formatSource` logged it itself, and a run over one
+        // file printed both that and the sentence below it, one event in two spellings.
         for file in outcome.Unchanged do
             env.Log.Debug $"'%s{file}' was unchanged"
-
-        for file in outcome.Ignored do
-            env.Log.Debug $"'%s{file}' was ignored"
 
         let summary: string =
             match outputPath with
@@ -269,7 +307,7 @@ let reportFormatResults
 
         // A separator only where there is something to separate from. A run over an already
         // formatted tree is one line and does not want a blank one above it.
-        if not (List.isEmpty outcome.Formatted) then
+        if not (List.isEmpty outcome.Formatted) || saidIgnored then
             env.Log.Information ""
 
         env.Log.Information summary
@@ -425,9 +463,8 @@ let reportCheckResults
     for filename in List.sort checkResult.Formatted do
         env.Log.Information(fileLine theme glyphs.NeedsFormatting filename "needs formatting.")
 
-    // Named only to whoever asks for detail, the way a format run names it.
-    for file in List.sort ignored do
-        env.Log.Debug $"'%s{file}' was ignored"
+    reportIgnored env theme glyphs (namedOnTheCommandLine inputPath) ignored
+    |> ignore
 
     let needing: int = List.length checkResult.Formatted
     let errored: int = List.length checkResult.Errors

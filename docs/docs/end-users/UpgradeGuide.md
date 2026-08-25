@@ -189,7 +189,18 @@ opened and what is inside it is unknown by design. A count right about the first
 second reads as though it covered both: Fantomas's own repository ignores three folders holding
 ninety six F# files, and the count said nought.
 
-What was skipped is named at `--verbosity d`, a file and a folder each in its own words:
+A file you name on the command line is the exception and still gets a line of its own, because a
+count is the only other place a path could be accounted for and no count carries this one:
+
+```text
+$ dotnet fantomas A.fs Skipped.fs
+- Skipped.fs was ignored by .fantomasignore.
+
+1 file unchanged.
+```
+
+Everything else that was skipped is named at `--verbosity d`, a file and a folder each in its own
+words:
 
 ```text
 $ dotnet fantomas check --verbosity d .

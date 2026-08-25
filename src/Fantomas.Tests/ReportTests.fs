@@ -39,6 +39,20 @@ let private reportCheck (result: CheckCommandResult) : int * CollectedLog =
     let code: int = reportCheckCommand recorded.Environment inputFolder result
     code, recorded.Log()
 
+/// Report against paths the caller is pretended to have typed, rather than against a folder.
+let private reportFormatOf (inputPath: InputPath) (result: FormatCommandResult) : CollectedLog =
+    let recorded: RecordedRun = run ()
+
+    reportFormatCommand recorded.Environment defaultSettings inputPath OutputPath.NotKnown result
+    |> ignore
+
+    recorded.Log()
+
+let private reportCheckOf (inputPath: InputPath) (result: CheckCommandResult) : CollectedLog =
+    let recorded: RecordedRun = run ()
+    reportCheckCommand recorded.Environment inputPath result |> ignore
+    recorded.Log()
+
 [<Test>]
 let ``every way the input paths can fail has its own wording`` () =
     [
@@ -460,6 +474,66 @@ let ``a check names the file it skipped at detailed verbosity`` () =
         )
 
     log.Debug |> shouldEqual [ "'Skip.fs' was ignored" ]
+
+// Every path on the command line is accounted for somewhere: a folder by the counts it produces, a
+// file by a count it is part of or by a line of its own. Skipped is the one state no count carries,
+// so for a file somebody typed the line is the only place left, and it used to appear only when that
+// file was the whole run.
+[<Test>]
+let ``a skipped file the caller named is said out loud beside other paths`` () =
+    let log: CollectedLog =
+        reportFormatOf
+            (InputPath.Multiple([ "A.fs"; "Skip.fs" ], []))
+            (FormatCommandResult.Completed [| FormatResult.Unchanged "A.fs"; FormatResult.IgnoredFile "Skip.fs" |])
+
+    log.Information
+    |> shouldEqual [ "- Skip.fs was ignored by .fantomasignore."; ""; "1 file unchanged." ]
+
+[<Test>]
+let ``a skipped file the walk turned up is named only at detailed verbosity`` () =
+    // Listing these would put a vendored checkout on the screen, and no count can carry them.
+    let log: CollectedLog =
+        reportFormatOf
+            (InputPath.Folder "src")
+            (FormatCommandResult.Completed
+                [| FormatResult.Unchanged "src/A.fs"; FormatResult.IgnoredFile "src/Skip.fs" |])
+
+    log.Information |> shouldEqual [ "1 file unchanged." ]
+    log.Debug |> shouldContain "'src/Skip.fs' was ignored"
+
+[<Test>]
+let ``a check says a skipped file the caller named out loud beside other paths`` () =
+    let log: CollectedLog =
+        reportCheckOf
+            (InputPath.Multiple([ "A.fs"; "Skip.fs" ], []))
+            (CheckCommandResult.Completed(
+                [ "Skip.fs" ],
+                {
+                    Errors = []
+                    Formatted = [ "A.fs" ]
+                    Unchanged = []
+                }
+            ))
+
+    log.Information
+    |> shouldEqual
+        [
+            "! A.fs needs formatting."
+            "- Skip.fs was ignored by .fantomasignore."
+            ""
+            "1 file needs formatting. Run dotnet fantomas A.fs Skip.fs to format it."
+        ]
+
+[<Test>]
+let ``a skipped file the caller named is not also said at detailed verbosity`` () =
+    // The sentence and the debug line are decided in one place, so one event cannot get two
+    // spellings the way `unchanged` once did.
+    let log: CollectedLog =
+        reportFormatOf
+            (InputPath.Multiple([ "A.fs"; "Skip.fs" ], []))
+            (FormatCommandResult.Completed [| FormatResult.Unchanged "A.fs"; FormatResult.IgnoredFile "Skip.fs" |])
+
+    log.Debug |> shouldEqual [ "'A.fs' was unchanged" ]
 
 [<Test>]
 let ``a check that found nothing says nothing`` () =
