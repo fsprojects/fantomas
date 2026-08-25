@@ -427,12 +427,89 @@ Note that <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>
 <li>A file that cannot be parsed is reported with the position of each diagnostic instead of <code>Could not parse the file.</code>, one line per diagnostic in the shape <code>src/A.fs(3,9): error FS0583: Unmatched '('</code>, followed by the source around the failure with a caret under it. <code>--check</code> reported the same failure as an exception dump with a stack trace and now uses this as well. A script that matched on <code>Could not parse the file.</code> needs to match on the new text.</li>
 <li>The <code>--help</code> page is written by Fantomas instead of by Argu, and <code>-h</code> is accepted alongside <code>--help</code>. An argument error prints its complaint on standard error followed by a pointer to <code>--help</code>, where it used to print Argu's usage block.</li>
 <li><code>--out</code> now mirrors the structure of the input folder, and creates the folders it needs.</li>
-<li>The message for an input path Fantomas cannot work with is the same whether the run formats or checks. <code>--check</code> reported <code>Input path 'x' is unsupported file type</code> and <code>Input path 'x' not found</code> without a full stop, and a run with no input path at all said <code>Input path is missing.</code> when formatting and <code>No input path provided.</code> when checking. All of them now read <code>Input path 'x' is an unsupported file type.</code>, <code>Input path 'x' not found.</code> and <code>No input path provided. Call with --help for usage information.</code> A script matching on the old text needs updating.</li>
+<li>The message for an input path Fantomas cannot work with is the same whether the run formats or checks. <code>--check</code> reported <code>Input path 'x' is unsupported file type</code> and <code>Input path 'x' not found</code> without a full stop where a format run ended both with one. Both now read <code>Input path 'x' is an unsupported file type.</code> and <code>Input path 'x' not found.</code> A script matching on the old text needs updating. A run with no input path at all is no longer refused; see the bullet on the current folder below.</li>
 <li>A file whose extension is not lowercase, such as <code>A.FS</code>, is now formatted. Up to <code>v7</code> it was refused as an unsupported file type when named directly, and passed over when found while walking a folder, so a folder run can now touch files it used to leave alone.</li>
 <li><code>fantomas src/ --out src</code> now formats the folder in place. Up to <code>v7</code> a trailing separator made the two paths count as different places, so every file was taken for the previous run's output and skipped: the run printed an empty table and exited 0 without formatting anything. The same applied to <code>fantomas src --out src/</code>. A build step that used either spelling was doing nothing and will start doing the work.</li>
 <li>Several input paths are told apart by asking the file system rather than by whether they carry an extension. Up to <code>v7</code>, <code>fantomas my.stuff src</code> reported <code>Failed to format file: my.stuff</code> and exited 1, because a folder whose name contains a dot was taken for a file. It now formats the folder. The converse also held: a path with no extension was taken for a folder, so naming a file that way ended the whole run rather than that one file.</li>
-<li>A single file matched by <code>.fantomasignore</code> reports <code>A.fs was ignored.</code> on standard out. Up to <code>v7</code> it printed nothing unless <code>--verbosity d</code> was given, even though a folder run whose only file was that same one reported it at normal verbosity. The two now agree.</li>
+<li>A single file matched by <code>.fantomasignore</code> is reported on standard out, as <code>- A.fs was ignored by .fantomasignore.</code> Up to <code>v7</code> it printed nothing unless <code>--verbosity d</code> was given, even though a folder run whose only file was that same one reported it at normal verbosity. The two now agree.</li>
+<li>Everything a format or check run prints was rewritten. A run over a folder printed a bordered table of headings and counts; it now prints one sentence per file that changed and one line of counts. A script reading this output needs updating, and <code>--json</code> is there for a caller that has to act on the result rather than read it. The shapes are set out under "What a run prints now" below.</li>
+<li><code>--profile</code> was removed. Use <code>fantomas profile &lt;paths&gt;</code>, which formats one file at a time so the timings can be compared and writes nothing. The flag wrote formatted files to disk as a side effect of measuring them, and the command does not, so it could not be kept working without silently changing what it did. Typing <code>--profile</code> reports that it is a command and prints the line to run instead.</li>
+<li><code>--check</code> and <code>--daemon</code> can also be spelled <code>fantomas check</code> and <code>fantomas daemon</code>. Both flags keep working and are not deprecated, so nothing has to change. On a terminal the older spelling prints a one line note saying how it is spelled now; a redirected stream never sees it, so build logs and editor integrations are unaffected.</li>
+<li>A run with no input path formats the folder you are in, where it used to refuse with <code>No input path provided.</code> A script that relied on the refusal to catch a missing argument no longer gets one, and will format the working directory instead.</li>
+<li>A malformed command line exits 1 rather than 2. The documented exit codes have only ever been 0, 99 and 1; 2 came from the argument parser and was never one Fantomas chose.</li>
+<li>A token beginning with a dash that is not a flag Fantomas has is reported as an unknown flag rather than as a missing input path. <code>fantomas --chek src</code> said <code>Input path '--chek' not found.</code> and now says <code>'--chek' is not a Fantomas flag. Did you mean '--check'?</code> <code>--</code> now ends the flags, so a path beginning with a dash can be named after it.</li>
+<li>Repeating a flag is allowed and the last one wins, where it used to be refused outright with <code>argument '--check' has been specified more than once</code>. <code>--out</code> is the exception: given twice, the run is refused rather than a destination being chosen for you.</li>
+<li>A file that cannot be parsed is reported as <code>src/A.fs could not be parsed by Fantomas:</code> rather than <code>Fantomas could not parse src/A.fs:</code>, and a construct that could not be modelled as <code>src/A.fs could not be formatted by Fantomas:</code>. A script matching on the old text needs updating.</li>
+<li><code>--check</code> no longer reports a file that will not parse twice, once as an error and once as needing formatting.</li>
+<li><code>--force</code> announces invalid output as a warning on standard error rather than on standard out, and says what happened rather than only that it happened.</li>
+<li><code>--version</code> prints the commit hash trimmed to the short form the <code>--help</code> page has always shown, and the whole of it at <code>--verbosity d</code>. <code>Fantomas.Client</code> is unaffected: it cuts the version at <code>+</code>.</li>
+<li>A <code>.fantomasignore</code> in a subfolder is now honoured by the command line. See "<code>.fantomasignore</code> in a subfolder" below.</li>
+<li><code>--json</code> no longer names a file that <code>.fantomasignore</code> matched, and <code>ignored</code> is no longer a status a file can carry. See "What a run says about skipped files" below.</li>
+<li>A run writing to <code>--out</code> reports what was written rather than what changed, <code>32 files written to build, 2 reformatted.</code>, since under <code>--out</code> every input produces an output file whether or not its content changed. A single file named on the command line says where it went, <code>+ src/A.fs was formatted and written to build/A.fs.</code></li>
 </ul>
+<h4><a name="What-a-run-prints-now" class="anchor" href="#What-a-run-prints-now">What a run prints now</a></h4>
+<p>Each file that changed gets a sentence of its own, opening with a character that says what happened
+to it, and the run ends with a line of counts:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="text">$ dotnet fantomas src
++ src/A.fs was formatted.
+
+1 file formatted, 30 unchanged.
+</code></pre></td></tr></table>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="text">$ dotnet fantomas check src
+! src/A.fs needs formatting.
+
+1 file needs formatting, 30 already formatted. Run dotnet fantomas src to format it.
+</code></pre></td></tr></table>
+<p>A run over a single named file is answered on its own terms, with no counts added to the one line.
+A check that finds nothing prints nothing and exits 0, as it always did.</p>
+<p>The characters are <code>+</code> formatted, <code>=</code> unchanged, <code>-</code> skipped, <code>!</code> needs formatting and <code>x</code> failed.
+Where the output goes to a terminal that can draw them, they are <code>✔</code>, <code>=</code>, <code>○</code>, <code>!</code> and <code>✘</code>
+instead; both sets carry the same five states and the words beside them say the same thing either
+way, so nothing is lost by the plainer set. Colour is used where the terminal takes it, dropped
+where the stream is redirected, and <code>NO_COLOR</code> is honoured. Standard out and standard error are
+decided separately, so piping one of them does not take the colour off the other.</p>
+<p>If you parse this output, move to <code>--json</code>, which puts one document on standard out describing
+every file the run looked at.</p>
+<h4><a name="in-a-subfolder" class="anchor" href="#in-a-subfolder"><code>.fantomasignore</code> in a subfolder</a></h4>
+<p>Up to now the command line resolved one ignore file for the whole run, the nearest at or above the
+directory it started in. The daemon resolved one per file, the nearest at or above that file. So an
+ignore file in a subfolder was honoured by an editor and invisible to a pipeline, and the same file
+was skipped in one and formatted in the other:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="text">repo/.fantomasignore          # found by both
+repo/sub/.fantomasignore      # found by the editor, ignored by the command line
+repo/sub/S.fs                 # skipped in the editor, formatted by CI
+</code></pre></td></tr></table>
+<p>Both now resolve per file, so a nested ignore file that used to have no effect on a command line
+run has one. If a subfolder of your repository carries a <code>.fantomasignore</code>, check whether it names
+files you have been formatting all along.</p>
+<p>Note that this is still the nearest ignore file and not the union of every one above it, which is
+where Fantomas differs from <code>.gitignore</code>.</p>
+<p>A folder that <code>.fantomasignore</code> names is no longer opened at all. Up to now every file inside it
+was found and then rejected one at a time. Nothing is formatted that was not formatted before, and
+a run over a repository that ignores a vendored checkout no longer reads it.</p>
+<h4><a name="What-a-run-says-about-skipped-files" class="anchor" href="#What-a-run-says-about-skipped-files">What a run says about skipped files</a></h4>
+<p>It no longer says how many, and <code>--json</code> no longer names them at all: a file an ignore pattern
+matched used to be listed in <code>files</code> with a status of <code>ignored</code>, and is absent now.</p>
+<p>The number could not be honest. An ignore pattern that names a file can be counted, because the
+file is found and then set aside. One that names a folder cannot, because the folder is never
+opened and what is inside it is unknown by design. A count right about the first and blind to the
+second reads as though it covered both: Fantomas's own repository ignores three folders holding
+ninety six F# files, and the count said nought.</p>
+<p>A file you name on the command line is the exception and still gets a line of its own, because a
+count is the only other place a path could be accounted for and no count carries this one:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="text">$ dotnet fantomas A.fs Skipped.fs
+- Skipped.fs was ignored by .fantomasignore.
+
+1 file unchanged.
+</code></pre></td></tr></table>
+<p>Everything else that was skipped is named at <code>--verbosity d</code>, a file and a folder each in its own
+words:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="text">$ dotnet fantomas check --verbosity d .
+[... DBG] './.deps' was not opened, .fantomasignore names it
+[... DBG] './src/A.fs' was ignored
+</code></pre></td></tr></table>
+<p>A run that looked at no file at all still says so on standard error and exits 0, so a glob that
+matches nothing and an ignore file that grew too wide are both still caught.</p>
 <h4><a name="mirrors-the-input-folder" class="anchor" href="#mirrors-the-input-folder"><code>--out &lt;folder&gt;</code> mirrors the input folder</a></h4>
 <p>Up to <code>v7</code>, every file found under the input folder was written straight into the root of the
 output folder, whatever its depth. Nesting collapsed, and two files with the same name in
@@ -806,6 +883,16 @@ from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List
   <li class="level-3">
     <a href="#console-application-3">
       console application
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#What-a-run-prints-now">
+      What a run prints now
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#What-a-run-says-about-skipped-files">
+      What a run says about skipped files
     </a>
   </li>
   <li class="level-3">

@@ -346,39 +346,54 @@ You can skip this step if you wish to install Fantomas globally.</p>
 <p>For the overview how to use the tool, you can type the command</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="o">--</span><span class="id">help</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code>Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-015+13561200a)
+<table class="pre"><tr><td><pre><code>Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-016+ed505f637)
 
-Usage: fantomas [...flags] [...paths]
+Usage: dotnet fantomas [command] [...flags] [...paths]
 
 Examples:
-  fantomas .                     Format every F# file below the current folder
-  fantomas src/App.fs            Format a single file in place
-  fantomas --check .             Report what needs formatting, write nothing
-  fantomas --out build src       Copy the formatted files to another folder
+  dotnet fantomas .                Format every F# file below the current folder
+  dotnet fantomas src/App.fs       Format a single file in place
+  dotnet fantomas check .          Report what needs formatting, write nothing
+  dotnet fantomas --out build src  Copy the formatted files to another folder
 
-Flags:
-      --check                Report which files need formatting and write nothing.
+Commands:
+      check &lt;paths&gt;          Report which files need formatting and write nothing.
                              Exits 0 when every file is already formatted, 99 when some
                              file needs formatting, and 1 when an error occurred.
+      profile &lt;paths&gt;        Report how long each file takes to format, slowest first.
+                             Formats one file at a time so the timings can be compared,
+                             and writes nothing.
+      daemon                 Run an LSP-like server that editor tooling can talk to.
+                             Takes no paths or other flags, apart from --verbosity.
+
+Flags:
       --out &lt;path&gt;           Write the result to this file or folder instead of formatting
                              in place. Takes a single input path.
       --force                Write the output even when it is not valid F# code.
                              For debugging purposes only.
-      --profile              Print the line count and the time taken for every file.
       --json                 Report what the run did as one JSON document on standard out,
                              naming every file and positioning what went wrong. The usual
                              messages are not printed; warnings go to standard error.
-      --daemon               Run an LSP-like server that editor tooling can talk to.
-                             Takes no other flags or paths, apart from --verbosity.
+                             The shape is for reading, not for parsing against: it carries
+                             no version and may change in any release. The exit code is
+                             the part that is promised.
   -v, --verbosity &lt;level&gt;    How much to print: normal or detailed. Defaults to normal.
                              n and d are accepted as well.
       --version              Print the version and exit
   -h, --help                 Display this menu and exit
 
+      --check                The older spelling of the check command above. Both do the
+                             same thing, and this one keeps working.
+      --daemon               The older spelling of the daemon command above. Both do the
+                             same thing, and this one keeps working, which is what lets
+                             editor tooling built against an earlier Fantomas start this
+                             one.
+
 Paths:
   A path is a folder, which is searched recursively, or a file ending in .fs, .fsi,
-  .fsx, .ml or .mli. Formatting settings are read from .editorconfig, and files
-  matched by .fantomasignore in the current folder are skipped.
+  .fsx, .ml or .mli. Naming none means the current folder. Formatting settings are
+  read from .editorconfig, and files matched by the nearest .fantomasignore at or
+  above them are skipped.
 
 Learn more about Fantomas:   https://fsprojects.github.io/fantomas/docs
 Configure Fantomas:          https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html
