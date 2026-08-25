@@ -56,6 +56,47 @@ type IWSAMTest<'e> =
 """
     |> should equal true
 
+// What the verdict is built from. `isValidFSharpCode` above reads `IsValid` off the same result, so
+// these are about the half of it a caller could not see before.
+
+let private validate (isSignature: bool) (source: string) : Fantomas.Core.ValidationResult =
+    Fantomas.Core.CodeFormatter.ValidateFSharpCodeAsync(isSignature, source)
+    |> Async.RunSynchronously
+
+[<Test>]
+let ``source Fantomas accepts has nothing to report about it`` () =
+    let result = validate false "let a = 1\n"
+
+    result.IsValid |> should equal true
+    result.Diagnostics |> should be Empty
+
+[<Test>]
+let ``source Fantomas refuses says what it refused`` () =
+    let result = validate false "let a = (1\n"
+
+    result.IsValid |> should equal false
+    result.Diagnostics |> should not' (be Empty)
+
+    // Positioned, because positioning it against the source is the whole reason a caller asks.
+    let diagnostic = List.head result.Diagnostics
+    diagnostic.Range |> should not' (equal None)
+
+[<Test>]
+let ``a warning Fantomas tolerates is not a reason to refuse, 3396`` () =
+    // The set of tolerated warnings is what makes `IsValid` more than "the parser had nothing to
+    // say", and the diagnostics have to be filtered by it too, or a report points at a warning that
+    // was never the reason.
+    let result =
+        validate
+            false
+            """
+type IWSAMTest<'e> =
+    static abstract member Test: int -> 'e
+"""
+
+    result.IsValid |> should equal true
+    result.Diagnostics |> should be Empty
+
 // InvariantViolationException marks a state the transformer's own model says is impossible.
 // It must derive from FormatException: the CLI matches on that type to decide what to print,
 // and anything else falls through to an empty message at normal verbosity.

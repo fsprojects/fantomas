@@ -297,8 +297,15 @@ let ``without force, output that is not valid F# is not written`` () =
     match format fs (InputPath.File input) (OutputPath.IO output) |> results with
     | [| FormatResult.Error(f, error) |] ->
         f |> shouldEqual input
-        error.Message |> shouldContainText "not valid F#"
         fs.File.Exists output |> shouldEqual false
+
+        // The failure carries what was refused and why, which is the whole of what a report can
+        // show: the output is written nowhere, so there is no second place to read it from.
+        match error with
+        | :? InvalidCodeException as invalid ->
+            invalid.FormattedContent |> shouldNotEqual ""
+            invalid.Diagnostics |> List.isEmpty |> shouldEqual false
+        | other -> failwith $"Expected an InvalidCodeException, got %A{other}"
     | other -> failwith $"Expected the invalid output to be withheld, got %A{other}"
 
 [<Test>]

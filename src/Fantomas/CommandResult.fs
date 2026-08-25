@@ -2,12 +2,14 @@ module Fantomas.CommandResult
 
 open System
 open Fantomas.Core
+open Fantomas.FCS.Parse
+open Fantomas.Theme
 
 [<RequireQualifiedAccess; NoComparison>]
 type FormatResult =
     | Formatted of filename: string * formattedContent: string
     | Unchanged of filename: string
-    | InvalidCode of filename: string * formattedContent: string
+    | InvalidCode of filename: string * formattedContent: string * diagnostics: FSharpParserDiagnostic list
     | Error of filename: string * formattingError: exn
     | IgnoredFile of filename: string
 
@@ -23,11 +25,14 @@ type CheckResult =
     member this.NeedsFormatting = List.isNotEmpty this.Formatted
     member this.IsValid = List.isEmpty this.Errors && List.isEmpty this.Formatted
 
-// Not naming the file. Every reporter that shows this already has the file in hand and puts it in
-// front: the line came out as `A.fs could not be formatted: Formatting A.fs leads to invalid F#
-// code`, and the JSON document carries the message next to a `path` key saying the same thing.
-let invalidResultException () : FormatException =
-    FormatException("Fantomas produced code that is not valid F#.")
+type InvalidCodeException(formattedContent: string, diagnostics: FSharpParserDiagnostic list) =
+    inherit FormatException(String.Empty)
+
+    member _.FormattedContent = formattedContent
+
+    member _.Diagnostics = diagnostics
+
+    override _.Message = Diagnostics.invalidOutputExplanation Theme.plain
 
 [<RequireQualifiedAccess; Struct>]
 type InputProblem =

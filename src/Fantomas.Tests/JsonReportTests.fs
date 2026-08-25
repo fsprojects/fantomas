@@ -193,14 +193,50 @@ let ``a failure that is not a parse failure is carried as its message alone`` ()
 
 [<Test>]
 let ``output Fantomas invalidated is reported as a failure of that file`` () =
-    let document: JsonElement = completed [ FormatResult.InvalidCode("a.fs", "") ]
+    let rejection: Fantomas.FCS.Parse.FSharpParserDiagnostic list =
+        [
+            {
+                Severity = Fantomas.FCS.Diagnostics.FSharpDiagnosticSeverity.Error
+                SubCategory = "parse"
+                Range =
+                    Some(
+                        Fantomas.FCS.Text.Range.mkRange
+                            "tmp.fsx"
+                            (Fantomas.FCS.Text.Position.mkPos 3 9)
+                            (Fantomas.FCS.Text.Position.mkPos 3 10)
+                    )
+                ErrorNumber = Some 583
+                Message = "Unmatched '('"
+            }
+        ]
+
+    let document: JsonElement =
+        completed [ FormatResult.InvalidCode("a.fs", "module A\n\nlet a = (1\n", rejection) ]
+
     let file: JsonElement = files document |> List.exactlyOne
     snd (statusOf file) |> shouldEqual "error"
 
     // The path is a key of its own beside the message, so the message does not repeat it.
     file.GetProperty("path").GetString() |> shouldEqual "a.fs"
 
-    file.GetProperty("message").GetString() |> shouldContainText "not valid F#"
+    // The same wording the console prints, minus the colour and the file in front of it, rather
+    // than a shorter sentence written for this document alone.
+    let message: string = file.GetProperty("message").GetString()
+    message |> shouldContainText "your file is unchanged"
+    message |> shouldContainText "a bug in Fantomas"
+
+    // What was wrong with the output, carried the way a parse failure's diagnostics are, so a
+    // caller has the position without having to read it back out of the prose.
+    let diagnostic: JsonElement =
+        file.GetProperty("diagnostics").EnumerateArray()
+        |> List.ofSeq
+        |> List.exactlyOne
+
+    diagnostic.GetProperty("severity").GetString() |> shouldEqual "error"
+    diagnostic.GetProperty("code").GetString() |> shouldEqual "FS0583"
+
+    diagnostic.GetProperty("range").GetProperty("startLine").GetInt32()
+    |> shouldEqual 3
 
 // Only a file that failed carries them, so a folder of files that were fine does not repeat a null
 // message and an empty list for every one of them.

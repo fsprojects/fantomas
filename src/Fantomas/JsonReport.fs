@@ -73,8 +73,14 @@ let describeDiagnostic (diagnostic: FSharpParserDiagnostic) : Diagnostic =
         Range = Option.map describeRange diagnostic.Range
     }
 
-// A parse failure is the one error worth taking apart: its positions are what a caller can act on
+// The two failures with positions worth taking apart, since those are what a caller can act on
 // without opening the file. Everything else has only a message, so it is carried as one.
+//
+// The positions of an invalid output are positions in output that was thrown away rather than in
+// the file at `path`, which the text report says out loud and this document has nowhere to. A
+// caller reading these as offsets into the file on disk will be reading the wrong lines. What the
+// document is for is knowing that it happened and where to look; the text report is what says what
+// the lines are.
 let describeFileFailure (file: string) (error: exn) : FileOutcome =
     match error with
     | :? ParseException as parseFailure ->
@@ -82,6 +88,8 @@ let describeFileFailure (file: string) (error: exn) : FileOutcome =
             $"%s{file} could not be parsed by Fantomas",
             List.map describeDiagnostic parseFailure.Diagnostics
         )
+    | :? InvalidCodeException as invalid ->
+        FileOutcome.Failed(invalid.Message, List.map describeDiagnostic invalid.Diagnostics)
     | _ ->
         let message: string = describeFailure error |> Option.defaultValue error.Message
 
@@ -115,11 +123,11 @@ let describeResult (result: FormatResult) : FileReport option =
                 Path = file
                 Outcome = describeFileFailure file error
             }
-    | FormatResult.InvalidCode(file, _) ->
+    | FormatResult.InvalidCode(file, formattedContent, diagnostics) ->
         Some
             {
                 Path = file
-                Outcome = describeFileFailure file (invalidResultException ())
+                Outcome = describeFileFailure file (InvalidCodeException(formattedContent, diagnostics))
             }
 
 let formatReport (workingDirectory: string) (result: FormatCommandResult) : RunReport =

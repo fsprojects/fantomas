@@ -68,3 +68,34 @@ val renderInvariantViolation:
 /// invariant violation.
 val describeInvariantViolation:
     theme: Theme -> file: string -> source: (unit -> string) -> verbose: bool -> error: exn -> string option
+
+/// What to say when formatting produced output that Fantomas itself would not accept. This is the
+/// message the failure carries, so that a caller with no console to draw a report on still has the
+/// whole of it in words.
+///
+/// It does not name the file, because nothing that shows it is short of one: a reporter puts the
+/// path in front of it and the JSON document carries it as a key beside it. Naming it here is what
+/// made the line read `A.fs could not be formatted: Formatting A.fs leads to invalid F# code`.
+///
+/// What it says is that the file was not touched, which is the first thing somebody wants to know
+/// after reading that formatting produced something invalid, and that this is a bug in Fantomas and
+/// where to take it, since reaching this state is never the file's fault.
+val invalidOutputExplanation: theme: Theme -> string
+
+/// Render an invalid output failure for `file`: the same header the other two reports open with,
+/// what happened, what the parser said about `output`, and the request for a bug report.
+///
+/// `output` is what Fantomas produced and would not accept, and `diagnostics` are what it would not
+/// accept about it. Without them the reader is told that something was wrong with a file they cannot
+/// see, and is left to run again with `--force` and find it themselves. With them they have the line
+/// to cut a small reproduction from, which is what a bug report needs and what no amount of prose
+/// supplies. Pass an empty list to leave the whole section out.
+///
+/// Each is rendered without its position, which is where this departs from every other report here.
+/// A position is somewhere to go and there is nowhere to go: `output` is thrown away and written
+/// nowhere, so a line number into it is a coordinate in a buffer the reader cannot open, and
+/// `path(line,column)` would be a link an editor follows to the wrong line of the right file. The
+/// snippet is what says where, by pointing at the line. It is drawn for the first of them, which is
+/// also the first listed, since they are ordered by position.
+val renderInvalidOutput:
+    theme: Theme -> file: string -> output: string -> diagnostics: FSharpParserDiagnostic list -> string

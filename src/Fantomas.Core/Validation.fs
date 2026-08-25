@@ -18,7 +18,7 @@ let safeToIgnoreWarnings =
             3535 // tcUsingInterfacesWithAbstractStaticMembers
         ]
 
-let noWarningOrErrorDiagnostics diagnostics =
+let invalidatingDiagnostics (diagnostics: FSharpParserDiagnostic list) : FSharpParserDiagnostic list =
     diagnostics
     |> List.filter (fun e ->
         match e.Severity with
@@ -30,10 +30,11 @@ let noWarningOrErrorDiagnostics diagnostics =
             | None -> true
             | Some errorNumber -> not (safeToIgnoreWarnings.Contains(errorNumber))
     )
-    |> List.isEmpty
 
-/// Check whether an input string is invalid in F# by looking for errors and warnings in the diagnostics.
-let isValidFSharpCode (isSignature: bool) (source: string) : Async<bool> =
+let noWarningOrErrorDiagnostics (diagnostics: FSharpParserDiagnostic list) : bool =
+    List.isEmpty (invalidatingDiagnostics diagnostics)
+
+let validateFSharpCode (isSignature: bool) (source: string) : Async<ValidationResult> =
     async {
         // First get the syntax tree without any defines
         let sourceText = SourceText.ofString source
@@ -45,18 +46,32 @@ let isValidFSharpCode (isSignature: bool) (source: string) : Async<bool> =
             | ParsedInput.SigFile(ParsedSigFileInput(trivia = { ConditionalDirectives = directives })) -> directives
 
         match hashDirectives with
-        | [] -> return noWarningOrErrorDiagnostics baseDiagnostics
+        | [] ->
+            return
+                {
+                    Diagnostics = invalidatingDiagnostics baseDiagnostics
+                }
 
         | hashDirectives ->
 
             let defineCombinations = Defines.getDefineCombination hashDirectives
 
-            let isValidForCombinations =
+            // The first combination that fails is the one reported, and the ones after it are not
+            // parsed at all. Every combination is parsed from the same text, so whichever failed
+            // positions a reader in the same source; and the answer to whether the whole is valid
+            // was settled the moment one of them was not.
+            let offending: FSharpParserDiagnostic list option =
                 defineCombinations
-                |> List.map (fun defineCombination ->
+                |> List.tryPick (fun defineCombination ->
                     let _, diagnostics = parseFile isSignature sourceText defineCombination.Value
-                    noWarningOrErrorDiagnostics diagnostics
+
+                    match invalidatingDiagnostics diagnostics with
+                    | [] -> None
+                    | offending -> Some offending
                 )
 
-            return Seq.forall id isValidForCombinations
+            return
+                {
+                    Diagnostics = Option.defaultValue [] offending
+                }
     }

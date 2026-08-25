@@ -5,6 +5,7 @@ open System.IO.Abstractions.TestingHelpers
 open NUnit.Framework
 open FsUnitTyped
 open Fantomas.Core
+open Fantomas.FCS.Text
 open Fantomas.Arguments
 open Fantomas.CommandResult
 open Fantomas.Logging
@@ -17,6 +18,21 @@ let private run () : RecordedRun =
 /// The folder a test's results are pretended to have come from, named back in the messages that
 /// have to name it. Which path it is does not matter to any assertion here.
 let private inputFolder: InputPath = InputPath.Folder "src"
+
+/// Output Fantomas would not accept, and what it would not accept about it. Built here rather than
+/// produced by formatting something, since what these tests are about is the reporting.
+let private rejectedOutput: string = "module A\n\nlet a = (1\n"
+
+let private rejection: Fantomas.FCS.Parse.FSharpParserDiagnostic list =
+    [
+        {
+            Severity = Fantomas.FCS.Diagnostics.FSharpDiagnosticSeverity.Error
+            SubCategory = "parse"
+            Range = Some(Range.mkRange "tmp.fsx" (Position.mkPos 3 9) (Position.mkPos 3 10))
+            ErrorNumber = Some 583
+            Message = "Unmatched '('"
+        }
+    ]
 
 let private reportFormatTo
     (outputPath: OutputPath)
@@ -203,17 +219,30 @@ let ``a single file that failed is reported on error and exits 1`` () =
 [<Test>]
 let ``code that came out invalid is reported as a failure and exits 1`` () =
     let code, log =
-        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.InvalidCode("A.fs", "let a =") |])
+        reportFormat
+            defaultSettings
+            (FormatCommandResult.Completed [| FormatResult.InvalidCode("A.fs", rejectedOutput, rejection) |])
 
     code |> shouldEqual 1
 
-    // The file is named once. It used to be named twice, once by the reporter and again inside the
-    // message the exception carried.
-    log.Error
-    |> shouldEqual
-        [
-            "x A.fs could not be formatted: Fantomas produced code that is not valid F#."
-        ]
+    // One report, and the file named once inside it. It used to be named twice, once by the
+    // reporter and again inside the message the exception carried.
+    let report: string = log.Error |> List.exactlyOne
+    report.Split("A.fs").Length - 1 |> shouldEqual 1
+
+    report.Split('\n')
+    |> Array.head
+    |> shouldEqual "x A.fs could not be formatted by Fantomas:"
+
+    // The four things the report exists to say: whose fault this is, that nothing was lost, where
+    // to take it, and what was wrong with the output. It used to say only that the code was not
+    // valid, which reads as though the file were at fault and leaves the reader with nothing to do
+    // but run again with `--force` and find it themselves.
+    report |> shouldContainText "a bug in Fantomas"
+    report |> shouldContainText "your file is unchanged"
+    report |> shouldContainText "https://fsprojects.github.io/fantomas-tools/"
+    report |> shouldContainText "error FS0583: Unmatched '('"
+    report |> shouldContainText "3 | let a = (1"
 
 [<Test>]
 let ``a failure says what went wrong at any verbosity`` () =
@@ -370,6 +399,34 @@ let ``a single file that was skipped or failed names no destination`` () =
             (FormatCommandResult.Completed [| FormatResult.IgnoredFile "A.fs" |])
 
     log.Information |> shouldEqual [ "- A.fs was ignored by .fantomasignore." ]
+
+[<Test>]
+let ``a check reports invalid output the same way a format run does`` () =
+    // The two commands had a copy each of the match that asks a failure to describe itself, and the
+    // check copy knew about two of the three: it printed the whole explanation after `could not be
+    // checked:` where a format run printed the block.
+    let code, log =
+        reportCheck (
+            CheckCommandResult.Completed(
+                [],
+                {
+                    Errors = [ "A.fs", InvalidCodeException(rejectedOutput, rejection) ]
+                    Formatted = []
+                    Unchanged = []
+                }
+            )
+        )
+
+    code |> shouldEqual 1
+
+    let report: string = log.Error |> List.exactlyOne
+
+    report.Split('\n')
+    |> Array.head
+    |> shouldEqual "x A.fs could not be formatted by Fantomas:"
+
+    report |> shouldContainText "your file is unchanged"
+    report |> shouldContainText "error FS0583: Unmatched '('"
 
 [<Test>]
 let ``a check that looked at no file says so rather than passing in silence`` () =
