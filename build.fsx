@@ -10,6 +10,7 @@
 // above it to be in scope and does not load them itself. Loading a file twice would compile it
 // twice, and two copies of a type are two different types, so the order lives here and nowhere else.
 #load "scripts/BuildCommon.fsx"
+#load "scripts/BuildScripts.fsx"
 #load "scripts/BuildAnalyzers.fsx"
 #load "scripts/BuildRelease.fsx"
 #load "scripts/BuildCompiler.fsx"
@@ -19,6 +20,7 @@ open System.IO
 open Fun.Build
 open CliWrap
 open BuildCommon
+open BuildScripts
 open BuildAnalyzers
 open BuildRelease
 open BuildCompiler
@@ -58,6 +60,8 @@ pipeline "Build" {
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
     stage "CheckFormat" { run "dotnet fantomas src analyzers docs scripts build.fsx --check --json" }
+    stage "BuildDebug" { run $"dotnet build \"{scriptProject}\" --tl" }
+    stage "CheckScripts" { run checkScripts }
     stage "Build" { run "dotnet build -c Release --tl" }
     stage "UnitTests" { run "dotnet test -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
