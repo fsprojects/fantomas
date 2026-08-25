@@ -6,6 +6,7 @@ open Spectre.Console
 open Fantomas
 open Fantomas.Core
 open Fantomas.Logging
+open Fantomas.Theme
 
 [<NoComparison; NoEquality>]
 type CliEnvironment =
@@ -15,6 +16,8 @@ type CliEnvironment =
         ReadConfiguration: string -> FormatConfig
         Log: ILogger
         Console: IAnsiConsole
+        OutputTheme: Theme
+        ErrorTheme: Theme
     }
 
 type CliSettings =

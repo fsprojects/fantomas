@@ -5,6 +5,7 @@ open System.IO.Abstractions.TestingHelpers
 open NUnit.Framework
 open FsUnitTyped
 open Fantomas.Core
+open Fantomas.Arguments
 open Fantomas.CommandResult
 open Fantomas.Logging
 open Fantomas.Report
@@ -13,18 +14,33 @@ open Fantomas.Tests.TestHelpers
 let private run () : RecordedRun =
     recordingEnvironment (MockFileSystem()) None
 
-let private reportFormat
+/// The folder a test's results are pretended to have come from, named back in the messages that
+/// have to name it. Which path it is does not matter to any assertion here.
+let private inputFolder: InputPath = InputPath.Folder "src"
+
+let private reportFormatTo
+    (outputPath: OutputPath)
     (settings: Fantomas.Cli.CliSettings)
     (result: FormatCommandResult)
     : int * CollectedLog * string
     =
     let recorded: RecordedRun = run ()
-    let code: int = reportFormatCommand recorded.Environment settings result
+
+    let code: int =
+        reportFormatCommand recorded.Environment settings inputFolder outputPath result
+
     code, recorded.Log(), recorded.Drawn()
+
+let private reportFormat
+    (settings: Fantomas.Cli.CliSettings)
+    (result: FormatCommandResult)
+    : int * CollectedLog * string
+    =
+    reportFormatTo OutputPath.NotKnown settings result
 
 let private reportCheck (result: CheckCommandResult) : int * CollectedLog =
     let recorded: RecordedRun = run ()
-    let code: int = reportCheckCommand recorded.Environment result
+    let code: int = reportCheckCommand recorded.Environment inputFolder result
     code, recorded.Log()
 
 [<Test>]
@@ -40,7 +56,7 @@ let ``every way the input paths can fail has its own wording`` () =
         [
             "Input path 'A.md' is an unsupported file type."
             "Input path 'A.fs' not found."
-            "No input path provided. Call with --help for usage information."
+            "No input path provided. Run fantomas --help for usage information."
             "Multiple input files are not supported with the --out flag."
         ]
 
@@ -69,8 +85,8 @@ let ``a single formatted file is reported as a sentence naming it`` () =
             (FormatCommandResult.Completed [| FormatResult.Formatted("A.fs", "let a = 1", None) |])
 
     code |> shouldEqual 0
-    log.Information |> shouldEqual [ "A.fs was formatted." ]
-    // A table of one row would say less than the sentence does, so none is drawn.
+    log.Information |> shouldEqual [ "+ A.fs was formatted." ]
+    // Nothing is drawn: a summary of one file would say less than the sentence already does.
     drawn |> shouldEqual ""
 
 [<Test>]
@@ -89,9 +105,11 @@ let ``a file is reported by the path it was given, not by its name alone`` () =
         reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.IgnoredFile path |])
 
     formatted |> shouldEqual 0
-    log.Information |> shouldEqual [ "sub/A.fs was formatted." ]
-    unchangedLog.Information |> shouldEqual [ "sub/A.fs was unchanged." ]
-    ignoredLog.Information |> shouldEqual [ "sub/A.fs was ignored." ]
+    log.Information |> shouldEqual [ "+ sub/A.fs was formatted." ]
+    unchangedLog.Information |> shouldEqual [ "= sub/A.fs was unchanged." ]
+
+    ignoredLog.Information
+    |> shouldEqual [ "- sub/A.fs was ignored by .fantomasignore." ]
 
 [<Test>]
 let ``a file that failed is reported by the path it was given`` () =
@@ -100,7 +118,7 @@ let ``a file that failed is reported by the path it was given`` () =
             defaultSettings
             (FormatCommandResult.Completed [| FormatResult.Error("sub/A.fs", Exception "boom") |])
 
-    log.Error |> shouldEqual [ "Failed to format file: sub/A.fs" ]
+    log.Error |> shouldEqual [ "x sub/A.fs could not be formatted." ]
 
 [<Test>]
 let ``a check names the files it found by the path it was given`` () =
@@ -116,11 +134,17 @@ let ``a check names the files it found by the path it was given`` () =
             )
         )
 
-    log.Information |> shouldEqual [ "sub/A.fs needs formatting" ]
+    log.Information
+    |> shouldEqual
+        [
+            "! sub/A.fs needs formatting."
+            ""
+            "1 needs formatting. Run dotnet fantomas src to format it."
+        ]
 
 [<Test>]
 let ``the files a run ignored are named at detailed verbosity`` () =
-    // A single result is named outright; among several, only the counts table is drawn, so this
+    // A single result is named outright; among several, only what changed is listed, so this
     // debug line is the only place a folder run says which files it skipped.
     let _, log, _ =
         reportFormat
@@ -139,7 +163,7 @@ let ``a single unchanged file is reported as unchanged`` () =
         reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Unchanged("A.fs", None) |])
 
     code |> shouldEqual 0
-    log.Information |> shouldEqual [ "A.fs was unchanged." ]
+    log.Information |> shouldEqual [ "= A.fs was unchanged." ]
 
 [<Test>]
 let ``a single ignored file is reported as ignored`` () =
@@ -147,7 +171,7 @@ let ``a single ignored file is reported as ignored`` () =
         reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.IgnoredFile "A.fs" |])
 
     code |> shouldEqual 0
-    log.Information |> shouldEqual [ "A.fs was ignored." ]
+    log.Information |> shouldEqual [ "- A.fs was ignored by .fantomasignore." ]
 
 [<Test>]
 let ``a single file that failed is reported on error and exits 1`` () =
@@ -155,7 +179,7 @@ let ``a single file that failed is reported on error and exits 1`` () =
         reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Error("A.fs", Exception "boom") |])
 
     code |> shouldEqual 1
-    log.Error |> shouldEqual [ "Failed to format file: A.fs" ]
+    log.Error |> shouldEqual [ "x A.fs could not be formatted." ]
 
 [<Test>]
 let ``code that came out invalid is reported as a failure and exits 1`` () =
@@ -165,7 +189,7 @@ let ``code that came out invalid is reported as a failure and exits 1`` () =
     code |> shouldEqual 1
 
     log.Error
-    |> shouldEqual [ "Failed to format file: A.fs : Formatting A.fs leads to invalid F# code" ]
+    |> shouldEqual [ "x A.fs could not be formatted: Formatting A.fs leads to invalid F# code" ]
 
 [<Test>]
 let ``a detailed run reports the whole exception rather than a line`` () =
@@ -181,7 +205,7 @@ let ``a detailed run reports the whole exception rather than a line`` () =
     log.Error |> List.exactlyOne |> shouldContainText "System.Exception: boom"
 
 [<Test>]
-let ``several files are reported as a table of counts`` () =
+let ``several files are reported as what changed and a line of counts`` () =
     let code, log, drawn =
         reportFormat
             defaultSettings
@@ -193,12 +217,60 @@ let ``several files are reported as a table of counts`` () =
                 |])
 
     code |> shouldEqual 0
-    // No sentence per file: the table is the report.
+
+    // Only what changed is listed. The rest is a count, which is what keeps a run over an already
+    // formatted tree to a single line. A state at zero is left out, so `errored` is absent here.
+    log.Information
+    |> shouldEqual [ "+ A.fs was formatted."; ""; "1 formatted, 1 unchanged, 1 ignored." ]
+
+    // Nothing is drawn any more: the summary is written like everything else.
+    drawn |> shouldEqual ""
+
+[<Test>]
+let ``a run that found no F# files says so rather than exiting quietly`` () =
+    // Silence and exit 0 is what a bad glob or an over broad ignore file used to look like, which
+    // reads as a green build forever.
+    let code, log, _ = reportFormat defaultSettings (FormatCommandResult.Completed [||])
+
+    code |> shouldEqual 0
     log.Information |> shouldBeEmpty
-    drawn |> shouldContainText "Formatted"
-    drawn |> shouldContainText "Ignored"
-    drawn |> shouldContainText "Unchanged"
-    drawn |> shouldContainText "Errored"
+    log.Warning |> shouldEqual [ "No F# files found in src." ]
+
+[<Test>]
+let ``a run that ignored every file it found says so`` () =
+    let code, log, _ =
+        reportFormat
+            defaultSettings
+            (FormatCommandResult.Completed [| FormatResult.IgnoredFile "A.fs"; FormatResult.IgnoredFile "B.fs" |])
+
+    code |> shouldEqual 0
+    log.Information |> shouldBeEmpty
+
+    log.Warning
+    |> shouldEqual [ "All 2 F# files in src were ignored by .fantomasignore." ]
+
+[<Test>]
+let ``writing somewhere else counts what was written rather than what changed`` () =
+    // Under --out nothing is really unchanged: every input produces an output file, so the count
+    // that means something is how many were written.
+    let _, log, _ =
+        reportFormatTo
+            (OutputPath.IO "build")
+            defaultSettings
+            (FormatCommandResult.Completed
+                [|
+                    FormatResult.Formatted("A.fs", "", None)
+                    FormatResult.Unchanged("B.fs", None)
+                    FormatResult.Unchanged("C.fs", None)
+                |])
+
+    log.Information
+    |> shouldEqual [ "+ A.fs was formatted."; ""; "3 files written to build, 1 reformatted." ]
+
+[<Test>]
+let ``a summary leaves out the states that did not happen`` () =
+    summaryLine plainTheme [ 2, "formatted"; 0, "errored"; 30, "unchanged" ]
+    |> shouldEqual "2 formatted, 30 unchanged."
 
 [<Test>]
 let ``one failure among several files still exits 1`` () =
@@ -212,7 +284,7 @@ let ``one failure among several files still exits 1`` () =
                 |])
 
     code |> shouldEqual 1
-    log.Error |> shouldEqual [ "Failed to format file: B.fs" ]
+    log.Error |> shouldEqual [ "x B.fs could not be formatted." ]
 
 [<Test>]
 let ``profiling reports the line count and the time taken for a single file`` () =
@@ -244,7 +316,7 @@ let ``nothing is profiled unless profiling was asked for`` () =
     let _, log, _ =
         reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Formatted("A.fs", "", profile) |])
 
-    log.Information |> shouldEqual [ "A.fs was formatted." ]
+    log.Information |> shouldEqual [ "+ A.fs was formatted." ]
 
 [<Test>]
 let ``a check of an unusable input path exits 1`` () =
@@ -254,7 +326,7 @@ let ``a check of an unusable input path exits 1`` () =
     code |> shouldEqual 1
 
     log.Error
-    |> shouldEqual [ "No input path provided. Call with --help for usage information." ]
+    |> shouldEqual [ "No input path provided. Run fantomas --help for usage information." ]
 
 [<Test>]
 let ``a check that failed outright is reported and exits 1`` () =
@@ -265,7 +337,7 @@ let ``a check that failed outright is reported and exits 1`` () =
     log.Error |> shouldEqual [ "the ignore file makes no sense" ]
 
 [<Test>]
-let ``a check with nothing to do exits 0`` () =
+let ``a check with nothing to do says nothing and exits 0`` () =
     let code, log =
         reportCheck (
             CheckCommandResult.Completed(
@@ -278,11 +350,14 @@ let ``a check with nothing to do exits 0`` () =
             )
         )
 
+    // A question that found nothing has nothing to report. The exit code is the answer, and a
+    // caller testing for empty output still gets it.
     code |> shouldEqual 0
-    log.Debug |> shouldEqual [ "No changes required." ]
+    log.Information |> shouldBeEmpty
+    log.Error |> shouldBeEmpty
 
 [<Test>]
-let ``a check reports the files it ignored`` () =
+let ``a check names the single file it was given and then ignored`` () =
     let code, log =
         reportCheck (
             CheckCommandResult.Completed(
@@ -295,8 +370,10 @@ let ``a check reports the files it ignored`` () =
             )
         )
 
+    // Silence here reads as "already formatted" when nothing was looked at at all.
     code |> shouldEqual 0
-    log.Debug |> shouldContain "'A.fs' was ignored"
+
+    log.Information |> shouldEqual [ "- A.fs was ignored by .fantomasignore." ]
 
 [<Test>]
 let ``a check that found files needing formatting exits 99`` () =
@@ -315,7 +392,13 @@ let ``a check that found files needing formatting exits 99`` () =
     code |> shouldEqual 99
 
     log.Information
-    |> shouldEqual [ "A.fs needs formatting"; "B.fs needs formatting" ]
+    |> shouldEqual
+        [
+            "! A.fs needs formatting."
+            "! B.fs needs formatting."
+            ""
+            "2 need formatting. Run dotnet fantomas src to format them."
+        ]
 
 [<Test>]
 let ``a check that could not format a file exits 1 rather than 99`` () =
@@ -325,11 +408,15 @@ let ``a check that could not format a file exits 1 rather than 99`` () =
                 [],
                 {
                     Errors = [ "A.fs", Exception "boom" ]
-                    Formatted = [ "A.fs" ]
+                    Formatted = []
                     Unchanged = []
                 }
             )
         )
 
     code |> shouldEqual 1
-    log.Error |> List.exactlyOne |> shouldContainText "Failed to format A.fs"
+    log.Error |> List.exactlyOne |> shouldContainText "A.fs could not be checked"
+
+    // The file is named once, under the heading that is true of it. Telling the reader to run a
+    // formatter that has already failed on it is what the old report did.
+    log.Information |> shouldBeEmpty

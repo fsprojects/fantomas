@@ -9,6 +9,7 @@ open Serilog
 open Serilog.Core
 open Serilog.Events
 open Spectre.Console
+open Fantomas.Theme
 open Fantomas
 open Fantomas.Cli
 open Fantomas.Core
@@ -50,6 +51,7 @@ type TemporaryFileCodeSample
         let extension = Option.defaultValue "fs" extension
 
         match internalSubFolders with
+        | None -> Path.Join(Path.GetTempPath(), sprintf "%s.%s" name extension)
         | Some sf ->
             let tempFolder = Path.Join(Path.GetTempPath(), Path.Join(sf))
 
@@ -57,7 +59,6 @@ type TemporaryFileCodeSample
                 Directory.CreateDirectory(tempFolder) |> ignore
 
             Path.Join(tempFolder, sprintf "%s.%s" name extension)
-        | None -> Path.Join(Path.GetTempPath(), sprintf "%s.%s" name extension)
 
     do
         (if hasByteOrderMark then
@@ -207,6 +208,14 @@ let recordingConsole () : IAnsiConsole * (unit -> string) =
     console.Profile.Width <- 200
     console, (fun () -> writer.ToString())
 
+/// No colour and the ascii glyphs, so a test asserts on what was said rather than on how it was
+/// drawn. What the theme does with each of those is settled in `ThemeTests`.
+let plainTheme: Theme =
+    {
+        Palette = Palette.NoColour
+        Glyphs = GlyphSet.Ascii
+    }
+
 /// A `CliEnvironment` that keeps whatever a run writes, with the two ways to read it back.
 [<NoComparison; NoEquality>]
 type RecordedRun =
@@ -236,6 +245,8 @@ let recordingEnvironment (fs: IFileSystem) (ignoreFile: IgnoreFile option) : Rec
                         }
                 Log = logger
                 Console = console
+                OutputTheme = plainTheme
+                ErrorTheme = plainTheme
             }
         Log = collected
         Drawn = drawn
@@ -280,6 +291,8 @@ let realEnvironment: CliEnvironment =
         ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter Log.Logger)
         Log = Log.Logger
         Console = AnsiConsole.Console
+        OutputTheme = plainTheme
+        ErrorTheme = plainTheme
     }
 
 type FantomasToolResult =

@@ -36,9 +36,9 @@ let headline (file: string) (diagnostic: FSharpParserDiagnostic) : string =
     let message = diagnostic.Message.Replace("\r\n", " ").Replace("\n", " ")
 
     match diagnostic.Range with
+    | None -> $"%s{file}: %s{severityText diagnostic} %s{errorNumber diagnostic}: %s{message}"
     | Some range ->
         $"%s{file}(%i{range.StartLine},%i{range.StartColumn + 1}): %s{severityText diagnostic} %s{errorNumber diagnostic}: %s{message}"
-    | None -> $"%s{file}: %s{severityText diagnostic} %s{errorNumber diagnostic}: %s{message}"
 
 let position (diagnostic: FSharpParserDiagnostic) : int * int =
     match diagnostic.Range with
@@ -112,7 +112,7 @@ let renderParseFailure (file: string) (source: string) (diagnostics: FSharpParse
     // The report ends with a blank line as well as starting with one, so that a run over several
     // files does not have one file's snippet running into the next file's header.
     [
-        yield $"Fantomas could not parse %s{file}:"
+        yield $"%s{file} could not be parsed by Fantomas:"
         yield ""
         yield! List.map (headline file) ordered
         yield! snippetLines

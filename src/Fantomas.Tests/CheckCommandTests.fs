@@ -56,6 +56,21 @@ let ``a file that is already formatted needs nothing`` () =
     result.IsValid |> shouldEqual true
 
 [<Test>]
+let ``a file that cannot be parsed is an error and not also a file needing formatting`` () =
+    // It used to be both, so one broken file was reported twice, once under each heading, and the
+    // report told the reader to run a formatter that had already failed on it.
+    let fs: IFileSystem = MockFileSystem()
+    let file: string = fs.Path.Combine(mockRoot fs, "Bad.fs")
+    write fs file "let a = (1 + 2\n"
+
+    let _, result = check fs None (InputPath.File file) |> completed
+
+    result.Errors |> List.map fst |> shouldEqual [ file ]
+    result.Formatted |> shouldBeEmpty
+    result.Unchanged |> shouldBeEmpty
+    result.HasErrors |> shouldEqual true
+
+[<Test>]
 let ``a file that needs formatting is named`` () =
     let fs: IFileSystem = MockFileSystem()
     let file: string = fs.Path.Combine(mockRoot fs, "A.fs")

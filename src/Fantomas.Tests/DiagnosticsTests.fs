@@ -39,7 +39,7 @@ let ``a diagnostic is reported as an MSBuild style line with a one based column`
     |> should
         equal
         [
-            "Fantomas could not parse /tmp/bad.fs:"
+            "/tmp/bad.fs could not be parsed by Fantomas:"
             ""
             "/tmp/bad.fs(3,9): error FS0583: Unmatched '('"
             ""
@@ -67,7 +67,7 @@ let ``diagnostics are ordered by position, not by the order the parser produced 
     |> should
         equal
         [
-            "Fantomas could not parse bad.fs:"
+            "bad.fs could not be parsed by Fantomas:"
             ""
             "bad.fs(3,1): error FS3118: Incomplete value or function definition"
             "bad.fs(4,1): error FS0058: Offside"
@@ -119,7 +119,7 @@ let ``the snippet shows two lines either side with a caret under the range`` () 
     |> should
         equal
         [
-            "Fantomas could not parse bad.fs:"
+            "bad.fs could not be parsed by Fantomas:"
             ""
             "bad.fs(3,9): error FS0583: Unmatched '('"
             ""
@@ -155,7 +155,7 @@ let ``the window is clipped at the start and the end of the file`` () =
     |> should
         equal
         [
-            "Fantomas could not parse bad.fs:"
+            "bad.fs could not be parsed by Fantomas:"
             ""
             "bad.fs(1,1): error FS0010: Unexpected"
             ""
@@ -177,7 +177,7 @@ let ``tabs are expanded in the line and under the caret, so the two stay aligned
     |> should
         equal
         [
-            "Fantomas could not parse bad.fs:"
+            "bad.fs could not be parsed by Fantomas:"
             ""
             "bad.fs(3,10): error FS0583: Unmatched '('"
             ""
@@ -198,7 +198,7 @@ let ``a tab inside the range widens the caret run by as much as it widened the l
     |> should
         equal
         [
-            "Fantomas could not parse bad.fs:"
+            "bad.fs could not be parsed by Fantomas:"
             ""
             "bad.fs(3,4): error FS0010: Unexpected"
             ""
@@ -226,7 +226,7 @@ let ``a range beyond the end of the file leaves the snippet out rather than thro
     |> should
         equal
         [
-            "Fantomas could not parse bad.fs:"
+            "bad.fs could not be parsed by Fantomas:"
             ""
             "bad.fs(40,1): error FS0010: Unexpected"
             ""

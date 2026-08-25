@@ -130,6 +130,8 @@ let main argv =
                     ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter log)
                     Log = log
                     Console = AnsiConsole.Console
+                    OutputTheme = Theme.forOutput ()
+                    ErrorTheme = Theme.forError ()
                 }
 
             let settings: CliSettings =
@@ -145,7 +147,7 @@ let main argv =
                 if json then
                     JsonReport.reportCheckCommand Environment.CurrentDirectory Console.Out result
                 else
-                    reportCheckCommand environment result
+                    reportCheckCommand environment inputPath result
             else
                 let result: FormatCommandResult =
                     runFormatCommand environment settings inputPath outputPath
@@ -153,7 +155,7 @@ let main argv =
                 if json then
                     JsonReport.reportFormatCommand Environment.CurrentDirectory Console.Out result
                 else
-                    reportFormatCommand environment settings result
+                    reportFormatCommand environment settings inputPath outputPath result
         with exn ->
             // The document is what a caller asked for, so a run that fell over before it reached a
             // file still gets one, carrying what went wrong. It is the whole report, here as

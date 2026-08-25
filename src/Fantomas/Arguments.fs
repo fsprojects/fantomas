@@ -79,6 +79,15 @@ let classifyInputPath (fs: IFileSystem) (maybeInput: string list option) : Input
             InputPath.Multiple(files, folders)
     | None -> InputPath.Unspecified
 
+let describeInputPaths (inputPath: InputPath) : string =
+    match inputPath with
+    | InputPath.Unspecified -> "."
+    | InputPath.File file -> file
+    | InputPath.Folder folder -> folder
+    | InputPath.NoFSharpFile path -> path
+    | InputPath.NotFound path -> path
+    | InputPath.Multiple(files, folders) -> String.concat " " (List.append files folders)
+
 let describeArgument (argument: Arguments) : string =
     match argument with
     | Force -> "--force"

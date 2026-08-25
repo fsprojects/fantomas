@@ -6,6 +6,7 @@ open Spectre.Console
 open Fantomas
 open Fantomas.Core
 open Fantomas.Logging
+open Fantomas.Theme
 
 /// How the tool reaches the world outside itself. Built once, in `main`, and handed down. A test
 /// builds one over a `MockFileSystem` and a configuration of its choosing, and so never needs the
@@ -23,8 +24,14 @@ type CliEnvironment =
         /// reading a console. Which stream a level lands on is the logger's own configuration,
         /// not this record's.
         Log: ILogger
-        /// Spectre's console, for the one thing drawn rather than written: the summary table.
+        /// Spectre's console, for the one thing drawn rather than written: the profile table.
         Console: IAnsiConsole
+        /// What standard out will take. Held rather than detected at the point of writing, so a
+        /// test pins it and asserts on plain text.
+        OutputTheme: Theme
+        /// What standard error will take. Separate because the two streams are redirected
+        /// separately, and the messages that go to each are decided by level.
+        ErrorTheme: Theme
     }
 
 /// What the user asked for. Kept apart from the environment because a test varies these on every

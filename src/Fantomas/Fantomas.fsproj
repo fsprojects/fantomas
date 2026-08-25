@@ -23,6 +23,8 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Theme.fsi" />
     <Compile Include="Theme.fs" />
+    <Compile Include="Invocation.fsi" />
+    <Compile Include="Invocation.fs" />
     <Compile Include="Logging.fsi" />
     <Compile Include="Logging.fs" />
     <Compile Include="Diagnostics.fsi" />

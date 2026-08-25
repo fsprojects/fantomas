@@ -79,7 +79,7 @@ let describeDiagnostic (diagnostic: FSharpParserDiagnostic) : Diagnostic =
 let describeFileFailure (file: string) (error: exn) : FileOutcome =
     match error with
     | ParseException diagnostics ->
-        FileOutcome.Failed($"Fantomas could not parse %s{file}", List.map describeDiagnostic diagnostics)
+        FileOutcome.Failed($"%s{file} could not be parsed by Fantomas", List.map describeDiagnostic diagnostics)
     | _ ->
         let message: string = describeFailure error |> Option.defaultValue error.Message
 

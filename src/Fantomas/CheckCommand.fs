@@ -23,19 +23,25 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
             )
             |> Async.Parallel
 
+        // A file that could not be parsed is an error and nothing else. Counting it as needing
+        // formatting too reported the same file twice, once under each heading, and told the
+        // reader to run a formatter that had already failed on it.
         let getChangedFile: FormatResult -> string option =
             function
+            | FormatResult.Formatted(f, _, _) -> Some f
             | FormatResult.Unchanged _
-            | FormatResult.IgnoredFile _ -> None
-            | FormatResult.Formatted(f, _, _)
-            | FormatResult.Error(f, _)
-            | FormatResult.InvalidCode(f, _) -> Some f
+            | FormatResult.IgnoredFile _
+            | FormatResult.Error _
+            | FormatResult.InvalidCode _ -> None
 
         let changes: string list = formatted |> Seq.choose getChangedFile |> Seq.toList
 
+        // InvalidCode is a failure of Fantomas rather than of the file, and it was previously
+        // reported as needing formatting, which named neither.
         let getErrors: FormatResult -> (string * exn) option =
             function
             | FormatResult.Error(f, e) -> Some(f, e)
+            | FormatResult.InvalidCode(f, _) -> Some(f, invalidResultException f :> exn)
             | _ -> None
 
         let errors: (string * exn) list = formatted |> Seq.choose getErrors |> Seq.toList

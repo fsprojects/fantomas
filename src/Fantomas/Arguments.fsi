@@ -45,6 +45,10 @@ val parseVerbosity: value: string option -> VerbosityLevel option
 /// How an argument is spelled on the command line, for a message that has to name one back.
 val describeArgument: argument: Arguments -> string
 
+/// The input paths as the caller gave them, spelled so that a message can suggest a command the
+/// caller can run again. Several paths are joined by a space, which is how they were typed.
+val describeInputPaths: inputPath: InputPath -> string
+
 /// The arguments given alongside `--daemon` that mean nothing there, spelled as they are typed and
 /// in a settled order, so a run that names several always names them the same way.
 ///

@@ -157,7 +157,7 @@ let ``a parse failure carries every diagnostic with the position the compiler wo
     let file: JsonElement = files document |> List.exactlyOne
 
     file.GetProperty("message").GetString()
-    |> shouldEqual "Fantomas could not parse a.fs"
+    |> shouldEqual "a.fs could not be parsed by Fantomas"
 
     let diagnostic: JsonElement =
         file.GetProperty("diagnostics").EnumerateArray() |> Seq.exactlyOne
