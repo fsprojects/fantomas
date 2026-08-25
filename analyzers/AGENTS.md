@@ -90,6 +90,10 @@ why the rule runs in `AnalyzeChanged` and not in the full `Analyze`. When you to
 some other reason, add the annotations it is missing. Leave the bindings you had no reason to open
 alone.
 
+A tuple parameter counts as annotated when every element of it is, so `(a: int, b: string)` is
+accepted and does not have to be rewritten as `((a, b): int * string)`. Both state the type of
+the parameter, and the first is the one people write.
+
 Passed over: signature files, since a `val` already states the type; the unit parameter, which has
 nowhere to put one; tuple and record patterns on the left of the equals, which have no sensible
 annotation to ask for; and any binding carrying a test attribute, along with everything nested

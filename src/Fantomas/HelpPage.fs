@@ -115,7 +115,7 @@ let writeFlag
         writeRow write descriptionColumn left first
         List.iter (writeContinuation write descriptionColumn) rest
 
-let writeExample (write: string -> unit) (theme: Theme) ((command, description): string * string) : unit =
+let writeExample (write: string -> unit) (theme: Theme) (command: string, description: string) : unit =
     let name, arguments: string * string =
         match command.IndexOf ' ' with
         | -1 -> command, ""
@@ -123,7 +123,7 @@ let writeExample (write: string -> unit) (theme: Theme) ((command, description):
 
     writeRow write exampleColumn (String.Concat("  ", muted theme name, flagName theme arguments)) description
 
-let writeLink (write: string -> unit) (theme: Theme) ((label, urls): string * string list) : unit =
+let writeLink (write: string -> unit) (theme: Theme) (label: string, urls: string list) : unit =
     match urls with
     | [] -> ()
     | first :: rest ->
