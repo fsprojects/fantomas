@@ -50,7 +50,6 @@ type RunReport =
         ExitCode: int
         Error: string option
         ElapsedMilliseconds: int option
-        Ignored: int
         Files: FileReport list
     }
 
@@ -96,7 +95,7 @@ let sortByPath (files: FileReport list) : FileReport list =
 
 let describeResult (result: FormatResult) : FileReport option =
     match result with
-    // Counted rather than listed. See `RunReport.Ignored`.
+    // Neither listed nor counted. See `RunReport`.
     | FormatResult.IgnoredFile _ -> None
     | FormatResult.Unchanged file ->
         Some
@@ -123,20 +122,13 @@ let describeResult (result: FormatResult) : FileReport option =
                 Outcome = describeFileFailure file (invalidResultException ())
             }
 
-let isIgnored (result: FormatResult) : bool =
-    match result with
-    | FormatResult.IgnoredFile _ -> true
-    | _ -> false
-
 let formatReport (workingDirectory: string) (result: FormatCommandResult) : RunReport =
-    let error, ignored, files: string option * int * FileReport list =
+    let error, files: string option * FileReport list =
         match result with
-        | FormatCommandResult.Failed error -> Some error.Message, 0, []
-        | FormatCommandResult.InvalidInput problem -> Some(describeInputProblem problem), 0, []
+        | FormatCommandResult.Failed error -> Some error.Message, []
+        | FormatCommandResult.InvalidInput problem -> Some(describeInputProblem problem), []
         | FormatCommandResult.Completed results ->
-            None,
-            results |> Array.filter isIgnored |> Array.length,
-            results |> Array.choose describeResult |> List.ofArray |> sortByPath
+            None, results |> Array.choose describeResult |> List.ofArray |> sortByPath
 
     {
         Command = Command.Format
@@ -144,16 +136,15 @@ let formatReport (workingDirectory: string) (result: FormatCommandResult) : RunR
         ExitCode = result.ExitCode
         Error = error
         ElapsedMilliseconds = None
-        Ignored = ignored
         Files = files
     }
 
 let checkReport (workingDirectory: string) (result: CheckCommandResult) : RunReport =
-    let error, ignoredCount, files: string option * int * FileReport list =
+    let error, files: string option * FileReport list =
         match result with
-        | CheckCommandResult.Failed error -> Some error.Message, 0, []
-        | CheckCommandResult.InvalidInput problem -> Some(describeInputProblem problem), 0, []
-        | CheckCommandResult.Completed(ignored, checkResult) ->
+        | CheckCommandResult.Failed error -> Some error.Message, []
+        | CheckCommandResult.InvalidInput problem -> Some(describeInputProblem problem), []
+        | CheckCommandResult.Completed(_, checkResult) ->
             // A file that could not be formatted is counted as changed as well as errored, so it
             // would otherwise be listed twice under two different answers.
             let failed: Set<string> = checkResult.Errors |> List.map fst |> Set.ofList
@@ -180,7 +171,7 @@ let checkReport (workingDirectory: string) (result: CheckCommandResult) : RunRep
                         }
                 ]
 
-            None, List.length ignored, sortByPath files
+            None, sortByPath files
 
     {
         Command = Command.Check
@@ -188,15 +179,14 @@ let checkReport (workingDirectory: string) (result: CheckCommandResult) : RunRep
         ExitCode = result.ExitCode
         Error = error
         ElapsedMilliseconds = None
-        Ignored = ignoredCount
         Files = files
     }
 
 let profileReport (workingDirectory: string) (result: ProfileCommand.ProfileCommandResult) : RunReport =
-    let error, elapsed, ignored, files: string option * int option * int * FileReport list =
+    let error, elapsed, files: string option * int option * FileReport list =
         match result with
-        | ProfileCommand.ProfileCommandResult.Failed error -> Some error.Message, None, 0, []
-        | ProfileCommand.ProfileCommandResult.InvalidInput problem -> Some(describeInputProblem problem), None, 0, []
+        | ProfileCommand.ProfileCommandResult.Failed error -> Some error.Message, None, []
+        | ProfileCommand.ProfileCommandResult.InvalidInput problem -> Some(describeInputProblem problem), None, []
         | ProfileCommand.ProfileCommandResult.Completed profile ->
             let files: FileReport list =
                 [
@@ -218,7 +208,7 @@ let profileReport (workingDirectory: string) (result: ProfileCommand.ProfileComm
                         }
                 ]
 
-            None, Some(int (round profile.Elapsed.TotalMilliseconds)), List.length profile.Ignored, sortByPath files
+            None, Some(int (round profile.Elapsed.TotalMilliseconds)), sortByPath files
 
     {
         Command = Command.Profile
@@ -226,7 +216,6 @@ let profileReport (workingDirectory: string) (result: ProfileCommand.ProfileComm
         ExitCode = result.ExitCode
         Error = error
         ElapsedMilliseconds = elapsed
-        Ignored = ignored
         Files = files
     }
 
@@ -304,7 +293,6 @@ let writeReport (json: Utf8JsonWriter) (report: RunReport) : unit =
     | None -> ()
     | Some elapsed -> json.WriteNumber("elapsedMilliseconds", elapsed)
 
-    json.WriteNumber("ignored", report.Ignored)
     json.WriteStartArray "files"
     List.iter (writeFile json) report.Files
     json.WriteEndArray()

@@ -223,23 +223,25 @@ let ``a file that a check could not read is reported once, as an error`` () =
     |> List.map statusOf
     |> shouldEqual [ "a.fs", "error"; "b.fs", "needs-formatting" ]
 
-// An ignored file is counted rather than listed. It is a file the run decided not to open, so it
-// has nothing to say beyond that there was one, and a repository that ignores a vendored checkout
-// would otherwise carry a hundred entries about files nobody asked about.
+// A file an ignore file kept the run away from is neither listed nor counted. It used to be
+// counted, and the number could not be honest: a pattern naming a file can be counted, and a
+// pattern naming a folder cannot, because the folder is never opened. A count right about the first
+// and blind to the second reads as though it covered both.
 [<Test>]
-let ``an ignored file is counted rather than listed`` () =
+let ``an ignored file is neither listed nor counted`` () =
     let document: JsonElement = checked' [ "a.fs" ] [] [] [ "b.fs" ]
 
     document |> files |> List.map statusOf |> shouldEqual [ "b.fs", "unchanged" ]
-    document.GetProperty("ignored").GetInt32() |> shouldEqual 1
+    document.TryGetProperty "ignored" |> fst |> shouldEqual false
 
 [<Test>]
-let ``the count is of files, since an ignored folder is never opened`` () =
-    // Zero is what a repository ignoring whole folders sees, however much was skipped: the folder
-    // is not descended into, so nothing inside it is ever found to be counted.
-    let document: JsonElement = completed [ FormatResult.Formatted("a.fs", "") ]
-
-    document.GetProperty("ignored").GetInt32() |> shouldEqual 0
+let ``no command carries a count of what it was kept away from`` () =
+    for document in
+        [
+            completed [ FormatResult.Formatted("a.fs", "") ]
+            checked' [] [] [] [ "a.fs" ]
+        ] do
+        document.TryGetProperty "ignored" |> fst |> shouldEqual false
 
 // A check used to name only the files it had a complaint about, so a caller had to read "already
 // formatted" out of a file being absent. Both commands now list every file they looked at.

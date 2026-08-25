@@ -35,9 +35,8 @@ type Diagnostic =
         Range: Range option
     }
 
-/// What became of one file that was looked at. An ignored file is not one of these: it is counted
-/// on the report rather than listed, because a file the run decided not to open has nothing to say
-/// beyond that there was one.
+/// What became of one file that was looked at. A file an ignore file kept the run away from is not
+/// one of these and is not counted anywhere either: see `RunReport`.
 ///
 /// `Formatted` only ever comes from a format run and `NeedsFormatting` only from a `--check` run,
 /// because a check writes nothing and a format run leaves nothing needing it.
@@ -65,6 +64,15 @@ type Command =
 /// One run, as a document. `Error` is what stopped the run before any file was reached, such as an
 /// input path that does not exist, and is separate from a file that failed on its own.
 ///
+/// Nothing here says what an ignore file kept the run away from, and that is deliberate rather than
+/// an omission. There is no honest number for it. A pattern that names a file can be counted,
+/// because the file is found and then set aside; a pattern that names a folder cannot, because the
+/// folder is never opened and what is inside it is as unknown as what is inside a folder that is
+/// not there. A count right about the first and blind to the second reads as though it covered
+/// both, and this repository's own `.fantomasignore` names three folders holding ninety six F#
+/// files. So `files` is what the run looked at, and what it did not is a question for a command
+/// that can afford to open the folder and answer it properly.
+///
 /// A file's path is the one the run was given, which is usually relative, and `WorkingDirectory` is
 /// what it is relative to. The absolute path is the two joined. They are carried apart rather than
 /// resolved per file because the document is read by a machine paying for every token of it, and a
@@ -80,15 +88,6 @@ type RunReport =
         /// not. Not the sum of the files: reading each one and walking the folder are in here and
         /// in none of them.
         ElapsedMilliseconds: int option
-        /// How many files were found and skipped because a `.fantomasignore` matched them, rather
-        /// than listed one by one.
-        ///
-        /// Only the files: a folder the ignore file names is never opened, so nothing inside it is
-        /// found, counted or reported. A run has no more idea what is in such a folder than it has
-        /// about a folder that is not there, which is the point. So this counts what an ignore
-        /// pattern matched file by file, and a repository that ignores whole folders will see zero
-        /// here however much was skipped.
-        Ignored: int
         Files: FileReport list
     }
 
