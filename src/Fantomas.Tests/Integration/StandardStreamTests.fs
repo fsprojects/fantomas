@@ -55,12 +55,37 @@ let ``version is written to standard out`` () =
 // The banner used to go through the logger, which at detailed verbosity prefixes what it writes
 // with a timestamp and a level. What Fantomas.Client parses should not depend on that.
 [<Test>]
-let ``version reads the same at any verbosity`` () =
+let ``version carries no timestamp or level at any verbosity`` () =
     let normal: FantomasToolResult = runFantomasTool [ "--version" ]
     let detailed: FantomasToolResult = runFantomasTool [ "--version"; "-v"; "d" ]
 
     detailed.ExitCode |> should equal 0
-    detailed.Output |> should equal normal.Output
+
+    for line in [ normal.Output; detailed.Output ] do
+        line |> should startWith "Fantomas v"
+
+// The hash is for pasting into a `git show`, where the short form git itself prints is enough, and
+// the whole forty characters were the only thing on the line long enough to wrap it. The help page
+// has always trimmed it; this is the two of them agreeing.
+[<Test>]
+let ``version trims the commit hash unless detailed verbosity asks for it`` () =
+    let normal: FantomasToolResult = runFantomasTool [ "--version" ]
+    let detailed: FantomasToolResult = runFantomasTool [ "--version"; "-v"; "d" ]
+
+    // A version with no hash at all is left alone, so this says nothing about how long it is,
+    // only that the longer one is not shorter than the short one.
+    detailed.Output.Length |> should be (greaterThanOrEqualTo normal.Output.Length)
+    detailed.Output |> should startWith (normal.Output.TrimEnd().TrimEnd('\n'))
+
+// A `--verbosity` value Fantomas cannot read still gets an answer: nothing is validated before
+// `--version` is answered, and the short form is what an unreadable value falls back to.
+[<Test>]
+let ``version answers even when the verbosity is not one Fantomas knows`` () =
+    let { ExitCode = exitCode; Output = output } =
+        runFantomasTool [ "--version"; "-v"; "bogus" ]
+
+    exitCode |> should equal 0
+    output |> should startWith "Fantomas v"
 
 // `--version` answers whatever else was asked for, and before any of it is validated, so it can
 // always be used to find out what you are running.

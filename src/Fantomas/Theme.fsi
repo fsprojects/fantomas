@@ -20,7 +20,7 @@ type GlyphSet =
 [<Struct>]
 type Theme = { Palette: Palette; Glyphs: GlyphSet }
 
-/// What the stream will take, given whether it is redirected. Colour is dropped when the stream
+/// What standard out will take, given whether it is redirected. Colour is dropped when the stream
 /// is redirected, so piping into a file, a pager or a build log yields plain text.
 val detect: redirected: bool -> Theme
 
@@ -28,8 +28,13 @@ val detect: redirected: bool -> Theme
 val forOutput: unit -> Theme
 
 /// What standard error will take. Separate from `forOutput` because one can be redirected while
-/// the other is not, which is exactly what a shell does when only one of them is captured.
+/// the other is not, which is exactly what a shell does when only one of them is captured, and
+/// because what a stream can do has to be asked of that stream: the two are detected apart.
 val forError: unit -> Theme
+
+/// Neither colour nor the nicer glyphs. What a redirected stream comes to, what the daemon hands an
+/// editor, and what a test pins so it can assert on the words alone.
+val plain: Theme
 
 /// Wrap text in a select graphic rendition sequence, choosing between the eight bit code and the
 /// four bit fallback, or returning the text untouched when the stream takes no colour.

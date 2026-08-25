@@ -92,6 +92,22 @@ let ``the line count does not depend on which line endings the file uses`` () =
     lineCountOf "let  a =   1\nlet  b =   2\n" |> shouldEqual 2
     lineCountOf "let  a =   1\r\nlet  b =   2\r\n" |> shouldEqual 2
 
+[<Test>]
+let ``a last line with no newline after it is still a line`` () =
+    // Counting the line feeds alone left every file that does not end in a newline one line short,
+    // and reported a file of one line as having none.
+    let lineCountOf (content: string) : int =
+        let fs: IFileSystem = MockFileSystem()
+        let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
+        write fs file content
+
+        (profile fs None (InputPath.File file) |> completed).Timings
+        |> List.exactlyOne
+        |> fun timing -> timing.LineCount
+
+    lineCountOf "let  a =   1" |> shouldEqual 1
+    lineCountOf "let  a =   1\nlet  b =   2" |> shouldEqual 2
+
 let private combinationsOf (content: string) : int =
     let fs: IFileSystem = MockFileSystem()
     let file: string = fs.Path.Combine(mockRoot fs, "A.fs")

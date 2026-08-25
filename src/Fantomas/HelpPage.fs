@@ -5,7 +5,8 @@ open Fantomas.Core
 open Fantomas.Arguments
 open Fantomas.Theme
 
-// Trim the commit hash the version carries down to the short form git itself shows.
+// Trim the commit hash the version carries down to the short form git itself shows. Used by
+// `--version` as well as by the page, so the two cannot come to say the version differently.
 let shortVersion () : string =
     let version: string = CodeFormatter.GetVersion()
 

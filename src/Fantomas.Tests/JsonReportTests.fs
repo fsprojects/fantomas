@@ -197,7 +197,10 @@ let ``output Fantomas invalidated is reported as a failure of that file`` () =
     let file: JsonElement = files document |> List.exactlyOne
     snd (statusOf file) |> shouldEqual "error"
 
-    file.GetProperty("message").GetString() |> shouldContainText "a.fs"
+    // The path is a key of its own beside the message, so the message does not repeat it.
+    file.GetProperty("path").GetString() |> shouldEqual "a.fs"
+
+    file.GetProperty("message").GetString() |> shouldContainText "not valid F#"
 
 // Only a file that failed carries them, so a folder of files that were fine does not repeat a null
 // message and an empty list for every one of them.

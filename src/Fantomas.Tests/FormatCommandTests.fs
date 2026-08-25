@@ -297,7 +297,7 @@ let ``without force, output that is not valid F# is not written`` () =
     match format fs (InputPath.File input) (OutputPath.IO output) |> results with
     | [| FormatResult.Error(f, error) |] ->
         f |> shouldEqual input
-        error.Message |> shouldContainText "leads to invalid F# code"
+        error.Message |> shouldContainText "not valid F#"
         fs.File.Exists output |> shouldEqual false
     | other -> failwith $"Expected the invalid output to be withheld, got %A{other}"
 
@@ -342,7 +342,13 @@ let ``with force, the output being invalid is said out loud`` () =
     let settings: CliSettings = { defaultSettings with Force = true }
     let _, log = formatLogging settings fs (InputPath.File input) (OutputPath.IO output)
 
-    log.Information |> shouldContain $"%s{input} was not valid after formatting."
+    // A warning, so it lands on standard error: it says Fantomas wrote F# it believes is not valid,
+    // which is the opposite of the ordinary run of things standard out carries.
+    log.Information |> shouldBeEmpty
+
+    log.Warning
+    |> shouldContain
+        $"%s{input} was formatted, but the result is not valid F# code. It was written because --force was given."
 
 [<Test>]
 let ``a file Fantomas does not format is refused`` () =

@@ -22,8 +22,13 @@ let sourceOf (fs: IFileSystem) (file: string) : string =
     with _ ->
         String.Empty
 
-/// The results of a run, sorted into the states a file can end in, each in the order the files were
-/// given.
+/// The results of a run, sorted into the states a file can end in, each by path.
+///
+/// By path rather than in the order the work came back, which for a folder is the order the file
+/// system happened to hand the directory over in. That order is neither the one the caller gave nor
+/// one worth promising, and it makes two runs of the same command on two machines print the same
+/// files in different orders. The JSON report already sorts, for the same reason and in the same
+/// words.
 ///
 /// A record rather than a tuple because the two `(string * ProfileInfo option) list` fields are the
 /// same type as each other, so position was the only thing telling them apart.
@@ -45,9 +50,8 @@ type Outcomes =
         + List.length this.Errored
 
 let outcomes (results: FormatResult array) : Outcomes =
-    // One pass, appending as it goes, so each list comes out in the order the files were given and
-    // there is nothing to reverse afterwards. Every case is named once, and named here rather than
-    // swept up by a wildcard, so a new one has to be placed deliberately.
+    // One pass, appending as it goes. Every case is named once, and named here rather than swept up
+    // by a wildcard, so a new one has to be placed deliberately.
     let formatted: ResizeArray<string> = ResizeArray()
     let unchanged: ResizeArray<string> = ResizeArray()
     let ignored: ResizeArray<string> = ResizeArray()
@@ -61,13 +65,13 @@ let outcomes (results: FormatResult array) : Outcomes =
         | FormatResult.Error(file, error) -> errored.Add(file, error)
         // Formatting produced something that is not F#, which is a failure of Fantomas rather than
         // of the file it was given, and it is reported as one.
-        | FormatResult.InvalidCode(file, _) -> errored.Add(file, invalidResultException file :> exn)
+        | FormatResult.InvalidCode(file, _) -> errored.Add(file, invalidResultException () :> exn)
 
     {
-        Formatted = List.ofSeq formatted
-        Unchanged = List.ofSeq unchanged
-        Ignored = List.ofSeq ignored
-        Errored = List.ofSeq errored
+        Formatted = List.ofSeq formatted |> List.sort
+        Unchanged = List.ofSeq unchanged |> List.sort
+        Ignored = List.ofSeq ignored |> List.sort
+        Errored = List.ofSeq errored |> List.sortBy fst
     }
 
 // A DefineParseException is a FormatException, so it has to be matched first or its own wording
@@ -108,11 +112,13 @@ let summaryLine (theme: Theme) (counts: (int * string) list) : string =
 let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string, error: exn) : unit =
     let glyphs: StatusGlyphs = statusGlyphs env.ErrorTheme
 
+    // Whatever the failure has to say for itself, at any verbosity. It used to be dropped unless
+    // detailed verbosity was asked for, which meant an unreadable file reported only that it could
+    // not be formatted, and the one sentence that explained it, `Access to the path is denied`, was
+    // behind a flag nobody knew to pass. Fantomas has its own wording for the failures it knows;
+    // everything else says the exception's message rather than nothing.
     let describeOther () : string =
-        let message: string =
-            match verbosity with
-            | VerbosityLevel.Detailed -> $"%A{error}"
-            | VerbosityLevel.Normal -> describeFailure error |> Option.defaultValue String.Empty
+        let message: string = describeFailure error |> Option.defaultValue error.Message
 
         if String.IsNullOrEmpty message then
             String.Concat(glyphs.Errored, " ", link env.ErrorTheme file, " could not be formatted.")
@@ -126,28 +132,54 @@ let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string,
     // rather than being reduced to a single line saying only that they happened. The first line of
     // each is its header, so the glyph goes in front of the whole block and lands in the column
     // every other state puts it in.
-    match Diagnostics.describeParseFailure file source error with
+    match Diagnostics.describeParseFailure env.ErrorTheme file source error with
     | Some report -> env.Log.Error(String.Concat(glyphs.Errored, " ", report))
     | None ->
 
-    match Diagnostics.describeInvariantViolation file source verbose error with
+    match Diagnostics.describeInvariantViolation env.ErrorTheme file source verbose error with
     | Some report -> env.Log.Error(String.Concat(glyphs.Errored, " ", report))
-    | None -> env.Log.Error(describeOther ())
+    | None ->
+        env.Log.Error(describeOther ())
+
+        // The line above is the one to act on; this keeps the type and the stack trace for whoever
+        // asks for detail, rather than replacing the message with them.
+        env.Log.Debug $"%A{error}"
 
 // A single named file is answered on its own terms: the caller asked about this file, so every
 // state it can be in is said out loud, and there is no summary to add to one line.
-let reportSingleResult (env: CliEnvironment) (settings: CliSettings) (result: FormatResult) : unit =
+//
+// Which means the one line has to carry what the summary would have said. Under `--out` a file
+// appears at the destination whether or not its content changed, and saying only `was unchanged`
+// left the run's whole effect unmentioned: a file was written to a folder the line never named.
+// So the two states that write name where they wrote, and the two that do not are left alone.
+let reportSingleResult
+    (env: CliEnvironment)
+    (settings: CliSettings)
+    (outputPath: OutputPath)
+    (result: FormatResult)
+    : unit
+    =
     let theme: Theme = env.OutputTheme
     let glyphs: StatusGlyphs = statusGlyphs theme
+
+    let formatted: string =
+        match outputPath with
+        | OutputPath.NotKnown -> "was formatted."
+        | OutputPath.IO destination -> $"was formatted and written to %s{destination}."
+
+    let unchanged: string =
+        match outputPath with
+        | OutputPath.NotKnown -> "was unchanged."
+        | OutputPath.IO destination -> $"was written to %s{destination} unchanged."
 
     match result with
     | FormatResult.IgnoredFile f ->
         env.Log.Information(fileLine theme glyphs.Ignored f "was ignored by .fantomasignore.")
     | FormatResult.Error(f, e) -> reportError env settings.Verbosity (f, e)
-    | FormatResult.Formatted(f, _) -> env.Log.Information(fileLine theme glyphs.Formatted f "was formatted.")
-    | FormatResult.Unchanged f -> env.Log.Information(fileLine theme glyphs.Unchanged f "was unchanged.")
+    | FormatResult.Formatted(f, _) -> env.Log.Information(fileLine theme glyphs.Formatted f formatted)
+    | FormatResult.Unchanged f -> env.Log.Information(fileLine theme glyphs.Unchanged f unchanged)
     | FormatResult.InvalidCode(f, _) ->
-        let ex: FormatException = invalidResultException f
+        let ex: FormatException = invalidResultException ()
         reportError env settings.Verbosity (f, ex)
 
 let reportFormatResults
@@ -168,7 +200,7 @@ let reportFormatResults
     // in. The two warnings below are about a scan that came to nothing, which is a different
     // thing from a file the caller pointed at.
     match Array.tryExactlyOne results with
-    | Some single -> reportSingleResult env settings single
+    | Some single -> reportSingleResult env settings outputPath single
     | None when outcome.Count = 0 ->
         // Nothing was looked at, which a silent exit 0 would have read as success. This is the run
         // a bad glob or an over broad ignore file produces, and it has to say so.
@@ -198,11 +230,16 @@ let reportFormatResults
 
                 let noun: string = plural written "file" "files"
 
+                // The two states that write nothing are counted here as well. Leaving them out left
+                // a run where every file failed with `.` as its whole summary, and told a run that
+                // skipped half its files nothing about the half.
                 summaryLine
                     theme
                     [
                         written, $"%s{noun} written to %s{destination}"
                         List.length outcome.Formatted, "reformatted"
+                        List.length outcome.Ignored, "ignored"
+                        List.length outcome.Errored, "errored"
                     ]
             | OutputPath.NotKnown ->
                 summaryLine
@@ -233,6 +270,11 @@ let describeInputProblem (problem: InputProblem) : string =
 // is called.
 let profileGap: int = 4
 
+// "1 line" and "2 lines", said the same way wherever the count appears, so that the column measured
+// against it is measured against what goes in it.
+let describeLines (count: int) : string =
+    String.Concat(string<int> count, " ", plural count "line" "lines")
+
 let describeMilliseconds (span: TimeSpan) : string =
     // Milliseconds, because a formatter measured in `mm:ss.fff` spends its width on zeros and
     // stops making sense after an hour.
@@ -262,7 +304,7 @@ let reportProfileResult (env: CliEnvironment) (result: ProfileResult) : unit =
         List.sumBy (fun (timing: FileTiming) -> timing.LineCount) result.Timings
 
     let totalLabel: string = "Total"
-    let totalLines: string = $"%d{total} lines"
+    let totalLines: string = describeLines total
     let totalTime: string = describeMilliseconds result.Elapsed
 
     // Measured before anything is written, from what actually goes in each column. A fixed width
@@ -276,13 +318,15 @@ let reportProfileResult (env: CliEnvironment) (result: ProfileResult) : unit =
     let fileWidth: int = widthOf (fun timing -> timing.File) totalLabel
 
     let linesWidth: int =
-        widthOf (fun timing -> $"%d{timing.LineCount} lines") totalLines
+        widthOf (fun timing -> describeLines timing.LineCount) totalLines
 
     let timeWidth: int =
         widthOf (fun timing -> describeMilliseconds timing.TimeTaken) totalTime
 
-    env.Log.Information
-        $"Formatted %d{List.length result.Timings} files serially so the timings are comparable. Nothing was written."
+    let timed: int = List.length result.Timings
+    let files: string = plural timed "file" "files"
+
+    env.Log.Information $"Formatted %d{timed} %s{files} serially so the timings are comparable. Nothing was written."
 
     env.Log.Information ""
 
@@ -290,7 +334,7 @@ let reportProfileResult (env: CliEnvironment) (result: ProfileResult) : unit =
         env.Log.Information(
             profileRow
                 (link theme (timing.File.PadRight fileWidth))
-                (placeholder theme ($"%d{timing.LineCount} lines".PadLeft linesWidth))
+                (placeholder theme ((describeLines timing.LineCount).PadLeft linesWidth))
                 (describeMilliseconds(timing.TimeTaken).PadLeft timeWidth)
                 (describeCombinations theme timing.DefineCombinations)
         )
@@ -334,14 +378,14 @@ let reportCheckResults (env: CliEnvironment) (inputPath: InputPath) (checkResult
     let glyphs: StatusGlyphs = statusGlyphs theme
     let errorGlyphs: StatusGlyphs = statusGlyphs env.ErrorTheme
 
-    for filename, exn in checkResult.Errors do
+    for filename, exn in List.sortBy fst checkResult.Errors do
         let source () : string = sourceOf env.FileSystem filename
 
-        match Diagnostics.describeParseFailure filename source exn with
+        match Diagnostics.describeParseFailure env.ErrorTheme filename source exn with
         | Some report -> env.Log.Error(String.Concat(errorGlyphs.Errored, " ", report))
         | None ->
 
-        match Diagnostics.describeInvariantViolation filename source false exn with
+        match Diagnostics.describeInvariantViolation env.ErrorTheme filename source false exn with
         | Some report -> env.Log.Error(String.Concat(errorGlyphs.Errored, " ", report))
         | None ->
             // The message rather than `exn.ToString()`, which carried a stack trace through
@@ -356,35 +400,56 @@ let reportCheckResults (env: CliEnvironment) (inputPath: InputPath) (checkResult
                 )
             )
 
-    for filename in checkResult.Formatted do
+    for filename in List.sort checkResult.Formatted do
         env.Log.Information(fileLine theme glyphs.NeedsFormatting filename "needs formatting.")
 
     let needing: int = List.length checkResult.Formatted
+    let errored: int = List.length checkResult.Errors
+    let looked: int = needing + errored + List.length checkResult.Unchanged
 
-    if needing > 0 then
-        // The command that fixes it, spelled the way this run was started, so it is a line the
-        // caller can run again rather than one they have to translate.
-        let fix: string =
+    // The command that fixes it, spelled the way this run was started, so it is a line the caller
+    // can run again rather than one they have to translate. Only where there is something to fix:
+    // a run whose only finding is a file that would not parse has no formatting to suggest.
+    let fix: string option =
+        if needing = 0 then
+            None
+        else
             let subject: string = if needing = 1 then "it" else "them"
 
-            String.Concat(
-                "Run ",
-                muted theme (Invocation.name ()),
-                flagName theme (String.Concat(" ", describeInputPaths inputPath)),
-                $" to format %s{subject}."
+            Some(
+                String.Concat(
+                    "Run ",
+                    muted theme (Invocation.name ()),
+                    flagName theme (String.Concat(" ", describeInputPaths inputPath)),
+                    $" to format %s{subject}."
+                )
             )
 
-        let summary: string =
-            summaryLine
-                theme
-                [
-                    needing, plural needing "needs formatting" "need formatting"
-                    List.length checkResult.Unchanged, "already formatted"
-                    List.length checkResult.Errors, "errored"
-                ]
+    // Counted whenever the run found anything, rather than only when something needs formatting: an
+    // error is a finding too, and a check that reported one used to end without saying how many
+    // files it had looked at to find it.
+    //
+    // Left out for a single file, the way a format run leaves it out: the line above already named
+    // the file and said what was found, and `1 needs formatting` only says it again.
+    let summary: string option =
+        if looked <= 1 || (needing = 0 && errored = 0) then
+            None
+        else
+            Some(
+                summaryLine
+                    theme
+                    [
+                        needing, plural needing "needs formatting" "need formatting"
+                        List.length checkResult.Unchanged, "already formatted"
+                        errored, "errored"
+                    ]
+            )
 
+    match List.choose id [ summary; fix ] with
+    | [] -> ()
+    | lines ->
         env.Log.Information ""
-        env.Log.Information(String.Concat(summary, " ", fix))
+        env.Log.Information(String.concat " " lines)
 
 // What is printed and what the process ends with are decided apart from each other, so that this
 // reporter and the JSON one cannot end the same run with different codes.
@@ -408,6 +473,14 @@ let reportCheckCommand (env: CliEnvironment) (inputPath: InputPath) (result: Che
     | CheckCommandResult.InvalidInput problem -> env.Log.Error(describeInputProblem problem)
     | CheckCommandResult.Failed error -> env.Log.Error $"%s{error.Message}"
     | CheckCommandResult.Completed(ignored, checkResult) ->
+        let paths: string = describeInputPaths inputPath
+
+        let looked: int =
+            List.length ignored
+            + List.length checkResult.Errors
+            + List.length checkResult.Formatted
+            + List.length checkResult.Unchanged
+
         // A file the caller named explicitly and that was skipped is worth saying out loud: a
         // silent exit 0 reads as "already formatted" when nothing was looked at at all.
         match ignored, checkResult.Errors, checkResult.Formatted, checkResult.Unchanged with
@@ -415,9 +488,21 @@ let reportCheckCommand (env: CliEnvironment) (inputPath: InputPath) (result: Che
             let glyphs: StatusGlyphs = statusGlyphs env.OutputTheme
             env.Log.Information(fileLine env.OutputTheme glyphs.Ignored file "was ignored by .fantomasignore.")
         | _ ->
-            for file in ignored do
+            for file in List.sort ignored do
                 env.Log.Debug $"'%s{file}' was ignored"
 
-            reportCheckResults env inputPath checkResult
+            // The two runs that come to nothing, which a check used to pass over in silence and a
+            // format run has always spoken up about. Silence is how this command says every file is
+            // already formatted, so a run that looked at no file at all cannot also be silent: a bad
+            // glob or an ignore file that grew too wide would read as a green build forever.
+            //
+            // A warning, so it lands on standard error and leaves standard out to the findings, and
+            // the exit code stays 0 because nothing was found to be wrong.
+            if looked = 0 then
+                env.Log.Warning $"No F# files found in %s{paths}."
+            elif looked = List.length ignored then
+                env.Log.Warning $"All %d{looked} F# files in %s{paths} were ignored by .fantomasignore."
+            else
+                reportCheckResults env inputPath checkResult
 
     result.ExitCode

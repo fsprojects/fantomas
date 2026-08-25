@@ -102,3 +102,9 @@ let ``a two column row starts its right hand column where it was asked to`` () =
 
     let plain: string = anyEscapeSequence.Replace(written.[0], "")
     plain.IndexOf("Report", StringComparison.Ordinal) |> shouldEqual 20
+
+[<Test>]
+let ``the plain theme takes neither colour nor the nicer glyphs`` () =
+    // What the daemon hands an editor and what a test asserts against, named once rather than built
+    // where it is needed.
+    plain |> shouldEqual (themed Palette.NoColour GlyphSet.Ascii)

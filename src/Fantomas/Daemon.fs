@@ -150,12 +150,15 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                 // either, so both are positioned against the source the request carried.
                 let source () : string = sourceCode
 
+                // Plain, whatever the terminal this process happens to have been started from can
+                // do. What is rendered here goes back over JSON-RPC to an editor, which puts it in
+                // a window of its own; an escape sequence there is characters on the screen.
                 let message =
-                    match Diagnostics.describeParseFailure filePath source ex with
+                    match Diagnostics.describeParseFailure Theme.plain filePath source ex with
                     | Some described -> described
                     | None ->
 
-                    match Diagnostics.describeInvariantViolation filePath source false ex with
+                    match Diagnostics.describeInvariantViolation Theme.plain filePath source false ex with
                     | Some described -> described
                     | None -> ex.Message
 

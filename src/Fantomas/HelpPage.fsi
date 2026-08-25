@@ -17,3 +17,10 @@ val render: theme: Theme -> invocation: string -> command: Command -> string lis
 
 /// Write a command's `--help` page to standard out.
 val print: command: Command -> unit
+
+/// The version with its commit hash trimmed to the short form git itself shows.
+///
+/// What the page carries, and what `--version` answers with unless detailed verbosity asks for the
+/// whole hash. A hash is for pasting into a `git show`, where nine characters are enough, and the
+/// full forty were the only thing on the line long enough to wrap it.
+val shortVersion: unit -> string

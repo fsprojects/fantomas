@@ -120,7 +120,7 @@ let describeResult (result: FormatResult) : FileReport option =
         Some
             {
                 Path = file
-                Outcome = describeFileFailure file (invalidResultException file)
+                Outcome = describeFileFailure file (invalidResultException ())
             }
 
 let isIgnored (result: FormatResult) : bool =

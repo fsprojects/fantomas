@@ -41,7 +41,7 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
         let getErrors: FormatResult -> (string * exn) option =
             function
             | FormatResult.Error(f, e) -> Some(f, e)
-            | FormatResult.InvalidCode(f, _) -> Some(f, invalidResultException f :> exn)
+            | FormatResult.InvalidCode(f, _) -> Some(f, invalidResultException () :> exn)
             | _ -> None
 
         let errors: (string * exn) list = formatted |> Seq.choose getErrors |> Seq.toList

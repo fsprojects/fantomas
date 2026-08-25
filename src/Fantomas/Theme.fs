@@ -21,11 +21,15 @@ type Theme = { Palette: Palette; Glyphs: GlyphSet }
 // Select graphic rendition sequences, so a decorated string can still be measured.
 let escapeSequence: Regex = Regex(@"\u001b\[[0-9;]*m", RegexOptions.Compiled)
 
-let detectPalette (redirected: bool) : Palette =
-    // What the terminal can do is Spectre.Console's answer to give: it knows the TERM values, it
-    // honours NO_COLOR, and it reports which colour system is available.
-    let capabilities: Capabilities = AnsiConsole.Profile.Capabilities
+// What `AnsiConsole` answers for is standard out and nothing else. Standard error has to be asked
+// through a console of its own, or the two streams share one answer and the split above is only
+// half real: `fantomas src > log.txt` from a terminal came back with no colour on the diagnostics,
+// on the stream still attached to one. Creating this is also what turns virtual terminal processing
+// on for the error handle on Windows, which is the reason the package is here at all.
+let errorConsole: Lazy<IAnsiConsole> =
+    lazy AnsiConsole.Create(AnsiConsoleSettings(Out = AnsiConsoleOutput(Console.Error)))
 
+let paletteOf (capabilities: Capabilities) (redirected: bool) : Palette =
     // Redirection is decided here rather than left to Spectre. Spectre turns ANSI back on when it
     // detects a CI environment, because a CI log viewer renders escape codes and a progress bar
     // there is worth colouring. What Fantomas prints is not: it gets piped into a file, a pager or
@@ -57,14 +61,27 @@ let detectGlyphs (redirected: bool) : GlyphSet =
     else
         GlyphSet.Ascii
 
-let detect (redirected: bool) : Theme =
+let themeOf (capabilities: Capabilities) (redirected: bool) : Theme =
     {
-        Palette = detectPalette redirected
+        Palette = paletteOf capabilities redirected
         Glyphs = detectGlyphs redirected
     }
 
+// What the terminal can do is Spectre.Console's answer to give: it knows the TERM values, it
+// honours NO_COLOR, and it reports which colour system is available.
+let detect (redirected: bool) : Theme =
+    themeOf AnsiConsole.Profile.Capabilities redirected
+
 let forOutput () : Theme = detect Console.IsOutputRedirected
-let forError () : Theme = detect Console.IsErrorRedirected
+
+let forError () : Theme =
+    themeOf errorConsole.Value.Profile.Capabilities Console.IsErrorRedirected
+
+let plain: Theme =
+    {
+        Palette = Palette.NoColour
+        Glyphs = GlyphSet.Ascii
+    }
 
 // The palette is written out as escape codes rather than drawn by Spectre, because Spectre wraps
 // what it writes to the console width and this output is laid out in fixed columns.

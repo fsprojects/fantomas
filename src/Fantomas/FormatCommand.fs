@@ -12,6 +12,7 @@ open Fantomas.Cli
 open Fantomas.CommandResult
 open Fantomas.Paths
 open Fantomas.Plan
+open Fantomas.Theme
 
 type FormatParams =
     {
@@ -111,9 +112,27 @@ let formatSource
 
         match formatted with
         | FormatResult.InvalidCode(f, formattedContent) when settings.Force ->
-            env.Log.Information $"%s{f} was not valid after formatting."
+            // A warning, and on standard error, because it says Fantomas wrote F# it believes is not
+            // valid. It used to go to standard out at Information, alongside the ordinary run of
+            // things it is the opposite of.
+            //
+            // No status glyph, and it does not want one: the file is reported as formatted on the
+            // line above, in the column every state shares. This is a note about that line rather
+            // than a sixth state, and the two travel on different streams, so it repeats what
+            // happened instead of leaning on a line a pipeline may not have beside it.
+            let theme: Theme = env.ErrorTheme
+
+            env.Log.Warning(
+                String.Concat(
+                    link theme f,
+                    " was formatted, but the result is not valid F# code. It was written because ",
+                    flagName theme "--force",
+                    " was given."
+                )
+            )
+
             return FormatResult.Formatted(file, formattedContent)
-        | FormatResult.InvalidCode(f, _) -> return FormatResult.Error(f, invalidResultException f)
+        | FormatResult.InvalidCode(f, _) -> return FormatResult.Error(f, invalidResultException ())
         | FormatResult.Unchanged f as r ->
             env.Log.Debug $"'%s{f}' was unchanged"
             return r

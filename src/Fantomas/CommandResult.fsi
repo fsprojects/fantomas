@@ -29,7 +29,12 @@ type CheckResult =
 
 /// The failure that a `FormatResult.InvalidCode` stands for. Formatting produced something that is
 /// not F#, which is a bug in Fantomas rather than in the file it was given.
-val invalidResultException: file: string -> Fantomas.Core.FormatException
+///
+/// The message does not name the file, because nothing that shows it is short of one: every
+/// reporter puts the path in front of the message, and the JSON document carries it as a key beside
+/// it. Naming it here made the line read `A.fs could not be formatted: Formatting A.fs leads to
+/// invalid F# code`.
+val invalidResultException: unit -> Fantomas.Core.FormatException
 
 /// A reason the input paths cannot be worked with. Both commands can end this way and both are
 /// described from here, which is what keeps their wording from drifting apart.

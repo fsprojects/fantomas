@@ -76,8 +76,25 @@ let main argv =
 
     // Written straight to standard out rather than through the logger, so it reads the same at any
     // verbosity, and standard out is where Fantomas.Client looks for it when it discovers the tool.
+    //
+    // Short by default, the way the help page has always shown it: the commit hash is for pasting
+    // into a `git show`, and nine characters are what git itself prints. The whole hash is still
+    // reachable, at the verbosity that asks for everything.
+    //
+    // This is the one place the rest of the command line is peeked at before `--version` answers,
+    // and it stays compatible with the rule above it: nothing is validated. A `--verbosity` value
+    // Fantomas cannot read falls back to the short form rather than refusing to say what this is.
     if contains Arguments.Version then
-        Console.Out.WriteLine versionBanner
+        let detailed: bool =
+            tryVerbosity given |> Option.bind parseVerbosity = Some VerbosityLevel.Detailed
+
+        let banner: string =
+            if detailed then
+                versionBanner
+            else
+                $"Fantomas v%s{HelpPage.shortVersion ()}"
+
+        Console.Out.WriteLine banner
         exit 0
 
     let outputPath: OutputPath =
@@ -190,13 +207,23 @@ let main argv =
             // The document is what a caller asked for, so a run that fell over before it reached a
             // file still gets one, carrying what went wrong. It is the whole report, here as
             // everywhere else, so nothing is logged alongside it.
+            // The document says which command was asked for, so the failing one has to be the one
+            // that reports: a `profile` run that fell over used to hand back a document calling
+            // itself a format run.
             if json then
-                if check then
+                match command with
+                | Command.Profile ->
+                    JsonReport.reportProfileCommand
+                        Environment.CurrentDirectory
+                        Console.Out
+                        (ProfileCommandResult.Failed exn)
+                | Command.Check ->
                     JsonReport.reportCheckCommand
                         Environment.CurrentDirectory
                         Console.Out
                         (CheckCommandResult.Failed exn)
-                else
+                | Command.Format
+                | Command.Daemon ->
                     JsonReport.reportFormatCommand
                         Environment.CurrentDirectory
                         Console.Out

@@ -39,8 +39,21 @@ type ProfileCommandResult =
 
 // Counting line feeds rather than the platform's newline: a file written with the other platform's
 // line endings has just as many lines.
+//
+// A file whose last line has no line feed after it still has that line, which counting the feeds
+// alone missed: every file not ending in a newline was reported one line short.
 let countLines (content: string) : int =
-    content.Length - content.Replace("\n", "").Length
+    if String.IsNullOrEmpty content then
+        0
+    else
+
+    let mutable feeds: int = 0
+
+    for character in content do
+        if character = '\n' then
+            feeds <- feeds + 1
+
+    if content.EndsWith('\n') then feeds else feeds + 1
 
 // How many times formatting this file has to parse and print it.
 //
