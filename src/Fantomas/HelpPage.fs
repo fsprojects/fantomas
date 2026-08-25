@@ -43,6 +43,9 @@ let flags: (string * string * string * string list) list =
              "Report what the run did as one JSON document on standard out,"
              "naming every file and positioning what went wrong. The usual"
              "messages are not printed; warnings go to standard error."
+             "The shape is for reading, not for parsing against: it carries"
+             "no version and may change in any release. The exit code is"
+             "the part that is promised."
          ])
         ("",
          "--daemon",

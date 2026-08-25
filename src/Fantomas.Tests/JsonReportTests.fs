@@ -75,16 +75,24 @@ let ``a format run reports one entry per file, with what became of it`` () =
 
     files document
     |> List.map statusOf
-    |> shouldEqual [ "a.fs", "formatted"; "b.fs", "unchanged"; "c.fs", "ignored"; "d.fs", "error" ]
+    // `c.fs` was ignored, so it is counted rather than listed.
+    |> shouldEqual [ "a.fs", "formatted"; "b.fs", "unchanged"; "d.fs", "error" ]
 
 [<Test>]
-let ``the document says which command produced it and carries the schema version`` () =
+let ``the document says which command produced it`` () =
     let format: JsonElement = completed []
     format.GetProperty("command").GetString() |> shouldEqual "format"
-    format.GetProperty("version").GetInt32() |> shouldEqual SchemaVersion
 
     let check: JsonElement = checked' [] [] [] []
     check.GetProperty("command").GetString() |> shouldEqual "check"
+
+// A version number says a shape is a contract somebody is maintaining, and this one is not. It is
+// here so a machine can see what a run did, which is a job that tolerates the shape moving, and
+// carrying a version would mean holding a key nobody uses until the next major because one script
+// somewhere parsed it.
+[<Test>]
+let ``the document carries no version, and promises nothing about its shape`` () =
+    (completed []).TryGetProperty "version" |> fst |> shouldEqual false
 
 // A caller that captures the document has the exit code in hand without also having to keep the
 // one the process ended with, and the two cannot disagree because they are the same number.
@@ -212,12 +220,23 @@ let ``a file that a check could not read is reported once, as an error`` () =
     |> List.map statusOf
     |> shouldEqual [ "a.fs", "error"; "b.fs", "needs-formatting" ]
 
+// An ignored file is counted rather than listed. It is a file the run decided not to open, so it
+// has nothing to say beyond that there was one, and a repository that ignores a vendored checkout
+// would otherwise carry a hundred entries about files nobody asked about.
 [<Test>]
-let ``a check reports the files it ignored`` () =
-    checked' [ "a.fs" ] [] [] []
-    |> files
-    |> List.map statusOf
-    |> shouldEqual [ "a.fs", "ignored" ]
+let ``an ignored file is counted rather than listed`` () =
+    let document: JsonElement = checked' [ "a.fs" ] [] [] [ "b.fs" ]
+
+    document |> files |> List.map statusOf |> shouldEqual [ "b.fs", "unchanged" ]
+    document.GetProperty("ignored").GetInt32() |> shouldEqual 1
+
+[<Test>]
+let ``the count is of files, since an ignored folder is never opened`` () =
+    // Zero is what a repository ignoring whole folders sees, however much was skipped: the folder
+    // is not descended into, so nothing inside it is ever found to be counted.
+    let document: JsonElement = completed [ FormatResult.Formatted("a.fs", "") ]
+
+    document.GetProperty("ignored").GetInt32() |> shouldEqual 0
 
 // A check used to name only the files it had a complaint about, so a caller had to read "already
 // formatted" out of a file being absent. Both commands now list every file they looked at.
@@ -226,13 +245,7 @@ let ``a check names the files it found nothing to say about`` () =
     checked' [ "d.fs" ] [] [ "b.fs" ] [ "a.fs"; "c.fs" ]
     |> files
     |> List.map statusOf
-    |> shouldEqual
-        [
-            "a.fs", "unchanged"
-            "b.fs", "needs-formatting"
-            "c.fs", "unchanged"
-            "d.fs", "ignored"
-        ]
+    |> shouldEqual [ "a.fs", "unchanged"; "b.fs", "needs-formatting"; "c.fs", "unchanged" ]
 
 [<Test>]
 let ``files are ordered by path, whichever order the run produced them in`` () =

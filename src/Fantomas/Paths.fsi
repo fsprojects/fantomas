@@ -5,14 +5,20 @@ open System.IO.Abstractions
 /// The file extensions Fantomas formats.
 val extensions: Set<string>
 
-/// Is the path inside a folder whose contents a compiler or a package manager wrote?
-val isInExcludedDir: fullPath: string -> bool
+/// Is this the name of a folder whose contents a compiler or a package manager wrote?
+val isExcludedDirName: name: string -> bool
 
 val isFSharpFile: s: string -> bool
 
-/// Every F# file below the given path, at any depth. Build output and package folders are
-/// skipped: formatting what a compiler or a package manager wrote is never what was asked for.
-val findAllFilesRecursively: fs: IFileSystem -> path: string -> string seq
+/// Every F# file below the given path, at any depth.
+///
+/// Two kinds of folder are not descended into. Build output and package folders, because
+/// formatting what a compiler or a package manager wrote is never what was asked for. And any
+/// folder `isIgnoredDirectory` answers for, which is how `.fantomasignore` naming a folder is
+/// honoured: not by asking about every file inside it and discarding each answer, but by never
+/// opening it. A run should have no more idea what is in a folder it was told to stay out of than
+/// it has about a folder that is not there.
+val findAllFilesRecursively: fs: IFileSystem -> isIgnoredDirectory: (string -> bool) -> path: string -> string seq
 
 /// Create the folders leading up to a file, so that writing to a path the user named but never
 /// created succeeds. GetDirectoryName yields an empty string for a bare file name.

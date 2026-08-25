@@ -26,6 +26,13 @@ let plan
         else
             WorkItem.Format(inputFile, outputFile)
 
+    // A folder the ignore file names is never opened, so nothing inside it is planned, counted or
+    // reported. `isIgnoredFile` reads a path rather than a file, so a directory is asked the same
+    // question a file is; what makes this the parent's answer is that `findIgnoreFile` walks up
+    // from the directory it is given, which for a folder is the one above it.
+    let isIgnoredDirectory (directory: string) : bool =
+        IgnoreFile.isIgnoredFile log (findIgnoreFile directory) directory
+
     let folder (inputFolder: string) (outputFolder: string) : WorkItem list =
         let inPlace: bool = isSamePath fs inputFolder outputFolder
 
@@ -42,7 +49,7 @@ let plan
         let isPreviousOutput (inputFile: string) : bool =
             not inPlace && isInFolder fs outputFolder inputFile
 
-        findAllFilesRecursively fs inputFolder
+        findAllFilesRecursively fs isIgnoredDirectory inputFolder
         |> Seq.choose (fun i ->
             if isPreviousOutput i then
                 None

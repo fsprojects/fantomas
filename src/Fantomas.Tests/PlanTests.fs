@@ -208,7 +208,11 @@ let ``an ignore pattern naming a nested path matches only that path`` () =
     |> shouldPlan [ WorkItem.Ignored skipped; WorkItem.Format(kept, kept) ]
 
 [<Test>]
-let ``an ignore pattern naming a folder skips everything below it`` () =
+let ``an ignore pattern naming a folder means the folder is never opened`` () =
+    // Not "every file below it is planned as ignored": the folder is not descended into, so the
+    // files in it are never found. A run should have no more idea what is in a folder it was told
+    // to stay out of than it has about a folder that is not there, and a report that listed them
+    // could say how many files a vendored checkout has.
     let fs: IFileSystem = MockFileSystem()
     let src: string = fs.Path.Combine(mockRoot fs, "src")
     let skipped: string = fs.Path.Combine(src, "generated", "deep", "A.fs")
@@ -216,6 +220,19 @@ let ``an ignore pattern naming a folder skips everything below it`` () =
     [ skipped; kept ] |> makeFileHierarchy fs
 
     planIgnoring fs "src/generated/" (InputPath.Folder src) OutputPath.NotKnown
+    |> shouldPlan [ WorkItem.Format(kept, kept) ]
+
+[<Test>]
+let ``an ignore pattern naming files still reports each one it skipped`` () =
+    // The folder is opened, because the pattern is about files in it rather than about the folder,
+    // so each file is asked about and each answer is reported. That is `.gitignore`'s own rule.
+    let fs: IFileSystem = MockFileSystem()
+    let src: string = fs.Path.Combine(mockRoot fs, "src")
+    let skipped: string = fs.Path.Combine(src, "generated", "A.fs")
+    let kept: string = fs.Path.Combine(src, "B.fs")
+    [ skipped; kept ] |> makeFileHierarchy fs
+
+    planIgnoring fs "src/generated/*.fs" (InputPath.Folder src) OutputPath.NotKnown
     |> shouldPlan [ WorkItem.Ignored skipped; WorkItem.Format(kept, kept) ]
 
 [<Test>]

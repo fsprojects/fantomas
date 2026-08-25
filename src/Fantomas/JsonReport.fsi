@@ -3,11 +3,14 @@ module Fantomas.JsonReport
 open System.IO
 open Fantomas.CommandResult
 
-/// The version of the document this module writes, carried in the document itself so a caller can
-/// tell one shape from the next. It goes up when a key changes meaning or leaves, not when one is
-/// added: a reader that ignores what it does not recognise keeps working across additions.
-[<Literal>]
-val SchemaVersion: int = 1
+// The document carries no version, and that is the promise rather than an omission.
+//
+// A version number says a shape is a contract somebody is maintaining, and this one is not. It
+// exists so that a machine reading a run can see what happened, which is a job that tolerates the
+// shape moving; the cost of the alternative is holding a key nobody uses until the next major
+// because one script somewhere parsed it. What is written here may change in any release, the help
+// page says so beside the flag, and a reader that needs a promise wants the exit code, which has
+// one.
 
 /// Where in a file a diagnostic points. Lines and columns are both one based, matching what the F#
 /// compiler prints for the same file and what the text report writes.
@@ -32,14 +35,16 @@ type Diagnostic =
         Range: Range option
     }
 
-/// What became of one file. `Formatted` only ever comes from a format run and `NeedsFormatting` only
-/// from a `--check` run, because a check writes nothing and a format run leaves nothing needing it.
-/// The other three come from either.
+/// What became of one file that was looked at. An ignored file is not one of these: it is counted
+/// on the report rather than listed, because a file the run decided not to open has nothing to say
+/// beyond that there was one.
+///
+/// `Formatted` only ever comes from a format run and `NeedsFormatting` only from a `--check` run,
+/// because a check writes nothing and a format run leaves nothing needing it.
 [<RequireQualifiedAccess; NoComparison>]
 type FileOutcome =
     | Formatted
     | Unchanged
-    | Ignored
     | NeedsFormatting
     /// Only from a `profile` run, which is the only command that measures. The milliseconds are the
     /// file alone, and the run's own total is on the report.
@@ -75,6 +80,15 @@ type RunReport =
         /// not. Not the sum of the files: reading each one and walking the folder are in here and
         /// in none of them.
         ElapsedMilliseconds: int option
+        /// How many files were found and skipped because a `.fantomasignore` matched them, rather
+        /// than listed one by one.
+        ///
+        /// Only the files: a folder the ignore file names is never opened, so nothing inside it is
+        /// found, counted or reported. A run has no more idea what is in such a folder than it has
+        /// about a folder that is not there, which is the point. So this counts what an ignore
+        /// pattern matched file by file, and a repository that ignores whole folders will see zero
+        /// here however much was skipped.
+        Ignored: int
         Files: FileReport list
     }
 
