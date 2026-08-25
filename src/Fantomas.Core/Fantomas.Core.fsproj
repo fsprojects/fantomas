@@ -12,6 +12,7 @@
     <Compile Include="RangeHelpers.fs" />
     <Compile Include="Utils.fsi" />
     <Compile Include="Utils.fs" />
+    <Compile Include="Exceptions.fs" />
     <Compile Include="FormatConfig.fs" />
     <Compile Include="SyntaxOak.fs" />
     <Compile Include="ASTTransformer.fsi" />

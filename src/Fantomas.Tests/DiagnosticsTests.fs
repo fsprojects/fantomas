@@ -243,3 +243,70 @@ let ``without source there is no snippet`` () =
 let ``an exception that is not a parse failure is not this module's to describe`` () =
     Diagnostics.describeParseFailure "bad.fs" (fun () -> source) (exn "boom")
     |> should equal None
+
+// An invariant violation is rendered from a construct Fantomas could not model rather than from a
+// parser diagnostic, so it is built here the same way: what these tests are about is the rendering.
+let private externSource: string =
+    "module A\n\nlet before = 1\n\nextern int64 private f(byte[] | null value)\n\nlet after = 2\n"
+
+let private violation () : Fantomas.Core.InvariantViolationException =
+    Fantomas.Core.InvariantViolationException(
+        "no Oak node is defined for this type: SynType.App",
+        Range.mkRange "tmp.fsx" (Position.mkPos 5 23) (Position.mkPos 5 27),
+        "App\n  (LongIdent (SynLongIdent ([byte], [], [None])), None, [], [], None, false)"
+    )
+
+[<Test>]
+let ``an invariant violation is positioned and shown with a caret under the construct`` () =
+    let rendered =
+        Diagnostics.renderInvariantViolation "bad.fs" externSource false (violation ())
+
+    lines rendered
+    |> should
+        equal
+        [
+            "Fantomas could not format bad.fs:"
+            ""
+            "bad.fs(5,24): error: no Oak node is defined for this type: SynType.App"
+            ""
+            "3 | let before = 1"
+            "4 | "
+            "5 | extern int64 private f(byte[] | null value)"
+            "  |                        ^^^^"
+            "6 | "
+            "7 | let after = 2"
+            ""
+            "This is a bug in Fantomas, not a problem with your code. Please report it with the snippet above via https://fsprojects.github.io/fantomas-tools/, or at https://github.com/fsprojects/fantomas/issues/new if the file is too large for the tool to carry."
+            ""
+        ]
+
+[<Test>]
+let ``the path comes from the caller, not from the name the parser was handed`` () =
+    let rendered =
+        Diagnostics.renderInvariantViolation "src/XAttr.fs" externSource false (violation ())
+
+    rendered |> should haveSubstring "src/XAttr.fs(5,24)"
+    rendered |> should not' (haveSubstring "tmp.fsx")
+
+[<Test>]
+let ``the syntax tree node is left out by default and shown when asked for`` () =
+    Diagnostics.renderInvariantViolation "bad.fs" externSource false (violation ())
+    |> should not' (haveSubstring "SynLongIdent")
+
+    let verbose =
+        Diagnostics.renderInvariantViolation "bad.fs" externSource true (violation ())
+
+    verbose |> should haveSubstring "Syntax tree node:"
+    verbose |> should haveSubstring "SynLongIdent"
+
+[<Test>]
+let ``an invariant violation without source is still positioned`` () =
+    let rendered = Diagnostics.renderInvariantViolation "bad.fs" "" false (violation ())
+
+    rendered |> should haveSubstring "bad.fs(5,24)"
+    rendered |> should not' (haveSubstring "^^^^")
+
+[<Test>]
+let ``an exception that is not an invariant violation is not this module's to describe`` () =
+    Diagnostics.describeInvariantViolation "bad.fs" (fun () -> externSource) false (exn "boom")
+    |> should equal None

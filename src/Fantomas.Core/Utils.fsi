@@ -1,6 +1,14 @@
 namespace Fantomas.Core
 
 [<RequireQualifiedAccess>]
+module UnionCase =
+    /// The qualified name of the union case `value` is, such as `SynType.App`. Names a syntax tree
+    /// node in an error message without dumping every field it carries, which is what the reader of
+    /// the message needs and what `%A` buries. Falls back to the type's own name when `value` is not
+    /// a union.
+    val name: value: 'T -> string
+
+[<RequireQualifiedAccess>]
 module String =
     val startsWithOrdinal: prefix: string -> str: string -> bool
     val endsWithOrdinal: postfix: string -> str: string -> bool

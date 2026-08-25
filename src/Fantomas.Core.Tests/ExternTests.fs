@@ -250,3 +250,80 @@ type T() =
     [<DllImport("kernel32.dll")>]
     extern UIntPtr private GetProcessHeap()
 """
+
+[<Test>]
+let ``nullable array parameter in extern declaration, 3414`` () =
+    formatSourceString
+        """
+module private XAttrHandler =
+
+    [<SupportedOSPlatform("macos")>]
+    [<DllImport("/usr/lib/libSystem.dylib", EntryPoint = "getxattr", SetLastError = true)>]
+    extern int64 private getxattrMacOs(string path, string name, byte[] | null value, uint64 size, uint32 position, int options)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module private XAttrHandler =
+
+    [<SupportedOSPlatform("macos")>]
+    [<DllImport("/usr/lib/libSystem.dylib", EntryPoint = "getxattr", SetLastError = true)>]
+    extern int64 private getxattrMacOs(
+        string path,
+        string name,
+        byte[] | null value,
+        uint64 size,
+        uint32 position,
+        int options
+    )
+"""
+
+[<Test>]
+let ``nullable parameter in extern declaration`` () =
+    formatSourceString
+        """
+[<DllImport("x")>]
+extern int64 private f(string | null path, int options)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<DllImport("x")>]
+extern int64 private f(string | null path, int options)
+"""
+
+[<Test>]
+let ``nullable return type in extern declaration`` () =
+    formatSourceString
+        """
+[<DllImport("x")>]
+extern string | null private f(int options)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<DllImport("x")>]
+extern string | null private f(int options)
+"""
+
+[<Test>]
+let ``array return type in extern declaration`` () =
+    formatSourceString
+        """
+[<DllImport("x")>]
+extern byte[] private f(int options)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<DllImport("x")>]
+extern byte[] private f(int options)
+"""

@@ -17,6 +17,22 @@ open Microsoft.FSharp.Core
 let invariantViolation (range: range) format =
     Printf.kprintf (fun msg -> raise (InvariantViolationException(msg, range))) format
 
+/// Raise an <see cref="T:Fantomas.Core.InvariantViolationException"/> about a particular syntax
+/// tree node, with a printf-style message.
+///
+/// The node is dumped onto the exception rather than into the message. What it holds is for whoever
+/// triages the report, and a `%A` in the middle of a sentence buries the sentence: it is several
+/// lines long, it wraps wherever the terminal decides to, and it says nothing to whoever hit it. Say
+/// the invariant in words, and name the union case with `UnionCase.name` where knowing it helps.
+let invariantViolationAbout (range: range) (node: 'node) (format: Printf.StringFormat<'T, 'Result>) : 'T =
+    Printf.kprintf (fun msg -> raise (InvariantViolationException(msg, range, $"%A{node}"))) format
+
+/// The dotted text of a long identifier, for a message that has to name one.
+let longIdentText (sli: SynLongIdent) : string =
+    sli.LongIdent
+    |> List.map (fun (ident: Ident) -> ident.idText)
+    |> String.concat "."
+
 [<NoComparison>]
 type CreationAide =
     {
@@ -27,6 +43,22 @@ type CreationAide =
         match x.SourceText with
         | None -> fallback ()
         | Some sourceText -> sourceText.GetSubTextFromRange range
+
+/// Raise for a syntax tree node that the Oak model has no case for.
+///
+/// `construct` names what was being built, such as "type", and `node` is the node that had no case.
+/// The message names the union case rather than dumping the node, and says nothing about where the
+/// node sits beyond its range: positioning it against the source is the reporter's job, and the one
+/// that already draws a parse failure does it better than a string here could. The dump travels on
+/// the exception for whoever triages the report.
+let missingOakNode (construct: string) (range: range) (node: 'node) : 'result =
+    raise (
+        InvariantViolationException(
+            $"no Oak node is defined for this %s{construct}: %s{UnionCase.name node}",
+            range,
+            $"%A{node}"
+        )
+    )
 
 let stn text range = SingleTextNode(text, range)
 
@@ -796,7 +828,11 @@ let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName:
         // A generic function name only reaches here from a dotted chain, so it always has
         // at least two identifiers (`a.Foo<T>`); `Foo<T>` on its own is not a chain.
         | []
-        | [ _ ] -> invariantViolation functionName.Range "generic function name %A has fewer than two identifiers" sli
+        | [ _ ] ->
+            invariantViolationAbout
+                functionName.Range
+                sli
+                $"the generic function name `%s{longIdentText sli}` has fewer than two identifiers"
         | synIdents ->
             let leftLinks = mkLinksFromSynLongIdent sli
             let lastSynIdent = List.last synIdents
@@ -823,7 +859,11 @@ let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName:
         // Likewise a plain function name: an undotted `f(x)` never becomes a chain, so by the
         // time we are building links there are always at least two identifiers.
         | []
-        | [ _ ] -> invariantViolation functionName.Range "function name %A has fewer than two identifiers" sli
+        | [ _ ] ->
+            invariantViolationAbout
+                functionName.Range
+                sli
+                $"the function name `%s{longIdentText sli}` has fewer than two identifiers"
         | synIdents ->
             let leftLinks = mkLinksFromSynLongIdent sli
             let lastSynIdent = List.last synIdents
@@ -870,16 +910,16 @@ let rec visitChainLinks (e: SynExpr) (continuation: LinkExpr list -> LinkExpr li
                         | ParenExpr(lpr, innerExpr, rpr, pr) -> [ LinkExpr.AppParen(typeApp, lpr, innerExpr, rpr, pr) ]
                         // Unreachable: the outer pattern already constrained argExpr to Paren or Unit.
                         | _ ->
-                            invariantViolation
+                            invariantViolationAbout
                                 e.Range
-                                "generic call argument %A is neither a unit nor a parenthesised expression"
                                 argExpr
+                                $"a generic call argument is a %s{UnionCase.name argExpr}, which is neither a unit nor a parenthesised expression"
                     // Unreachable: visiting a DotGet always ends the link list with an Identifier.
                     | _ ->
-                        invariantViolation
+                        invariantViolationAbout
                             e.Range
-                            "generic call has no identifier to attach its type arguments to (links: %A)"
                             leftLinks
+                            "a generic call has no identifier to attach its type arguments to"
 
                 let leftLinks = List.cutOffLast leftLinks
                 continuation [ yield! leftLinks; yield! lastLink ]
@@ -906,10 +946,7 @@ let rec visitChainLinks (e: SynExpr) (continuation: LinkExpr list -> LinkExpr li
                         ]
                     // Unreachable: visiting a DotGet always ends the link list with an Identifier.
                     | _ ->
-                        invariantViolation
-                            e.Range
-                            "type application has no identifier to attach to (links: %A)"
-                            leftLinks
+                        invariantViolationAbout e.Range leftLinks "a type application has no identifier to attach to"
 
                 let leftLinks = List.cutOffLast leftLinks
                 continuation [ yield! leftLinks; yield! lastLink ]
@@ -924,7 +961,7 @@ let rec visitChainLinks (e: SynExpr) (continuation: LinkExpr list -> LinkExpr li
                     match List.tryLast sli.IdentsWithTrivia with
                     // Unreachable: a DotGet always carries at least one identifier after its dot.
                     | None ->
-                        invariantViolation e.Range "indexed member access has no identifier after the dot (%A)" sli
+                        invariantViolationAbout e.Range sli "an indexed member access has no identifier after the dot"
                     | Some lastMiddleLink ->
                         let middleLinks = mkLinksFromSynLongIdent sli |> List.cutOffLast
 
@@ -985,13 +1022,12 @@ let rec visitChainLinks (e: SynExpr) (continuation: LinkExpr list -> LinkExpr li
                     // Unreachable: `(|ChainExpr|_|)` only routes Unit/Paren arguments here, and a
                     // dot-lambda body cannot be a space-separated application.
                     | _ ->
-                        invariantViolation
+                        invariantViolationAbout
                             e.Range
-                            "call argument %A is neither a unit nor a parenthesised expression"
                             argExpr
+                            $"a call argument is a %s{UnionCase.name argExpr}, which is neither a unit nor a parenthesised expression"
                 // Unreachable: visiting a DotGet always ends the link list with an Identifier.
-                | _ ->
-                    invariantViolation e.Range "call has no identifier to apply its argument to (links: %A)" leftLinks
+                | _ -> invariantViolationAbout e.Range leftLinks "a call has no identifier to apply its argument to"
             )
 
     | SynExpr.DotGet(expr, rangeOfDot, longDotId, _) ->
@@ -1033,10 +1069,7 @@ let rec visitChainLinks (e: SynExpr) (continuation: LinkExpr list -> LinkExpr li
                         ]
                     // Unreachable: visiting a LongIdent always ends the link list with an Identifier.
                     | _ ->
-                        invariantViolation
-                            e.Range
-                            "indexed application has no identifier to index (links: %A)"
-                            leftLinks
+                        invariantViolationAbout e.Range leftLinks "an indexed application has no identifier to index"
 
                 let leftLinks = List.cutOffLast leftLinks
                 continuation [ yield! leftLinks; yield! app ]
@@ -1115,7 +1148,11 @@ let mkChainFromLinks
                 )
 
             Expr.Chain headChain, rest
-        | other -> invariantViolation range "chain head is %A, which is not a receiver the model allows" other
+        | other ->
+            invariantViolationAbout
+                range
+                other
+                $"a chain head is a %s{UnionCase.name other}, which is not a receiver the model allows"
 
     // Expected input: the links *after* the head, which `visitChainLinks` always emits as a
     // repeating `Dot` + one content link (`Identifier` / `AppUnit` / `AppParen` / `IndexExpr` /
@@ -1186,11 +1223,10 @@ let mkChainFromLinks
             seg :: segs, terminal
 
         | other ->
-            invariantViolation
+            invariantViolationAbout
                 range
-                "unexpected link pattern in chain.\nExpected a `Dot` followed by exactly one content link, but got:\n%A\nFull link list for this chain:\n%A"
-                other
-                links
+                {| Pattern = other; FullChain = links |}
+                "a chain has a link pattern that is not a `Dot` followed by exactly one content link"
 
     let segments, terminal = processLinks rest
     ExprChain(head, segments, terminal, range) |> Expr.Chain
@@ -2006,7 +2042,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             [ LinkExpr.Identifier underscore; LinkExpr.Dot mDot; yield! bodyLinks ]
 
         mkChainFromLinks creationAide allLinks ChainTerminal.NoSpaceAllowed exprRange
-    | _ -> invariantViolation exprRange "no Oak node is defined for this expression: %A" e
+    | _ -> missingOakNode "expression" exprRange e
 
 let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
     let startToken, endToken =
@@ -2171,7 +2207,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         |> Pattern.IsInst
     | SynPat.QuoteExpr(SynExpr.Quote(_, isRaw, e, _, _), _) ->
         mkExprQuote creationAide isRaw e patternRange |> Pattern.QuoteExpr
-    | pat -> invariantViolation pat.Range $"no Oak node is defined for this pattern: %A{pat}"
+    | pat -> missingOakNode "pattern" pat.Range pat
 
 let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
     Option.bind
@@ -2361,20 +2397,11 @@ let mkExternBinding
     let externNode =
         match trivia.LeadingKeyword with
         | SynLeadingKeyword.Extern mExtern -> stn "extern" mExtern
-        | _ -> invariantViolation range "an extern binding has a leading keyword other than `extern`"
-
-    let attributesOfReturnType, returnType =
-        match returnInfo with
-        | None -> invariantViolation range "an extern binding has no return type"
-        | Some(SynBindingReturnInfo(typeName = t; attributes = a)) ->
-            let attrs = mkAttributes creationAide a
-
-            let returnType =
-                match t with
-                | SynType.App(typeName = t) -> mkType creationAide t
-                | _ -> mkType creationAide t
-
-            attrs, returnType
+        | _ ->
+            invariantViolationAbout
+                range
+                trivia.LeadingKeyword
+                $"an extern binding has %s{UnionCase.name trivia.LeadingKeyword} as its leading keyword rather than `extern`"
 
     let (|Ampersand|_|) (it: IdentTrivia) =
         match it with
@@ -2419,7 +2446,16 @@ let mkExternBinding
         | SynType.App(typeName = typeName; isPostfix = true; typeArgs = [ argType ]) ->
             TypeAppPostFixNode(mkExternType argType, mkExternType typeName, t.Range)
             |> Type.AppPostfix
+        // `byte[] | null`, the inner type still carries the extern wrapping so `mkType` cannot take it.
+        | SynType.WithNull(innerType, _, EndRange 4 (mNull, m), { BarRange = mBar }) ->
+            TypeOrNode(mkExternType innerType, stn "|" mBar, Type.Var(stn "null" mNull), m)
+            |> Type.Or
         | _ -> mkType creationAide t
+
+    let attributesOfReturnType, returnType =
+        match returnInfo with
+        | None -> invariantViolation range "an extern binding has no return type"
+        | Some(SynBindingReturnInfo(typeName = t; attributes = a)) -> mkAttributes creationAide a, mkExternType t
 
     let mkExternPat pat =
         match pat with
@@ -2516,7 +2552,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             declRange
         )
         |> ModuleDecl.NestedModule
-    | decl -> invariantViolation decl.Range $"no Oak node is defined for this module declaration: %A{decl}"
+    | decl -> missingOakNode "module declaration" decl.Range decl
 
 let mkSynTyparDecl
     (creationAide: CreationAide)
@@ -2821,7 +2857,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         let nullType = stn "null" mNull |> Type.Var
 
         TypeOrNode(mkType creationAide innerType, stn "|" mBar, nullType, m) |> Type.Or
-    | t -> invariantViolation t.Range $"no Oak node is defined for this type: %A{t}"
+    | t -> missingOakNode "type" t.Range t
 
 [<TailCall>]
 let rec visitOpenL acc decls =
@@ -3012,7 +3048,10 @@ let mkTypeDefn
                 | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
                 | SynTypeDefnLeadingKeyword.StaticType _
                 | SynTypeDefnLeadingKeyword.Synthetic ->
-                    invariantViolation range "unexpected leading keyword %A" trivia.LeadingKeyword
+                    invariantViolationAbout
+                        range
+                        trivia.LeadingKeyword
+                        $"unexpected leading keyword %s{UnionCase.name trivia.LeadingKeyword}"
 
             let implicitConstructorNode =
                 match implicitConstructor with
@@ -3114,7 +3153,7 @@ let mkTypeDefn
             | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
             | SynTypeDefnKind.Interface, StartRange 9 (mInterface, _) -> stn "interface" mInterface
             | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
-            | _ -> invariantViolation range "unexpected type definition kind"
+            | _ -> invariantViolationAbout range tdk $"unexpected type definition kind: %s{UnionCase.name tdk}"
 
         let objectMembers =
             objectMembers
@@ -3173,7 +3212,7 @@ let mkTypeDefn
             [ yield! objectMembers; yield! members ]
 
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
-    | _ -> invariantViolation range $"no Oak node is defined for this type definition: %A{typeRepr}"
+    | _ -> missingOakNode "type definition" range typeRepr
 
 let mkWithGetSet
     (withKeyword: range option)
@@ -3635,7 +3674,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             )
             |> MemberDefn.PropertyGetSet
         | _ -> invariantViolation md.Range "a get/set member has a getter but no setter"
-    | _ -> invariantViolation md.Range "no Oak node is defined for this member definition: %A" md
+    | _ -> missingOakNode "member definition" md.Range md
 
 let mkVal
     (creationAide: CreationAide)
@@ -3684,7 +3723,7 @@ let mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
         MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide t, memberSigRange)
         |> MemberDefn.Inherit
     | SynMemberSig.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
-    | _ -> invariantViolation ms.Range "no Oak node is defined for this member signature: %A" ms
+    | _ -> missingOakNode "member signature" ms.Range ms
 
 [<TailCall>]
 let rec mkModuleDecls
@@ -3883,7 +3922,7 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
         )
         |> ModuleDecl.NestedModule
     | SynModuleSigDecl.Val(valSig, _) -> mkVal creationAide valSig |> ModuleDecl.Val
-    | decl -> invariantViolation decl.Range $"no Oak node is defined for this signature declaration: %A{decl}"
+    | decl -> missingOakNode "signature declaration" decl.Range decl
 
 let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRepr, members, range, trivia)) : TypeDefn =
     let typeNameNode =
@@ -3898,7 +3937,10 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
                 | SynTypeDefnLeadingKeyword.StaticType _
                 | SynTypeDefnLeadingKeyword.Synthetic ->
-                    invariantViolation range "unexpected leading keyword %A" trivia.LeadingKeyword
+                    invariantViolationAbout
+                        range
+                        trivia.LeadingKeyword
+                        $"unexpected leading keyword %s{UnionCase.name trivia.LeadingKeyword}"
 
             let m =
                 if not px.IsEmpty then
@@ -3999,7 +4041,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
             | SynTypeDefnKind.Interface, StartRange 9 (mInterface, _) -> stn "interface" mInterface
             | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
-            | _ -> invariantViolation range "unexpected type definition kind"
+            | _ -> invariantViolationAbout range tdk $"unexpected type definition kind: %s{UnionCase.name tdk}"
 
         let objectMembers = objectMembers |> List.map (mkMemberSig creationAide)
 
@@ -4045,7 +4087,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             [ yield! objectMembers; yield! members ]
 
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
-    | _ -> invariantViolation range "no Oak node is defined for this type definition: %A" typeRepr
+    | _ -> missingOakNode "type definition" range typeRepr
 
 [<TailCall>]
 let rec mkModuleSigDecls
