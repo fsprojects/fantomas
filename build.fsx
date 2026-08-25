@@ -55,14 +55,26 @@ let isDryRun =
     let args = fsi.CommandLineArgs
     Array.exists (fun arg -> arg = "--dry-run") args
 
+/// `--json` when a hosted runner is what is reading the output, and nothing when a person is.
+///
+/// GitHub Actions sets `CI` to `true`, and so does nearly every other hosted runner; nothing sets
+/// it on a development machine. The value itself is not worth matching on, only whether it is
+/// there, because no two runners agree on what to put in it.
+let jsonFlagDuringCI: string =
+    if String.IsNullOrEmpty(Environment.GetEnvironmentVariable "CI") then
+        String.Empty
+    else
+        "--json"
+
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
-    stage "CheckFormat" { run "dotnet fantomas src analyzers docs scripts build.fsx --check --json" }
+    stage "CheckFormat" { run $"dotnet fantomas check src analyzers docs scripts build.fsx {jsonFlagDuringCI}" }
     stage "BuildDebug" { run $"dotnet build \"{scriptProject}\" --tl" }
     stage "CheckScripts" { run checkScripts }
     stage "Build" { run "dotnet build -c Release --tl" }
+    stage "CheckDocScripts" { run checkDocScripts }
     stage "UnitTests" { run "dotnet test -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
     stage "Docs" {
