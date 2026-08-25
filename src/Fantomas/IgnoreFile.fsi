@@ -28,19 +28,32 @@ module IgnoreFile =
     [<Literal>]
     val IgnoreFileName: string = ".fantomasignore"
 
-    /// Find the `.fantomasignore` file above the given filepath, if one exists.
-    /// Note that this is intended for use only in the daemon; the command-line tool
-    /// does not support `.fantomasignore` files anywhere other than the current
-    /// working directory.
+    /// Find the `.fantomasignore` file above the given filepath, if one exists: the nearest one at
+    /// or above it, and only that one, so a file in a subfolder is governed by the ignore file
+    /// beside it rather than by one further up.
+    ///
+    /// Note that this is the nearest and not the union of every one above, which is where it
+    /// differs from `.gitignore`.
     val find: fs: IFileSystem -> loadIgnoreList: (string -> IsPathIgnored) -> filePath: string -> IgnoreFile option
 
     val loadIgnoreList: fs: IFileSystem -> ignoreFilePath: string -> IsPathIgnored
 
-    /// The `.fantomasignore` the command line tool honours: the single one at or above the
-    /// directory the tool was started from. The daemon instead finds the closest one to each
-    /// file it is asked about.
+    /// The single `.fantomasignore` at or above a directory. Kept for a caller that has a directory
+    /// rather than a file; a run over files wants `cachedFinder`.
     val findInDirectory:
         fs: IFileSystem -> currentDirectory: string -> loadIgnoreList: (string -> IsPathIgnored) -> IgnoreFile option
+
+    /// `find`, per file, remembering what it found.
+    ///
+    /// This is what the command line uses, so that it and the daemon answer the same way about the
+    /// same file. They used not to: the daemon resolved the nearest ignore file to each file it was
+    /// asked about, while the command line resolved one for the whole run from the directory it was
+    /// started in, so a `.fantomasignore` in a subfolder was honoured by an editor and invisible to
+    /// a pipeline. The same file was skipped in one and formatted in the other.
+    ///
+    /// Cached because a folder walk asks about every file in turn, and without it the tree is
+    /// walked and the patterns compiled once per file rather than once per directory.
+    val cachedFinder: fs: IFileSystem -> loadIgnoreList: (string -> IsPathIgnored) -> (string -> IgnoreFile option)
 
     /// Is the file matched by the ignore file? Deciding that is not something that should fail;
     /// if it does, the failure is reported through the sink and the file counts as not ignored.

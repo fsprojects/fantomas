@@ -9,9 +9,6 @@ open Fantomas.FCS.Parse
 open Fantomas.CommandResult
 open Fantomas.Report
 
-[<Literal>]
-let SchemaVersion: int = 1
-
 type Range =
     {
         StartLine: int
@@ -32,8 +29,8 @@ type Diagnostic =
 type FileOutcome =
     | Formatted
     | Unchanged
-    | Ignored
     | NeedsFormatting
+    | Timed of lineCount: int * defineCombinations: int * milliseconds: int
     | Failed of message: string * diagnostics: Diagnostic list
 
 [<NoComparison>]
@@ -43,6 +40,7 @@ type FileReport = { Path: string; Outcome: FileOutcome }
 type Command =
     | Format
     | Check
+    | Profile
 
 [<NoComparison>]
 type RunReport =
@@ -51,6 +49,7 @@ type RunReport =
         WorkingDirectory: string
         ExitCode: int
         Error: string option
+        ElapsedMilliseconds: int option
         Files: FileReport list
     }
 
@@ -79,7 +78,10 @@ let describeDiagnostic (diagnostic: FSharpParserDiagnostic) : Diagnostic =
 let describeFileFailure (file: string) (error: exn) : FileOutcome =
     match error with
     | :? ParseException as parseFailure ->
-        FileOutcome.Failed($"Fantomas could not parse %s{file}", List.map describeDiagnostic parseFailure.Diagnostics)
+        FileOutcome.Failed(
+            $"%s{file} could not be parsed by Fantomas",
+            List.map describeDiagnostic parseFailure.Diagnostics
+        )
     | _ ->
         let message: string = describeFailure error |> Option.defaultValue error.Message
 
@@ -91,33 +93,34 @@ let describeFileFailure (file: string) (error: exn) : FileOutcome =
 let sortByPath (files: FileReport list) : FileReport list =
     List.sortBy (fun (file: FileReport) -> file.Path) files
 
-let describeResult (result: FormatResult) : FileReport =
+let describeResult (result: FormatResult) : FileReport option =
     match result with
-    | FormatResult.IgnoredFile file ->
-        {
-            Path = file
-            Outcome = FileOutcome.Ignored
-        }
-    | FormatResult.Unchanged(file, _) ->
-        {
-            Path = file
-            Outcome = FileOutcome.Unchanged
-        }
-    | FormatResult.Formatted(file, _, _) ->
-        {
-            Path = file
-            Outcome = FileOutcome.Formatted
-        }
+    // Neither listed nor counted. See `RunReport`.
+    | FormatResult.IgnoredFile _ -> None
+    | FormatResult.Unchanged file ->
+        Some
+            {
+                Path = file
+                Outcome = FileOutcome.Unchanged
+            }
+    | FormatResult.Formatted(file, _) ->
+        Some
+            {
+                Path = file
+                Outcome = FileOutcome.Formatted
+            }
     | FormatResult.Error(file, error) ->
-        {
-            Path = file
-            Outcome = describeFileFailure file error
-        }
+        Some
+            {
+                Path = file
+                Outcome = describeFileFailure file error
+            }
     | FormatResult.InvalidCode(file, _) ->
-        {
-            Path = file
-            Outcome = describeFileFailure file (invalidResultException file)
-        }
+        Some
+            {
+                Path = file
+                Outcome = describeFileFailure file (invalidResultException ())
+            }
 
 let formatReport (workingDirectory: string) (result: FormatCommandResult) : RunReport =
     let error, files: string option * FileReport list =
@@ -125,13 +128,14 @@ let formatReport (workingDirectory: string) (result: FormatCommandResult) : RunR
         | FormatCommandResult.Failed error -> Some error.Message, []
         | FormatCommandResult.InvalidInput problem -> Some(describeInputProblem problem), []
         | FormatCommandResult.Completed results ->
-            None, results |> Array.map describeResult |> List.ofArray |> sortByPath
+            None, results |> Array.choose describeResult |> List.ofArray |> sortByPath
 
     {
         Command = Command.Format
         WorkingDirectory = workingDirectory
         ExitCode = result.ExitCode
         Error = error
+        ElapsedMilliseconds = None
         Files = files
     }
 
@@ -140,19 +144,13 @@ let checkReport (workingDirectory: string) (result: CheckCommandResult) : RunRep
         match result with
         | CheckCommandResult.Failed error -> Some error.Message, []
         | CheckCommandResult.InvalidInput problem -> Some(describeInputProblem problem), []
-        | CheckCommandResult.Completed(ignored, checkResult) ->
+        | CheckCommandResult.Completed(_, checkResult) ->
             // A file that could not be formatted is counted as changed as well as errored, so it
             // would otherwise be listed twice under two different answers.
             let failed: Set<string> = checkResult.Errors |> List.map fst |> Set.ofList
 
             let files: FileReport list =
                 [
-                    for file in ignored do
-                        {
-                            Path = file
-                            Outcome = FileOutcome.Ignored
-                        }
-
                     for file, error in checkResult.Errors do
                         {
                             Path = file
@@ -180,6 +178,44 @@ let checkReport (workingDirectory: string) (result: CheckCommandResult) : RunRep
         WorkingDirectory = workingDirectory
         ExitCode = result.ExitCode
         Error = error
+        ElapsedMilliseconds = None
+        Files = files
+    }
+
+let profileReport (workingDirectory: string) (result: ProfileCommand.ProfileCommandResult) : RunReport =
+    let error, elapsed, files: string option * int option * FileReport list =
+        match result with
+        | ProfileCommand.ProfileCommandResult.Failed error -> Some error.Message, None, []
+        | ProfileCommand.ProfileCommandResult.InvalidInput problem -> Some(describeInputProblem problem), None, []
+        | ProfileCommand.ProfileCommandResult.Completed profile ->
+            let files: FileReport list =
+                [
+                    for file, error in profile.Errors do
+                        {
+                            Path = file
+                            Outcome = describeFileFailure file error
+                        }
+
+                    for timing in profile.Timings do
+                        {
+                            Path = timing.File
+                            Outcome =
+                                FileOutcome.Timed(
+                                    timing.LineCount,
+                                    timing.DefineCombinations,
+                                    int (round timing.TimeTaken.TotalMilliseconds)
+                                )
+                        }
+                ]
+
+            None, Some(int (round profile.Elapsed.TotalMilliseconds)), sortByPath files
+
+    {
+        Command = Command.Profile
+        WorkingDirectory = workingDirectory
+        ExitCode = result.ExitCode
+        Error = error
+        ElapsedMilliseconds = elapsed
         Files = files
     }
 
@@ -187,14 +223,15 @@ let describeCommand (command: Command) : string =
     match command with
     | Command.Format -> "format"
     | Command.Check -> "check"
+    | Command.Profile -> "profile"
 
 let describeOutcome (outcome: FileOutcome) : string =
     match outcome with
     | FileOutcome.Failed _ -> "error"
-    | FileOutcome.Ignored -> "ignored"
     | FileOutcome.Formatted -> "formatted"
     | FileOutcome.Unchanged -> "unchanged"
     | FileOutcome.NeedsFormatting -> "needs-formatting"
+    | FileOutcome.Timed _ -> "timed"
 
 let writeDiagnostic (json: Utf8JsonWriter) (diagnostic: Diagnostic) : unit =
     json.WriteStartObject()
@@ -225,8 +262,11 @@ let writeFile (json: Utf8JsonWriter) (file: FileReport) : unit =
     match file.Outcome with
     | FileOutcome.Formatted
     | FileOutcome.Unchanged
-    | FileOutcome.Ignored
     | FileOutcome.NeedsFormatting -> ()
+    | FileOutcome.Timed(lineCount, defineCombinations, milliseconds) ->
+        json.WriteNumber("lineCount", lineCount)
+        json.WriteNumber("defineCombinations", defineCombinations)
+        json.WriteNumber("milliseconds", milliseconds)
     | FileOutcome.Failed(message, diagnostics) ->
         json.WriteString("message", message)
         json.WriteStartArray "diagnostics"
@@ -239,7 +279,6 @@ let writeFile (json: Utf8JsonWriter) (file: FileReport) : unit =
 // that is sometimes absent is a trap in the languages most likely to be reading this.
 let writeReport (json: Utf8JsonWriter) (report: RunReport) : unit =
     json.WriteStartObject()
-    json.WriteNumber("version", SchemaVersion)
     json.WriteString("command", describeCommand report.Command)
     json.WriteString("workingDirectory", report.WorkingDirectory)
     json.WriteNumber("exitCode", report.ExitCode)
@@ -247,6 +286,12 @@ let writeReport (json: Utf8JsonWriter) (report: RunReport) : unit =
     match report.Error with
     | None -> json.WriteNull "error"
     | Some error -> json.WriteString("error", error)
+
+    // Only on the command that measures. The other two would carry a null on every run to say
+    // nothing, which is what the per file keys already avoid.
+    match report.ElapsedMilliseconds with
+    | None -> ()
+    | Some elapsed -> json.WriteNumber("elapsedMilliseconds", elapsed)
 
     json.WriteStartArray "files"
     List.iter (writeFile json) report.Files
@@ -274,3 +319,12 @@ let reportCheckCommand (workingDirectory: string) (writer: TextWriter) (result: 
     let report: RunReport = checkReport workingDirectory result
     writer.WriteLine(render report)
     report.ExitCode
+
+let reportProfileCommand
+    (workingDirectory: string)
+    (writer: TextWriter)
+    (result: ProfileCommand.ProfileCommandResult)
+    : int
+    =
+    writer.WriteLine(render (profileReport workingDirectory result))
+    result.ExitCode

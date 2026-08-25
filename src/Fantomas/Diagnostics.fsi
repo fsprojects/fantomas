@@ -1,6 +1,7 @@
 module Fantomas.Diagnostics
 
 open Fantomas.FCS.Parse
+open Fantomas.Theme
 
 /// The word for a diagnostic's severity: `error`, `warning` or `info`. Every report says it the
 /// same way, whether it is writing a line of text or a field of a document.
@@ -25,7 +26,14 @@ val errorNumber: diagnostic: FSharpParserDiagnostic -> string
 /// under the offending range. It is drawn for the earliest error, which in an offside cascade is
 /// the line that caused the cascade rather than the innocent line the parser stopped at. Pass an
 /// empty string for `source` to leave the snippet out.
-val renderParseFailure: file: string -> source: string -> diagnostics: FSharpParserDiagnostic list -> string
+///
+/// `theme` decides how much of it is coloured: the path and each diagnostic's position as a place
+/// the reader can go, the severity as the outcome it is, the error number and the gutter as the
+/// scaffolding they are, and the carets red. The message and the source between the gutters are
+/// left exactly as they are. `Theme.plain` renders the same report as text alone, which is what a
+/// redirected stream and the daemon get.
+val renderParseFailure:
+    theme: Theme -> file: string -> source: string -> diagnostics: FSharpParserDiagnostic list -> string
 
 /// Render `error` as the text to report for `file`, when it is a parse failure and therefore has
 /// diagnostics worth positioning. Anything else is not this module's to describe and comes back
@@ -34,7 +42,7 @@ val renderParseFailure: file: string -> source: string -> diagnostics: FSharpPar
 /// `source` yields the text those diagnostics were produced from, and is called only once `error`
 /// turns out to be a parse failure. A caller that has to read a file to produce it therefore does
 /// not read one for a failure that has nothing to do with parsing.
-val describeParseFailure: file: string -> source: (unit -> string) -> error: exn -> string option
+val describeParseFailure: theme: Theme -> file: string -> source: (unit -> string) -> error: exn -> string option
 
 /// Render an invariant violation the same way a parse failure is rendered: one MSBuild style line
 /// saying what Fantomas could not model and where, then a snippet of `source` with a caret run
@@ -46,11 +54,17 @@ val describeParseFailure: file: string -> source: (unit -> string) -> error: exn
 /// `verbose` adds the syntax tree node the violation carries. It is what a maintainer triaging the
 /// report needs and noise to whoever ran the tool, so it is not shown by default.
 val renderInvariantViolation:
-    file: string -> source: string -> verbose: bool -> violation: Fantomas.Core.InvariantViolationException -> string
+    theme: Theme ->
+    file: string ->
+    source: string ->
+    verbose: bool ->
+    violation: Fantomas.Core.InvariantViolationException ->
+        string
 
 /// Render `error` as the text to report for `file`, when it is an invariant violation and therefore
 /// points at a construct Fantomas could not model. Anything else comes back as `None`.
 ///
 /// `source` yields the text being formatted, and is called only once `error` turns out to be an
 /// invariant violation.
-val describeInvariantViolation: file: string -> source: (unit -> string) -> verbose: bool -> error: exn -> string option
+val describeInvariantViolation:
+    theme: Theme -> file: string -> source: (unit -> string) -> verbose: bool -> error: exn -> string option

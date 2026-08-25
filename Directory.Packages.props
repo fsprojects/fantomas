@@ -26,7 +26,6 @@
         <PackageVersion Include="SemanticVersioning" Version="3.0.0" />
         <PackageVersion Include="Serilog" Version="4.3.1"/>
         <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
-        <PackageVersion Include="Argu" Version="6.2.5" />
         <PackageVersion Include="editorconfig" Version="0.15.0" />
         <PackageVersion Include="Ignore" Version="0.2.1" />
         <PackageVersion Include="System.IO.Abstractions" Version="22.1.0" />

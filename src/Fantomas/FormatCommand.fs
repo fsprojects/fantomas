@@ -12,23 +12,19 @@ open Fantomas.Cli
 open Fantomas.CommandResult
 open Fantomas.Paths
 open Fantomas.Plan
+open Fantomas.Theme
 
 type FormatParams =
     {
         Config: FormatConfig
         CompareWithoutLineEndings: bool
-        Profile: bool
         File: string
     }
 
-    static member Create
-        (config: FormatConfig, compareWithoutLineEndings: bool, profile: bool, file: string)
-        : FormatParams
-        =
+    static member Create(config: FormatConfig, compareWithoutLineEndings: bool, file: string) : FormatParams =
         {
             Config = config
             CompareWithoutLineEndings = compareWithoutLineEndings
-            Profile = profile
             File = file
         }
 
@@ -41,35 +37,8 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
         try
             let isSignatureFile: bool = Path.GetExtension(formatParams.File) = ".fsi"
 
-            let! { Code = formattedContent }, profileInfo =
-                if formatParams.Profile then
-                    async {
-                        let sw: Diagnostics.Stopwatch = Diagnostics.Stopwatch.StartNew()
-
-                        let! res =
-                            CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, formatParams.Config)
-
-                        sw.Stop()
-
-                        // Counting line feeds rather than the platform's newline: a file written
-                        // with the other platform's line endings has just as many lines.
-                        let count: int = originalContent.Length - originalContent.Replace("\n", "").Length
-
-                        let profileInfo: ProfileInfo =
-                            {
-                                LineCount = count
-                                TimeTaken = sw.Elapsed
-                            }
-
-                        return res, Some profileInfo
-                    }
-                else
-                    async {
-                        let! res =
-                            CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, formatParams.Config)
-
-                        return res, None
-                    }
+            let! { Code = formattedContent } =
+                CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, formatParams.Config)
 
             let contentChanged: bool =
                 if formatParams.CompareWithoutLineEndings then
@@ -86,14 +55,9 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
                 if not isValid then
                     return FormatResult.InvalidCode(filename = formatParams.File, formattedContent = formattedContent)
                 else
-                    return
-                        FormatResult.Formatted(
-                            filename = formatParams.File,
-                            formattedContent = formattedContent,
-                            profileInfo = profileInfo
-                        )
+                    return FormatResult.Formatted(filename = formatParams.File, formattedContent = formattedContent)
             else
-                return FormatResult.Unchanged(filename = formatParams.File, profileInfo = profileInfo)
+                return FormatResult.Unchanged(filename = formatParams.File)
         with ex ->
             return FormatResult.Error(formatParams.File, ex)
     }
@@ -142,19 +106,33 @@ let formatSource
     : Async<FormatResult>
     =
     async {
-        let formatParams: FormatParams =
-            FormatParams.Create(config, false, settings.Profile, file)
+        let formatParams: FormatParams = FormatParams.Create(config, false, file)
 
         let! (formatted: FormatResult) = formatContentAsync formatParams source.Content
 
         match formatted with
         | FormatResult.InvalidCode(f, formattedContent) when settings.Force ->
-            env.Log.Information $"%s{f} was not valid after formatting."
-            return FormatResult.Formatted(file, formattedContent, None)
-        | FormatResult.InvalidCode(f, _) -> return FormatResult.Error(f, invalidResultException f)
-        | FormatResult.Unchanged(f, _) as r ->
-            env.Log.Debug $"'%s{f}' was unchanged"
-            return r
+            // A warning, and on standard error, because it says Fantomas wrote F# it believes is not
+            // valid. It used to go to standard out at Information, alongside the ordinary run of
+            // things it is the opposite of.
+            //
+            // No status glyph, and it does not want one: the file is reported as formatted on the
+            // line above, in the column every state shares. This is a note about that line rather
+            // than a sixth state, and the two travel on different streams, so it repeats what
+            // happened instead of leaning on a line a pipeline may not have beside it.
+            let theme: Theme = env.ErrorTheme
+
+            env.Log.Warning(
+                String.Concat(
+                    link theme f,
+                    " was formatted, but the result is not valid F# code. It was written because ",
+                    flagName theme "--force",
+                    " was given."
+                )
+            )
+
+            return FormatResult.Formatted(file, formattedContent)
+        | FormatResult.InvalidCode(f, _) -> return FormatResult.Error(f, invalidResultException ())
         | r -> return r
     }
 
@@ -182,7 +160,7 @@ let processFile
 
             let toWrite: string option =
                 match result with
-                | FormatResult.Formatted(_, formattedContent, _) -> Some formattedContent
+                | FormatResult.Formatted(_, formattedContent) -> Some formattedContent
                 // Writing somewhere else has to carry an unchanged file across to it. Writing back
                 // over the input has nothing to do.
                 | FormatResult.Unchanged _ when not inPlace -> Some source.Content
@@ -225,7 +203,7 @@ let runFormatCommand
             fs.Directory.CreateDirectory outputFolder |> ignore
         | _ -> ()
 
-        match plan fs env.Log env.IgnoreFile inputPath outputPath with
+        match plan fs env.Log env.FindIgnoreFile inputPath outputPath with
         | Error problem -> FormatCommandResult.InvalidInput problem
         | Ok items ->
             items

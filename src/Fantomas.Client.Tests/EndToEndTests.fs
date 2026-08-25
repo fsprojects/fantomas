@@ -27,6 +27,10 @@ type EndToEndTests() =
     /// The point of these tests is that Fantomas.Client can still talk to a released fantomas, so
     /// the latest stable release of each supported major is enough. Older releases, and the
     /// prereleases of a major that has since shipped, are not worth holding anyone to.
+    /// Both of these are below 8.0, so they drive the client's `--daemon` path. Add "8.0.0" here
+    /// once it is released and the `daemon` subcommand path is driven too: until a stable 8.0
+    /// exists there is no released version that spells it the newer way, so that seam is covered
+    /// only by `daemonArgument`'s own tests and by the tool's, and not by the two meeting.
     let versions: string list = [ "6.3.16"; "7.0.5" ]
 
     let installAttempts: int = 3

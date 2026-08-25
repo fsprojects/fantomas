@@ -79,7 +79,7 @@ let ``a file that is already formatted is reported as unchanged`` () =
     write fs file Formatted
 
     match format fs (InputPath.File file) OutputPath.NotKnown |> results with
-    | [| FormatResult.Unchanged(f, _) |] -> f |> shouldEqual file
+    | [| FormatResult.Unchanged f |] -> f |> shouldEqual file
     | other -> failwith $"Expected one unchanged file, got %A{other}"
 
     read fs file |> shouldEqual Formatted
@@ -297,7 +297,7 @@ let ``without force, output that is not valid F# is not written`` () =
     match format fs (InputPath.File input) (OutputPath.IO output) |> results with
     | [| FormatResult.Error(f, error) |] ->
         f |> shouldEqual input
-        error.Message |> shouldContainText "leads to invalid F# code"
+        error.Message |> shouldContainText "not valid F#"
         fs.File.Exists output |> shouldEqual false
     | other -> failwith $"Expected the invalid output to be withheld, got %A{other}"
 
@@ -316,17 +316,6 @@ let ``a run says what it is doing at detailed verbosity`` () =
     log.Debug |> shouldContain $"%s{output} has been written."
 
 [<Test>]
-let ``an unchanged file says so at detailed verbosity`` () =
-    let fs: IFileSystem = MockFileSystem()
-    let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
-    write fs file Formatted
-
-    let _, log =
-        formatLogging defaultSettings fs (InputPath.File file) OutputPath.NotKnown
-
-    log.Debug |> shouldContain $"'%s{file}' was unchanged"
-
-[<Test>]
 let ``with force, the output being invalid is said out loud`` () =
     let source: string =
         System.IO.Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "tests", "data", "CheckDeclarations.fs")
@@ -342,53 +331,13 @@ let ``with force, the output being invalid is said out loud`` () =
     let settings: CliSettings = { defaultSettings with Force = true }
     let _, log = formatLogging settings fs (InputPath.File input) (OutputPath.IO output)
 
-    log.Information |> shouldContain $"%s{input} was not valid after formatting."
+    // A warning, so it lands on standard error: it says Fantomas wrote F# it believes is not valid,
+    // which is the opposite of the ordinary run of things standard out carries.
+    log.Information |> shouldBeEmpty
 
-[<Test>]
-let ``profiling collects a line count and a time for the file it formatted`` () =
-    let fs: IFileSystem = MockFileSystem()
-    let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
-    write fs file "let  a =   1\nlet  b =   2\n"
-
-    let settings: CliSettings = { defaultSettings with Profile = true }
-
-    match formatWith settings None fs (InputPath.File file) OutputPath.NotKnown |> results with
-    | [| FormatResult.Formatted(_, _, Some profile) |] -> profile.LineCount |> shouldBeGreaterThan 0
-    | other -> failwith $"Expected a profiled result, got %A{other}"
-
-[<Test>]
-let ``the line count does not depend on which line endings the file uses`` () =
-    // It used to count occurrences of the platform's newline, so a file written with line feeds
-    // counted zero lines on Windows and a file written with carriage returns counted zero on
-    // anything else.
-    let lineCountOf (content: string) : int =
-        let fs: IFileSystem = MockFileSystem()
-        let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
-        write fs file content
-
-        let settings: CliSettings = { defaultSettings with Profile = true }
-
-        match formatWith settings None fs (InputPath.File file) OutputPath.NotKnown |> results with
-        | [| FormatResult.Formatted(_, _, Some profile) |] -> profile.LineCount
-        | other -> failwith $"Expected a profiled result, got %A{other}"
-
-    lineCountOf "let  a =   1\nlet  b =   2\n" |> shouldEqual 2
-    lineCountOf "let  a =   1\r\nlet  b =   2\r\n" |> shouldEqual 2
-
-[<Test>]
-let ``nothing is profiled unless profiling was asked for`` () =
-    let fs: IFileSystem = MockFileSystem()
-    let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
-    write fs file NeedsFormatting
-
-    match format fs (InputPath.File file) OutputPath.NotKnown |> results with
-    | [| FormatResult.Formatted(_, _, None) |] -> ()
-    | other -> failwith $"Expected no profile, got %A{other}"
-
-[<Test>]
-let ``no input path at all is refused`` () =
-    format (MockFileSystem()) InputPath.Unspecified OutputPath.NotKnown
-    |> shouldEqual (FormatCommandResult.InvalidInput InputProblem.NoPathGiven)
+    log.Warning
+    |> shouldContain
+        $"%s{input} was formatted, but the result is not valid F# code. It was written because --force was given."
 
 [<Test>]
 let ``a file Fantomas does not format is refused`` () =

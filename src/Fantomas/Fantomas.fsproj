@@ -21,6 +21,12 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fsi" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Theme.fsi" />
+    <Compile Include="Theme.fs" />
+    <Compile Include="Invocation.fsi" />
+    <Compile Include="Invocation.fs" />
+    <Compile Include="Suggestion.fsi" />
+    <Compile Include="Suggestion.fs" />
     <Compile Include="Logging.fsi" />
     <Compile Include="Logging.fs" />
     <Compile Include="Diagnostics.fsi" />
@@ -33,14 +39,14 @@
     <Compile Include="EditorConfigReport.fs" />
     <Compile Include="Daemon.fsi" />
     <Compile Include="Daemon.fs" />
-    <Compile Include="HelpPage.fsi" />
-    <Compile Include="HelpPage.fs" />
     <Compile Include="Cli.fsi" />
     <Compile Include="Cli.fs" />
     <Compile Include="Paths.fsi" />
     <Compile Include="Paths.fs" />
     <Compile Include="Arguments.fsi" />
     <Compile Include="Arguments.fs" />
+    <Compile Include="HelpPage.fsi" />
+    <Compile Include="HelpPage.fs" />
     <Compile Include="CommandResult.fsi" />
     <Compile Include="CommandResult.fs" />
     <Compile Include="Plan.fsi" />
@@ -49,6 +55,10 @@
     <Compile Include="FormatCommand.fs" />
     <Compile Include="CheckCommand.fsi" />
     <Compile Include="CheckCommand.fs" />
+    <Compile Include="DaemonCommand.fsi" />
+    <Compile Include="DaemonCommand.fs" />
+    <Compile Include="ProfileCommand.fsi" />
+    <Compile Include="ProfileCommand.fs" />
     <Compile Include="Report.fsi" />
     <Compile Include="Report.fs" />
     <Compile Include="JsonReport.fsi" />
@@ -60,7 +70,6 @@
     <PackageReference Include="Serilog"  />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="StreamJsonRpc" />
-    <PackageReference Include="Argu" />
     <PackageReference Include="editorconfig" />
     <PackageReference Include="Ignore" />
     <PackageReference Include="System.IO.Abstractions" />

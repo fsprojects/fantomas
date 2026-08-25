@@ -23,11 +23,16 @@ let HelpUri: string =
 
 // Whether a pattern carries a type, looking through the wrappers that can sit between the pattern
 // and its annotation.
+//
+// A tuple parameter is typed when every element of it is. `(a: int, b: string)` states the type of
+// the parameter just as fully as `((a, b): int * string)` does, and it is the spelling anyone
+// writes, so asking for the second would be asking for a worse line.
 let rec isTyped (pattern: SynPat) : bool =
     match pattern with
     | SynPat.Typed _ -> true
     | SynPat.Paren(pat = inner) -> isTyped inner
     | SynPat.Attrib(pat = inner) -> isTyped inner
+    | SynPat.Tuple(elementPats = elements) -> not (List.isEmpty elements) && List.forall isTyped elements
     | _ -> false
 
 // Whether a parameter is one there is no way to annotate, which is the unit argument and nothing

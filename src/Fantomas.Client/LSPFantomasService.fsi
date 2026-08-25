@@ -42,7 +42,7 @@ type internal IDaemon =
 type internal DaemonOperations<'daemon when 'daemon :> IDaemon> =
     {
         FindTool: Folder -> Result<FantomasToolFound, FantomasToolError>
-        Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError>
+        Create: FantomasVersion -> FantomasToolStartInfo -> Result<'daemon, ProcessStartError>
     }
 
 /// Hand out the daemon serving `folder`, starting one if no running daemon serves its version yet,

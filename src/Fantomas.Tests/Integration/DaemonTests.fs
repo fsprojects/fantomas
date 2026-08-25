@@ -30,14 +30,38 @@ let ``an argument that means nothing to a daemon stops it starting`` (argument: 
 
     exitCode |> should equal 1
     output |> should equal ""
-    Assert.That(error, Does.Contain $"--daemon cannot be combined with %s{argument}")
+    Assert.That(error, Does.Contain $"A daemon cannot be combined with %s{argument}")
 
 [<Test>]
 let ``every argument that means nothing to a daemon is named at once`` () =
     let { Error = error } =
         runFantomasTool [ "--daemon"; "--force"; "--out"; "build"; "A.fs" ]
 
-    Assert.That(error, Does.Contain "--daemon cannot be combined with --force, --out, input paths")
+    Assert.That(error, Does.Contain "A daemon cannot be combined with --force, --out, input paths")
+
+// `--daemon` is the older spelling and has to go on working: `Fantomas.Client` launches every one
+// of its three ways with it, so an editor built against an earlier Fantomas is talking to whatever
+// version the user has installed.
+[<Test>]
+[<TestCase("--daemon")>]
+[<TestCase("daemon")>]
+let ``both spellings of the daemon refuse the same argument`` (spelling: string) : unit =
+    let { ExitCode = exitCode; Error = error } = runFantomasTool [ spelling; "--check" ]
+
+    exitCode |> should equal 1
+    Assert.That(error, Does.Contain "A daemon cannot be combined with --check")
+
+// The nudge toward the newer spelling is for a person at a terminal. A pipeline cannot act on it
+// and would carry it on every run for as long as both spellings exist, which is forever, so a run
+// with standard error redirected must not carry it. That is also what keeps it out of the daemon
+// an editor starts, since `Fantomas.Client` redirects that stream in order to read it.
+[<Test>]
+[<TestCase("--check")>]
+[<TestCase("--daemon")>]
+let ``the older spelling says nothing when standard error is redirected`` (spelling: string) : unit =
+    let { Error = error } = runFantomasTool [ spelling; "--out"; "build" ]
+
+    Assert.That(error, Does.Not.Contain "is how it is spelled now")
 
 let private assertFormatted (actual: string) (expected: string) : unit =
     String.normalizeNewLine actual

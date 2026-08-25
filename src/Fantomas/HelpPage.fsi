@@ -1,28 +1,26 @@
 module Fantomas.HelpPage
 
-/// How much colour the page may use.
-[<RequireQualifiedAccess; Struct>]
-type Palette =
-    | NoColour
-    | FourBit
-    | EightBit
+open Fantomas.Arguments
+open Fantomas.Theme
 
-/// What the terminal standard out is attached to will take. Colours are dropped when standard out
-/// is redirected, so piping the page into a file or a pager yields plain text.
-val detectPalette: unit -> Palette
-
-/// The `fantomas --help` page, as the lines it is made of. Nothing is written, so a caller can
+/// The `--help` page for a command, as the lines it is made of. Nothing is written, so a caller can
 /// look at the page without a console.
-val render: palette: Palette -> string list
+///
+/// A command that names one gets a page about itself, listing only the flags it has any use for
+/// and leaving out the paths section when it takes none. Which flags those are is asked of
+/// `argumentsRefusedBy`, the same rule that refuses them at run time, so the page cannot come to
+/// disagree with the tool.
+///
+/// Formatting is the command a run gets when it names none, and its page is the overview: every
+/// command, every flag, and the examples.
+val render: theme: Theme -> invocation: string -> command: Command -> string list
 
-/// Write the `fantomas --help` page to standard out.
-val print: unit -> unit
+/// Write a command's `--help` page to standard out.
+val print: command: Command -> unit
 
-/// The line of Argu's message that carries the actual complaint. Argu builds a usage block of its
-/// own and hands it over as part of the message; only the first line says what went wrong.
-val complaint: message: string -> string
-
-/// Error handler for Argu. `--help` renders the page above, and an argument error is
-/// reported on standard error, followed by a pointer to the page.
-/// Argu's own generated usage text is never shown.
-val exiter: Argu.IExiter
+/// The version with its commit hash trimmed to the short form git itself shows.
+///
+/// What the page carries, and what `--version` answers with unless detailed verbosity asks for the
+/// whole hash. A hash is for pasting into a `git show`, where nine characters are enough, and the
+/// full forty were the only thing on the line long enough to wrap it.
+val shortVersion: unit -> string

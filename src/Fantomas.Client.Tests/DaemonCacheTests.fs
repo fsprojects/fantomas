@@ -40,7 +40,9 @@ let private operationsFor
     {
         FindTool = find
         Create =
-            fun startInfo ->
+            // The version reaches `Create` because it decides how the daemon is asked for, and
+            // these fakes do not care which version it is.
+            fun _version startInfo ->
                 let created = create startInfo
                 created |> Result.iter recorder.Record
                 created

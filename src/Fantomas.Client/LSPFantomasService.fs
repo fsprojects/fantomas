@@ -43,7 +43,7 @@ type IDaemon =
 type DaemonOperations<'daemon when 'daemon :> IDaemon> =
     {
         FindTool: Folder -> Result<FantomasToolFound, FantomasToolError>
-        Create: FantomasToolStartInfo -> Result<'daemon, ProcessStartError>
+        Create: FantomasVersion -> FantomasToolStartInfo -> Result<'daemon, ProcessStartError>
     }
 
 /// Forget a version, and with it every folder that resolved to it. Leaving those folders behind
@@ -65,7 +65,7 @@ let startDaemon
     (state: ServiceState<'daemon>)
     : Result<'daemon, GetDaemonError> * ServiceState<'daemon>
     =
-    match operations.Create startInfo with
+    match operations.Create version startInfo with
     | Error error -> Error(GetDaemonError.FantomasProcessStart error), forgetVersion version state
     | Ok daemon ->
         Ok daemon,
@@ -157,8 +157,8 @@ let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWa
         {
             FindTool = findFantomasTool
             Create =
-                fun startInfo ->
-                    createFor startInfo
+                fun version startInfo ->
+                    createForVersion version startInfo
                     |> Result.map (fun daemon ->
                         // Subscribed here rather than where the daemon is handed out, so that it happens
                         // once per daemon however many folders end up sharing it.

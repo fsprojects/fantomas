@@ -8,7 +8,7 @@ open System.Text
 open Serilog
 open Serilog.Core
 open Serilog.Events
-open Spectre.Console
+open Fantomas.Theme
 open Fantomas
 open Fantomas.Cli
 open Fantomas.Core
@@ -50,6 +50,7 @@ type TemporaryFileCodeSample
         let extension = Option.defaultValue "fs" extension
 
         match internalSubFolders with
+        | None -> Path.Join(Path.GetTempPath(), sprintf "%s.%s" name extension)
         | Some sf ->
             let tempFolder = Path.Join(Path.GetTempPath(), Path.Join(sf))
 
@@ -57,7 +58,6 @@ type TemporaryFileCodeSample
                 Directory.CreateDirectory(tempFolder) |> ignore
 
             Path.Join(tempFolder, sprintf "%s.%s" name extension)
-        | None -> Path.Join(Path.GetTempPath(), sprintf "%s.%s" name extension)
 
     do
         (if hasByteOrderMark then
@@ -190,22 +190,13 @@ let collectingLogger () : ILogger * (unit -> CollectedLog) =
 
     logger, collected
 
-/// A Spectre console that draws into a string rather than onto a terminal. Colour and width are
-/// pinned so that what it draws does not depend on the terminal the tests happen to run in.
-let recordingConsole () : IAnsiConsole * (unit -> string) =
-    let writer: StringWriter = new StringWriter()
-
-    let console: IAnsiConsole =
-        AnsiConsole.Create(
-            AnsiConsoleSettings(
-                Ansi = AnsiSupport.No,
-                ColorSystem = ColorSystemSupport.NoColors,
-                Out = AnsiConsoleOutput(writer)
-            )
-        )
-
-    console.Profile.Width <- 200
-    console, (fun () -> writer.ToString())
+/// No colour and the ascii glyphs, so a test asserts on what was said rather than on how it was
+/// drawn. What the theme does with each of those is settled in `ThemeTests`.
+let plainTheme: Theme =
+    {
+        Palette = Palette.NoColour
+        Glyphs = GlyphSet.Ascii
+    }
 
 /// A `CliEnvironment` that keeps whatever a run writes, with the two ways to read it back.
 [<NoComparison; NoEquality>]
@@ -214,38 +205,37 @@ type RecordedRun =
         Environment: CliEnvironment
         /// What was logged, per level.
         Log: unit -> CollectedLog
-        /// What Spectre drew, as text.
-        Drawn: unit -> string
     }
 
 /// An environment over the given file system that records rather than prints, honouring the given
 /// ignore file and reading no `.editorconfig`.
 let recordingEnvironment (fs: IFileSystem) (ignoreFile: IgnoreFile option) : RecordedRun =
     let logger, collected = collectingLogger ()
-    let console, drawn = recordingConsole ()
 
     {
         Environment =
             {
                 FileSystem = fs
-                IgnoreFile = ignoreFile
+                FindIgnoreFile = fun _ -> ignoreFile
                 ReadConfiguration =
                     fun _ ->
                         { FormatConfig.Default with
                             EndOfLine = EndOfLineStyle.LF
                         }
                 Log = logger
-                Console = console
+                OutputTheme = plainTheme
+                ErrorTheme = plainTheme
+                // Pinned, the way the themes are. Asked of the process instead, this came back as
+                // whatever ran the test: `dotnet` on one platform and `testhost` on another.
+                Invocation = "dotnet fantomas"
             }
         Log = collected
-        Drawn = drawn
     }
 
 /// The settings a run gets when nothing was asked for on the command line.
 let defaultSettings: CliSettings =
     {
         Force = false
-        Profile = false
         Verbosity = VerbosityLevel.Normal
     }
 
@@ -276,10 +266,12 @@ let realDaemonEnvironment: DaemonEnvironment =
 let realEnvironment: CliEnvironment =
     {
         FileSystem = FileSystem()
-        IgnoreFile = None
+        FindIgnoreFile = fun _ -> None
         ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter Log.Logger)
         Log = Log.Logger
-        Console = AnsiConsole.Console
+        OutputTheme = plainTheme
+        ErrorTheme = plainTheme
+        Invocation = "dotnet fantomas"
     }
 
 type FantomasToolResult =

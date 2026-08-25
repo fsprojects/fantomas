@@ -3,12 +3,10 @@ module Fantomas.CommandResult
 open System
 open Fantomas.Core
 
-type ProfileInfo = { LineCount: int; TimeTaken: TimeSpan }
-
 [<RequireQualifiedAccess; NoComparison>]
 type FormatResult =
-    | Formatted of filename: string * formattedContent: string * profileInfo: ProfileInfo option
-    | Unchanged of filename: string * profileInfo: ProfileInfo option
+    | Formatted of filename: string * formattedContent: string
+    | Unchanged of filename: string
     | InvalidCode of filename: string * formattedContent: string
     | Error of filename: string * formattingError: exn
     | IgnoredFile of filename: string
@@ -25,14 +23,16 @@ type CheckResult =
     member this.NeedsFormatting = List.isNotEmpty this.Formatted
     member this.IsValid = List.isEmpty this.Errors && List.isEmpty this.Formatted
 
-let invalidResultException (file: string) : FormatException =
-    FormatException($"Formatting %s{file} leads to invalid F# code")
+// Not naming the file. Every reporter that shows this already has the file in hand and puts it in
+// front: the line came out as `A.fs could not be formatted: Formatting A.fs leads to invalid F#
+// code`, and the JSON document carries the message next to a `path` key saying the same thing.
+let invalidResultException () : FormatException =
+    FormatException("Fantomas produced code that is not valid F#.")
 
 [<RequireQualifiedAccess; Struct>]
 type InputProblem =
     | UnsupportedFileType of path: string
     | NotFound of path: string
-    | NoPathGiven
     | MultiplePathsWithOut
 
 [<RequireQualifiedAccess; NoComparison>]

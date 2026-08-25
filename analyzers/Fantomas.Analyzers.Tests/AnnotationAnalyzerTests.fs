@@ -88,6 +88,42 @@ let a, b = 1, 2"""
     analyzeSource cliAnalyzer source |> assertLines []
 
 [<Test>]
+let ``a tuple parameter annotated element by element is not reported`` () =
+    let source: string =
+        """module M
+
+let f (a: int, b: string) : string = b"""
+
+    analyzeSource cliAnalyzer source |> assertLines []
+
+[<Test>]
+let ``a tuple parameter annotated as a whole is not reported`` () =
+    let source: string =
+        """module M
+
+let f ((a, b): int * string) : string = b"""
+
+    analyzeSource cliAnalyzer source |> assertLines []
+
+[<Test>]
+let ``a tuple parameter with one element unannotated is reported`` () =
+    let source: string =
+        """module M
+
+let f (a: int, b) : int = a"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 3 ]
+
+[<Test>]
+let ``a struct tuple parameter annotated element by element is not reported`` () =
+    let source: string =
+        """module M
+
+let f (struct (a: int, b: string)) : string = b"""
+
+    analyzeSource cliAnalyzer source |> assertLines []
+
+[<Test>]
 let ``a test binding is not reported`` () =
     let source: string =
         """module M
