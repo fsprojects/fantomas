@@ -44,17 +44,11 @@ type WriteModelMode =
 
 type WriterModel =
     {
-        /// number of lines produced so far
         LineCount: int
-        /// current indentation
         Indent: int
-        /// helper indentation information, if AtColumn > Indent after NewLine, Indent will be set to AtColumn
         AtColumn: int
-        /// text to be written before next newline
         WriteBeforeNewline: string
-        /// dummy = "fake" writer used in `autoNln`, `autoNlnByFuture`
         Mode: WriteModelMode
-        /// current length of last line of output
         Column: int
     }
 
@@ -202,12 +196,9 @@ type Context =
         WriterModel: WriterModel
         WriterEvents: EventList
         FormattedCursor: pos option
-        /// When enabled, genNode emits NodeStart/NodeEnd WriterEvents around each Oak node.
-        /// Only used by CodeFormatter.GetWriterEventsAsync for diagnostic output.
         DebugMode: bool
     }
 
-    /// Initialize with a string writer and use space as delimiter
     static member Default =
         {
             Config = FormatConfig.Default
@@ -220,9 +211,6 @@ type Context =
     static member Create config : Context =
         { Context.Default with Config = config }
 
-    /// Run a probe function in dummy mode for speculative formatting.
-    /// Creates a backup point, runs `f` with Mode=Dummy, rolls back the event list,
-    /// and returns the resulting context so the caller can inspect WriterModel metadata.
     member x.WithDummy(f: Context -> Context, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
 
@@ -280,9 +268,6 @@ type Context =
 
     member x.Column = x.WriterModel.Column
 
-/// This adds a WriterEvent to the Context.
-/// One event could potentially be split up into multiple events.
-/// The event is also being processed in the WriterModel of the Context.
 let writerEvent (e: WriterEvent) (ctx: Context) : Context =
     // One event could contain a multiline string or code comments.
     // These need to be split up in multiple events.
@@ -445,16 +430,13 @@ let hasBlankLineBeforeLastWrite ctx =
 
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
-/// Indent one more level based on configuration
 let indent (ctx: Context) =
     // if atColumn is bigger then after indent, then we use atColumn as base for indent
     writerEvent (IndentBy ctx.Config.IndentSize) ctx
 
-/// Unindent one more level based on configuration
 let unindent (ctx: Context) =
     writerEvent (UnIndentBy ctx.Config.IndentSize) ctx
 
-/// Apply function f at an absolute indent level (use with care)
 let atIndentLevel alsoSetIndent level (f: Context -> Context) (ctx: Context) =
     if level < 0 then
         invalidArg "level" "The indent level cannot be negative."
@@ -470,25 +452,10 @@ let atIndentLevel alsoSetIndent level (f: Context -> Context) (ctx: Context) =
      >> writerEvent (RestoreIndent oldIndent))
         ctx
 
-/// Set minimal indentation (`atColumn`) at current column position - next newline will be indented on `max indent atColumn`
-/// Example:
-/// { X = // indent=0, atColumn=2
-///     "some long string" // indent=4, atColumn=2
-///   Y = 1 // indent=0, atColumn=2
-/// }
-/// `atCurrentColumn` was called on `X`, then `indent` was called, but "some long string" have indent only 4, because it is bigger than `atColumn` (2).
 let atCurrentColumn (f: _ -> Context) (ctx: Context) = atIndentLevel false ctx.Column f ctx
 
-/// Write everything at current column indentation, set `indent` and `atColumn` on current column position
-/// /// Example (same as above):
-/// { X = // indent=2, atColumn=2
-///       "some long string" // indent=6, atColumn=2
-///   Y = 1 // indent=2, atColumn=2
-/// }
-/// `atCurrentColumn` was called on `X`, then `indent` was called, "some long string" have indent 6, because it is indented from `atCurrentColumn` pos (2).
 let atCurrentColumnIndent (f: _ -> Context) (ctx: Context) = atIndentLevel true ctx.Column f ctx
 
-/// Function composition operator
 let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
     let y = ctx x
 
@@ -499,7 +466,6 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
 let (!-) (str: string) = writerEvent (Write str)
 let writeTrivia (s: string) = writerEvent (WriteTrivia s)
 
-/// Similar to col, and supply index as well
 let coli f' (c: 'T seq) f (ctx: Context) =
     let mutable tryPick = true
     let mutable st = ctx
@@ -514,9 +480,6 @@ let coli f' (c: 'T seq) f (ctx: Context) =
 
     st
 
-/// Process collection - keeps context through the whole processing
-/// calls f for every element in sequence and f' between every two elements
-/// as a separator. This is a variant that works on typed collections.
 let col f' (c: 'T seq) f (ctx: Context) =
     let mutable tryPick = true
     let mutable st = ctx
@@ -540,27 +503,22 @@ let colEx f' (c: 'T seq) f (ctx: Context) =
 
     st
 
-/// Similar to col, apply one more function f2 at the end if the input sequence is not empty
 let colPost f2 f1 (c: 'T seq) f (ctx: Context) =
     if Seq.isEmpty c then ctx else f2 (col f1 c f ctx)
 
-/// Similar to col, apply one more function f2 at the beginning if the input sequence is not empty
 let colPre f2 f1 (c: 'T seq) f (ctx: Context) =
     if Seq.isEmpty c then ctx else col f1 c f (f2 ctx)
 
-/// If there is a value, apply f and f' accordingly, otherwise do nothing
 let opt (f': Context -> _) o f (ctx: Context) =
     match o with
     | Some x -> f' (f x ctx)
     | None -> ctx
 
-/// similar to opt, only takes a single function f to apply when there is a value
 let optSingle f o ctx =
     match o with
     | Some x -> f x ctx
     | None -> ctx
 
-/// Similar to opt, but apply f2 at the beginning if there is a value
 let optPre (f2: _ -> Context) (f1: Context -> _) o f (ctx: Context) =
     match o with
     | Some x -> f1 (f x (f2 ctx))
@@ -576,19 +534,16 @@ let getRecordSize ctx fields =
     | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxRecordWidth
     | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length fields, ctx.Config.MaxRecordNumberOfItems)
 
-/// b is true, apply f1 otherwise apply f2
 let ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else f2 ctx
 
 let ifElseCtx cond (f1: Context -> Context) f2 (ctx: Context) = if cond ctx then f1 ctx else f2 ctx
 
-/// apply f only when cond is true
 let onlyIf cond f ctx = if cond then f ctx else ctx
 
 let onlyIfCtx cond f ctx = if cond ctx then f ctx else ctx
 
 let onlyIfNot cond f ctx = if cond then ctx else f ctx
 
-/// Repeat application of a function n times
 let rep n (f: Context -> Context) (ctx: Context) =
     [ 1..n ] |> List.fold (fun c _ -> f c) ctx
 
@@ -633,18 +588,13 @@ let addSpaceIfSpaceAroundDelimiter (ctx: Context) =
 let addSpaceIfSpaceAfterComma (ctx: Context) =
     onlyIf ctx.Config.SpaceAfterComma sepSpace ctx
 
-/// opening token of list
 let sepOpenLFixed = !-"["
 
-/// closing token of list
 let sepCloseLFixed = !-"]"
 
-/// opening token of anon record
 let sepOpenAnonRecdFixed = !-"{|"
-/// opening token of tuple
 let sepOpenT = !-"("
 
-/// closing token of tuple
 let sepCloseT = !-")"
 
 let wordAnd = sepSpace +> !-"and "
@@ -718,7 +668,6 @@ let isSmallExpression size (smallExpression: Context -> Context) fallbackExpress
         else
             expressionFitsOnRestOfLine smallExpression fallbackExpression ctx
 
-/// provide the line and column before and after the leadingExpression to to the continuation expression
 let leadingExpressionResult leadingExpression continuationExpression (ctx: Context) =
     let lineCountBefore, columnBefore =
         ctx.WriterModel.LineCount, ctx.WriterModel.Column
@@ -730,13 +679,6 @@ let leadingExpressionResult leadingExpression continuationExpression (ctx: Conte
 
     continuationExpression ((lineCountBefore, columnBefore), (lineCountAfter, columnAfter)) contextAfterLeading
 
-/// A leading expression is not considered multiline if it has a comment before it.
-/// For example
-/// let a = 7
-/// // foo
-/// let b = 8
-/// let c = 9
-/// The second binding b is not consider multiline.
 let leadingExpressionIsMultiline (leadingExpression: Context -> Context) continuationExpression (ctx: Context) =
     let snapshotNode = ctx.WriterEvents.CreateBackupPoint()
 
@@ -824,7 +766,6 @@ let expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr 
             ctx.WriterEvents.RollbackTo(snapshot)
             fallbackExpression ctx
 
-/// Describes how an expression should be laid out when it doesn't fit on a single line.
 [<Struct>]
 type LongExpressionLayout =
     | IndentAndUnindent
@@ -870,11 +811,6 @@ let findTrailingTriviaNewline (events: EventList) : EventNode =
             if foundTrivia then current else null
         | _ -> null
 
-/// Indent + newline that is aware of trailing trivia.
-/// If the DLL tail has trailing trivia (comment + WriteLineBecauseOfTrivia),
-/// splice IndentBy before the trivia block so the comment is already at the indented level.
-/// The trivia's own newline serves as the sepNln — no extra newline is added.
-/// Otherwise, fall back to normal indent + sepNln.
 let indentSepNlnWithTriviaAwareness (ctx: Context) =
     let indentAmount = ctx.Config.IndentSize
     let triviaNewline = findTrailingTriviaNewline ctx.WriterEvents
@@ -903,8 +839,6 @@ let indentSepNlnWithTriviaAwareness (ctx: Context) =
     else
         (indent +> sepNln) ctx
 
-/// This replaces the pattern of `+> unindent` after expressions that may have trailing trivia,
-/// centralizing the splice + WriterModel update in one place.
 let unindentWithTriviaAwareness (ctx: Context) =
     let unindentAmount = ctx.Config.IndentSize
     let triviaNewline = findTrailingTriviaNewline ctx.WriterEvents
@@ -945,8 +879,6 @@ let expressionExceedsPageWidthWithLayout (layout: LongExpressionLayout) (addSpac
 
         expressionExceedsPageWidth beforeShort sepNone beforeLong afterLong expr ctx
 
-/// try and write the expression on the remainder of the current line
-/// add an indent and newline if the expression is longer
 let autoIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidthWithLayout IndentAndUnindent false expr ctx
 
@@ -1035,7 +967,6 @@ let colAutoNlnSkip0i f' (c: 'T seq) f (ctx: Context) =
         )
         ctx
 
-/// Similar to col, skip auto newline for index 0
 let colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
 
 let sepSpaceBeforeClassConstructor ctx =
@@ -1231,25 +1162,6 @@ let isMultilineItem (expr: Context -> Context) (ctx: Context) : bool * Context =
         found
 
     isExpressionMultiline, nextCtx
-
-/// This helper function takes a list of expressions and ranges.
-/// If the expression is multiline it will add a newline before and after the expression.
-/// Unless it is the first expression in the list, that will never have a leading new line.
-/// F.ex.
-/// let a = AAAA
-/// let b =
-///     BBBB
-///     BBBB
-/// let c = CCCC
-///
-/// will be formatted as:
-/// let a = AAAA
-///
-/// let b =
-///     BBBB
-///     BBBBB
-///
-/// let c = CCCC
 
 let colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) : Context =
     match items with

@@ -45,12 +45,8 @@ and FormatCursorPosition =
 type FormatSelectionRequest =
     {
         SourceCode: string
-        /// File path will be used to identify the .editorconfig options
-        /// Unless the configuration is passed
         FilePath: string
-        /// Overrides the found .editorconfig.
         Config: IReadOnlyDictionary<string, string> option
-        /// Range follows the same semantics of the FSharp Compiler Range type.
         Range: FormatSelectionRange
     }
 

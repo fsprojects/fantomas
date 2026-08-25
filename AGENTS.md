@@ -78,12 +78,11 @@ changed. A finding in a file you did not touch is dropped, whatever its rule: wi
 changed `.fsproj` pulling in the whole project buries the two files you added under the project's
 existing debt.
 
-Within a file that did change, the two rules that report on pre-existing debt,
-`FANTOMAS-ANNOTATE-001` and `FANTOMAS-XMLDOC-001`, are narrowed further to the lines `git diff`
-says you touched. A file is a much coarser scope than those two rules ask for: one line changed in
-`ASTTransformer.fs` otherwise surfaces every unannotated binding in it. Every other rule reports
-wherever it fires in a file you edited. A file git has never seen is new in its entirety, so
-everything in it is reported.
+Within a file that did change, the one rule that reports on pre-existing debt,
+`FANTOMAS-ANNOTATE-001`, is narrowed further to the lines `git diff` says you touched. A file is a
+much coarser scope than that rule asks for: one line changed in `ASTTransformer.fs` otherwise
+surfaces every unannotated binding in it. Every other rule reports wherever it fires in a file you
+edited. A file git has never seen is new in its entirety, so everything in it is reported.
 
 ```bash
 dotnet fsi build.fsx -- -p Analyze

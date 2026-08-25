@@ -18,12 +18,6 @@ let fantomasVersion: string =
     else
         version.Substring(0, buildMetadata)
 
-/// Close enough that naming the other one is help rather than noise. Three edits is roughly a
-/// doubled letter, a dropped one and a swapped pair; beyond that the guess is worse than silence.
-///
-/// Deliberately looser than `MaximumUnprefixedTypoDistance`, which decides whether to say anything
-/// at all. By the time a suggestion is offered we have already decided the setting is a mistake,
-/// so a slightly wilder guess costs nothing.
 [<Literal>]
 let MaximumSuggestionDistance = 3
 

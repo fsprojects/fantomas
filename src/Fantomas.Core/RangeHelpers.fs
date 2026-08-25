@@ -5,7 +5,6 @@ open Fantomas.FCS.Text
 [<RequireQualifiedAccess>]
 module RangeHelpers =
 
-    /// Checks if Range B is fully contained by Range A
     let rangeContainsRange (a: Range) (b: Range) =
         Position.posGeq b.Start a.Start && Position.posGeq a.End b.End
 

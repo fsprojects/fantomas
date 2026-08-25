@@ -12,7 +12,13 @@ type EditorConfigReporter = string -> EditorConfigProblem list -> unit
 /// settings a user is pointed at are tied to a version they can act on.
 val fantomasVersion: string
 
-/// How far a setting may be from a supported one before the guess is worse than silence.
+/// How far a setting may be from a supported one before the guess is worse than silence. Three
+/// edits is roughly a doubled letter, a dropped one and a swapped pair; beyond that naming the
+/// other setting is noise rather than help.
+///
+/// Deliberately looser than the distance at which an unprefixed key is read as a misspelling at
+/// all. By the time a suggestion is offered the setting is already known to be a mistake, so a
+/// slightly wilder guess costs nothing.
 [<Literal>]
 val MaximumSuggestionDistance: int = 3
 

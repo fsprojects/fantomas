@@ -80,7 +80,6 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
                 )
         }
 
-/// Format an abstract syntax tree using given config
 let formatAST
     (ast: ParsedInput)
     (sourceText: ISourceText option)

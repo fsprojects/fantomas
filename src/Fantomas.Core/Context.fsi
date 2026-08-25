@@ -212,12 +212,12 @@ val colAutoNlnSkip0: f': (Context -> Context) -> c: 'a seq -> f: ('a -> Context 
 // Option handling
 // =============================================================================
 
-/// If there is a // value, apply f and f' accordingly, otherwise do nothing
+/// If there is a value, apply f and f' accordingly, otherwise do nothing
 val opt: f': (Context -> Context) -> o: 'a option -> f: ('a -> Context -> Context) -> ctx: Context -> Context
-/// similar to opt, only takes a single function f to apply when there is a // value
+/// similar to opt, only takes a single function f to apply when there is a value
 val optSingle: f: ('a -> 'b -> 'b) -> o: 'a option -> ctx: 'b -> 'b
 
-/// Similar to opt, but apply f2 at the beginning if there is a // value
+/// Similar to opt, but apply f2 at the beginning if there is a value
 val optPre:
     f2: (Context -> Context) ->
     f1: (Context -> Context) ->
@@ -253,6 +253,7 @@ val getRecordSize: ctx: Context -> fields: 'a list -> Size
 /// Unindent that is aware of trailing trivia (comments before closing brackets).
 /// If the DLL tail ends with a comment followed by WriteLineBecauseOfTrivia,
 /// splice the UnIndentBy before that trailing newline. Otherwise, fall back to normal unindent.
+/// Use this rather than `unindent` after an expression that may carry trailing trivia.
 val unindentWithTriviaAwareness: ctx: Context -> Context
 
 /// Describes how an expression should be laid out when it doesn't fit on a single line.
