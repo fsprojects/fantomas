@@ -16,8 +16,13 @@ val describeInputProblem: problem: InputProblem -> string
 /// structurally, and reducing that to one sentence would throw the positions away.
 val describeFailure: error: exn -> string option
 
-/// The counts a run ended with, as one line: `2 formatted, 30 unchanged.` A state at zero is left
-/// out, so the line is as long as the run was interesting, and the total is the sum.
+/// The counts a run ended with, as one line: `2 files formatted, 30 unchanged.` A state at zero is
+/// left out, so the line is as long as the run was interesting, and the total is the sum.
+///
+/// What was counted is said once, on the first count that survives, and carried across the rest.
+/// Saying it on every one repeats a word the reader already has; saying it on none leaves a run
+/// over a formatted tree printing `32 unchanged.`, which does not say what there were thirty two
+/// of. So a label carries the predicate alone and this puts the noun in front of it.
 val summaryLine: theme: Fantomas.Theme.Theme -> counts: (int * string) list -> string
 
 /// Report what a format run did, and return the exit code the process should end with: 1 when

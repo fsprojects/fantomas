@@ -2,6 +2,7 @@ module Fantomas.Report
 
 open System
 open System.IO.Abstractions
+open System.Text
 open Serilog
 // Fantomas.Core has a FormatResult of its own. Opening Fantomas last is what makes the
 // FormatResult named here the one this project defines.
@@ -98,16 +99,29 @@ let fileLine (theme: Theme) (glyph: string) (file: string) (tail: string) : stri
 // "1 formatted" is as good as "2 formatted", but a verb and a noun both do.
 let plural (count: int) (singular: string) (many: string) : string = if count = 1 then singular else many
 
+// The counts a run ended with, as one line, with what was counted said once at the head and carried
+// across the rest: `2 files formatted, 30 unchanged`, not `2 files formatted, 30 files unchanged`,
+// and not a bare `32 unchanged` with nothing in it to say what there were thirty two of. The noun
+// agrees with the count it is attached to rather than with the total, since it belongs to that
+// first phrase and not to the sentence.
 let summaryLine (theme: Theme) (counts: (int * string) list) : string =
-    counts
-    |> List.choose (fun (count: int, label: string) ->
+    let line: StringBuilder = StringBuilder()
+
+    for count: int, label: string in counts do
         if count > 0 then
-            Some(String.Concat(heading theme (string<int> count), " ", label))
-        else
-            None
-    )
-    |> String.concat ", "
-    |> fun parts -> String.Concat(parts, ".")
+            // Nothing written yet means this is the first count that survived, and the first is the
+            // one that carries the noun. Asking the line what it has so far is what lets the states
+            // at zero be dropped, the separator be placed and the noun be put in front of exactly
+            // one of them without walking the list three times to find out.
+            if line.Length = 0 then
+                line.Append(heading theme (string<int> count)).Append(' ').Append(plural count "file" "files")
+                |> ignore
+            else
+                line.Append(", ").Append(heading theme (string<int> count)) |> ignore
+
+            line.Append(' ').Append(label) |> ignore
+
+    line.Append('.').ToString()
 
 let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string, error: exn) : unit =
     let glyphs: StatusGlyphs = statusGlyphs env.ErrorTheme
@@ -216,8 +230,17 @@ let reportFormatResults
         for e in outcome.Errored do
             reportError env settings.Verbosity e
 
-        // A scan that skipped files stays quiet about them at normal verbosity: the count in the
-        // summary is the whole story unless someone asks for more.
+        // The two states a folder run only counts. Neither is listed at normal verbosity, where the
+        // count in the summary is the whole story, so this is the only place a run over a folder
+        // names them at all.
+        //
+        // Said here rather than where each file is formatted, because here is what knows whether the
+        // state has already been said out loud. `formatSource` logged the unchanged file itself, and
+        // a run over one file printed both that and the sentence below it: `'A.fs' was unchanged`
+        // and `= A.fs was unchanged.`, one event in two spellings.
+        for file in outcome.Unchanged do
+            env.Log.Debug $"'%s{file}' was unchanged"
+
         for file in outcome.Ignored do
             env.Log.Debug $"'%s{file}' was ignored"
 
@@ -228,15 +251,13 @@ let reportFormatResults
             | OutputPath.IO destination ->
                 let written: int = List.length outcome.Formatted + List.length outcome.Unchanged
 
-                let noun: string = plural written "file" "files"
-
                 // The two states that write nothing are counted here as well. Leaving them out left
                 // a run where every file failed with `.` as its whole summary, and told a run that
                 // skipped half its files nothing about the half.
                 summaryLine
                     theme
                     [
-                        written, $"%s{noun} written to %s{destination}"
+                        written, $"written to %s{destination}"
                         List.length outcome.Formatted, "reformatted"
                         List.length outcome.Ignored, "ignored"
                         List.length outcome.Errored, "errored"

@@ -47,6 +47,10 @@ type ArgumentProblem =
     | UnexpectedValue of flag: string * value: string
     /// A flag whose value has to be one of a few words, given something else.
     | UnreadableValue of flag: string * value: string * accepted: string list
+    /// A flag given more than once that is not allowed to be. Only `--out`: everywhere else the
+    /// last one wins, and choosing between two destinations quietly is the one place that loses
+    /// work rather than a preference.
+    | RepeatedFlag of flag: string
     /// Arguments that mean nothing for the command that was asked for, which used to be accepted
     /// and then silently ignored.
     | RefusedWithCommand of command: Command * refused: string list
@@ -58,6 +62,11 @@ type ArgumentProblem =
 /// next token or attached with `=`. `--` ends the flags, and everything after it is a path. A
 /// token beginning with a dash that is not a known flag is reported as one rather than mistaken
 /// for a file that is not there.
+///
+/// Repeating a flag is allowed and the last one wins, which is the Unix norm and stops a script
+/// that builds its arguments up from failing on a duplicate. `--out` is the exception and is
+/// refused, because it decides where files are written and two of them is a question worth asking
+/// rather than one worth answering quietly.
 val parse: argv: string array -> Result<Arguments list, ArgumentProblem>
 
 /// What a problem reads as, in one sentence, quoting what was typed.

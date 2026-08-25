@@ -130,6 +130,28 @@ let ``a check names the files it found by the path it was given`` () =
     |> shouldEqual [ "! sub/A.fs needs formatting."; ""; "Run dotnet fantomas src to format it." ]
 
 [<Test>]
+let ``the files a run left alone are named at detailed verbosity`` () =
+    // A folder run only counts what it did not change, so this is the one place it names them. It
+    // used to be said where the file was formatted, which did not know whether the sentence below
+    // had already said it.
+    let _, log =
+        reportFormat
+            defaultSettings
+            (FormatCommandResult.Completed [| FormatResult.Formatted("A.fs", ""); FormatResult.Unchanged "B.fs" |])
+
+    log.Debug |> shouldEqual [ "'B.fs' was unchanged" ]
+
+[<Test>]
+let ``one file does not have its state said twice`` () =
+    // `'A.fs' was unchanged` at Debug and `= A.fs was unchanged.` at Information both printed for a
+    // single file at detailed verbosity: one event in two spellings.
+    let _, log =
+        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Unchanged "A.fs" |])
+
+    log.Information |> shouldEqual [ "= A.fs was unchanged." ]
+    log.Debug |> shouldBeEmpty
+
+[<Test>]
 let ``the files a run ignored are named at detailed verbosity`` () =
     // A single result is named outright; among several, only what changed is listed, so this
     // debug line is the only place a folder run says which files it skipped.
@@ -220,7 +242,7 @@ let ``several files are reported as what changed and a line of counts`` () =
     // Only what changed is listed. The rest is a count, which is what keeps a run over an already
     // formatted tree to a single line. A state at zero is left out, so `errored` is absent here.
     log.Information
-    |> shouldEqual [ "+ A.fs was formatted."; ""; "1 formatted, 1 unchanged, 1 ignored." ]
+    |> shouldEqual [ "+ A.fs was formatted."; ""; "1 file formatted, 1 unchanged, 1 ignored." ]
 
 [<Test>]
 let ``a run that found no F# files says so rather than exiting quietly`` () =
@@ -300,7 +322,7 @@ let ``writing somewhere else where nothing could be written still says so`` () =
                     FormatResult.Error("B.fs", Exception "boom")
                 |])
 
-    log.Information |> shouldEqual [ "2 errored." ]
+    log.Information |> shouldEqual [ "2 files errored." ]
 
 [<Test>]
 let ``a single file written somewhere else names where it went`` () =
@@ -393,7 +415,7 @@ let ``a check that found only a failure still counts what it looked at`` () =
 
     code |> shouldEqual 1
     // No fix command: there is no formatting to suggest for a file that would not parse.
-    log.Information |> shouldEqual [ ""; "1 already formatted, 1 errored." ]
+    log.Information |> shouldEqual [ ""; "1 file already formatted, 1 errored." ]
 
 [<Test>]
 let ``a check that found nothing says nothing`` () =
@@ -434,7 +456,7 @@ let ``the files a run reports are ordered by path, whatever order they came back
             "+ src/B.fs was formatted."
             "+ src/C.fs was formatted."
             ""
-            "3 formatted."
+            "3 files formatted."
         ]
 
 [<Test>]
@@ -476,7 +498,7 @@ let ``a profile of one file says file and line rather than files and lines`` () 
 [<Test>]
 let ``a summary leaves out the states that did not happen`` () =
     summaryLine plainTheme [ 2, "formatted"; 0, "errored"; 30, "unchanged" ]
-    |> shouldEqual "2 formatted, 30 unchanged."
+    |> shouldEqual "2 files formatted, 30 unchanged."
 
 [<Test>]
 let ``one failure among several files still exits 1`` () =
@@ -570,7 +592,7 @@ let ``a check that found files needing formatting exits 99`` () =
             "! A.fs needs formatting."
             "! B.fs needs formatting."
             ""
-            "2 need formatting. Run dotnet fantomas src to format them."
+            "2 files need formatting. Run dotnet fantomas src to format them."
         ]
 
 [<Test>]

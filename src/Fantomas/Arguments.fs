@@ -49,6 +49,7 @@ type ArgumentProblem =
     | MissingValue of flag: string * found: string option
     | UnexpectedValue of flag: string * value: string
     | UnreadableValue of flag: string * value: string * accepted: string list
+    | RepeatedFlag of flag: string
     | RefusedWithCommand of command: Command * refused: string list
 
 // What a flag does with the token after it. A switch is the flag on its own; a valued flag needs
@@ -63,6 +64,13 @@ type Flag =
     {
         Spellings: string list
         Kind: FlagKind
+        /// Whether giving this flag twice is allowed, the last one winning.
+        ///
+        /// It is, for every flag but one. That is the Unix norm and it stops a script that builds
+        /// its arguments up from failing on a duplicate, and for a flag that only says how to report
+        /// there is nothing to lose by taking the last. `--out` decides where files are written, so
+        /// two of them is a question worth asking rather than one worth answering quietly.
+        Repeatable: bool
     }
 
 // The one place a flag is spelled. The help page lists the same flags for the reader, and
@@ -72,34 +80,42 @@ let flags: Flag list =
         {
             Spellings = [ "--check" ]
             Kind = FlagKind.Switch Arguments.Check
+            Repeatable = true
         }
         {
             Spellings = [ "--out" ]
             Kind = FlagKind.Valued Arguments.Out
+            Repeatable = false
         }
         {
             Spellings = [ "--force" ]
             Kind = FlagKind.Switch Arguments.Force
+            Repeatable = true
         }
         {
             Spellings = [ "--json" ]
             Kind = FlagKind.Switch Arguments.Json
+            Repeatable = true
         }
         {
             Spellings = [ "--daemon" ]
             Kind = FlagKind.Switch Arguments.Daemon
+            Repeatable = true
         }
         {
             Spellings = [ "--verbosity"; "-v" ]
             Kind = FlagKind.Valued Arguments.Verbosity
+            Repeatable = true
         }
         {
             Spellings = [ "--version" ]
             Kind = FlagKind.Switch Arguments.Version
+            Repeatable = true
         }
         {
             Spellings = [ "--help"; "-h" ]
             Kind = FlagKind.Switch Arguments.Help
+            Repeatable = true
         }
     ]
 
@@ -203,6 +219,22 @@ let parse (argv: string array) : Result<Arguments list, ArgumentProblem> =
     | Some problem -> Error problem
     | None ->
 
+    // The one flag that is not allowed to repeat. Asked of the flag rather than named here, so that
+    // what the parser refuses and what the table says are the same thing.
+    let repeated: string option =
+        given
+        |> List.ofSeq
+        |> List.countBy describeArgument
+        |> List.tryPick (fun (spelling: string, count: int) ->
+            match tryFindFlag spelling with
+            | Some flag when count > 1 && not flag.Repeatable -> Some spelling
+            | _ -> None
+        )
+
+    match repeated with
+    | Some spelling -> Error(ArgumentProblem.RepeatedFlag spelling)
+    | None ->
+
     // Repeating a flag is allowed and the last one wins, which is the Unix norm and stops a script
     // that accumulates its arguments from failing on a duplicate. Reversing, keeping the first of
     // each, and reversing back is what leaves the last one where the last one was.
@@ -235,6 +267,10 @@ let describeArgumentProblem (invocation: string) (problem: ArgumentProblem) : st
         $"'%s{flag}' must be followed by a value, but was followed by '%s{found}'."
     | ArgumentProblem.UnreadableValue(flag, value, accepted) ->
         $"'%s{flag}' does not accept '%s{value}'. It accepts %s{listOfWords accepted}."
+    // Naming what it decides rather than saying only that it may not repeat, because the rule is
+    // the opposite everywhere else on this command line and a reader is owed the exception's reason.
+    | ArgumentProblem.RepeatedFlag flag ->
+        $"'%s{flag}' was given more than once. It decides where files are written, so it takes one value rather than the last one given."
     | ArgumentProblem.RefusedWithCommand(command, refused) ->
         let named: string = String.concat ", " refused
 

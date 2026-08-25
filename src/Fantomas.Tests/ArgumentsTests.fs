@@ -87,8 +87,23 @@ let ``a lone dash is a path`` () =
 let ``repeating a flag is allowed and the last one wins`` () =
     // Argu refused this. A script that builds its arguments up should not fail on a duplicate,
     // and last-wins is what every other tool does.
-    parsed [ "--out"; "a"; "--out"; "b" ] |> shouldEqual [ Arguments.Out "b" ]
     parsed [ "--check"; "--check" ] |> shouldEqual [ Arguments.Check ]
+
+    parsed [ "-v"; "n"; "--verbosity"; "d" ]
+    |> shouldEqual [ Arguments.Verbosity "d" ]
+
+[<Test>]
+let ``--out is the one flag that may not repeat`` () =
+    // Everywhere else the last one wins, and nothing is lost by it. This one decides where files
+    // are written, so choosing between two of them quietly is choosing which folder to write into.
+    refused [ "--out"; "a"; "--out"; "b" ]
+    |> shouldEqual (ArgumentProblem.RepeatedFlag "--out")
+
+[<Test>]
+let ``a repeated --out says what it decides, not only that it repeated`` () =
+    describeArgumentProblem "dotnet fantomas" (ArgumentProblem.RepeatedFlag "--out")
+    |> shouldEqual
+        "'--out' was given more than once. It decides where files are written, so it takes one value rather than the last one given."
 
 [<Test>]
 let ``paths accumulate rather than replacing each other`` () =

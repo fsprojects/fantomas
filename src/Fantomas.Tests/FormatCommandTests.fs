@@ -316,17 +316,6 @@ let ``a run says what it is doing at detailed verbosity`` () =
     log.Debug |> shouldContain $"%s{output} has been written."
 
 [<Test>]
-let ``an unchanged file says so at detailed verbosity`` () =
-    let fs: IFileSystem = MockFileSystem()
-    let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
-    write fs file Formatted
-
-    let _, log =
-        formatLogging defaultSettings fs (InputPath.File file) OutputPath.NotKnown
-
-    log.Debug |> shouldContain $"'%s{file}' was unchanged"
-
-[<Test>]
 let ``with force, the output being invalid is said out loud`` () =
     let source: string =
         System.IO.Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "tests", "data", "CheckDeclarations.fs")

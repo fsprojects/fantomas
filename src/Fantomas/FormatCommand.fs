@@ -133,9 +133,6 @@ let formatSource
 
             return FormatResult.Formatted(file, formattedContent)
         | FormatResult.InvalidCode(f, _) -> return FormatResult.Error(f, invalidResultException ())
-        | FormatResult.Unchanged f as r ->
-            env.Log.Debug $"'%s{f}' was unchanged"
-            return r
         | r -> return r
     }
 
