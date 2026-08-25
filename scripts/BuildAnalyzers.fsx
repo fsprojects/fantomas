@@ -309,16 +309,15 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
 let localErrorRules: string list =
     [ "FANTOMAS-PIPEBACK-001"; "FANTOMAS-PRIVATE-001" ]
 
-/// The local analyzers that are kept out of the full run.
+/// The local analyzer that is kept out of the full run.
 ///
-/// Both report on debt that predates them, and a finding in `Analyze` becomes a code scanning alert
-/// on the pull request whatever its severity. `AnalyzeChanged` still runs them, over the files you
-/// touched, which is the scope the rules ask for. Drop this once the debt is gone.
-let localAdvisoryAnalyzers: string list = [ "AnnotationAnalyzer"; "XmlDocAnalyzer" ]
+/// It reports on debt that predates it, and a finding in `Analyze` becomes a code scanning alert on
+/// the pull request whatever its severity. `AnalyzeChanged` still runs it, over the files you
+/// touched, which is the scope the rule asks for. Drop this once the debt is gone.
+let localAdvisoryAnalyzers: string list = [ "AnnotationAnalyzer" ]
 
-/// The codes of those same rules, which is what a finding carries.
-let localAdvisoryCodes: Set<string> =
-    set [ "FANTOMAS-ANNOTATE-001"; "FANTOMAS-XMLDOC-001" ]
+/// The code of that same rule, which is what a finding carries.
+let localAdvisoryCodes: Set<string> = set [ "FANTOMAS-ANNOTATE-001" ]
 
 /// Decides whether a finding is worth showing, from its rule, its file and its line. `Analyze`
 /// shows all of them; only `AnalyzeChanged` narrows.
@@ -335,11 +334,11 @@ let everyFinding: FindingFilter = fun _ _ _ -> true
 /// under the project's existing debt, and a run whose findings you have to hand-filter is a run that
 /// tells you nothing.
 ///
-/// **And, for the two advisory rules, is it on a line that changed?** A file is a much coarser scope
-/// than those two ask for: one line changed in a file of several thousand otherwise surfaces every
-/// unannotated binding in it, and the annotation rule explicitly says to leave alone the bindings you
-/// had no reason to open. Every other rule reports anywhere in a file you edited, which is the scope
-/// those rules do ask for.
+/// **And, for the advisory rule, is it on a line that changed?** A file is a much coarser scope than
+/// it asks for: one line changed in a file of several thousand otherwise surfaces every unannotated
+/// binding in it, and the annotation rule explicitly says to leave alone the bindings you had no
+/// reason to open. Every other rule reports anywhere in a file you edited, which is the scope those
+/// rules do ask for.
 ///
 /// A file git has never seen is new in its entirety, so everything in it is worth reporting.
 let keepFinding (scopes: Map<string, ChangedLines>) : FindingFilter =
@@ -351,11 +350,11 @@ let keepFinding (scopes: Map<string, ChangedLines>) : FindingFilter =
 
 /// Drops the advisory findings that sit on lines the working tree did not touch.
 ///
-/// `AnalyzeChanged` scopes itself to the files you edited, which for these two rules is much
-/// coarser than the rules ask for: one line changed in a file of several thousand surfaces every
-/// unannotated binding in it, and the annotation rule explicitly says to leave the bindings you had
-/// no reason to open alone. The other rules are left alone, because a finding from one of those is
-/// worth seeing wherever it is.
+/// `AnalyzeChanged` scopes itself to the files you edited, which for the annotation rule is much
+/// coarser than the rule asks for: one line changed in a file of several thousand surfaces every
+/// unannotated binding in it, and the rule explicitly says to leave the bindings you had no reason
+/// to open alone. The other rules are left alone, because a finding from one of those is worth
+/// seeing wherever it is.
 ///
 /// Reads the tool's own output format. Anything it cannot parse is kept, so a change upstream makes
 /// this stop narrowing rather than start hiding.

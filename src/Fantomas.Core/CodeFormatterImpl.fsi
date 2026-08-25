@@ -6,6 +6,7 @@ open Fantomas.FCS.Text
 
 val getSourceText: source: string -> ISourceText
 
+/// Format an abstract syntax tree using given config
 val formatAST:
     ast: ParsedInput -> sourceText: ISourceText option -> config: FormatConfig -> cursor: pos option -> FormatResult
 

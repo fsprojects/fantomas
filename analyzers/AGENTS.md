@@ -11,7 +11,7 @@ feedback arrives while you work instead of in review. They are ordinary F# analy
 | [`FANTOMAS-PRIVATE-001`](#fantomas-private-001) | No `let private` beside a signature file | Error | both pipelines |
 | [`FANTOMAS-ARMORDER-001`](#fantomas-armorder-001) | Shortest match arm first | Warning | both pipelines |
 | [`FANTOMAS-ANNOTATE-001`](#fantomas-annotate-001) | Annotate every `let` binding | Warning | `AnalyzeChanged` only |
-| [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries | Warning | `AnalyzeChanged` only |
+| [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries | Warning | both pipelines |
 
 ## FANTOMAS-PIPEBACK-001
 
@@ -129,11 +129,11 @@ non-zero on any finding at error severity, so the two error rules fail `Analyze`
 decides who has to look: a rule excluded from `Analyze` is absent from CI and from GitHub code
 scanning whatever its severity, and still reports locally.
 
-The two advisory rules are excluded from `Analyze` because both report on debt that predates them.
-`AnalyzeChanged` runs them, and narrows them further to the lines `git diff` says you touched: a
-file is a much coarser scope than those two rules ask for, and one line changed in a file of several
-thousand otherwise surfaces every unannotated binding in it. Every other rule reports wherever it
-fires in a file you edited, because a finding from one of those is worth seeing.
+`FANTOMAS-ANNOTATE-001` is excluded from `Analyze` because it reports on debt that predates it.
+`AnalyzeChanged` runs it, and narrows it further to the lines `git diff` says you touched: a file is
+a much coarser scope than that rule asks for, and one line changed in a file of several thousand
+otherwise surfaces every unannotated binding in it. Every other rule reports wherever it fires in a
+file you edited, because a finding from one of those is worth seeing.
 
 The narrowing reads the tool's own output format and fails open, so anything it cannot parse is
 kept. A change upstream makes it stop narrowing rather than start hiding.

@@ -62,7 +62,6 @@ let formatFSharpString isFsiFile (s: string) config =
 let formatSignatureString = formatFSharpString true
 let formatSourceString = formatFSharpString false
 
-/// The `source` will first be parsed to AST.
 let formatAST isFsiFile (source: string) config =
     async {
         let ast, _ =

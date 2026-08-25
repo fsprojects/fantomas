@@ -134,12 +134,6 @@ let (|CompatibleTool|_|) (lines: string list) : FantomasVersion voption =
 
 let isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 
-/// The version `fantomas --version` printed, as `dotnet tool list` would have written it.
-///
-/// `--version` answers `Fantomas v8.0.0-alpha-014+e4a1c9d...`, `dotnet tool list` answers
-/// `8.0.0-alpha-014`. Daemons are cached by this string, so both the leading `v` and the commit
-/// hash have to go: with either of them left on, the same Fantomas resolved once from the manifest
-/// and once from the PATH counts as two versions and gets two processes.
 let normalizeVersion (printed: string) : string =
     let dropPrefix (prefix: string) (text: string) : string =
         if text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) then
