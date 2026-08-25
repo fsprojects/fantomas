@@ -76,9 +76,9 @@ let ``IgnoreFile.find does not crash at the root, no ignore file present`` () =
     let ignoreFile = IgnoreFile.find fs loadIgnoreList fileAtRoot
 
     match ignoreFile with
+    | None -> ()
     | Some ignoreFile ->
         failwithf "Somehow found a fantomasignore file even though none was present: %s" ignoreFile.Location.FullName
-    | None -> ()
 
     getLoads () |> shouldBeEmpty
 
@@ -156,4 +156,82 @@ let ``IgnoreFile.findInDirectory loads the ignore file above the directory, exac
 
     // oneShotLoader throws on a second load of the same file, so this says the walk up stopped at
     // the first ignore file it met rather than carrying on and loading another.
+    getLoads () |> shouldEqual (Set.ofList [ target ])
+
+// The command line resolves the ignore file through `cachedFinder` and the daemon resolves it
+// through `find`. That they answer the same is the whole of the fix: they used not to, and the same
+// file was skipped in an editor and formatted by CI. Nothing about the two call sites forces them
+// together, so it is pinned here.
+[<Test>]
+let ``the command line and the daemon resolve the same ignore file for the same path`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = fs.Path.GetTempPath() |> fs.Path.GetPathRoot
+    let repo: string = fs.Path.Combine(root, "repo")
+    let sub: string = fs.Path.Combine(repo, "sub")
+
+    let atRoot: string = fs.Path.Combine(repo, ".fantomasignore")
+    let atSub: string = fs.Path.Combine(sub, ".fantomasignore")
+
+    let files: string list =
+        [
+            fs.Path.Combine(repo, "R.fs")
+            fs.Path.Combine(sub, "S.fs")
+            fs.Path.Combine(sub, "deeper", "D.fs")
+        ]
+
+    (atRoot :: atSub :: files) |> makeFileHierarchy fs
+
+    // `find` is what the daemon calls, once per file. `cachedFinder` is what the command line
+    // builds once and calls per file.
+    let asTheDaemonDoes: string -> IgnoreFile option =
+        IgnoreFile.find fs (IgnoreFile.loadIgnoreList fs)
+
+    let asTheCommandLineDoes: string -> IgnoreFile option =
+        IgnoreFile.cachedFinder fs (IgnoreFile.loadIgnoreList fs)
+
+    let located (finder: string -> IgnoreFile option) (file: string) : string =
+        match finder file with
+        | Some found -> found.Location.FullName
+        | None -> "none"
+
+    for file in files do
+        located asTheCommandLineDoes file |> shouldEqual (located asTheDaemonDoes file)
+
+    // And the answer is the nearest one, which is the part that used to differ: a run started at
+    // the repository root resolved the root file for everything below it.
+    located asTheCommandLineDoes (fs.Path.Combine(repo, "R.fs"))
+    |> shouldEqual atRoot
+
+    located asTheCommandLineDoes (fs.Path.Combine(sub, "S.fs")) |> shouldEqual atSub
+
+    located asTheCommandLineDoes (fs.Path.Combine(sub, "deeper", "D.fs"))
+    |> shouldEqual atSub
+
+[<Test>]
+let ``the command line resolves an ignore file once per directory rather than once per file`` () =
+    // A folder walk asks about every file in turn, and resolving each from scratch walks the tree
+    // and compiles the patterns again. `oneShotLoader` throws on a second load of the same file.
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = fs.Path.GetTempPath() |> fs.Path.GetPathRoot
+    let repo: string = fs.Path.Combine(root, "repo")
+    let target: string = fs.Path.Combine(repo, ".fantomasignore")
+
+    [
+        target
+        fs.Path.Combine(repo, "A.fs")
+        fs.Path.Combine(repo, "B.fs")
+        fs.Path.Combine(repo, "sub", "C.fs")
+    ]
+    |> makeFileHierarchy fs
+
+    let loadIgnoreList, getLoads = oneShotLoader (fun _ -> false)
+    let finder: string -> IgnoreFile option = IgnoreFile.cachedFinder fs loadIgnoreList
+
+    for file in [ "A.fs"; "B.fs" ] do
+        finder (fs.Path.Combine(repo, file)) |> Option.isSome |> shouldEqual true
+
+    finder (fs.Path.Combine(repo, "sub", "C.fs"))
+    |> Option.isSome
+    |> shouldEqual true
+
     getLoads () |> shouldEqual (Set.ofList [ target ])
