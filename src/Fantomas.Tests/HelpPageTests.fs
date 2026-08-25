@@ -4,9 +4,18 @@ open System.Text.RegularExpressions
 open NUnit.Framework
 open FsUnitTyped
 open Fantomas.Core
+open Fantomas.Theme
 open Fantomas.HelpPage
 
-let private plainPage: string = render Palette.NoColour |> String.concat "\n"
+/// The page never draws a status glyph, so only the palette varies here.
+let private themed (palette: Palette) : Theme =
+    {
+        Palette = palette
+        Glyphs = GlyphSet.Ascii
+    }
+
+let private plainPage: string =
+    render (themed Palette.NoColour) |> String.concat "\n"
 
 /// Any select graphic rendition sequence, whatever colour it sets.
 let private anyEscapeSequence: Regex = Regex(@"\[[0-9;]*m")
@@ -71,21 +80,21 @@ let ``a page without colour carries no escape sequences`` () =
 
 [<Test>]
 let ``a page with eight bit colour uses the 256 colour codes`` () =
-    let page: string = render Palette.EightBit |> String.concat "\n"
+    let page: string = render (themed Palette.EightBit) |> String.concat "\n"
 
     // 38;5;38 is the closest 256 colour to the blue the website uses.
     page |> shouldContainText "[1;38;5;38m"
 
 [<Test>]
 let ``a page with four bit colour falls back to the basic codes`` () =
-    let page: string = render Palette.FourBit |> String.concat "\n"
+    let page: string = render (themed Palette.FourBit) |> String.concat "\n"
 
     page |> shouldContainText "[1;36m"
     page |> shouldNotContainText "38;5;"
 
 [<Test>]
 let ``colour changes what is written but not what it says`` () =
-    let coloured: string = render Palette.EightBit |> String.concat "\n"
+    let coloured: string = render (themed Palette.EightBit) |> String.concat "\n"
 
     anyEscapeSequence.Replace(coloured, "") |> shouldEqual plainPage
 
@@ -94,7 +103,7 @@ let ``the two column layout lines up whether or not there is colour`` () =
     // The page is laid out in fixed columns, and a decorated string still has to measure as the
     // text it decorates or the right hand column moves.
     let widths (palette: Palette) : int list =
-        render palette
+        render (themed palette)
         |> List.map (fun (line: string) -> anyEscapeSequence.Replace(line, "").Length)
 
     widths Palette.EightBit |> shouldEqual (widths Palette.NoColour)

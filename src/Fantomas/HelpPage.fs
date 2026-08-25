@@ -1,76 +1,14 @@
 module Fantomas.HelpPage
 
 open System
-open System.Text.RegularExpressions
 open Argu
-open Spectre.Console
 open Fantomas.Core
-
-[<RequireQualifiedAccess; Struct>]
-type Palette =
-    | NoColour
-    | FourBit
-    | EightBit
-
-// Select graphic rendition sequences, so a decorated string can still be measured.
-let escapeSequence: Regex = Regex(@"\u001b\[[0-9;]*m", RegexOptions.Compiled)
-
-let detectPalette () : Palette =
-    // What the terminal can do is Spectre.Console's answer to give: it knows the TERM values, it
-    // honours NO_COLOR, and it reports which colour system is available.
-    let capabilities: Capabilities = AnsiConsole.Profile.Capabilities
-
-    // Redirection is decided here rather than left to Spectre. Spectre turns ANSI back on when it
-    // detects a CI environment, because a CI log viewer renders escape codes and a progress bar
-    // there is worth colouring. A help page is not: it gets piped into a file, a pager or a script
-    // that reads it, on a build agent as much as anywhere else. Standard out being a terminal is
-    // the question this page needs answered, so both have to agree.
-    let colorsEnabled: bool =
-        not Console.IsOutputRedirected
-        && capabilities.Ansi
-        && capabilities.ColorSystem <> ColorSystem.NoColors
-
-    if not colorsEnabled then
-        Palette.NoColour
-    elif capabilities.ColorSystem >= ColorSystem.EightBit then
-        Palette.EightBit
-    else
-        Palette.FourBit
-
-// The palette is written out as escape codes rather than drawn by Spectre, because Spectre
-// wraps what it writes to the console width and this page is laid out in fixed columns.
-let decorate (palette: Palette) (eightBit: string) (fallback: string) (text: string) : string =
-    match palette with
-    | Palette.NoColour -> text
-    | Palette.EightBit -> String.Concat("\u001b[", eightBit, "m", text, "\u001b[0m")
-    | Palette.FourBit -> String.Concat("\u001b[", fallback, "m", text, "\u001b[0m")
-
-// 38;5;38 is the closest 256 colour to the blue the website uses.
-let title (palette: Palette) (text: string) : string =
-    decorate palette "1;38;5;38" "1;36" text
-
-let link (palette: Palette) (text: string) : string = decorate palette "38;5;38" "36" text
-let heading (palette: Palette) (text: string) : string = decorate palette "1" "1" text
-
-let flagName (palette: Palette) (text: string) : string =
-    decorate palette "1;38;5;80" "1;36" text
-
-let placeholder (palette: Palette) (text: string) : string = decorate palette "38;5;245" "2" text
-let muted (palette: Palette) (text: string) : string = decorate palette "2" "2" text
+open Fantomas.Theme
 
 // The column the right hand half of a two column row starts in.
 let descriptionColumn: int = 29
 let exampleColumn: int = 33
 let linkColumn: int = 29
-
-let visibleLength (text: string) : int = escapeSequence.Replace(text, "").Length
-
-let writeRow (write: string -> unit) (column: int) (left: string) (right: string) : unit =
-    let padding: string = String(' ', max 1 (column - visibleLength left))
-    write (String.Concat(left, padding, right))
-
-let writeContinuation (write: string -> unit) (column: int) (right: string) : unit =
-    write (String.Concat(String(' ', column), right))
 
 // Trim the commit hash the version carries down to the short form git itself shows.
 let shortVersion () : string =
@@ -153,7 +91,7 @@ let links: (string * string list) list =
 
 let writeFlag
     (write: string -> unit)
-    (palette: Palette)
+    (theme: Theme)
     (short: string, long: string, argument: string, description: string list)
     : unit
     =
@@ -161,16 +99,15 @@ let writeFlag
         if String.IsNullOrEmpty short then
             "    "
         else
-            String.Concat(flagName palette short, ", ")
+            String.Concat(flagName theme short, ", ")
 
     let argumentPart: string =
         if String.IsNullOrEmpty argument then
             ""
         else
-            String.Concat(" ", placeholder palette argument)
+            String.Concat(" ", placeholder theme argument)
 
-    let left: string =
-        String.Concat("  ", shortPart, flagName palette long, argumentPart)
+    let left: string = String.Concat("  ", shortPart, flagName theme long, argumentPart)
 
     match description with
     | [] -> write left
@@ -178,31 +115,31 @@ let writeFlag
         writeRow write descriptionColumn left first
         List.iter (writeContinuation write descriptionColumn) rest
 
-let writeExample (write: string -> unit) (palette: Palette) (command: string, description: string) : unit =
+let writeExample (write: string -> unit) (theme: Theme) ((command, description): string * string) : unit =
     let name, arguments: string * string =
         match command.IndexOf ' ' with
         | -1 -> command, ""
         | i -> command.Substring(0, i), command.Substring(i)
 
-    writeRow write exampleColumn (String.Concat("  ", muted palette name, flagName palette arguments)) description
+    writeRow write exampleColumn (String.Concat("  ", muted theme name, flagName theme arguments)) description
 
-let writeLink (write: string -> unit) (palette: Palette) (label: string, urls: string list) : unit =
+let writeLink (write: string -> unit) (theme: Theme) ((label, urls): string * string list) : unit =
     match urls with
     | [] -> ()
     | first :: rest ->
-        writeRow write linkColumn label (link palette first)
-        List.iter (fun (url: string) -> writeContinuation write linkColumn (link palette url)) rest
+        writeRow write linkColumn label (link theme first)
+        List.iter (fun (url: string) -> writeContinuation write linkColumn (link theme url)) rest
 
-let render (palette: Palette) : string list =
+let render (theme: Theme) : string list =
     let lines: ResizeArray<string> = ResizeArray()
     let write (line: string) : unit = lines.Add line
     let blank () : unit = lines.Add ""
 
     write (
         String.Concat(
-            title palette "Fantomas",
+            title theme "Fantomas",
             " is an opinionated source code formatter for F#. ",
-            muted palette (String.Concat("(", shortVersion (), ")"))
+            muted theme (String.Concat("(", shortVersion (), ")"))
         )
     )
 
@@ -210,32 +147,32 @@ let render (palette: Palette) : string list =
 
     write (
         String.Concat(
-            heading palette "Usage:",
+            heading theme "Usage:",
             " ",
-            heading palette "fantomas",
+            heading theme "fantomas",
             " ",
-            flagName palette "[...flags] [...paths]"
+            flagName theme "[...flags] [...paths]"
         )
     )
 
     blank ()
-    write (heading palette "Examples:")
-    List.iter (writeExample write palette) examples
+    write (heading theme "Examples:")
+    List.iter (writeExample write theme) examples
     blank ()
-    write (heading palette "Flags:")
-    List.iter (writeFlag write palette) flags
+    write (heading theme "Flags:")
+    List.iter (writeFlag write theme) flags
     blank ()
-    write (heading palette "Paths:")
+    write (heading theme "Paths:")
     write "  A path is a folder, which is searched recursively, or a file ending in .fs, .fsi,"
     write "  .fsx, .ml or .mli. Formatting settings are read from .editorconfig, and files"
     write "  matched by .fantomasignore in the current folder are skipped."
     blank ()
-    List.iter (writeLink write palette) links
+    List.iter (writeLink write theme) links
     blank ()
     List.ofSeq lines
 
 let print () : unit =
-    render (detectPalette ()) |> List.iter Console.Out.WriteLine
+    render (forOutput ()) |> List.iter Console.Out.WriteLine
 
 // Argu builds a usage block of its own and hands it over as part of the message. Only the
 // first line carries the actual complaint, so the rest is dropped in favour of a pointer to

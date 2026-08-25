@@ -23,6 +23,7 @@
     <Compile Include="CheckCommandTests.fs" />
     <Compile Include="ReportTests.fs" />
     <Compile Include="JsonReportTests.fs" />
+    <Compile Include="ThemeTests.fs" />
     <Compile Include="HelpPageTests.fs" />
     <Compile Include="DiagnosticsTests.fs" />
     <Compile Include="IgnoreFileTests.fs" />

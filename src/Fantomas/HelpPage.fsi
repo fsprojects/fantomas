@@ -1,19 +1,10 @@
 module Fantomas.HelpPage
 
-/// How much colour the page may use.
-[<RequireQualifiedAccess; Struct>]
-type Palette =
-    | NoColour
-    | FourBit
-    | EightBit
-
-/// What the terminal standard out is attached to will take. Colours are dropped when standard out
-/// is redirected, so piping the page into a file or a pager yields plain text.
-val detectPalette: unit -> Palette
+open Fantomas.Theme
 
 /// The `fantomas --help` page, as the lines it is made of. Nothing is written, so a caller can
 /// look at the page without a console.
-val render: palette: Palette -> string list
+val render: theme: Theme -> string list
 
 /// Write the `fantomas --help` page to standard out.
 val print: unit -> unit
