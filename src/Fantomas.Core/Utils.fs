@@ -2,6 +2,19 @@ namespace Fantomas.Core
 
 open System
 open Microsoft.FSharp.Core.CompilerServices
+open Microsoft.FSharp.Reflection
+
+[<RequireQualifiedAccess>]
+module UnionCase =
+
+    let name (value: 'T) : string =
+        let unionType: Type = typeof<'T>
+
+        if isNull (box value) || not (FSharpType.IsUnion unionType) then
+            unionType.Name
+        else
+            let case, _ = FSharpValue.GetUnionFields(value, unionType)
+            $"%s{unionType.Name}.%s{case.Name}"
 
 [<RequireQualifiedAccess>]
 module String =

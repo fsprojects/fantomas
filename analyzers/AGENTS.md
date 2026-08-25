@@ -11,7 +11,7 @@ feedback arrives while you work instead of in review. They are ordinary F# analy
 | [`FANTOMAS-PRIVATE-001`](#fantomas-private-001) | No `let private` beside a signature file | Error | both pipelines |
 | [`FANTOMAS-ARMORDER-001`](#fantomas-armorder-001) | Shortest match arm first | Warning | both pipelines |
 | [`FANTOMAS-ANNOTATE-001`](#fantomas-annotate-001) | Annotate every `let` binding | Warning | `AnalyzeChanged` only |
-| [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment beside a signature file | Warning | `AnalyzeChanged` only |
+| [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries | Warning | `AnalyzeChanged` only |
 
 ## FANTOMAS-PIPEBACK-001
 
@@ -51,9 +51,10 @@ match tool with
 
 The short arm is nearly always the one that gets out of the way, and reading it first says what the
 rest of the expression is not about. It is also the order `fsharp_experimental_keep_indent_in_branch`
-wants: with the long arm last, its body can hold the indentation of the match instead of stepping in
-another level. Nothing here is formatted with that setting on, but writing the arms in the order that
-suits it costs nothing.
+wants, which the repository's `.editorconfig` turns on: with the long arm last, its body can hold the
+indentation of the match instead of stepping in another level. That is what lets a second `match` in
+the final arm sit at the indentation of the first rather than one level in, which is worth reaching
+for when one lookup falls through to another.
 
 The analyzer is deliberately narrower than the rule, because arm order is semantically significant
 and reordering overlapping patterns changes meaning. It speaks only for exactly two arms, with no
@@ -107,11 +108,19 @@ Documentation comments belong in the signature file only, never in both. A `///`
 alongside one in the `.fsi` is a second copy to keep in step, and the one readers and tooling see is
 the signature.
 
-The rule takes the looser of the two readings: it reports any `///` in a file that has a signature
-file, because it cannot tell whether the signature documents the same binding. So a helper that
-appears in neither is reported too, and the answer there is an ordinary `//` comment. That is the
-convention in this folder, and it is worth knowing before writing a rule: `///` here means the
-signature file.
+A declaration the signature file does not carry is left alone, doc comment and all. There is no
+second copy to keep in step, so there is nothing for the rule to be about: write `///` on a private
+helper in a file that has an `.fsi` and nothing complains.
+
+The rule used to report every `///` in a file that had a signature file, because it could not tell
+which of them were duplicated, and the answer there was to write `//` instead. That is no longer
+the convention, and the `//` comments left over from it are not worth converting on sight.
+
+What it asks the compiler is `FSharpSymbol.SignatureLocation`, and that is worth knowing before
+using it elsewhere: it is not the yes or no it reads as. For a symbol the signature does not carry it
+falls back to the declaration itself, so it is `Some` for every symbol and `IsSome` answers nothing.
+What separates the two is which file it points at — into the `.fsi` for a symbol the signature
+declares, back at the `.fs` for one it does not.
 
 ## Severity and scope
 
@@ -186,10 +195,15 @@ rather than that the run succeeded.
 
 Every rule is registered twice, as a `CliAnalyzer` and as an `EditorAnalyzer`, with both attributes
 in the signature file. The pipelines use the first; the second is what makes the rule show up in
-Ionide as you type. Between them the five rules read exactly three things, `ctx.FileName`,
-`ctx.ProjectOptions.SourceFiles` and `ctx.ParseFileResults.ParseTree`, all of which `EditorContext`
-carries as well as `CliContext` does. Reach for the typed tree and that stops being true, and the
-editor registration has to go.
+Ionide as you type. Four of the five rules read only `ctx.FileName`, `ctx.ProjectOptions.SourceFiles`
+and `ctx.ParseFileResults.ParseTree`, all of which `EditorContext` carries as well as `CliContext`
+does.
+
+`FANTOMAS-XMLDOC-001` also reads `ctx.CheckFileResults`, because the untyped tree cannot say whether
+the signature file declares the same binding. That does not cost the editor registration:
+`EditorContext` carries check results too, as an option rather than outright, so the editor analyzer
+matches on it and says nothing when they are absent. A rule that needs the typed tree is fine; one
+that cannot answer without it has to be quiet in the editor rather than wrong there.
 
 Where a rule needs to know whether a file has a signature file, ask `ctx.ProjectOptions.SourceFiles`
 rather than the filesystem. An `.fsi` that is not compiled says nothing about what is visible, and a
@@ -231,8 +245,9 @@ dotnet msbuild src/Fantomas.Core/Fantomas.Core.fsproj -t:CoreCompile \
   -p:BuildProjectReferences=false -p:DesignTimeBuild=true -getItem:FscCommandLineArgs
 ```
 
-None of this is currently load bearing. Parsing every file of `Fantomas.Core` under the default
-options, both define sets, `--strict-indentation+` and `--langversion:preview` produces identical
-findings from all five rules, which is what you would expect of rules that read only the untyped
-tree. The defines are the only option that could change a verdict, since they decide which branch of
+None of this is currently load bearing for the four rules that read only the untyped tree. Parsing
+every file of `Fantomas.Core` under the default options, both define sets, `--strict-indentation+`
+and `--langversion:preview` produces identical findings from them, which is what you would expect.
+`FANTOMAS-XMLDOC-001` reads the typed tree and so does depend on the project options resolving, which
+is another reason the fixture checks they came back non-empty. The defines are the only option that could change a verdict, since they decide which branch of
 an `#if` reaches the tree, and `DEBUG` in `Selection.fs` is the only one in real source anywhere.

@@ -22,11 +22,11 @@ let sourceOf (fs: IFileSystem) (file: string) : string =
     with _ ->
         String.Empty
 
-// The results of a run, sorted into the states a file can end in, each in the order the files were
-// given.
-//
-// A record rather than a tuple because the two `(string * ProfileInfo option) list` fields are the
-// same type as each other, so position was the only thing telling them apart.
+/// The results of a run, sorted into the states a file can end in, each in the order the files were
+/// given.
+///
+/// A record rather than a tuple because the two `(string * ProfileInfo option) list` fields are the
+/// same type as each other, so position was the only thing telling them apart.
 [<NoComparison; NoEquality>]
 type Outcomes =
     {
@@ -36,8 +36,8 @@ type Outcomes =
         Errored: (string * exn) list
     }
 
-    // Every file that was read, which is what the summary counts and what tells a run that looked
-    // at nothing apart from one that found nothing to do.
+    /// Every file that was read, which is what the summary counts and what tells a run that looked
+    /// at nothing apart from one that found nothing to do.
     member this.Count: int =
         List.length this.Formatted
         + List.length this.Unchanged
@@ -119,11 +119,19 @@ let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string,
         else
             String.Concat(glyphs.Errored, " ", link env.ErrorTheme file, " could not be formatted: ", message)
 
-    // A parse failure describes itself, positions and all, rather than being reduced to a single
-    // line saying only that it happened. Its first line is the header, so the glyph goes in front
-    // of the whole block and lands where every other state puts it.
-    match Diagnostics.describeParseFailure file (fun () -> sourceOf env.FileSystem file) error with
-    | Some parseFailure -> env.Log.Error(String.Concat(glyphs.Errored, " ", parseFailure))
+    let source () : string = sourceOf env.FileSystem file
+    let verbose: bool = verbosity = VerbosityLevel.Detailed
+
+    // A parse failure and an invariant violation both describe themselves, positions and all,
+    // rather than being reduced to a single line saying only that they happened. The first line of
+    // each is its header, so the glyph goes in front of the whole block and lands in the column
+    // every other state puts it in.
+    match Diagnostics.describeParseFailure file source error with
+    | Some report -> env.Log.Error(String.Concat(glyphs.Errored, " ", report))
+    | None ->
+
+    match Diagnostics.describeInvariantViolation file source verbose error with
+    | Some report -> env.Log.Error(String.Concat(glyphs.Errored, " ", report))
     | None -> env.Log.Error(describeOther ())
 
 let reportProfileInfo (log: ILogger) (profile: bool) (file: string, profileInfo: ProfileInfo option) : unit =
@@ -241,9 +249,17 @@ let reportCheckResults (env: CliEnvironment) (inputPath: InputPath) (checkResult
     let errorGlyphs: StatusGlyphs = statusGlyphs env.ErrorTheme
 
     for filename, exn in checkResult.Errors do
-        match Diagnostics.describeParseFailure filename (fun () -> sourceOf env.FileSystem filename) exn with
-        | Some parseFailure -> env.Log.Error(String.Concat(errorGlyphs.Errored, " ", parseFailure))
+        let source () : string = sourceOf env.FileSystem filename
+
+        match Diagnostics.describeParseFailure filename source exn with
+        | Some report -> env.Log.Error(String.Concat(errorGlyphs.Errored, " ", report))
         | None ->
+
+        match Diagnostics.describeInvariantViolation filename source false exn with
+        | Some report -> env.Log.Error(String.Concat(errorGlyphs.Errored, " ", report))
+        | None ->
+            // The message rather than `exn.ToString()`, which carried a stack trace through
+            // build agent paths into what a user reads.
             env.Log.Error(
                 String.Concat(
                     errorGlyphs.Errored,

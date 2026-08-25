@@ -35,3 +35,22 @@ val renderParseFailure: file: string -> source: string -> diagnostics: FSharpPar
 /// turns out to be a parse failure. A caller that has to read a file to produce it therefore does
 /// not read one for a failure that has nothing to do with parsing.
 val describeParseFailure: file: string -> source: (unit -> string) -> error: exn -> string option
+
+/// Render an invariant violation the same way a parse failure is rendered: one MSBuild style line
+/// saying what Fantomas could not model and where, then a snippet of `source` with a caret run
+/// under the construct that could not be modelled.
+///
+/// The position comes from the violation's range but the path comes from `file`, because the range
+/// carries the name the parser was handed rather than the file being formatted.
+///
+/// `verbose` adds the syntax tree node the violation carries. It is what a maintainer triaging the
+/// report needs and noise to whoever ran the tool, so it is not shown by default.
+val renderInvariantViolation:
+    file: string -> source: string -> verbose: bool -> violation: Fantomas.Core.InvariantViolationException -> string
+
+/// Render `error` as the text to report for `file`, when it is an invariant violation and therefore
+/// points at a construct Fantomas could not model. Anything else comes back as `None`.
+///
+/// `source` yields the text being formatted, and is called only once `error` turns out to be an
+/// invariant violation.
+val describeInvariantViolation: file: string -> source: (unit -> string) -> verbose: bool -> error: exn -> string option

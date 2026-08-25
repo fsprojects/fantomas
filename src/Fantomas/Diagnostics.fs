@@ -122,5 +122,55 @@ let renderParseFailure (file: string) (source: string) (diagnostics: FSharpParse
 
 let describeParseFailure (file: string) (source: unit -> string) (error: exn) : string option =
     match error with
-    | ParseException diagnostics -> Some(renderParseFailure file (source ()) diagnostics)
+    | :? ParseException as parseFailure -> Some(renderParseFailure file (source ()) parseFailure.Diagnostics)
+    | _ -> None
+
+let renderInvariantViolation
+    (file: string)
+    (source: string)
+    (verbose: bool)
+    (violation: InvariantViolationException)
+    : string
+    =
+    // The range names the file the parser was handed, `tmp.fsx`, so the path comes from the caller
+    // here as it does for a parse diagnostic. Naming a file that is not the one being formatted is
+    // worse than saying nothing, because it reads as though Fantomas looked somewhere else.
+    let headline: string =
+        $"%s{file}(%i{violation.Range.StartLine},%i{violation.Range.StartColumn + 1}): error: %s{violation.Invariant}"
+
+    let snippetLines: string list =
+        if String.IsNullOrEmpty source then
+            []
+        else
+            let lines: string array = source.Replace("\r\n", "\n").Split('\n')
+
+            match snippet lines violation.Range with
+            | [] -> []
+            | snippetLines -> "" :: snippetLines
+
+    // The dump of the syntax tree node is what tells a maintainer which parser shape went
+    // unhandled, and it is noise to everyone else, so it is shown only when asked for.
+    let syntaxNodeLines: string list =
+        if not verbose || String.IsNullOrWhiteSpace violation.SyntaxNode then
+            []
+        else
+            [ ""; "Syntax tree node:"; "" ]
+            @ List.ofArray (violation.SyntaxNode.Split('\n'))
+
+    [
+        yield $"%s{file} could not be formatted by Fantomas:"
+        yield ""
+        yield headline
+        yield! snippetLines
+        yield! syntaxNodeLines
+        yield ""
+        yield
+            "This is a bug in Fantomas, not a problem with your code. Please report it with the snippet above via https://fsprojects.github.io/fantomas-tools/, or at https://github.com/fsprojects/fantomas/issues/new if the file is too large for the tool to carry."
+        yield ""
+    ]
+    |> String.concat "\n"
+
+let describeInvariantViolation (file: string) (source: unit -> string) (verbose: bool) (error: exn) : string option =
+    match error with
+    | :? InvariantViolationException as violation -> Some(renderInvariantViolation file (source ()) verbose violation)
     | _ -> None

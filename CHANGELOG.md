@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Breaking: `Fantomas.Core.ParseException` now derives from `FormatException`, as the other exceptions the library raises already did, so `:? FormatException` catches every way formatting can fail. It could not before: it was declared with F#'s `exception` keyword, which cannot name a base class. Its `Message` names the first error by position instead of dumping every diagnostic record through `%A`, and the records are reachable as `.Diagnostics` rather than only by matching the exception pattern. Code matching `| ParseException diagnostics ->` becomes `| :? ParseException as e -> e.Diagnostics`; raising and constructing it are unchanged. [#3415](https://github.com/fsprojects/fantomas/pull/3415)
+- A construct Fantomas cannot model is now reported through the same mechanism as a parse failure, instead of as a `%A` dump of a syntax tree node in the middle of the message. The report says in words what could not be modelled, names the union case responsible, positions it in the file being formatted rather than in the `tmp.fsx` the parser was handed, and draws a snippet of the source with a caret under the construct, so the enclosing declaration is visible without having to bisect the file by hand. The syntax tree node is still reported, at `--verbosity d`, where it serves whoever triages the issue rather than whoever files it. This covers every such report, from a type the transformer has no Oak node for to the chain and leading-keyword invariants behind it. `--check` and the daemon position them the same way, so an editor shows its user the snippet rather than a bare line and column. [#3415](https://github.com/fsprojects/fantomas/pull/3415)
+
+### Fixed
+
+- Getting a 'no Oak node is defined for this type' error when formatting a p/invoke signature with nullability annotations. [#3414](https://github.com/fsprojects/fantomas/issues/3414)
+- An `extern` declaration returning an array, such as `extern byte[] f(int options)`, lost the element type of the array and was written as ``extern `[]` f(int options)``. [#3415](https://github.com/fsprojects/fantomas/pull/3415)
+
 ## [8.0.0-alpha-015] - 2026-08-24
 
 ### Added
