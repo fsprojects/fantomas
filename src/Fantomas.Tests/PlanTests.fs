@@ -215,12 +215,45 @@ let ``an ignore pattern naming a folder means the folder is never opened`` () =
     // could say how many files a vendored checkout has.
     let fs: IFileSystem = MockFileSystem()
     let src: string = fs.Path.Combine(mockRoot fs, "src")
-    let skipped: string = fs.Path.Combine(src, "generated", "deep", "A.fs")
+    let deep: string = fs.Path.Combine(src, "generated", "deep", "A.fs")
+    // Directly inside the ignored folder. This is what tells the folder being closed apart from the
+    // folder being opened and its contents rejected one by one: the second plans this as ignored.
+    let direct: string = fs.Path.Combine(src, "generated", "Direct.fs")
     let kept: string = fs.Path.Combine(src, "B.fs")
-    [ skipped; kept ] |> makeFileHierarchy fs
+    [ deep; direct; kept ] |> makeFileHierarchy fs
 
     planIgnoring fs "src/generated/" (InputPath.Folder src) OutputPath.NotKnown
     |> shouldPlan [ WorkItem.Format(kept, kept) ]
+
+[<Test>]
+let ``a folder is named the same way whether or not the pattern ends in a separator`` () =
+    // `.gitignore` spells a folder with a trailing separator, and the question has to be put to the
+    // ignore library as one about a directory or the answer comes back no. It used to: `generated/`
+    // left the folder open and matched the files directly inside it one at a time, so the same
+    // intent skipped the same files by two different routes and reported them two different ways.
+    let planWith (pattern: string) : Result<WorkItem list, InputProblem> =
+        let fs: IFileSystem = MockFileSystem()
+        let src: string = fs.Path.Combine(mockRoot fs, "src")
+
+        [ fs.Path.Combine(src, "generated", "Direct.fs"); fs.Path.Combine(src, "B.fs") ]
+        |> makeFileHierarchy fs
+
+        planIgnoring fs pattern (InputPath.Folder src) OutputPath.NotKnown
+
+    let names (plan: Result<WorkItem list, InputProblem>) : string list =
+        match plan with
+        | Error problem -> failwith $"Expected a plan, got %A{problem}"
+        | Ok items ->
+            items
+            |> List.map (fun item ->
+                match item with
+                | WorkItem.Ignored file -> $"ignored %s{System.IO.Path.GetFileName file}"
+                | WorkItem.Format(input, _) -> $"format %s{System.IO.Path.GetFileName input}"
+            )
+            |> List.sort
+
+    names (planWith "src/generated/") |> shouldEqual [ "format B.fs" ]
+    names (planWith "src/generated") |> shouldEqual [ "format B.fs" ]
 
 [<Test>]
 let ``an ignore pattern naming files still reports each one it skipped`` () =

@@ -230,9 +230,7 @@ let reportFormatResults
         for e in outcome.Errored do
             reportError env settings.Verbosity e
 
-        // The two states a folder run only counts. Neither is listed at normal verbosity, where the
-        // count in the summary is the whole story, so this is the only place a run over a folder
-        // names them at all.
+        // The two states a folder run does not list, so this is the only place it names them at all.
         //
         // Said here rather than where each file is formatted, because here is what knows whether the
         // state has already been said out loud. `formatSource` logged the unchanged file itself, and
@@ -251,15 +249,13 @@ let reportFormatResults
             | OutputPath.IO destination ->
                 let written: int = List.length outcome.Formatted + List.length outcome.Unchanged
 
-                // The two states that write nothing are counted here as well. Leaving them out left
-                // a run where every file failed with `.` as its whole summary, and told a run that
-                // skipped half its files nothing about the half.
+                // Errored is counted here as well. Leaving it out left a run where every file
+                // failed with `.` as its whole summary.
                 summaryLine
                     theme
                     [
                         written, $"written to %s{destination}"
                         List.length outcome.Formatted, "reformatted"
-                        List.length outcome.Ignored, "ignored"
                         List.length outcome.Errored, "errored"
                     ]
             | OutputPath.NotKnown ->
@@ -268,7 +264,6 @@ let reportFormatResults
                     [
                         List.length outcome.Formatted, "formatted"
                         List.length outcome.Unchanged, "unchanged"
-                        List.length outcome.Ignored, "ignored"
                         List.length outcome.Errored, "errored"
                     ]
 
@@ -394,7 +389,13 @@ let reportProfileCommand
 
     result.ExitCode
 
-let reportCheckResults (env: CliEnvironment) (inputPath: InputPath) (checkResult: CheckResult) : unit =
+let reportCheckResults
+    (env: CliEnvironment)
+    (inputPath: InputPath)
+    (ignored: string list)
+    (checkResult: CheckResult)
+    : unit
+    =
     let theme: Theme = env.OutputTheme
     let glyphs: StatusGlyphs = statusGlyphs theme
     let errorGlyphs: StatusGlyphs = statusGlyphs env.ErrorTheme
@@ -424,9 +425,17 @@ let reportCheckResults (env: CliEnvironment) (inputPath: InputPath) (checkResult
     for filename in List.sort checkResult.Formatted do
         env.Log.Information(fileLine theme glyphs.NeedsFormatting filename "needs formatting.")
 
+    // Named only to whoever asks for detail, the way a format run names it.
+    for file in List.sort ignored do
+        env.Log.Debug $"'%s{file}' was ignored"
+
     let needing: int = List.length checkResult.Formatted
     let errored: int = List.length checkResult.Errors
-    let looked: int = needing + errored + List.length checkResult.Unchanged
+
+    // Every file the run looked at, skipped ones included, so that this and the format command
+    // agree on what counts as a run over one file.
+    let looked: int =
+        needing + errored + List.length checkResult.Unchanged + List.length ignored
 
     // The command that fixes it, spelled the way this run was started, so it is a line the caller
     // can run again rather than one they have to translate. Only where there is something to fix:
@@ -449,6 +458,12 @@ let reportCheckResults (env: CliEnvironment) (inputPath: InputPath) (checkResult
     // Counted whenever the run found anything, rather than only when something needs formatting: an
     // error is a finding too, and a check that reported one used to end without saying how many
     // files it had looked at to find it.
+    //
+    // What an ignore file skipped is not among the counts, here or in a format run. A pattern that
+    // names a file can be counted and a pattern that names a folder cannot, because the folder is
+    // never opened, and a number that is right about the first and blind to the second reads as
+    // though it covered both: this repository skips ninety six files through three folder patterns
+    // and the count said nought. Both are named at detailed verbosity, where each is exact.
     //
     // Left out for a single file, the way a format run leaves it out: the line above already named
     // the file and said what was found, and `1 needs formatting` only says it again.
@@ -509,9 +524,6 @@ let reportCheckCommand (env: CliEnvironment) (inputPath: InputPath) (result: Che
             let glyphs: StatusGlyphs = statusGlyphs env.OutputTheme
             env.Log.Information(fileLine env.OutputTheme glyphs.Ignored file "was ignored by .fantomasignore.")
         | _ ->
-            for file in List.sort ignored do
-                env.Log.Debug $"'%s{file}' was ignored"
-
             // The two runs that come to nothing, which a check used to pass over in silence and a
             // format run has always spoken up about. Silence is how this command says every file is
             // already formatted, so a run that looked at no file at all cannot also be silent: a bad
@@ -524,6 +536,6 @@ let reportCheckCommand (env: CliEnvironment) (inputPath: InputPath) (result: Che
             elif looked = List.length ignored then
                 env.Log.Warning $"All %d{looked} F# files in %s{paths} were ignored by .fantomasignore."
             else
-                reportCheckResults env inputPath checkResult
+                reportCheckResults env inputPath ignored checkResult
 
     result.ExitCode

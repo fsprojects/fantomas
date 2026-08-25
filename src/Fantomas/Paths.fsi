@@ -10,15 +10,26 @@ val isExcludedDirName: name: string -> bool
 
 val isFSharpFile: s: string -> bool
 
-/// Every F# file below the given path, at any depth.
+/// What a walk over a folder turned up: a file to work on, or a folder it was told to stay out of.
+///
+/// The second is reported rather than passed over in silence, because it is the only thing a run
+/// can say about what an ignore file kept it away from. What is inside such a folder is as unknown
+/// as what is inside a folder that is not there, so a count of files cannot stand for it and the
+/// folder itself has to.
+[<RequireQualifiedAccess; Struct>]
+type Found =
+    | File of file: string
+    | IgnoredFolder of folder: string
+
+/// Every F# file below the given path, at any depth, and every folder skipped on the way.
 ///
 /// Two kinds of folder are not descended into. Build output and package folders, because
-/// formatting what a compiler or a package manager wrote is never what was asked for. And any
-/// folder `isIgnoredDirectory` answers for, which is how `.fantomasignore` naming a folder is
-/// honoured: not by asking about every file inside it and discarding each answer, but by never
-/// opening it. A run should have no more idea what is in a folder it was told to stay out of than
-/// it has about a folder that is not there.
-val findAllFilesRecursively: fs: IFileSystem -> isIgnoredDirectory: (string -> bool) -> path: string -> string seq
+/// formatting what a compiler or a package manager wrote is never what was asked for, and those go
+/// unmentioned: they are not the ignore file's doing and nobody asked about them. And any folder
+/// `isIgnoredDirectory` answers for, which is how `.fantomasignore` naming a folder is honoured:
+/// not by asking about every file inside it and discarding each answer, but by never opening it.
+/// Those come back as `IgnoredFolder`.
+val findAllFilesRecursively: fs: IFileSystem -> isIgnoredDirectory: (string -> bool) -> path: string -> Found seq
 
 /// Create the folders leading up to a file, so that writing to a path the user named but never
 /// created succeeds. GetDirectoryName yields an empty string for a bare file name.

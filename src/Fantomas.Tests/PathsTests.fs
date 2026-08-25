@@ -45,6 +45,17 @@ let ``a folder whose name merely starts with an excluded one is not excluded`` (
     // be told apart from `obj` by looking for separators either side of it inside a path.
     isExcludedDirName "objects" |> shouldEqual false
 
+/// The files a walk turned up, by name. The folders it refused are a separate question, asked of
+/// the walk by the tests that are about them.
+let private filesOf (fs: IFileSystem) (found: Found seq) : string list =
+    found
+    |> Seq.choose (fun (item: Found) ->
+        match item with
+        | Found.File file -> Some(fs.Path.GetFileName file)
+        | Found.IgnoredFolder _ -> None
+    )
+    |> List.ofSeq
+
 [<Test>]
 let ``every F# file below a folder is found, at any depth`` () =
     let fs: IFileSystem = MockFileSystem()
@@ -59,9 +70,8 @@ let ``every F# file below a folder is found, at any depth`` () =
     |> makeFileHierarchy fs
 
     findAllFilesRecursively fs (fun _ -> false) src
-    |> Seq.map (fun (file: string) -> fs.Path.GetFileName file)
-    |> Seq.sort
-    |> List.ofSeq
+    |> filesOf fs
+    |> List.sort
     |> shouldEqual [ "A.fs"; "B.fsi"; "C.fsx" ]
 
 [<Test>]
@@ -78,8 +88,7 @@ let ``files that are not F# are left out of the walk`` () =
     |> makeFileHierarchy fs
 
     findAllFilesRecursively fs (fun _ -> false) src
-    |> Seq.map (fun (file: string) -> fs.Path.GetFileName file)
-    |> List.ofSeq
+    |> filesOf fs
     |> shouldEqual [ "A.fs" ]
 
 [<Test>]
@@ -96,8 +105,7 @@ let ``build output is left out of the walk`` () =
     |> makeFileHierarchy fs
 
     findAllFilesRecursively fs (fun _ -> false) src
-    |> Seq.map (fun (file: string) -> fs.Path.GetFileName file)
-    |> List.ofSeq
+    |> filesOf fs
     |> shouldEqual [ "A.fs" ]
 
 [<Test>]
@@ -190,12 +198,40 @@ let ``a folder the ignore file names is never opened`` () =
         opened.Add(fs.Path.GetFileName directory)
         fs.Path.GetFileName directory = "vendored"
 
-    findAllFilesRecursively fs isIgnoredDirectory root
-    |> Seq.map (fun (file: string) -> fs.Path.GetFileName file)
-    |> List.ofSeq
-    |> shouldEqual [ "A.fs" ]
+    let found: Found list =
+        findAllFilesRecursively fs isIgnoredDirectory root |> List.ofSeq
+
+    found |> filesOf fs |> shouldEqual [ "A.fs" ]
 
     // Asked about `vendored` and stopped there. What matters is what it was never asked about:
     // `deep` lives inside `vendored`, so reaching it would mean the folder had been opened.
     opened |> shouldContain "vendored"
     opened |> shouldNotContain "deep"
+
+    // And the folder itself comes back, because it is the only thing a run can say about what it
+    // was kept away from: a count of the files inside it is a number nobody has.
+    found
+    |> List.choose (fun (item: Found) ->
+        match item with
+        | Found.IgnoredFolder folder -> Some(fs.Path.GetFileName folder)
+        | Found.File _ -> None
+    )
+    |> shouldEqual [ "vendored" ]
+
+[<Test>]
+let ``build output is skipped without being reported`` () =
+    // Not the ignore file's doing, and nobody asked about it, so it is not among the folders a run
+    // says it was kept out of.
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+
+    [ fs.Path.Combine(root, "A.fs"); fs.Path.Combine(root, "obj", "B.fs") ]
+    |> makeFileHierarchy fs
+
+    findAllFilesRecursively fs (fun _ -> false) root
+    |> Seq.filter (fun (item: Found) ->
+        match item with
+        | Found.IgnoredFolder _ -> true
+        | Found.File _ -> false
+    )
+    |> shouldBeEmpty

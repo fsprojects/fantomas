@@ -242,7 +242,7 @@ let ``several files are reported as what changed and a line of counts`` () =
     // Only what changed is listed. The rest is a count, which is what keeps a run over an already
     // formatted tree to a single line. A state at zero is left out, so `errored` is absent here.
     log.Information
-    |> shouldEqual [ "+ A.fs was formatted."; ""; "1 file formatted, 1 unchanged, 1 ignored." ]
+    |> shouldEqual [ "+ A.fs was formatted."; ""; "1 file formatted, 1 unchanged." ]
 
 [<Test>]
 let ``a run that found no F# files says so rather than exiting quietly`` () =
@@ -286,9 +286,9 @@ let ``writing somewhere else counts what was written rather than what changed`` 
     |> shouldEqual [ "+ A.fs was formatted."; ""; "3 files written to build, 1 reformatted." ]
 
 [<Test>]
-let ``writing somewhere else still counts what it skipped and what failed`` () =
-    // The two states that write nothing used to be left out of the `--out` summary entirely, so a
-    // run that skipped half its files said nothing about the half.
+let ``writing somewhere else still counts what failed`` () =
+    // A run where every file failed came out as a lone full stop, `written` and `reformatted` both
+    // being zero and nothing else being counted.
     let _, log =
         reportFormatTo
             (OutputPath.IO "build")
@@ -305,7 +305,7 @@ let ``writing somewhere else still counts what it skipped and what failed`` () =
         [
             "+ A.fs was formatted."
             ""
-            "1 file written to build, 1 reformatted, 1 ignored, 1 errored."
+            "1 file written to build, 1 reformatted, 1 errored."
         ]
 
 [<Test>]
@@ -416,6 +416,50 @@ let ``a check that found only a failure still counts what it looked at`` () =
     code |> shouldEqual 1
     // No fix command: there is no formatting to suggest for a file that would not parse.
     log.Information |> shouldEqual [ ""; "1 file already formatted, 1 errored." ]
+
+[<Test>]
+let ``no summary counts what an ignore file skipped`` () =
+    // A pattern naming a file can be counted and a pattern naming a folder cannot, because the
+    // folder is never opened, and a number right about the first and blind to the second reads as
+    // though it covered both. Neither command puts it among the counts; both name it at detailed
+    // verbosity, where each is exact.
+    let code, log =
+        reportCheck (
+            CheckCommandResult.Completed(
+                [ "Skip.fs" ],
+                {
+                    Errors = []
+                    Formatted = [ "A.fs" ]
+                    Unchanged = [ "B.fs" ]
+                }
+            )
+        )
+
+    code |> shouldEqual 99
+
+    log.Information
+    |> shouldEqual
+        [
+            "! A.fs needs formatting."
+            ""
+            "1 file needs formatting, 1 already formatted. Run dotnet fantomas src to format it."
+        ]
+
+[<Test>]
+let ``a check names the file it skipped at detailed verbosity`` () =
+    let _, log =
+        reportCheck (
+            CheckCommandResult.Completed(
+                [ "Skip.fs" ],
+                {
+                    Errors = []
+                    Formatted = [ "A.fs" ]
+                    Unchanged = []
+                }
+            )
+        )
+
+    log.Debug |> shouldEqual [ "'Skip.fs' was ignored" ]
 
 [<Test>]
 let ``a check that found nothing says nothing`` () =

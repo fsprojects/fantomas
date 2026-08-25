@@ -25,7 +25,12 @@ let isExcludedDirName (name: string) : bool = excludedDirNames.Contains name
 let isFSharpFile (s: string) : bool =
     extensionLookup.Contains(Path.GetExtension s)
 
-let findAllFilesRecursively (fs: IFileSystem) (isIgnoredDirectory: string -> bool) (path: string) : string seq =
+[<RequireQualifiedAccess; Struct>]
+type Found =
+    | File of file: string
+    | IgnoredFolder of folder: string
+
+let findAllFilesRecursively (fs: IFileSystem) (isIgnoredDirectory: string -> bool) (path: string) : Found seq =
     // A directory at a time rather than one flat enumeration, so that a folder nobody is going to
     // format is never opened. Asking about every file underneath an ignored folder and discarding
     // each answer is work, and it is also how a report came to say how many files are in a folder
@@ -44,13 +49,22 @@ let findAllFilesRecursively (fs: IFileSystem) (isIgnoredDirectory: string -> boo
         while pending.Count > 0 do
             let directory: string = pending.Pop()
 
-            yield! fs.Directory.GetFiles directory |> Seq.filter isFSharpFile
+            yield!
+                fs.Directory.GetFiles directory
+                |> Seq.choose (fun (file: string) -> if isFSharpFile file then Some(Found.File file) else None)
 
             for subdirectory in fs.Directory.GetDirectories directory do
                 let name: string =
                     fs.Path.GetFileName(subdirectory.TrimEnd(Path.DirectorySeparatorChar))
 
-                if not (isExcludedDirName name) && not (isIgnoredDirectory subdirectory) then
+                // A build output folder is not the ignore file's doing and is nobody's business to
+                // report; a folder the ignore file names is, because it is the one thing a run can
+                // say about what it was kept away from.
+                if isExcludedDirName name then
+                    ()
+                elif isIgnoredDirectory subdirectory then
+                    yield Found.IgnoredFolder subdirectory
+                else
                     pending.Push subdirectory
     }
 

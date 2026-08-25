@@ -1,5 +1,6 @@
 module Fantomas.Plan
 
+open System
 open System.IO.Abstractions
 open Fantomas
 open Fantomas.Arguments
@@ -31,7 +32,13 @@ let plan
     // question a file is; what makes this the parent's answer is that `findIgnoreFile` walks up
     // from the directory it is given, which for a folder is the one above it.
     let isIgnoredDirectory (directory: string) : bool =
-        IgnoreFile.isIgnoredFile log (findIgnoreFile directory) directory
+        let asDirectory: string =
+            String.Concat(
+                directory.TrimEnd(fs.Path.DirectorySeparatorChar),
+                string<char> fs.Path.DirectorySeparatorChar
+            )
+
+        IgnoreFile.isIgnoredFile log (findIgnoreFile directory) asDirectory
 
     let folder (inputFolder: string) (outputFolder: string) : WorkItem list =
         let inPlace: bool = isSamePath fs inputFolder outputFolder
@@ -50,11 +57,21 @@ let plan
             not inPlace && isInFolder fs outputFolder inputFile
 
         findAllFilesRecursively fs isIgnoredDirectory inputFolder
-        |> Seq.choose (fun i ->
-            if isPreviousOutput i then
+        |> Seq.choose (fun (found: Found) ->
+            match found with
+            // Said here, where it is known, and said only to whoever asked for detail. What is
+            // inside such a folder is as unknown as what is inside a folder that is not there, so
+            // there is nothing to add to it and nothing to count it towards. Reasoning about which
+            // rules reach which path is a question worth answering properly one day, and a summary
+            // line is not where it gets answered.
+            | Found.IgnoredFolder folder ->
+                log.Debug $"'%s{folder}' was not opened, .fantomasignore names it"
                 None
-            else
-                Some(item i (destinationOf i))
+            | Found.File i ->
+                if isPreviousOutput i then
+                    None
+                else
+                    Some(item i (destinationOf i))
         )
         |> Seq.toList
 
