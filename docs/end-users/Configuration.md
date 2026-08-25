@@ -14,7 +14,7 @@ Your IDE should respect your settings, however the implementation of that is edi
 UI might be available depending on the IDE.
 
 ```
-
+version: 8.0.0-alpha-017+939611d5e2cc838368a3b8244600eda653f77068
 ```
 
 ## Usage
@@ -63,7 +63,8 @@ The common values are 2 and 4.
 The same indentation is ensured to be consistent in a source file.
 
 ```
-
+# Default
+indent_size = 4
 ```
 
 ```fsharp
@@ -86,7 +87,16 @@ indent_size = 2
 ```
 
 ```
+let inline selectRandom (f: _[]) =
+  let r = random 1.0
 
+  let rec find =
+    function
+    | 0 -> fst f.[0]
+    | n when r < snd f.[n] -> fst f.[n]
+    | n -> find (n - 1)
+
+  find <| f.Length - 1
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -97,7 +107,8 @@ indent_size = 2
 This preference sets the column where we break F# constructs into new lines.
 
 ```
-
+# Default
+max_line_length = 120
 ```
 
 ```fsharp
@@ -113,7 +124,10 @@ max_line_length = 60
 ```
 
 ```
-
+match myValue with
+| Some foo ->
+    someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
+| None -> printfn "nothing"
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -132,7 +146,8 @@ Adds a final newline character at the end of the file.
 <a href="https://stackoverflow.com/questions/729692/why-should-text-files-end-with-a-newline" target="_blank">Why should text files end with a newline?</a>
 
 ```
-
+# Default
+insert_final_newline = true
 ```
 
 ```fsharp
@@ -146,7 +161,7 @@ insert_final_newline = false
 ```
 
 ```
-
+let a = 42
 ```
 
 <fantomas-setting orange></fantomas-setting>
@@ -157,7 +172,8 @@ Add a space after the name of a function and before the opening parenthesis of t
 This setting influences function definitions.
 
 ```
-
+# Default
+fsharp_space_before_parameter = true
 ```
 
 ```fsharp
@@ -172,7 +188,8 @@ fsharp_space_before_parameter = false
 ```
 
 ```
-
+let value(a: int) = x
+let DumpTrace() = ()
 ```
 
 <fantomas-setting orange></fantomas-setting>
@@ -183,7 +200,8 @@ Add a space after the name of a lowercased function and before the opening paren
 This setting influences function invocation in expressions and patterns.
 
 ```
-
+# Default
+fsharp_space_before_lowercase_invocation = true
 ```
 
 ```fsharp
@@ -201,7 +219,11 @@ fsharp_space_before_lowercase_invocation = false
 ```
 
 ```
+value(a, b)
+startTimer()
 
+match x with
+| value(a, b) -> ()
 ```
 
 <fantomas-setting green gr></fantomas-setting>
@@ -212,7 +234,8 @@ Add a space after the name of a uppercase function and before the opening parent
 This setting influences function invocation in expressions and patterns.
 
 ```
-
+# Default
+fsharp_space_before_uppercase_invocation = false
 ```
 
 ```fsharp
@@ -230,7 +253,11 @@ fsharp_space_before_uppercase_invocation = true
 ```
 
 ```
+Value (a, b)
+person.ToString ()
 
+match x with
+| Value (a, b) -> ()
 ```
 
 <fantomas-setting orange></fantomas-setting>
@@ -240,7 +267,8 @@ fsharp_space_before_uppercase_invocation = true
 Add a space after a type name and before the class constructor.
 
 ```
-
+# Default
+fsharp_space_before_class_constructor = false
 ```
 
 ```fsharp
@@ -256,7 +284,7 @@ fsharp_space_before_class_constructor = true
 ```
 
 ```
-
+type Person () = class end
 ```
 
 <fantomas-setting green gr></fantomas-setting>
@@ -266,7 +294,8 @@ fsharp_space_before_class_constructor = true
 Add a space after a member name and before the opening parenthesis of the first parameter.
 
 ```
-
+# Default
+fsharp_space_before_member = false
 ```
 
 ```fsharp
@@ -284,7 +313,11 @@ fsharp_space_before_member = true
 ```
 
 ```
-
+type Person() =
+    member this.Walk (distance: int) = ()
+    member this.Sleep () = ignore
+    member __.singAlong () = ()
+    member __.swim (duration: TimeSpan) = ()
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -294,7 +327,8 @@ fsharp_space_before_member = true
 Add a space before `:`. Please note that not every `:` is controlled by this setting.
 
 ```
-
+# Default
+fsharp_space_before_colon = false
 ```
 
 ```fsharp
@@ -310,7 +344,9 @@ fsharp_space_before_colon = true
 ```
 
 ```
-
+type Point = { x : int; y : int }
+let myValue : int = 42
+let update (msg : Msg) (model : Model) : Model = model
 ```
 
 <fantomas-setting orange></fantomas-setting>
@@ -320,7 +356,8 @@ fsharp_space_before_colon = true
 Adds a space after `,` in tuples.
 
 ```
-
+# Default
+fsharp_space_after_comma = true
 ```
 
 ```fsharp
@@ -335,7 +372,8 @@ fsharp_space_after_comma = false
 ```
 
 ```
-
+myValue.SomeFunction(foo,bar,somethingElse)
+(a,b,c)
 ```
 
 <fantomas-setting green gr></fantomas-setting>
@@ -345,7 +383,8 @@ fsharp_space_after_comma = false
 Adds a space before `;` in records, arrays, lists, etc.
 
 ```
-
+# Default
+fsharp_space_before_semicolon = false
 ```
 
 ```fsharp
@@ -361,7 +400,9 @@ fsharp_space_before_semicolon = true
 ```
 
 ```
-
+let a = [ 1 ; 2 ; 3 ]
+let b = [| foo ; bar |]
+type C = { X: int ; Y: int }
 ```
 
 <fantomas-setting orange></fantomas-setting>
@@ -371,7 +412,8 @@ fsharp_space_before_semicolon = true
 Adds a space after `;` in records, arrays, lists, etc.
 
 ```
-
+# Default
+fsharp_space_after_semicolon = true
 ```
 
 ```fsharp
@@ -387,7 +429,9 @@ fsharp_space_after_semicolon = false
 ```
 
 ```
-
+let a = [ 1;2;3 ]
+let b = [| foo;bar |]
+type C = { X: int;Y: int }
 ```
 
 <fantomas-setting orange></fantomas-setting>
@@ -397,7 +441,8 @@ fsharp_space_after_semicolon = false
 Adds a space around delimiters like `[`,`[|`,{`.
 
 ```
-
+# Default
+fsharp_space_around_delimiter = true
 ```
 
 ```fsharp
@@ -412,7 +457,8 @@ fsharp_space_around_delimiter = false
 ```
 
 ```
-
+let a = [1; 2; 3]
+let b = [|4; 5; 6|]
 ```
 
 ## Maximum width constraints
@@ -429,7 +475,8 @@ The [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/st
 > If the else expression is absent, it is recommended to never to write the entire expression in one line.
 
 ```
-
+# Default
+fsharp_max_if_then_short_width = 0
 ```
 
 ```fsharp
@@ -444,7 +491,7 @@ fsharp_max_if_then_short_width = 15
 ```
 
 ```
-
+if a then ()
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -455,7 +502,8 @@ Fantomas by default follows the if/then/else conventions listed in the [Microsof
 This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.
 
 ```
-
+# Default
+fsharp_max_if_then_else_short_width = 60
 ```
 
 ```fsharp
@@ -469,7 +517,10 @@ fsharp_max_if_then_else_short_width = 10
 ```
 
 ```
-
+if myCheck then
+    truth
+else
+    bogus
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -479,7 +530,8 @@ fsharp_max_if_then_else_short_width = 10
 Control the maximum length for which infix expression can be on one line.
 
 ```
-
+# Default
+fsharp_max_infix_operator_expression = 80
 ```
 
 ```fsharp
@@ -494,7 +546,10 @@ fsharp_max_infix_operator_expression = 20
 ```
 
 ```
-
+let WebApp =
+    route "/ping"
+    >=> authorized
+    >=> text "pong"
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -506,7 +561,8 @@ Control the maximum width for which records should be in one line.
 Requires `fsharp_record_multiline_formatter` to be `character_width` to take effect.
 
 ```
-
+# Default
+fsharp_max_record_width = 40
 ```
 
 ```fsharp
@@ -521,7 +577,19 @@ fsharp_max_record_width = 20
 ```
 
 ```
+type MyRecord =
+    {
+        X: int
+        Y: int
+        Length: int
+    }
 
+let myInstance =
+    {
+        X = 10
+        Y = 20
+        Length = 90
+    }
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -534,7 +602,8 @@ Requires `fsharp_record_multiline_formatter` to be
 `number_of_items` to take effect.
 
 ```
-
+# Default
+fsharp_max_record_number_of_items = 1
 ```
 
 ```fsharp
@@ -561,7 +630,29 @@ fsharp_max_record_number_of_items = 2
 ```
 
 ```
+type R = { x: int }
 
+type S = { x: int; y: string }
+
+type T =
+    {
+        x: int
+        y: string
+        z: float
+    }
+
+let myRecord = { r = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' = { r with x = 3; y = "hello" }
+
+let myRecord''' =
+    { r with
+        x = 3
+        y = "hello"
+        z = 0.0
+    }
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -575,7 +666,8 @@ Split records expressions/statements into multiple lines based on the given cond
 Note that in either case, record expressions/statements are still governed by `max_line_length`.
 
 ```
-
+# Default
+fsharp_record_multiline_formatter = character_width
 ```
 
 ```fsharp
@@ -597,7 +689,23 @@ fsharp_record_multiline_formatter = number_of_items
 ```
 
 ```
+type R = { x: int }
 
+type S =
+    {
+        x: int
+        y: string
+    }
+
+let myRecord = { r = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' =
+    { r with
+        x = 3
+        y = "hello"
+    }
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -609,7 +717,8 @@ Control the maximum width for which lists and arrays can be in one line.
 Requires `fsharp_array_or_list_multiline_formatter` to be `character_width` to take effect
 
 ```
-
+# Default
+fsharp_max_array_or_list_width = 80
 ```
 
 ```fsharp
@@ -623,7 +732,12 @@ fsharp_max_array_or_list_width = 20
 ```
 
 ```
-
+let myArray =
+    [|
+        one
+        two
+        three
+    |]
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -635,7 +749,8 @@ Control the maximum number of elements for which lists and arrays can be in one 
 Requires `fsharp_array_or_list_multiline_formatter` to be `number_of_items` to take effect.
 
 ```
-
+# Default
+fsharp_max_array_or_list_number_of_items = 1
 ```
 
 ```fsharp
@@ -651,7 +766,14 @@ fsharp_max_array_or_list_number_of_items = 2
 ```
 
 ```
+let myList = [ one; two ]
 
+let myArray =
+    [|
+        one
+        two
+        three
+    |]
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -665,7 +787,8 @@ Split arrays and lists into multiple lines based on the given condition.
 Note that in either case, list expressions are still governed by `max_line_length`.
 
 ```
-
+# Default
+fsharp_array_or_list_multiline_formatter = character_width
 ```
 
 ```fsharp
@@ -679,7 +802,12 @@ fsharp_array_or_list_multiline_formatter = number_of_items
 ```
 
 ```
-
+let myArray =
+    [|
+        one
+        two
+        three
+    |]
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -690,7 +818,8 @@ Control the maximum expression width for which let and member value/property bin
 The width is that of the pattern for the binding plus the right-hand expression but not the keywords (e.g. "let").
 
 ```
-
+# Default
+fsharp_max_value_binding_width = 80
 ```
 
 ```fsharp
@@ -706,7 +835,12 @@ fsharp_max_value_binding_width = 10
 ```
 
 ```
+let title =
+    "Great title of project"
 
+type MyType() =
+    member this.HelpText =
+        "Some help text"
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -717,7 +851,8 @@ Control the maximum width for which function and member bindings should be in on
 In contrast to `fsharp_max_value_binding_width`, only the right-hand side expression of the binding is measured.
 
 ```
-
+# Default
+fsharp_max_function_binding_width = 40
 ```
 
 ```fsharp
@@ -734,7 +869,12 @@ fsharp_max_function_binding_width = 10
 ```
 
 ```
+let printScore score total =
+    printfn "%i / %i" score total
 
+type Triangle() =
+    member this.CalculateSurface(width: int, height: int) =
+        width * height / 2
 ```
 
 <fantomas-setting green gr></fantomas-setting>
@@ -746,7 +886,8 @@ fsharp_max_function_binding_width = 10
 `Stroustrup` Allow for easier reordering of members and keeping the code succinct.
 
 ```
-
+# Default
+fsharp_multiline_bracket_style = aligned
 ```
 
 ```fsharp
@@ -779,7 +920,32 @@ fsharp_multiline_bracket_style = aligned
 ```
 
 ```
+let myRecord =
+    {
+        Level = 1
+        Progress = "foo"
+        Bar = "bar"
+        Street = "Bakerstreet"
+        Number = 42
+    }
 
+type Range =
+    {
+        From: float
+        To: float
+        FileName: string
+    }
+
+let a =
+    [|
+        (1, 2, 3)
+        (4, 5, 6)
+        (7, 8, 9)
+        (10, 11, 12)
+        (13, 14, 15)
+        (16, 17, 18)
+        (19, 20, 21)
+    |]
 ```
 
 ```fsharp
@@ -812,7 +978,29 @@ fsharp_multiline_bracket_style = stroustrup
 ```
 
 ```
+let myRecord = {
+    Level = 1
+    Progress = "foo"
+    Bar = "bar"
+    Street = "Bakerstreet"
+    Number = 42
+}
 
+type Range = {
+    From: float
+    To: float
+    FileName: string
+}
+
+let a = [|
+    (1, 2, 3)
+    (4, 5, 6)
+    (7, 8, 9)
+    (10, 11, 12)
+    (13, 14, 15)
+    (16, 17, 18)
+    (19, 20, 21)
+|]
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -822,7 +1010,8 @@ fsharp_multiline_bracket_style = stroustrup
 Insert a newline before a computation expression that spans multiple lines
 
 ```
-
+# Default
+fsharp_newline_before_multiline_computation_expression = true
 ```
 
 ```fsharp
@@ -840,7 +1029,10 @@ fsharp_newline_before_multiline_computation_expression = false
 ```
 
 ```
-
+let something = task {
+    let! thing = otherThing ()
+    return 5
+}
 ```
 
 ## G-Research style
@@ -855,7 +1047,8 @@ From a consistency point of view, it is recommend to enable all these settings i
 Adds a new line between a type definition and its first member.
 
 ```
-
+# Default
+fsharp_newline_between_type_definition_and_members = true
 ```
 
 ```fsharp
@@ -873,7 +1066,13 @@ fsharp_newline_between_type_definition_and_members = false
 ```
 
 ```
+type Range =
+    {
+        From: float
+        To: float
+    }
 
+    member this.Length = this.To - this.From
 ```
 
 <fantomas-setting green gr></fantomas-setting>
@@ -884,7 +1083,8 @@ When a function signature exceeds the `max_line_length`, Fantomas will put all p
 This setting also places the equals sign and return type on a new line.
 
 ```
-
+# Default
+fsharp_align_function_signature_to_indentation = false
 ```
 
 ```fsharp
@@ -903,7 +1103,13 @@ fsharp_align_function_signature_to_indentation = true
 ```
 
 ```
-
+[<FunctionName("FormatCode")>]
+let run
+    ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+    (log: ILogger)
+    : HttpResponse
+    =
+    Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 ```
 
 <fantomas-setting green gr></fantomas-setting>
@@ -914,7 +1120,8 @@ Provides an alternative way of formatting long member and constructor definition
 where the difference is mainly in the equal sign and returned type placement.
 
 ```
-
+# Default
+fsharp_alternative_long_member_definitions = false
 ```
 
 ```fsharp
@@ -952,7 +1159,34 @@ fsharp_alternative_long_member_definitions = true
 ```
 
 ```
+type C
+    (
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+    )
+    = class end
 
+type D() =
+    member _.LongMethodWithLotsOfParameters
+        (
+            aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+        )
+        : ReturnType
+        =
+        42
+
+type E() =
+    new
+        (
+            aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+        )
+        =
+        E()
 ```
 
 <fantomas-setting green gr></fantomas-setting>
@@ -962,7 +1196,8 @@ fsharp_alternative_long_member_definitions = true
 Places the closing parenthesis of a multiline lambda argument on the next line.
 
 ```
-
+# Default
+fsharp_multi_line_lambda_closing_newline = false
 ```
 
 ```fsharp
@@ -988,7 +1223,20 @@ fsharp_multi_line_lambda_closing_newline = true
 ```
 
 ```
+let printListWithOffset a list1 =
+    List.iter
+        (fun { ItemOne = a } ->
+            // print
+            printfn "%s" a
+        )
+        list1
 
+let printListWithOffset a list1 =
+    list1
+    |> List.iter (fun elem ->
+        // print stuff
+        printfn "%d" (a + elem)
+    )
 ```
 
 <fantomas-setting orange gr></fantomas-setting>
@@ -1001,7 +1249,8 @@ Only when the last pattern match or else branch was already at the same level of
 *This feature is experimental and is subject to change.*
 
 ```
-
+# Default
+fsharp_experimental_keep_indent_in_branch = false
 ```
 
 ```fsharp
@@ -1028,7 +1277,20 @@ fsharp_experimental_keep_indent_in_branch = true
 ```
 
 ```
+let main argv =
+    let args = parse argv
 
+    let instructions = Library.foo args
+
+    if args.DryRun = RunMode.Dry then
+        printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
+        0
+    else
+
+    // proceed with main method
+    let output = Library.execute instructions
+    // do more stuff
+    0
 ```
 
 <fantomas-setting green gr></fantomas-setting>
@@ -1039,7 +1301,8 @@ Always use a `|` before every case in the declaration of a discriminated union.
 If `false`, a `|` character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.
 
 ```
-
+# Default
+fsharp_bar_before_discriminated_union_declaration = false
 ```
 
 ```fsharp
@@ -1053,7 +1316,7 @@ fsharp_bar_before_discriminated_union_declaration = true
 ```
 
 ```
-
+type MyDU = | Short of int
 ```
 
 ## Other
@@ -1069,7 +1332,8 @@ Existing blank lines are always preserved (via trivia), with exception when [fsh
 Top level expressions will always follow the [2020 blank lines revision](https://github.com/fsprojects/fantomas/blob/main/docs-old/FormattingConventions.md#2020-revision) principle.
 
 ```
-
+# Default
+fsharp_blank_lines_around_nested_multiline_expressions = true
 ```
 
 ```fsharp
@@ -1095,7 +1359,18 @@ fsharp_blank_lines_around_nested_multiline_expressions = false
 ```
 
 ```
+let topLevelFunction () =
+    printfn "Something to print"
 
+    try
+        nothing ()
+    with ex ->
+        splash ()
+    ()
+
+let secondTopLevelFunction () =
+    // ...
+    ()
 ```
 
 <fantomas-setting green></fantomas-setting>
@@ -1105,7 +1380,8 @@ fsharp_blank_lines_around_nested_multiline_expressions = false
 Set maximal number of consecutive blank lines to keep from original source. It doesn't change number of new blank lines generated by Fantomas.
 
 ```
-
+# Default
+fsharp_keep_max_number_of_blank_lines = 100
 ```
 
 ```fsharp
@@ -1121,7 +1397,9 @@ fsharp_keep_max_number_of_blank_lines = 1
 ```
 
 ```
+open Foo
 
+let x = 42
 ```
 
 <fantomas-setting orange></fantomas-setting>
@@ -1132,7 +1410,8 @@ Applies the Stroustrup style to the final (two) array or list argument(s) in a f
 Note that this behaviour is also active when `fsharp_multiline_bracket_style = stroustrup`.
 
 ```
-
+# Default
+fsharp_experimental_elmish = false
 ```
 
 ```fsharp
@@ -1169,7 +1448,24 @@ fsharp_experimental_elmish = true
 ```
 
 ```
+let dualList =
+    div [] [
+        h1 [] [ str "Some title" ]
+        ul [] [
+            for p in model.Points do
+                li [] [ str $"%i{p.X}, %i{p.Y}" ]
+        ]
+        hr []
+    ]
 
+let singleList =
+    Html.div [
+        Html.h1 [ str "Some title" ]
+        Html.ul [
+            for p in model.Points do
+                Html.li [ str $"%i{p.X}, %i{p.Y}" ]
+        ]
+    ]
 ```
 
 <fantomas-nav previous="StyleGuide.md" next="IgnoreFiles.md"></fantomas-nav>

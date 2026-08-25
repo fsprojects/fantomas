@@ -335,7 +335,7 @@ These can be stored in an <a href="https://editorconfig.org/">.editorconfig</a> 
 commandline.<br />
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 8.0.0-alpha-017+939611d5e2cc838368a3b8244600eda653f77068</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -368,7 +368,8 @@ However, there are settings that we do not recommend and generally should not be
 <p>This preference sets the indentation
 The common values are 2 and 4.<br />
 The same indentation is ensured to be consistent in a source file.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+indent_size = 4</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="57" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let inline selectRandom (f: _ []) =</span>
@@ -386,13 +387,23 @@ The same indentation is ensured to be consistent in a source file.</p>
 <span class="s">indent_size = 2</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let inline selectRandom (f: _[]) =
+  let r = random 1.0
+
+  let rec find =
+    function
+    | 0 -&gt; fst f.[0]
+    | n when r &lt; snd f.[n] -&gt; fst f.[n]
+    | n -&gt; find (n - 1)
+
+  find &lt;| f.Length - 1</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="max_line_length" class="anchor" href="#max_line_length">max_line_length</a></h3>
 <copy-to-clipboard text="max_line_length = 100"></copy-to-clipboard>
 <p><code>max_line_length</code> has to be an integer greater or equal to 60.<br />
 This preference sets the column where we break F# constructs into new lines.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+max_line_length = 120</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="67" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    match myValue with</span>
@@ -403,7 +414,10 @@ This preference sets the column where we break F# constructs into new lines.</p>
 <span class="s">max_line_length = 60</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>match myValue with
+| Some foo -&gt;
+    someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
+| None -&gt; printfn "nothing"</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="end_of_line" class="anchor" href="#end_of_line">end_of_line</a></h3>
 <copy-to-clipboard text="end_of_line = lf"></copy-to-clipboard>
@@ -415,7 +429,8 @@ If not set by the user, the default value is determined by <code>System.Environm
 <copy-to-clipboard text="insert_final_newline = false"></copy-to-clipboard>
 <p>Adds a final newline character at the end of the file.<br />
 <a href="https://stackoverflow.com/questions/729692/why-should-text-files-end-with-a-newline" target="_blank">Why should text files end with a newline?</a></p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+insert_final_newline = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="78" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let a = 42</span>
@@ -424,13 +439,14 @@ If not set by the user, the default value is determined by <code>System.Environm
 <span class="s">insert_final_newline = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let a = 42</code></pre></td></tr></table>
 <fantomas-setting orange></fantomas-setting>
 <h3><a name="fsharp_space_before_parameter" class="anchor" href="#fsharp_space_before_parameter">fsharp_space_before_parameter</a></h3>
 <copy-to-clipboard text="fsharp_space_before_parameter = false"></copy-to-clipboard>
 <p>Add a space after the name of a function and before the opening parenthesis of the first parameter.<br />
 This setting influences function definitions.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_space_before_parameter = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="89" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">   let value (a: int) = x</span>
@@ -440,13 +456,15 @@ This setting influences function definitions.</p>
 <span class="s">fsharp_space_before_parameter = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let value(a: int) = x
+let DumpTrace() = ()</code></pre></td></tr></table>
 <fantomas-setting orange></fantomas-setting>
 <h3><a name="fsharp_space_before_lowercase_invocation" class="anchor" href="#fsharp_space_before_lowercase_invocation">fsharp_space_before_lowercase_invocation</a></h3>
 <copy-to-clipboard text="fsharp_space_before_lowercase_invocation = false"></copy-to-clipboard>
 <p>Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.<br />
 This setting influences function invocation in expressions and patterns.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_space_before_lowercase_invocation = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="100" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">value (a, b)</span>
@@ -459,13 +477,18 @@ This setting influences function invocation in expressions and patterns.</p>
 <span class="s">fsharp_space_before_lowercase_invocation = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>value(a, b)
+startTimer()
+
+match x with
+| value(a, b) -&gt; ()</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_space_before_uppercase_invocation" class="anchor" href="#fsharp_space_before_uppercase_invocation">fsharp_space_before_uppercase_invocation</a></h3>
 <copy-to-clipboard text="fsharp_space_before_uppercase_invocation = true"></copy-to-clipboard>
 <p>Add a space after the name of a uppercase function and before the opening parenthesis of the first argument.<br />
 This setting influences function invocation in expressions and patterns.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_space_before_uppercase_invocation = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="111" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">Value(a, b)</span>
@@ -478,12 +501,17 @@ This setting influences function invocation in expressions and patterns.</p>
 <span class="s">fsharp_space_before_uppercase_invocation = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>Value (a, b)
+person.ToString ()
+
+match x with
+| Value (a, b) -&gt; ()</code></pre></td></tr></table>
 <fantomas-setting orange></fantomas-setting>
 <h3><a name="fsharp_space_before_class_constructor" class="anchor" href="#fsharp_space_before_class_constructor">fsharp_space_before_class_constructor</a></h3>
 <copy-to-clipboard text="fsharp_space_before_class_constructor = true"></copy-to-clipboard>
 <p>Add a space after a type name and before the class constructor.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_space_before_class_constructor = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="122" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type Person() =</span>
@@ -494,12 +522,13 @@ This setting influences function invocation in expressions and patterns.</p>
 <span class="s">fsharp_space_before_class_constructor = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>type Person () = class end</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_space_before_member" class="anchor" href="#fsharp_space_before_member">fsharp_space_before_member</a></h3>
 <copy-to-clipboard text="fsharp_space_before_member = true"></copy-to-clipboard>
 <p>Add a space after a member name and before the opening parenthesis of the first parameter.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_space_before_member = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="133" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type Person() =</span>
@@ -512,12 +541,17 @@ This setting influences function invocation in expressions and patterns.</p>
 <span class="s">fsharp_space_before_member = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>type Person() =
+    member this.Walk (distance: int) = ()
+    member this.Sleep () = ignore
+    member __.singAlong () = ()
+    member __.swim (duration: TimeSpan) = ()</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_space_before_colon" class="anchor" href="#fsharp_space_before_colon">fsharp_space_before_colon</a></h3>
 <copy-to-clipboard text="fsharp_space_before_colon = true"></copy-to-clipboard>
 <p>Add a space before <code>:</code>. Please note that not every <code>:</code> is controlled by this setting.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_space_before_colon = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="144" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">   type Point = { x: int; y: int }</span>
@@ -528,12 +562,15 @@ This setting influences function invocation in expressions and patterns.</p>
 <span class="s">fsharp_space_before_colon = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>type Point = { x : int; y : int }
+let myValue : int = 42
+let update (msg : Msg) (model : Model) : Model = model</code></pre></td></tr></table>
 <fantomas-setting orange></fantomas-setting>
 <h3><a name="fsharp_space_after_comma" class="anchor" href="#fsharp_space_after_comma">fsharp_space_after_comma</a></h3>
 <copy-to-clipboard text="fsharp_space_after_comma = false"></copy-to-clipboard>
 <p>Adds a space after <code>,</code> in tuples.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_space_after_comma = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="155" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    myValue.SomeFunction(foo, bar, somethingElse)</span>
@@ -543,12 +580,14 @@ This setting influences function invocation in expressions and patterns.</p>
 <span class="s">fsharp_space_after_comma = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>myValue.SomeFunction(foo,bar,somethingElse)
+(a,b,c)</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_space_before_semicolon" class="anchor" href="#fsharp_space_before_semicolon">fsharp_space_before_semicolon</a></h3>
 <copy-to-clipboard text="fsharp_space_before_semicolon = true"></copy-to-clipboard>
 <p>Adds a space before <code>;</code> in records, arrays, lists, etc.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_space_before_semicolon = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="166" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let a = [ 1 ; 2 ; 3 ]</span>
@@ -559,12 +598,15 @@ This setting influences function invocation in expressions and patterns.</p>
 <span class="s">fsharp_space_before_semicolon = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let a = [ 1 ; 2 ; 3 ]
+let b = [| foo ; bar |]
+type C = { X: int ; Y: int }</code></pre></td></tr></table>
 <fantomas-setting orange></fantomas-setting>
 <h3><a name="fsharp_space_after_semicolon" class="anchor" href="#fsharp_space_after_semicolon">fsharp_space_after_semicolon</a></h3>
 <copy-to-clipboard text="fsharp_space_after_semicolon = false"></copy-to-clipboard>
 <p>Adds a space after <code>;</code> in records, arrays, lists, etc.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_space_after_semicolon = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="177" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let a = [ 1; 2; 3 ]</span>
@@ -575,12 +617,15 @@ This setting influences function invocation in expressions and patterns.</p>
 <span class="s">fsharp_space_after_semicolon = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let a = [ 1;2;3 ]
+let b = [| foo;bar |]
+type C = { X: int;Y: int }</code></pre></td></tr></table>
 <fantomas-setting orange></fantomas-setting>
 <h3><a name="fsharp_space_around_delimiter" class="anchor" href="#fsharp_space_around_delimiter">fsharp_space_around_delimiter</a></h3>
 <copy-to-clipboard text="fsharp_space_around_delimiter = false"></copy-to-clipboard>
 <p>Adds a space around delimiters like <code>[</code>,<code>[|</code>,{`.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_space_around_delimiter = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="188" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let a = [ 1;2;3 ]</span>
@@ -590,7 +635,8 @@ This setting influences function invocation in expressions and patterns.</p>
 <span class="s">fsharp_space_around_delimiter = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let a = [1; 2; 3]
+let b = [|4; 5; 6|]</code></pre></td></tr></table>
 <h2><a name="Maximum-width-constraints" class="anchor" href="#Maximum-width-constraints">Maximum width constraints</a></h2>
 <p>Settings that control the max width of certain expressions.</p>
 <fantomas-setting orange></fantomas-setting>
@@ -601,7 +647,8 @@ The <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatti
 <blockquote>
 <p>If the else expression is absent, it is recommended to never to write the entire expression in one line.</p>
 </blockquote>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_max_if_then_short_width = 0</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="198" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    if a then </span>
@@ -611,13 +658,14 @@ The <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatti
 <span class="s">fsharp_max_if_then_short_width = 15</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>if a then ()</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_if_then_else_short_width" class="anchor" href="#fsharp_max_if_then_else_short_width">fsharp_max_if_then_else_short_width</a></h3>
 <copy-to-clipboard text="fsharp_max_if_then_else_short_width = 80"></copy-to-clipboard>
 <p>Fantomas by default follows the if/then/else conventions listed in the <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions">Microsoft F# style guide</a>.<br />
 This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_max_if_then_else_short_width = 60</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="208" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    if myCheck then truth else bogus</span>
@@ -626,12 +674,16 @@ This setting facilitates this by determining the maximum character width where t
 <span class="s">fsharp_max_if_then_else_short_width = 10</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>if myCheck then
+    truth
+else
+    bogus</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_infix_operator_expression" class="anchor" href="#fsharp_max_infix_operator_expression">fsharp_max_infix_operator_expression</a></h3>
 <copy-to-clipboard text="fsharp_max_infix_operator_expression = 100"></copy-to-clipboard>
 <p>Control the maximum length for which infix expression can be on one line.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_max_infix_operator_expression = 80</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="218" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let WebApp =</span>
@@ -641,13 +693,17 @@ This setting facilitates this by determining the maximum character width where t
 <span class="s">fsharp_max_infix_operator_expression = 20</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let WebApp =
+    route "/ping"
+    &gt;=&gt; authorized
+    &gt;=&gt; text "pong"</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_record_width" class="anchor" href="#fsharp_max_record_width">fsharp_max_record_width</a></h3>
 <copy-to-clipboard text="fsharp_max_record_width = 60"></copy-to-clipboard>
 <p>Control the maximum width for which records should be in one line.</p>
 <p>Requires <code>fsharp_record_multiline_formatter</code> to be <code>character_width</code> to take effect.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_max_record_width = 40</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="228" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type MyRecord = { X: int; Y: int; Length: int }</span>
@@ -657,14 +713,27 @@ This setting facilitates this by determining the maximum character width where t
 <span class="s">fsharp_max_record_width = 20</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>type MyRecord =
+    {
+        X: int
+        Y: int
+        Length: int
+    }
+
+let myInstance =
+    {
+        X = 10
+        Y = 20
+        Length = 90
+    }</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_record_number_of_items" class="anchor" href="#fsharp_max_record_number_of_items">fsharp_max_record_number_of_items</a></h3>
 <copy-to-clipboard text="fsharp_max_record_number_of_items = 2"></copy-to-clipboard>
 <p>Control the maximum number of fields for which records should be in one line.</p>
 <p>Requires <code>fsharp_record_multiline_formatter</code> to be
 <code>number_of_items</code> to take effect.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_max_record_number_of_items = 1</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="238" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type R = { x: int }</span>
@@ -686,7 +755,29 @@ This setting facilitates this by determining the maximum character width where t
 <span class="s">fsharp_max_record_number_of_items = 2</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>type R = { x: int }
+
+type S = { x: int; y: string }
+
+type T =
+    {
+        x: int
+        y: string
+        z: float
+    }
+
+let myRecord = { r = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' = { r with x = 3; y = "hello" }
+
+let myRecord''' =
+    { r with
+        x = 3
+        y = "hello"
+        z = 0.0
+    }</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_record_multiline_formatter" class="anchor" href="#fsharp_record_multiline_formatter">fsharp_record_multiline_formatter</a></h3>
 <copy-to-clipboard text="fsharp_record_multiline_formatter = number_of_items"></copy-to-clipboard>
@@ -694,7 +785,8 @@ This setting facilitates this by determining the maximum character width where t
 <code>character_width</code> uses character count of the expression, controlled by <code>fsharp_max_record_width</code>.<br />
 <code>number_of_items</code> uses the number of fields in the record, controlled by <code>fsharp_max_record_number_of_items</code>.</p>
 <p>Note that in either case, record expressions/statements are still governed by <code>max_line_length</code>.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_record_multiline_formatter = character_width</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="250" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type R = { x: int }</span>
@@ -711,13 +803,30 @@ This setting facilitates this by determining the maximum character width where t
 <span class="s">fsharp_record_multiline_formatter = number_of_items</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>type R = { x: int }
+
+type S =
+    {
+        x: int
+        y: string
+    }
+
+let myRecord = { r = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' =
+    { r with
+        x = 3
+        y = "hello"
+    }</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_array_or_list_width" class="anchor" href="#fsharp_max_array_or_list_width">fsharp_max_array_or_list_width</a></h3>
 <copy-to-clipboard text="fsharp_max_array_or_list_width = 100"></copy-to-clipboard>
 <p>Control the maximum width for which lists and arrays can be in one line.</p>
 <p>Requires <code>fsharp_array_or_list_multiline_formatter</code> to be <code>character_width</code> to take effect</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_max_array_or_list_width = 80</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="260" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myArray = [| one; two; three |]</span>
@@ -726,13 +835,19 @@ This setting facilitates this by determining the maximum character width where t
 <span class="s">fsharp_max_array_or_list_width = 20</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let myArray =
+    [|
+        one
+        two
+        three
+    |]</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_array_or_list_number_of_items" class="anchor" href="#fsharp_max_array_or_list_number_of_items">fsharp_max_array_or_list_number_of_items</a></h3>
 <copy-to-clipboard text="fsharp_max_array_or_list_number_of_items = 2"></copy-to-clipboard>
 <p>Control the maximum number of elements for which lists and arrays can be in one line.</p>
 <p>Requires <code>fsharp_array_or_list_multiline_formatter</code> to be <code>number_of_items</code> to take effect.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_max_array_or_list_number_of_items = 1</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="270" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myList = [ one; two ]</span>
@@ -743,7 +858,14 @@ This setting facilitates this by determining the maximum character width where t
 <span class="s">fsharp_max_array_or_list_number_of_items = 2</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let myList = [ one; two ]
+
+let myArray =
+    [|
+        one
+        two
+        three
+    |]</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_array_or_list_multiline_formatter" class="anchor" href="#fsharp_array_or_list_multiline_formatter">fsharp_array_or_list_multiline_formatter</a></h3>
 <copy-to-clipboard text="fsharp_array_or_list_multiline_formatter = number_of_items"></copy-to-clipboard>
@@ -751,7 +873,8 @@ This setting facilitates this by determining the maximum character width where t
 <code>character_width</code> uses character count of the expression, controlled by <code>fsharp_max_array_or_list_width</code>.<br />
 <code>number_of_items</code> uses the number of elements in the array or list, controlled by <code>fsharp_max_array_or_list_number_of_items</code>.</p>
 <p>Note that in either case, list expressions are still governed by <code>max_line_length</code>.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_array_or_list_multiline_formatter = character_width</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="282" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myArray = [| one; two; three |]</span>
@@ -760,13 +883,19 @@ This setting facilitates this by determining the maximum character width where t
 <span class="s">fsharp_array_or_list_multiline_formatter = number_of_items</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let myArray =
+    [|
+        one
+        two
+        three
+    |]</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_value_binding_width" class="anchor" href="#fsharp_max_value_binding_width">fsharp_max_value_binding_width</a></h3>
 <copy-to-clipboard text="fsharp_max_value_binding_width = 100"></copy-to-clipboard>
 <p>Control the maximum expression width for which let and member value/property bindings should be in one line.<br />
 The width is that of the pattern for the binding plus the right-hand expression but not the keywords (e.g. "let").</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_max_value_binding_width = 80</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="292" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let title = &quot;Great title of project&quot;</span>
@@ -777,13 +906,19 @@ The width is that of the pattern for the binding plus the right-hand expression 
 <span class="s">fsharp_max_value_binding_width = 10</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let title =
+    "Great title of project"
+
+type MyType() =
+    member this.HelpText =
+        "Some help text"</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_max_function_binding_width" class="anchor" href="#fsharp_max_function_binding_width">fsharp_max_function_binding_width</a></h3>
 <copy-to-clipboard text="fsharp_max_function_binding_width = 40"></copy-to-clipboard>
 <p>Control the maximum width for which function and member bindings should be in one line.<br />
 In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand side expression of the binding is measured.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_max_function_binding_width = 40</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="302" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let printScore score total = printfn &quot;%i / %i&quot; score total</span>
@@ -795,14 +930,20 @@ In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand 
 <span class="s">fsharp_max_function_binding_width = 10</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let printScore score total =
+    printfn "%i / %i" score total
+
+type Triangle() =
+    member this.CalculateSurface(width: int, height: int) =
+        width * height / 2</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_multiline_bracket_style" class="anchor" href="#fsharp_multiline_bracket_style">fsharp_multiline_bracket_style</a></h3>
 <copy-to-clipboard text="fsharp_multiline_bracket_style = stroustrup"></copy-to-clipboard>
 <p><code>Cramped</code> Alternative way in F# to format brackets.<br />
 <code>Aligned</code> The default way of formatting records, arrays and lists. This will align the braces at the same column level.<br />
 <code>Stroustrup</code> Allow for easier reordering of members and keeping the code succinct.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_multiline_bracket_style = aligned</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="314" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myRecord =</span>
@@ -830,7 +971,32 @@ In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand 
 <span class="s">fsharp_multiline_bracket_style = aligned</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let myRecord =
+    {
+        Level = 1
+        Progress = "foo"
+        Bar = "bar"
+        Street = "Bakerstreet"
+        Number = 42
+    }
+
+type Range =
+    {
+        From: float
+        To: float
+        FileName: string
+    }
+
+let a =
+    [|
+        (1, 2, 3)
+        (4, 5, 6)
+        (7, 8, 9)
+        (10, 11, 12)
+        (13, 14, 15)
+        (16, 17, 18)
+        (19, 20, 21)
+    |]</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="315" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myRecord =</span>
@@ -858,12 +1024,35 @@ In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand 
 <span class="s">fsharp_multiline_bracket_style = stroustrup</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let myRecord = {
+    Level = 1
+    Progress = "foo"
+    Bar = "bar"
+    Street = "Bakerstreet"
+    Number = 42
+}
+
+type Range = {
+    From: float
+    To: float
+    FileName: string
+}
+
+let a = [|
+    (1, 2, 3)
+    (4, 5, 6)
+    (7, 8, 9)
+    (10, 11, 12)
+    (13, 14, 15)
+    (16, 17, 18)
+    (19, 20, 21)
+|]</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_newline_before_multiline_computation_expression" class="anchor" href="#fsharp_newline_before_multiline_computation_expression">fsharp_newline_before_multiline_computation_expression</a></h3>
 <copy-to-clipboard text="fsharp_newline_before_multiline_computation_expression = false"></copy-to-clipboard>
 <p>Insert a newline before a computation expression that spans multiple lines</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_newline_before_multiline_computation_expression = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="326" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let something =</span>
@@ -876,7 +1065,10 @@ In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand 
 <span class="s">fsharp_newline_before_multiline_computation_expression = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let something = task {
+    let! thing = otherThing ()
+    return 5
+}</code></pre></td></tr></table>
 <h2><a name="G-Research-style" class="anchor" href="#G-Research-style">G-Research style</a></h2>
 <p>A series of settings requicolor="red" to conform with the <a href="https://github.com/G-Research/fsharp-formatting-conventions">G-Research style guide</a>.<br />
 From a consistency point of view, it is recommend to enable all these settings instead of cherry-picking a few.</p>
@@ -884,7 +1076,8 @@ From a consistency point of view, it is recommend to enable all these settings i
 <h3><a name="fsharp_newline_between_type_definition_and_members" class="anchor" href="#fsharp_newline_between_type_definition_and_members">fsharp_newline_between_type_definition_and_members</a></h3>
 <copy-to-clipboard text="fsharp_newline_between_type_definition_and_members = false"></copy-to-clipboard>
 <p>Adds a new line between a type definition and its first member.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_newline_between_type_definition_and_members = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="337" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">type Range =</span>
@@ -897,13 +1090,20 @@ From a consistency point of view, it is recommend to enable all these settings i
 <span class="s">fsharp_newline_between_type_definition_and_members = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>type Range =
+    {
+        From: float
+        To: float
+    }
+
+    member this.Length = this.To - this.From</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_align_function_signature_to_indentation" class="anchor" href="#fsharp_align_function_signature_to_indentation">fsharp_align_function_signature_to_indentation</a></h3>
 <copy-to-clipboard text="fsharp_align_function_signature_to_indentation = true"></copy-to-clipboard>
 <p>When a function signature exceeds the <code>max_line_length</code>, Fantomas will put all parameters on separate lines.<br />
 This setting also places the equals sign and return type on a new line.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_align_function_signature_to_indentation = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="348" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">[&lt;FunctionName(&quot;FormatCode&quot;)&gt;]</span>
@@ -917,13 +1117,20 @@ This setting also places the equals sign and return type on a new line.</p>
 <span class="s">fsharp_align_function_signature_to_indentation = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>[&lt;FunctionName("FormatCode")&gt;]
+let run
+    ([&lt;HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")&gt;] req: HttpRequest)
+    (log: ILogger)
+    : HttpResponse
+    =
+    Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_alternative_long_member_definitions" class="anchor" href="#fsharp_alternative_long_member_definitions">fsharp_alternative_long_member_definitions</a></h3>
 <copy-to-clipboard text="fsharp_alternative_long_member_definitions = true"></copy-to-clipboard>
 <p>Provides an alternative way of formatting long member and constructor definitions,
 where the difference is mainly in the equal sign and returned type placement.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_alternative_long_member_definitions = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="359" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">type C</span>
@@ -956,12 +1163,40 @@ where the difference is mainly in the equal sign and returned type placement.</p
 <span class="s">fsharp_alternative_long_member_definitions = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>type C
+    (
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+    )
+    = class end
+
+type D() =
+    member _.LongMethodWithLotsOfParameters
+        (
+            aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+        )
+        : ReturnType
+        =
+        42
+
+type E() =
+    new
+        (
+            aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+        )
+        =
+        E()</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_multi_line_lambda_closing_newline" class="anchor" href="#fsharp_multi_line_lambda_closing_newline">fsharp_multi_line_lambda_closing_newline</a></h3>
 <copy-to-clipboard text="fsharp_multi_line_lambda_closing_newline = true"></copy-to-clipboard>
 <p>Places the closing parenthesis of a multiline lambda argument on the next line.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_multi_line_lambda_closing_newline = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="370" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let printListWithOffset a list1 =</span>
@@ -982,14 +1217,28 @@ where the difference is mainly in the equal sign and returned type placement.</p
 <span class="s">fsharp_multi_line_lambda_closing_newline = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let printListWithOffset a list1 =
+    List.iter
+        (fun { ItemOne = a } -&gt;
+            // print
+            printfn "%s" a
+        )
+        list1
+
+let printListWithOffset a list1 =
+    list1
+    |&gt; List.iter (fun elem -&gt;
+        // print stuff
+        printfn "%d" (a + elem)
+    )</code></pre></td></tr></table>
 <fantomas-setting orange gr></fantomas-setting>
 <h3><a name="fsharp_experimental_keep_indent_in_branch" class="anchor" href="#fsharp_experimental_keep_indent_in_branch">fsharp_experimental_keep_indent_in_branch</a></h3>
 <copy-to-clipboard text="fsharp_experimental_keep_indent_in_branch = true"></copy-to-clipboard>
 <p>Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.<br />
 Only when the last pattern match or else branch was already at the same level of the entire match or if expression.</p>
 <p><em>This feature is experimental and is subject to change.</em></p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_experimental_keep_indent_in_branch = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="381" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let main argv =</span>
@@ -1011,13 +1260,27 @@ Only when the last pattern match or else branch was already at the same level of
 <span class="s">fsharp_experimental_keep_indent_in_branch = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let main argv =
+    let args = parse argv
+
+    let instructions = Library.foo args
+
+    if args.DryRun = RunMode.Dry then
+        printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
+        0
+    else
+
+    // proceed with main method
+    let output = Library.execute instructions
+    // do more stuff
+    0</code></pre></td></tr></table>
 <fantomas-setting green gr></fantomas-setting>
 <h3><a name="fsharp_bar_before_discriminated_union_declaration" class="anchor" href="#fsharp_bar_before_discriminated_union_declaration">fsharp_bar_before_discriminated_union_declaration</a></h3>
 <copy-to-clipboard text="fsharp_bar_before_discriminated_union_declaration = true"></copy-to-clipboard>
 <p>Always use a <code>|</code> before every case in the declaration of a discriminated union.<br />
 If <code>false</code>, a <code>|</code> character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_bar_before_discriminated_union_declaration = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="392" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type MyDU = Short of int</span>
@@ -1026,7 +1289,7 @@ If <code>false</code>, a <code>|</code> character is used only in multiple-case 
 <span class="s">fsharp_bar_before_discriminated_union_declaration = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>type MyDU = | Short of int</code></pre></td></tr></table>
 <h2><a name="Other" class="anchor" href="#Other">Other</a></h2>
 <p>Some additional settings that don't fit into any style guide.</p>
 <fantomas-setting green></fantomas-setting>
@@ -1035,7 +1298,8 @@ If <code>false</code>, a <code>|</code> character is used only in multiple-case 
 <p>Surround <strong>nested</strong> multi-line expressions with blank lines.<br />
 Existing blank lines are always preserved (via trivia), with exception when <a href="#fsharp_keep_max_number_of_blank_lines">fsharp_keep_max_number_of_blank_lines</a> is used.<br />
 Top level expressions will always follow the <a href="https://github.com/fsprojects/fantomas/blob/main/docs-old/FormattingConventions.md#2020-revision">2020 blank lines revision</a> principle.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_blank_lines_around_nested_multiline_expressions = true</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="403" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let topLevelFunction () =</span>
@@ -1056,12 +1320,24 @@ Top level expressions will always follow the <a href="https://github.com/fsproje
 <span class="s">fsharp_blank_lines_around_nested_multiline_expressions = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let topLevelFunction () =
+    printfn "Something to print"
+
+    try
+        nothing ()
+    with ex -&gt;
+        splash ()
+    ()
+
+let secondTopLevelFunction () =
+    // ...
+    ()</code></pre></td></tr></table>
 <fantomas-setting green></fantomas-setting>
 <h3><a name="fsharp_keep_max_number_of_blank_lines" class="anchor" href="#fsharp_keep_max_number_of_blank_lines">fsharp_keep_max_number_of_blank_lines</a></h3>
 <copy-to-clipboard text="fsharp_keep_max_number_of_blank_lines = 1"></copy-to-clipboard>
 <p>Set maximal number of consecutive blank lines to keep from original source. It doesn't change number of new blank lines generated by Fantomas.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_keep_max_number_of_blank_lines = 100</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="413" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    open Foo</span>
@@ -1072,13 +1348,16 @@ Top level expressions will always follow the <a href="https://github.com/fsproje
 <span class="s">fsharp_keep_max_number_of_blank_lines = 1</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>open Foo
+
+let x = 42</code></pre></td></tr></table>
 <fantomas-setting orange></fantomas-setting>
 <h3><a name="fsharp_experimental_elmish" class="anchor" href="#fsharp_experimental_elmish">fsharp_experimental_elmish</a></h3>
 <copy-to-clipboard text="fsharp_experimental_elmish = true"></copy-to-clipboard>
 <p>Applies the Stroustrup style to the final (two) array or list argument(s) in a function application.<br />
 Note that this behaviour is also active when <code>fsharp_multiline_bracket_style = stroustrup</code>.</p>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code># Default
+fsharp_experimental_elmish = false</code></pre></td></tr></table>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="424" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let dualList =</span>
@@ -1110,7 +1389,24 @@ Note that this behaviour is also active when <code>fsharp_multiline_bracket_styl
 <span class="s">fsharp_experimental_elmish = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let dualList =
+    div [] [
+        h1 [] [ str "Some title" ]
+        ul [] [
+            for p in model.Points do
+                li [] [ str $"%i{p.X}, %i{p.Y}" ]
+        ]
+        hr []
+    ]
+
+let singleList =
+    Html.div [
+        Html.h1 [ str "Some title" ]
+        Html.ul [
+            for p in model.Points do
+                Html.li [ str $"%i{p.X}, %i{p.Y}" ]
+        ]
+    ]</code></pre></td></tr></table>
 <fantomas-nav previous="StyleGuide.html" next="IgnoreFiles.html"></fantomas-nav>
 
         <div popover class="fsdocs-tip" id="fs1">namespace System</div>

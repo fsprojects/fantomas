@@ -358,7 +358,14 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
 <span class="s">fsharp_experimental_elmish = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>div [] [
+    h1 [] [ str "Some title" ]
+    ul [] [
+        for p in model.Points do
+            li [] [ str $"%i{p.X}, %i{p.Y}" ]
+    ]
+    hr []
+]</code></pre></td></tr></table>
 <h3><a name="Feliz" class="anchor" href="#Feliz">Feliz</a></h3>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="48" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
@@ -376,7 +383,13 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
 <span class="s">fsharp_experimental_elmish = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>Html.div [
+    Html.h1 [ str "Some title" ]
+    Html.ul [
+        for p in model.Points do
+            Html.li [ str $"%i{p.X}, %i{p.Y}" ]
+    ]
+]</code></pre></td></tr></table>
 <h3><a name="Giraffe" class="anchor" href="#Giraffe">Giraffe</a></h3>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="49" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
@@ -393,7 +406,14 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
 <span class="s">fsharp_experimental_elmish = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let indexView =
+    html [] [
+        head [] [ title [] [ str "Giraffe Sample" ] ]
+        body [] [
+            h1 [] [ str "I |&gt; F#" ]
+            p [ _class "some-css-class"; _id "someId" ] [ str "Hello World" ]
+        ]
+    ]</code></pre></td></tr></table>
 <h3><a name="Falco" class="anchor" href="#Falco">Falco</a></h3>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="50" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
@@ -409,7 +429,13 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
 <span class="s">fsharp_experimental_elmish = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let markup =
+    Elem.div [] [
+        Text.comment "An HTML comment"
+        Elem.p [] [ Text.raw "A paragraph" ]
+        Elem.p [] [ Text.rawf "Hello %s" "Jim" ]
+        Elem.code [] [ Text.enc "&lt;div&gt;Hello&lt;/div&gt;" ]
+    ] // HTML encodes text before rendering</code></pre></td></tr></table>
 <h2><a name="Expecto" class="anchor" href="#Expecto">Expecto</a></h2>
 <p>The <a href="https://github.com/haf/expecto">Expect</a> test framework can benefit from <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_multiline_bracket_style">Stroustrup</a> style when defining test lists.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="51" class="fn">formatCode</span>
@@ -436,7 +462,23 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
 <span class="s">fsharp_multiline_bracket_style = stroustrup</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let tests =
+    testList "A test group" [
+        test "one test" { Expect.equal (2 + 2) 4 "2+2" }
+
+        test "another test that fails" { Expect.equal (3 + 3) 5 "3+3" }
+
+        testAsync "this is an async test" {
+            let! x = async { return 4 }
+            Expect.equal x (2 + 2) "2+2"
+        }
+
+        testTask "this is a task test" {
+            let! n = Task.FromResult 2
+            Expect.equal n 2 "n=2"
+        }
+    ]
+    |&gt; testLabel "samples"</code></pre></td></tr></table>
 <h2><a name="FAKE" class="anchor" href="#FAKE">FAKE</a></h2>
 <p>At the end of a <a href="https://fake.build/">FAKE</a> script, the target dependencies are typically listed using custom operators.<br />
 Using <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_max_infix_operator_expression">fsharp_max_infix_operator_expression</a>
@@ -456,7 +498,17 @@ you can tweak when they should go to the next line.</p>
 <span class="s">fsharp_max_infix_operator_expression = 5</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>"Build"
+==&gt; "EnsureCanScaffoldCodeFix"
+==&gt; "LspTest"
+==&gt; "Coverage"
+==&gt; "Test"
+==&gt; "All"
+
+"Clean"
+==&gt; "LocalRelease"
+==&gt; "ReleaseArchive"
+==&gt; "Release"</code></pre></td></tr></table>
 <h2><a name="Paragraphs" class="anchor" href="#Paragraphs">Paragraphs</a></h2>
 <p>When expressions are multiline Fantomas will put a blank line before and after them.
 This helps for code to stay consistent in teams.</p>
@@ -474,7 +526,16 @@ This helps for code to stay consistent in teams.</p>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="s">&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let Foo =
+    try // Start paragraph 1
+        printfn "%A" blah
+    with ex -&gt;
+        printfn "Failed to print blah" // End paragraph 1
+
+    let mutable a = 8 // This line belongs // Start paragraph 2
+
+    for i in [ 1..10 ] do
+        a &lt;- a + i // Start paragraph 2</code></pre></td></tr></table>
 <p>However, some developers like to group their code in self-defined paragraphs, and thus want full control when Fantomas inserts blank lines.
 Full control is not possible but outside top level expressions this can be done via <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_blank_lines_around_nested_multiline_expressions">fsharp_blank_lines_around_nested_multiline_expressions = false</a>.</p>
 <p>⚠️ This approach is generally advised against because it gives the code author control over newlines.
@@ -495,7 +556,15 @@ Within teams, this can lead to debates, which is precisely what using Fantomas a
 <span class="s">fsharp_blank_lines_around_nested_multiline_expressions = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let Foo =
+    try // Start paragraph 1
+        printfn "%A" blah
+    with ex -&gt;
+        printfn "Failed to print blah" // End paragraph 1
+
+    let mutable a = 8 // This line belongs // Start paragraph 2
+    for i in [ 1..10 ] do
+        a &lt;- a + i // Start paragraph 2</code></pre></td></tr></table>
 <h2><a name="Early-returns" class="anchor" href="#Early-returns">Early returns</a></h2>
 <p>In F# there is no such concept as early returns. However, sometimes we do want to return an empty or error result when a certain condition is not met.
 To avoid extreme indentation in our happy path, you can use <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_experimental_keep_indent_in_branch">fsharp_experimental_keep_indent_in_branch = true</a>.</p>
@@ -544,7 +613,50 @@ To avoid extreme indentation in our happy path, you can use <a href="https://fsp
 <span class="s">fsharp_experimental_keep_indent_in_branch = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code></code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>let fix (getParseResultsForFile: GetParseResultsForFile) : CodeFix =
+    Run.ifDiagnosticByCode (set [ "20" ]) (fun diagnostic (codeActionParams: CodeActionParams) -&gt;
+        asyncResult {
+            if mDiag.StartLine &lt;&gt; mDiag.EndLine then
+                // Only do single line for now
+                return []
+            else
+
+            // Happy path at same indent
+
+            let! (parseAndCheckResults: ParseAndCheckResults, _line: string, sourceText: IFSACSourceText) =
+                getParseResultsForFile fileName fcsPos
+
+            let mExprOpt =
+                (fcsPos, parseAndCheckResults.GetParseResults.ParseTree)
+                ||&gt; ParsedInput.tryPick (fun path node -&gt;
+                    match node with
+                    | SyntaxNode.SynExpr(e) when Range.equals mDiag e.Range -&gt; Some(path, e)
+                    | _ -&gt; None)
+
+            match mExprOpt with
+            | None -&gt;
+                // Empty result is Option is None
+                return []
+            | Some(path, expr) -&gt;
+
+            // Happy path at same indent
+
+            return
+                [
+                    {
+                        SourceDiagnostic = None
+                        Title = title
+                        File = codeActionParams.TextDocument
+                        Edits =
+                            [|
+                                {
+                                    Range = fcsRangeToLsp expr.Range NewText = newText
+                                }
+                            |]
+                        Kind = FixKind.Fix
+                    }
+                ]
+        })</code></pre></td></tr></table>
 <p>⚠️ The downside of this setting is that it only respects this style of formatting if it was already present in the original source.
 The problem with this approach is that the author of the original code decides whether this style is used.
 Discuss this with your team! ⚠️</p>
