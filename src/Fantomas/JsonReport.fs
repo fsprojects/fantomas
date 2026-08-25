@@ -101,12 +101,12 @@ let describeResult (result: FormatResult) : FileReport =
             Path = file
             Outcome = FileOutcome.Ignored
         }
-    | FormatResult.Unchanged(file, _) ->
+    | FormatResult.Unchanged file ->
         {
             Path = file
             Outcome = FileOutcome.Unchanged
         }
-    | FormatResult.Formatted(file, _, _) ->
+    | FormatResult.Formatted(file, _) ->
         {
             Path = file
             Outcome = FileOutcome.Formatted

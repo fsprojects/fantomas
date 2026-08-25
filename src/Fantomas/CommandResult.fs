@@ -3,12 +3,10 @@ module Fantomas.CommandResult
 open System
 open Fantomas.Core
 
-type ProfileInfo = { LineCount: int; TimeTaken: TimeSpan }
-
 [<RequireQualifiedAccess; NoComparison>]
 type FormatResult =
-    | Formatted of filename: string * formattedContent: string * profileInfo: ProfileInfo option
-    | Unchanged of filename: string * profileInfo: ProfileInfo option
+    | Formatted of filename: string * formattedContent: string
+    | Unchanged of filename: string
     | InvalidCode of filename: string * formattedContent: string
     | Error of filename: string * formattingError: exn
     | IgnoredFile of filename: string

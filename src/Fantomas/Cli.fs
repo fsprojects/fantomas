@@ -2,7 +2,6 @@ module Fantomas.Cli
 
 open System.IO.Abstractions
 open Serilog
-open Spectre.Console
 open Fantomas
 open Fantomas.Core
 open Fantomas.Logging
@@ -15,7 +14,6 @@ type CliEnvironment =
         IgnoreFile: IgnoreFile option
         ReadConfiguration: string -> FormatConfig
         Log: ILogger
-        Console: IAnsiConsole
         OutputTheme: Theme
         ErrorTheme: Theme
     }
@@ -23,6 +21,5 @@ type CliEnvironment =
 type CliSettings =
     {
         Force: bool
-        Profile: bool
         Verbosity: VerbosityLevel
     }

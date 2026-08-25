@@ -55,6 +55,8 @@
     <Compile Include="FormatCommand.fs" />
     <Compile Include="CheckCommand.fsi" />
     <Compile Include="CheckCommand.fs" />
+    <Compile Include="ProfileCommand.fsi" />
+    <Compile Include="ProfileCommand.fs" />
     <Compile Include="Report.fsi" />
     <Compile Include="Report.fs" />
     <Compile Include="JsonReport.fsi" />

@@ -3,7 +3,6 @@ module Fantomas.Report
 open System
 open System.IO.Abstractions
 open Serilog
-open Spectre.Console
 // Fantomas.Core has a FormatResult of its own. Opening Fantomas last is what makes the
 // FormatResult named here the one this project defines.
 open Fantomas.Core
@@ -11,6 +10,7 @@ open Fantomas
 open Fantomas.Arguments
 open Fantomas.Cli
 open Fantomas.CommandResult
+open Fantomas.ProfileCommand
 open Fantomas.Logging
 open Fantomas.Theme
 
@@ -30,8 +30,8 @@ let sourceOf (fs: IFileSystem) (file: string) : string =
 [<NoComparison; NoEquality>]
 type Outcomes =
     {
-        Formatted: (string * ProfileInfo option) list
-        Unchanged: (string * ProfileInfo option) list
+        Formatted: string list
+        Unchanged: string list
         Ignored: string list
         Errored: (string * exn) list
     }
@@ -48,15 +48,15 @@ let outcomes (results: FormatResult array) : Outcomes =
     // One pass, appending as it goes, so each list comes out in the order the files were given and
     // there is nothing to reverse afterwards. Every case is named once, and named here rather than
     // swept up by a wildcard, so a new one has to be placed deliberately.
-    let formatted: ResizeArray<string * ProfileInfo option> = ResizeArray()
-    let unchanged: ResizeArray<string * ProfileInfo option> = ResizeArray()
+    let formatted: ResizeArray<string> = ResizeArray()
+    let unchanged: ResizeArray<string> = ResizeArray()
     let ignored: ResizeArray<string> = ResizeArray()
     let errored: ResizeArray<string * exn> = ResizeArray()
 
     for result in results do
         match result with
-        | FormatResult.Formatted(file, _, profile) -> formatted.Add(file, profile)
-        | FormatResult.Unchanged(file, profile) -> unchanged.Add(file, profile)
+        | FormatResult.Formatted(file, _) -> formatted.Add file
+        | FormatResult.Unchanged file -> unchanged.Add file
         | FormatResult.IgnoredFile file -> ignored.Add file
         | FormatResult.Error(file, error) -> errored.Add(file, error)
         // Formatting produced something that is not F#, which is a failure of Fantomas rather than
@@ -134,23 +134,6 @@ let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string,
     | Some report -> env.Log.Error(String.Concat(glyphs.Errored, " ", report))
     | None -> env.Log.Error(describeOther ())
 
-let reportProfileInfo (log: ILogger) (profile: bool) (file: string, profileInfo: ProfileInfo option) : unit =
-    match profile, profileInfo with
-    | true, Some pI -> log.Information $"%s{file} Line count: %d{pI.LineCount} Time taken %A{pI.TimeTaken}"
-    | _ -> ()
-
-let reportProfileInfos (console: IAnsiConsole) (profile: bool) (results: (string * ProfileInfo option) list) : unit =
-    if profile && not (List.isEmpty results) then
-        let table: Table = Table().AddColumns([| "File"; "Line count"; "Time taken" |])
-
-        results
-        |> List.choose (fun (f, p) -> p |> Option.map (fun p -> f, p))
-        |> List.sortBy fst
-        |> List.fold
-            (fun (t: Table) (f, p) -> t.AddRow([| f; string<int> p.LineCount; p.TimeTaken.ToString("mm\:ss\.fff") |]))
-            table
-        |> console.Write
-
 // A single named file is answered on its own terms: the caller asked about this file, so every
 // state it can be in is said out loud, and there is no summary to add to one line.
 let reportSingleResult (env: CliEnvironment) (settings: CliSettings) (result: FormatResult) : unit =
@@ -161,12 +144,8 @@ let reportSingleResult (env: CliEnvironment) (settings: CliSettings) (result: Fo
     | FormatResult.IgnoredFile f ->
         env.Log.Information(fileLine theme glyphs.Ignored f "was ignored by .fantomasignore.")
     | FormatResult.Error(f, e) -> reportError env settings.Verbosity (f, e)
-    | FormatResult.Formatted(f, _, p) ->
-        env.Log.Information(fileLine theme glyphs.Formatted f "was formatted.")
-        reportProfileInfo env.Log settings.Profile (f, p)
-    | FormatResult.Unchanged(f, p) ->
-        env.Log.Information(fileLine theme glyphs.Unchanged f "was unchanged.")
-        reportProfileInfo env.Log settings.Profile (f, p)
+    | FormatResult.Formatted(f, _) -> env.Log.Information(fileLine theme glyphs.Formatted f "was formatted.")
+    | FormatResult.Unchanged f -> env.Log.Information(fileLine theme glyphs.Unchanged f "was unchanged.")
     | FormatResult.InvalidCode(f, _) ->
         let ex: FormatException = invalidResultException f
         reportError env settings.Verbosity (f, ex)
@@ -199,7 +178,7 @@ let reportFormatResults
     | None ->
         // Only what changed is listed. Everything else is a count, which is what keeps a run over a
         // formatted tree to one line.
-        for file, _ in outcome.Formatted do
+        for file in outcome.Formatted do
             env.Log.Information(fileLine theme glyphs.Formatted file "was formatted.")
 
         for e in outcome.Errored do
@@ -241,7 +220,115 @@ let reportFormatResults
             env.Log.Information ""
 
         env.Log.Information summary
-        reportProfileInfos env.Console settings.Profile (outcome.Formatted @ outcome.Unchanged)
+
+let describeInputProblem (problem: InputProblem) : string =
+    match problem with
+    | InputProblem.UnsupportedFileType path -> $"Input path '%s{path}' is an unsupported file type."
+    | InputProblem.NotFound path -> $"Input path '%s{path}' not found."
+    | InputProblem.NoPathGiven -> "No input path provided. Run fantomas --help for usage information."
+    | InputProblem.MultiplePathsWithOut -> "Multiple input files are not supported with the --out flag."
+
+// The gap between the three columns of the profile table. The columns themselves are as wide as
+// what goes in them, measured before anything is written: a fixed width truncates or overflows the
+// moment a path is longer than someone guessed, and the paths here are whatever the caller's tree
+// is called.
+let profileGap: int = 4
+
+let describeMilliseconds (span: TimeSpan) : string =
+    // Milliseconds, because a formatter measured in `mm:ss.fff` spends its width on zeros and
+    // stops making sense after an hour.
+    $"%.0f{span.TotalMilliseconds}ms"
+
+// The three columns, already padded and coloured, joined into a line.
+//
+// Padding happens on the plain text and the colour goes on after, which is what lets `PadLeft` and
+// `PadRight` do it: they count characters, and an escape sequence is characters that take no width
+// on screen. Colouring first and measuring after is what `Theme.visibleLength` exists for, and is
+// the harder way round when the caller has the plain text in hand anyway.
+let profileRow (file: string) (lines: string) (time: string) (note: string) : string =
+    String.Concat("  ", file, String(' ', profileGap), lines, String(' ', profileGap), time, note)
+
+// Said only where it is not one, which is nearly everywhere, so the line stays quiet unless there
+// is something about it to explain.
+let describeCombinations (theme: Theme) (combinations: int) : string =
+    if combinations <= 1 then
+        ""
+    else
+        muted theme $"  (%d{combinations} define combinations)"
+
+let reportProfileResult (env: CliEnvironment) (result: ProfileResult) : unit =
+    let theme: Theme = env.OutputTheme
+
+    let total: int =
+        List.sumBy (fun (timing: FileTiming) -> timing.LineCount) result.Timings
+
+    let totalLabel: string = "Total"
+    let totalLines: string = $"%d{total} lines"
+    let totalTime: string = describeMilliseconds result.Elapsed
+
+    // Measured before anything is written, from what actually goes in each column. A fixed width
+    // truncates or overflows the moment a path is longer than someone guessed, and the paths here
+    // are whatever the caller's tree is called.
+    let widthOf (pick: FileTiming -> string) (ofTotal: string) : int =
+        result.Timings
+        |> List.map (fun timing -> String.length (pick timing))
+        |> List.fold max (String.length ofTotal)
+
+    let fileWidth: int = widthOf (fun timing -> timing.File) totalLabel
+
+    let linesWidth: int =
+        widthOf (fun timing -> $"%d{timing.LineCount} lines") totalLines
+
+    let timeWidth: int =
+        widthOf (fun timing -> describeMilliseconds timing.TimeTaken) totalTime
+
+    env.Log.Information
+        $"Formatted %d{List.length result.Timings} files serially so the timings are comparable. Nothing was written."
+
+    env.Log.Information ""
+
+    for timing in result.Timings do
+        env.Log.Information(
+            profileRow
+                (link theme (timing.File.PadRight fileWidth))
+                (placeholder theme ($"%d{timing.LineCount} lines".PadLeft linesWidth))
+                (describeMilliseconds(timing.TimeTaken).PadLeft timeWidth)
+                (describeCombinations theme timing.DefineCombinations)
+        )
+
+    env.Log.Information ""
+
+    env.Log.Information(
+        profileRow
+            (heading theme (totalLabel.PadRight fileWidth))
+            (placeholder theme (totalLines.PadLeft linesWidth))
+            (heading theme (totalTime.PadLeft timeWidth))
+            ""
+    )
+
+    for file in result.Ignored do
+        env.Log.Debug $"'%s{file}' was ignored"
+
+let reportProfileCommand
+    (env: CliEnvironment)
+    (settings: CliSettings)
+    (inputPath: InputPath)
+    (result: ProfileCommandResult)
+    : int
+    =
+    match result with
+    | ProfileCommandResult.InvalidInput problem -> env.Log.Error(describeInputProblem problem)
+    | ProfileCommandResult.Failed error -> env.Log.Error $"%s{error.Message}"
+    | ProfileCommandResult.Completed profile ->
+        if List.isEmpty profile.Timings && List.isEmpty profile.Errors then
+            env.Log.Warning $"No F# files found in %s{describeInputPaths inputPath}."
+        else
+            reportProfileResult env profile
+
+        for failure in profile.Errors do
+            reportError env settings.Verbosity failure
+
+    result.ExitCode
 
 let reportCheckResults (env: CliEnvironment) (inputPath: InputPath) (checkResult: CheckResult) : unit =
     let theme: Theme = env.OutputTheme
@@ -299,13 +386,6 @@ let reportCheckResults (env: CliEnvironment) (inputPath: InputPath) (checkResult
 
         env.Log.Information ""
         env.Log.Information(String.Concat(summary, " ", fix))
-
-let describeInputProblem (problem: InputProblem) : string =
-    match problem with
-    | InputProblem.UnsupportedFileType path -> $"Input path '%s{path}' is an unsupported file type."
-    | InputProblem.NotFound path -> $"Input path '%s{path}' not found."
-    | InputProblem.NoPathGiven -> "No input path provided. Run fantomas --help for usage information."
-    | InputProblem.MultiplePathsWithOut -> "Multiple input files are not supported with the --out flag."
 
 // What is printed and what the process ends with are decided apart from each other, so that this
 // reporter and the JSON one cannot end the same run with different codes.

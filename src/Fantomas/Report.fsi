@@ -33,6 +33,18 @@ val reportFormatCommand:
     result: FormatCommandResult ->
         int
 
+/// Report what a profile run measured, and return the exit code the process should end with.
+///
+/// Every file is listed, slowest first, rather than a top few: descending order already hands a
+/// caller the short version through `| head`, at whatever length they want, without the command
+/// having to guess a number or explain what it left out.
+val reportProfileCommand:
+    env: CliEnvironment ->
+    settings: CliSettings ->
+    inputPath: InputPath ->
+    result: ProfileCommand.ProfileCommandResult ->
+        int
+
 /// Report what a `--check` run found, and return the exit code the process should end with: 0 when
 /// every file is already formatted, 99 when at least one needs formatting, and 1 on failure.
 ///

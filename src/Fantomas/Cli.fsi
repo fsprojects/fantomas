@@ -2,7 +2,6 @@ module Fantomas.Cli
 
 open System.IO.Abstractions
 open Serilog
-open Spectre.Console
 open Fantomas
 open Fantomas.Core
 open Fantomas.Logging
@@ -24,8 +23,6 @@ type CliEnvironment =
         /// reading a console. Which stream a level lands on is the logger's own configuration,
         /// not this record's.
         Log: ILogger
-        /// Spectre's console, for the one thing drawn rather than written: the profile table.
-        Console: IAnsiConsole
         /// What standard out will take. Held rather than detected at the point of writing, so a
         /// test pins it and asserts on plain text.
         OutputTheme: Theme
@@ -39,6 +36,5 @@ type CliEnvironment =
 type CliSettings =
     {
         Force: bool
-        Profile: bool
         Verbosity: VerbosityLevel
     }

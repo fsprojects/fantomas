@@ -66,8 +66,8 @@ let ``a format run reports one entry per file, with what became of it`` () =
     let document: JsonElement =
         completed
             [
-                FormatResult.Formatted("a.fs", "", None)
-                FormatResult.Unchanged("b.fs", None)
+                FormatResult.Formatted("a.fs", "")
+                FormatResult.Unchanged "b.fs"
                 FormatResult.IgnoredFile "c.fs"
                 FormatResult.Error("d.fs", Exception "the disk went away")
             ]
@@ -91,8 +91,7 @@ let ``the document says which command produced it and carries the schema version
 // two. The folder it is relative to is said once, so a reader can still resolve it.
 [<Test>]
 let ``the folder the paths are relative to is carried once, not repeated per file`` () =
-    let document: JsonElement =
-        completed [ FormatResult.Formatted("src/A.fs", "", None) ]
+    let document: JsonElement = completed [ FormatResult.Formatted("src/A.fs", "") ]
 
     document.GetProperty("workingDirectory").GetString()
     |> shouldEqual workingDirectory
@@ -102,7 +101,7 @@ let ``the folder the paths are relative to is carried once, not repeated per fil
 [<Test>]
 let ``the exit code the process ends with is in the document`` () =
     let clean: FormatCommandResult =
-        FormatCommandResult.Completed [| FormatResult.Unchanged("a.fs", None) |]
+        FormatCommandResult.Completed [| FormatResult.Unchanged "a.fs" |]
 
     (parsed (formatReport workingDirectory clean)).GetProperty("exitCode").GetInt32()
     |> shouldEqual clean.ExitCode
@@ -146,7 +145,7 @@ let ``an unusable input path is reported as the run failing, with no files`` () 
 
 [<Test>]
 let ``a run that reached its files carries no run level error`` () =
-    let document: JsonElement = completed [ FormatResult.Unchanged("a.fs", None) ]
+    let document: JsonElement = completed [ FormatResult.Unchanged "a.fs" ]
     document.GetProperty("error").ValueKind |> shouldEqual JsonValueKind.Null
 
 [<Test>]
@@ -196,9 +195,7 @@ let ``output Fantomas invalidated is reported as a failure of that file`` () =
 [<Test>]
 let ``a file that did not fail carries neither a message nor diagnostics`` () =
     let file: JsonElement =
-        completed [ FormatResult.Formatted("a.fs", "", None) ]
-        |> files
-        |> List.exactlyOne
+        completed [ FormatResult.Formatted("a.fs", "") ] |> files |> List.exactlyOne
 
     file.TryGetProperty "message" |> fst |> shouldEqual false
     file.TryGetProperty "diagnostics" |> fst |> shouldEqual false
@@ -240,9 +237,9 @@ let ``a check names the files it found nothing to say about`` () =
 let ``files are ordered by path, whichever order the run produced them in`` () =
     completed
         [
-            FormatResult.Unchanged("c.fs", None)
-            FormatResult.Unchanged("a.fs", None)
-            FormatResult.Unchanged("b.fs", None)
+            FormatResult.Unchanged "c.fs"
+            FormatResult.Unchanged "a.fs"
+            FormatResult.Unchanged "b.fs"
         ]
     |> files
     |> List.map (statusOf >> fst)
@@ -253,7 +250,7 @@ let ``files are ordered by path, whichever order the run produced them in`` () =
 [<Test>]
 let ``a path that is not ASCII survives the round trip`` () =
     let document: JsonElement =
-        completed [ FormatResult.Formatted("src/Café/Ünicode.fs", "", None) ]
+        completed [ FormatResult.Formatted("src/Café/Ünicode.fs", "") ]
 
     files document
     |> List.map (statusOf >> fst)

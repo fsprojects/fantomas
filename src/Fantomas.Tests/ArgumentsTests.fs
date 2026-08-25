@@ -99,6 +99,43 @@ let ``paths accumulate rather than replacing each other`` () =
 let ``an empty command line asks for nothing`` () = parsed [] |> shouldBeEmpty
 
 [<Test>]
+let ``the first token names the command when it names one`` () =
+    splitCommand [| "profile"; "src" |]
+    |> shouldEqual (Command.Profile, [| "src" |])
+
+    splitCommand [| "profile" |] |> shouldEqual (Command.Profile, [||])
+
+[<Test>]
+let ``a token that names no command is left where it was`` () =
+    // It is a path, the way it always was, so `fantomas src` still formats src.
+    splitCommand [| "src" |] |> shouldEqual (Command.Format, [| "src" |])
+
+    splitCommand [| "--check"; "src" |]
+    |> shouldEqual (Command.Format, [| "--check"; "src" |])
+
+    splitCommand [||] |> shouldEqual (Command.Format, [||])
+
+[<Test>]
+let ``a command is only the first token`` () =
+    // Otherwise a file called `profile` could never be named.
+    splitCommand [| "src"; "profile" |]
+    |> shouldEqual (Command.Format, [| "src"; "profile" |])
+
+[<Test>]
+let ``what a profile run cannot be combined with`` () =
+    argumentsRefusedWithProfile
+        [
+            Arguments.Check
+            Arguments.Out "build"
+            Arguments.Force
+            Arguments.Json
+            Arguments.Daemon
+            Arguments.Verbosity "d"
+            Arguments.Input [ "src" ]
+        ]
+    |> shouldEqual [ "--check"; "--daemon"; "--force"; "--json"; "--out" ]
+
+[<Test>]
 let ``nothing is refused when --daemon was not asked for`` () =
     // The guard belongs to the rule rather than to every caller of it. It used to sit in `main`,
     // which meant the function answered a question it had not been asked.
@@ -143,11 +180,10 @@ let ``the arguments that say what to format are refused alongside --daemon`` () 
             Arguments.Check
             Arguments.Json
             Arguments.Force
-            Arguments.Profile
             Arguments.Out "out"
             Arguments.Input [ "A.fs" ]
         ]
-    |> shouldEqual [ "--check"; "--force"; "--json"; "--out"; "--profile"; "input paths" ]
+    |> shouldEqual [ "--check"; "--force"; "--json"; "--out"; "input paths" ]
 
 // `--verbosity` sets the level the daemon logs at, so it is the one argument here that does
 // something. `--version` is answered and exited on before this rule is ever asked.

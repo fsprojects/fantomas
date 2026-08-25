@@ -22,20 +22,16 @@ let private reportFormatTo
     (outputPath: OutputPath)
     (settings: Fantomas.Cli.CliSettings)
     (result: FormatCommandResult)
-    : int * CollectedLog * string
+    : int * CollectedLog
     =
     let recorded: RecordedRun = run ()
 
     let code: int =
         reportFormatCommand recorded.Environment settings inputFolder outputPath result
 
-    code, recorded.Log(), recorded.Drawn()
+    code, recorded.Log()
 
-let private reportFormat
-    (settings: Fantomas.Cli.CliSettings)
-    (result: FormatCommandResult)
-    : int * CollectedLog * string
-    =
+let private reportFormat (settings: Fantomas.Cli.CliSettings) (result: FormatCommandResult) : int * CollectedLog =
     reportFormatTo OutputPath.NotKnown settings result
 
 let private reportCheck (result: CheckCommandResult) : int * CollectedLog =
@@ -62,7 +58,7 @@ let ``every way the input paths can fail has its own wording`` () =
 
 [<Test>]
 let ``an unusable input path is reported on error and exits 1`` () =
-    let code, log, _ =
+    let code, log =
         reportFormat defaultSettings (FormatCommandResult.InvalidInput(InputProblem.NotFound "A.fs"))
 
     code |> shouldEqual 1
@@ -71,7 +67,7 @@ let ``an unusable input path is reported on error and exits 1`` () =
 
 [<Test>]
 let ``a failure no single file can be blamed for is reported and exits 1`` () =
-    let code, log, _ =
+    let code, log =
         reportFormat defaultSettings (FormatCommandResult.Failed(Exception "the disk went away"))
 
     code |> shouldEqual 1
@@ -79,15 +75,11 @@ let ``a failure no single file can be blamed for is reported and exits 1`` () =
 
 [<Test>]
 let ``a single formatted file is reported as a sentence naming it`` () =
-    let code, log, drawn =
-        reportFormat
-            defaultSettings
-            (FormatCommandResult.Completed [| FormatResult.Formatted("A.fs", "let a = 1", None) |])
+    let code, log =
+        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Formatted("A.fs", "let a = 1") |])
 
     code |> shouldEqual 0
     log.Information |> shouldEqual [ "+ A.fs was formatted." ]
-    // Nothing is drawn: a summary of one file would say less than the sentence already does.
-    drawn |> shouldEqual ""
 
 [<Test>]
 let ``a file is reported by the path it was given, not by its name alone`` () =
@@ -95,13 +87,13 @@ let ``a file is reported by the path it was given, not by its name alone`` () =
     // back as `sub/A.fs`, whatever spelling the caller used.
     let path: string = "sub/A.fs"
 
-    let formatted, log, _ =
-        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Formatted(path, "", None) |])
+    let formatted, log =
+        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Formatted(path, "") |])
 
-    let _, unchangedLog, _ =
-        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Unchanged(path, None) |])
+    let _, unchangedLog =
+        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Unchanged path |])
 
-    let _, ignoredLog, _ =
+    let _, ignoredLog =
         reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.IgnoredFile path |])
 
     formatted |> shouldEqual 0
@@ -113,7 +105,7 @@ let ``a file is reported by the path it was given, not by its name alone`` () =
 
 [<Test>]
 let ``a file that failed is reported by the path it was given`` () =
-    let _, log, _ =
+    let _, log =
         reportFormat
             defaultSettings
             (FormatCommandResult.Completed [| FormatResult.Error("sub/A.fs", Exception "boom") |])
@@ -146,28 +138,24 @@ let ``a check names the files it found by the path it was given`` () =
 let ``the files a run ignored are named at detailed verbosity`` () =
     // A single result is named outright; among several, only what changed is listed, so this
     // debug line is the only place a folder run says which files it skipped.
-    let _, log, _ =
+    let _, log =
         reportFormat
             defaultSettings
-            (FormatCommandResult.Completed
-                [|
-                    FormatResult.Formatted("A.fs", "", None)
-                    FormatResult.IgnoredFile "sub/B.fs"
-                |])
+            (FormatCommandResult.Completed [| FormatResult.Formatted("A.fs", ""); FormatResult.IgnoredFile "sub/B.fs" |])
 
     log.Debug |> shouldEqual [ "'sub/B.fs' was ignored" ]
 
 [<Test>]
 let ``a single unchanged file is reported as unchanged`` () =
-    let code, log, _ =
-        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Unchanged("A.fs", None) |])
+    let code, log =
+        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Unchanged "A.fs" |])
 
     code |> shouldEqual 0
     log.Information |> shouldEqual [ "= A.fs was unchanged." ]
 
 [<Test>]
 let ``a single ignored file is reported as ignored`` () =
-    let code, log, _ =
+    let code, log =
         reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.IgnoredFile "A.fs" |])
 
     code |> shouldEqual 0
@@ -175,7 +163,7 @@ let ``a single ignored file is reported as ignored`` () =
 
 [<Test>]
 let ``a single file that failed is reported on error and exits 1`` () =
-    let code, log, _ =
+    let code, log =
         reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Error("A.fs", Exception "boom") |])
 
     code |> shouldEqual 1
@@ -183,7 +171,7 @@ let ``a single file that failed is reported on error and exits 1`` () =
 
 [<Test>]
 let ``code that came out invalid is reported as a failure and exits 1`` () =
-    let code, log, _ =
+    let code, log =
         reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.InvalidCode("A.fs", "let a =") |])
 
     code |> shouldEqual 1
@@ -198,7 +186,7 @@ let ``a detailed run reports the whole exception rather than a line`` () =
             Verbosity = VerbosityLevel.Detailed
         }
 
-    let code, log, _ =
+    let code, log =
         reportFormat settings (FormatCommandResult.Completed [| FormatResult.Error("A.fs", Exception "boom") |])
 
     code |> shouldEqual 1
@@ -206,13 +194,13 @@ let ``a detailed run reports the whole exception rather than a line`` () =
 
 [<Test>]
 let ``several files are reported as what changed and a line of counts`` () =
-    let code, log, drawn =
+    let code, log =
         reportFormat
             defaultSettings
             (FormatCommandResult.Completed
                 [|
-                    FormatResult.Formatted("A.fs", "", None)
-                    FormatResult.Unchanged("B.fs", None)
+                    FormatResult.Formatted("A.fs", "")
+                    FormatResult.Unchanged "B.fs"
                     FormatResult.IgnoredFile "C.fs"
                 |])
 
@@ -223,14 +211,11 @@ let ``several files are reported as what changed and a line of counts`` () =
     log.Information
     |> shouldEqual [ "+ A.fs was formatted."; ""; "1 formatted, 1 unchanged, 1 ignored." ]
 
-    // Nothing is drawn any more: the summary is written like everything else.
-    drawn |> shouldEqual ""
-
 [<Test>]
 let ``a run that found no F# files says so rather than exiting quietly`` () =
     // Silence and exit 0 is what a bad glob or an over broad ignore file used to look like, which
     // reads as a green build forever.
-    let code, log, _ = reportFormat defaultSettings (FormatCommandResult.Completed [||])
+    let code, log = reportFormat defaultSettings (FormatCommandResult.Completed [||])
 
     code |> shouldEqual 0
     log.Information |> shouldBeEmpty
@@ -238,7 +223,7 @@ let ``a run that found no F# files says so rather than exiting quietly`` () =
 
 [<Test>]
 let ``a run that ignored every file it found says so`` () =
-    let code, log, _ =
+    let code, log =
         reportFormat
             defaultSettings
             (FormatCommandResult.Completed [| FormatResult.IgnoredFile "A.fs"; FormatResult.IgnoredFile "B.fs" |])
@@ -253,15 +238,15 @@ let ``a run that ignored every file it found says so`` () =
 let ``writing somewhere else counts what was written rather than what changed`` () =
     // Under --out nothing is really unchanged: every input produces an output file, so the count
     // that means something is how many were written.
-    let _, log, _ =
+    let _, log =
         reportFormatTo
             (OutputPath.IO "build")
             defaultSettings
             (FormatCommandResult.Completed
                 [|
-                    FormatResult.Formatted("A.fs", "", None)
-                    FormatResult.Unchanged("B.fs", None)
-                    FormatResult.Unchanged("C.fs", None)
+                    FormatResult.Formatted("A.fs", "")
+                    FormatResult.Unchanged "B.fs"
+                    FormatResult.Unchanged "C.fs"
                 |])
 
     log.Information
@@ -274,49 +259,17 @@ let ``a summary leaves out the states that did not happen`` () =
 
 [<Test>]
 let ``one failure among several files still exits 1`` () =
-    let code, log, _ =
+    let code, log =
         reportFormat
             defaultSettings
             (FormatCommandResult.Completed
                 [|
-                    FormatResult.Formatted("A.fs", "", None)
+                    FormatResult.Formatted("A.fs", "")
                     FormatResult.Error("B.fs", Exception "boom")
                 |])
 
     code |> shouldEqual 1
     log.Error |> shouldEqual [ "x B.fs could not be formatted." ]
-
-[<Test>]
-let ``profiling reports the line count and the time taken for a single file`` () =
-    let settings: Fantomas.Cli.CliSettings = { defaultSettings with Profile = true }
-
-    let profile: ProfileInfo option =
-        Some
-            {
-                LineCount = 12
-                TimeTaken = TimeSpan.FromSeconds 1.0
-            }
-
-    let _, log, _ =
-        reportFormat settings (FormatCommandResult.Completed [| FormatResult.Formatted("A.fs", "", profile) |])
-
-    log.Information
-    |> List.filter (fun (line: string) -> line.Contains "Line count")
-    |> shouldEqual [ "A.fs Line count: 12 Time taken 00:00:01" ]
-
-[<Test>]
-let ``nothing is profiled unless profiling was asked for`` () =
-    let profile: ProfileInfo option =
-        Some
-            {
-                LineCount = 12
-                TimeTaken = TimeSpan.FromSeconds 1.0
-            }
-
-    let _, log, _ =
-        reportFormat defaultSettings (FormatCommandResult.Completed [| FormatResult.Formatted("A.fs", "", profile) |])
-
-    log.Information |> shouldEqual [ "+ A.fs was formatted." ]
 
 [<Test>]
 let ``a check of an unusable input path exits 1`` () =

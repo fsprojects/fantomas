@@ -10,7 +10,6 @@ open Fantomas.Logging
 /// be read as a path through the module rather than as the type's case.
 type Arguments =
     | Force
-    | Profile
     | Out of string
     | Check
     | Json
@@ -19,6 +18,17 @@ type Arguments =
     | Help
     | Verbosity of string
     | Input of string list
+
+/// What the run is being asked to do. The first token names it when it names one, and a run that
+/// names none is a format run, which is what `fantomas .` has always been.
+[<RequireQualifiedAccess; Struct>]
+type Command =
+    | Format
+    | Profile
+
+/// The command the first token names, and the arguments left after it. A token that names no
+/// command is left in place, so it is read as a path the way it always was.
+val splitCommand: argv: string array -> Command * string array
 
 /// A reason the command line could not be read. Every one of these names the flag it is about, so
 /// the message can quote back what was typed rather than describe it.
@@ -37,6 +47,8 @@ type ArgumentProblem =
     | UnreadableValue of flag: string * value: string * accepted: string list
     /// Arguments that mean nothing beside `--daemon`, which used to be accepted and then ignored.
     | RefusedWithDaemon of refused: string list
+    /// Arguments that mean nothing beside the named command.
+    | RefusedWithCommand of command: string * refused: string list
 
 /// Read the command line.
 ///
@@ -70,6 +82,14 @@ type OutputPath =
 /// all required to exist before any of them is classified, so one path that is not there is
 /// reported rather than the rest being worked on.
 val classifyInputPath: fs: IFileSystem -> maybeInput: string list option -> InputPath
+
+/// The arguments given alongside the `profile` command that mean nothing there.
+///
+/// A profile writes nothing and reports its own way, so nothing that says where to put output, or
+/// what shape to report in, has anything to apply to. `--json` is refused rather than ignored
+/// because it is not built for this command yet, and an argument that is accepted and then dropped
+/// is the trap `--daemon` used to be.
+val argumentsRefusedWithProfile: given: Arguments list -> string list
 
 /// Read a `--verbosity` value that was given. `None` means it was not one Fantomas knows.
 ///

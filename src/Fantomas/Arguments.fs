@@ -7,7 +7,6 @@ open Fantomas.Paths
 
 type Arguments =
     | Force
-    | Profile
     | Out of string
     | Check
     | Json
@@ -17,6 +16,30 @@ type Arguments =
     | Verbosity of string
     | Input of string list
 
+[<RequireQualifiedAccess; Struct>]
+type Command =
+    | Format
+    | Profile
+
+// The one place a command is spelled. A folder called `profile` is shadowed by this, which is the
+// price every tool with subcommands pays and which `git`, `docker` and `dotnet` all pay too.
+let commands: (string * Command) list = [ "profile", Command.Profile ]
+
+let isCommandName (name: string) : bool =
+    commands |> List.exists (fun (command: string, _) -> command = name)
+
+let splitCommand (argv: string array) : Command * string array =
+    // One lookup falling through to another, which is what the repository's
+    // `fsharp_experimental_keep_indent_in_branch` is for: the second match reads at the same
+    // indentation as the first rather than a level in.
+    match Array.tryHead argv with
+    | None -> Command.Format, argv
+    | Some first ->
+
+    match List.tryFind (fun (name: string, _) -> name = first) commands with
+    | None -> Command.Format, argv
+    | Some(_, command) -> command, Array.skip 1 argv
+
 [<RequireQualifiedAccess>]
 type ArgumentProblem =
     | UnknownFlag of flag: string * suggestion: string option
@@ -24,6 +47,7 @@ type ArgumentProblem =
     | UnexpectedValue of flag: string * value: string
     | UnreadableValue of flag: string * value: string * accepted: string list
     | RefusedWithDaemon of refused: string list
+    | RefusedWithCommand of command: string * refused: string list
 
 // What a flag does with the token after it. A switch is the flag on its own; a valued flag needs
 // one and builds the argument from it.
@@ -54,10 +78,6 @@ let flags: Flag list =
         {
             Spellings = [ "--force" ]
             Kind = FlagKind.Switch Arguments.Force
-        }
-        {
-            Spellings = [ "--profile" ]
-            Kind = FlagKind.Switch Arguments.Profile
         }
         {
             Spellings = [ "--json" ]
@@ -101,6 +121,15 @@ let flagSuggestion (name: string) : string option =
     if not (isLong name) then
         None
     else
+
+    // A flag that is really a command, which is what `--profile` became. Worth answering outright
+    // rather than through an edit distance: it is the spelling everyone already has in their
+    // scripts, and the nearest actual flag to it is nothing like it.
+    let trimmed: string = name.TrimStart('-')
+
+    if isCommandName trimmed then
+        Some trimmed
+    else
         Suggestion.nearest MaximumFlagTypoDistance (List.filter isLong spellings) name
 
 // A lone dash is a path, not a flag, and `--` is handled before this is asked.
@@ -120,7 +149,6 @@ let splitAttachedValue (token: string) : string * string option =
 let describeArgument (argument: Arguments) : string =
     match argument with
     | Arguments.Force -> "--force"
-    | Arguments.Profile -> "--profile"
     | Arguments.Out _ -> "--out"
     | Arguments.Check -> "--check"
     | Arguments.Json -> "--json"
@@ -195,7 +223,12 @@ let describeArgumentProblem (problem: ArgumentProblem) : string =
     match problem with
     | ArgumentProblem.UnknownFlag(flag, None) -> $"'%s{flag}' is not a Fantomas flag."
     | ArgumentProblem.UnknownFlag(flag, Some suggestion) ->
-        $"'%s{flag}' is not a Fantomas flag. Did you mean '%s{suggestion}'?"
+        if isCommandName suggestion then
+            let invocation: string = Invocation.name ()
+
+            $"'%s{flag}' is not a Fantomas flag. '%s{suggestion}' is a command: try '%s{invocation} %s{suggestion} <paths>'."
+        else
+            $"'%s{flag}' is not a Fantomas flag. Did you mean '%s{suggestion}'?"
     | ArgumentProblem.UnexpectedValue(flag, value) -> $"'%s{flag}' takes no value, but was given '%s{value}'."
     | ArgumentProblem.MissingValue(flag, None) -> $"'%s{flag}' must be followed by a value."
     | ArgumentProblem.MissingValue(flag, Some found) ->
@@ -206,6 +239,10 @@ let describeArgumentProblem (problem: ArgumentProblem) : string =
         let named: string = String.concat ", " refused
 
         $"--daemon cannot be combined with %s{named}. A daemon is told what to format over JSON-RPC on standard in and answers on standard out, so there is nothing else for it to do and no stream left to report on."
+    | ArgumentProblem.RefusedWithCommand(command, refused) ->
+        let named: string = String.concat ", " refused
+
+        $"'%s{command}' cannot be combined with %s{named}."
 
 [<RequireQualifiedAccess>]
 type InputPath =
@@ -290,7 +327,6 @@ let argumentsRefusedWithDaemon (given: Arguments list) : string list =
         | Arguments.Help
         | Arguments.Verbosity _ -> None
         | Arguments.Force
-        | Arguments.Profile
         | Arguments.Out _
         | Arguments.Check
         | Arguments.Json
@@ -304,6 +340,21 @@ let argumentsRefusedWithDaemon (given: Arguments list) : string list =
         // Distinct because `--out a --out b` is two results and one complaint, and sorted so that
         // the order the flags were typed in does not change the message.
         given |> List.choose refused |> List.distinct |> List.sort
+
+let argumentsRefusedWithProfile (given: Arguments list) : string list =
+    let refused (argument: Arguments) : string option =
+        match argument with
+        | Arguments.Version
+        | Arguments.Help
+        | Arguments.Verbosity _
+        | Arguments.Input _ -> None
+        | Arguments.Force
+        | Arguments.Out _
+        | Arguments.Check
+        | Arguments.Json
+        | Arguments.Daemon -> Some(describeArgument argument)
+
+    given |> List.choose refused |> List.distinct |> List.sort
 
 let parseVerbosity (value: string) : VerbosityLevel option =
     match value.ToLowerInvariant() with

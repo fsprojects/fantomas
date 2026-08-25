@@ -41,7 +41,6 @@ let flags: (string * string * string * string list) list =
              "Write the output even when it is not valid F# code."
              "For debugging purposes only."
          ])
-        ("", "--profile", "", [ "Print the line count and the time taken for every file." ])
         ("",
          "--json",
          "",
@@ -66,6 +65,17 @@ let flags: (string * string * string * string list) list =
          ])
         ("", "--version", "", [ "Print the version and exit" ])
         ("-h", "--help", "", [ "Display this menu and exit" ])
+    ]
+
+// The commands a run can name, which is the first token when it names one.
+let commands: (string * string list) list =
+    [
+        ("profile <paths>",
+         [
+             "Report how long each file takes to format, slowest first."
+             "Formats one file at a time so the timings can be compared,"
+             "and writes nothing."
+         ])
     ]
 
 let examples: (string * string) list =
@@ -150,13 +160,19 @@ let render (theme: Theme) : string list =
             " ",
             heading theme "fantomas",
             " ",
-            flagName theme "[...flags] [...paths]"
+            flagName theme "[command] [...flags] [...paths]"
         )
     )
 
     blank ()
     write (heading theme "Examples:")
     List.iter (writeExample write theme) examples
+    blank ()
+    write (heading theme "Commands:")
+
+    for name, description in commands do
+        writeFlag write theme ("", name, "", description)
+
     blank ()
     write (heading theme "Flags:")
     List.iter (writeFlag write theme) flags

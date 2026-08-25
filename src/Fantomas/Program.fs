@@ -11,9 +11,9 @@ open Fantomas.Cli
 open Fantomas.FormatCommand
 open Fantomas.Report
 open Fantomas.CheckCommand
+open Fantomas.ProfileCommand
 open Fantomas.CommandResult
 open Serilog
-open Spectre.Console
 
 /// Parse the command line and run whichever command it names: printing the version, serving the
 /// daemon, checking whether files need formatting, or formatting them. Returns the exit code the
@@ -32,8 +32,13 @@ let main argv =
         eprintfn "%s" usagePointer
         exit 1
 
+    // The command is the first token when it names one, and what is left is the ordinary flags and
+    // paths. Splitting the two apart keeps the parser about how a command line is written rather
+    // than about what any one command does with it.
+    let command, rest = splitCommand argv
+
     let given: Arguments list =
-        match parse argv with
+        match parse rest with
         | Ok given -> given
         | Error problem -> refuse problem
 
@@ -66,7 +71,6 @@ let main argv =
     let inputPath: InputPath = classifyInputPath fileSystem (tryInput given)
 
     let force: bool = contains Arguments.Force
-    let profile: bool = contains Arguments.Profile
 
     let verbosityLevel: VerbosityLevel =
         // Not given at all is the default. Given and unreadable is a mistake worth stopping for,
@@ -86,6 +90,10 @@ let main argv =
     match argumentsRefusedWithDaemon given with
     | [] -> ()
     | refused -> refuse (ArgumentProblem.RefusedWithDaemon refused)
+
+    match command, argumentsRefusedWithProfile given with
+    | Command.Profile, (_ :: _ as refused) -> refuse (ArgumentProblem.RefusedWithCommand("profile", refused))
+    | _ -> ()
 
     // `--json` puts one document on standard out, so the logger moves off it entirely, the way it
     // does in daemon mode, where standard out carries the JSON-RPC protocol.
@@ -134,19 +142,15 @@ let main argv =
                             (IgnoreFile.loadIgnoreList fileSystem)
                     ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter log)
                     Log = log
-                    Console = AnsiConsole.Console
                     OutputTheme = Theme.forOutput ()
                     ErrorTheme = Theme.forError ()
                 }
 
-            let settings: CliSettings =
-                {
-                    Force = force
-                    Profile = profile
-                    Verbosity = verbosity
-                }
+            let settings: CliSettings = { Force = force; Verbosity = verbosity }
 
-            if check then
+            if command = Command.Profile then
+                reportProfileCommand environment settings inputPath (runProfileCommand environment inputPath)
+            elif check then
                 let result: CheckCommandResult = runCheckCommand environment inputPath
 
                 if json then

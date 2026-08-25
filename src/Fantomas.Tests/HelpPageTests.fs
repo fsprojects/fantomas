@@ -27,7 +27,6 @@ let ``the page lists every flag`` () =
             "--check"
             "--out"
             "--force"
-            "--profile"
             "--json"
             "--daemon"
             "--verbosity"
@@ -35,6 +34,14 @@ let ``the page lists every flag`` () =
             "--help"
         ] do
         plainPage |> shouldContainText flag
+
+[<Test>]
+let ``the page lists the commands a run can name`` () =
+    plainPage |> shouldContainText "profile <paths>"
+
+[<Test>]
+let ``the page does not offer the flag the profile command replaced`` () =
+    plainPage |> shouldNotContainText "--profile"
 
 [<Test>]
 let ``the page lists the short forms of the flags that have one`` () =

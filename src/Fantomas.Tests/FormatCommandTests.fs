@@ -79,7 +79,7 @@ let ``a file that is already formatted is reported as unchanged`` () =
     write fs file Formatted
 
     match format fs (InputPath.File file) OutputPath.NotKnown |> results with
-    | [| FormatResult.Unchanged(f, _) |] -> f |> shouldEqual file
+    | [| FormatResult.Unchanged f |] -> f |> shouldEqual file
     | other -> failwith $"Expected one unchanged file, got %A{other}"
 
     read fs file |> shouldEqual Formatted
@@ -343,47 +343,6 @@ let ``with force, the output being invalid is said out loud`` () =
     let _, log = formatLogging settings fs (InputPath.File input) (OutputPath.IO output)
 
     log.Information |> shouldContain $"%s{input} was not valid after formatting."
-
-[<Test>]
-let ``profiling collects a line count and a time for the file it formatted`` () =
-    let fs: IFileSystem = MockFileSystem()
-    let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
-    write fs file "let  a =   1\nlet  b =   2\n"
-
-    let settings: CliSettings = { defaultSettings with Profile = true }
-
-    match formatWith settings None fs (InputPath.File file) OutputPath.NotKnown |> results with
-    | [| FormatResult.Formatted(_, _, Some profile) |] -> profile.LineCount |> shouldBeGreaterThan 0
-    | other -> failwith $"Expected a profiled result, got %A{other}"
-
-[<Test>]
-let ``the line count does not depend on which line endings the file uses`` () =
-    // It used to count occurrences of the platform's newline, so a file written with line feeds
-    // counted zero lines on Windows and a file written with carriage returns counted zero on
-    // anything else.
-    let lineCountOf (content: string) : int =
-        let fs: IFileSystem = MockFileSystem()
-        let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
-        write fs file content
-
-        let settings: CliSettings = { defaultSettings with Profile = true }
-
-        match formatWith settings None fs (InputPath.File file) OutputPath.NotKnown |> results with
-        | [| FormatResult.Formatted(_, _, Some profile) |] -> profile.LineCount
-        | other -> failwith $"Expected a profiled result, got %A{other}"
-
-    lineCountOf "let  a =   1\nlet  b =   2\n" |> shouldEqual 2
-    lineCountOf "let  a =   1\r\nlet  b =   2\r\n" |> shouldEqual 2
-
-[<Test>]
-let ``nothing is profiled unless profiling was asked for`` () =
-    let fs: IFileSystem = MockFileSystem()
-    let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
-    write fs file NeedsFormatting
-
-    match format fs (InputPath.File file) OutputPath.NotKnown |> results with
-    | [| FormatResult.Formatted(_, _, None) |] -> ()
-    | other -> failwith $"Expected no profile, got %A{other}"
 
 [<Test>]
 let ``no input path at all is refused`` () =

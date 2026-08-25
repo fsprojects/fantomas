@@ -21,7 +21,7 @@ let ``both spellings of the flag write the page to standard out`` (flag: string)
 
     exitCode |> should equal 0
     error |> should equal ""
-    Assert.That(output, Does.Contain "Usage: fantomas [...flags] [...paths]")
+    Assert.That(output, Does.Contain "Usage: fantomas [command] [...flags] [...paths]")
 
 // Standard out is redirected here, so the page has to come back as plain text.
 [<Test>]
@@ -40,7 +40,7 @@ let ``help page is not coloured on a build agent`` (variable: string) =
     let { Output = output } =
         runFantomasToolWithEnvironment [ variable, "true"; "TERM", "xterm-256color" ] [ "--help" ]
 
-    Assert.That(output, Does.Contain "Usage: fantomas [...flags] [...paths]")
+    Assert.That(output, Does.Contain "Usage: fantomas [command] [...flags] [...paths]")
     output.Contains "\u001b[" |> should equal false
 
 [<Test>]

@@ -16,7 +16,7 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
                         env.FileSystem.File.ReadAllTextAsync filename |> Async.AwaitTask
 
                     let formatParams: FormatParams =
-                        FormatParams.Create(env.ReadConfiguration filename, true, false, filename)
+                        FormatParams.Create(env.ReadConfiguration filename, true, filename)
 
                     return! formatContentAsync formatParams content
                 }
@@ -28,7 +28,7 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
         // reader to run a formatter that had already failed on it.
         let getChangedFile: FormatResult -> string option =
             function
-            | FormatResult.Formatted(f, _, _) -> Some f
+            | FormatResult.Formatted(f, _) -> Some f
             | FormatResult.Unchanged _
             | FormatResult.IgnoredFile _
             | FormatResult.Error _
@@ -50,7 +50,7 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
         // names every file the run looked at needs them, and only this knows which they were.
         let getUnchangedFile: FormatResult -> string option =
             function
-            | FormatResult.Unchanged(f, _) -> Some f
+            | FormatResult.Unchanged f -> Some f
             | FormatResult.IgnoredFile _
             | FormatResult.Formatted _
             | FormatResult.Error _

@@ -17,18 +17,13 @@ type FormatParams =
     {
         Config: FormatConfig
         CompareWithoutLineEndings: bool
-        Profile: bool
         File: string
     }
 
-    static member Create
-        (config: FormatConfig, compareWithoutLineEndings: bool, profile: bool, file: string)
-        : FormatParams
-        =
+    static member Create(config: FormatConfig, compareWithoutLineEndings: bool, file: string) : FormatParams =
         {
             Config = config
             CompareWithoutLineEndings = compareWithoutLineEndings
-            Profile = profile
             File = file
         }
 
@@ -41,35 +36,8 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
         try
             let isSignatureFile: bool = Path.GetExtension(formatParams.File) = ".fsi"
 
-            let! { Code = formattedContent }, profileInfo =
-                if formatParams.Profile then
-                    async {
-                        let sw: Diagnostics.Stopwatch = Diagnostics.Stopwatch.StartNew()
-
-                        let! res =
-                            CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, formatParams.Config)
-
-                        sw.Stop()
-
-                        // Counting line feeds rather than the platform's newline: a file written
-                        // with the other platform's line endings has just as many lines.
-                        let count: int = originalContent.Length - originalContent.Replace("\n", "").Length
-
-                        let profileInfo: ProfileInfo =
-                            {
-                                LineCount = count
-                                TimeTaken = sw.Elapsed
-                            }
-
-                        return res, Some profileInfo
-                    }
-                else
-                    async {
-                        let! res =
-                            CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, formatParams.Config)
-
-                        return res, None
-                    }
+            let! { Code = formattedContent } =
+                CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, formatParams.Config)
 
             let contentChanged: bool =
                 if formatParams.CompareWithoutLineEndings then
@@ -86,14 +54,9 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
                 if not isValid then
                     return FormatResult.InvalidCode(filename = formatParams.File, formattedContent = formattedContent)
                 else
-                    return
-                        FormatResult.Formatted(
-                            filename = formatParams.File,
-                            formattedContent = formattedContent,
-                            profileInfo = profileInfo
-                        )
+                    return FormatResult.Formatted(filename = formatParams.File, formattedContent = formattedContent)
             else
-                return FormatResult.Unchanged(filename = formatParams.File, profileInfo = profileInfo)
+                return FormatResult.Unchanged(filename = formatParams.File)
         with ex ->
             return FormatResult.Error(formatParams.File, ex)
     }
@@ -142,17 +105,16 @@ let formatSource
     : Async<FormatResult>
     =
     async {
-        let formatParams: FormatParams =
-            FormatParams.Create(config, false, settings.Profile, file)
+        let formatParams: FormatParams = FormatParams.Create(config, false, file)
 
         let! (formatted: FormatResult) = formatContentAsync formatParams source.Content
 
         match formatted with
         | FormatResult.InvalidCode(f, formattedContent) when settings.Force ->
             env.Log.Information $"%s{f} was not valid after formatting."
-            return FormatResult.Formatted(file, formattedContent, None)
+            return FormatResult.Formatted(file, formattedContent)
         | FormatResult.InvalidCode(f, _) -> return FormatResult.Error(f, invalidResultException f)
-        | FormatResult.Unchanged(f, _) as r ->
+        | FormatResult.Unchanged f as r ->
             env.Log.Debug $"'%s{f}' was unchanged"
             return r
         | r -> return r
@@ -182,7 +144,7 @@ let processFile
 
             let toWrite: string option =
                 match result with
-                | FormatResult.Formatted(_, formattedContent, _) -> Some formattedContent
+                | FormatResult.Formatted(_, formattedContent) -> Some formattedContent
                 // Writing somewhere else has to carry an unchanged file across to it. Writing back
                 // over the input has nothing to do.
                 | FormatResult.Unchanged _ when not inPlace -> Some source.Content
