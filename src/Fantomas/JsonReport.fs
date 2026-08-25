@@ -7,6 +7,8 @@ open System.Text.Json
 open Fantomas.Core
 open Fantomas.FCS.Parse
 open Fantomas.CommandResult
+open Fantomas.DoctorCommand
+open Fantomas.EditorConfig
 open Fantomas.Report
 
 type Range =
@@ -306,7 +308,7 @@ let writeReport (json: Utf8JsonWriter) (report: RunReport) : unit =
     json.WriteEndArray()
     json.WriteEndObject()
 
-let render (report: RunReport) : string =
+let renderWith (write: Utf8JsonWriter -> unit) : string =
     // The default encoder escapes anything that could be dangerous inside an HTML document. This
     // goes to a pipe, so a path with an accent in it stays readable rather than becoming é.
     let options: JsonWriterOptions =
@@ -314,9 +316,12 @@ let render (report: RunReport) : string =
 
     use stream: MemoryStream = new MemoryStream()
     use json: Utf8JsonWriter = new Utf8JsonWriter(stream, options)
-    writeReport json report
+    write json
     json.Flush()
     Encoding.UTF8.GetString(stream.ToArray())
+
+let render (report: RunReport) : string =
+    renderWith (fun (json: Utf8JsonWriter) -> writeReport json report)
 
 let reportFormatCommand (workingDirectory: string) (writer: TextWriter) (result: FormatCommandResult) : int =
     let report: RunReport = formatReport workingDirectory result
@@ -335,4 +340,248 @@ let reportProfileCommand
     : int
     =
     writer.WriteLine(render (profileReport workingDirectory result))
+    result.ExitCode
+
+// The doctor document is a different shape from the other three and deliberately so. They report a
+// list of files each with one outcome; this reports one file with an outcome per step, and folding
+// it into `files` would put six unrelated answers under one path and lose which was which.
+//
+// A step the walk never reached is `null` rather than absent, for the reason every other key here
+// is written whether or not it has anything in it: a key that is sometimes missing is a trap in the
+// languages most likely to be reading this.
+
+let writeDoctorFile (json: Utf8JsonWriter) (step: FileStep) : unit =
+    json.WriteStartObject "file"
+
+    match step with
+    | FileStep.NotFound path ->
+        json.WriteString("path", path)
+        json.WriteString("status", "not-found")
+    | FileStep.NotFSharp path ->
+        json.WriteString("path", path)
+        json.WriteString("status", "not-fsharp")
+    | FileStep.Candidate file ->
+        let kind: string =
+            match file.Kind with
+            | FileKind.Implementation -> "implementation"
+            | FileKind.Signature -> "signature"
+            | FileKind.Script -> "script"
+
+        json.WriteString("path", file.Path)
+        json.WriteString("status", "candidate")
+        json.WriteString("kind", kind)
+        json.WriteNumber("lineCount", file.LineCount)
+
+        match file.UnreachableUnder with
+        | None -> json.WriteNull "unreachableUnder"
+        | Some folder -> json.WriteString("unreachableUnder", folder)
+
+    json.WriteEndObject()
+
+let writeIgnoreMatch (json: Utf8JsonWriter) (matched: IgnoreMatch) : unit =
+    json.WriteStartObject()
+    json.WriteNumber("line", matched.LineNumber)
+    json.WriteString("pattern", matched.Pattern)
+    json.WriteBoolean("negated", matched.Negated)
+    json.WriteEndObject()
+
+let writeDoctorIgnore (json: Utf8JsonWriter) (step: IgnoreStep option) : unit =
+    match step with
+    | None -> json.WriteNull "ignore"
+    | Some step ->
+        json.WriteStartObject "ignore"
+
+        match step with
+        | IgnoreStep.NoIgnoreFile ->
+            json.WriteString("status", "no-ignore-file")
+            json.WriteNull "ignoreFile"
+            json.WriteStartArray "matches"
+            json.WriteEndArray()
+        | IgnoreStep.Governed(ignoreFile, isIgnored, matches) ->
+            json.WriteString("status", (if isIgnored then "ignored" else "not-ignored"))
+            json.WriteString("ignoreFile", ignoreFile)
+            json.WriteStartArray "matches"
+            List.iter (writeIgnoreMatch json) matches
+            json.WriteEndArray()
+
+        json.WriteEndObject()
+
+let writeEditorConfigProblem (json: Utf8JsonWriter) (problem: EditorConfigProblem) : unit =
+    json.WriteStartObject()
+
+    match problem with
+    | EditorConfigProblem.UnknownSetting setting ->
+        json.WriteString("setting", setting)
+        json.WriteString("status", "unknown-setting")
+    | EditorConfigProblem.UnrecognizedValue(setting, value) ->
+        json.WriteString("setting", setting)
+        json.WriteString("status", "unrecognized-value")
+        json.WriteString("value", value)
+
+    json.WriteString("message", EditorConfigReport.describeProblem problem)
+    json.WriteEndObject()
+
+// Every setting, not only the ones an `.editorconfig` set. The text report shows the short list
+// because a screen is finite; a reader that has to decide what a file will be formatted with wants
+// the whole answer, and `setBy` is what tells the two apart.
+let writeDoctorConfiguration (json: Utf8JsonWriter) (resolved: ResolvedConfig option) : unit =
+    match resolved with
+    | None -> json.WriteNull "configuration"
+    | Some resolved ->
+        json.WriteStartObject "configuration"
+
+        json.WriteStartArray "editorConfigFiles"
+
+        for file in resolved.EditorConfigFiles do
+            json.WriteStringValue file
+
+        json.WriteEndArray()
+
+        json.WriteStartArray "problems"
+        List.iter (writeEditorConfigProblem json) resolved.Problems
+        json.WriteEndArray()
+
+        json.WriteStartArray "settings"
+
+        for setting in resolved.Settings do
+            json.WriteStartObject()
+            json.WriteString("setting", setting.Setting)
+            json.WriteString("value", setting.Value)
+
+            match setting.SetBy with
+            | None -> json.WriteNull "setBy"
+            | Some file -> json.WriteString("setBy", file)
+
+            json.WriteEndObject()
+
+        json.WriteEndArray()
+        json.WriteEndObject()
+
+let writeDoctorFormat (json: Utf8JsonWriter) (path: string) (step: FormatStep option) : unit =
+    match step with
+    | None -> json.WriteNull "format"
+    | Some step ->
+        json.WriteStartObject "format"
+
+        match step with
+        | FormatStep.Produced(_, FormatChange.Nothing) -> json.WriteString("status", "unchanged")
+        // No line of the file changes and the file is still rewritten. `status` is what tells this
+        // apart from a file that needs nothing, which is why there is no count here to read instead.
+        | FormatStep.Produced(_, FormatChange.LineEndingsOnly) -> json.WriteString("status", "line-endings")
+        | FormatStep.Produced(_, FormatChange.Reformatted(firstChangedLine, lineCountAfter)) ->
+            json.WriteString("status", "changed")
+            json.WriteNumber("firstChangedLine", firstChangedLine)
+            json.WriteNumber("lineCountAfter", lineCountAfter)
+        | FormatStep.Failed error ->
+            json.WriteString("status", "failed")
+
+            match describeFileFailure path error with
+            | FileOutcome.Failed(message, diagnostics) ->
+                json.WriteString("message", message)
+                json.WriteStartArray "diagnostics"
+                List.iter (writeDiagnostic json) diagnostics
+                json.WriteEndArray()
+            // `describeFileFailure` answers with nothing else. Named rather than swept up by a
+            // wildcard, so that a case added to it has to be placed here deliberately.
+            | FileOutcome.Formatted
+            | FileOutcome.Unchanged
+            | FileOutcome.NeedsFormatting
+            | FileOutcome.Timed _ -> ()
+
+        json.WriteEndObject()
+
+// The diagnostics of invalid output are positions in output that was thrown away rather than in the
+// file at `path`, exactly as they are for a format run, and the same warning applies: a caller
+// reading them as offsets into the file on disk will be reading the wrong lines.
+let writeDoctorValidity (json: Utf8JsonWriter) (step: ValidityStep option) : unit =
+    match step with
+    | None -> json.WriteNull "validity"
+    | Some step ->
+        json.WriteStartObject "validity"
+
+        match step with
+        | ValidityStep.Valid ->
+            json.WriteString("status", "valid")
+            json.WriteStartArray "diagnostics"
+            json.WriteEndArray()
+        | ValidityStep.Invalid diagnostics ->
+            json.WriteString("status", "invalid")
+            json.WriteStartArray "diagnostics"
+            List.iter (writeDiagnostic json) (List.map describeDiagnostic diagnostics)
+            json.WriteEndArray()
+
+        json.WriteEndObject()
+
+let writeDoctorIdempotency (json: Utf8JsonWriter) (step: IdempotencyStep option) : unit =
+    match step with
+    | None -> json.WriteNull "idempotency"
+    | Some step ->
+        json.WriteStartObject "idempotency"
+
+        match step with
+        | IdempotencyStep.Idempotent -> json.WriteString("status", "idempotent")
+        | IdempotencyStep.Failed error ->
+            json.WriteString("status", "failed")
+            json.WriteString("message", error.Message)
+        | IdempotencyStep.NotIdempotent(line, afterFirstPass, afterSecondPass) ->
+            json.WriteString("status", "not-idempotent")
+            json.WriteNumber("line", line)
+            json.WriteString("afterFirstPass", afterFirstPass)
+            json.WriteString("afterSecondPass", afterSecondPass)
+
+        json.WriteEndObject()
+
+let writeDoctorDocument (json: Utf8JsonWriter) (workingDirectory: string) (result: DoctorCommandResult) : unit =
+    json.WriteStartObject()
+    json.WriteString("command", "doctor")
+    json.WriteString("workingDirectory", workingDirectory)
+    json.WriteNumber("exitCode", result.ExitCode)
+
+    let report: DoctorReport option =
+        match result with
+        | DoctorCommandResult.Completed report -> Some report
+        | DoctorCommandResult.NotOneFile _
+        | DoctorCommandResult.Failed _ -> None
+
+    // `error` is what stopped the run before it reached the file, which for this command is a path
+    // that is not one file and a failure no step could be blamed for. A file that will not format
+    // is not one of them: that is what `format` is, and it is reported there.
+    match result with
+    | DoctorCommandResult.Failed error -> json.WriteString("error", error.Message)
+    | DoctorCommandResult.NotOneFile given ->
+        json.WriteString(
+            "error",
+            $"doctor reports on one file, and '%s{Arguments.describeInputPaths given}' is not one file."
+        )
+    | DoctorCommandResult.Completed _ -> json.WriteNull "error"
+
+    match report with
+    | None ->
+        json.WriteNull "file"
+        json.WriteNull "ignore"
+        json.WriteNull "configuration"
+        json.WriteNull "format"
+        json.WriteNull "validity"
+        json.WriteNull "idempotency"
+    | Some report ->
+        let path: string =
+            match report.File with
+            | FileStep.Candidate file -> file.Path
+            | FileStep.NotFound path
+            | FileStep.NotFSharp path -> path
+
+        writeDoctorFile json report.File
+        writeDoctorIgnore json report.Ignore
+        writeDoctorConfiguration json report.Settings
+        writeDoctorFormat json path report.Format
+        writeDoctorValidity json report.Validity
+        writeDoctorIdempotency json report.Idempotency
+
+    json.WriteEndObject()
+
+let renderDoctorReport (workingDirectory: string) (result: DoctorCommandResult) : string =
+    renderWith (fun (json: Utf8JsonWriter) -> writeDoctorDocument json workingDirectory result)
+
+let reportDoctorCommand (workingDirectory: string) (writer: TextWriter) (result: DoctorCommandResult) : int =
+    writer.WriteLine(renderDoctorReport workingDirectory result)
     result.ExitCode

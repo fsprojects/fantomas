@@ -22,6 +22,7 @@
     <Compile Include="FormatCommandTests.fs" />
     <Compile Include="CheckCommandTests.fs" />
     <Compile Include="ProfileCommandTests.fs" />
+    <Compile Include="DoctorCommandTests.fs" />
     <Compile Include="ReportTests.fs" />
     <Compile Include="JsonReportTests.fs" />
     <Compile Include="SuggestionTests.fs" />

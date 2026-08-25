@@ -12,6 +12,7 @@ open Fantomas.Report
 open Fantomas.CheckCommand
 open Fantomas.DaemonCommand
 open Fantomas.ProfileCommand
+open Fantomas.DoctorCommand
 open Fantomas.CommandResult
 open Serilog
 
@@ -175,6 +176,7 @@ let main argv =
                     FileSystem = fileSystem
                     FindIgnoreFile = IgnoreFile.cachedFinder fileSystem (IgnoreFile.loadIgnoreList fileSystem)
                     ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter log)
+                    ResolveConfiguration = EditorConfig.resolveConfiguration
                     Log = log
                     OutputTheme = Theme.forOutput ()
                     ErrorTheme = Theme.forError ()
@@ -190,6 +192,13 @@ let main argv =
                     JsonReport.reportProfileCommand Environment.CurrentDirectory Console.Out result
                 else
                     reportProfileCommand environment settings inputPath result
+            elif command = Command.Doctor then
+                let result: DoctorCommandResult = runDoctorCommand environment inputPath
+
+                if json then
+                    JsonReport.reportDoctorCommand Environment.CurrentDirectory Console.Out result
+                else
+                    reportDoctorCommand environment settings result
             elif check then
                 let result: CheckCommandResult = runCheckCommand environment inputPath
 
@@ -224,6 +233,11 @@ let main argv =
                         Environment.CurrentDirectory
                         Console.Out
                         (CheckCommandResult.Failed exn)
+                | Command.Doctor ->
+                    JsonReport.reportDoctorCommand
+                        Environment.CurrentDirectory
+                        Console.Out
+                        (DoctorCommandResult.Failed exn)
                 | Command.Format
                 | Command.Daemon ->
                     JsonReport.reportFormatCommand

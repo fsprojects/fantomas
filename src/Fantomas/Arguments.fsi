@@ -26,6 +26,7 @@ type Command =
     | Format
     | Check
     | Profile
+    | Doctor
     | Daemon
 
 /// The command the first token names, and the arguments left after it. A token that names no

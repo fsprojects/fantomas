@@ -13,6 +13,7 @@ type CliEnvironment =
         FileSystem: IFileSystem
         FindIgnoreFile: string -> IgnoreFile option
         ReadConfiguration: string -> FormatConfig
+        ResolveConfiguration: string -> EditorConfig.ResolvedConfig
         Log: ILogger
         OutputTheme: Theme
         ErrorTheme: Theme

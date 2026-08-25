@@ -21,12 +21,18 @@ type Command =
     | Format
     | Check
     | Profile
+    | Doctor
     | Daemon
 
 // The one place a command is spelled. A folder called `profile` is shadowed by this, which is the
 // price every tool with subcommands pays and which `git`, `docker` and `dotnet` all pay too.
 let commands: (string * Command) list =
-    [ "check", Command.Check; "profile", Command.Profile; "daemon", Command.Daemon ]
+    [
+        "check", Command.Check
+        "profile", Command.Profile
+        "doctor", Command.Doctor
+        "daemon", Command.Daemon
+    ]
 
 let isCommandName (name: string) : bool =
     commands |> List.exists (fun (command: string, _) -> command = name)
@@ -281,7 +287,8 @@ let describeArgumentProblem (invocation: string) (problem: ArgumentProblem) : st
             $"A daemon cannot be combined with %s{named}. It is told what to format over JSON-RPC on standard in and answers on standard out, so there is nothing else for it to do and no stream left to report on."
         | Command.Format
         | Command.Check
-        | Command.Profile ->
+        | Command.Profile
+        | Command.Doctor ->
             let spelling: string =
                 commands
                 |> List.tryPick (fun (name: string, named: Command) -> if named = command then Some name else None)
@@ -417,7 +424,11 @@ let argumentsRefusedBy (command: Command) (given: Arguments list) : string list 
         | Command.Daemon -> argument = Arguments.Daemon
         // A profile takes paths and reports the two ways every command reports. What it has no use
         // for is where to put output and whether to write invalid code, because it writes nothing.
-        | Command.Profile ->
+        //
+        // A doctor takes one path and answers about it, so it has the same use for the same two
+        // and no use for the same rest.
+        | Command.Profile
+        | Command.Doctor ->
             match argument with
             | Arguments.Json
             | Arguments.Input _ -> true

@@ -19,6 +19,14 @@ type AbsoluteFilePath =
 
 type IsPathIgnored = AbsoluteFilePath -> bool
 
+[<Struct>]
+type IgnoreMatch =
+    {
+        LineNumber: int
+        Pattern: string
+        Negated: bool
+    }
+
 [<NoComparison; NoEquality>]
 type IgnoreFile =
     {
@@ -51,6 +59,17 @@ module IgnoreFile =
 
         walkUp (fs.FileInfo.New(filePath).Directory)
 
+    // See https://git-scm.com/docs/gitignore
+    // The incoming path is taken relative to the folder holding the ignore file.
+    // In a cli scenario that is the current directory, for the daemon it is the first found ignore file.
+    // .gitignore uses forward slashes to path separators
+    //
+    // The root is passed in rather than derived here, because the folder holding the ignore file
+    // does not change between calls and looking it up again for every file walked meant a
+    // directory lookup per file.
+    let relativeToIgnoreRoot (fs: IFileSystem) (ignoreRoot: string) (absoluteFilePath: AbsoluteFilePath) : string =
+        fs.Path.GetRelativePath(ignoreRoot, absoluteFilePath.Path).Replace("\\", "/")
+
     let loadIgnoreList (fs: IFileSystem) (ignoreFilePath: string) : IsPathIgnored =
         let lines: string array = fs.File.ReadAllLines(ignoreFilePath)
 
@@ -58,19 +77,10 @@ module IgnoreFile =
             (Ignore(), lines)
             ||> Array.fold (fun (ig: Ignore) (line: string) -> ig.Add(line))
 
-        // The folder holding the ignore file does not change between calls, and looking it up
-        // again for every file walked meant a directory lookup per file.
         let ignoreRoot: string = fs.Directory.GetParent(ignoreFilePath).FullName
 
         fun (absoluteFilePath: AbsoluteFilePath) ->
-            // See https://git-scm.com/docs/gitignore
-            // We transform the incoming path relative to the .ignoreFilePath folder.
-            // In a cli scenario that is the current directory, for the daemon it is the first found ignore file.
-            // .gitignore uses forward slashes to path separators
-            let relativePath: string =
-                fs.Path.GetRelativePath(ignoreRoot, absoluteFilePath.Path).Replace("\\", "/")
-
-            fantomasIgnore.IsIgnored(relativePath)
+            fantomasIgnore.IsIgnored(relativeToIgnoreRoot fs ignoreRoot absoluteFilePath)
 
     let findInDirectory
         (fs: IFileSystem)
@@ -123,3 +133,41 @@ module IgnoreFile =
                 // whoever asks for detail.
                 log.Debug $"%A{ex}"
                 false
+
+    let matchingLines (ignoreFile: IgnoreFile) (file: string) : IgnoreMatch list =
+        let fs: IFileSystem = ignoreFile.Location.FileSystem
+        let ignoreRoot: string = ignoreFile.Location.Directory.FullName
+
+        let relativePath: string =
+            relativeToIgnoreRoot fs ignoreRoot (AbsoluteFilePath.Create fs file)
+
+        // One rule per line, rather than one `Ignore` holding all of them, which is the whole
+        // difference between this and `IsIgnored`: the rules are asked separately so that the line
+        // each answer came from is still known when the answers come back.
+        fs.File.ReadAllLines ignoreFile.Location.FullName
+        |> Array.toList
+        |> List.indexed
+        |> List.choose (fun (index: int, line: string) ->
+            // A pattern the ignore library will not compile is not a match.
+            //
+            // Not the routine way a bad pattern is met: `loadIgnoreList` compiles every rule as it
+            // reads the file, so an ignore file with one in it fails as a whole before any
+            // `IgnoreFile` exists to ask this of. What is left for this to survive is the file
+            // changing between that read and this one, which is a race rather than a mistake, and
+            // is not worth abandoning the answer over.
+            let matched: bool option =
+                try
+                    let rule: IgnoreRule = IgnoreRule(line)
+                    if rule.IsMatch relativePath then Some rule.Negate else None
+                with _ ->
+                    None
+
+            matched
+            |> Option.map (fun (negated: bool) ->
+                {
+                    LineNumber = index + 1
+                    Pattern = line
+                    Negated = negated
+                }
+            )
+        )

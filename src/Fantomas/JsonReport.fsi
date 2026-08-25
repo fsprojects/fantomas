@@ -111,6 +111,14 @@ val profileReport: workingDirectory: string -> result: ProfileCommand.ProfileCom
 /// Render a report as the JSON text to write, indented, without a trailing newline.
 val render: report: RunReport -> string
 
+/// Render what a doctor run found as the JSON text to write, indented, without a trailing newline.
+///
+/// A different shape from `RunReport`, and deliberately: the other three commands report a list of
+/// files each with one outcome, and this reports one file with an outcome per step. Every step is
+/// a key of its own, `null` where the walk stopped before reaching it, so that a step nothing was
+/// asked about is not read as a step that found nothing.
+val renderDoctorReport: workingDirectory: string -> result: DoctorCommand.DoctorCommandResult -> string
+
 /// Write what a format run did to `writer` as one JSON document, and return the exit code the
 /// process should end with. Nothing is logged: the document is the whole report.
 val reportFormatCommand: workingDirectory: string -> writer: TextWriter -> result: FormatCommandResult -> int
@@ -123,3 +131,8 @@ val reportCheckCommand: workingDirectory: string -> writer: TextWriter -> result
 /// the process should end with. Nothing is logged: the document is the whole report.
 val reportProfileCommand:
     workingDirectory: string -> writer: TextWriter -> result: ProfileCommand.ProfileCommandResult -> int
+
+/// Write what a doctor run found to `writer` as one JSON document, and return the exit code the
+/// process should end with. Nothing is logged: the document is the whole report.
+val reportDoctorCommand:
+    workingDirectory: string -> writer: TextWriter -> result: DoctorCommand.DoctorCommandResult -> int

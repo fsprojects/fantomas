@@ -359,3 +359,401 @@ let ``only the command that measures carries an elapsed time`` () =
         render (formatReport "/tmp" (FormatCommandResult.Completed [||]))
 
     document |> shouldNotContainText "elapsedMilliseconds"
+
+// ---- the doctor document ----
+
+let private diagnosed (report: Fantomas.DoctorCommand.DoctorReport) : JsonElement =
+    JsonDocument
+        .Parse(renderDoctorReport workingDirectory (Fantomas.DoctorCommand.DoctorCommandResult.Completed report))
+        .RootElement
+
+let private healthy: Fantomas.DoctorCommand.DoctorReport =
+    {
+        File =
+            Fantomas.DoctorCommand.FileStep.Candidate
+                {
+                    Path = "/repo/A.fs"
+                    Kind = Fantomas.DoctorCommand.FileKind.Implementation
+                    LineCount = 20
+                    UnreachableUnder = None
+                }
+        Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, []))
+        Settings = Some(Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default)
+        Format =
+            Some(
+                Fantomas.DoctorCommand.FormatStep.Produced(
+                    "let a = 1\n",
+                    Fantomas.DoctorCommand.FormatChange.Reformatted(4, 25)
+                )
+            )
+        Validity = Some Fantomas.DoctorCommand.ValidityStep.Valid
+        Idempotency = Some Fantomas.DoctorCommand.IdempotencyStep.Idempotent
+    }
+
+let private statusAt (document: JsonElement) (key: string) : string =
+    document.GetProperty(key).GetProperty("status").GetString()
+
+[<Test>]
+let ``a doctor document carries a key per step`` () =
+    let document: JsonElement = diagnosed healthy
+
+    document.GetProperty("command").GetString() |> shouldEqual "doctor"
+    statusAt document "file" |> shouldEqual "candidate"
+
+    document.GetProperty("file").GetProperty("kind").GetString()
+    |> shouldEqual "implementation"
+
+    statusAt document "ignore" |> shouldEqual "not-ignored"
+    statusAt document "format" |> shouldEqual "changed"
+    statusAt document "validity" |> shouldEqual "valid"
+    statusAt document "idempotency" |> shouldEqual "idempotent"
+
+    document.GetProperty("format").GetProperty("firstChangedLine").GetInt32()
+    |> shouldEqual 4
+
+    document.GetProperty("format").GetProperty("lineCountAfter").GetInt32()
+    |> shouldEqual 25
+
+[<Test>]
+let ``a step the walk never reached is null rather than absent`` () =
+    // A key that is sometimes missing is a trap in the languages most likely to be reading this,
+    // and a step nothing was asked about is not a step that found nothing.
+    let ignored: Fantomas.DoctorCommand.DoctorReport =
+        { healthy with
+            Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, []))
+            Settings = None
+            Format = None
+            Validity = None
+            Idempotency = None
+        }
+
+    let document: JsonElement = diagnosed ignored
+
+    for key in [ "configuration"; "format"; "validity"; "idempotency" ] do
+        document.GetProperty(key).ValueKind |> shouldEqual JsonValueKind.Null
+
+    statusAt document "ignore" |> shouldEqual "ignored"
+
+[<Test>]
+let ``every setting is carried, with what set it or nothing`` () =
+    // A screen is finite and a document is not, so where the text report shows the short list this
+    // carries the whole answer and `setBy` is what tells the two apart.
+    let settings: JsonElement list =
+        (diagnosed healthy).GetProperty("configuration").GetProperty("settings").EnumerateArray()
+        |> List.ofSeq
+
+    settings.Length
+    |> shouldEqual (List.length Fantomas.EditorConfig.supportedSettings)
+
+    settings
+    |> List.forall (fun setting -> setting.GetProperty("setBy").ValueKind = JsonValueKind.Null)
+    |> shouldEqual true
+
+[<Test>]
+let ``the pattern that matched is carried with its line number`` () =
+    let matched: Fantomas.DoctorCommand.DoctorReport =
+        { healthy with
+            Ignore =
+                Some(
+                    Fantomas.DoctorCommand.IgnoreStep.Governed(
+                        "/repo/.fantomasignore",
+                        true,
+                        [
+                            {
+                                LineNumber = 4
+                                Pattern = "obj/"
+                                Negated = false
+                            }
+                        ]
+                    )
+                )
+            Settings = None
+            Format = None
+            Validity = None
+            Idempotency = None
+        }
+
+    let first: JsonElement =
+        (diagnosed matched).GetProperty("ignore").GetProperty("matches").EnumerateArray()
+        |> Seq.head
+
+    first.GetProperty("line").GetInt32() |> shouldEqual 4
+    first.GetProperty("pattern").GetString() |> shouldEqual "obj/"
+    first.GetProperty("negated").GetBoolean() |> shouldEqual false
+
+[<Test>]
+let ``a path that is not one file is the document's error, with every step null`` () =
+    let document: JsonElement =
+        JsonDocument
+            .Parse(
+                renderDoctorReport
+                    workingDirectory
+                    (Fantomas.DoctorCommand.DoctorCommandResult.NotOneFile(Fantomas.Arguments.InputPath.Folder "src"))
+            )
+            .RootElement
+
+    document.GetProperty("exitCode").GetInt32() |> shouldEqual 1
+    document.GetProperty("error").GetString() |> shouldContainText "one file"
+    document.GetProperty("file").ValueKind |> shouldEqual JsonValueKind.Null
+
+// ---- one case per key the doctor document can carry ----
+
+let private fileStatusOf (step: Fantomas.DoctorCommand.FileStep) : JsonElement =
+    (diagnosed { healthy with File = step }).GetProperty "file"
+
+[<Test>]
+let ``each way the file step can end has a status of its own`` () =
+    let statusOf (step: Fantomas.DoctorCommand.FileStep) : string =
+        (fileStatusOf step).GetProperty("status").GetString()
+
+    statusOf (Fantomas.DoctorCommand.FileStep.NotFound "/repo/A.fs")
+    |> shouldEqual "not-found"
+
+    statusOf (Fantomas.DoctorCommand.FileStep.NotFSharp "/repo/A.md")
+    |> shouldEqual "not-fsharp"
+
+[<Test>]
+let ``the kind of file is carried, and the folder a walk will not open`` () =
+    let candidate (kind: Fantomas.DoctorCommand.FileKind) (under: string option) : JsonElement =
+        fileStatusOf (
+            Fantomas.DoctorCommand.FileStep.Candidate
+                {
+                    Path = "/repo/A.fs"
+                    Kind = kind
+                    LineCount = 20
+                    UnreachableUnder = under
+                }
+        )
+
+    (candidate Fantomas.DoctorCommand.FileKind.Signature None).GetProperty("kind").GetString()
+    |> shouldEqual "signature"
+
+    (candidate Fantomas.DoctorCommand.FileKind.Script None).GetProperty("kind").GetString()
+    |> shouldEqual "script"
+
+    (candidate Fantomas.DoctorCommand.FileKind.Implementation (Some "/repo/obj"))
+        .GetProperty("unreachableUnder")
+        .GetString()
+    |> shouldEqual "/repo/obj"
+
+[<Test>]
+let ``a file with no ignore file above it says so, and names none`` () =
+    let ignore: JsonElement =
+        (diagnosed
+            { healthy with
+                Ignore = Some Fantomas.DoctorCommand.IgnoreStep.NoIgnoreFile
+            })
+            .GetProperty
+            "ignore"
+
+    ignore.GetProperty("status").GetString() |> shouldEqual "no-ignore-file"
+    ignore.GetProperty("ignoreFile").ValueKind |> shouldEqual JsonValueKind.Null
+    ignore.GetProperty("matches").GetArrayLength() |> shouldEqual 0
+
+[<Test>]
+let ``a setting an .editorconfig set names the file that set it`` () =
+    let resolved: Fantomas.EditorConfig.ResolvedConfig =
+        let plain: Fantomas.EditorConfig.ResolvedConfig =
+            Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default
+
+        { plain with
+            EditorConfigFiles = [ "/repo/.editorconfig" ]
+            Settings =
+                plain.Settings
+                |> List.map (fun (setting: Fantomas.EditorConfig.ResolvedSetting) ->
+                    if setting.Setting = "max_line_length" then
+                        { setting with
+                            SetBy = Some "/repo/.editorconfig"
+                        }
+                    else
+                        setting
+                )
+        }
+
+    let configuration: JsonElement =
+        (diagnosed
+            { healthy with
+                Settings = Some resolved
+            })
+            .GetProperty
+            "configuration"
+
+    configuration.GetProperty("editorConfigFiles").GetArrayLength() |> shouldEqual 1
+
+    configuration.GetProperty("settings").EnumerateArray()
+    |> Seq.find (fun setting -> setting.GetProperty("setting").GetString() = "max_line_length")
+    |> fun setting -> setting.GetProperty("setBy").GetString()
+    |> shouldEqual "/repo/.editorconfig"
+
+[<Test>]
+let ``a setting Fantomas cannot use is carried with what is wrong with it`` () =
+    let problems: JsonElement list =
+        (diagnosed
+            { healthy with
+                Settings =
+                    Some
+                        { Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default with
+                            Problems =
+                                [
+                                    Fantomas.EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_nope"
+                                    Fantomas.EditorConfig.EditorConfigProblem.UnrecognizedValue(
+                                        "fsharp_max_record_width",
+                                        "banana"
+                                    )
+                                ]
+                        }
+            })
+            .GetProperty("configuration")
+            .GetProperty("problems")
+            .EnumerateArray()
+        |> List.ofSeq
+
+    problems
+    |> List.map (fun p -> p.GetProperty("status").GetString())
+    |> shouldEqual [ "unknown-setting"; "unrecognized-value" ]
+
+    problems.[1].GetProperty("value").GetString() |> shouldEqual "banana"
+
+    problems.[0].GetProperty("message").GetString()
+    |> shouldContainText "is not a Fantomas setting"
+
+[<Test>]
+let ``a file that needs no formatting is unchanged rather than changed`` () =
+    let format: JsonElement =
+        (diagnosed
+            { healthy with
+                Format =
+                    Some(Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.Nothing))
+            })
+            .GetProperty
+            "format"
+
+    format.GetProperty("status").GetString() |> shouldEqual "unchanged"
+
+[<Test>]
+let ``a file whose only fault is its line endings has a status of its own`` () =
+    // Nothing about the lines changes, so `status` is the only thing telling this apart from a
+    // file that needs nothing at all.
+    let format: JsonElement =
+        (diagnosed
+            { healthy with
+                Format =
+                    Some(
+                        Fantomas.DoctorCommand.FormatStep.Produced(
+                            "",
+                            Fantomas.DoctorCommand.FormatChange.LineEndingsOnly
+                        )
+                    )
+            })
+            .GetProperty
+            "format"
+
+    format.GetProperty("status").GetString() |> shouldEqual "line-endings"
+
+[<Test>]
+let ``formatting that failed carries what went wrong and where`` () =
+    let format: JsonElement =
+        (diagnosed
+            { healthy with
+                Format = Some(Fantomas.DoctorCommand.FormatStep.Failed unmatchedBracket)
+                Validity = None
+                Idempotency = None
+            })
+            .GetProperty
+            "format"
+
+    format.GetProperty("status").GetString() |> shouldEqual "failed"
+
+    format.GetProperty("message").GetString()
+    |> shouldContainText "could not be parsed by Fantomas"
+
+    format.GetProperty("diagnostics").EnumerateArray()
+    |> Seq.head
+    |> fun diagnostic -> diagnostic.GetProperty("code").GetString()
+    |> shouldEqual "FS0583"
+
+[<Test>]
+let ``output Fantomas will not accept carries what it would not accept about it`` () =
+    let refused: FSharpParserDiagnostic list =
+        match unmatchedBracket with
+        | :? ParseException as failure -> failure.Diagnostics
+        | other -> failwith $"Expected a parse failure to take the diagnostics from, got %A{other}"
+
+    let validity: JsonElement =
+        (diagnosed
+            { healthy with
+                Validity = Some(Fantomas.DoctorCommand.ValidityStep.Invalid refused)
+                Idempotency = None
+            })
+            .GetProperty
+            "validity"
+
+    validity.GetProperty("status").GetString() |> shouldEqual "invalid"
+    validity.GetProperty("diagnostics").GetArrayLength() |> shouldEqual 1
+
+[<Test>]
+let ``each way the idempotency step can end has a status of its own`` () =
+    let idempotency (step: Fantomas.DoctorCommand.IdempotencyStep) : JsonElement =
+        (diagnosed { healthy with Idempotency = Some step }).GetProperty "idempotency"
+
+    let disagreed: JsonElement =
+        idempotency (Fantomas.DoctorCommand.IdempotencyStep.NotIdempotent(7, "let a = 1", "let a =  1"))
+
+    disagreed.GetProperty("status").GetString() |> shouldEqual "not-idempotent"
+    disagreed.GetProperty("line").GetInt32() |> shouldEqual 7
+    disagreed.GetProperty("afterFirstPass").GetString() |> shouldEqual "let a = 1"
+    disagreed.GetProperty("afterSecondPass").GetString() |> shouldEqual "let a =  1"
+
+    let failed: JsonElement =
+        idempotency (Fantomas.DoctorCommand.IdempotencyStep.Failed(exn "the second pass fell over"))
+
+    failed.GetProperty("status").GetString() |> shouldEqual "failed"
+
+    failed.GetProperty("message").GetString()
+    |> shouldEqual "the second pass fell over"
+
+[<Test>]
+let ``a run that fell over is the document's error, with every step null`` () =
+    let document: JsonElement =
+        JsonDocument
+            .Parse(
+                renderDoctorReport
+                    workingDirectory
+                    (Fantomas.DoctorCommand.DoctorCommandResult.Failed(exn "the disk went away"))
+            )
+            .RootElement
+
+    document.GetProperty("exitCode").GetInt32() |> shouldEqual 1
+    document.GetProperty("error").GetString() |> shouldEqual "the disk went away"
+
+    for key in [ "file"; "ignore"; "configuration"; "format"; "validity"; "idempotency" ] do
+        document.GetProperty(key).ValueKind |> shouldEqual JsonValueKind.Null
+
+[<Test>]
+let ``the document is written to the writer it is given, and answers with the exit code`` () =
+    let writer: IO.StringWriter = new IO.StringWriter()
+
+    let code: int =
+        reportDoctorCommand workingDirectory writer (Fantomas.DoctorCommand.DoctorCommandResult.Completed healthy)
+
+    code |> shouldEqual 0
+    writer.ToString() |> shouldContainText "\"command\": \"doctor\""
+
+[<Test>]
+let ``a walk that stopped at the file step carries the file and nulls the rest`` () =
+    let document: JsonElement =
+        diagnosed
+            {
+                File = Fantomas.DoctorCommand.FileStep.NotFound "/repo/A.fs"
+                Ignore = None
+                Settings = None
+                Format = None
+                Validity = None
+                Idempotency = None
+            }
+
+    document.GetProperty("file").GetProperty("status").GetString()
+    |> shouldEqual "not-found"
+
+    for key in [ "ignore"; "configuration"; "format"; "validity"; "idempotency" ] do
+        document.GetProperty(key).ValueKind |> shouldEqual JsonValueKind.Null

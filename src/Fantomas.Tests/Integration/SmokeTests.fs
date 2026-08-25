@@ -127,3 +127,22 @@ let ``a fantomasignore in the working directory is honoured`` () =
     exitCode |> should equal 0
     output |> should contain "was ignored"
     File.ReadAllText fileFixture.Filename |> should equal NeedsFormatting
+
+[<Test>]
+let ``the doctor walks a real file on a real disk and writes nothing`` () =
+    use fileFixture = new TemporaryFileCodeSample(NeedsFormatting)
+
+    let { ExitCode = exitCode; Output = output } =
+        runFantomasTool [ "doctor"; fileFixture.Filename ]
+
+    exitCode |> should equal 0
+    output |> should contain "Idempotent"
+    File.ReadAllText fileFixture.Filename |> should equal NeedsFormatting
+
+[<Test>]
+let ``the doctor refuses a folder`` () =
+    let { ExitCode = exitCode; Error = error } =
+        runFantomasTool [ "doctor"; Path.GetTempPath() ]
+
+    exitCode |> should equal 1
+    error |> should contain "one file"

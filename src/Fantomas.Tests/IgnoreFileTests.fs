@@ -235,3 +235,113 @@ let ``the command line resolves an ignore file once per directory rather than on
     |> shouldEqual true
 
     getLoads () |> shouldEqual (Set.ofList [ target ])
+
+// ---- which line of the ignore file decided ----
+
+/// An ignore file of these lines at the root of a mock file system, and the path to ask about.
+let private governing (patterns: string list) (relativePath: string) : IgnoreFile * string =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = fs.Path.GetTempPath() |> fs.Path.GetPathRoot
+
+    let file: string =
+        fs.Path.Combine(root, relativePath.Replace("/", string<char> fs.Path.DirectorySeparatorChar))
+
+    makeFileHierarchy fs [ file ]
+    fs.File.WriteAllText(fs.Path.Combine(root, IgnoreFile.IgnoreFileName), String.concat "\n" patterns)
+
+    match IgnoreFile.findInDirectory fs root (IgnoreFile.loadIgnoreList fs) with
+    | None -> failwith $"The ignore file just written at %s{root} was not found again."
+    | Some ignoreFile -> ignoreFile, file
+
+[<Test>]
+let ``the line whose pattern matched is quoted with its number`` () =
+    let ignoreFile, file = governing [ "*.fsx"; "A.fs" ] "A.fs"
+
+    IgnoreFile.matchingLines ignoreFile file
+    |> shouldEqual
+        [
+            {
+                LineNumber = 2
+                Pattern = "A.fs"
+                Negated = false
+            }
+        ]
+
+[<Test>]
+let ``a comment and a blank line match nothing`` () =
+    let ignoreFile, file = governing [ "# A.fs"; ""; "   "; "A.fs" ] "A.fs"
+
+    IgnoreFile.matchingLines ignoreFile file
+    |> List.map (fun m -> m.LineNumber)
+    |> shouldEqual [ 4 ]
+
+[<Test>]
+let ``a pattern that takes a path back out is a match and says so`` () =
+    let ignoreFile, file = governing [ "*.fs"; "!A.fs" ] "A.fs"
+
+    IgnoreFile.matchingLines ignoreFile file
+    |> List.map (fun m -> m.LineNumber, m.Negated)
+    |> shouldEqual [ (1, false); (2, true) ]
+
+[<Test>]
+let ``a pattern naming a folder matches the files inside it`` () =
+    let ignoreFile, file = governing [ "vendor/" ] "vendor/A.fs"
+
+    IgnoreFile.matchingLines ignoreFile file
+    |> List.map (fun m -> m.Pattern)
+    |> shouldEqual [ "vendor/" ]
+
+[<Test>]
+let ``the last line that matches is the one the ignore file itself decided by`` () =
+    // The property the whole thing rests on: quoting a line back is only worth doing if that line
+    // is the one that settled it. Each case pairs patterns with a path and the answer expected.
+    let cases: (string list * string * bool) list =
+        [
+            [ "A.fs" ], "A.fs", true
+            [ "*.fs" ], "A.fs", true
+            [ "*.fsx" ], "A.fs", false
+            [ "*.fs"; "!A.fs" ], "A.fs", false
+            [ "!A.fs"; "*.fs" ], "A.fs", true
+            [ "*.fs"; "!A.fs"; "A.fs" ], "A.fs", true
+            [ "vendor/" ], "vendor/A.fs", true
+            [ "vendor/"; "!vendor/A.fs" ], "vendor/A.fs", false
+            [], "A.fs", false
+        ]
+
+    for patterns, relativePath, expected in cases do
+        let ignoreFile, file = governing patterns relativePath
+
+        let byTheIgnoreFile: bool =
+            IgnoreFile.isIgnoredFile Serilog.Log.Logger (Some ignoreFile) file
+
+        let byTheLastMatch: bool =
+            match IgnoreFile.matchingLines ignoreFile file |> List.tryLast with
+            | None -> false
+            | Some matched -> not matched.Negated
+
+        byTheIgnoreFile |> shouldEqual expected
+        byTheLastMatch |> shouldEqual expected
+
+[<Test>]
+let ``a pattern the ignore library will not compile fails the whole ignore file`` () =
+    // Worth pinning rather than assuming, because it decides what every caller can be told. The
+    // rules are compiled as the file is read, so one unclosed bracket takes the file with it and
+    // there is no `IgnoreFile` left to ask which line was at fault. Everything that reads an
+    // ignore file inherits that, and what a caller can do about it is report the failure.
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = fs.Path.GetTempPath() |> fs.Path.GetPathRoot
+    let ignoreFilePath: string = fs.Path.Combine(root, IgnoreFile.IgnoreFileName)
+    makeFileHierarchy fs [ ignoreFilePath ]
+    fs.File.WriteAllText(ignoreFilePath, "*.fsx\n[\nA.fs\n")
+
+    // Reading the file is what compiles the rules, so nothing has to be asked of the result for
+    // the bad pattern to make itself known.
+    let loaded: Result<IsPathIgnored, exn> =
+        try
+            Ok(IgnoreFile.loadIgnoreList fs ignoreFilePath)
+        with error ->
+            Error error
+
+    match loaded with
+    | Ok _ -> failwith "Expected the ignore file to fail to load."
+    | Error error -> error.Message |> shouldContainText "Unterminated"

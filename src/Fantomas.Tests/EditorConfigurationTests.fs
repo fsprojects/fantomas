@@ -858,3 +858,134 @@ let ``problems are reported by kind, and by setting name within a kind`` () =
         EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_experimental_elmish", "not_a_bool")
         EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_space_before_colon", "not_a_bool")
     ]
+
+// ---- where each setting came from ----
+
+let private settingOf (resolved: EditorConfig.ResolvedConfig) (setting: string) : EditorConfig.ResolvedSetting =
+    resolved.Settings
+    |> List.find (fun (candidate: EditorConfig.ResolvedSetting) -> candidate.Setting = setting)
+
+[<Test>]
+let ``a setting nothing wrote comes from no .editorconfig`` () =
+    let rootFolderName = tempName ()
+    use fsharpFile = new FSharpFile(rootFolderName)
+
+    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+
+    (settingOf resolved "fsharp_max_record_width").SetBy == None
+
+[<Test>]
+let ``a setting an .editorconfig wrote names that file`` () =
+    let rootFolderName = tempName ()
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootFolderName, content = "root=true\n\n[*.fs]\nmax_line_length=100\n")
+
+    use fsharpFile = new FSharpFile(rootFolderName)
+
+    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+
+    (settingOf resolved "max_line_length").Value == "100"
+
+    (settingOf resolved "max_line_length").SetBy
+    == Some(Path.GetFullPath(Path.Join(Path.GetTempPath(), rootFolderName, ".editorconfig")))
+
+[<Test>]
+let ``a setting written the same as the default still comes from the file that wrote it`` () =
+    // The whole reason the origin is worked out from the chain rather than from comparing the
+    // resolved value against the default: writing a default down is not the same as not writing it.
+    let rootFolderName = tempName ()
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootFolderName, content = "root=true\n\n[*.fs]\nindent_size=4\n")
+
+    use fsharpFile = new FSharpFile(rootFolderName)
+
+    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+
+    (settingOf resolved "indent_size").Value == "4"
+    (settingOf resolved "indent_size").SetBy.IsSome == true
+
+[<Test>]
+let ``the nearer of two .editorconfig files is the one a setting is credited to`` () =
+    let rootFolder = tempName ()
+    let subFolder = tempName ()
+
+    use parentConfig =
+        new ConfigurationFile(
+            defaultConfig,
+            rootFolder,
+            content = "root=true\n\n[*.fs]\nmax_line_length=100\nfsharp_max_record_width=50\n"
+        )
+
+    use childConfig =
+        new ConfigurationFile(
+            defaultConfig,
+            rootFolder,
+            subFolder = subFolder,
+            content = "[*.fs]\nmax_line_length=80\n"
+        )
+
+    use fsharpFile = new FSharpFile(rootFolder, subFolder = subFolder)
+
+    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+
+    let parentPath =
+        Path.GetFullPath(Path.Join(Path.GetTempPath(), rootFolder, ".editorconfig"))
+
+    let childPath =
+        Path.GetFullPath(Path.Join(Path.GetTempPath(), rootFolder, subFolder, ".editorconfig"))
+
+    // Overruled by the nearer file, so the nearer file is the one to change.
+    (settingOf resolved "max_line_length").Value == "80"
+    (settingOf resolved "max_line_length").SetBy == Some childPath
+
+    // Left alone by the nearer file, so it still belongs to the one further up.
+    (settingOf resolved "fsharp_max_record_width").SetBy == Some parentPath
+
+[<Test>]
+let ``a setting whose value cannot be read is credited to nobody`` () =
+    // The default is what will be used, so naming the file that wrote it would say the value came
+    // from somewhere it did not. The problem is where that is reported.
+    let rootFolderName = tempName ()
+
+    use configFixture =
+        new ConfigurationFile(
+            defaultConfig,
+            rootFolderName,
+            content = "root=true\n\n[*.fs]\nfsharp_max_record_width=banana\n"
+        )
+
+    use fsharpFile = new FSharpFile(rootFolderName)
+
+    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+
+    (settingOf resolved "fsharp_max_record_width").SetBy == None
+
+    resolved.Problems
+    == [
+        EditorConfig.EditorConfigProblem.UnrecognizedValue("fsharp_max_record_width", "banana")
+    ]
+
+[<Test>]
+let ``every setting Fantomas has is resolved, whether or not anything set it`` () =
+    let rootFolderName = tempName ()
+    use fsharpFile = new FSharpFile(rootFolderName)
+
+    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+
+    resolved.Settings
+    |> List.map (fun (setting: EditorConfig.ResolvedSetting) -> setting.Setting)
+    == EditorConfig.supportedSettings
+
+[<Test>]
+let ``a configuration with nothing behind it credits nothing`` () =
+    let resolved = EditorConfig.withoutEditorConfig defaultConfig
+
+    resolved.Config == defaultConfig
+    resolved.EditorConfigFiles == []
+    resolved.Problems == []
+
+    resolved.Settings
+    |> List.forall (fun (setting: EditorConfig.ResolvedSetting) -> setting.SetBy.IsNone)
+    == true

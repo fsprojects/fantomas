@@ -27,6 +27,15 @@ val MaximumSuggestionDistance: int = 3
 /// `max_line_length`, is answered outright; anything else has to be within a few characters.
 val suggestionFor: setting: string -> string option
 
+/// One thing Fantomas could not use, in a sentence, and where a misspelling has an obvious intent,
+/// what it looks like it was meant to be. Carries no indentation of its own, so a caller can place
+/// it in whatever it is writing.
+///
+/// Settings and values are quoted the way the rest of the tool quotes what it was given, and for
+/// the same reason: both are text someone else wrote. A value can be empty, or carry spaces, or
+/// read like prose, and unquoted it runs into the sentence around it.
+val describeProblem: problem: EditorConfigProblem -> string
+
 /// What to tell someone about the settings Fantomas could not use out of `origin`, or `None`
 /// when there is nothing to tell them. Names every problem, and where a misspelling has an
 /// obvious intent, names that too.

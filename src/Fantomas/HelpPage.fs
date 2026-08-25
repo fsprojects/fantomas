@@ -42,8 +42,8 @@ let flags: (string * string * string * string list) list =
          "",
          [
              "Report what the run did as one JSON document on standard out,"
-             "naming every file and positioning what went wrong. The usual"
-             "messages are not printed; warnings go to standard error."
+             "naming what it looked at and positioning what went wrong. The"
+             "usual messages are not printed; warnings go to standard error."
              "The shape is for reading, not for parsing against: it carries"
              "no version and may change in any release. The exit code is"
              "the part that is promised."
@@ -86,6 +86,18 @@ let commands: (Command * string * string list) list =
              "Formats one file at a time so the timings can be compared,"
              "and writes nothing."
          ])
+        (Command.Doctor,
+         "doctor <file>",
+         [
+             "Walk one file through everything Fantomas does to it and"
+             "report what happened at each step: whether it is a file"
+             "Fantomas formats, which .fantomasignore governs it and which"
+             "line of it decided, which settings apply and where each came"
+             "from, what formatting produced, whether Fantomas accepts its"
+             "own output, and whether formatting that output again leaves"
+             "it alone. Takes one file rather than a folder, and writes"
+             "nothing."
+         ])
         (Command.Daemon,
          "daemon",
          [
@@ -123,6 +135,29 @@ let flagsFor (command: Command) : (string * string * string * string list) list 
 // Asked the same way, so a command that takes no paths does not carry a section about them.
 let takesPaths (command: Command) : bool =
     List.isEmpty (argumentsRefusedBy command [ Arguments.Input [] ])
+
+// What the paths a command takes are, said once. `doctor` gets its own wording because it takes
+// one file where every other command takes any number of files and folders, and telling its reader
+// that a folder is searched recursively would describe a run it will refuse.
+let pathsSection (command: Command) : string list =
+    match command with
+    | Command.Doctor ->
+        [
+            "  One file, ending in .fs, .fsi, .fsx, .ml or .mli. A folder is refused: this reports"
+            "  on the steps one file goes through, and the answers differ per file. Formatting"
+            "  settings are read from .editorconfig, and the nearest .fantomasignore at or above"
+            "  the file is the one that governs it."
+        ]
+    | Command.Format
+    | Command.Check
+    | Command.Profile
+    | Command.Daemon ->
+        [
+            "  A path is a folder, which is searched recursively, or a file ending in .fs, .fsi,"
+            "  .fsx, .ml or .mli. Naming none means the current folder. Formatting settings are"
+            "  read from .editorconfig, and files matched by the nearest .fantomasignore at or"
+            "  above them are skipped."
+        ]
 
 // What follows the command name, which is whatever this Fantomas was started as rather than a
 // guess written into the page.
@@ -255,10 +290,7 @@ let renderOverview (theme: Theme) (invocation: string) : string list =
     List.iter (writeFlag write theme) older
     blank ()
     write (heading theme "Paths:")
-    write "  A path is a folder, which is searched recursively, or a file ending in .fs, .fsi,"
-    write "  .fsx, .ml or .mli. Naming none means the current folder. Formatting settings are"
-    write "  read from .editorconfig, and files matched by the nearest .fantomasignore at or"
-    write "  above them are skipped."
+    List.iter write (pathsSection Command.Format)
     blank ()
     List.iter (writeLink write theme) links
     blank ()
@@ -302,10 +334,7 @@ let renderCommand
     if takesPaths command then
         blank ()
         write (heading theme "Paths:")
-        write "  A path is a folder, which is searched recursively, or a file ending in .fs, .fsi,"
-        write "  .fsx, .ml or .mli. Naming none means the current folder. Formatting settings are"
-        write "  read from .editorconfig, and files matched by the nearest .fantomasignore at or"
-        write "  above them are skipped."
+        List.iter write (pathsSection command)
 
     blank ()
     List.ofSeq lines

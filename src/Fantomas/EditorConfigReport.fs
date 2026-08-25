@@ -37,17 +37,14 @@ let suggestionFor (setting: string) : string option =
     | Some unprefixed when List.contains unprefixed supportedSettings -> Some unprefixed
     | _ -> nearestSetting MaximumSuggestionDistance setting
 
-/// Settings and values are quoted the way the rest of the tool quotes what it was given, and for
-/// the same reason: both are text someone else wrote. A value can be empty, or carry spaces, or
-/// read like prose, and unquoted it runs into the sentence around it.
 let describeProblem (problem: EditorConfigProblem) : string =
     match problem with
     | EditorConfigProblem.UnknownSetting setting ->
         match suggestionFor setting with
-        | Some suggestion -> $"  '%s{setting}' is not a Fantomas setting. Did you mean '%s{suggestion}'?"
-        | None -> $"  '%s{setting}' is not a Fantomas setting."
+        | Some suggestion -> $"'%s{setting}' is not a Fantomas setting. Did you mean '%s{suggestion}'?"
+        | None -> $"'%s{setting}' is not a Fantomas setting."
     | EditorConfigProblem.UnrecognizedValue(setting, value) ->
-        $"  '%s{setting}' does not accept the value '%s{value}', so the default is used instead."
+        $"'%s{setting}' does not accept the value '%s{value}', so the default is used instead."
 
 let describe (origin: string) (problems: EditorConfigProblem list) : string option =
     if List.isEmpty problems then
@@ -65,7 +62,7 @@ let describe (origin: string) (problems: EditorConfigProblem list) : string opti
             yield ""
             yield $"Fantomas cannot use some settings from %s{origin}:"
             for problem in problems do
-                yield describeProblem problem
+                yield String.Concat("  ", describeProblem problem)
             if namesAnyUnknownSetting then
                 yield
                     $"Run fantomas with --verbosity d to see every .editorconfig setting fantomas %s{fantomasVersion} supports."

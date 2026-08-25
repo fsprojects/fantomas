@@ -49,7 +49,7 @@ let ``a command's page lists every flag that command accepts, and no other`` () 
     // The property that makes this safe. The page asks `argumentsRefusedBy`, the rule that refuses
     // a flag at run time, so a page offering something the run would refuse cannot happen without
     // the refusal changing too.
-    for command in [ Command.Check; Command.Profile; Command.Daemon ] do
+    for command in [ Command.Check; Command.Profile; Command.Doctor; Command.Daemon ] do
         let page: string = pageFor command
 
         for spelling in [ "--out"; "--force"; "--json" ] do
@@ -78,7 +78,7 @@ let ``a command that takes no paths carries no section about them`` () =
 let ``only the overview carries the links`` () =
     // Somebody reading a command's page has already found Fantomas and is asking a narrow question
     // about one verb. The links are for somebody still working out what the tool is.
-    for command in [ Command.Check; Command.Profile; Command.Daemon ] do
+    for command in [ Command.Check; Command.Profile; Command.Doctor; Command.Daemon ] do
         pageFor command |> shouldNotContainText "https://"
 
     plainPage |> shouldContainText "https://fsprojects.github.io/fantomas/docs"
@@ -87,6 +87,14 @@ let ``only the overview carries the links`` () =
 let ``a command's page names the command and what it does`` () =
     pageFor Command.Profile |> shouldContainText "profile <paths>"
     pageFor Command.Profile |> shouldContainText "slowest first"
+
+[<Test>]
+let ``the doctor page says it takes one file rather than any path`` () =
+    // Every other command takes files and folders in any number, so a page telling this one's
+    // reader that a folder is searched recursively describes a run it will refuse.
+    pageFor Command.Doctor |> shouldContainText "doctor <file>"
+    pageFor Command.Doctor |> shouldContainText "One file"
+    pageFor Command.Doctor |> shouldNotContainText "A path is a folder"
 
 [<Test>]
 let ``the overview lists the older spellings last`` () =
