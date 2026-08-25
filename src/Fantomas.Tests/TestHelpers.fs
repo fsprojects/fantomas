@@ -216,7 +216,7 @@ let recordingEnvironment (fs: IFileSystem) (ignoreFile: IgnoreFile option) : Rec
         Environment =
             {
                 FileSystem = fs
-                IgnoreFile = ignoreFile
+                FindIgnoreFile = fun _ -> ignoreFile
                 ReadConfiguration =
                     fun _ ->
                         { FormatConfig.Default with
@@ -263,7 +263,7 @@ let realDaemonEnvironment: DaemonEnvironment =
 let realEnvironment: CliEnvironment =
     {
         FileSystem = FileSystem()
-        IgnoreFile = None
+        FindIgnoreFile = fun _ -> None
         ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter Log.Logger)
         Log = Log.Logger
         OutputTheme = plainTheme

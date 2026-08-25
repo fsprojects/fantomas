@@ -225,7 +225,6 @@ let describeInputProblem (problem: InputProblem) : string =
     match problem with
     | InputProblem.UnsupportedFileType path -> $"Input path '%s{path}' is an unsupported file type."
     | InputProblem.NotFound path -> $"Input path '%s{path}' not found."
-    | InputProblem.NoPathGiven -> "No input path provided. Run fantomas --help for usage information."
     | InputProblem.MultiplePathsWithOut -> "Multiple input files are not supported with the --out flag."
 
 // The gap between the three columns of the profile table. The columns themselves are as wide as

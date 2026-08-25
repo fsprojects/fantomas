@@ -9,6 +9,7 @@ open Fantomas.FCS.Diagnostics
 open Fantomas.FCS.Parse
 open Fantomas.FCS.Text
 open Fantomas.CommandResult
+open Fantomas.ProfileCommand
 open Fantomas.JsonReport
 
 /// The folder the paths in a document are relative to. A literal rather than the real one, so that
@@ -255,3 +256,52 @@ let ``a path that is not ASCII survives the round trip`` () =
     files document
     |> List.map (statusOf >> fst)
     |> shouldEqual [ "src/Café/Ünicode.fs" ]
+
+[<Test>]
+let ``a profile document times every file it measured`` () =
+    let report: RunReport =
+        profileReport
+            "/tmp"
+            (ProfileCommandResult.Completed
+                {
+                    Timings =
+                        [
+                            {
+                                File = "b.fs"
+                                LineCount = 10
+                                DefineCombinations = 2
+                                TimeTaken = TimeSpan.FromMilliseconds 40.0
+                            }
+                            {
+                                File = "a.fs"
+                                LineCount = 5
+                                DefineCombinations = 1
+                                TimeTaken = TimeSpan.FromMilliseconds 10.0
+                            }
+                        ]
+                    Ignored = []
+                    Errors = []
+                    Elapsed = TimeSpan.FromMilliseconds 90.0
+                })
+
+    // Ordered by path here, where the text report orders by time. A reader wanting them by time can
+    // sort them; a reader looking one file up should not have to.
+    report.Files
+    |> List.map (fun file -> file.Path)
+    |> shouldEqual [ "a.fs"; "b.fs" ]
+
+    // The run is not the sum of the files: reading each one and walking the folder are in it.
+    report.ElapsedMilliseconds |> shouldEqual (Some 90)
+
+    report.Files
+    |> List.map (fun file -> file.Outcome)
+    |> shouldEqual [ FileOutcome.Timed(5, 1, 10); FileOutcome.Timed(10, 2, 40) ]
+
+[<Test>]
+let ``only the command that measures carries an elapsed time`` () =
+    // The other two would carry a null on every run to say nothing, which is what the per file keys
+    // already avoid.
+    let document: string =
+        render (formatReport "/tmp" (FormatCommandResult.Completed [||]))
+
+    document |> shouldNotContainText "elapsedMilliseconds"

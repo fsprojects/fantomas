@@ -155,11 +155,7 @@ let main argv =
             let environment: CliEnvironment =
                 {
                     FileSystem = fileSystem
-                    IgnoreFile =
-                        IgnoreFile.findInDirectory
-                            fileSystem
-                            Environment.CurrentDirectory
-                            (IgnoreFile.loadIgnoreList fileSystem)
+                    FindIgnoreFile = IgnoreFile.cachedFinder fileSystem (IgnoreFile.loadIgnoreList fileSystem)
                     ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter log)
                     Log = log
                     OutputTheme = Theme.forOutput ()
@@ -169,7 +165,12 @@ let main argv =
             let settings: CliSettings = { Force = force; Verbosity = verbosity }
 
             if command = Command.Profile then
-                reportProfileCommand environment settings inputPath (runProfileCommand environment inputPath)
+                let result: ProfileCommandResult = runProfileCommand environment inputPath
+
+                if json then
+                    JsonReport.reportProfileCommand Environment.CurrentDirectory Console.Out result
+                else
+                    reportProfileCommand environment settings inputPath result
             elif check then
                 let result: CheckCommandResult = runCheckCommand environment inputPath
 

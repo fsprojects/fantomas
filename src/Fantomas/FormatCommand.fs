@@ -187,7 +187,7 @@ let runFormatCommand
             fs.Directory.CreateDirectory outputFolder |> ignore
         | _ -> ()
 
-        match plan fs env.Log env.IgnoreFile inputPath outputPath with
+        match plan fs env.Log env.FindIgnoreFile inputPath outputPath with
         | Error problem -> FormatCommandResult.InvalidInput problem
         | Ok items ->
             items

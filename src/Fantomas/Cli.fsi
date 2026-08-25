@@ -14,8 +14,11 @@ open Fantomas.Theme
 type CliEnvironment =
     {
         FileSystem: IFileSystem
-        /// The single `.fantomasignore` this run honours, already found.
-        IgnoreFile: IgnoreFile option
+        /// The `.fantomasignore` that governs a file: the nearest one at or above it. A function
+        /// rather than one found up front, because which one applies depends on the file, and
+        /// resolving it once for the whole run is what made a pipeline disagree with an editor
+        /// about a `.fantomasignore` in a subfolder.
+        FindIgnoreFile: string -> IgnoreFile option
         /// The `.editorconfig` settings for a file. A function rather than a file system read,
         /// because the editorconfig parser reads the disk itself and cannot be given one.
         ReadConfiguration: string -> FormatConfig

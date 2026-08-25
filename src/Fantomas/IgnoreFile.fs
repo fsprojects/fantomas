@@ -1,5 +1,6 @@
 namespace Fantomas
 
+open System.Collections.Concurrent
 open System.IO.Abstractions
 open Ignore
 open Serilog
@@ -79,6 +80,28 @@ module IgnoreFile =
         =
         // `find` walks up from a file, so it is given a name that need not exist in the directory.
         find fs loadIgnoreList (fs.Path.Combine(currentDirectory, "_"))
+
+    let cachedFinder (fs: IFileSystem) (loadIgnoreList: string -> IsPathIgnored) : string -> IgnoreFile option =
+        // Two caches, because a folder walk asks the same two questions over and over. Every file
+        // in a directory resolves to the same ignore file, and every directory under one resolves
+        // to that same file again, so without these a run over a thousand files walks the tree a
+        // thousand times and compiles the same patterns as often.
+        let byDirectory: ConcurrentDictionary<string, IgnoreFile option> =
+            ConcurrentDictionary<string, IgnoreFile option>()
+
+        let byIgnoreFile: ConcurrentDictionary<string, IsPathIgnored> =
+            ConcurrentDictionary<string, IsPathIgnored>()
+
+        let loadOnce (path: string) : IsPathIgnored =
+            byIgnoreFile.GetOrAdd(path, System.Func<string, IsPathIgnored>(loadIgnoreList))
+
+        fun (file: string) ->
+            let directory: string =
+                match fs.FileInfo.New(file).Directory with
+                | null -> fs.Path.GetFullPath "."
+                | directory -> directory.FullName
+
+            byDirectory.GetOrAdd(directory, System.Func<string, IgnoreFile option>(fun _ -> find fs loadOnce file))
 
     let isIgnoredFile (log: ILogger) (ignoreFile: IgnoreFile option) (file: string) : bool =
         match ignoreFile with

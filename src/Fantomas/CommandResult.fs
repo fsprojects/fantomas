@@ -30,7 +30,6 @@ let invalidResultException (file: string) : FormatException =
 type InputProblem =
     | UnsupportedFileType of path: string
     | NotFound of path: string
-    | NoPathGiven
     | MultiplePathsWithOut
 
 [<RequireQualifiedAccess; NoComparison>]

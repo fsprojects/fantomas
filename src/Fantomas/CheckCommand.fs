@@ -69,7 +69,7 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
 let runCheckCommand (env: CliEnvironment) (inputPath: InputPath) : CheckCommandResult =
     try
         // A check never writes, so the output path it plans against is the input itself.
-        match plan env.FileSystem env.Log env.IgnoreFile inputPath OutputPath.NotKnown with
+        match plan env.FileSystem env.Log env.FindIgnoreFile inputPath OutputPath.NotKnown with
         | Error problem -> CheckCommandResult.InvalidInput problem
         | Ok items ->
             let ignored: string list =

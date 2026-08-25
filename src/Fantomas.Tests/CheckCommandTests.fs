@@ -35,11 +35,6 @@ let ``a path that is not there is refused before anything is read`` () =
     |> shouldEqual (CheckCommandResult.InvalidInput(InputProblem.NotFound "A.fs"))
 
 [<Test>]
-let ``no input path is refused`` () =
-    check (MockFileSystem()) None InputPath.Unspecified
-    |> shouldEqual (CheckCommandResult.InvalidInput InputProblem.NoPathGiven)
-
-[<Test>]
 let ``a file Fantomas does not format is refused`` () =
     check (MockFileSystem()) None (InputPath.NoFSharpFile "A.md")
     |> shouldEqual (CheckCommandResult.InvalidInput(InputProblem.UnsupportedFileType "A.md"))

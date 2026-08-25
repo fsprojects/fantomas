@@ -37,7 +37,6 @@ val invalidResultException: file: string -> Fantomas.Core.FormatException
 type InputProblem =
     | UnsupportedFileType of path: string
     | NotFound of path: string
-    | NoPathGiven
     | MultiplePathsWithOut
 
 /// What a format run did. Turning this into text and into an exit code is `Report`'s job, so that

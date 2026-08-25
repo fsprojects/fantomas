@@ -134,7 +134,8 @@ let ``what a profile run cannot be combined with`` () =
             Arguments.Verbosity "d"
             Arguments.Input [ "src" ]
         ]
-    |> shouldEqual [ "--check"; "--daemon"; "--force"; "--json"; "--out" ]
+    // `--json` is kept: a machine asking for the timings should get them in the shape it reads.
+    |> shouldEqual [ "--check"; "--daemon"; "--force"; "--out" ]
 
 [<Test>]
 let ``a format run refuses nothing`` () =
@@ -242,8 +243,18 @@ let ``an argument given twice is named once`` () =
     |> shouldEqual [ "--out" ]
 
 [<Test>]
-let ``no input path at all is unspecified`` () =
-    classifyInputPath (MockFileSystem()) None |> shouldEqual InputPath.Unspecified
+let ``no input path at all is the current folder`` () =
+    // A run that names no path names the folder it was started in, so there is no such thing as a
+    // run with nothing to do. `ruff format` and `dotnet format` both read a bare invocation that
+    // way, and refusing it taught nobody anything.
+    classifyInputPath (MockFileSystem()) None |> shouldEqual (InputPath.Folder ".")
+
+[<Test>]
+let ``an empty list of input paths is the current folder too`` () =
+    // The parser only builds `Input` when it has something to put in it, so this is defence rather
+    // than a case anyone reaches; falling through to `Multiple` with nothing in it would not be.
+    classifyInputPath (MockFileSystem()) (Some [])
+    |> shouldEqual (InputPath.Folder ".")
 
 [<Test>]
 let ``a path that is not there is reported as not found`` () =

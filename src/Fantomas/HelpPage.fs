@@ -252,8 +252,9 @@ let renderOverview (theme: Theme) (invocation: string) : string list =
     blank ()
     write (heading theme "Paths:")
     write "  A path is a folder, which is searched recursively, or a file ending in .fs, .fsi,"
-    write "  .fsx, .ml or .mli. Formatting settings are read from .editorconfig, and files"
-    write "  matched by .fantomasignore in the current folder are skipped."
+    write "  .fsx, .ml or .mli. Naming none means the current folder. Formatting settings are"
+    write "  read from .editorconfig, and files matched by the nearest .fantomasignore at or"
+    write "  above them are skipped."
     blank ()
     List.iter (writeLink write theme) links
     blank ()
@@ -298,8 +299,9 @@ let renderCommand
         blank ()
         write (heading theme "Paths:")
         write "  A path is a folder, which is searched recursively, or a file ending in .fs, .fsi,"
-        write "  .fsx, .ml or .mli. Formatting settings are read from .editorconfig, and files"
-        write "  matched by .fantomasignore in the current folder are skipped."
+        write "  .fsx, .ml or .mli. Naming none means the current folder. Formatting settings are"
+        write "  read from .editorconfig, and files matched by the nearest .fantomasignore at or"
+        write "  above them are skipped."
 
     blank ()
     List.ofSeq lines

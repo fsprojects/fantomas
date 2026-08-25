@@ -345,11 +345,6 @@ let ``with force, the output being invalid is said out loud`` () =
     log.Information |> shouldContain $"%s{input} was not valid after formatting."
 
 [<Test>]
-let ``no input path at all is refused`` () =
-    format (MockFileSystem()) InputPath.Unspecified OutputPath.NotKnown
-    |> shouldEqual (FormatCommandResult.InvalidInput InputProblem.NoPathGiven)
-
-[<Test>]
 let ``a file Fantomas does not format is refused`` () =
     format (MockFileSystem()) (InputPath.NoFSharpFile "A.md") OutputPath.NotKnown
     |> shouldEqual (FormatCommandResult.InvalidInput(InputProblem.UnsupportedFileType "A.md"))

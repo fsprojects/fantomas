@@ -91,7 +91,7 @@ let timeOneFile (env: CliEnvironment) (file: string) : Result<FileTiming, string
 let runProfileCommand (env: CliEnvironment) (inputPath: InputPath) : ProfileCommandResult =
     try
         // A profile writes nothing, so the output path it plans against is the input itself.
-        match plan env.FileSystem env.Log env.IgnoreFile inputPath OutputPath.NotKnown with
+        match plan env.FileSystem env.Log env.FindIgnoreFile inputPath OutputPath.NotKnown with
         | Error problem -> ProfileCommandResult.InvalidInput problem
         | Ok items ->
 

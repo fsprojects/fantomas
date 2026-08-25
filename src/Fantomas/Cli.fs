@@ -11,7 +11,7 @@ open Fantomas.Theme
 type CliEnvironment =
     {
         FileSystem: IFileSystem
-        IgnoreFile: IgnoreFile option
+        FindIgnoreFile: string -> IgnoreFile option
         ReadConfiguration: string -> FormatConfig
         Log: ILogger
         OutputTheme: Theme

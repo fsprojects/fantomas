@@ -44,7 +44,6 @@ let ``every way the input paths can fail has its own wording`` () =
     [
         InputProblem.UnsupportedFileType "A.md"
         InputProblem.NotFound "A.fs"
-        InputProblem.NoPathGiven
         InputProblem.MultiplePathsWithOut
     ]
     |> List.map describeInputProblem
@@ -52,7 +51,6 @@ let ``every way the input paths can fail has its own wording`` () =
         [
             "Input path 'A.md' is an unsupported file type."
             "Input path 'A.fs' not found."
-            "No input path provided. Run fantomas --help for usage information."
             "Multiple input files are not supported with the --out flag."
         ]
 
@@ -274,12 +272,11 @@ let ``one failure among several files still exits 1`` () =
 [<Test>]
 let ``a check of an unusable input path exits 1`` () =
     let code, log =
-        reportCheck (CheckCommandResult.InvalidInput InputProblem.NoPathGiven)
+        reportCheck (CheckCommandResult.InvalidInput(InputProblem.NotFound "nope.fs"))
 
     code |> shouldEqual 1
 
-    log.Error
-    |> shouldEqual [ "No input path provided. Run fantomas --help for usage information." ]
+    log.Error |> shouldEqual [ "Input path 'nope.fs' not found." ]
 
 [<Test>]
 let ``a check that failed outright is reported and exits 1`` () =

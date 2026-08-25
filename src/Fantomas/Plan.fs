@@ -15,13 +15,13 @@ type WorkItem =
 let plan
     (fs: IFileSystem)
     (log: ILogger)
-    (ignoreFile: IgnoreFile option)
+    (findIgnoreFile: string -> IgnoreFile option)
     (inputPath: InputPath)
     (outputPath: OutputPath)
     : Result<WorkItem list, InputProblem>
     =
     let item (inputFile: string) (outputFile: string) : WorkItem =
-        if IgnoreFile.isIgnoredFile log ignoreFile inputFile then
+        if IgnoreFile.isIgnoredFile log (findIgnoreFile inputFile) inputFile then
             WorkItem.Ignored inputFile
         else
             WorkItem.Format(inputFile, outputFile)
@@ -54,7 +54,6 @@ let plan
     match inputPath, outputPath with
     | InputPath.NoFSharpFile s, _ -> Error(InputProblem.UnsupportedFileType s)
     | InputPath.NotFound s, _ -> Error(InputProblem.NotFound s)
-    | InputPath.Unspecified, _ -> Error InputProblem.NoPathGiven
     | InputPath.Multiple _, OutputPath.IO _ -> Error InputProblem.MultiplePathsWithOut
     | InputPath.File p, OutputPath.NotKnown -> Ok [ item p p ]
     | InputPath.File p, OutputPath.IO o -> Ok [ item p o ]

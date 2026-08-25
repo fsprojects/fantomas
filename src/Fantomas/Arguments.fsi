@@ -71,7 +71,6 @@ type InputPath =
     | Multiple of files: string list * folder: string list
     | NoFSharpFile of string
     | NotFound of string
-    | Unspecified
 
 /// Where the result should be written, which is back over the input unless `--out` said otherwise.
 [<RequireQualifiedAccess; Struct>]
@@ -82,6 +81,9 @@ type OutputPath =
 /// Decide what the paths on the command line name, by asking the file system. Several paths are
 /// all required to exist before any of them is classified, so one path that is not there is
 /// reported rather than the rest being worked on.
+///
+/// A command line that names no path at all names the folder it was run in, so `fantomas` is
+/// `fantomas .` and there is no such thing as a run with nothing to do.
 val classifyInputPath: fs: IFileSystem -> maybeInput: string list option -> InputPath
 
 /// Whether a flag is answered and exited on rather than acting on the run. `--version` and

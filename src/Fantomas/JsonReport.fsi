@@ -41,6 +41,9 @@ type FileOutcome =
     | Unchanged
     | Ignored
     | NeedsFormatting
+    /// Only from a `profile` run, which is the only command that measures. The milliseconds are the
+    /// file alone, and the run's own total is on the report.
+    | Timed of lineCount: int * defineCombinations: int * milliseconds: int
     | Failed of message: string * diagnostics: Diagnostic list
 
 [<NoComparison>]
@@ -52,6 +55,7 @@ type FileReport = { Path: string; Outcome: FileOutcome }
 type Command =
     | Format
     | Check
+    | Profile
 
 /// One run, as a document. `Error` is what stopped the run before any file was reached, such as an
 /// input path that does not exist, and is separate from a file that failed on its own.
@@ -67,6 +71,10 @@ type RunReport =
         WorkingDirectory: string
         ExitCode: int
         Error: string option
+        /// How long the whole run took, on the command that measures and absent on the two that do
+        /// not. Not the sum of the files: reading each one and walking the folder are in here and
+        /// in none of them.
+        ElapsedMilliseconds: int option
         Files: FileReport list
     }
 
@@ -82,6 +90,11 @@ val formatReport: workingDirectory: string -> result: FormatCommandResult -> Run
 /// counts it as both: one file is one entry.
 val checkReport: workingDirectory: string -> result: CheckCommandResult -> RunReport
 
+/// What a `profile` run measured: every file it timed, ordered by path like the other two, rather
+/// than slowest first the way the text report orders them. A reader that wants them by time can
+/// sort them; a reader looking one file up should not have to.
+val profileReport: workingDirectory: string -> result: ProfileCommand.ProfileCommandResult -> RunReport
+
 /// Render a report as the JSON text to write, indented, without a trailing newline.
 val render: report: RunReport -> string
 
@@ -92,3 +105,8 @@ val reportFormatCommand: workingDirectory: string -> writer: TextWriter -> resul
 /// Write what a `--check` run found to `writer` as one JSON document, and return the exit code the
 /// process should end with. Nothing is logged: the document is the whole report.
 val reportCheckCommand: workingDirectory: string -> writer: TextWriter -> result: CheckCommandResult -> int
+
+/// Write what a `profile` run measured to `writer` as one JSON document, and return the exit code
+/// the process should end with. Nothing is logged: the document is the whole report.
+val reportProfileCommand:
+    workingDirectory: string -> writer: TextWriter -> result: ProfileCommand.ProfileCommandResult -> int

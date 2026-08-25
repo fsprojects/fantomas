@@ -17,7 +17,7 @@ let private planOn
     (outputPath: OutputPath)
     : Result<WorkItem list, InputProblem>
     =
-    plan fs silentLogger None inputPath outputPath
+    plan fs silentLogger (fun _ -> None) inputPath outputPath
 
 /// Plan against the given file system, honouring a `.fantomasignore` written at its root.
 let private planIgnoring
@@ -30,10 +30,25 @@ let private planIgnoring
     let root: string = mockRoot fs
     fs.File.WriteAllText(fs.Path.Combine(root, IgnoreFile.IgnoreFileName), patterns)
 
-    let ignoreFile: IgnoreFile option =
-        IgnoreFile.findInDirectory fs root (IgnoreFile.loadIgnoreList fs)
+    // The finder production uses, so that what a plan honours is what a run honours.
+    let findIgnoreFile: string -> IgnoreFile option =
+        IgnoreFile.cachedFinder fs (IgnoreFile.loadIgnoreList fs)
 
-    plan fs silentLogger ignoreFile inputPath outputPath
+    plan fs silentLogger findIgnoreFile inputPath outputPath
+
+/// Plan against the given file system, honouring a `.fantomasignore` written in a subfolder.
+let private planIgnoringUnder
+    (fs: IFileSystem)
+    (folder: string)
+    (patterns: string)
+    (inputPath: InputPath)
+    (outputPath: OutputPath)
+    : Result<WorkItem list, InputProblem>
+    =
+    fs.Directory.CreateDirectory(folder) |> ignore
+    fs.File.WriteAllText(fs.Path.Combine(folder, IgnoreFile.IgnoreFileName), patterns)
+
+    plan fs silentLogger (IgnoreFile.cachedFinder fs (IgnoreFile.loadIgnoreList fs)) inputPath outputPath
 
 let private shouldPlan (expected: WorkItem list) (actual: Result<WorkItem list, InputProblem>) : unit =
     match actual with
@@ -54,11 +69,6 @@ let ``an unsupported file type is refused`` () =
 let ``a path that is not there is refused`` () =
     planOn (MockFileSystem()) (InputPath.NotFound "A.fs") OutputPath.NotKnown
     |> shouldRefuse (InputProblem.NotFound "A.fs")
-
-[<Test>]
-let ``no input path is refused`` () =
-    planOn (MockFileSystem()) InputPath.Unspecified OutputPath.NotKnown
-    |> shouldRefuse InputProblem.NoPathGiven
 
 [<Test>]
 let ``several input paths with an output path is refused`` () =
@@ -217,3 +227,37 @@ let ``an ignored file with an output path is skipped, so nothing is written ther
 
     planIgnoring fs "*.fs" (InputPath.File file) (OutputPath.IO(fs.Path.Combine(root, "out", "A.fs")))
     |> shouldPlan [ WorkItem.Ignored file ]
+
+[<Test>]
+let ``an ignore file in a subfolder governs the files beside it`` () =
+    // It used to be invisible to a run started above it. The daemon resolved the nearest ignore
+    // file to each file it was asked about while the command line resolved one for the whole run
+    // from the directory it started in, so the same file was skipped in an editor and formatted in
+    // a pipeline.
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let sub: string = fs.Path.Combine(root, "sub")
+    let outside: string = fs.Path.Combine(root, "R.fs")
+    let inside: string = fs.Path.Combine(sub, "S.fs")
+    fs.Directory.CreateDirectory sub |> ignore
+    fs.File.WriteAllText(outside, "let r = 1\n")
+    fs.File.WriteAllText(inside, "let s = 1\n")
+
+    planIgnoringUnder fs sub "S.fs" (InputPath.Folder root) OutputPath.NotKnown
+    |> shouldPlan [ WorkItem.Format(outside, outside); WorkItem.Ignored inside ]
+
+[<Test>]
+let ``the nearest ignore file wins rather than every one above it`` () =
+    // Where this differs from `.gitignore`, which is cumulative. The daemon has always taken the
+    // nearest only, and the command line now answers the same way.
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let sub: string = fs.Path.Combine(root, "sub")
+    let inside: string = fs.Path.Combine(sub, "S.fs")
+    fs.Directory.CreateDirectory sub |> ignore
+    fs.File.WriteAllText(inside, "let s = 1\n")
+    fs.File.WriteAllText(fs.Path.Combine(root, IgnoreFile.IgnoreFileName), "S.fs")
+
+    // The root would ignore it; the nearer one says nothing about it, and the nearer one is asked.
+    planIgnoringUnder fs sub "other.fs" (InputPath.Folder root) OutputPath.NotKnown
+    |> shouldPlan [ WorkItem.Format(inside, inside) ]

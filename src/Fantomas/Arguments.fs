@@ -262,7 +262,6 @@ type InputPath =
     | Multiple of files: string list * folder: string list
     | NoFSharpFile of string
     | NotFound of string
-    | Unspecified
 
 [<RequireQualifiedAccess; Struct>]
 type OutputPath =
@@ -270,8 +269,17 @@ type OutputPath =
     | NotKnown
 
 let classifyInputPath (fs: IFileSystem) (maybeInput: string list option) : InputPath =
-    match maybeInput with
-    | Some [ input ] ->
+    // A run that names no path works on the folder it was started in. `ruff format` and
+    // `dotnet format` both read a bare invocation that way, and the alternative was to refuse it,
+    // which taught nobody anything they could not have been told by doing the obvious thing.
+    let inputs: string list =
+        match maybeInput with
+        | Some(_ :: _ as inputs) -> inputs
+        | Some []
+        | None -> [ "." ]
+
+    match inputs with
+    | [ input ] ->
         if fs.Directory.Exists(input) then
             InputPath.Folder input
         elif fs.File.Exists input && isFSharpFile input then
@@ -280,7 +288,7 @@ let classifyInputPath (fs: IFileSystem) (maybeInput: string list option) : Input
             InputPath.NoFSharpFile input
         else
             InputPath.NotFound input
-    | Some inputs ->
+    | inputs ->
         let missing: string option =
             inputs
             |> List.tryFind (fun x -> not (fs.Directory.Exists(x) || fs.File.Exists(x)))
@@ -295,7 +303,6 @@ let classifyInputPath (fs: IFileSystem) (maybeInput: string list option) : Input
                 inputs |> List.partition (fun (path: string) -> fs.Directory.Exists path)
 
             InputPath.Multiple(files, folders)
-    | None -> InputPath.Unspecified
 
 let tryOut (given: Arguments list) : string option =
     given
@@ -323,7 +330,6 @@ let tryInput (given: Arguments list) : string list option =
 
 let describeInputPaths (inputPath: InputPath) : string =
     match inputPath with
-    | InputPath.Unspecified -> "."
     | InputPath.File file -> file
     | InputPath.Folder folder -> folder
     | InputPath.NoFSharpFile path -> path
@@ -375,9 +381,11 @@ let argumentsRefusedBy (command: Command) (given: Arguments list) : string list 
         // out, so nothing that says what to format, where to put it, or how to report it has
         // anything to apply to. `--daemon` is kept because it is one of the two ways of asking.
         | Command.Daemon -> argument = Arguments.Daemon
-        // A profile takes paths, and reports the only way it reports.
+        // A profile takes paths and reports the two ways every command reports. What it has no use
+        // for is where to put output and whether to write invalid code, because it writes nothing.
         | Command.Profile ->
             match argument with
+            | Arguments.Json
             | Arguments.Input _ -> true
             | _ -> false
 
