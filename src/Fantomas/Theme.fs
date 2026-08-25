@@ -1,6 +1,7 @@
 module Fantomas.Theme
 
 open System
+open System.Text
 open System.Text.RegularExpressions
 open Spectre.Console
 
@@ -52,30 +53,35 @@ let paletteOf (capabilities: Capabilities) (redirected: bool) : Palette =
     else
         Palette.FourBit
 
-let detectGlyphs (redirected: bool) : GlyphSet =
+// The encoding of the stream being asked about, not the console's. `Console.OutputEncoding` is one
+// answer for both streams, and pairing it with one stream's redirection is the same half measure the
+// colour detection above had: the question is what this stream will carry.
+let detectGlyphs (encoding: Encoding) (redirected: bool) : GlyphSet =
     // 65001 is UTF-8. A console on any other code page turns the nicer characters into mojibake,
     // and a redirected stream is being read by a build log or an agent, where the plain set is
     // what travels. Both carry the same five states rather than one of them carrying none.
-    if not redirected && Console.OutputEncoding.CodePage = 65001 then
+    if not redirected && encoding.CodePage = 65001 then
         GlyphSet.Unicode
     else
         GlyphSet.Ascii
 
-let themeOf (capabilities: Capabilities) (redirected: bool) : Theme =
+let themeOf (capabilities: Capabilities) (encoding: Encoding) (redirected: bool) : Theme =
     {
         Palette = paletteOf capabilities redirected
-        Glyphs = detectGlyphs redirected
+        Glyphs = detectGlyphs encoding redirected
     }
 
 // What the terminal can do is Spectre.Console's answer to give: it knows the TERM values, it
 // honours NO_COLOR, and it reports which colour system is available.
 let detect (redirected: bool) : Theme =
-    themeOf AnsiConsole.Profile.Capabilities redirected
+    themeOf AnsiConsole.Profile.Capabilities Console.Out.Encoding redirected
 
 let forOutput () : Theme = detect Console.IsOutputRedirected
 
+// Every part of this answers for standard error: its capabilities, its encoding and its
+// redirection. Two of the three used to come from standard out.
 let forError () : Theme =
-    themeOf errorConsole.Value.Profile.Capabilities Console.IsErrorRedirected
+    themeOf errorConsole.Value.Profile.Capabilities Console.Error.Encoding Console.IsErrorRedirected
 
 let plain: Theme =
     {

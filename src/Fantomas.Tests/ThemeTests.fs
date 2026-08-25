@@ -104,6 +104,22 @@ let ``a two column row starts its right hand column where it was asked to`` () =
     plain.IndexOf("Report", StringComparison.Ordinal) |> shouldEqual 20
 
 [<Test>]
+let ``a stream that is not UTF-8 gets the plain glyphs`` () =
+    // A single byte code page, which is what a Windows console defaults to and what turns the nicer
+    // characters into mojibake. `Encoding.Latin1` stands in for it because the console's own 437
+    // needs a code page provider registered, and what is being pinned is the rule rather than the
+    // number. The encoding asked about is the stream's own: `Console.OutputEncoding` is one answer
+    // for standard out and standard error together, and this is a question about one of them.
+    detectGlyphs System.Text.Encoding.Latin1 false |> shouldEqual GlyphSet.Ascii
+
+    detectGlyphs System.Text.Encoding.UTF8 false |> shouldEqual GlyphSet.Unicode
+
+[<Test>]
+let ``a redirected stream gets the plain glyphs whatever it is encoded as`` () =
+    // A build log or an agent is reading it, and the plain set is what travels.
+    detectGlyphs System.Text.Encoding.UTF8 true |> shouldEqual GlyphSet.Ascii
+
+[<Test>]
 let ``the plain theme takes neither colour nor the nicer glyphs`` () =
     // What the daemon hands an editor and what a test asserts against, named once rather than built
     // where it is needed.

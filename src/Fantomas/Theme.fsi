@@ -20,6 +20,12 @@ type GlyphSet =
 [<Struct>]
 type Theme = { Palette: Palette; Glyphs: GlyphSet }
 
+/// Which characters a stream will carry: `Unicode` when its own encoding is UTF-8 and it is not
+/// redirected, `Ascii` otherwise. The encoding is passed in rather than read from the console,
+/// because `Console.OutputEncoding` is one answer for both streams and this is a question about one
+/// of them.
+val detectGlyphs: encoding: System.Text.Encoding -> redirected: bool -> GlyphSet
+
 /// What standard out will take, given whether it is redirected. Colour is dropped when the stream
 /// is redirected, so piping into a file, a pager or a build log yields plain text.
 val detect: redirected: bool -> Theme
