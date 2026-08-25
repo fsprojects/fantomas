@@ -346,7 +346,7 @@ You can skip this step if you wish to install Fantomas globally.</p>
 <p>For the overview how to use the tool, you can type the command</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="o">--</span><span class="id">help</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code>Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-016+bb6451164)
+<table class="pre"><tr><td><pre><code>Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-016+dc6ceb444)
 
 Usage: dotnet fantomas [command] [...flags] [...paths]
 
@@ -363,6 +363,14 @@ Commands:
       profile &lt;paths&gt;        Report how long each file takes to format, slowest first.
                              Formats one file at a time so the timings can be compared,
                              and writes nothing.
+      doctor &lt;file&gt;          Walk one file through everything Fantomas does to it and
+                             report what happened at each step: whether it is a file
+                             Fantomas formats, which .fantomasignore governs it and which
+                             line of it decided, which settings apply and where each came
+                             from, what formatting produced, whether Fantomas accepts its
+                             own output, and whether formatting that output again leaves
+                             it alone. Takes one file rather than a folder, and writes
+                             nothing.
       daemon                 Run an LSP-like server that editor tooling can talk to.
                              Takes no paths or other flags, apart from --verbosity.
 
@@ -372,8 +380,8 @@ Flags:
       --force                Write the output even when it is not valid F# code.
                              For debugging purposes only.
       --json                 Report what the run did as one JSON document on standard out,
-                             naming every file and positioning what went wrong. The usual
-                             messages are not printed; warnings go to standard error.
+                             naming what it looked at and positioning what went wrong. The
+                             usual messages are not printed; warnings go to standard error.
                              The shape is for reading, not for parsing against: it carries
                              no version and may change in any release. The exit code is
                              the part that is promised.
@@ -416,7 +424,6 @@ read it:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fantomas --json ./src
 </code></pre></td></tr></table>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="json">{
-  "version": 1,
   "command": "format",
   "workingDirectory": "/home/you/my-project",
   "exitCode": 0,
@@ -431,17 +438,21 @@ read it:</p>
 Warnings, such as an <code>.editorconfig</code> setting Fantomas does not know, still go to standard error.
 The exit code is unchanged from a run without the flag, and is in the document as well, so a
 caller that captured the output has it either way.</p>
-<p>Both commands list every file they looked at. <code>status</code> is one of <code>formatted</code>, <code>unchanged</code>,
-<code>ignored</code>, <code>needs-formatting</code> or <code>error</code>. Which of them can appear depends on <code>command</code>, which is
-<code>format</code> or <code>check</code>: a check writes nothing, so it reports <code>needs-formatting</code> where a format run
-reports <code>formatted</code>.</p>
+<p><code>files</code> is every file the run looked at. <code>status</code> is one of <code>formatted</code>, <code>unchanged</code>,
+<code>needs-formatting</code>, <code>timed</code> or <code>error</code>, and which of them can appear depends on <code>command</code>, which is
+<code>format</code>, <code>check</code> or <code>profile</code>: a check writes nothing, so it reports <code>needs-formatting</code> where a
+format run reports <code>formatted</code>, and only a profile run reports <code>timed</code>.</p>
+<p>A file that a <code>.fantomasignore</code> matched is not listed and is not counted anywhere either. There is
+no honest number for it: a pattern that names a file can be counted, and one that names a folder
+cannot, because the folder is never opened and what is inside it is as unknown as what is inside a
+folder that is not there. <code>fantomas doctor &lt;file&gt;</code> is what answers that question about a path you
+name, and it answers it exactly.</p>
 <p>A file's <code>path</code> is the one you gave, so it is usually relative. <code>workingDirectory</code> is what it is
 relative to, and the absolute path is the two joined. They are apart rather than resolved per file
 so that a run over a thousand files does not repeat the same prefix a thousand times.</p>
 <p>A file with status <code>error</code> carries two more keys, and no other file does. A run where one file
 could not be parsed reports the whole thing like this:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="json">{
-  "version": 1,
   "command": "format",
   "workingDirectory": "/home/you/my-project",
   "exitCode": 1,
@@ -451,7 +462,7 @@ could not be parsed reports the whole thing like this:</p>
     {
       "path": "./src/Broken.fs",
       "status": "error",
-      "message": "Fantomas could not parse ./src/Broken.fs",
+      "message": "./src/Broken.fs could not be parsed by Fantomas",
       "diagnostics": [
         {
           "severity": "error",
@@ -468,10 +479,89 @@ could not be parsed reports the whole thing like this:</p>
 <code>error</code> is still <code>null</code> here: it is not where a file's failure is reported, but what stopped the run
 before it reached any file at all, such as an input path that does not exist. The other files are
 formatted as usual, and the run ends with exit code 1.</p>
-<p><code>version</code> is the version of the document itself. It goes up when a key changes meaning or leaves,
-not when one is added, so a reader that ignores what it does not recognise keeps working.</p>
+<p>The document carries no version, and that is the promise rather than an omission. A version number
+says a shape is a contract somebody is maintaining, and this one is not: it exists so that a machine
+reading a run can see what happened, which is a job that tolerates the shape moving. What is written
+here may change in any release. The exit code is the part that is promised.</p>
 <p><code>--json</code> cannot be combined with <code>--daemon</code>, where standard out already carries the JSON-RPC
 protocol.</p>
+<h3><a name="Diagnosing-one-file" class="anchor" href="#Diagnosing-one-file">Diagnosing one file</a></h3>
+<p><em>starting version 8.0</em></p>
+<p><code>doctor</code> walks one file through everything Fantomas does to it and reports what happened at each
+step. It writes nothing, so it is safe against a working tree you have not committed, and it is
+what to reach for when Fantomas did something to a file you did not expect, or did nothing to a
+file you expected it to touch.</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fantomas doctor src/App.fs
+</code></pre></td></tr></table>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Fantomas</span> <span class="n">8.0</span><span class="pn">.</span><span class="n">0</span><span class="o">+</span><span class="n">8f4c2b1a9</span> <span class="id">on</span> <span class="o">/</span><span class="id">home</span><span class="o">/</span><span class="id">you</span><span class="o">/</span><span class="id">my</span><span class="o">-</span><span class="id">project</span><span class="o">/</span><span class="id">src</span><span class="o">/</span><span class="id">App</span><span class="pn">.</span><span class="id">fs</span>
+
+<span class="o">+</span> <span class="id">File</span>        <span class="id">Found</span> <span class="id">on</span> <span class="id">disk</span><span class="pn">:</span> <span class="id">an</span> <span class="id">implementation</span> <span class="id">file</span> <span class="k">of</span> <span class="n">214</span> <span class="id">lines</span><span class="pn">.</span>
+<span class="o">+</span> <span class="id">Ignore</span>      <span class="id">Governed</span> <span class="id">by</span> <span class="o">/</span><span class="id">home</span><span class="o">/</span><span class="id">you</span><span class="o">/</span><span class="id">my</span><span class="o">-</span><span class="id">project</span><span class="o">/.</span><span class="id">fantomasignore</span><span class="pn">,</span> <span class="k">and</span> <span class="id">no</span> <span class="id">pattern</span> <span class="k">in</span> <span class="id">it</span> <span class="id">matches</span><span class="pn">.</span>
+<span class="o">+</span> <span class="id">Settings</span>    <span class="n">2</span> <span class="k">of</span> <span class="n">36</span> <span class="id">settings</span> <span class="id">come</span> <span class="id">from</span> <span class="o">/</span><span class="id">home</span><span class="o">/</span><span class="id">you</span><span class="o">/</span><span class="id">my</span><span class="o">-</span><span class="id">project</span><span class="o">/.</span><span class="id">editorconfig</span> <span class="k">and</span>
+              <span class="o">/</span><span class="id">home</span><span class="o">/</span><span class="id">you</span><span class="o">/</span><span class="id">my</span><span class="o">-</span><span class="id">project</span><span class="o">/</span><span class="id">src</span><span class="o">/.</span><span class="id">editorconfig</span><span class="pn">,</span> <span class="id">the</span> <span class="id">rest</span> <span class="id">are</span> <span class="id">Fantomas</span> <span class="id">defaults</span><span class="pn">.</span>
+
+              <span class="id">max_line_length</span> <span class="o">=</span> <span class="n">100</span>                        <span class="o">/</span><span class="id">home</span><span class="o">/</span><span class="id">you</span><span class="o">/</span><span class="id">my</span><span class="o">-</span><span class="id">project</span><span class="o">/.</span><span class="id">editorconfig</span>
+              <span class="id">fsharp_multiline_bracket_style</span> <span class="o">=</span> <span class="id">stroustrup</span>  <span class="o">/</span><span class="id">home</span><span class="o">/</span><span class="id">you</span><span class="o">/</span><span class="id">my</span><span class="o">-</span><span class="id">project</span><span class="o">/</span><span class="id">src</span><span class="o">/.</span><span class="id">editorconfig</span>
+
+              <span class="id">end_of_line</span> <span class="o">=</span> <span class="id">lf</span>                             <span class="id">the</span> <span class="id">Fantomas</span> <span class="k">default</span>
+              <span class="id">indent_size</span> <span class="o">=</span> <span class="n">4</span>                              <span class="id">the</span> <span class="id">Fantomas</span> <span class="k">default</span>
+              <span class="id">insert_final_newline</span> <span class="o">=</span> <span class="k">true</span>                  <span class="id">the</span> <span class="id">Fantomas</span> <span class="k">default</span>
+              <span class="o">..</span><span class="pn">.</span>
+<span class="o">!</span> <span data-fsdocs-tip="fs22" data-fsdocs-tip-unique="33" class="id">Format</span>      <span class="id">Not</span> <span class="id">formatted</span><span class="pn">:</span> <span class="id">the</span> <span class="id">first</span> <span class="id">change</span> <span class="id">is</span> <span class="id">at</span> <span class="id">line</span> <span class="n">37.</span>
+<span class="o">+</span> <span class="id">Valid</span>       <span class="id">Fantomas</span> <span class="id">accepts</span> <span class="id">what</span> <span class="id">it</span> <span class="id">produced</span><span class="pn">.</span>
+<span class="o">+</span> <span class="id">Idempotent</span>  <span class="id">Formatting</span> <span class="id">the</span> <span class="id">result</span> <span class="id">again</span> <span class="id">changes</span> <span class="id">nothing</span><span class="pn">.</span>
+</code></pre>
+<p>The opening line carries the whole version, commit hash and all, where every other page trims it to
+the short form. This report is what gets pasted into a bug report, and the build that produced it is
+the first thing whoever reads it has to know.</p>
+<p>The steps are the ones Fantomas takes, in the order it takes them, and each one gates the next:</p>
+<ul>
+<li>
+<strong>File</strong> — is there a file at that path at all, and is it one Fantomas formats? A <code>.fsx</code> is
+named as a script and a <code>.fsi</code> as a signature file, since which of the three it is decides how
+Fantomas parses it. A file under a folder a compiler
+or a package manager wrote, such as <code>obj</code>, is named as such: a run over the tree above it never
+opens that folder, so the file is invisible to it however the ignore file is written.
+</li>
+<li>
+<strong>Ignore</strong> — which <code>.fantomasignore</code> governs the file, and which line of it decided, quoted with
+its line number. Only the nearest one at or above the file applies; unlike <code>.gitignore</code>, Fantomas
+does not merge in the ones above it. A file an ignore file matches stops the walk here, because
+that is where Fantomas stops with it too.
+</li>
+<li>
+<strong>Settings</strong> — every setting the file will be formatted with, and for each one that an
+<code>.editorconfig</code> set, which file set it. What an <code>.editorconfig</code> decided comes first, then a blank
+line, then everything left at its Fantomas default. The line above them names the files that set
+something, which is not always every file in the chain. Anything Fantomas could not use out of
+the chain is reported here too, below both.
+</li>
+<li>
+<strong>Format</strong> — whether the file would be rewritten, and where it first parts from the result. That
+is decided the way a format run decides it, by comparing the text as it is, so a file whose line
+endings are the only thing out of step is reported as needing formatting rather than as already
+formatted. A file that will not parse fails here, with the parser's diagnostics and a snippet
+under the table.
+</li>
+<li>
+<strong>Valid</strong> — whether Fantomas accepts what it produced. It always should; when it does not, that
+is a bug in Fantomas rather than a problem with the file.
+</li>
+<li>
+<strong>Idempotent</strong> — whether formatting the result again leaves it alone. It should, and when it does
+not the file keeps changing under a formatter that is run twice.
+</li>
+</ul>
+<p>A step the walk never reached is named below the table with the reason it was not looked at, rather
+than left out or shown as having found nothing.</p>
+<p><code>doctor</code> takes one file rather than a folder, because the answers differ per file and a table per
+file is not a report. It exits 0 for a file it could diagnose, whatever it found, and 1 when the
+path is not a file it can look at or when a step failed: a file that will not format, output
+Fantomas will not accept, or a second pass that changed the first. A file that needs formatting is
+not a failure; <code>fantomas check</code> is what fails over that.</p>
+<p><code>--json</code> writes the same walk as one document, with a key per step and <code>null</code> where the walk
+stopped before reaching it. The <code>configuration</code> key carries every setting, with <code>setBy</code> naming the
+file for each one an <code>.editorconfig</code> set and <code>null</code> for the rest.</p>
 <h3><a name="Multiple-paths" class="anchor" href="#Multiple-paths">Multiple paths</a></h3>
 <p><em>starting version 4.5</em></p>
 <p>Multiple paths can be passed as last argument, these can be both files and folders.
@@ -551,6 +641,7 @@ function Format-Changed(){
 <div popover class="fsdocs-tip" id="fs19">Process.WaitForExit() : unit<br />Process.WaitForExit(timeout: System.TimeSpan) : bool<br />Process.WaitForExit(milliseconds: int) : bool</div>
 <div popover class="fsdocs-tip" id="fs20">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
 <div popover class="fsdocs-tip" id="fs21">type &#39;T array = &#39;T array</div>
+<div popover class="fsdocs-tip" id="fs22">Multiple items<br />type Format&lt;&#39;Printer,&#39;State,&#39;Residue,&#39;Result&gt; = PrintfFormat&lt;&#39;Printer,&#39;State,&#39;Residue,&#39;Result&gt;<br /><br />--------------------<br />type Format&lt;&#39;Printer,&#39;State,&#39;Residue,&#39;Result,&#39;Tuple&gt; = PrintfFormat&lt;&#39;Printer,&#39;State,&#39;Residue,&#39;Result,&#39;Tuple&gt;</div>
 
     </div>
 </main>
@@ -575,6 +666,11 @@ function Format-Changed(){
   <li class="level-3">
     <a href="#JSON-output">
       JSON output
+    </a>
+  </li>
+  <li class="level-3">
+    <a href="#Diagnosing-one-file">
+      Diagnosing one file
     </a>
   </li>
   <li class="level-3">

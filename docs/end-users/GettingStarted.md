@@ -43,7 +43,7 @@ dotnet fantomas --help
 ```
 
 ```
-Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-016+bb6451164)
+Fantomas is an opinionated source code formatter for F#. (8.0.0-alpha-016+dc6ceb444)
 
 Usage: dotnet fantomas [command] [...flags] [...paths]
 
@@ -60,6 +60,14 @@ Commands:
       profile <paths>        Report how long each file takes to format, slowest first.
                              Formats one file at a time so the timings can be compared,
                              and writes nothing.
+      doctor <file>          Walk one file through everything Fantomas does to it and
+                             report what happened at each step: whether it is a file
+                             Fantomas formats, which .fantomasignore governs it and which
+                             line of it decided, which settings apply and where each came
+                             from, what formatting produced, whether Fantomas accepts its
+                             own output, and whether formatting that output again leaves
+                             it alone. Takes one file rather than a folder, and writes
+                             nothing.
       daemon                 Run an LSP-like server that editor tooling can talk to.
                              Takes no paths or other flags, apart from --verbosity.
 
@@ -69,8 +77,8 @@ Flags:
       --force                Write the output even when it is not valid F# code.
                              For debugging purposes only.
       --json                 Report what the run did as one JSON document on standard out,
-                             naming every file and positioning what went wrong. The usual
-                             messages are not printed; warnings go to standard error.
+                             naming what it looked at and positioning what went wrong. The
+                             usual messages are not printed; warnings go to standard error.
                              The shape is for reading, not for parsing against: it carries
                              no version and may change in any release. The exit code is
                              the part that is promised.
@@ -123,7 +131,6 @@ read it:
 dotnet fantomas --json ./src
 
 {
-  "version": 1,
   "command": "format",
   "workingDirectory": "/home/you/my-project",
   "exitCode": 0,
@@ -139,10 +146,16 @@ Warnings, such as an `.editorconfig` setting Fantomas does not know, still go to
 The exit code is unchanged from a run without the flag, and is in the document as well, so a
 caller that captured the output has it either way.
 
-Both commands list every file they looked at. `status` is one of `formatted`, `unchanged`,
-`ignored`, `needs-formatting` or `error`. Which of them can appear depends on `command`, which is
-`format` or `check`: a check writes nothing, so it reports `needs-formatting` where a format run
-reports `formatted`.
+`files` is every file the run looked at. `status` is one of `formatted`, `unchanged`,
+`needs-formatting`, `timed` or `error`, and which of them can appear depends on `command`, which is
+`format`, `check` or `profile`: a check writes nothing, so it reports `needs-formatting` where a
+format run reports `formatted`, and only a profile run reports `timed`.
+
+A file that a `.fantomasignore` matched is not listed and is not counted anywhere either. There is
+no honest number for it: a pattern that names a file can be counted, and one that names a folder
+cannot, because the folder is never opened and what is inside it is as unknown as what is inside a
+folder that is not there. `fantomas doctor <file>` is what answers that question about a path you
+name, and it answers it exactly.
 
 A file's `path` is the one you gave, so it is usually relative. `workingDirectory` is what it is
 relative to, and the absolute path is the two joined. They are apart rather than resolved per file
@@ -152,7 +165,6 @@ A file with status `error` carries two more keys, and no other file does. A run 
 could not be parsed reports the whole thing like this:
 
 {
-  "version": 1,
   "command": "format",
   "workingDirectory": "/home/you/my-project",
   "exitCode": 1,
@@ -162,7 +174,7 @@ could not be parsed reports the whole thing like this:
     {
       "path": "./src/Broken.fs",
       "status": "error",
-      "message": "Fantomas could not parse ./src/Broken.fs",
+      "message": "./src/Broken.fs could not be parsed by Fantomas",
       "diagnostics": [
         {
           "severity": "error",
@@ -180,11 +192,88 @@ Lines and columns are both one based, the way the F# compiler prints them. Note 
 before it reached any file at all, such as an input path that does not exist. The other files are
 formatted as usual, and the run ends with exit code 1.
 
-`version` is the version of the document itself. It goes up when a key changes meaning or leaves,
-not when one is added, so a reader that ignores what it does not recognise keeps working.
+The document carries no version, and that is the promise rather than an omission. A version number
+says a shape is a contract somebody is maintaining, and this one is not: it exists so that a machine
+reading a run can see what happened, which is a job that tolerates the shape moving. What is written
+here may change in any release. The exit code is the part that is promised.
 
 `--json` cannot be combined with `--daemon`, where standard out already carries the JSON-RPC
 protocol.
+
+### Diagnosing one file
+
+*starting version 8.0*
+
+`doctor` walks one file through everything Fantomas does to it and reports what happened at each
+step. It writes nothing, so it is safe against a working tree you have not committed, and it is
+what to reach for when Fantomas did something to a file you did not expect, or did nothing to a
+file you expected it to touch.
+
+dotnet fantomas doctor src/App.fs
+
+```fsharp
+Fantomas 8.0.0+8f4c2b1a9 on /home/you/my-project/src/App.fs
+
++ File        Found on disk: an implementation file of 214 lines.
++ Ignore      Governed by /home/you/my-project/.fantomasignore, and no pattern in it matches.
++ Settings    2 of 36 settings come from /home/you/my-project/.editorconfig and
+              /home/you/my-project/src/.editorconfig, the rest are Fantomas defaults.
+
+              max_line_length = 100                        /home/you/my-project/.editorconfig
+              fsharp_multiline_bracket_style = stroustrup  /home/you/my-project/src/.editorconfig
+
+              end_of_line = lf                             the Fantomas default
+              indent_size = 4                              the Fantomas default
+              insert_final_newline = true                  the Fantomas default
+              ...
+! Format      Not formatted: the first change is at line 37.
++ Valid       Fantomas accepts what it produced.
++ Idempotent  Formatting the result again changes nothing.
+
+```
+
+The opening line carries the whole version, commit hash and all, where every other page trims it to
+the short form. This report is what gets pasted into a bug report, and the build that produced it is
+the first thing whoever reads it has to know.
+
+The steps are the ones Fantomas takes, in the order it takes them, and each one gates the next:
+
+* **File** — is there a file at that path at all, and is it one Fantomas formats? A `.fsx` is
+named as a script and a `.fsi` as a signature file, since which of the three it is decides how
+Fantomas parses it. A file under a folder a compiler
+or a package manager wrote, such as `obj`, is named as such: a run over the tree above it never
+opens that folder, so the file is invisible to it however the ignore file is written.
+* **Ignore** — which `.fantomasignore` governs the file, and which line of it decided, quoted with
+its line number. Only the nearest one at or above the file applies; unlike `.gitignore`, Fantomas
+does not merge in the ones above it. A file an ignore file matches stops the walk here, because
+that is where Fantomas stops with it too.
+* **Settings** — every setting the file will be formatted with, and for each one that an
+`.editorconfig` set, which file set it. What an `.editorconfig` decided comes first, then a blank
+line, then everything left at its Fantomas default. The line above them names the files that set
+something, which is not always every file in the chain. Anything Fantomas could not use out of
+the chain is reported here too, below both.
+* **Format** — whether the file would be rewritten, and where it first parts from the result. That
+is decided the way a format run decides it, by comparing the text as it is, so a file whose line
+endings are the only thing out of step is reported as needing formatting rather than as already
+formatted. A file that will not parse fails here, with the parser's diagnostics and a snippet
+under the table.
+* **Valid** — whether Fantomas accepts what it produced. It always should; when it does not, that
+is a bug in Fantomas rather than a problem with the file.
+* **Idempotent** — whether formatting the result again leaves it alone. It should, and when it does
+not the file keeps changing under a formatter that is run twice.
+
+A step the walk never reached is named below the table with the reason it was not looked at, rather
+than left out or shown as having found nothing.
+
+`doctor` takes one file rather than a folder, because the answers differ per file and a table per
+file is not a report. It exits 0 for a file it could diagnose, whatever it found, and 1 when the
+path is not a file it can look at or when a step failed: a file that will not format, output
+Fantomas will not accept, or a second pass that changed the first. A file that needs formatting is
+not a failure; `fantomas check` is what fails over that.
+
+`--json` writes the same walk as one document, with a key per step and `null` where the walk
+stopped before reaching it. The `configuration` key carries every setting, with `setBy` naming the
+file for each one an `.editorconfig` set and `null` for the rest.
 
 ### Multiple paths
 

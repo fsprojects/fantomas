@@ -22,8 +22,17 @@ Exclusion applies both to formatting and the format checking.
 *.fsx
 ```
 
-Note that Fantomas only searches for a `.fantomasignore` file in or above its current working directory, if one exists; unlike Git, it does not traverse the filesystem for each input file to find an appropriate ignore file.
-(This is not true of the Fantomas daemon. The daemon can't rely on being invoked from the right place, and indeed there may not even be a well-defined notion of "right place" for the formatting tasks the daemon is required to perform, so it does search the filesystem for every file individually.)
+Note that the `.fantomasignore` that governs a file is the nearest one at or above that file, and only that one. Unlike Git, Fantomas does not merge in the ignore files above it, so a pattern in a parent repository's ignore file has no effect on a file that has one of its own beside it.
+
+*starting version 8.0*, the command line resolves this per file, which is what the daemon has always done. Before that it resolved a single ignore file for the whole run from the directory it was started in, so an ignore file in a subfolder was honoured by an editor and invisible to a pipeline.
+
+If you are not sure which ignore file governs a given source file, or which line of it decided, ask:
+
+```bash
+dotnet fantomas doctor src/App.fs
+```
+
+It names the ignore file, quotes the line that matched with its line number, and writes nothing. See [Getting Started](./GettingStarted.html) for the rest of what it reports.
 
 Also note that if you are less familiar with `.gitignore`, `.gitgnore` processes everything using Unix slashes `/`.  
 Windows slashes `\` will not work correctly. See [official Git documentation](https://git-scm.com/docs/gitignore#_pattern_format) for more info.
