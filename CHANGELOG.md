@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [8.0.0-alpha-017] - 2026-08-25
 
 ### Added
 
@@ -15,6 +15,10 @@
 - Breaking: that report carries what the parser said about the rejected output, and the lines of the output around it with a caret under the failure, so there is a small reproduction to cut from it. Up to now the run said only that something was invalid, and finding out what meant running again with `--force` and reading the result. The diagnostics carry no line and column of their own: the output they would count into is written nowhere, so a position in it is a coordinate you cannot follow, and a path an editor could open would take you to the wrong line of the right file. The carets say where, and the report says out loud that the lines below it are the output rather than your file. `--json` carries the same diagnostics in the `diagnostics` array a parse failure already uses. `fantomas check` reports all of it the same way, where it used to run the whole explanation on after `could not be checked:`. [#3419](https://github.com/fsprojects/fantomas/pull/3419)
 - The two reports that ask you to file a bug, for output Fantomas would not accept and for a construct it cannot model, name one place to send it rather than two. They used to add the issue tracker as an alternative for a file too large for the online tool to carry, which offered a choice at the point somebody least wants one. [#3419](https://github.com/fsprojects/fantomas/pull/3419)
 - Breaking: `Fantomas.Core.CodeFormatter.IsValidFSharpCodeAsync` became `ValidateFSharpCodeAsync` and answers with a `ValidationResult` rather than a `bool`. Read `.IsValid` off it where the verdict was all you wanted; `.Diagnostics` is what Fantomas refused, positioned, and is empty exactly when the source is valid. The boolean discarded it, so anything that had to say why had to parse the source a second time to find out, which is why the tool could not show you its own bad output. A warning Fantomas tolerates, such as [#3396](https://github.com/fsprojects/fantomas/issues/3396) on IWSAM types, is not among them. [#3419](https://github.com/fsprojects/fantomas/pull/3419)
+
+### Fixed
+
+- A `[<return: ...>]` attribute written in front of an `extern` declaration was dropped from the output. The parser moves such an attribute out of the binding's attribute list and into its arity information, and the `extern` path never looked there, so the line was silently deleted. Bindings already put those attributes back; `extern` now does the same. An attribute written on the return type itself, `extern [<MarshalAs(UnmanagedType.I1)>] bool f(int options)`, is reported in both places and stays where it was written. [#3420](https://github.com/fsprojects/fantomas/issues/3420)
 
 ## [8.0.0-alpha-016] - 2026-08-25
 
