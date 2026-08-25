@@ -55,8 +55,19 @@ type CodeFormatter =
     static member FormatSelectionAsync:
         isSignature: bool * source: string * selection: range * config: FormatConfig -> Async<string * range>
 
-    /// Check whether an input string is invalid in F# by attempting to parse the code.
-    static member IsValidFSharpCodeAsync: isSignature: bool * source: string -> Async<bool>
+    /// <summary>
+    /// Check whether an input string is valid F# by attempting to parse the code, and report what
+    /// about it is not when it is not.
+    /// </summary>
+    /// <remarks>
+    /// This replaces <c>IsValidFSharpCodeAsync</c>, which answered with a bare boolean. A caller
+    /// that has to tell somebody why the source was refused could not reconstruct the reason from
+    /// that answer, and asking a second time would parse the source a second time. Read
+    /// <c>IsValid</c> off the result where the verdict alone is what was wanted.
+    /// </remarks>
+    /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
+    /// <param name="source">F# source code</param>
+    static member ValidateFSharpCodeAsync: isSignature: bool * source: string -> Async<ValidationResult>
 
     /// Returns the version of Fantomas found in the AssemblyInfo
     static member GetVersion: unit -> string

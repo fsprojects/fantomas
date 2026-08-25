@@ -57,8 +57,8 @@ type CodeFormatter =
         CodeFormatterImpl.getSourceText source
         |> Selection.formatSelection config isSignature selection
 
-    static member IsValidFSharpCodeAsync(isSignature: bool, source: string) =
-        Validation.isValidFSharpCode isSignature source
+    static member ValidateFSharpCodeAsync(isSignature: bool, source: string) =
+        Validation.validateFSharpCode isSignature source
 
     static member GetVersion() = Version.fantomasVersion.Value
 

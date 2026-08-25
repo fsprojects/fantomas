@@ -113,6 +113,40 @@ let snippet (theme: Theme) (lines: string array) (range: range) : string list =
                     yield String.Concat(blankGutter, " ", indent, negative theme carets)
         ]
 
+// Where to draw the caret. The first error by position, since in an offside cascade that is the
+// line that caused it rather than the innocent line the parser gave up on. Falling back to the
+// first diagnostic that has a range at all, for a report whose diagnostics are warnings that
+// Fantomas will not tolerate and which therefore has no error to point at.
+let caretTarget (ordered: FSharpParserDiagnostic list) : range option =
+    let firstError: range option =
+        ordered
+        |> List.tryPick (fun diagnostic ->
+            match diagnostic.Severity, diagnostic.Range with
+            | FSharpDiagnosticSeverity.Error, Some range -> Some range
+            | _ -> None
+        )
+
+    match firstError with
+    | Some range -> Some range
+    | None -> List.tryPick (fun (diagnostic: FSharpParserDiagnostic) -> diagnostic.Range) ordered
+
+// The snippet as a section of a report: a blank line and then the lines, or nothing at all when
+// there is no source to draw from and no range to draw at. Every report here places it the same
+// way, so where the blank line goes is decided once.
+let snippetFor (theme: Theme) (source: string) (target: range option) : string list =
+    match target with
+    | None -> []
+    | Some range ->
+        if String.IsNullOrEmpty source then
+            []
+        else
+
+        let lines: string array = source.Replace("\r\n", "\n").Split('\n')
+
+        match snippet theme lines range with
+        | [] -> []
+        | snippetLines -> "" :: snippetLines
+
 let renderParseFailure
     (theme: Theme)
     (file: string)
@@ -122,28 +156,9 @@ let renderParseFailure
     =
     let ordered = List.sortBy position diagnostics
 
-    let snippetLines =
-        if String.IsNullOrEmpty source then
-            []
-        else
-            // The caret goes on the first error rather than the first diagnostic. A warning can
-            // sort ahead of the error that stopped the parse, and it is not why the file failed.
-            let firstError =
-                ordered
-                |> List.tryPick (fun diagnostic ->
-                    match diagnostic.Severity, diagnostic.Range with
-                    | FSharpDiagnosticSeverity.Error, Some range -> Some range
-                    | _ -> None
-                )
-
-            match firstError with
-            | None -> []
-            | Some range ->
-                let lines = source.Replace("\r\n", "\n").Split('\n')
-
-                match snippet theme lines range with
-                | [] -> []
-                | snippetLines -> "" :: snippetLines
+    // The caret goes on the first error rather than the first diagnostic. A warning can sort ahead
+    // of the error that stopped the parse, and it is not why the file failed.
+    let snippetLines: string list = snippetFor theme source (caretTarget ordered)
 
     // The report ends with a blank line as well as starting with one, so that a run over several
     // files does not have one file's snippet running into the next file's header.
@@ -160,6 +175,26 @@ let describeParseFailure (theme: Theme) (file: string) (source: unit -> string) 
     match error with
     | :? ParseException as parseFailure -> Some(renderParseFailure theme file (source ()) parseFailure.Diagnostics)
     | _ -> None
+
+// The same request, worded once, so that the two failures Fantomas has to own up to cannot come to
+// ask for a report in two different ways. What differs is the evidence worth sending: one of these
+// points at a construct in the file and the other at what the whole file was turned into.
+//
+// One place to send it. It used to name the issue tracker as well, for a file too large for the
+// tool to carry, which offered a reader a choice at the moment they have least appetite for one and
+// pointed half of them at the slower path. If the tool cannot take a file that size, that is the
+// tool's problem to fix rather than a fork to put in front of somebody reporting a bug.
+//
+// The place to report it is somewhere the reader can go, which is the one thing colour marks in
+// prose, so it is coloured as the link it is and the sentence around it is left alone.
+let reportAsBug (theme: Theme) (evidence: string) : string =
+    String.Concat(
+        "This is a bug in Fantomas, not a problem with your code. Please report it with ",
+        evidence,
+        " via ",
+        link theme "https://fsprojects.github.io/fantomas-tools/",
+        "."
+    )
 
 let renderInvariantViolation
     (theme: Theme)
@@ -180,15 +215,7 @@ let renderInvariantViolation
 
         $"%s{link theme location}: %s{severity}: %s{violation.Invariant}"
 
-    let snippetLines: string list =
-        if String.IsNullOrEmpty source then
-            []
-        else
-            let lines: string array = source.Replace("\r\n", "\n").Split('\n')
-
-            match snippet theme lines violation.Range with
-            | [] -> []
-            | snippetLines -> "" :: snippetLines
+    let snippetLines: string list = snippetFor theme source (Some violation.Range)
 
     // The dump of the syntax tree node is what tells a maintainer which parser shape went
     // unhandled, and it is noise to everyone else, so it is shown only when asked for.
@@ -199,17 +226,7 @@ let renderInvariantViolation
             [ ""; "Syntax tree node:"; "" ]
             @ List.ofArray (violation.SyntaxNode.Split('\n'))
 
-    // The two places to report it are somewhere the reader can go, which is the one thing colour
-    // marks in prose, so they are coloured as the links they are and the sentence around them is
-    // left alone.
-    let reportIt: string =
-        String.Concat(
-            "This is a bug in Fantomas, not a problem with your code. Please report it with the snippet above via ",
-            link theme "https://fsprojects.github.io/fantomas-tools/",
-            ", or at ",
-            link theme "https://github.com/fsprojects/fantomas/issues/new",
-            " if the file is too large for the tool to carry."
-        )
+    let reportIt: string = reportAsBug theme "the snippet above"
 
     [
         yield $"%s{link theme file} could not be formatted by Fantomas:"
@@ -235,3 +252,68 @@ let describeInvariantViolation
     | :? InvariantViolationException as violation ->
         Some(renderInvariantViolation theme file (source ()) verbose violation)
     | _ -> None
+
+// Paragraph one of the report, and the opening of the message the failure carries. Split out
+// because the report puts the parser's own words between it and the request for a report, and the
+// message does not. Nothing in it is coloured, so it needs no theme.
+let invalidOutputSummary: string =
+    "Fantomas formatted this file and then found that its own output did not pass validation, so the output was thrown away and your file is unchanged."
+
+// Asked in one place so that the report and the message cannot come to send a reader after
+// different things. The file, because it is the input that reproduces this and the only part of it
+// the reader still has: the output that failed is thrown away.
+let invalidOutputReportRequest (theme: Theme) : string = reportAsBug theme "the file"
+
+let invalidOutputExplanation (theme: Theme) : string =
+    String.Concat(invalidOutputSummary, "\n\n", invalidOutputReportRequest theme)
+
+// No position, which is the one thing this drops from the shape every other diagnostic here is
+// printed in. A position is somewhere to go, and there is nowhere to go: the output it counts lines
+// into is thrown away and was never written. `src/A.fs(4708,25)` would be worse than useless, since
+// an editor turns it into a link to line 4708 of the input, which is not the line it means. The
+// carets below are what says where, and they say it by pointing at the line itself.
+let outputHeadline (theme: Theme) (diagnostic: FSharpParserDiagnostic) : string =
+    let message: string = diagnostic.Message.Replace("\r\n", " ").Replace("\n", " ")
+    let severity: string = severityColour theme diagnostic
+    let number: string = placeholder theme (errorNumber diagnostic)
+
+    $"%s{severity} %s{number}: %s{message}"
+
+let renderInvalidOutput
+    (theme: Theme)
+    (file: string)
+    (output: string)
+    (diagnostics: FSharpParserDiagnostic list)
+    : string
+    =
+    let ordered: FSharpParserDiagnostic list = List.sortBy position diagnostics
+
+    // What the parser said, and the output around it. Without this the reader is told that
+    // something was wrong with a file they cannot see and left to find it by running again with
+    // `--force` and reading the result. With it they have the line to cut a small reproduction
+    // from, which is what a report needs and what nobody can produce from prose.
+    //
+    // Said out loud that these lines are the output. They look exactly like the lines of the file
+    // and they are not: nothing else Fantomas prints a snippet of is anything but the source.
+    let diagnosticLines: string list =
+        if List.isEmpty ordered then
+            []
+        else
+            [
+                yield ""
+                yield "This is what the parser made of that output. The lines below are the output, not your file."
+                yield ""
+                yield! List.map (outputHeadline theme) ordered
+                yield! snippetFor theme output (caretTarget ordered)
+            ]
+
+    [
+        yield $"%s{link theme file} could not be formatted by Fantomas:"
+        yield ""
+        yield invalidOutputSummary
+        yield! diagnosticLines
+        yield ""
+        yield invalidOutputReportRequest theme
+        yield ""
+    ]
+    |> String.concat "\n"

@@ -49,11 +49,16 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
                     originalContent <> formattedContent
 
             if contentChanged then
-                let! (isValid: bool) =
-                    CodeFormatter.IsValidFSharpCodeAsync(isSignatureFile, formattedContent)
+                let! (validation: ValidationResult) =
+                    CodeFormatter.ValidateFSharpCodeAsync(isSignatureFile, formattedContent)
 
-                if not isValid then
-                    return FormatResult.InvalidCode(filename = formatParams.File, formattedContent = formattedContent)
+                if not validation.IsValid then
+                    return
+                        FormatResult.InvalidCode(
+                            filename = formatParams.File,
+                            formattedContent = formattedContent,
+                            diagnostics = validation.Diagnostics
+                        )
                 else
                     return FormatResult.Formatted(filename = formatParams.File, formattedContent = formattedContent)
             else
@@ -96,7 +101,7 @@ let readSourceFile (fs: IFileSystem) (file: string) : Async<SourceFile> =
     }
 
 /// Format content that is already in hand, settling there what `--force` means and what output
-/// that is not valid F# comes to, so that a caller is left with one kind of failure to report.
+/// Fantomas would not accept comes to, so that a caller is left with one kind of failure to report.
 let formatSource
     (env: CliEnvironment)
     (settings: CliSettings)
@@ -111,7 +116,7 @@ let formatSource
         let! (formatted: FormatResult) = formatContentAsync formatParams source.Content
 
         match formatted with
-        | FormatResult.InvalidCode(f, formattedContent) when settings.Force ->
+        | FormatResult.InvalidCode(f, formattedContent, _) when settings.Force ->
             // A warning, and on standard error, because it says Fantomas wrote F# it believes is not
             // valid. It used to go to standard out at Information, alongside the ordinary run of
             // things it is the opposite of.
@@ -132,7 +137,8 @@ let formatSource
             )
 
             return FormatResult.Formatted(file, formattedContent)
-        | FormatResult.InvalidCode(f, _) -> return FormatResult.Error(f, invalidResultException ())
+        | FormatResult.InvalidCode(f, formattedContent, diagnostics) ->
+            return FormatResult.Error(f, InvalidCodeException(formattedContent, diagnostics))
         | r -> return r
     }
 

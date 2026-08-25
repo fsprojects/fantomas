@@ -64,9 +64,10 @@ let outcomes (results: FormatResult array) : Outcomes =
         | FormatResult.Unchanged file -> unchanged.Add file
         | FormatResult.IgnoredFile file -> ignored.Add file
         | FormatResult.Error(file, error) -> errored.Add(file, error)
-        // Formatting produced something that is not F#, which is a failure of Fantomas rather than
-        // of the file it was given, and it is reported as one.
-        | FormatResult.InvalidCode(file, _) -> errored.Add(file, invalidResultException () :> exn)
+        // Formatting produced output Fantomas would not accept, which is a failure of Fantomas
+        // rather than of the file it was given, and it is reported as one.
+        | FormatResult.InvalidCode(file, formattedContent, diagnostics) ->
+            errored.Add(file, InvalidCodeException(formattedContent, diagnostics) :> exn)
 
     {
         Formatted = List.ofSeq formatted |> List.sort
@@ -163,6 +164,33 @@ let summaryLine (theme: Theme) (counts: (int * string) list) : string =
 
     line.Append('.').ToString()
 
+/// Render `error` as the report it writes for itself, when it is one of the failures that has more
+/// to say than a single line stating that it happened. A parse failure and an invariant violation
+/// both draw a caret under the thing they are about; output Fantomas would not accept has no
+/// position to give but still has more to say than one line holds. Anything else comes back as
+/// `None`, for the caller to reduce to a line of its own wording.
+///
+/// Asked in one place because both commands ask it. They had a copy of this each, and the copies
+/// drifted the moment a third failure was given a report of its own: a check run printed the whole
+/// explanation after `could not be checked:` while a format run printed the block.
+///
+/// `source` yields the text the failure came from and is called only by the two that draw a caret,
+/// so a caller that has to read a file to produce it does not read one for a failure with nothing
+/// to point at.
+let describeItself (theme: Theme) (file: string) (source: unit -> string) (verbose: bool) (error: exn) : string option =
+    match Diagnostics.describeParseFailure theme file source error with
+    | Some report -> Some report
+    | None ->
+
+    match Diagnostics.describeInvariantViolation theme file source verbose error with
+    | Some report -> Some report
+    | None ->
+
+    match error with
+    | :? InvalidCodeException as invalid ->
+        Some(Diagnostics.renderInvalidOutput theme file invalid.FormattedContent invalid.Diagnostics)
+    | _ -> None
+
 let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string, error: exn) : unit =
     let glyphs: StatusGlyphs = statusGlyphs env.ErrorTheme
 
@@ -182,15 +210,9 @@ let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string,
     let source () : string = sourceOf env.FileSystem file
     let verbose: bool = verbosity = VerbosityLevel.Detailed
 
-    // A parse failure and an invariant violation both describe themselves, positions and all,
-    // rather than being reduced to a single line saying only that they happened. The first line of
-    // each is its header, so the glyph goes in front of the whole block and lands in the column
-    // every other state puts it in.
-    match Diagnostics.describeParseFailure env.ErrorTheme file source error with
-    | Some report -> env.Log.Error(String.Concat(glyphs.Errored, " ", report))
-    | None ->
-
-    match Diagnostics.describeInvariantViolation env.ErrorTheme file source verbose error with
+    // The first line of a report that describes itself is its header, so the glyph goes in front of
+    // the whole block and lands in the column every other state puts it in.
+    match describeItself env.ErrorTheme file source verbose error with
     | Some report -> env.Log.Error(String.Concat(glyphs.Errored, " ", report))
     | None ->
         env.Log.Error(describeOther ())
@@ -232,8 +254,8 @@ let reportSingleResult
     | FormatResult.Error(f, e) -> reportError env settings.Verbosity (f, e)
     | FormatResult.Formatted(f, _) -> env.Log.Information(fileLine theme glyphs.Formatted f formatted)
     | FormatResult.Unchanged f -> env.Log.Information(fileLine theme glyphs.Unchanged f unchanged)
-    | FormatResult.InvalidCode(f, _) ->
-        let ex: FormatException = invalidResultException ()
+    | FormatResult.InvalidCode(f, formattedContent, diagnostics) ->
+        let ex: InvalidCodeException = InvalidCodeException(formattedContent, diagnostics)
         reportError env settings.Verbosity (f, ex)
 
 let reportFormatResults
@@ -441,11 +463,7 @@ let reportCheckResults
     for filename, exn in List.sortBy fst checkResult.Errors do
         let source () : string = sourceOf env.FileSystem filename
 
-        match Diagnostics.describeParseFailure env.ErrorTheme filename source exn with
-        | Some report -> env.Log.Error(String.Concat(errorGlyphs.Errored, " ", report))
-        | None ->
-
-        match Diagnostics.describeInvariantViolation env.ErrorTheme filename source false exn with
+        match describeItself env.ErrorTheme filename source false exn with
         | Some report -> env.Log.Error(String.Concat(errorGlyphs.Errored, " ", report))
         | None ->
             // The message rather than `exn.ToString()`, which carried a stack trace through

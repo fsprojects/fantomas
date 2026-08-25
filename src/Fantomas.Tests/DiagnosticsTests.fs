@@ -286,7 +286,7 @@ let ``an invariant violation is positioned and shown with a caret under the cons
             "6 | "
             "7 | let after = 2"
             ""
-            "This is a bug in Fantomas, not a problem with your code. Please report it with the snippet above via https://fsprojects.github.io/fantomas-tools/, or at https://github.com/fsprojects/fantomas/issues/new if the file is too large for the tool to carry."
+            "This is a bug in Fantomas, not a problem with your code. Please report it with the snippet above via https://fsprojects.github.io/fantomas-tools/."
             ""
         ]
 
@@ -321,6 +321,106 @@ let ``an invariant violation without source is still positioned`` () =
 let ``an exception that is not an invariant violation is not this module's to describe`` () =
     Diagnostics.describeInvariantViolation plain "bad.fs" (fun () -> externSource) false (exn "boom")
     |> should equal None
+
+// Output Fantomas would not accept is the one failure here whose positions are not positions in the
+// file, so what these pin is that the report says so and draws the right lines.
+let private rejectedOutput: string =
+    "module A\n\nlet a = 1\n\nlet b = (2\n\nlet c = 3\n"
+
+[<Test>]
+let ``invalid output shows what the parser said and the lines it said it about`` () =
+    let rendered: string =
+        Diagnostics.renderInvalidOutput plain "src/A.fs" rejectedOutput [ error 583 "Unmatched '('" (5, 8) (5, 9) ]
+
+    lines rendered
+    |> should
+        equal
+        [
+            "src/A.fs could not be formatted by Fantomas:"
+            ""
+            "Fantomas formatted this file and then found that its own output did not pass validation, so the output was thrown away and your file is unchanged."
+            ""
+            "This is what the parser made of that output. The lines below are the output, not your file."
+            ""
+            "error FS0583: Unmatched '('"
+            ""
+            "3 | let a = 1"
+            "4 | "
+            "5 | let b = (2"
+            "  |         ^"
+            "6 | "
+            "7 | let c = 3"
+            ""
+            "This is a bug in Fantomas, not a problem with your code. Please report it with the file via https://fsprojects.github.io/fantomas-tools/."
+            ""
+        ]
+
+[<Test>]
+let ``a position in the output is not given, since there is nowhere to go`` () =
+    // Line 5 of the output is not line 5 of the file, and the output is written nowhere, so a
+    // coordinate into it is one the reader cannot follow. `src/A.fs(5,9)` would be worse: a link an
+    // editor follows to the wrong line of the right file. The caret is what says where.
+    let rendered: string =
+        Diagnostics.renderInvalidOutput plain "src/A.fs" rejectedOutput [ error 583 "Unmatched '('" (5, 8) (5, 9) ]
+
+    rendered |> should not' (haveSubstring "src/A.fs(5,9)")
+    rendered |> should not' (haveSubstring "(5,9)")
+    rendered |> should haveSubstring "error FS0583: Unmatched '('"
+    rendered |> should haveSubstring "  |         ^"
+
+    // Named once, in the header, where it is the file it really is about.
+    rendered.Split("src/A.fs").Length - 1 |> should equal 1
+
+[<Test>]
+let ``invalid output with nothing to say leaves the section out`` () =
+    // Nothing produces this today: the validation hands back what it refused, and it refused
+    // something. It is the shape of the data rather than a state to reach, and a report with an
+    // empty heading over no diagnostics would be worse than one without the heading.
+    let rendered: string =
+        Diagnostics.renderInvalidOutput plain "src/A.fs" rejectedOutput []
+
+    rendered |> should not' (haveSubstring "the lines below")
+    rendered |> should haveSubstring "your file is unchanged"
+    rendered |> should haveSubstring "a bug in Fantomas"
+
+[<Test>]
+let ``a warning Fantomas will not tolerate is pointed at like an error`` () =
+    // The validation refuses some warnings outright, so a report can arrive with no error in it at
+    // all. It still has somewhere to draw the caret.
+    let rendered: string =
+        Diagnostics.renderInvalidOutput
+            plain
+            "src/A.fs"
+            rejectedOutput
+            [ warning 25 "Incomplete pattern match" (5, 8) (5, 9) ]
+
+    rendered |> should haveSubstring "warning FS0025"
+    rendered |> should haveSubstring "  |         ^"
+
+[<Test>]
+let ``the message the failure carries is the report without the parser's words`` () =
+    // Which is what lets it stand alone where there is no console to draw a report on: it says what
+    // happened and where to take it, and leaves the positions to whoever can show the lines too.
+    let explanation: string = Diagnostics.invalidOutputExplanation plain
+
+    explanation |> should not' (haveSubstring "src/A.fs")
+    explanation |> should not' (haveSubstring "the lines below")
+    explanation |> should haveSubstring "your file is unchanged"
+
+    explanation
+    |> should haveSubstring "a bug in Fantomas, not a problem with your code"
+
+[<Test>]
+let ``invalid output does not blame the file it was given`` () =
+    // The input parsed, or a parse failure would have been reported instead, so the one thing this
+    // report may not do is read as though the file were at fault.
+    let rendered: string =
+        Diagnostics.renderInvalidOutput plain "src/A.fs" rejectedOutput [ error 583 "Unmatched '('" (5, 8) (5, 9) ]
+
+    rendered
+    |> should haveSubstring "a bug in Fantomas, not a problem with your code"
+
+    rendered |> should haveSubstring "your file is unchanged"
 
 // What colour lands where. The report is one block of text rather than a row of fields, so what is
 // pinned is that each part carries its own colour and that removing the colour leaves the plain
@@ -361,7 +461,7 @@ let ``a parse failure colours the place, the severity, the number, the gutter an
     rendered |> should haveSubstring "\u001b[31m^\u001b[0m"
 
 [<Test>]
-let ``an invariant violation colours the place, the severity and the two links`` () =
+let ``an invariant violation colours the place, the severity and the link`` () =
     let rendered: string =
         Diagnostics.renderInvariantViolation coloured "bad.fs" externSource false (violation ())
 
@@ -369,6 +469,22 @@ let ``an invariant violation colours the place, the severity and the two links``
     |> should haveSubstring "\u001b[38;5;38mbad.fs\u001b[0m could not be formatted"
 
     rendered |> should haveSubstring "\u001b[31merror\u001b[0m:"
+
+    rendered
+    |> should haveSubstring "\u001b[38;5;38mhttps://fsprojects.github.io/fantomas-tools/\u001b[0m"
+
+[<Test>]
+let ``invalid output colours the file, the severity and the link`` () =
+    let rendered: string =
+        Diagnostics.renderInvalidOutput coloured "src/A.fs" rejectedOutput [ error 583 "Unmatched '('" (5, 8) (5, 9) ]
+
+    rendered
+    |> should haveSubstring "\u001b[38;5;38msrc/A.fs\u001b[0m could not be formatted"
+
+    rendered |> should haveSubstring "\u001b[31merror\u001b[0m"
+
+    // Grey for the error number, which is scaffolding a reader looks up rather than reads.
+    rendered |> should haveSubstring "\u001b[38;5;245mFS0583\u001b[0m"
 
     rendered
     |> should haveSubstring "\u001b[38;5;38mhttps://fsprojects.github.io/fantomas-tools/\u001b[0m"

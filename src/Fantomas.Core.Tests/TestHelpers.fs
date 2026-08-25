@@ -68,9 +68,9 @@ let formatAST isFsiFile (source: string) config =
             Fantomas.FCS.Parse.parseFile isFsiFile (Fantomas.FCS.Text.SourceText.ofString source) []
 
         let! formattedCode = CodeFormatter.FormatASTAsync(ast, config = config)
-        let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formattedCode)
+        let! validation = CodeFormatter.ValidateFSharpCodeAsync(isFsiFile, formattedCode)
 
-        if not isValid then
+        if not validation.IsValid then
             failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formattedCode}"
 
         return formattedCode.Replace("\r\n", "\n")
@@ -104,7 +104,10 @@ let formatSourceStringWithDefines defines (s: string) config =
     String.normalizeNewLine mergedFormatResult.Code
 
 let isValidFSharpCode isFsiFile s =
-    CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s) |> Async.RunSynchronously
+    let validation: ValidationResult =
+        CodeFormatter.ValidateFSharpCodeAsync(isFsiFile, s) |> Async.RunSynchronously
+
+    validation.IsValid
 
 let equal x =
     let x =

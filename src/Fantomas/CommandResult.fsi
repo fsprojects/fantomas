@@ -1,11 +1,13 @@
 module Fantomas.CommandResult
 
+open Fantomas.FCS.Parse
+
 /// What formatting one file came to.
 [<RequireQualifiedAccess; NoComparison>]
 type FormatResult =
     | Formatted of filename: string * formattedContent: string
     | Unchanged of filename: string
-    | InvalidCode of filename: string * formattedContent: string
+    | InvalidCode of filename: string * formattedContent: string * diagnostics: FSharpParserDiagnostic list
     | Error of filename: string * formattingError: exn
     | IgnoredFile of filename: string
 
@@ -27,14 +29,25 @@ type CheckResult =
 
     member NeedsFormatting: bool
 
-/// The failure that a `FormatResult.InvalidCode` stands for. Formatting produced something that is
-/// not F#, which is a bug in Fantomas rather than in the file it was given.
+/// The failure that a `FormatResult.InvalidCode` stands for. Formatting produced output that
+/// Fantomas itself would not accept, which is a bug in Fantomas rather than in the file it was
+/// given, and nothing was written.
 ///
-/// The message does not name the file, because nothing that shows it is short of one: every
-/// reporter puts the path in front of the message, and the JSON document carries it as a key beside
-/// it. Naming it here made the line read `A.fs could not be formatted: Formatting A.fs leads to
-/// invalid F# code`.
-val invalidResultException: unit -> Fantomas.Core.FormatException
+/// It is a type of its own so that a reporter can recognise it, since what it has to say does not
+/// fit the one line that every other failure is reduced to. `Diagnostics.invalidOutputExplanation`
+/// is the wording, and is what this carries as its message.
+type InvalidCodeException =
+    inherit Fantomas.Core.FormatException
+
+    new: formattedContent: string * diagnostics: FSharpParserDiagnostic list -> InvalidCodeException
+
+    /// The diagnostics that made that output unacceptable: every error, and every warning Fantomas
+    /// does not tolerate. A diagnostic it was willing to overlook is not among them.
+    member Diagnostics: FSharpParserDiagnostic list
+
+    /// What Fantomas produced and then would not accept. It is written nowhere, so a report that
+    /// wants to show a line of it has nowhere else to read it from.
+    member FormattedContent: string
 
 /// A reason the input paths cannot be worked with. Both commands can end this way and both are
 /// described from here, which is what keeps their wording from drifting apart.
