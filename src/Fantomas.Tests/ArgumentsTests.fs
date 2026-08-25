@@ -123,7 +123,8 @@ let ``a command is only the first token`` () =
 
 [<Test>]
 let ``what a profile run cannot be combined with`` () =
-    argumentsRefusedWithProfile
+    argumentsRefusedBy
+        Command.Profile
         [
             Arguments.Check
             Arguments.Out "build"
@@ -136,11 +137,48 @@ let ``what a profile run cannot be combined with`` () =
     |> shouldEqual [ "--check"; "--daemon"; "--force"; "--json"; "--out" ]
 
 [<Test>]
-let ``nothing is refused when --daemon was not asked for`` () =
-    // The guard belongs to the rule rather than to every caller of it. It used to sit in `main`,
-    // which meant the function answered a question it had not been asked.
-    argumentsRefusedWithDaemon [ Arguments.Check; Arguments.Out "build"; Arguments.Input [ "src" ] ]
+let ``a format run refuses nothing`` () =
+    // Every flag there is applies to formatting, which is why it is the command with no rule.
+    argumentsRefusedBy Command.Format [ Arguments.Check; Arguments.Out "build"; Arguments.Input [ "src" ] ]
     |> shouldBeEmpty
+
+[<Test>]
+let ``the daemon can be asked for as a command`` () =
+    // `--daemon` is the older spelling and goes on working: Fantomas.Client launches every one of
+    // its three ways with it, so an editor talking to a newer Fantomas than itself still gets a
+    // daemon. Unlike --profile, the flag means what the command means, so both can exist.
+    splitCommand [| "daemon" |] |> shouldEqual (Command.Daemon, [||])
+
+[<Test>]
+let ``the check can be asked for as a command`` () =
+    splitCommand [| "check"; "src" |] |> shouldEqual (Command.Check, [| "src" |])
+
+[<Test>]
+let ``both spellings of the check refuse the same arguments`` () =
+    // `--check .` is in every pipeline there is, so the flag keeps working. It means what the
+    // command means, so neither can refuse something the other allows.
+    let refused: Arguments list = [ Arguments.Out "build"; Arguments.Force ]
+
+    argumentsRefusedBy Command.Check (Arguments.Check :: refused)
+    |> shouldEqual (argumentsRefusedBy Command.Check refused)
+
+[<Test>]
+let ``a check keeps the arguments it reports with`` () =
+    // It reads the same files a format run does and reports the same two ways. What it has no use
+    // for is where to put output and whether to write invalid code, because it writes nothing.
+    argumentsRefusedBy Command.Check [ Arguments.Json; Arguments.Input [ "src" ]; Arguments.Verbosity "d" ]
+    |> shouldBeEmpty
+
+    argumentsRefusedBy Command.Check [ Arguments.Out "build"; Arguments.Force ]
+    |> shouldEqual [ "--force"; "--out" ]
+
+[<Test>]
+let ``both spellings of the daemon refuse the same arguments`` () =
+    let refused: Arguments list =
+        [ Arguments.Check; Arguments.Out "build"; Arguments.Input [ "src" ] ]
+
+    argumentsRefusedBy Command.Daemon (Arguments.Daemon :: refused)
+    |> shouldEqual (argumentsRefusedBy Command.Daemon refused)
 
 [<Test>]
 let ``every problem has its own wording, quoting what was typed`` () =
@@ -174,7 +212,8 @@ let ``what a flag will take reads as a sentence rather than as a list`` () =
 // Every one of these used to be accepted alongside --daemon and then silently ignored.
 [<Test>]
 let ``the arguments that say what to format are refused alongside --daemon`` () =
-    argumentsRefusedWithDaemon
+    argumentsRefusedBy
+        Command.Daemon
         [
             Arguments.Daemon
             Arguments.Check
@@ -189,17 +228,17 @@ let ``the arguments that say what to format are refused alongside --daemon`` () 
 // something. `--version` is answered and exited on before this rule is ever asked.
 [<Test>]
 let ``--verbosity and --version are allowed alongside --daemon`` () =
-    argumentsRefusedWithDaemon [ Arguments.Daemon; Arguments.Verbosity "d"; Arguments.Version ]
+    argumentsRefusedBy Command.Daemon [ Arguments.Daemon; Arguments.Verbosity "d"; Arguments.Version ]
     |> shouldBeEmpty
 
 [<Test>]
 let ``a daemon on its own is refused nothing`` () =
-    argumentsRefusedWithDaemon [ Arguments.Daemon ] |> shouldBeEmpty
+    argumentsRefusedBy Command.Daemon [ Arguments.Daemon ] |> shouldBeEmpty
 
 // `--out a --out b` is two results and one complaint.
 [<Test>]
 let ``an argument given twice is named once`` () =
-    argumentsRefusedWithDaemon [ Arguments.Daemon; Arguments.Out "a"; Arguments.Out "b" ]
+    argumentsRefusedBy Command.Daemon [ Arguments.Daemon; Arguments.Out "a"; Arguments.Out "b" ]
     |> shouldEqual [ "--out" ]
 
 [<Test>]

@@ -77,6 +77,7 @@ let runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Result<strin
     ps.UseShellExecute <- false
 
     match startProcess ps with
+    | Error err -> Error(DotNetToolListError.ProcessStartError err)
     | Ok p ->
         p.WaitForExit()
         let exitCode = p.ExitCode
@@ -87,7 +88,6 @@ let runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Result<strin
         else
             let error = p.StandardError.ReadToEnd()
             Error(DotNetToolListError.ExitCodeNonZero(ps.FileName, ps.Arguments, exitCode, error))
-    | Error err -> Error(DotNetToolListError.ProcessStartError err)
 
 let packageSidVersionRegex = Regex(@"^Package\sId\s+Version.+$")
 
@@ -245,13 +245,46 @@ let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasTo
                 Ok(FantomasToolFound((FantomasVersion(version)), FantomasToolStartInfo.ToolOnPath executableFile))
             | _ -> Error FantomasToolError.NoCompatibleVersionFound
 
-let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, ProcessStartError> =
+// Fantomas added `fantomas daemon` beside `fantomas --daemon` in 8.0.0-alpha-016, and both do the
+// same thing. The flag is kept working so that an older client can start a newer Fantomas, and this
+// is the other half of that bargain: a client that knows which version it found asks for the daemon
+// the way that version spells it.
+//
+// The number here is the release the subcommand landed in and has to stay that. Naming a later one
+// leaves the alphas on the flag, so the path this decides is never exercised until a stable ships.
+// Naming an earlier one tells a Fantomas that has no `daemon` command to use it, and the only
+// symptom is an editor reporting that no daemon could be started.
+//
+// Prereleases count, which is why `includePrerelease` is on. Every version below this one is
+// answered with the flag, which works on every Fantomas there has ever been including the newest,
+// so being wrong in that direction costs nothing.
+//
+// One thing this leans on: the alpha number is zero padded to three digits, so `alpha-099` sorts
+// below `alpha-100`. Semver compares a non numeric prerelease identifier character by character,
+// and without the padding `alpha-9` would sort above `alpha-10`.
+let daemonSubcommandRange: SemanticVersioning.Range =
+    SemanticVersioning.Range(">=8.0.0-alpha-016")
+
+let daemonArgument (version: FantomasVersion) : string =
+    let (FantomasVersion printed) = version
+
+    match SemanticVersioning.Version.TryParse printed with
+    | true, parsed when daemonSubcommandRange.IsSatisfied(parsed, includePrerelease = true) -> "daemon"
+    | _ -> "--daemon"
+
+let createForVersion
+    (version: FantomasVersion)
+    (startInfo: FantomasToolStartInfo)
+    : Result<RunningFantomasTool, ProcessStartError>
+    =
+    let daemon: string = daemonArgument version
+
     let processStart =
         match startInfo with
         | FantomasToolStartInfo.LocalTool(Folder workingDirectory) ->
             let ps = ProcessStartInfo("dotnet")
             ps.WorkingDirectory <- workingDirectory
-            ps.Arguments <- "fantomas --daemon"
+            ps.Arguments <- $"fantomas %s{daemon}"
             ps
         | FantomasToolStartInfo.GlobalTool ->
 
@@ -266,11 +299,11 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
                 Path.Combine(globalToolsPath, fileName)
 
             let ps = ProcessStartInfo(fantomasExecutable)
-            ps.Arguments <- "--daemon"
+            ps.Arguments <- daemon
             ps
         | FantomasToolStartInfo.ToolOnPath(FantomasExecutableFile executableFile) ->
             let ps = ProcessStartInfo(executableFile)
-            ps.Arguments <- "--daemon"
+            ps.Arguments <- daemon
             ps
 
     processStart.UseShellExecute <- false
@@ -280,6 +313,7 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
     processStart.CreateNoWindow <- true
 
     match startProcess processStart with
+    | Error err -> Error err
     | Ok daemonProcess ->
         // Standard error is redirected, so something has to read it. Left alone it fills the pipe
         // the operating system gives the two processes, 4KB by default on Windows, and the daemon
@@ -385,4 +419,7 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
                 ()
 
             Error(ProcessStartError.UnExpectedException(processStart.FileName, processStart.Arguments, error))
-    | Error err -> Error err
+
+// Without a version to go on, ask the way every version there has ever been understands.
+let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, ProcessStartError> =
+    createForVersion (FantomasVersion "0.0.0") startInfo

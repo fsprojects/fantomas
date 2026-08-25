@@ -24,7 +24,9 @@ type Arguments =
 [<RequireQualifiedAccess; Struct>]
 type Command =
     | Format
+    | Check
     | Profile
+    | Daemon
 
 /// The command the first token names, and the arguments left after it. A token that names no
 /// command is left in place, so it is read as a path the way it always was.
@@ -45,10 +47,9 @@ type ArgumentProblem =
     | UnexpectedValue of flag: string * value: string
     /// A flag whose value has to be one of a few words, given something else.
     | UnreadableValue of flag: string * value: string * accepted: string list
-    /// Arguments that mean nothing beside `--daemon`, which used to be accepted and then ignored.
-    | RefusedWithDaemon of refused: string list
-    /// Arguments that mean nothing beside the named command.
-    | RefusedWithCommand of command: string * refused: string list
+    /// Arguments that mean nothing for the command that was asked for, which used to be accepted
+    /// and then silently ignored.
+    | RefusedWithCommand of command: Command * refused: string list
 
 /// Read the command line.
 ///
@@ -83,13 +84,16 @@ type OutputPath =
 /// reported rather than the rest being worked on.
 val classifyInputPath: fs: IFileSystem -> maybeInput: string list option -> InputPath
 
-/// The arguments given alongside the `profile` command that mean nothing there.
+/// The arguments given that mean nothing for the command that was asked for, spelled as they are
+/// typed and in a settled order, so a run that names several always names them the same way.
 ///
-/// A profile writes nothing and reports its own way, so nothing that says where to put output, or
-/// what shape to report in, has anything to apply to. `--json` is refused rather than ignored
-/// because it is not built for this command yet, and an argument that is accepted and then dropped
-/// is the trap `--daemon` used to be.
-val argumentsRefusedWithProfile: given: Arguments list -> string list
+/// One rule for every command rather than a list each, because a list each is what a flat flag
+/// namespace turns into: `--daemon` grew one, `profile` would have been the second, and the third
+/// would have been the one nobody remembered to write.
+///
+/// Refusing them is the point. Every one of these used to be accepted and then dropped, so
+/// `fantomas --daemon ./src` read as a folder format and did nothing of the sort.
+val argumentsRefusedBy: command: Command -> given: Arguments list -> string list
 
 /// Read a `--verbosity` value that was given. `None` means it was not one Fantomas knows.
 ///
@@ -114,16 +118,3 @@ val tryInput: given: Arguments list -> string list option
 /// The input paths as the caller gave them, spelled so that a message can suggest a command the
 /// caller can run again. Several paths are joined by a space, which is how they were typed.
 val describeInputPaths: inputPath: InputPath -> string
-
-/// The arguments given alongside `--daemon` that mean nothing there, spelled as they are typed and
-/// in a settled order, so a run that names several always names them the same way. Empty when
-/// `--daemon` was not asked for, so a caller does not have to check that first.
-///
-/// A daemon is told what to format over JSON-RPC and answers on standard out, so nothing that says
-/// what to format, where to put it, or how to report it has anything to apply to. Refusing them is
-/// the point: every one of these used to be accepted and then silently ignored.
-///
-/// Two are not refused. `--verbosity` sets the level the daemon logs at, so it is the one argument
-/// here that does something. `--version` is answered and exited on before this rule is ever asked,
-/// so it wins rather than being refused.
-val argumentsRefusedWithDaemon: given: Arguments list -> string list

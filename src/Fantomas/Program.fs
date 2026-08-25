@@ -4,13 +4,13 @@ open System
 open System.IO.Abstractions
 open Fantomas.Core
 open Fantomas
-open Fantomas.Daemon
 open Fantomas.Logging
 open Fantomas.Arguments
 open Fantomas.Cli
 open Fantomas.FormatCommand
 open Fantomas.Report
 open Fantomas.CheckCommand
+open Fantomas.DaemonCommand
 open Fantomas.ProfileCommand
 open Fantomas.CommandResult
 open Serilog
@@ -83,17 +83,50 @@ let main argv =
         | Some level -> level
         | None -> refuse (ArgumentProblem.UnreadableValue("--verbosity", asked, [ "normal"; "detailed"; "n"; "d" ]))
 
-    let isDaemon: bool = contains Arguments.Daemon
+    // `--daemon` and `--check` are the older spellings of the commands of those names, and both go
+    // on working. `Fantomas.Client` launches every one of its three ways with `--daemon`, so an
+    // editor talking to a Fantomas newer than itself still gets a daemon, and `--check .` is in
+    // every pipeline there is. Unlike `--profile`, each flag means exactly what its command means,
+    // so keeping them changes nothing about what a run does.
+    //
+    // A daemon wins over a check when both were asked for, so the pair is refused by the command
+    // that has the least to say about the other rather than quietly becoming one of them.
+    let command: Command =
+        match command with
+        // The first token named one, so a flag naming another is a contradiction for the refusal
+        // rules below to catch rather than something to quietly overrule it with.
+        | Command.Format ->
+            if contains Arguments.Daemon then Command.Daemon
+            elif contains Arguments.Check then Command.Check
+            else Command.Format
+        | named -> named
+
+    let isDaemon: bool = command = Command.Daemon
     let json: bool = contains Arguments.Json
 
-    // Every one of these used to be accepted alongside --daemon and then silently ignored.
-    match argumentsRefusedWithDaemon given with
+    // Every one of these used to be accepted and then silently ignored.
+    match argumentsRefusedBy command given with
     | [] -> ()
-    | refused -> refuse (ArgumentProblem.RefusedWithDaemon refused)
+    | refused -> refuse (ArgumentProblem.RefusedWithCommand(command, refused))
 
-    match command, argumentsRefusedWithProfile given with
-    | Command.Profile, (_ :: _ as refused) -> refuse (ArgumentProblem.RefusedWithCommand("profile", refused))
-    | _ -> ()
+    // Said to a person and to nobody else. Standard error not being redirected is what tells a
+    // terminal from a pipeline, and a pipeline is the wrong audience twice over: its log would
+    // carry the line on every run for as long as both spellings exist, which is forever, and the
+    // person who could change the command line is not reading it.
+    //
+    // The same test keeps this out of the daemon an editor starts, because `Fantomas.Client`
+    // redirects standard error in order to read it.
+    if not Console.IsErrorRedirected then
+        let olderSpelling: (string * string) option =
+            match command with
+            | Command.Check when contains Arguments.Check -> Some("--check", "check")
+            | Command.Daemon when contains Arguments.Daemon -> Some("--daemon", "daemon")
+            | _ -> None
+
+        match olderSpelling with
+        | None -> ()
+        | Some(flag, verb) ->
+            eprintfn "'%s' still works, and '%s %s' is how it is spelled now." flag (Invocation.name ()) verb
 
     // `--json` puts one document on standard out, so the logger moves off it entirely, the way it
     // does in daemon mode, where standard out carries the JSON-RPC protocol.
@@ -107,26 +140,12 @@ let main argv =
     // The logger the calls above configured, now handed down rather than reached for.
     let log: ILogger = Log.Logger
 
-    let check: bool = contains Arguments.Check
+    let check: bool = command = Command.Check
 
     log.Debug versionBanner
 
     if isDaemon then
-        let daemon: FantomasDaemon =
-            new FantomasDaemon(
-                Console.OpenStandardOutput(),
-                Console.OpenStandardInput(),
-                {
-                    FileSystem = fileSystem
-                    ReadConfiguration = EditorConfig.tryReadConfiguration
-                    Log = log
-                }
-            )
-
-        AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> (daemon :> IDisposable).Dispose())
-
-        daemon.WaitForClose.GetAwaiter().GetResult()
-        0
+        runDaemonCommand fileSystem log
     else
         // Reading `.fantomasignore` can fail on a pattern the ignore library will not compile, and
         // building the environment is the first thing either command needs, so it happens under

@@ -23,9 +23,8 @@ let flags: (string * string * string * string list) list =
          "--check",
          "",
          [
-             "Report which files need formatting and write nothing."
-             "Exits 0 when every file is already formatted, 99 when some"
-             "file needs formatting, and 1 when an error occurred."
+             "The older spelling of the check command above. Both do the"
+             "same thing, and this one keeps working."
          ])
         ("",
          "--out",
@@ -53,8 +52,10 @@ let flags: (string * string * string * string list) list =
          "--daemon",
          "",
          [
-             "Run an LSP-like server that editor tooling can talk to."
-             "Takes no other flags or paths, apart from --verbosity."
+             "The older spelling of the daemon command above. Both do the"
+             "same thing, and this one keeps working, which is what lets"
+             "editor tooling built against an earlier Fantomas start this"
+             "one."
          ])
         ("-v",
          "--verbosity",
@@ -70,11 +71,22 @@ let flags: (string * string * string * string list) list =
 // The commands a run can name, which is the first token when it names one.
 let commands: (string * string list) list =
     [
+        ("check <paths>",
+         [
+             "Report which files need formatting and write nothing."
+             "Exits 0 when every file is already formatted, 99 when some"
+             "file needs formatting, and 1 when an error occurred."
+         ])
         ("profile <paths>",
          [
              "Report how long each file takes to format, slowest first."
              "Formats one file at a time so the timings can be compared,"
              "and writes nothing."
+         ])
+        ("daemon",
+         [
+             "Run an LSP-like server that editor tooling can talk to."
+             "Takes no paths or other flags, apart from --verbosity."
          ])
     ]
 
@@ -82,7 +94,7 @@ let examples: (string * string) list =
     [
         ("fantomas .", "Format every F# file below the current folder")
         ("fantomas src/App.fs", "Format a single file in place")
-        ("fantomas --check .", "Report what needs formatting, write nothing")
+        ("fantomas check .", "Report what needs formatting, write nothing")
         ("fantomas --out build src", "Copy the formatted files to another folder")
     ]
 

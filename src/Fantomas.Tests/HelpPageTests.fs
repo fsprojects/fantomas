@@ -37,7 +37,19 @@ let ``the page lists every flag`` () =
 
 [<Test>]
 let ``the page lists the commands a run can name`` () =
+    plainPage |> shouldContainText "check <paths>"
     plainPage |> shouldContainText "profile <paths>"
+    plainPage |> shouldContainText "daemon"
+
+[<Test>]
+let ``the flags that a command replaced say they are the older spelling`` () =
+    // Both keep working, so the page has to say which is which rather than list them twice as
+    // though they were different things.
+    for flag in [ "--check"; "--daemon" ] do
+        plainPage |> shouldContainText flag
+
+    plainPage |> shouldContainText "The older spelling of the check command"
+    plainPage |> shouldContainText "The older spelling of the daemon command"
 
 [<Test>]
 let ``the page does not offer the flag the profile command replaced`` () =

@@ -19,11 +19,14 @@ type Arguments =
 [<RequireQualifiedAccess; Struct>]
 type Command =
     | Format
+    | Check
     | Profile
+    | Daemon
 
 // The one place a command is spelled. A folder called `profile` is shadowed by this, which is the
 // price every tool with subcommands pays and which `git`, `docker` and `dotnet` all pay too.
-let commands: (string * Command) list = [ "profile", Command.Profile ]
+let commands: (string * Command) list =
+    [ "check", Command.Check; "profile", Command.Profile; "daemon", Command.Daemon ]
 
 let isCommandName (name: string) : bool =
     commands |> List.exists (fun (command: string, _) -> command = name)
@@ -46,8 +49,7 @@ type ArgumentProblem =
     | MissingValue of flag: string * found: string option
     | UnexpectedValue of flag: string * value: string
     | UnreadableValue of flag: string * value: string * accepted: string list
-    | RefusedWithDaemon of refused: string list
-    | RefusedWithCommand of command: string * refused: string list
+    | RefusedWithCommand of command: Command * refused: string list
 
 // What a flag does with the token after it. A switch is the flag on its own; a valued flag needs
 // one and builds the argument from it.
@@ -235,14 +237,23 @@ let describeArgumentProblem (problem: ArgumentProblem) : string =
         $"'%s{flag}' must be followed by a value, but was followed by '%s{found}'."
     | ArgumentProblem.UnreadableValue(flag, value, accepted) ->
         $"'%s{flag}' does not accept '%s{value}'. It accepts %s{listOfWords accepted}."
-    | ArgumentProblem.RefusedWithDaemon refused ->
-        let named: string = String.concat ", " refused
-
-        $"--daemon cannot be combined with %s{named}. A daemon is told what to format over JSON-RPC on standard in and answers on standard out, so there is nothing else for it to do and no stream left to report on."
     | ArgumentProblem.RefusedWithCommand(command, refused) ->
         let named: string = String.concat ", " refused
 
-        $"'%s{command}' cannot be combined with %s{named}."
+        match command with
+        // Worded for the daemon rather than for the spelling, because there are two spellings of
+        // it and the reason is the same for both.
+        | Command.Daemon ->
+            $"A daemon cannot be combined with %s{named}. It is told what to format over JSON-RPC on standard in and answers on standard out, so there is nothing else for it to do and no stream left to report on."
+        | Command.Format
+        | Command.Check
+        | Command.Profile ->
+            let spelling: string =
+                commands
+                |> List.tryPick (fun (name: string, named: Command) -> if named = command then Some name else None)
+                |> Option.defaultValue "this command"
+
+            $"'%s{spelling}' cannot be combined with %s{named}."
 
 [<RequireQualifiedAccess>]
 type InputPath =
@@ -319,42 +330,50 @@ let describeInputPaths (inputPath: InputPath) : string =
     | InputPath.NotFound path -> path
     | InputPath.Multiple(files, folders) -> String.concat " " (List.append files folders)
 
-let argumentsRefusedWithDaemon (given: Arguments list) : string list =
-    let refused (argument: Arguments) : string option =
-        match argument with
-        | Arguments.Daemon
-        | Arguments.Version
-        | Arguments.Help
-        | Arguments.Verbosity _ -> None
-        | Arguments.Force
-        | Arguments.Out _
-        | Arguments.Check
-        | Arguments.Json
-        | Arguments.Input _ -> Some(describeArgument argument)
-
-    // Nothing is refused when `--daemon` was not asked for, which is the rule rather than something
-    // every caller has to remember to check first.
-    if not (List.contains Arguments.Daemon given) then
-        []
-    else
-        // Distinct because `--out a --out b` is two results and one complaint, and sorted so that
-        // the order the flags were typed in does not change the message.
-        given |> List.choose refused |> List.distinct |> List.sort
-
-let argumentsRefusedWithProfile (given: Arguments list) : string list =
-    let refused (argument: Arguments) : string option =
+let argumentsRefusedBy (command: Command) (given: Arguments list) : string list =
+    // `--version` and `--help` are answered and exited on before this rule is ever asked, so they
+    // win rather than being refused. `--verbosity` sets the level the run logs at, which is
+    // something every command does.
+    let keptByEveryCommand (argument: Arguments) : bool =
         match argument with
         | Arguments.Version
         | Arguments.Help
-        | Arguments.Verbosity _
-        | Arguments.Input _ -> None
-        | Arguments.Force
-        | Arguments.Out _
-        | Arguments.Check
-        | Arguments.Json
-        | Arguments.Daemon -> Some(describeArgument argument)
+        | Arguments.Verbosity _ -> true
+        | _ -> false
 
-    given |> List.choose refused |> List.distinct |> List.sort
+    let keptByThisCommand (argument: Arguments) : bool =
+        match command with
+        | Command.Format -> true
+        // A check reads the same files a format run does and reports the same two ways, but writes
+        // nothing, so where to put output and whether to write invalid code have nothing to apply
+        // to. `--check` is kept because it is one of the two ways of asking.
+        | Command.Check ->
+            match argument with
+            | Arguments.Check
+            | Arguments.Json
+            | Arguments.Input _ -> true
+            | _ -> false
+        // A daemon is told what to format over JSON-RPC on standard in and answers on standard
+        // out, so nothing that says what to format, where to put it, or how to report it has
+        // anything to apply to. `--daemon` is kept because it is one of the two ways of asking.
+        | Command.Daemon -> argument = Arguments.Daemon
+        // A profile takes paths, and reports the only way it reports.
+        | Command.Profile ->
+            match argument with
+            | Arguments.Input _ -> true
+            | _ -> false
+
+    // Distinct because `--out a --out b` is two results and one complaint, and sorted so that the
+    // order the flags were typed in does not change the message.
+    given
+    |> List.choose (fun (argument: Arguments) ->
+        if keptByEveryCommand argument || keptByThisCommand argument then
+            None
+        else
+            Some(describeArgument argument)
+    )
+    |> List.distinct
+    |> List.sort
 
 let parseVerbosity (value: string) : VerbosityLevel option =
     match value.ToLowerInvariant() with
