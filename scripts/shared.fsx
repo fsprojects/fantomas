@@ -2,6 +2,7 @@
 #r "../artifacts/bin/Fantomas.Core/debug/Fantomas.Core.dll"
 #r "nuget: editorconfig"
 
+#load "../src/Fantomas/Suggestion.fs"
 #load "../src/Fantomas/EditorConfig.fs"
 
 open System.IO
@@ -17,7 +18,9 @@ let parseEditorConfigContent (content: string) : FormatConfig =
     File.WriteAllText(fsharpFile, "")
 
     try
-        readConfiguration fsharpFile
+        match tryReadConfiguration fsharpFile with
+        | Some result -> result.Config
+        | None -> FormatConfig.Default
     finally
         Directory.Delete(tempDir, true)
 

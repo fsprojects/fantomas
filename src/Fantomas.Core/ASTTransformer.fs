@@ -2380,12 +2380,16 @@ let mkExternBinding
         accessibility = accessibility
         attributes = attributes
         xmlDoc = xmlDoc
+        valData = valData
         headPat = pat
         returnInfo = returnInfo
         range = range
         trivia = trivia))
     : ExternBindingNode
     =
+    let attributes: SynAttributes =
+        restoreRotatedReturnAttributes attributes valData returnInfo
+
     let m =
         if not xmlDoc.IsEmpty then
             unionRanges xmlDoc.Range pat.Range

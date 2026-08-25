@@ -327,3 +327,113 @@ extern byte[] private f(int options)
 [<DllImport("x")>]
 extern byte[] private f(int options)
 """
+
+[<Test>]
+let ``return attribute in front of an extern binding, 3420`` () =
+    formatSourceString
+        """
+module Native =
+
+    /// <summary>Whether the parser had to guess anywhere inside this node.</summary>
+    [<DllImport(core)>]
+    [<return: MarshalAs(UnmanagedType.I1)>]
+    extern bool ts_node_has_error(TSNode node)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Native =
+
+    /// <summary>Whether the parser had to guess anywhere inside this node.</summary>
+    [<DllImport(core)>]
+    [<return: MarshalAs(UnmanagedType.I1)>]
+    extern bool ts_node_has_error(TSNode node)
+"""
+
+[<Test>]
+let ``return attribute written in the same list as another attribute`` () =
+    formatSourceString
+        """
+[<DllImport(core); return: MarshalAs(UnmanagedType.I1)>]
+extern bool ts_node_has_error(TSNode node)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<DllImport(core); return: MarshalAs(UnmanagedType.I1)>]
+extern bool ts_node_has_error(TSNode node)
+"""
+
+[<Test>]
+let ``return attribute is the only attribute of an extern binding`` () =
+    formatSourceString
+        """
+[<return: MarshalAs(UnmanagedType.I1)>]
+extern bool ts_node_has_error(TSNode node)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<return: MarshalAs(UnmanagedType.I1)>]
+extern bool ts_node_has_error(TSNode node)
+"""
+
+[<Test>]
+let ``return attribute written before the other attributes of an extern binding`` () =
+    formatSourceString
+        """
+[<return: MarshalAs(UnmanagedType.I1)>]
+[<DllImport(core)>]
+extern bool ts_node_has_error(TSNode node)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<return: MarshalAs(UnmanagedType.I1)>]
+[<DllImport(core)>]
+extern bool ts_node_has_error(TSNode node)
+"""
+
+[<Test>]
+let ``return attribute in front of an extern member`` () =
+    formatSourceString
+        """
+type Native =
+    [<DllImport(core)>]
+    [<return: MarshalAs(UnmanagedType.I1)>]
+    extern bool ts_node_has_error(TSNode node)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Native =
+    [<DllImport(core)>]
+    [<return: MarshalAs(UnmanagedType.I1)>]
+    extern bool ts_node_has_error(TSNode node)
+"""
+
+[<Test>]
+let ``attribute on the return type of an extern binding stays on the type`` () =
+    formatSourceString
+        """
+[<DllImport(core)>]
+extern [<MarshalAs(UnmanagedType.I1)>] bool ts_node_has_error(TSNode node)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<DllImport(core)>]
+extern [<MarshalAs(UnmanagedType.I1)>] bool ts_node_has_error(TSNode node)
+"""

@@ -23,6 +23,7 @@ UI might be available depending on the IDE.
 #r "../../../artifacts/bin/Fantomas.FCS/release/Fantomas.FCS.dll"
 #r "../../../artifacts/bin/Fantomas.Core/release/Fantomas.Core.dll"
 #r "../../../artifacts/bin/Fantomas/release/EditorConfig.Core.dll"
+#load "../../../src/Fantomas/Suggestion.fs"
 #load "../../../src/Fantomas/EditorConfig.fs"
 
 open System
