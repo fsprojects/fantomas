@@ -10,16 +10,16 @@ val Name: string = "XmlDocAnalyzer"
 
 [<Literal>]
 val ShortDescription: string =
-    "Detects a documentation comment in an implementation file that has a signature file, where the signature is the copy readers and tooling see."
+    "Detects a documentation comment that is duplicated in an implementation file and its signature file, where the signature is the copy readers and tooling see."
 
 [<Literal>]
 val HelpUri: string = "https://github.com/fsprojects/fantomas/blob/main/analyzers/AGENTS.md#fantomas-xmldoc-001"
 
-/// Reports every documentation comment in a file that has a signature file.
+/// Reports a documentation comment on a declaration that the file's signature file also declares.
 ///
-/// This takes the looser of the two readings of the rule. It cannot tell whether the signature
-/// documents the same binding, so a helper that appears in neither is reported too, and the answer
-/// there is an ordinary `//` comment rather than a `///` one.
+/// A declaration the signature does not carry is left alone, doc comment and all: there is no second
+/// copy to keep in step, so there is nothing for the rule to be about. The signature is asked for
+/// through the symbol's `SignatureLocation` rather than guessed at from the name.
 [<CliAnalyzer(Name, ShortDescription, HelpUri)>]
 val cliAnalyzer: ctx: CliContext -> Async<Message list>
 
