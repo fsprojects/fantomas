@@ -5528,7 +5528,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       If there is a // value, apply f and f' accordingly, otherwise do nothing
+                       If there is a value, apply f and f' accordingly, otherwise do nothing
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -5670,7 +5670,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       Similar to opt, but apply f2 at the beginning if there is a // value
+                       Similar to opt, but apply f2 at the beginning if there is a value
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -5804,7 +5804,7 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       similar to opt, only takes a single function f to apply when there is a // value
+                       similar to opt, only takes a single function f to apply when there is a value
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -7938,6 +7938,7 @@
                        Unindent that is aware of trailing trivia (comments before closing brackets).
  If the DLL tail ends with a comment followed by WriteLineBecauseOfTrivia,
  splice the UnIndentBy before that trailing newline. Otherwise, fall back to normal unindent.
+ Use this rather than `unindent` after an expression that may carry trailing trivia.
                     </p>
                   </div>
                   <div class="icon-button-row">
