@@ -61,7 +61,11 @@ type ArgumentProblem =
 val parse: argv: string array -> Result<Arguments list, ArgumentProblem>
 
 /// What a problem reads as, in one sentence, quoting what was typed.
-val describeArgumentProblem: problem: ArgumentProblem -> string
+///
+/// `invocation` is how Fantomas was started, for the one problem that suggests a command to run
+/// instead. Passed in rather than asked of the process here, so that what this says does not depend
+/// on what happens to be running it.
+val describeArgumentProblem: invocation: string -> problem: ArgumentProblem -> string
 
 /// What the input paths on the command line were found to name.
 [<RequireQualifiedAccess>]

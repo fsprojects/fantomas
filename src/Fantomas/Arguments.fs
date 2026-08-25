@@ -221,13 +221,11 @@ let listOfWords (words: string list) : string =
     | [ only ] -> only
     | last :: rest -> String.Concat(String.concat ", " (List.rev rest), " or ", last)
 
-let describeArgumentProblem (problem: ArgumentProblem) : string =
+let describeArgumentProblem (invocation: string) (problem: ArgumentProblem) : string =
     match problem with
     | ArgumentProblem.UnknownFlag(flag, None) -> $"'%s{flag}' is not a Fantomas flag."
     | ArgumentProblem.UnknownFlag(flag, Some suggestion) ->
         if isCommandName suggestion then
-            let invocation: string = Invocation.name ()
-
             $"'%s{flag}' is not a Fantomas flag. '%s{suggestion}' is a command: try '%s{invocation} %s{suggestion} <paths>'."
         else
             $"'%s{flag}' is not a Fantomas flag. Did you mean '%s{suggestion}'?"

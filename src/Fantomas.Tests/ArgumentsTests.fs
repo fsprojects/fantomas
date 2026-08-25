@@ -191,7 +191,7 @@ let ``every problem has its own wording, quoting what was typed`` () =
         ArgumentProblem.UnexpectedValue("--check", "true")
         ArgumentProblem.UnreadableValue("--verbosity", "bogus", [ "normal"; "detailed"; "n"; "d" ])
     ]
-    |> List.map describeArgumentProblem
+    |> List.map (describeArgumentProblem "dotnet fantomas")
     |> shouldEqual
         [
             "'--nope' is not a Fantomas flag."
@@ -204,11 +204,18 @@ let ``every problem has its own wording, quoting what was typed`` () =
 
 [<Test>]
 let ``what a flag will take reads as a sentence rather than as a list`` () =
-    describeArgumentProblem (ArgumentProblem.UnreadableValue("--x", "z", [ "a" ]))
+    describeArgumentProblem "dotnet fantomas" (ArgumentProblem.UnreadableValue("--x", "z", [ "a" ]))
     |> shouldContainText "It accepts a."
 
-    describeArgumentProblem (ArgumentProblem.UnreadableValue("--x", "z", [ "a"; "b" ]))
+    describeArgumentProblem "dotnet fantomas" (ArgumentProblem.UnreadableValue("--x", "z", [ "a"; "b" ]))
     |> shouldContainText "It accepts a or b."
+
+// The one message that names a command rather than a flag, and the one that could not be pinned
+// while it asked the process what was running it.
+[<Test>]
+let ``a flag that is really a command names the command, spelled as this run was started`` () =
+    describeArgumentProblem "dotnet fantomas" (ArgumentProblem.UnknownFlag("--profile", Some "profile"))
+    |> shouldEqual "'--profile' is not a Fantomas flag. 'profile' is a command: try 'dotnet fantomas profile <paths>'."
 
 // Every one of these used to be accepted alongside --daemon and then silently ignored.
 [<Test>]

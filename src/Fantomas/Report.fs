@@ -419,7 +419,7 @@ let reportCheckResults (env: CliEnvironment) (inputPath: InputPath) (checkResult
             Some(
                 String.Concat(
                     "Run ",
-                    muted theme (Invocation.name ()),
+                    muted theme env.Invocation,
                     flagName theme (String.Concat(" ", describeInputPaths inputPath)),
                     $" to format %s{subject}."
                 )

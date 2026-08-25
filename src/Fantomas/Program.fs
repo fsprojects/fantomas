@@ -20,15 +20,17 @@ open Serilog
 /// process should end with.
 [<EntryPoint>]
 let main argv =
-    // The help pointer names the tool the way this run was started, so a local tool install is
-    // given a line it can run rather than one it has to translate.
-    let usagePointer: string =
-        $"Run %s{Invocation.name ()} --help for usage information."
+    // How this run was started, resolved once at the edge of the process and handed to everything
+    // that has to name a command back. The help pointer is the first of them: a local tool install
+    // is given a line it can run rather than one it has to translate.
+    let invocation: string = Invocation.name ()
+
+    let usagePointer: string = $"Run %s{invocation} --help for usage information."
 
     // Every way the command line can be wrong ends here. The logger is not configured yet, and
     // deliberately so: what to configure it with is one of the things being read.
     let refuse (problem: ArgumentProblem) : 'a =
-        eprintfn "%s" (describeArgumentProblem problem)
+        eprintfn "%s" (describeArgumentProblem invocation problem)
         eprintfn "%s" usagePointer
         exit 1
 
@@ -143,8 +145,7 @@ let main argv =
 
         match olderSpelling with
         | None -> ()
-        | Some(flag, verb) ->
-            eprintfn "'%s' still works, and '%s %s' is how it is spelled now." flag (Invocation.name ()) verb
+        | Some(flag, verb) -> eprintfn "'%s' still works, and '%s %s' is how it is spelled now." flag invocation verb
 
     // `--json` puts one document on standard out, so the logger moves off it entirely, the way it
     // does in daemon mode, where standard out carries the JSON-RPC protocol.
@@ -177,6 +178,7 @@ let main argv =
                     Log = log
                     OutputTheme = Theme.forOutput ()
                     ErrorTheme = Theme.forError ()
+                    Invocation = invocation
                 }
 
             let settings: CliSettings = { Force = force; Verbosity = verbosity }

@@ -16,6 +16,7 @@ type CliEnvironment =
         Log: ILogger
         OutputTheme: Theme
         ErrorTheme: Theme
+        Invocation: string
     }
 
 type CliSettings =

@@ -225,6 +225,9 @@ let recordingEnvironment (fs: IFileSystem) (ignoreFile: IgnoreFile option) : Rec
                 Log = logger
                 OutputTheme = plainTheme
                 ErrorTheme = plainTheme
+                // Pinned, the way the themes are. Asked of the process instead, this came back as
+                // whatever ran the test: `dotnet` on one platform and `testhost` on another.
+                Invocation = "dotnet fantomas"
             }
         Log = collected
     }
@@ -268,6 +271,7 @@ let realEnvironment: CliEnvironment =
         Log = Log.Logger
         OutputTheme = plainTheme
         ErrorTheme = plainTheme
+        Invocation = "dotnet fantomas"
     }
 
 type FantomasToolResult =

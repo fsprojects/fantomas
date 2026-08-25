@@ -32,6 +32,13 @@ type CliEnvironment =
         /// What standard error will take. Separate because the two streams are redirected
         /// separately, and the messages that go to each are decided by level.
         ErrorTheme: Theme
+        /// How Fantomas was started, spelled the way the reader would type it again, so that a
+        /// message suggesting a command suggests one they have. Held rather than asked of the
+        /// process at the point of writing, for the reason the themes are: reaching for
+        /// `Environment.ProcessPath` mid-render made what a reporter printed depend on what
+        /// happened to be running it, and under a test host that is `testhost` on one platform and
+        /// `dotnet` on another.
+        Invocation: string
     }
 
 /// What the user asked for. Kept apart from the environment because a test varies these on every
