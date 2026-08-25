@@ -36,6 +36,11 @@ let detectPalette (redirected: bool) : Palette =
         && capabilities.Ansi
         && capabilities.ColorSystem <> ColorSystem.NoColors
 
+    // `ColorSystem` runs NoColors, Legacy, Standard, EightBit, TrueColor. The four bit fallback is
+    // what a console reporting Legacy or Standard gets, which in practice means the Windows legacy
+    // console: every TERM a Unix terminal sets, `vt100` and `xterm-mono` included, comes back as
+    // EightBit or better. So the branch looks unreachable from a mac or a Linux box and is not.
+    // Do not delete it on the strength of a terminal that cannot reach it.
     if not colorsEnabled then
         Palette.NoColour
     elif capabilities.ColorSystem >= ColorSystem.EightBit then
