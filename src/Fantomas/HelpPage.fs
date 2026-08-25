@@ -2,12 +2,8 @@ module Fantomas.HelpPage
 
 open System
 open Fantomas.Core
+open Fantomas.Arguments
 open Fantomas.Theme
-
-// The column the right hand half of a two column row starts in.
-let descriptionColumn: int = 29
-let exampleColumn: int = 33
-let linkColumn: int = 29
 
 // Trim the commit hash the version carries down to the short form git itself shows.
 let shortVersion () : string =
@@ -68,35 +64,83 @@ let flags: (string * string * string * string list) list =
         ("-h", "--help", "", [ "Display this menu and exit" ])
     ]
 
-// The commands a run can name, which is the first token when it names one.
-let commands: (string * string list) list =
+// The commands a run can name, which is the first token when it names one. Each carries the
+// `Command` it is about, so that `--help` after one of them can find the page to write.
+let commands: (Command * string * string list) list =
     [
-        ("check <paths>",
+        (Command.Check,
+         "check <paths>",
          [
              "Report which files need formatting and write nothing."
              "Exits 0 when every file is already formatted, 99 when some"
              "file needs formatting, and 1 when an error occurred."
          ])
-        ("profile <paths>",
+        (Command.Profile,
+         "profile <paths>",
          [
              "Report how long each file takes to format, slowest first."
              "Formats one file at a time so the timings can be compared,"
              "and writes nothing."
          ])
-        ("daemon",
+        (Command.Daemon,
+         "daemon",
          [
              "Run an LSP-like server that editor tooling can talk to."
              "Takes no paths or other flags, apart from --verbosity."
          ])
     ]
 
+// Whether a command has any use for a flag, asked of the rule that enforces it rather than of a
+// second list kept beside it. A page that listed a flag the run would refuse, or left one off that
+// it accepts, is exactly what a second list drifts into.
+let appliesTo (command: Command) (long: string) : bool =
+    match argumentFor long with
+    | None -> false
+    | Some argument -> List.isEmpty (argumentsRefusedBy command [ argument ])
+
+// What a command's own page lists: the flags that change what it does, and nothing else.
+//
+// Two kinds are left out. A flag that answers and exits, `--version` and `--help`, is not a flag of
+// any command and changes nothing about what this one would do; the overview is where somebody
+// finds those. And a flag that is the older spelling of a command belongs on the overview too,
+// where saying which is which is the point, rather than offering `--check` to somebody already
+// running `check`.
+let flagsFor (command: Command) : (string * string * string * string list) list =
+    flags
+    |> List.filter (fun (_, long: string, _, _) ->
+        match argumentFor long with
+        | None -> false
+        | Some argument ->
+            appliesTo command long
+            && not (answersAndExits argument)
+            && (commandSpelledBy argument |> Option.isNone)
+    )
+
+// Asked the same way, so a command that takes no paths does not carry a section about them.
+let takesPaths (command: Command) : bool =
+    List.isEmpty (argumentsRefusedBy command [ Arguments.Input [] ])
+
+// What follows the command name, which is whatever this Fantomas was started as rather than a
+// guess written into the page.
 let examples: (string * string) list =
     [
-        ("fantomas .", "Format every F# file below the current folder")
-        ("fantomas src/App.fs", "Format a single file in place")
-        ("fantomas check .", "Report what needs formatting, write nothing")
-        ("fantomas --out build src", "Copy the formatted files to another folder")
+        (".", "Format every F# file below the current folder")
+        ("src/App.fs", "Format a single file in place")
+        ("check .", "Report what needs formatting, write nothing")
+        ("--out build src", "Copy the formatted files to another folder")
     ]
+
+// The column the right hand half of a two column row starts in. The flags and the links are laid
+// out against text this file owns, so those are fixed; the examples are laid out against a command
+// name that is whatever this Fantomas was started as, so that one is measured.
+let descriptionColumn: int = 29
+let linkColumn: int = 29
+
+let exampleColumn (invocation: string) : int =
+    examples
+    |> List.map (fun (arguments: string, _) -> invocation.Length + 1 + arguments.Length)
+    |> List.fold max 0
+    |> fun longest -> longest + 4
 
 let links: (string * string list) list =
     [
@@ -136,13 +180,18 @@ let writeFlag
         writeRow write descriptionColumn left first
         List.iter (writeContinuation write descriptionColumn) rest
 
-let writeExample (write: string -> unit) (theme: Theme) (command: string, description: string) : unit =
-    let name, arguments: string * string =
-        match command.IndexOf ' ' with
-        | -1 -> command, ""
-        | i -> command.Substring(0, i), command.Substring(i)
-
-    writeRow write exampleColumn (String.Concat("  ", muted theme name, flagName theme arguments)) description
+let writeExample
+    (write: string -> unit)
+    (theme: Theme)
+    (invocation: string)
+    ((arguments, description): string * string)
+    : unit
+    =
+    writeRow
+        write
+        (exampleColumn invocation)
+        (String.Concat("  ", muted theme invocation, flagName theme (String.Concat(" ", arguments))))
+        description
 
 let writeLink (write: string -> unit) (theme: Theme) (label: string, urls: string list) : unit =
     match urls with
@@ -151,7 +200,7 @@ let writeLink (write: string -> unit) (theme: Theme) (label: string, urls: strin
         writeRow write linkColumn label (link theme first)
         List.iter (fun (url: string) -> writeContinuation write linkColumn (link theme url)) rest
 
-let render (theme: Theme) : string list =
+let renderOverview (theme: Theme) (invocation: string) : string list =
     let lines: ResizeArray<string> = ResizeArray()
     let write (line: string) : unit = lines.Add line
     let blank () : unit = lines.Add ""
@@ -170,7 +219,7 @@ let render (theme: Theme) : string list =
         String.Concat(
             heading theme "Usage:",
             " ",
-            heading theme "fantomas",
+            heading theme invocation,
             " ",
             flagName theme "[command] [...flags] [...paths]"
         )
@@ -178,16 +227,28 @@ let render (theme: Theme) : string list =
 
     blank ()
     write (heading theme "Examples:")
-    List.iter (writeExample write theme) examples
+    List.iter (writeExample write theme invocation) examples
     blank ()
     write (heading theme "Commands:")
 
-    for name, description in commands do
+    for _, name, description in commands do
         writeFlag write theme ("", name, "", description)
 
     blank ()
     write (heading theme "Flags:")
-    List.iter (writeFlag write theme) flags
+
+    // The flags that are older spellings of a command go last, and set apart. They still work and
+    // still have to be findable, but nobody reaching this page for the first time should be
+    // reading them before the ones to reach for.
+    let current, older =
+        flags
+        |> List.partition (fun (_, long: string, _, _) ->
+            argumentFor long |> Option.bind commandSpelledBy |> Option.isNone
+        )
+
+    List.iter (writeFlag write theme) current
+    blank ()
+    List.iter (writeFlag write theme) older
     blank ()
     write (heading theme "Paths:")
     write "  A path is a folder, which is searched recursively, or a file ending in .fs, .fsi,"
@@ -198,5 +259,56 @@ let render (theme: Theme) : string list =
     blank ()
     List.ofSeq lines
 
-let print () : unit =
-    render (forOutput ()) |> List.iter Console.Out.WriteLine
+// A page about one command, listing only what that command has any use for. `fantomas daemon
+// --help` carries neither `--out` nor a section about paths, because a daemon is refused both.
+//
+// No links either. Somebody reading a command's page has already found Fantomas and is asking a
+// narrow question about one of its verbs; the documentation, the Discord and the llms files belong
+// where somebody is still working out what the tool is, which is the overview.
+let renderCommand
+    (theme: Theme)
+    (invocation: string)
+    (command: Command)
+    (name: string)
+    (description: string list)
+    : string list
+    =
+    let lines: ResizeArray<string> = ResizeArray()
+    let write (line: string) : unit = lines.Add line
+    let blank () : unit = lines.Add ""
+
+    write (
+        String.Concat(
+            title theme (String.Concat(invocation, " ", name)),
+            "  ",
+            muted theme (String.Concat("(", shortVersion (), ")"))
+        )
+    )
+
+    blank ()
+
+    for line in description do
+        write (String.Concat("  ", line))
+
+    blank ()
+    write (heading theme "Flags:")
+    List.iter (writeFlag write theme) (flagsFor command)
+
+    if takesPaths command then
+        blank ()
+        write (heading theme "Paths:")
+        write "  A path is a folder, which is searched recursively, or a file ending in .fs, .fsi,"
+        write "  .fsx, .ml or .mli. Formatting settings are read from .editorconfig, and files"
+        write "  matched by .fantomasignore in the current folder are skipped."
+
+    blank ()
+    List.ofSeq lines
+
+let render (theme: Theme) (invocation: string) (command: Command) : string list =
+    match commands |> List.tryFind (fun (named: Command, _, _) -> named = command) with
+    | None -> renderOverview theme invocation
+    | Some(_, name, description) -> renderCommand theme invocation command name description
+
+let print (command: Command) : unit =
+    render (forOutput ()) (Invocation.name ()) command
+    |> List.iter Console.Out.WriteLine

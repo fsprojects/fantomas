@@ -84,6 +84,22 @@ type OutputPath =
 /// reported rather than the rest being worked on.
 val classifyInputPath: fs: IFileSystem -> maybeInput: string list option -> InputPath
 
+/// Whether a flag is answered and exited on rather than acting on the run. `--version` and
+/// `--help` are not flags of any command: they say what this Fantomas is and how to use it, and
+/// then the process ends. Nothing refuses them, and a command's own page does not list them,
+/// because neither changes what that command would do.
+val answersAndExits: argument: Arguments -> bool
+
+/// The argument a flag stands for, with a placeholder where it takes a value, so that a caller can
+/// ask `argumentsRefusedBy` whether a command has any use for it. That is what lets the help page
+/// list a command's flags without keeping a second list of which apply where.
+val argumentFor: spelling: string -> Arguments option
+
+/// The command a flag is the older spelling of, when it is one. Those flags are listed on the
+/// overview page, where saying which is which is the point, and left off a command's own page,
+/// where offering `--check` to someone already running `check` says nothing.
+val commandSpelledBy: argument: Arguments -> Command option
+
 /// The arguments given that mean nothing for the command that was asked for, spelled as they are
 /// typed and in a settled order, so a run that names several always names them the same way.
 ///

@@ -44,11 +44,30 @@ let main argv =
 
     let contains (argument: Arguments) : bool = List.contains argument given
 
+    // `--daemon` and `--check` are the older spellings of the commands of those names, and both go
+    // on working. `Fantomas.Client` launches every one of its three ways with `--daemon`, so an
+    // editor talking to a Fantomas newer than itself still gets a daemon, and `--check .` is in
+    // every pipeline there is. Unlike `--profile`, each flag means exactly what its command means,
+    // so keeping them changes nothing about what a run does.
+    //
+    // Resolved before `--help` is answered, so `fantomas --check --help` is the check page. A
+    // daemon wins over a check when both were asked for, so the pair is refused by the command
+    // that has the least to say about the other rather than quietly becoming one of them.
+    let command: Command =
+        match command with
+        // The first token named one, so a flag naming another is a contradiction for the refusal
+        // rules below to catch rather than something to quietly overrule it with.
+        | Command.Format ->
+            if contains Arguments.Daemon then Command.Daemon
+            elif contains Arguments.Check then Command.Check
+            else Command.Format
+        | named -> named
+
     // `--help` and `--version` answer on their own and stop, whatever else was asked for. Nothing
     // is validated first: an answer you can only read once the rest of the command line is already
     // correct is no use for finding out what you are running or how to run it.
     if contains Arguments.Help then
-        HelpPage.print ()
+        HelpPage.print command
         exit 0
 
     let versionBanner: string =
@@ -82,24 +101,6 @@ let main argv =
         match parseVerbosity asked with
         | Some level -> level
         | None -> refuse (ArgumentProblem.UnreadableValue("--verbosity", asked, [ "normal"; "detailed"; "n"; "d" ]))
-
-    // `--daemon` and `--check` are the older spellings of the commands of those names, and both go
-    // on working. `Fantomas.Client` launches every one of its three ways with `--daemon`, so an
-    // editor talking to a Fantomas newer than itself still gets a daemon, and `--check .` is in
-    // every pipeline there is. Unlike `--profile`, each flag means exactly what its command means,
-    // so keeping them changes nothing about what a run does.
-    //
-    // A daemon wins over a check when both were asked for, so the pair is refused by the command
-    // that has the least to say about the other rather than quietly becoming one of them.
-    let command: Command =
-        match command with
-        // The first token named one, so a flag naming another is a contradiction for the refusal
-        // rules below to catch rather than something to quietly overrule it with.
-        | Command.Format ->
-            if contains Arguments.Daemon then Command.Daemon
-            elif contains Arguments.Check then Command.Check
-            else Command.Format
-        | named -> named
 
     let isDaemon: bool = command = Command.Daemon
     let json: bool = contains Arguments.Json

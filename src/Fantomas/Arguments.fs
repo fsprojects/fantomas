@@ -330,16 +330,34 @@ let describeInputPaths (inputPath: InputPath) : string =
     | InputPath.NotFound path -> path
     | InputPath.Multiple(files, folders) -> String.concat " " (List.append files folders)
 
+let answersAndExits (argument: Arguments) : bool =
+    match argument with
+    | Arguments.Version
+    | Arguments.Help -> true
+    | _ -> false
+
+let argumentFor (spelling: string) : Arguments option =
+    tryFindFlag spelling
+    |> Option.map (fun (flag: Flag) ->
+        match flag.Kind with
+        | FlagKind.Switch argument -> argument
+        // The value is a placeholder. This answers what a flag is, not what it was given.
+        | FlagKind.Valued build -> build ""
+    )
+
+let commandSpelledBy (argument: Arguments) : Command option =
+    match argument with
+    | Arguments.Check -> Some Command.Check
+    | Arguments.Daemon -> Some Command.Daemon
+    | _ -> None
+
 let argumentsRefusedBy (command: Command) (given: Arguments list) : string list =
-    // `--version` and `--help` are answered and exited on before this rule is ever asked, so they
-    // win rather than being refused. `--verbosity` sets the level the run logs at, which is
-    // something every command does.
+    // A flag that answers and exits wins rather than being refused, and `--verbosity` sets the
+    // level the run logs at, which is something every command does.
     let keptByEveryCommand (argument: Arguments) : bool =
         match argument with
-        | Arguments.Version
-        | Arguments.Help
         | Arguments.Verbosity _ -> true
-        | _ -> false
+        | _ -> answersAndExits argument
 
     let keptByThisCommand (argument: Arguments) : bool =
         match command with

@@ -21,9 +21,18 @@ let ``both spellings of the flag write the page to standard out`` (flag: string)
 
     exitCode |> should equal 0
     error |> should equal ""
-    Assert.That(output, Does.Contain "Usage: fantomas [command] [...flags] [...paths]")
+    Assert.That(output, Does.Contain "[command] [...flags] [...paths]")
 
 // Standard out is redirected here, so the page has to come back as plain text.
+// Run through the muxer, as a local tool install is, so the page has to say `dotnet fantomas`
+// rather than name a command this reader does not have.
+[<Test>]
+let ``the page names the command this Fantomas was started as`` () =
+    let { Output = output } = runFantomasTool [ "--help" ]
+
+    Assert.That(output, Does.Contain "Usage: dotnet fantomas [command]")
+    Assert.That(output, Does.Contain "dotnet fantomas check .")
+
 [<Test>]
 let ``help page is not coloured when standard out is redirected`` () =
     let { Output = output } = runFantomasTool [ "--help" ]
@@ -40,7 +49,7 @@ let ``help page is not coloured on a build agent`` (variable: string) =
     let { Output = output } =
         runFantomasToolWithEnvironment [ variable, "true"; "TERM", "xterm-256color" ] [ "--help" ]
 
-    Assert.That(output, Does.Contain "Usage: fantomas [command] [...flags] [...paths]")
+    Assert.That(output, Does.Contain "[command] [...flags] [...paths]")
     output.Contains "\u001b[" |> should equal false
 
 [<Test>]
