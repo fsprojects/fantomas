@@ -32,7 +32,6 @@ let noWarningOrErrorDiagnostics diagnostics =
     )
     |> List.isEmpty
 
-/// Check whether an input string is invalid in F# by looking for errors and warnings in the diagnostics.
 let isValidFSharpCode (isSignature: bool) (source: string) : Async<bool> =
     async {
         // First get the syntax tree without any defines
