@@ -318,6 +318,7 @@
 - [ValNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-valnode.html)
 - [XmlDocNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-xmldocnode.html)
 - [Trivia](https://fsprojects.github.io/fantomas/reference/fantomas-core-trivia.html)
+- [UnionCase](https://fsprojects.github.io/fantomas/reference/fantomas-core-unioncase.html)
 - [Validation](https://fsprojects.github.io/fantomas/reference/fantomas-core-validation.html)
 - [Version](https://fsprojects.github.io/fantomas/reference/fantomas-core-version.html)
 - [CodeFormatter](https://fsprojects.github.io/fantomas/reference/fantomas-core-codeformatter.html)

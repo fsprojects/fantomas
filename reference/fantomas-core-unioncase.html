@@ -7,15 +7,15 @@
     <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
     <!-- Opengraph properties (https://ogp.me/) -->
     <meta property="og:site_name" content="fantomas">
-    <meta property="og:title" content="StopProcessingExn (fantomas)" />
+    <meta property="og:title" content="UnionCase (fantomas)" />
     <meta property="og:url" content="https://fsprojects.github.io/fantomas/{{fsdocs-source-basename}}.html">
     <meta property="og:type" content="website" />
     <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
-    <meta name="twitter:title" content="StopProcessingExn (fantomas)">
+    <meta name="twitter:title" content="UnionCase (fantomas)">
     
-    <title>StopProcessingExn (fantomas) | fantomas</title>
+    <title>UnionCase (fantomas) | fantomas</title>
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
@@ -326,57 +326,37 @@
     <div id="content">
         <div>
   <h2>
-    StopProcessingExn Type
+    UnionCase Module
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
       Namespace: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs.html">
-        Fantomas.FCS
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core.html">
+        Fantomas.Core
       </a>
     </dt>
     <dt>
-      Assembly: Fantomas.FCS.dll
-    </dt>
-    <dt>
-      Parent Module: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-diagnosticslogger.html">
-        DiagnosticsLogger
-      </a>
-    </dt>
-    <dt>
-      Base Type: 
-      <code>exn</code>
-    </dt>
-    <dt>
-      All Interfaces: 
-      <code><a href="https://learn.microsoft.com/dotnet/api/system.runtime.serialization.iserializable">ISerializable</a></code>
-      , 
-      <code><a href="https://learn.microsoft.com/dotnet/api/system.collections.istructuralequatable">IStructuralEquatable</a></code>
+      Assembly: Fantomas.Core.dll
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
     <div>
       <div class="fsdocs-summary-contents">
         <p class="fsdocs-summary">
-           Thrown when we stop processing the F# Interactive entry or #load.
+          
         </p>
       </div>
     </div>
   </div>
-  <div></div>
-  <div></div>
-  <div></div>
-  <div></div>
   <div>
     <h3>
-      Record fields
+      Functions and values
     </h3>
     <table class="table outer-list fsdocs-member-list">
       <thead>
         <tr>
           <td class="fsdocs-member-list-header">
-            Record Field
+            Function or value
           </td>
           <td class="fsdocs-member-list-header">
             Description
@@ -388,52 +368,99 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="7996" data-fsdocs-tip-unique="7996">
+              <code data-fsdocs-tip="151" data-fsdocs-tip-unique="151">
                 <p>
-                  <a id="Data0">
-                    <a href="#Data0">
-                      <code>Data0</code>
+                  <a id="name">
+                    <a href="#name">
+                      <code><span>UnionCase.name&#32;<span>value</span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="7996">
+              <div popover="" class="fsdocs-tip" id="151">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code>Data0</code>
+                  <code><span>UnionCase.name&#32;<span>value</span></span></code>
                   <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        value
+                      </b>
+                      :
+                      <code>'T</code>
+                    </span>
+                    <br/>
+                  </ul>
                   <br/>
                   <span>
-                    Field type: 
-                    <code><span>exn&#32;option</span></code>
+                    Returns: 
+                    <code>string</code>
                   </span>
+                  <br/>
+                  Type parameters: 
+                  &#39;T
                   <br/>
                 </div>
               </div>
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       The qualified name of the union case `value` is, such as `SynType.App`. Names a syntax tree
+ node in an error message without dumping every field it carries, which is what the reader of
+ the message needs and what `%A` buries. Falls back to the type's own name when `value` is not
+ a union.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.UnionCase.name``1\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('```cref:M:Fantomas.Core.UnionCase.name``1```')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    value
+                  </span>
+                  :
+                  <code>'T</code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
               <dl class="fsdocs-returns">
                 <dt>
                   <span class="fsdocs-return-name">
-                    Field type: 
+                    Returns: 
                   </span>
-                  <code><span>exn&#32;option</span></code>
+                  <code>string</code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
   <div></div>
   <div></div>
   <div></div>
