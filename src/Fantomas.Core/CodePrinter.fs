@@ -38,8 +38,9 @@ let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
     | _ ->
         raise (
             InvariantViolationException(
-                $"cannot tell whether this type is uppercase or lowercase: %A{t}",
-                (Type.Node t).Range
+                $"cannot tell whether this type is uppercase or lowercase: %s{UnionCase.name t}",
+                (Type.Node t).Range,
+                $"%A{t}"
             )
         )
 
@@ -85,8 +86,9 @@ let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
     | _ ->
         raise (
             InvariantViolationException(
-                $"cannot tell whether this expression is uppercase or lowercase: %A{expr}",
-                (Expr.Node expr).Range
+                $"cannot tell whether this expression is uppercase or lowercase: %s{UnionCase.name expr}",
+                (Expr.Node expr).Range,
+                $"%A{expr}"
             )
         )
 

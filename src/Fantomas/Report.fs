@@ -63,10 +63,17 @@ let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string,
         else
             $"Failed to format file: %s{file} : %s{message}"
 
-    // A parse failure describes itself, positions and all, rather than being reduced to a
-    // single line saying only that it happened.
-    match Diagnostics.describeParseFailure file (fun () -> sourceOf env.FileSystem file) error with
-    | Some parseFailure -> env.Log.Error parseFailure
+    let source () : string = sourceOf env.FileSystem file
+    let verbose: bool = verbosity = VerbosityLevel.Detailed
+
+    // A parse failure and an invariant violation both describe themselves, positions and all,
+    // rather than being reduced to a single line saying only that they happened.
+    match Diagnostics.describeParseFailure file source error with
+    | Some report -> env.Log.Error report
+    | None ->
+
+    match Diagnostics.describeInvariantViolation file source verbose error with
+    | Some report -> env.Log.Error report
     | None -> env.Log.Error(describeOther ())
 
 let reportProfileInfo (log: ILogger) (profile: bool) (file: string, profileInfo: ProfileInfo option) : unit =
@@ -135,8 +142,14 @@ let reportFormatResults (env: CliEnvironment) (settings: CliSettings) (results: 
 
 let reportCheckResults (env: CliEnvironment) (checkResult: CheckResult) : unit =
     for filename, exn in checkResult.Errors do
-        match Diagnostics.describeParseFailure filename (fun () -> sourceOf env.FileSystem filename) exn with
-        | Some parseFailure -> env.Log.Error parseFailure
+        let source () : string = sourceOf env.FileSystem filename
+
+        match Diagnostics.describeParseFailure filename source exn with
+        | Some report -> env.Log.Error report
+        | None ->
+
+        match Diagnostics.describeInvariantViolation filename source false exn with
+        | Some report -> env.Log.Error report
         | None -> env.Log.Error $"error: Failed to format %s{filename}: %s{exn.ToString()}"
 
     for filename in checkResult.Formatted do

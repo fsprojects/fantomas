@@ -144,11 +144,20 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                 else
                     do! notified
 
-                // A ParseException's own Message is an %A dump of the diagnostic records, and it is
-                // the editor's user who would have been shown it.
+                // A ParseException's own Message names only the first error the parser gave, and an
+                // InvariantViolationException says nothing about where in the source it happened
+                // beyond a line and a column. It is the editor's user who would have been shown
+                // either, so both are positioned against the source the request carried.
+                let source () : string = sourceCode
+
                 let message =
-                    Diagnostics.describeParseFailure filePath (fun () -> sourceCode) ex
-                    |> Option.defaultValue ex.Message
+                    match Diagnostics.describeParseFailure filePath source ex with
+                    | Some described -> described
+                    | None ->
+
+                    match Diagnostics.describeInvariantViolation filePath source false ex with
+                    | Some described -> described
+                    | None -> ex.Message
 
                 return onError message
         }

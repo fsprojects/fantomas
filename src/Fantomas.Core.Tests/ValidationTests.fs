@@ -86,3 +86,42 @@ let ``InvariantViolationException reports where in the source the violation happ
     ex.Message |> should haveSubstring "line 7"
     ex.Message |> should haveSubstring "column 4"
     ex.Message |> should haveSubstring "Sample.fs"
+
+// The invariant stays on one line and the source is not quoted into it: positioning the violation
+// against the source is the reporter's job, and the reporter that draws a parse failure does it.
+[<Test>]
+let ``InvariantViolationException keeps the invariant on one line`` () =
+    let ex =
+        Fantomas.Core.InvariantViolationException(
+            "no Oak node is defined for this type: SynType.App",
+            sampleRange,
+            "App (LongIdent ...)"
+        )
+
+    ex.Invariant |> should equal "no Oak node is defined for this type: SynType.App"
+
+[<Test>]
+let ``InvariantViolationException keeps the syntax tree node off the message`` () =
+    let ex =
+        Fantomas.Core.InvariantViolationException("chain head is Foo", sampleRange, "App (LongIdent ...)")
+
+    ex.SyntaxNode |> should equal "App (LongIdent ...)"
+    ex.Message |> should not' (haveSubstring "App (LongIdent ...)")
+
+[<Test>]
+let ``InvariantViolationException carries no syntax tree node when it was not given one`` () =
+    let ex = Fantomas.Core.InvariantViolationException("chain head is Foo", sampleRange)
+
+    ex.SyntaxNode |> should equal ""
+
+// Naming the union case is what replaces the %A dump of a syntax tree node in an error message.
+[<Test>]
+let ``UnionCase.name qualifies the case with the type it belongs to`` () =
+    let t: Fantomas.FCS.Syntax.SynType =
+        Fantomas.FCS.Syntax.SynType.Anon(Fantomas.FCS.Text.Range.range0)
+
+    Fantomas.Core.UnionCase.name t |> should equal "SynType.Anon"
+
+[<Test>]
+let ``UnionCase.name falls back to the type name for something that is not a union`` () =
+    Fantomas.Core.UnionCase.name 42 |> should equal "Int32"
