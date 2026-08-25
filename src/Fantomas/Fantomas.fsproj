@@ -59,6 +59,8 @@
     <Compile Include="DaemonCommand.fs" />
     <Compile Include="ProfileCommand.fsi" />
     <Compile Include="ProfileCommand.fs" />
+    <Compile Include="DoctorCommand.fsi" />
+    <Compile Include="DoctorCommand.fs" />
     <Compile Include="Report.fsi" />
     <Compile Include="Report.fs" />
     <Compile Include="JsonReport.fsi" />

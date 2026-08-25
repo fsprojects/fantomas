@@ -50,6 +50,15 @@ val reportProfileCommand:
     result: ProfileCommand.ProfileCommandResult ->
         int
 
+/// Report what a doctor run found, and return the exit code the process should end with.
+///
+/// One block, on standard out, whatever any step came to. Every other report puts a failure on
+/// standard error, and this one cannot: what it prints is a trace of one file through the steps in
+/// order, and a step that lands on the other stream is a line that arrives out of order in a
+/// terminal and goes missing entirely from a redirected one. The exit code is what a script reads.
+val reportDoctorCommand:
+    env: CliEnvironment -> settings: CliSettings -> result: DoctorCommand.DoctorCommandResult -> int
+
 /// Report what a `--check` run found, and return the exit code the process should end with: 0 when
 /// every file is already formatted, 99 when at least one needs formatting, and 1 on failure.
 ///

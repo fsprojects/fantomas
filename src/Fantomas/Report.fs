@@ -12,6 +12,8 @@ open Fantomas.Arguments
 open Fantomas.Cli
 open Fantomas.CommandResult
 open Fantomas.ProfileCommand
+open Fantomas.DoctorCommand
+open Fantomas.EditorConfig
 open Fantomas.Logging
 open Fantomas.Theme
 
@@ -592,5 +594,434 @@ let reportCheckCommand (env: CliEnvironment) (inputPath: InputPath) (result: Che
                 env.Log.Warning $"All %d{looked} F# files in %s{paths} were ignored by .fantomasignore."
             else
                 reportCheckResults env inputPath ignored checkResult
+
+    result.ExitCode
+
+// One row of the doctor report: the status column, the step's name, what that step came to, and
+// the lines that belong under it.
+[<NoComparison; NoEquality>]
+type DoctorRow =
+    {
+        Glyph: string
+        Label: string
+        Says: string
+        Detail: string list
+    }
+
+let doctorRow (glyph: string) (label: string) (says: string) : DoctorRow =
+    {
+        Glyph = glyph
+        Label = label
+        Says = says
+        Detail = []
+    }
+
+// `a`, `a and b`, `a, b and c`. Only the steps that were not looked at and the `.editorconfig`
+// files that set something are read out this way, and a list read out as `a; b; c` is a data
+// structure rather than a sentence.
+//
+// Walked once, from the front, which is the order the words are already in: the last two are the
+// pair that takes `and`, and every word before them takes a comma. Reversing to find the last one
+// and reversing back to put the rest in order was two passes to learn something the shape of the
+// match says on its own.
+let rec andList (words: string list) : string =
+    match words with
+    | [] -> String.Empty
+    | [ only ] -> only
+    | [ nextToLast; last ] -> String.Concat(nextToLast, " and ", last)
+    | first :: rest -> String.Concat(first, ", ", andList rest)
+
+// The gap between the status column and what each step says, measured from the longest label
+// rather than fixed, so adding a step cannot leave the column too narrow for its own name.
+let doctorGap: int = 2
+
+let doctorColumn (rows: DoctorRow list) : int =
+    rows
+    // The glyph is one character wide and the space after it is the second.
+    |> List.map (fun (row: DoctorRow) -> 2 + String.length row.Label + doctorGap)
+    |> List.fold max 0
+
+let describeDoctorFile (theme: Theme) (glyphs: StatusGlyphs) (step: FileStep) : DoctorRow =
+    match step with
+    | FileStep.NotFound _ -> doctorRow glyphs.Errored "File" "There is no file at this path."
+    | FileStep.NotFSharp _ ->
+        doctorRow
+            glyphs.Errored
+            "File"
+            "Found on disk, but not a file Fantomas formats. It formats .fs, .fsi, .fsx, .ml and .mli."
+    | FileStep.Candidate file ->
+        let kind: string =
+            match file.Kind with
+            | FileKind.Implementation -> "an implementation file"
+            | FileKind.Signature -> "a signature file"
+            | FileKind.Script -> "a script file"
+
+        // Said out loud, because it is the first thing this command checked and the reader has to
+        // be able to tell it apart from a step that was never run. A line that opens with what the
+        // file is reads as a description of a file already taken for granted.
+        let says: string = $"Found on disk: %s{kind} of %s{describeLines file.LineCount}."
+
+        match file.UnreachableUnder with
+        | None -> doctorRow glyphs.Formatted "File" says
+        | Some folder ->
+            // Not a failure: naming the file, which is what this run did, formats it. It is the
+            // answer to the question that brings somebody here with a file under `obj`, and the
+            // ignore file they were about to go and read has nothing to do with it.
+            { doctorRow glyphs.NeedsFormatting "File" says with
+                Detail =
+                    [
+                        $"It sits under %s{link theme folder}, which Fantomas never opens, so a run over a"
+                        "folder above it does not reach this file. Naming the file itself, as here, does."
+                    ]
+            }
+
+let describeIgnoreMatch (theme: Theme) (matched: IgnoreMatch) : string =
+    String.Concat("line ", string<int> matched.LineNumber, ": ", flagName theme matched.Pattern)
+
+let describeDoctorIgnore (theme: Theme) (glyphs: StatusGlyphs) (verbose: bool) (step: IgnoreStep) : DoctorRow =
+    match step with
+    | IgnoreStep.NoIgnoreFile -> doctorRow glyphs.Formatted "Ignore" "No .fantomasignore at or above this file."
+    | IgnoreStep.Governed(ignoreFile, isIgnored, matches) ->
+        let deciding: IgnoreMatch option = List.tryLast matches
+
+        // A path is somewhere the reader can go and a pattern is something they can type, here as
+        // in the lines below. A sentence is no reason for either to lose its colour.
+        let ignoreFile: string = link theme ignoreFile
+        let pattern (matched: IgnoreMatch) : string = flagName theme matched.Pattern
+
+        let says: string =
+            match isIgnored, deciding with
+            | true, Some matched -> $"Matched by %s{ignoreFile}, line %d{matched.LineNumber}: %s{pattern matched}"
+            | true, None ->
+                // The ignore library said yes and no pattern of the file says so on its own. That
+                // should not happen, and if it does the verdict is the one that decides what
+                // happens to the file, so the verdict is what is reported.
+                $"Matched by %s{ignoreFile}. Which pattern matched could not be worked out."
+            | false, Some matched when matched.Negated ->
+                $"Not matched: line %d{matched.LineNumber} of %s{ignoreFile}, %s{pattern matched}, takes it back out."
+            | false, _ -> $"Governed by %s{ignoreFile}, and no pattern in it matches."
+
+        // Read out one at a time only where there is more than one, since a single match is
+        // already quoted in the line above. Several is where it earns its space: what decided is
+        // the last of them, and a `!` line further down is exactly the case nobody spots by eye.
+        let listed: string list =
+            if List.length matches > 1 then
+                List.map (describeIgnoreMatch theme) matches @ [ "The last of these decides." ]
+            else
+                []
+
+        // The difference from `.gitignore` that catches people out, said to whoever asked for
+        // detail rather than on every run.
+        let nearestOnly: string list =
+            if verbose then
+                [
+                    "This is the nearest .fantomasignore at or above the file and the only one that"
+                    "applies. Unlike .gitignore, Fantomas does not merge in the ones above it."
+                ]
+            else
+                []
+
+        { doctorRow glyphs.Ignored "Ignore" says with
+            Detail = listed @ nearestOnly
+        }
+        |> fun (row: DoctorRow) ->
+            if isIgnored then
+                row
+            else
+                { row with Glyph = glyphs.Formatted }
+
+let describeDoctorSettings (theme: Theme) (glyphs: StatusGlyphs) (resolved: ResolvedConfig) : DoctorRow =
+    let fromEditorConfig: ResolvedSetting list = resolved.FromEditorConfig
+    let total: int = List.length resolved.Settings
+
+    // The files that actually set something, rather than the whole chain that was read: an
+    // `.editorconfig` the chain includes but Fantomas reads nothing out of did not contribute a
+    // setting, and naming it as having would send somebody to edit the wrong file. Ordered as the
+    // chain is, furthest away first, which is the order they are applied in.
+    let contributing: string list =
+        let origins: Set<string> =
+            fromEditorConfig
+            |> List.choose (fun (setting: ResolvedSetting) -> setting.SetBy)
+            |> Set.ofList
+
+        match
+            resolved.EditorConfigFiles
+            |> List.filter (fun file -> Set.contains file origins)
+        with
+        // The two lists come from the same parse, so this should not be reachable. Keep a way
+        // through anyway, because that is the library's invariant and not ours, and name the whole
+        // chain rather than name nothing.
+        | [] -> resolved.EditorConfigFiles
+        | contributing -> contributing
+
+    // Read out as places the reader can go, the way the same paths are in the column below.
+    let named (files: string list) : string =
+        files |> List.map (link theme) |> andList
+
+    let says: string =
+        match resolved.EditorConfigFiles, fromEditorConfig with
+        | [], _ -> $"No .editorconfig applies. All %d{total} settings are Fantomas defaults."
+        | files, [] -> $"All %d{total} settings are Fantomas defaults: %s{named files} sets nothing Fantomas reads."
+        | _, set ->
+            let count: int = List.length set
+
+            // Named, and named absolutely, as every path this report prints is. `.editorconfig` on
+            // its own is the one thing somebody reading this cannot go and open.
+            $"%d{count} of %d{total} settings come from %s{named contributing}, the rest are Fantomas defaults."
+
+    let written (setting: ResolvedSetting) : string =
+        String.Concat(setting.Setting, " = ", setting.Value)
+
+    // Measured across every setting rather than per group, so the two groups line up as one table
+    // and the origin column can be read straight down.
+    let settingWidth: int =
+        resolved.Settings |> List.map (written >> String.length) |> List.fold max 0
+
+    let describeSetting (setting: ResolvedSetting) : string =
+        let origin: string =
+            match setting.SetBy with
+            | Some file -> link theme file
+            | None -> muted theme "the Fantomas default"
+
+        String.Concat((written setting).PadRight(settingWidth + doctorGap), origin)
+
+    // Every setting, in two groups with a blank line between them. What an `.editorconfig` decided
+    // is what somebody came here to see, and it belongs at the top where they will see it; the rest
+    // is what the file will actually be formatted with, which is the question the step is answering
+    // and is not answered by a list with most of it left out.
+    let settings: string list =
+        let defaults: ResolvedSetting list =
+            resolved.Settings
+            |> List.filter (fun (setting: ResolvedSetting) -> setting.SetBy.IsNone)
+
+        match fromEditorConfig, defaults with
+        | [], only
+        | only, [] -> List.map describeSetting only
+        | set, defaults ->
+            List.map describeSetting set
+            @ [ String.Empty ]
+            @ List.map describeSetting defaults
+
+    // Set apart the same way, because they are sentences rather than rows of a table and forty rows
+    // above them is exactly what a sentence gets lost under.
+    let problems: string list =
+        match resolved.Problems with
+        | [] -> []
+        | problems -> String.Empty :: List.map EditorConfigReport.describeProblem problems
+
+    {
+        Glyph =
+            (if List.isEmpty resolved.Problems then
+                 glyphs.Formatted
+             else
+                 glyphs.NeedsFormatting)
+        Label = "Settings"
+        Says = says
+        Detail = settings @ problems
+    }
+
+let describeDoctorFormat (glyphs: StatusGlyphs) (lineCount: int) (step: FormatStep) : DoctorRow =
+    match step with
+    | FormatStep.Failed error ->
+        let message: string = describeFailure error |> Option.defaultValue error.Message
+
+        let says: string =
+            if String.IsNullOrEmpty message then
+                "Formatting failed."
+            else
+                // The whole of it is written below the table, where it has the width for a snippet
+                // and a caret. This is the one line version, so the column can still be read down.
+                String.Concat("Formatting failed: ", (message.Split('\n')).[0])
+
+        doctorRow glyphs.Errored "Format" says
+    | FormatStep.Produced(_, FormatChange.Nothing) ->
+        doctorRow glyphs.Unchanged "Format" "Already formatted. Nothing would change."
+    | FormatStep.Produced(_, FormatChange.LineEndingsOnly) ->
+        // Worth its own sentence rather than a count of nought. It is the state that reads as
+        // already formatted to everything that compares line by line, and the one a working tree
+        // checked out with the other platform's endings is in.
+        doctorRow
+            glyphs.NeedsFormatting
+            "Format"
+            "Not formatted: every line is as it should be and the line endings are not, so the whole file would be rewritten."
+    | FormatStep.Produced(_, FormatChange.Reformatted(firstChangedLine, lineCountAfter)) ->
+        // Where to look, and what the file becomes when it becomes a different length. Both exact,
+        // where a count of the lines that differ by position is not a count of edits and read as
+        // nonsense the moment one line was split into several.
+        let says: string =
+            if lineCountAfter = lineCount then
+                $"Not formatted: the first change is at line %d{firstChangedLine}."
+            else
+                $"Not formatted: the first change is at line %d{firstChangedLine}, and the file would go from %s{describeLines lineCount} to %d{lineCountAfter}."
+
+        doctorRow glyphs.NeedsFormatting "Format" says
+
+let describeDoctorValidity (glyphs: StatusGlyphs) (step: ValidityStep) : DoctorRow =
+    match step with
+    | ValidityStep.Valid -> doctorRow glyphs.Formatted "Valid" "Fantomas accepts what it produced."
+    | ValidityStep.Invalid _ ->
+        doctorRow glyphs.Errored "Valid" "Fantomas will not accept what it produced, so nothing would be written."
+
+let describeDoctorIdempotency (theme: Theme) (glyphs: StatusGlyphs) (step: IdempotencyStep) : DoctorRow =
+    match step with
+    | IdempotencyStep.Idempotent ->
+        doctorRow glyphs.Formatted "Idempotent" "Formatting the result again changes nothing."
+    | IdempotencyStep.Failed error ->
+        doctorRow glyphs.Errored "Idempotent" $"Formatting the result again failed: %s{error.Message}"
+    | IdempotencyStep.NotIdempotent(line, afterFirst, afterSecond) ->
+        { doctorRow glyphs.Errored "Idempotent" $"Formatting the result again changes it, first at line %d{line}." with
+            Detail =
+                [
+                    // `after one pass:` is two characters shorter than `after two passes:`, so
+                    // padded to the longer of them the two lines can be read against each other,
+                    // which is the whole reason both are printed.
+                    String.Concat("after one pass:   ", placeholder theme afterFirst)
+                    String.Concat("after two passes: ", placeholder theme afterSecond)
+                ]
+        }
+
+/// Why the walk did not reach the steps it did not reach. Read off where it stopped rather than
+/// carried, so a step that gains a way to stop the walk cannot forget to say which one it was.
+let doctorStoppedBecause (report: DoctorReport) : string =
+    match report.File, report.Ignore, report.Format, report.Validity with
+    | FileStep.NotFound _, _, _, _ -> "there is no file here to put through them"
+    | FileStep.NotFSharp _, _, _, _ -> "Fantomas does not format this kind of file"
+    | _, Some(IgnoreStep.Governed(_, true, _)), _, _ -> "Fantomas does not format a file its .fantomasignore matches"
+    | _, _, Some(FormatStep.Failed _), _ -> "formatting produced nothing to look at"
+    | _, _, _, Some(ValidityStep.Invalid _) -> "Fantomas would not accept what formatting produced"
+    | _ -> "the walk stopped before them"
+
+let reportDoctorReport (env: CliEnvironment) (settings: CliSettings) (report: DoctorReport) : unit =
+    let theme: Theme = env.OutputTheme
+    let glyphs: StatusGlyphs = statusGlyphs theme
+    let verbose: bool = settings.Verbosity = VerbosityLevel.Detailed
+
+    let path: string =
+        match report.File with
+        | FileStep.Candidate file -> file.Path
+        | FileStep.NotFound path
+        | FileStep.NotFSharp path -> path
+
+    let lineCount: int =
+        match report.File with
+        | FileStep.Candidate file -> file.LineCount
+        | FileStep.NotFound _
+        | FileStep.NotFSharp _ -> 0
+
+    // A step that was reached becomes a row; a step that was not becomes a name in one sentence
+    // below the table. Five muted rows saying nothing happened is not a report of a file that is
+    // not there, and leaving them out entirely would leave the reader to notice the absence.
+    let rows: ResizeArray<DoctorRow> = ResizeArray()
+    let skipped: ResizeArray<string> = ResizeArray()
+
+    let step (label: string) (describe: 'step -> DoctorRow) (reached: 'step option) : unit =
+        match reached with
+        | Some reached -> rows.Add(describe reached)
+        | None -> skipped.Add label
+
+    rows.Add(describeDoctorFile theme glyphs report.File)
+    step "Ignore" (describeDoctorIgnore theme glyphs verbose) report.Ignore
+    step "Settings" (describeDoctorSettings theme glyphs) report.Settings
+    step "Format" (describeDoctorFormat glyphs lineCount) report.Format
+    step "Valid" (describeDoctorValidity glyphs) report.Validity
+    step "Idempotent" (describeDoctorIdempotency theme glyphs) report.Idempotency
+
+    let column: int = doctorColumn (List.ofSeq rows)
+    let mutable lastWasBlank: bool = false
+
+    let write (line: string) : unit =
+        env.Log.Information line
+        lastWasBlank <- String.IsNullOrEmpty line
+
+    // One blank line, however many are asked for in a row. Every block here opens and closes with
+    // one so that it reads as a block, and two blocks meeting would otherwise leave a gap twice the
+    // size of the ones inside them.
+    let blank () : unit =
+        if not lastWasBlank then
+            write ""
+
+    // The whole version, commit hash and all, where every other page trims it to the short form.
+    // This report is what gets pasted into a bug report, and the build that produced it is the
+    // first thing whoever reads it has to know: a trimmed hash is one they have to ask back for.
+    write (String.Concat(title theme "Fantomas", " ", CodeFormatter.GetVersion(), " on ", link theme path))
+
+    blank ()
+
+    for row in rows do
+        writeRow write column (String.Concat(row.Glyph, " ", row.Label)) row.Says
+
+        // A blank line either side of the detail, and the detail in the same column as the line it
+        // hangs under. Indenting it further made it a second table inside the first, and what it
+        // holds is the working out behind the sentence above it rather than something subordinate
+        // to it. Without the closing blank the last line of it runs straight into the next step.
+        if not (List.isEmpty row.Detail) then
+            blank ()
+
+            for detail in row.Detail do
+                if String.IsNullOrEmpty detail then
+                    blank ()
+                else
+                    writeContinuation write column detail
+
+            blank ()
+
+    if skipped.Count > 0 then
+        let names: string list = List.ofSeq skipped
+        let were: string = plural (List.length names) "was" "were"
+
+        blank ()
+        write (muted theme $"%s{andList names} %s{were} not looked at: %s{doctorStoppedBecause report}.")
+
+    // What a failure has to say for itself goes below the table at full width, because a parse
+    // failure draws a snippet with a caret under it and an indented block of source is a block
+    // nobody can line up against their file.
+    let source () : string = sourceOf env.FileSystem path
+
+    let footer: string option =
+        match report.Format, report.Validity with
+        | Some(FormatStep.Failed error), _ -> describeItself theme path source verbose error
+        | Some(FormatStep.Produced(formatted, _)), Some(ValidityStep.Invalid diagnostics) ->
+            Some(Diagnostics.renderInvalidOutput theme path formatted diagnostics)
+        | _ -> None
+
+    match footer with
+    | None -> ()
+    | Some report ->
+        blank ()
+        write report
+
+let reportDoctorCommand (env: CliEnvironment) (settings: CliSettings) (result: DoctorCommandResult) : int =
+    match result with
+    | DoctorCommandResult.Failed error -> env.Log.Error $"%s{error.Message}"
+    | DoctorCommandResult.Completed report -> reportDoctorReport env settings report
+    | DoctorCommandResult.NotOneFile given ->
+        // Every other command takes any number of files and folders, so this is the mistake to
+        // expect rather than one to be terse about. Both ways of making it get the command that
+        // answers the question the reader was really asking.
+        //
+        // The error theme, because this lands on standard error: it is the one thing this command
+        // says that is not part of the report, and there is no report for it to be out of order in.
+        let theme: Theme = env.ErrorTheme
+
+        let says: string =
+            match given with
+            | InputPath.Folder folder ->
+                String.Concat(
+                    "doctor reports on one file, and ",
+                    folder,
+                    " is a folder. Name a file inside it, or run ",
+                    muted theme env.Invocation,
+                    flagName theme (String.Concat(" check ", folder)),
+                    " to find out what the whole tree comes to."
+                )
+            | InputPath.Multiple(files, folders) ->
+                let count: int = List.length files + List.length folders
+
+                $"doctor reports on one file, and %d{count} paths were given. Name one of them."
+            | InputPath.File _
+            | InputPath.NoFSharpFile _
+            | InputPath.NotFound _ -> "doctor reports on one file."
+
+        env.Log.Error says
 
     result.ExitCode

@@ -15,6 +15,20 @@ type AbsoluteFilePath =
 /// of the ignore-file.
 type IsPathIgnored = AbsoluteFilePath -> bool
 
+/// One line of a `.fantomasignore` whose pattern matches a path.
+[<Struct>]
+type IgnoreMatch =
+    {
+        /// Counting from one, so it can be quoted the way an editor numbers the file and the way
+        /// `git check-ignore -v` reports the pattern that decided.
+        LineNumber: int
+        /// The line exactly as it is written, `!` and all.
+        Pattern: string
+        /// Whether the pattern begins with `!`, which takes a path back out of what a pattern
+        /// above it matched.
+        Negated: bool
+    }
+
 [<NoComparison; NoEquality>]
 type IgnoreFile =
     {
@@ -58,3 +72,17 @@ module IgnoreFile =
     /// Is the file matched by the ignore file? Deciding that is not something that should fail;
     /// if it does, the failure is reported through the sink and the file counts as not ignored.
     val isIgnoredFile: log: ILogger -> ignoreFile: IgnoreFile option -> file: string -> bool
+
+    /// Every line of the ignore file whose pattern matches the path, in the order they are
+    /// written. The last of them is the one that decided: a pattern overrules every pattern above
+    /// it, so a `!` line that comes last un-ignores what an earlier line matched and an ordinary
+    /// line that comes last ignores what an earlier `!` line let through.
+    ///
+    /// `IsIgnored` answers yes or no, which is what a run needs and is not what somebody staring
+    /// at an ignore file somebody else wrote needs. This is the same question asked one pattern at
+    /// a time, so that the answer can be quoted back with the line that gave it.
+    ///
+    /// Empty and blank lines and lines beginning with `#` match nothing, so they never appear
+    /// here. Neither does a pattern the ignore library will not compile: that is a fault in the
+    /// ignore file rather than a match, and it is not this function's to report.
+    val matchingLines: ignoreFile: IgnoreFile -> file: string -> IgnoreMatch list

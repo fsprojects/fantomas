@@ -189,6 +189,21 @@ let ``a check keeps the arguments it reports with`` () =
     |> shouldEqual [ "--force"; "--out" ]
 
 [<Test>]
+let ``the doctor can be asked for as a command`` () =
+    splitCommand [| "doctor"; "src/A.fs" |]
+    |> shouldEqual (Command.Doctor, [| "src/A.fs" |])
+
+[<Test>]
+let ``a doctor keeps the arguments it reports with`` () =
+    // It takes a path and reports the two ways every command reports. What it has no use for is
+    // where to put output and whether to write invalid code, because it writes nothing.
+    argumentsRefusedBy Command.Doctor [ Arguments.Json; Arguments.Input [ "src/A.fs" ]; Arguments.Verbosity "d" ]
+    |> shouldBeEmpty
+
+    argumentsRefusedBy Command.Doctor [ Arguments.Out "build"; Arguments.Force; Arguments.Check ]
+    |> shouldEqual [ "--check"; "--force"; "--out" ]
+
+[<Test>]
 let ``both spellings of the daemon refuse the same arguments`` () =
     let refused: Arguments list =
         [ Arguments.Check; Arguments.Out "build"; Arguments.Input [ "src" ] ]

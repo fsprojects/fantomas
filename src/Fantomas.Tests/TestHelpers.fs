@@ -222,6 +222,16 @@ let recordingEnvironment (fs: IFileSystem) (ignoreFile: IgnoreFile option) : Rec
                         { FormatConfig.Default with
                             EndOfLine = EndOfLineStyle.LF
                         }
+                // The same configuration, with nothing naming an `.editorconfig` as having set any
+                // of it. Reading one is not something a `MockFileSystem` can be asked to do: the
+                // editorconfig parser reads the real disk, so a test over a mock cannot have a
+                // chain and should not pretend to one.
+                ResolveConfiguration =
+                    fun _ ->
+                        EditorConfig.withoutEditorConfig
+                            { FormatConfig.Default with
+                                EndOfLine = EndOfLineStyle.LF
+                            }
                 Log = logger
                 OutputTheme = plainTheme
                 ErrorTheme = plainTheme
@@ -268,6 +278,7 @@ let realEnvironment: CliEnvironment =
         FileSystem = FileSystem()
         FindIgnoreFile = fun _ -> None
         ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter Log.Logger)
+        ResolveConfiguration = EditorConfig.resolveConfiguration
         Log = Log.Logger
         OutputTheme = plainTheme
         ErrorTheme = plainTheme

@@ -22,6 +22,11 @@ type CliEnvironment =
         /// The `.editorconfig` settings for a file. A function rather than a file system read,
         /// because the editorconfig parser reads the disk itself and cannot be given one.
         ReadConfiguration: string -> FormatConfig
+        /// The same settings taken apart: each with the `.editorconfig` that set it, or nothing
+        /// where the Fantomas default is what applies. Beside `ReadConfiguration` rather than in
+        /// place of it, because working out where a value came from costs a second walk of the
+        /// chain and only `doctor` has anything to do with the answer.
+        ResolveConfiguration: string -> EditorConfig.ResolvedConfig
         /// Where the tool writes. A test hands over a logger with a collecting sink instead of
         /// reading a console. Which stream a level lands on is the logger's own configuration,
         /// not this record's.

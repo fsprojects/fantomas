@@ -790,3 +790,550 @@ let ``a check that could not format a file exits 1 rather than 99`` () =
     // The file is named once, under the heading that is true of it. Telling the reader to run a
     // formatter that has already failed on it is what the old report did.
     log.Information |> shouldBeEmpty
+
+// ---- the doctor report ----
+
+let private diagnosed (report: Fantomas.DoctorCommand.DoctorReport) : string =
+    let recorded: RecordedRun = run ()
+
+    reportDoctorCommand
+        recorded.Environment
+        defaultSettings
+        (Fantomas.DoctorCommand.DoctorCommandResult.Completed report)
+    |> ignore
+
+    recorded.Log().Information |> String.concat "\n"
+
+/// A file that came through every step with nothing wrong with it, for a test to break one step of.
+let private healthy: Fantomas.DoctorCommand.DoctorReport =
+    {
+        File =
+            Fantomas.DoctorCommand.FileStep.Candidate
+                {
+                    Path = "/repo/A.fs"
+                    Kind = Fantomas.DoctorCommand.FileKind.Implementation
+                    LineCount = 20
+                    UnreachableUnder = None
+                }
+        Ignore = Some Fantomas.DoctorCommand.IgnoreStep.NoIgnoreFile
+        Settings = Some(Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default)
+        Format =
+            Some(Fantomas.DoctorCommand.FormatStep.Produced("let a = 1\n", Fantomas.DoctorCommand.FormatChange.Nothing))
+        Validity = Some Fantomas.DoctorCommand.ValidityStep.Valid
+        Idempotency = Some Fantomas.DoctorCommand.IdempotencyStep.Idempotent
+    }
+
+[<Test>]
+let ``the doctor report names every step it reached, in the order Fantomas does them`` () =
+    let written: string = diagnosed healthy
+
+    let labels: string list =
+        written.Split('\n')
+        |> Array.toList
+        |> List.choose (fun (line: string) ->
+            [ "File"; "Ignore"; "Settings"; "Format"; "Valid"; "Idempotent" ]
+            |> List.tryFind (fun (label: string) -> line.Contains(" " + label + " "))
+        )
+
+    labels
+    |> shouldEqual [ "File"; "Ignore"; "Settings"; "Format"; "Valid"; "Idempotent" ]
+
+[<Test>]
+let ``a step the walk never reached is named as not looked at, and why`` () =
+    // Five muted rows saying nothing happened is not a report of an ignored file, and leaving them
+    // out without a word leaves the reader to notice the absence.
+    let ignored: Fantomas.DoctorCommand.DoctorReport =
+        { healthy with
+            Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, []))
+            Settings = None
+            Format = None
+            Validity = None
+            Idempotency = None
+        }
+
+    let written: string = diagnosed ignored
+
+    written
+    |> shouldContainText "Settings, Format, Valid and Idempotent were not looked at"
+
+    written
+    |> shouldContainText "does not format a file its .fantomasignore matches"
+
+[<Test>]
+let ``the whole report is on standard out, whatever any step came to`` () =
+    // A trace of one file through steps in order is a block, and a step that lands on the other
+    // stream arrives out of order in a terminal and goes missing entirely from a redirected one.
+    let recorded: RecordedRun = run ()
+
+    let broken: Fantomas.DoctorCommand.DoctorReport =
+        { healthy with
+            Format = Some(Fantomas.DoctorCommand.FormatStep.Failed(exn "could not be read"))
+            Validity = None
+            Idempotency = None
+        }
+
+    let code: int =
+        reportDoctorCommand
+            recorded.Environment
+            defaultSettings
+            (Fantomas.DoctorCommand.DoctorCommandResult.Completed broken)
+
+    let log: CollectedLog = recorded.Log()
+
+    code |> shouldEqual 1
+    log.Error |> shouldBeEmpty
+    String.concat "\n" log.Information |> shouldContainText "could not be read"
+
+[<Test>]
+let ``a folder is refused with the command that would answer the question instead`` () =
+    let recorded: RecordedRun = run ()
+
+    let code: int =
+        reportDoctorCommand
+            recorded.Environment
+            defaultSettings
+            (Fantomas.DoctorCommand.DoctorCommandResult.NotOneFile(InputPath.Folder "src"))
+
+    let log: CollectedLog = recorded.Log()
+
+    code |> shouldEqual 1
+    String.concat "\n" log.Error |> shouldContainText "doctor reports on one file"
+    String.concat "\n" log.Error |> shouldContainText "check src"
+
+[<Test>]
+let ``the settings line names the .editorconfig it means, absolutely`` () =
+    // `.editorconfig` on its own is the one thing somebody reading this report cannot go and open,
+    // and every other path it prints is absolute.
+    let resolved: Fantomas.EditorConfig.ResolvedConfig =
+        let plain: Fantomas.EditorConfig.ResolvedConfig =
+            Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default
+
+        { plain with
+            // A chain of two, where only the further one sets anything Fantomas reads.
+            EditorConfigFiles = [ "/repo/.editorconfig"; "/repo/src/.editorconfig" ]
+            Settings =
+                plain.Settings
+                |> List.map (fun (setting: Fantomas.EditorConfig.ResolvedSetting) ->
+                    if setting.Setting = "max_line_length" then
+                        { setting with
+                            SetBy = Some "/repo/.editorconfig"
+                        }
+                    else
+                        setting
+                )
+        }
+
+    let written: string =
+        diagnosed
+            { healthy with
+                Settings = Some resolved
+            }
+
+    written |> shouldContainText "come from /repo/.editorconfig,"
+
+    // The nearer file is in the chain and set nothing Fantomas reads, so it is not named as having
+    // contributed a setting. Naming it would send somebody to edit the wrong file.
+    written |> shouldNotContainText "/repo/src/.editorconfig"
+
+[<Test>]
+let ``every setting the file will be formatted with is listed`` () =
+    // The step is answering what the file will be formatted with, and that is not answered by a
+    // list with most of it left out.
+    let written: string = diagnosed healthy
+
+    for setting in Fantomas.EditorConfig.supportedSettings do
+        written |> shouldContainText setting
+
+[<Test>]
+let ``the settings an .editorconfig set are set apart from the defaults by a blank line`` () =
+    let fromEditorConfig: Fantomas.EditorConfig.ResolvedConfig =
+        let resolved: Fantomas.EditorConfig.ResolvedConfig =
+            Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default
+
+        { resolved with
+            EditorConfigFiles = [ "/repo/.editorconfig" ]
+            Settings =
+                resolved.Settings
+                |> List.map (fun (setting: Fantomas.EditorConfig.ResolvedSetting) ->
+                    if setting.Setting = "max_line_length" then
+                        { setting with
+                            SetBy = Some "/repo/.editorconfig"
+                        }
+                    else
+                        setting
+                )
+        }
+
+    let written: string list =
+        let recorded: RecordedRun = run ()
+
+        reportDoctorCommand
+            recorded.Environment
+            defaultSettings
+            (Fantomas.DoctorCommand.DoctorCommandResult.Completed
+                { healthy with
+                    Settings = Some fromEditorConfig
+                })
+        |> ignore
+
+        recorded.Log().Information
+
+    let indexOf (text: string) : int =
+        written |> List.findIndex (fun (line: string) -> line.Contains text)
+
+    let blankAfterTheEditorConfigOne: int = indexOf "max_line_length" + 1
+
+    written.[blankAfterTheEditorConfigOne] |> shouldEqual ""
+
+    // The group below the blank line is what nothing set, and it is still there.
+    indexOf "fsharp_max_record_width"
+    |> shouldBeGreaterThan blankAfterTheEditorConfigOne
+
+// ---- one case per row the doctor report can draw ----
+//
+// The wording is what this command is, so every branch of it is rendered here and read back. They
+// are pure functions of a `DoctorReport`, so a step no run can be made to produce on demand is
+// still a step whose sentence can be checked.
+
+let private candidate (kind: Fantomas.DoctorCommand.FileKind) (under: string option) : Fantomas.DoctorCommand.FileStep =
+    Fantomas.DoctorCommand.FileStep.Candidate
+        {
+            Path = "/repo/A.fs"
+            Kind = kind
+            LineCount = 20
+            UnreachableUnder = under
+        }
+
+let private matched (line: int) (pattern: string) (negated: bool) : Fantomas.IgnoreMatch =
+    {
+        LineNumber = line
+        Pattern = pattern
+        Negated = negated
+    }
+
+[<Test>]
+let ``each way the file step can end has a sentence of its own`` () =
+    let says (step: Fantomas.DoctorCommand.FileStep) : string = diagnosed { healthy with File = step }
+
+    says (Fantomas.DoctorCommand.FileStep.NotFound "/repo/A.fs")
+    |> shouldContainText "There is no file at this path."
+
+    says (Fantomas.DoctorCommand.FileStep.NotFSharp "/repo/A.md")
+    |> shouldContainText "Found on disk, but not a file Fantomas formats."
+
+    says (candidate Fantomas.DoctorCommand.FileKind.Implementation None)
+    |> shouldContainText "an implementation file of 20 lines"
+
+    says (candidate Fantomas.DoctorCommand.FileKind.Signature None)
+    |> shouldContainText "a signature file of 20 lines"
+
+    says (candidate Fantomas.DoctorCommand.FileKind.Script None)
+    |> shouldContainText "a script file of 20 lines"
+
+[<Test>]
+let ``a file under a folder a walk will not open says which folder`` () =
+    let written: string =
+        diagnosed
+            { healthy with
+                File = candidate Fantomas.DoctorCommand.FileKind.Implementation (Some "/repo/src/obj")
+            }
+
+    written |> shouldContainText "It sits under /repo/src/obj"
+    written |> shouldContainText "does not reach this file"
+
+[<Test>]
+let ``each way the ignore step can end has a sentence of its own`` () =
+    let says (step: Fantomas.DoctorCommand.IgnoreStep) : string =
+        diagnosed { healthy with Ignore = Some step }
+
+    says Fantomas.DoctorCommand.IgnoreStep.NoIgnoreFile
+    |> shouldContainText "No .fantomasignore at or above this file."
+
+    says (Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, []))
+    |> shouldContainText "Governed by /repo/.fantomasignore, and no pattern in it matches."
+
+    says (Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, [ matched 4 "obj/" false ]))
+    |> shouldContainText "Matched by /repo/.fantomasignore, line 4: obj/"
+
+    says (
+        Fantomas.DoctorCommand.IgnoreStep.Governed(
+            "/repo/.fantomasignore",
+            false,
+            [ matched 1 "*.fs" false; matched 2 "!A.fs" true ]
+        )
+    )
+    |> shouldContainText "line 2 of /repo/.fantomasignore, !A.fs, takes it back out"
+
+[<Test>]
+let ``a file matched by an ignore file that names no pattern says so rather than guessing`` () =
+    // The library said yes and no pattern of the file says so on its own. The verdict is what
+    // decides what happens to the file, so the verdict is what is reported.
+    diagnosed
+        { healthy with
+            Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, []))
+        }
+    |> shouldContainText "Which pattern matched could not be worked out."
+
+[<Test>]
+let ``several matching patterns are read out, with which of them decided`` () =
+    let written: string =
+        diagnosed
+            { healthy with
+                Ignore =
+                    Some(
+                        Fantomas.DoctorCommand.IgnoreStep.Governed(
+                            "/repo/.fantomasignore",
+                            true,
+                            [ matched 1 "*.fs" false; matched 3 "A.fs" false ]
+                        )
+                    )
+            }
+
+    written |> shouldContainText "line 1: *.fs"
+    written |> shouldContainText "line 3: A.fs"
+    written |> shouldContainText "The last of these decides."
+
+[<Test>]
+let ``the difference from gitignore is said to whoever asks for detail`` () =
+    let ignoreStep: Fantomas.DoctorCommand.IgnoreStep =
+        Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, [])
+
+    let recorded: RecordedRun = run ()
+
+    reportDoctorCommand
+        recorded.Environment
+        { defaultSettings with
+            Verbosity = VerbosityLevel.Detailed
+        }
+        (Fantomas.DoctorCommand.DoctorCommandResult.Completed
+            { healthy with
+                Ignore = Some ignoreStep
+            })
+    |> ignore
+
+    let detailed: string = recorded.Log().Information |> String.concat "\n"
+
+    detailed |> shouldContainText "does not merge in the ones above it"
+
+    // Not on every run: it is a difference worth knowing and not one worth repeating.
+    diagnosed
+        { healthy with
+            Ignore = Some ignoreStep
+        }
+    |> shouldNotContainText "does not merge in the ones above it"
+
+[<Test>]
+let ``an .editorconfig that sets nothing Fantomas reads is named as having set nothing`` () =
+    diagnosed
+        { healthy with
+            Settings =
+                Some
+                    { Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default with
+                        EditorConfigFiles = [ "/repo/.editorconfig" ]
+                    }
+        }
+    |> shouldContainText "/repo/.editorconfig sets nothing Fantomas reads"
+
+[<Test>]
+let ``a setting Fantomas cannot use is reported under the settings that apply`` () =
+    let written: string =
+        diagnosed
+            { healthy with
+                Settings =
+                    Some
+                        { Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default with
+                            EditorConfigFiles = [ "/repo/.editorconfig" ]
+                            Problems =
+                                [
+                                    Fantomas.EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_nope"
+                                    Fantomas.EditorConfig.EditorConfigProblem.UnrecognizedValue(
+                                        "fsharp_max_record_width",
+                                        "banana"
+                                    )
+                                ]
+                        }
+            }
+
+    written |> shouldContainText "'fsharp_nope' is not a Fantomas setting."
+    written |> shouldContainText "does not accept the value 'banana'"
+
+[<Test>]
+let ``each way the format step can end has a sentence of its own`` () =
+    let says (step: Fantomas.DoctorCommand.FormatStep) : string =
+        diagnosed
+            { healthy with
+                Format = Some step
+                Validity = None
+                Idempotency = None
+            }
+
+    says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.Nothing))
+    |> shouldContainText "Already formatted. Nothing would change."
+
+    // The file keeps its length, so where it parts from the result is the whole answer.
+    says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.Reformatted(12, 20)))
+    |> shouldContainText "Not formatted: the first change is at line 12."
+
+    // It does not, so the lengths are worth saying as well.
+    says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.Reformatted(1, 24)))
+    |> shouldContainText "the first change is at line 1, and the file would go from 20 lines to 24."
+
+    // Not a count of nought, which reads as nothing to do. Every line is right and the file would
+    // still be rewritten, so it gets a sentence rather than a number.
+    says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.LineEndingsOnly))
+    |> shouldContainText "the line endings are not, so the whole file would be rewritten"
+
+    says (Fantomas.DoctorCommand.FormatStep.Failed(exn "Access to the path is denied"))
+    |> shouldContainText "Formatting failed: Access to the path is denied"
+
+[<Test>]
+let ``a failure with nothing to say for itself still says that it happened`` () =
+    diagnosed
+        { healthy with
+            Format = Some(Fantomas.DoctorCommand.FormatStep.Failed(exn ""))
+            Validity = None
+            Idempotency = None
+        }
+    |> shouldContainText "Formatting failed."
+
+[<Test>]
+let ``output Fantomas will not accept is reported with what the parser said about it`` () =
+    let written: string =
+        diagnosed
+            { healthy with
+                Format =
+                    Some(
+                        Fantomas.DoctorCommand.FormatStep.Produced(
+                            rejectedOutput,
+                            Fantomas.DoctorCommand.FormatChange.Reformatted(3, 3)
+                        )
+                    )
+                Validity = Some(Fantomas.DoctorCommand.ValidityStep.Invalid rejection)
+                Idempotency = None
+            }
+
+    written |> shouldContainText "will not accept what it produced"
+    written |> shouldContainText "a bug in Fantomas"
+    written |> shouldContainText "error FS0583: Unmatched '('"
+    written |> shouldContainText "Idempotent was not looked at"
+
+[<Test>]
+let ``each way the idempotency step can end has a sentence of its own`` () =
+    let says (step: Fantomas.DoctorCommand.IdempotencyStep) : string =
+        diagnosed { healthy with Idempotency = Some step }
+
+    says Fantomas.DoctorCommand.IdempotencyStep.Idempotent
+    |> shouldContainText "Formatting the result again changes nothing."
+
+    says (Fantomas.DoctorCommand.IdempotencyStep.Failed(exn "the second pass fell over"))
+    |> shouldContainText "Formatting the result again failed: the second pass fell over"
+
+    let disagreed: string =
+        says (Fantomas.DoctorCommand.IdempotencyStep.NotIdempotent(7, "let a = 1", "let a =  1"))
+
+    disagreed |> shouldContainText "changes it, first at line 7"
+    disagreed |> shouldContainText "after one pass:   let a = 1"
+    disagreed |> shouldContainText "after two passes: let a =  1"
+
+[<Test>]
+let ``a run that fell over says what went wrong, on standard error`` () =
+    let recorded: RecordedRun = run ()
+
+    let code: int =
+        reportDoctorCommand
+            recorded.Environment
+            defaultSettings
+            (Fantomas.DoctorCommand.DoctorCommandResult.Failed(exn "the disk went away"))
+
+    code |> shouldEqual 1
+
+    String.concat "\n" (recorded.Log().Error)
+    |> shouldContainText "the disk went away"
+
+[<Test>]
+let ``several paths are refused by saying how many were given`` () =
+    let recorded: RecordedRun = run ()
+
+    reportDoctorCommand
+        recorded.Environment
+        defaultSettings
+        (Fantomas.DoctorCommand.DoctorCommandResult.NotOneFile(InputPath.Multiple([ "A.fs"; "B.fs" ], [ "src" ])))
+    |> ignore
+
+    String.concat "\n" (recorded.Log().Error)
+    |> shouldContainText "3 paths were given"
+
+/// A report that stopped at the file step, which is the shape a real run produces for a path it
+/// cannot look at: every step below it was never reached.
+let private stoppedAtTheFile (step: Fantomas.DoctorCommand.FileStep) : Fantomas.DoctorCommand.DoctorReport =
+    {
+        File = step
+        Ignore = None
+        Settings = None
+        Format = None
+        Validity = None
+        Idempotency = None
+    }
+
+[<Test>]
+let ``a path that is not there says nothing below it was looked at, and why`` () =
+    let written: string =
+        diagnosed (stoppedAtTheFile (Fantomas.DoctorCommand.FileStep.NotFound "/repo/A.fs"))
+
+    written
+    |> shouldContainText "Ignore, Settings, Format, Valid and Idempotent were not looked at"
+
+    written |> shouldContainText "there is no file here to put through them"
+
+[<Test>]
+let ``a file Fantomas does not format says so as the reason the rest was skipped`` () =
+    diagnosed (stoppedAtTheFile (Fantomas.DoctorCommand.FileStep.NotFSharp "/repo/A.md"))
+    |> shouldContainText "Fantomas does not format this kind of file"
+
+[<Test>]
+let ``a file that will not parse is reported with the parser's own diagnostics and a snippet`` () =
+    // The failure describes itself below the table, at full width, because a snippet with a caret
+    // under it is not something that survives being indented into a column. The lines it draws come
+    // from the file on disk, so this one is a real file and a real file system.
+    use fileFixture = new TemporaryFileCodeSample(rejectedOutput)
+
+    let recorded: RecordedRun =
+        recordingEnvironment (System.IO.Abstractions.FileSystem()) None
+
+    reportDoctorCommand
+        recorded.Environment
+        defaultSettings
+        (Fantomas.DoctorCommand.DoctorCommandResult.Completed
+            { stoppedAtTheFile (
+                  Fantomas.DoctorCommand.FileStep.Candidate
+                      {
+                          Path = fileFixture.Filename
+                          Kind = Fantomas.DoctorCommand.FileKind.Implementation
+                          LineCount = 3
+                          UnreachableUnder = None
+                      }
+              ) with
+                Format = Some(Fantomas.DoctorCommand.FormatStep.Failed(ParseException rejection))
+            })
+    |> ignore
+
+    let written: string = recorded.Log().Information |> String.concat "\n"
+
+    written |> shouldContainText "error FS0583: Unmatched '('"
+    // Read back off the file, which is the one thing here that needs the path to still resolve.
+    written |> shouldContainText "let a = (1"
+
+[<Test>]
+let ``a single path that is somehow refused still says what the command takes`` () =
+    // `runDoctorCommand` only refuses a folder and a list, so this is the way through that keeps
+    // the match total rather than a shape a run can produce.
+    let recorded: RecordedRun = run ()
+
+    reportDoctorCommand
+        recorded.Environment
+        defaultSettings
+        (Fantomas.DoctorCommand.DoctorCommandResult.NotOneFile(InputPath.File "A.fs"))
+    |> ignore
+
+    String.concat "\n" (recorded.Log().Error)
+    |> shouldContainText "doctor reports on one file."
