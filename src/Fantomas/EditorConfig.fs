@@ -148,49 +148,8 @@ let supportedSettings: string list =
 let supportedSettingLookup: HashSet<string> =
     HashSet<string>(settingNames, System.StringComparer.OrdinalIgnoreCase)
 
-/// How many single character edits turn one setting name into the other, capped at `limit`.
-///
-/// The cap answers without measuring when the two lengths already differ by more than it. Anything
-/// past that is measured in full, so two names of the same length are compared character by
-/// character however unalike they are.
-let editDistance (limit: int) (left: string) (right: string) : int =
-    if abs (left.Length - right.Length) > limit then
-        limit + 1
-    else
-        let mutable previous = Array.init (right.Length + 1) id
-        let mutable current = Array.zeroCreate<int> (right.Length + 1)
-
-        for row in 1 .. left.Length do
-            current[0] <- row
-
-            for column in 1 .. right.Length do
-                let substitution =
-                    previous[column - 1] + (if left[row - 1] = right[column - 1] then 0 else 1)
-
-                current[column] <- min (min (current[column - 1] + 1) (previous[column] + 1)) substitution
-
-            let swap = previous
-            previous <- current
-            current <- swap
-
-        min previous[right.Length] (limit + 1)
-
-/// The supported setting closest to `setting`, when one is within `limit` edits of it.
-///
-/// Two candidates the same distance away are separated by the order of `supportedSettings`, since
-/// `List.sortBy` is stable. Not a case anyone reaches by mistyping: the two closest settings
-/// Fantomas has are three edits apart, so a tie takes a string built on purpose to sit between
-/// them.
 let nearestSetting (limit: int) (setting: string) : string option =
-    supportedSettings
-    |> List.choose (fun candidate ->
-        match editDistance limit setting candidate with
-        | distance when distance <= limit -> Some(candidate, distance)
-        | _ -> None
-    )
-    |> List.sortBy snd
-    |> List.tryHead
-    |> Option.map fst
+    Suggestion.nearest limit supportedSettings setting
 
 /// How far an unprefixed key may be from a setting Fantomas has before it is read as a misspelling
 /// of it rather than as something belonging to another tool.

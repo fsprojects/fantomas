@@ -1,7 +1,6 @@
 module Fantomas.HelpPage
 
 open System
-open Argu
 open Fantomas.Core
 open Fantomas.Theme
 
@@ -173,26 +172,3 @@ let render (theme: Theme) : string list =
 
 let print () : unit =
     render (forOutput ()) |> List.iter Console.Out.WriteLine
-
-// Argu builds a usage block of its own and hands it over as part of the message. Only the
-// first line carries the actual complaint, so the rest is dropped in favour of a pointer to
-// the page above.
-let complaint (message: string) : string =
-    message.Split('\n')
-    |> Array.tryFind (fun (line: string) -> line.StartsWith("ERROR:", StringComparison.Ordinal))
-    |> Option.defaultValue message
-    |> fun (line: string) -> line.Trim()
-
-let exiter: IExiter =
-    { new IExiter with
-        member _.Name = "Fantomas help page"
-
-        member _.Exit(message: string, errorCode: ErrorCode) =
-            if errorCode = ErrorCode.HelpText then
-                print ()
-                exit 0
-            else
-                Console.Error.WriteLine(complaint message)
-                Console.Error.WriteLine("Run fantomas --help for usage information.")
-                exit (int errorCode)
-    }

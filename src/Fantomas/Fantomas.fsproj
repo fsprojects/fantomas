@@ -25,6 +25,8 @@
     <Compile Include="Theme.fs" />
     <Compile Include="Invocation.fsi" />
     <Compile Include="Invocation.fs" />
+    <Compile Include="Suggestion.fsi" />
+    <Compile Include="Suggestion.fs" />
     <Compile Include="Logging.fsi" />
     <Compile Include="Logging.fs" />
     <Compile Include="Diagnostics.fsi" />
@@ -64,7 +66,6 @@
     <PackageReference Include="Serilog"  />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="StreamJsonRpc" />
-    <PackageReference Include="Argu" />
     <PackageReference Include="editorconfig" />
     <PackageReference Include="Ignore" />
     <PackageReference Include="System.IO.Abstractions" />

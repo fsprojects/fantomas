@@ -107,14 +107,3 @@ let ``the two column layout lines up whether or not there is colour`` () =
         |> List.map (fun (line: string) -> anyEscapeSequence.Replace(line, "").Length)
 
     widths Palette.EightBit |> shouldEqual (widths Palette.NoColour)
-
-[<Test>]
-let ``an argument error is reduced to the line that carries the complaint`` () =
-    let arguMessage: string =
-        "ERROR: missing argument '--out'.\nUSAGE: fantomas [--help] [--check]\n\nOPTIONS:\n    --check    ..."
-
-    complaint arguMessage |> shouldEqual "ERROR: missing argument '--out'."
-
-[<Test>]
-let ``a message with no complaint line is kept whole`` () =
-    complaint "something else entirely" |> shouldEqual "something else entirely"

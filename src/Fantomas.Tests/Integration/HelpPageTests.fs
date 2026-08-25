@@ -44,7 +44,7 @@ let ``help page is not coloured on a build agent`` (variable: string) =
     output.Contains "\u001b[" |> should equal false
 
 [<Test>]
-let ``an argument error is reported on standard error without Argu's usage text`` () =
+let ``an argument error is reported on standard error, with a pointer to the page`` () =
     let {
             ExitCode = exitCode
             Output = output
@@ -54,6 +54,7 @@ let ``an argument error is reported on standard error without Argu's usage text`
 
     exitCode |> should not' (equal 0)
     output |> should equal ""
-    Assert.That(error, Does.Contain "argument '--out' must be followed by")
-    Assert.That(error, Does.Contain "Run fantomas --help for usage information.")
+    Assert.That(error, Does.Contain "'--out' must be followed by a value.")
+    Assert.That(error, Does.Contain "--help for usage information.")
+    // Argu used to append a usage block of its own, which the page above replaces.
     Assert.That(error, Does.Not.Contain "USAGE:")

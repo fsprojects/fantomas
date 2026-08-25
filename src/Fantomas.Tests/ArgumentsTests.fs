@@ -8,6 +8,132 @@ open Fantomas.Arguments
 open Fantomas.Logging
 open Fantomas.Tests.TestHelpers
 
+let private parsed (argv: string list) : Arguments list =
+    match parse (Array.ofList argv) with
+    | Ok given -> given
+    | Error problem -> failwith $"Expected the command line to parse, got %A{problem}"
+
+let private refused (argv: string list) : ArgumentProblem =
+    match parse (Array.ofList argv) with
+    | Error problem -> problem
+    | Ok given -> failwith $"Expected the command line to be refused, got %A{given}"
+
+[<Test>]
+let ``flags and paths interleave in any order`` () =
+    // The same command written three ways. What was asked for has to be the same however it was
+    // typed, so these are compared without regard to the order the flags arrived in.
+    let asked (argv: string list) : Arguments list =
+        parsed argv |> List.sortBy describeArgument
+
+    let expected: Arguments list =
+        [ Arguments.Check; Arguments.Input [ "src"; "tests" ]; Arguments.Verbosity "d" ]
+        |> List.sortBy describeArgument
+
+    asked [ "--check"; "-v"; "d"; "src"; "tests" ] |> shouldEqual expected
+    asked [ "src"; "--check"; "tests"; "-v"; "d" ] |> shouldEqual expected
+    asked [ "-v"; "d"; "src"; "--check"; "tests" ] |> shouldEqual expected
+
+[<Test>]
+let ``a value is taken from the next token or attached with an equals`` () =
+    parsed [ "--out"; "build" ] |> shouldEqual [ Arguments.Out "build" ]
+    parsed [ "--out=build" ] |> shouldEqual [ Arguments.Out "build" ]
+    parsed [ "-v=d" ] |> shouldEqual [ Arguments.Verbosity "d" ]
+
+[<Test>]
+let ``a token beginning with a dash is never taken as a value`` () =
+    // `--out --check src` is a missing output path, not an output path named `--check`.
+    refused [ "--out"; "--check"; "src" ]
+    |> shouldEqual (ArgumentProblem.MissingValue("--out", Some "--check"))
+
+[<Test>]
+let ``a flag that takes a value and has none is refused`` () =
+    refused [ "--out" ] |> shouldEqual (ArgumentProblem.MissingValue("--out", None))
+
+[<Test>]
+let ``a switch given a value is refused rather than quietly accepted`` () =
+    refused [ "--check=true" ]
+    |> shouldEqual (ArgumentProblem.UnexpectedValue("--check", "true"))
+
+[<Test>]
+let ``an unknown flag is reported as one rather than read as a path`` () =
+    // It used to reach `classifyInputPath` and come back as "Input path '--nope' not found",
+    // which sent the reader looking for a file.
+    refused [ "--nope"; "src" ]
+    |> shouldEqual (ArgumentProblem.UnknownFlag("--nope", None))
+
+[<Test>]
+let ``a misspelled flag names the one it is close to`` () =
+    refused [ "--chek"; "src" ]
+    |> shouldEqual (ArgumentProblem.UnknownFlag("--chek", Some "--check"))
+
+[<Test>]
+let ``an unknown short flag is not guessed at`` () =
+    // A short flag is two characters, so one edit is half of it and every short flag is that close
+    // to every other. `-x` came back as "did you mean -v", which is a guess dressed as help.
+    refused [ "-x"; "src" ] |> shouldEqual (ArgumentProblem.UnknownFlag("-x", None))
+
+[<Test>]
+let ``a double dash ends the flags`` () =
+    // The only way to name a file that begins with a dash, and it used to be read as a path
+    // itself.
+    parsed [ "--"; "--check"; "-v" ]
+    |> shouldEqual [ Arguments.Input [ "--check"; "-v" ] ]
+
+[<Test>]
+let ``a lone dash is a path`` () =
+    parsed [ "-" ] |> shouldEqual [ Arguments.Input [ "-" ] ]
+
+[<Test>]
+let ``repeating a flag is allowed and the last one wins`` () =
+    // Argu refused this. A script that builds its arguments up should not fail on a duplicate,
+    // and last-wins is what every other tool does.
+    parsed [ "--out"; "a"; "--out"; "b" ] |> shouldEqual [ Arguments.Out "b" ]
+    parsed [ "--check"; "--check" ] |> shouldEqual [ Arguments.Check ]
+
+[<Test>]
+let ``paths accumulate rather than replacing each other`` () =
+    parsed [ "a.fs"; "b.fs"; "c.fs" ]
+    |> shouldEqual [ Arguments.Input [ "a.fs"; "b.fs"; "c.fs" ] ]
+
+[<Test>]
+let ``an empty command line asks for nothing`` () = parsed [] |> shouldBeEmpty
+
+[<Test>]
+let ``nothing is refused when --daemon was not asked for`` () =
+    // The guard belongs to the rule rather than to every caller of it. It used to sit in `main`,
+    // which meant the function answered a question it had not been asked.
+    argumentsRefusedWithDaemon [ Arguments.Check; Arguments.Out "build"; Arguments.Input [ "src" ] ]
+    |> shouldBeEmpty
+
+[<Test>]
+let ``every problem has its own wording, quoting what was typed`` () =
+    [
+        ArgumentProblem.UnknownFlag("--nope", None)
+        ArgumentProblem.UnknownFlag("--chek", Some "--check")
+        ArgumentProblem.MissingValue("--out", None)
+        ArgumentProblem.MissingValue("--out", Some "--check")
+        ArgumentProblem.UnexpectedValue("--check", "true")
+        ArgumentProblem.UnreadableValue("--verbosity", "bogus", [ "normal"; "detailed"; "n"; "d" ])
+    ]
+    |> List.map describeArgumentProblem
+    |> shouldEqual
+        [
+            "'--nope' is not a Fantomas flag."
+            "'--chek' is not a Fantomas flag. Did you mean '--check'?"
+            "'--out' must be followed by a value."
+            "'--out' must be followed by a value, but was followed by '--check'."
+            "'--check' takes no value, but was given 'true'."
+            "'--verbosity' does not accept 'bogus'. It accepts normal, detailed, n or d."
+        ]
+
+[<Test>]
+let ``what a flag will take reads as a sentence rather than as a list`` () =
+    describeArgumentProblem (ArgumentProblem.UnreadableValue("--x", "z", [ "a" ]))
+    |> shouldContainText "It accepts a."
+
+    describeArgumentProblem (ArgumentProblem.UnreadableValue("--x", "z", [ "a"; "b" ]))
+    |> shouldContainText "It accepts a or b."
+
 // Every one of these used to be accepted alongside --daemon and then silently ignored.
 [<Test>]
 let ``the arguments that say what to format are refused alongside --daemon`` () =
@@ -134,24 +260,22 @@ let ``several paths keep the order they were given`` () =
     |> shouldEqual (InputPath.Multiple([ a; b ], []))
 
 [<Test>]
-[<TestCase(null: string)>]
 [<TestCase("n")>]
 [<TestCase("normal")>]
 [<TestCase("NORMAL")>]
-let ``normal verbosity is the default and its spellings`` (value: string) =
-    let given: string option = Option.ofObj value
-    parseVerbosity given |> shouldEqual (Some VerbosityLevel.Normal)
+let ``the spellings of normal verbosity`` (value: string) =
+    parseVerbosity value |> shouldEqual (Some VerbosityLevel.Normal)
 
 [<Test>]
 [<TestCase("d")>]
 [<TestCase("detailed")>]
 [<TestCase("Detailed")>]
 let ``detailed verbosity and its spellings`` (value: string) =
-    parseVerbosity (Some value) |> shouldEqual (Some VerbosityLevel.Detailed)
+    parseVerbosity value |> shouldEqual (Some VerbosityLevel.Detailed)
 
 [<Test>]
 [<TestCase("")>]
 [<TestCase("verbose")>]
 [<TestCase("dd")>]
 let ``a verbosity Fantomas does not know is refused`` (value: string) =
-    parseVerbosity (Some value) |> shouldEqual None
+    parseVerbosity value |> shouldEqual None

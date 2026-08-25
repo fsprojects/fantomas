@@ -12,7 +12,6 @@ open Fantomas.FormatCommand
 open Fantomas.Report
 open Fantomas.CheckCommand
 open Fantomas.CommandResult
-open Argu
 open Serilog
 open Spectre.Console
 
@@ -21,66 +20,72 @@ open Spectre.Console
 /// process should end with.
 [<EntryPoint>]
 let main argv =
-    // Argu never gets to render a usage text of its own: HelpPage.exiter answers --help with
-    // the Fantomas help page and reduces an argument error to its first line.
-    let parser: ArgumentParser<Arguments> =
-        ArgumentParser.Create<Arguments>(programName = "fantomas", errorHandler = HelpPage.exiter)
+    // The help pointer names the tool the way this run was started, so a local tool install is
+    // given a line it can run rather than one it has to translate.
+    let usagePointer: string =
+        $"Run %s{Invocation.name ()} --help for usage information."
 
-    let results: ParseResults<Arguments> = parser.ParseCommandLine argv
+    // Every way the command line can be wrong ends here. The logger is not configured yet, and
+    // deliberately so: what to configure it with is one of the things being read.
+    let refuse (problem: ArgumentProblem) : 'a =
+        eprintfn "%s" (describeArgumentProblem problem)
+        eprintfn "%s" usagePointer
+        exit 1
+
+    let given: Arguments list =
+        match parse argv with
+        | Ok given -> given
+        | Error problem -> refuse problem
+
+    let contains (argument: Arguments) : bool = List.contains argument given
+
+    // `--help` and `--version` answer on their own and stop, whatever else was asked for. Nothing
+    // is validated first: an answer you can only read once the rest of the command line is already
+    // correct is no use for finding out what you are running or how to run it.
+    if contains Arguments.Help then
+        HelpPage.print ()
+        exit 0
 
     let versionBanner: string =
         let version: string = CodeFormatter.GetVersion()
         $"Fantomas v%s{version}"
 
-    // `--version` answers on its own and stops, whatever else was asked for. Nothing is validated
-    // first: a version you can only read once the rest of the command line is already correct is no
-    // use for finding out what you are running. It is written straight to standard out rather than
-    // through the logger, so it reads the same at any verbosity, and standard out is where
-    // Fantomas.Client looks for it when it discovers the tool.
-    if results.Contains <@ Arguments.Version @> then
+    // Written straight to standard out rather than through the logger, so it reads the same at any
+    // verbosity, and standard out is where Fantomas.Client looks for it when it discovers the tool.
+    if contains Arguments.Version then
         Console.Out.WriteLine versionBanner
         exit 0
 
     let outputPath: OutputPath =
-        match results.TryGetResult <@ Arguments.Out @> with
+        match tryOut given with
         | Some output -> OutputPath.IO output
         | None -> OutputPath.NotKnown
 
     let fileSystem: IFileSystem = FileSystem()
 
-    let inputPath: InputPath =
-        results.TryGetResult <@ Arguments.Input @> |> classifyInputPath fileSystem
+    let inputPath: InputPath = classifyInputPath fileSystem (tryInput given)
 
-    let force: bool = results.Contains <@ Arguments.Force @>
-    let profile: bool = results.Contains <@ Arguments.Profile @>
+    let force: bool = contains Arguments.Force
+    let profile: bool = contains Arguments.Profile
 
     let verbosityLevel: VerbosityLevel =
-        match parseVerbosity (results.TryGetResult <@ Arguments.Verbosity @>) with
+        // Not given at all is the default. Given and unreadable is a mistake worth stopping for,
+        // and the two are told apart here rather than inside the parse.
+        match tryVerbosity given with
+        | None -> VerbosityLevel.Normal
+        | Some asked ->
+
+        match parseVerbosity asked with
         | Some level -> level
-        | None ->
-            // The logger is not configured yet, so this cannot go through it.
-            eprintfn "Invalid verbosity level"
-            exit 1
+        | None -> refuse (ArgumentProblem.UnreadableValue("--verbosity", asked, [ "normal"; "detailed"; "n"; "d" ]))
 
-    let isDaemon: bool = results.Contains <@ Arguments.Daemon @>
-    let json: bool = results.Contains <@ Arguments.Json @>
+    let isDaemon: bool = contains Arguments.Daemon
+    let json: bool = contains Arguments.Json
 
-    // Everything here used to be accepted alongside --daemon and then silently ignored.
-    match
-        if isDaemon then
-            argumentsRefusedWithDaemon (results.GetAllResults())
-        else
-            []
-    with
+    // Every one of these used to be accepted alongside --daemon and then silently ignored.
+    match argumentsRefusedWithDaemon given with
     | [] -> ()
-    | refused ->
-        // The logger is not configured yet, so this cannot go through it.
-        eprintfn
-            "--daemon cannot be combined with %s. A daemon is told what to format over JSON-RPC on standard in and answers on standard out, so there is nothing else for it to do and no stream left to report on."
-            (String.concat ", " refused)
-
-        eprintfn "Run fantomas --help for usage information."
-        exit 1
+    | refused -> refuse (ArgumentProblem.RefusedWithDaemon refused)
 
     // `--json` puts one document on standard out, so the logger moves off it entirely, the way it
     // does in daemon mode, where standard out carries the JSON-RPC protocol.
@@ -94,7 +99,7 @@ let main argv =
     // The logger the calls above configured, now handed down rather than reached for.
     let log: ILogger = Log.Logger
 
-    let check: bool = results.Contains <@ Arguments.Check @>
+    let check: bool = contains Arguments.Check
 
     log.Debug versionBanner
 
