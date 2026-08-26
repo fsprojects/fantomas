@@ -19,6 +19,11 @@ type CliEnvironment =
         /// resolving it once for the whole run is what made a pipeline disagree with an editor
         /// about a `.fantomasignore` in a subfolder.
         FindIgnoreFile: string -> IgnoreFile option
+        /// The `.fantomasignore` files above the one that governs a file, nearest first, none of
+        /// which applies. Beside `FindIgnoreFile` rather than folded into it for the reason
+        /// `ResolveConfiguration` sits beside `ReadConfiguration`: it costs a second walk and only
+        /// `doctor` has anything to do with the answer.
+        FindIgnoreFilesAbove: IgnoreFile -> IgnoreFile list
         /// The `.editorconfig` settings for a file. A function rather than a file system read,
         /// because the editorconfig parser reads the disk itself and cannot be given one.
         ReadConfiguration: string -> FormatConfig

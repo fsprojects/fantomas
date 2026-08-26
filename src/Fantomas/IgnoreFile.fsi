@@ -57,6 +57,20 @@ module IgnoreFile =
     val findInDirectory:
         fs: IFileSystem -> currentDirectory: string -> loadIgnoreList: (string -> IsPathIgnored) -> IgnoreFile option
 
+    /// Every `.fantomasignore` above the one that governs a file, nearest first.
+    ///
+    /// No run reads these. `find` stops at the first one it meets and that one decides, which is
+    /// the rule and is not the rule anyone expects from a file written in `.gitignore`'s format.
+    /// Somebody who put a pattern in a repository's ignore file and finds it had no effect on a
+    /// subfolder that has an ignore file of its own is looking at a file Fantomas never opened,
+    /// and no other question they can ask will say so.
+    ///
+    /// That is what this is for and all it is for: `doctor` asks about one file, because it was
+    /// asked to, and can afford to keep walking after the answer is known. A run cannot, and
+    /// finding an ignore file that governs nothing is not a thing a run should slow down for.
+    val findAbove:
+        fs: IFileSystem -> loadIgnoreList: (string -> IsPathIgnored) -> ignoreFile: IgnoreFile -> IgnoreFile list
+
     /// `find`, per file, remembering what it found.
     ///
     /// This is what the command line uses, so that it and the daemon answer the same way about the

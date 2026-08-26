@@ -217,6 +217,9 @@ let recordingEnvironment (fs: IFileSystem) (ignoreFile: IgnoreFile option) : Rec
             {
                 FileSystem = fs
                 FindIgnoreFile = fun _ -> ignoreFile
+                // Nothing above the one handed over. A test about what an ignore file further up
+                // would have said hands over its own, since finding one is the thing being tested.
+                FindIgnoreFilesAbove = fun _ -> []
                 ReadConfiguration =
                     fun _ ->
                         { FormatConfig.Default with
@@ -277,6 +280,7 @@ let realEnvironment: CliEnvironment =
     {
         FileSystem = FileSystem()
         FindIgnoreFile = fun _ -> None
+        FindIgnoreFilesAbove = fun _ -> []
         ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter Log.Logger)
         ResolveConfiguration = EditorConfig.resolveConfiguration
         Log = Log.Logger

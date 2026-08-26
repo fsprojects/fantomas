@@ -844,7 +844,7 @@ let ``a step the walk never reached is named as not looked at, and why`` () =
     // out without a word leaves the reader to notice the absence.
     let ignored: Fantomas.DoctorCommand.DoctorReport =
         { healthy with
-            Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, []))
+            Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, [], []))
             Settings = None
             Format = None
             Validity = None
@@ -1049,17 +1049,18 @@ let ``each way the ignore step can end has a sentence of its own`` () =
     says Fantomas.DoctorCommand.IgnoreStep.NoIgnoreFile
     |> shouldContainText "No .fantomasignore at or above this file."
 
-    says (Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, []))
+    says (Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, [], []))
     |> shouldContainText "Governed by /repo/.fantomasignore, and no pattern in it matches."
 
-    says (Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, [ matched 4 "obj/" false ]))
+    says (Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, [ matched 4 "obj/" false ], []))
     |> shouldContainText "Matched by /repo/.fantomasignore, line 4: obj/"
 
     says (
         Fantomas.DoctorCommand.IgnoreStep.Governed(
             "/repo/.fantomasignore",
             false,
-            [ matched 1 "*.fs" false; matched 2 "!A.fs" true ]
+            [ matched 1 "*.fs" false; matched 2 "!A.fs" true ],
+            []
         )
     )
     |> shouldContainText "line 2 of /repo/.fantomasignore, !A.fs, takes it back out"
@@ -1070,7 +1071,7 @@ let ``a file matched by an ignore file that names no pattern says so rather than
     // decides what happens to the file, so the verdict is what is reported.
     diagnosed
         { healthy with
-            Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, []))
+            Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, [], []))
         }
     |> shouldContainText "Which pattern matched could not be worked out."
 
@@ -1084,7 +1085,8 @@ let ``several matching patterns are read out, with which of them decided`` () =
                         Fantomas.DoctorCommand.IgnoreStep.Governed(
                             "/repo/.fantomasignore",
                             true,
-                            [ matched 1 "*.fs" false; matched 3 "A.fs" false ]
+                            [ matched 1 "*.fs" false; matched 3 "A.fs" false ],
+                            []
                         )
                     )
             }
@@ -1096,7 +1098,7 @@ let ``several matching patterns are read out, with which of them decided`` () =
 [<Test>]
 let ``the difference from gitignore is said to whoever asks for detail`` () =
     let ignoreStep: Fantomas.DoctorCommand.IgnoreStep =
-        Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, [])
+        Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, [], [])
 
     let recorded: RecordedRun = run ()
 
@@ -1121,6 +1123,64 @@ let ``the difference from gitignore is said to whoever asks for detail`` () =
             Ignore = Some ignoreStep
         }
     |> shouldNotContainText "does not merge in the ones above it"
+
+[<Test>]
+let ``an ignore file above the one that governs is reported when it would have skipped the file`` () =
+    // On every run rather than at detailed verbosity, unlike the general difference from
+    // `.gitignore` above: this is not a rule worth knowing, it is a pattern the reader wrote that
+    // did nothing, and they are looking at the report because of it.
+    let written: string =
+        diagnosed
+            { healthy with
+                Ignore =
+                    Some(
+                        Fantomas.DoctorCommand.IgnoreStep.Governed(
+                            "/repo/src/.fantomasignore",
+                            false,
+                            [],
+                            [
+                                {
+                                    Path = "/repo/.fantomasignore"
+                                    WouldIgnore = true
+                                    Matches = [ matched 1 "*.g.fs" false ]
+                                }
+                            ]
+                        )
+                    )
+            }
+
+    written |> shouldContainText "Governed by /repo/src/.fantomasignore"
+    written |> shouldContainText "/repo/.fantomasignore is above it and has no say"
+    written |> shouldContainText "line 1, *.g.fs, would have skipped this file"
+    written |> shouldContainText "reads the nearest .fantomasignore and no other"
+
+[<Test>]
+let ``an ignore file above that would have decided the same way is not interrupted for`` () =
+    // It changes nothing and explains nothing. The file is skipped, the line that skipped it is
+    // already quoted, and what a file further up would have made of it is not what anybody is
+    // there to find out.
+    let written: string =
+        diagnosed
+            { healthy with
+                Ignore =
+                    Some(
+                        Fantomas.DoctorCommand.IgnoreStep.Governed(
+                            "/repo/src/.fantomasignore",
+                            true,
+                            [ matched 1 "A.fs" false ],
+                            [
+                                {
+                                    Path = "/repo/.fantomasignore"
+                                    WouldIgnore = true
+                                    Matches = [ matched 1 "*.fs" false ]
+                                }
+                            ]
+                        )
+                    )
+            }
+
+    written |> shouldContainText "Matched by /repo/src/.fantomasignore"
+    written |> shouldNotContainText "has no say"
 
 [<Test>]
 let ``an .editorconfig that sets nothing Fantomas reads is named as having set nothing`` () =

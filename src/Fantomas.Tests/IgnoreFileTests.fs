@@ -345,3 +345,57 @@ let ``a pattern the ignore library will not compile fails the whole ignore file`
     match loaded with
     | Ok _ -> failwith "Expected the ignore file to fail to load."
     | Error error -> error.Message |> shouldContainText "Unterminated"
+
+/// An ignore file at each of the given folders, relative to a mock root, and the one that governs
+/// the given file.
+let private chainOf (folders: string list) (relativePath: string) : IFileSystem * IgnoreFile * string =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = fs.Path.GetTempPath() |> fs.Path.GetPathRoot
+
+    let under (relative: string) : string =
+        fs.Path.Combine(root, relative.Replace("/", string<char> fs.Path.DirectorySeparatorChar))
+
+    let file: string = under relativePath
+    makeFileHierarchy fs [ file ]
+
+    for folder in folders do
+        let ignoreFilePath: string =
+            fs.Path.Combine(under folder, IgnoreFile.IgnoreFileName)
+
+        makeFileHierarchy fs [ ignoreFilePath ]
+        fs.File.WriteAllText(ignoreFilePath, folder)
+
+    match IgnoreFile.find fs (IgnoreFile.loadIgnoreList fs) file with
+    | None -> failwith $"No ignore file was found above %s{file}."
+    | Some ignoreFile -> fs, ignoreFile, file
+
+[<Test>]
+let ``findAbove returns nothing when the governing ignore file is the only one`` () =
+    let fs, ignoreFile, _ = chainOf [ "" ] "src/A.fs"
+
+    IgnoreFile.findAbove fs (IgnoreFile.loadIgnoreList fs) ignoreFile
+    |> List.map (fun (found: IgnoreFile) -> found.Location.FullName)
+    |> shouldEqual []
+
+[<Test>]
+let ``findAbove returns every ignore file above the governing one, nearest first`` () =
+    // The layout the command line could not see before 8.0 and the daemon always could. None of
+    // these applies; `doctor` is the only thing that asks, and it asks so that a pattern somebody
+    // wrote at the root and cannot find the effect of can be pointed at.
+    let fs, ignoreFile, _ = chainOf [ ""; "src"; "src/deep" ] "src/deep/A.fs"
+
+    let above: string list =
+        IgnoreFile.findAbove fs (IgnoreFile.loadIgnoreList fs) ignoreFile
+        |> List.map (fun (found: IgnoreFile) -> found.Location.Directory.Name)
+
+    // The governing file is the one in `src/deep`, so it is not among these.
+    above |> shouldEqual [ "src"; fs.Path.GetPathRoot(fs.Path.GetTempPath()) ]
+
+[<Test>]
+let ``findAbove does not return the ignore file it was given`` () =
+    let fs, ignoreFile, _ = chainOf [ ""; "src" ] "src/A.fs"
+
+    IgnoreFile.findAbove fs (IgnoreFile.loadIgnoreList fs) ignoreFile
+    |> List.map (fun (found: IgnoreFile) -> found.Location.FullName)
+    |> List.contains ignoreFile.Location.FullName
+    |> shouldEqual false

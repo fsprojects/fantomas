@@ -12,6 +12,7 @@ type CliEnvironment =
     {
         FileSystem: IFileSystem
         FindIgnoreFile: string -> IgnoreFile option
+        FindIgnoreFilesAbove: IgnoreFile -> IgnoreFile list
         ReadConfiguration: string -> FormatConfig
         ResolveConfiguration: string -> EditorConfig.ResolvedConfig
         Log: ILogger

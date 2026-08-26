@@ -29,6 +29,20 @@ let private diagnosing (content: string) : DoctorReport =
     write fs file content
     doctor fs None (InputPath.File file) |> completed
 
+/// The doctor over a tree whose ignore files it resolves itself, rather than being handed the one
+/// that governs. What is being tested is which ignore file was reached and which were passed over,
+/// so handing one over would answer the question the test is asking.
+let private doctorResolving (fs: IFileSystem) (inputPath: InputPath) : DoctorCommandResult =
+    let recorded: RecordedRun = recordingEnvironment fs None
+
+    let environment: Fantomas.Cli.CliEnvironment =
+        { recorded.Environment with
+            FindIgnoreFile = IgnoreFile.cachedFinder fs (IgnoreFile.loadIgnoreList fs)
+            FindIgnoreFilesAbove = IgnoreFile.findAbove fs (IgnoreFile.loadIgnoreList fs)
+        }
+
+    runDoctorCommand environment inputPath
+
 /// The ignore file at the mock root, resolved the way a run resolves it.
 let private ignoreFileAt (fs: IFileSystem) (content: string) : IgnoreFile option =
     fs.File.WriteAllText(fs.Path.Combine(mockRoot fs, IgnoreFile.IgnoreFileName), content)
@@ -167,7 +181,7 @@ let ``an ignored file names the line of the ignore file that matched`` () =
     let ignoreFile: IgnoreFile option = ignoreFileAt fs "# not these\n*.fsx\nA.fs\n"
 
     match (doctor fs ignoreFile (InputPath.File file) |> completed).Ignore with
-    | Some(IgnoreStep.Governed(_, true, matches)) ->
+    | Some(IgnoreStep.Governed(_, true, matches, _)) ->
         matches
         |> shouldEqual
             [
@@ -206,7 +220,7 @@ let ``a pattern that takes a file back out is reported as the line that decided`
     write fs file "let a = 1\n"
 
     match (doctor fs (ignoreFileAt fs "*.fs\n!A.fs\n") (InputPath.File file) |> completed).Ignore with
-    | Some(IgnoreStep.Governed(_, false, matches)) ->
+    | Some(IgnoreStep.Governed(_, false, matches, _)) ->
         matches
         |> List.map (fun m -> m.LineNumber, m.Pattern, m.Negated)
         |> shouldEqual [ (1, "*.fs", false); (2, "!A.fs", true) ]
@@ -219,8 +233,47 @@ let ``a file no pattern matches is governed by the ignore file all the same`` ()
     write fs file "let a = 1\n"
 
     match (doctor fs (ignoreFileAt fs "*.fsx\n") (InputPath.File file) |> completed).Ignore with
-    | Some(IgnoreStep.Governed(_, false, [])) -> ()
+    | Some(IgnoreStep.Governed(_, false, [], _)) -> ()
     | other -> failwith $"Expected the file to be governed and unmatched, got %A{other}"
+
+[<Test>]
+let ``an ignore file the nearest one shadows is reported with what it would have decided`` () =
+    // The whole reason the files above are looked for. Someone wrote `*.g.fs` at the root of their
+    // repository, a subfolder has an ignore file of its own that says nothing about it, and the
+    // root file is never opened. Naming the ignore file that did decide answers "which file" and
+    // leaves "then why did mine not" for this.
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let file: string = fs.Path.Combine(root, "src", "Generated.g.fs")
+    write fs file "let a = 1\n"
+    fs.File.WriteAllText(fs.Path.Combine(root, IgnoreFile.IgnoreFileName), "*.g.fs\n")
+    fs.File.WriteAllText(fs.Path.Combine(root, "src", IgnoreFile.IgnoreFileName), "Scratch.fs\n")
+
+    match (doctorResolving fs (InputPath.File file) |> completed).Ignore with
+    | Some(IgnoreStep.Governed(governing, false, [], [ above ])) ->
+        governing
+        |> shouldEqual (fs.Path.Combine(root, "src", IgnoreFile.IgnoreFileName))
+
+        above.Path |> shouldEqual (fs.Path.Combine(root, IgnoreFile.IgnoreFileName))
+        // What it would have made of the file, asked of it exactly as the governing file is asked.
+        above.WouldIgnore |> shouldEqual true
+
+        above.Matches
+        |> List.map (fun (m: IgnoreMatch) -> m.LineNumber, m.Pattern)
+        |> shouldEqual [ (1, "*.g.fs") ]
+    | other -> failwith $"Expected one shadowed ignore file, got %A{other}"
+
+[<Test>]
+let ``the ordinary layout of one ignore file has nothing above it to report`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let file: string = fs.Path.Combine(root, "src", "A.fs")
+    write fs file "let a = 1\n"
+    fs.File.WriteAllText(fs.Path.Combine(root, IgnoreFile.IgnoreFileName), "*.fsx\n")
+
+    match (doctorResolving fs (InputPath.File file) |> completed).Ignore with
+    | Some(IgnoreStep.Governed(_, false, [], shadowed)) -> shadowed |> shouldEqual []
+    | other -> failwith $"Expected nothing above the governing ignore file, got %A{other}"
 
 // ---- formatting, and what Fantomas makes of what it produced ----
 

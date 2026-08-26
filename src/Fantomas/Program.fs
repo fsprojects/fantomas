@@ -175,6 +175,7 @@ let main argv =
                 {
                     FileSystem = fileSystem
                     FindIgnoreFile = IgnoreFile.cachedFinder fileSystem (IgnoreFile.loadIgnoreList fileSystem)
+                    FindIgnoreFilesAbove = IgnoreFile.findAbove fileSystem (IgnoreFile.loadIgnoreList fileSystem)
                     ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter log)
                     ResolveConfiguration = EditorConfig.resolveConfiguration
                     Log = log
