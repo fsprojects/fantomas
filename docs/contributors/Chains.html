@@ -408,7 +408,7 @@ Three things make use of that freedom, and each is covered where it belongs:</p>
 </code></pre>
 <p>Neither setting is about chains as such. Both govern a call with no receiver at all, and both reach into patterns as well. What follows is only what they do to a chain.</p>
 <h4><a name="Neither-setting-applies-once-the-chain-is-more-than-a-name" class="anchor" href="#Neither-setting-applies-once-the-chain-is-more-than-a-name">Neither setting applies once the chain is more than a name</a></h4>
-<p><strong>Neither setting can put the space back.</strong> Once a call, an index, a bracketed receiver, or a type application appears anywhere in the chain, the parenthesis is tight and no configuration will change it.</p>
+<p><strong>Neither setting can put the space back.</strong> Once a call, an index, a receiver that is not a name, or a type application appears anywhere in the chain, the parenthesis is tight and no configuration will change it.</p>
 <p>The space survives only when <strong>the whole thing being called is a plain dotted name</strong>.</p>
 <p>Every line below calls the same <code>.Bar</code>, and the only difference is what else the chain contains:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// all with fsharp_space_before_uppercase_invocation = true</span>
@@ -416,19 +416,18 @@ Three things make use of that freedom, and each is covered where it belongs:</p>
 <span class="c">// a plain dotted name, so the setting applies and the space is there</span>
 <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">obj</span><span class="pn">.</span><span class="id">Bar</span> <span class="pn">(</span><span class="pn">)</span>
 <span class="id">a</span><span class="pn">.</span><span class="id">B</span><span class="pn">.</span><span class="id">C</span><span class="pn">.</span><span class="id">Bar</span> <span class="pn">(</span><span class="pn">)</span>        <span class="c">// however long the name gets</span>
-<span class="s">&quot;yow&quot;</span><span class="pn">.</span><span class="id">Bar</span> <span class="pn">(</span><span class="pn">)</span>        <span class="c">// a literal is atomic, so it counts as a name</span>
-<span class="n">3L</span><span class="pn">.</span><span class="id">Bar</span> <span class="pn">(</span><span class="pn">)</span>           <span class="c">// as does any other constant</span>
 
 <span class="c">// something other than a name is in the way, so no space is available to ask for</span>
 <span class="id">a</span><span class="pn">.</span><span class="id">Foo</span><span class="pn">(</span><span class="id">x</span><span class="pn">)</span><span class="pn">.</span><span class="id">Bar</span><span class="pn">(</span><span class="id">y</span><span class="pn">)</span>     <span class="c">// a call, before the final one</span>
 <span class="id">Foo</span><span class="pn">(</span><span class="pn">)</span><span class="pn">.</span><span class="id">Bar</span><span class="pn">(</span><span class="id">y</span><span class="pn">)</span>        <span class="c">// a call, as the receiver</span>
 <span class="id">arr</span><span class="pn">[</span><span class="n">0</span><span class="pn">]</span><span class="pn">.</span><span class="id">Bar</span><span class="pn">(</span><span class="id">y</span><span class="pn">)</span>       <span class="c">// an index, before the final call</span>
-<span class="pn">(</span><span class="id">f</span> <span class="id">x</span><span class="pn">)</span><span class="pn">.</span><span class="id">Bar</span><span class="pn">(</span><span class="id">y</span><span class="pn">)</span>        <span class="c">// a bracketed receiver</span>
-<span class="pn">[</span> <span class="n">1</span><span class="pn">;</span> <span class="n">2</span> <span class="pn">]</span><span class="pn">.</span><span class="id">Bar</span><span class="pn">(</span><span class="id">y</span><span class="pn">)</span>     <span class="c">// and brackets of any kind count</span>
+<span class="pn">(</span><span class="id">f</span> <span class="id">x</span><span class="pn">)</span><span class="pn">.</span><span class="id">Bar</span><span class="pn">(</span><span class="id">y</span><span class="pn">)</span>        <span class="c">// a receiver that is not a name</span>
+<span class="pn">[</span> <span class="n">1</span><span class="pn">;</span> <span class="n">2</span> <span class="pn">]</span><span class="pn">.</span><span class="id">Bar</span><span class="pn">(</span><span class="id">y</span><span class="pn">)</span>     <span class="c">// brackets of any kind count</span>
+<span class="s">&quot;yow&quot;</span><span class="pn">.</span><span class="id">Bar</span><span class="pn">(</span><span class="id">y</span><span class="pn">)</span>        <span class="c">// and a constant is a value rather than a name</span>
 <span class="id">X</span><span class="pn">&lt;</span><span class="id">Y</span><span class="pn">&gt;</span><span class="pn">.</span><span class="id">Bar</span><span class="pn">(</span><span class="id">y</span><span class="pn">)</span>         <span class="c">// a type application, before the final call</span>
 <span class="id">a</span><span class="pn">.</span><span class="id">B</span><span class="pn">.</span><span class="id">Bar</span><span class="pn">&lt;</span><span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">int</span><span class="pn">&gt;</span><span class="pn">(</span><span class="id">y</span><span class="pn">)</span>     <span class="c">// a type application, on the final call itself</span>
 </code></pre>
-<p>A type parameter is atomic in the same way, so <code>'T.set_StaticProperty (3)</code> keeps its space too.</p>
+<p>A type parameter is a name like any other, so <code>'T.set_StaticProperty (3)</code> keeps its space.</p>
 <p>This one is a style decision rather than a grammar requirement. Unlike the tightness of an intermediate call above, nothing here would fail to parse with the space in place. It exists so that a chain does not end up with one surviving space that has no visible reason to be there, and it was agreed at <a href="https://github.com/fsharp/fslang-design/issues/648">fslang-design#648</a>.</p>
 <h4><a name="The-shorthand-lambda" class="anchor" href="#The-shorthand-lambda">The <code>_.</code> shorthand lambda</a></h4>
 <p>There is one place where even the last call stays tight.

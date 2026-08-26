@@ -341,7 +341,7 @@ These can be stored in an <a href="https://editorconfig.org/">.editorconfig</a> 
 commandline.<br />
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.</p>
-<table class="pre"><tr><td><pre><code>version: 8.0.0-alpha-018+ff3c10254ec5d0de7737a6e1ea98efc7438a6ef3</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 8.0.0-alpha-019+699254e21350cd7c71a131f6c1189d86e13ffdbc</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -470,7 +470,7 @@ let DumpTrace() = ()</code></pre></td></tr></table>
 <p>Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.
 This setting influences function invocation in expressions and patterns.
 Only the name immediately in front of the parenthesis decides whether this setting or <code>fsharp_space_before_uppercase_invocation</code> applies, so <code>a.B.foo (x)</code> follows this one and <code>a.b.Foo(x)</code> follows the other.
-Neither applies unless the whole thing being called is a plain dotted name: a call, an index, a bracketed receiver, or a type application anywhere in it keeps the parenthesis tight, which leaves <code>xs.map(f).filter(g)</code> and <code>unbox&lt;int&gt;(obj)</code> untouched by either setting.
+Neither applies unless the whole thing being called is a plain dotted name: a call, an index, a receiver that is not a name, or a type application anywhere in it keeps the parenthesis tight, which leaves <code>xs.map(f).filter(g)</code> and <code>unbox&lt;int&gt;(obj)</code> untouched by either setting.
 See <a href="../contributors/Chains.html#The-two-space-settings">Formatting chain expressions</a>.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_space_before_lowercase_invocation = true</code></pre></td></tr></table>
@@ -497,7 +497,7 @@ match x with
 <p>Add a space after the name of a uppercase function and before the opening parenthesis of the first argument.
 This setting influences function invocation in expressions and patterns.
 Only the name immediately in front of the parenthesis decides whether this setting or <code>fsharp_space_before_lowercase_invocation</code> applies, so <code>a.b.Foo (x)</code> follows this one and <code>a.B.foo(x)</code> follows the other.
-Neither applies unless the whole thing being called is a plain dotted name: a call, an index, a bracketed receiver, or a type application anywhere in it keeps the parenthesis tight, which leaves <code>a.Foo(x).Bar(y)</code> and <code>X&lt;Y&gt;.Foo(x)</code> untouched by either setting.
+Neither applies unless the whole thing being called is a plain dotted name: a call, an index, a receiver that is not a name, or a type application anywhere in it keeps the parenthesis tight, which leaves <code>a.Foo(x).Bar(y)</code> and <code>X&lt;Y&gt;.Foo(x)</code> untouched by either setting.
 See <a href="../contributors/Chains.html#The-two-space-settings">Formatting chain expressions</a>.</p>
 <table class="pre"><tr><td><pre><code># Default
 fsharp_space_before_uppercase_invocation = false</code></pre></td></tr></table>

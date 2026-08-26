@@ -291,7 +291,7 @@ are most likely to notice.
 
 `fsharp_space_before_uppercase_invocation` and `fsharp_space_before_lowercase_invocation` ask for a
 space before the parenthesis of a call. They now get a say only when the whole thing being called
-is a plain dotted name. A call, an index, a bracketed receiver, or a type application
+is a plain dotted name. A call, an index, a receiver that is not a name, or a type application
 anywhere in it, and the parenthesis stays tight whatever the settings say.
 
 On default settings, where `fsharp_space_before_lowercase_invocation` is `true`:

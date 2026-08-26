@@ -571,7 +571,7 @@ are most likely to notice.</p>
 <h4><a name="A-call-keeps-its-space-only-when-the-whole-name-is-plain" class="anchor" href="#A-call-keeps-its-space-only-when-the-whole-name-is-plain">A call keeps its space only when the whole name is plain</a></h4>
 <p><code>fsharp_space_before_uppercase_invocation</code> and <code>fsharp_space_before_lowercase_invocation</code> ask for a
 space before the parenthesis of a call. They now get a say only when the whole thing being called
-is a plain dotted name. A call, an index, a bracketed receiver, or a type application
+is a plain dotted name. A call, an index, a receiver that is not a name, or a type application
 anywhere in it, and the parenthesis stays tight whatever the settings say.</p>
 <p>On default settings, where <code>fsharp_space_before_lowercase_invocation</code> is <code>true</code>:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
