@@ -6,6 +6,10 @@
 
 - `doctor` names the `.fantomasignore` above the one that governs a file, when a pattern in it would have skipped that file. Fantomas reads the nearest ignore file at or above a file and no other, so a pattern written at the root of a repository has no effect on a folder that has an ignore file of its own beside it. Up to now the report named the ignore file that did decide and said nothing about the one that did not, which answers "which file" and leaves "then why did mine not" for the reader to work out. It quotes the pattern that would have matched, with its line number, the way it already quotes the line that decided. `--json` carries every ignore file above the governing one under `shadowed`, each with `wouldIgnore` and the lines of it that match, whether or not it would have decided anything. [#3423](https://github.com/fsprojects/fantomas/pull/3423)
 
+### Fixed
+
+- More expression forms count as open-ended, so a record, list, array or tuple that holds one of them in a non-last position stays multiline instead of collapsing onto a line that means something else. [#3279](https://github.com/fsprojects/fantomas/issues/3279) settled `fun`, `if`, `match` and `try`, and left the forms that wrap one of those or end in one: `lazy`, `yield`, `return`, `do`, `assert` and `fixed`, an assignment such as `x.P <- fun y -> y`, and `let x = 1 in body`. `{ A = 1; B = lazy fun x -> x; C = 3 }` reads back as a lambda that swallowed `C = 3`. A wrapper around something that closes on its own, `lazy a` or `x.P <- 1`, collapses as it always did. When this happens, why, and how to get the single line back is written up under [Open-ended expressions](https://fsprojects.github.io/fantomas/docs/end-users/OpenEndedExpressions.html). [#3424](https://github.com/fsprojects/fantomas/pull/3424)
+
 ## [8.0.0-alpha-017] - 2026-08-25
 
 ### Added
