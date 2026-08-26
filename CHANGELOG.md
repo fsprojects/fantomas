@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.0-alpha-019] - 2026-08-26
+
+### Fixed
+
+- A call on a constant receiver keeps its parenthesis tight, so `"yow".Substring (0, 3)` and `3L.ToString ()` come out as `"yow".Substring(0, 3)` and `3L.ToString()`. `8.0.0-alpha-018` gave a constant receiver a space it was never meant to have. The rule there says a call keeps the space only when the whole thing being called is a plain dotted name, and the comment agreed at [fslang-design#648](https://github.com/fsharp/fslang-design/issues/648) lists `"yow".Substring(0, 3)` under "a receiver that is not a name", beside `(f x)` and `[ 1; 2 ]`. The alpha carved constants back out on the reasoning that a constant is atomic rather than bracketed, which went past what was agreed and was not deliberate. A constant is a value, the rule asks for a name, so it goes tight. A type parameter really is a name, so `'T.set_StaticProperty (3)` is unaffected. [#3426](https://github.com/fsprojects/fantomas/pull/3426)
+
 ## [8.0.0-alpha-018] - 2026-08-26
 
 ### Added

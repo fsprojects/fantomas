@@ -285,7 +285,7 @@ match x with
 """
 
 /// The setting only gets a say when the whole thing being called is a plain dotted name.
-/// A call, an index, a bracketed receiver, or a type application anywhere in it, and the
+/// A call, an index, a receiver that is not a name, or a type application anywhere in it, and the
 /// parenthesis stays tight. Agreed at https://github.com/fsharp/fslang-design/issues/648.
 /// The uppercase half of these live in SpaceBeforeUppercaseInvocationTests.
 
