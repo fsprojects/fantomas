@@ -397,11 +397,30 @@ let writeDoctorIgnore (json: Utf8JsonWriter) (step: IgnoreStep option) : unit =
             json.WriteNull "ignoreFile"
             json.WriteStartArray "matches"
             json.WriteEndArray()
-        | IgnoreStep.Governed(ignoreFile, isIgnored, matches) ->
+            json.WriteStartArray "shadowed"
+            json.WriteEndArray()
+        | IgnoreStep.Governed(ignoreFile, isIgnored, matches, shadowed) ->
             json.WriteString("status", (if isIgnored then "ignored" else "not-ignored"))
             json.WriteString("ignoreFile", ignoreFile)
             json.WriteStartArray "matches"
             List.iter (writeIgnoreMatch json) matches
+            json.WriteEndArray()
+
+            // Every ignore file above the one that governs the file, whether or not it would have
+            // decided anything, rather than only the ones that disagree. The reader of the document
+            // is a program, which can filter on `wouldIgnore` itself and cannot ask for the ones
+            // that were left out.
+            json.WriteStartArray "shadowed"
+
+            for above in shadowed do
+                json.WriteStartObject()
+                json.WriteString("path", above.Path)
+                json.WriteBoolean("wouldIgnore", above.WouldIgnore)
+                json.WriteStartArray "matches"
+                List.iter (writeIgnoreMatch json) above.Matches
+                json.WriteEndArray()
+                json.WriteEndObject()
+
             json.WriteEndArray()
 
         json.WriteEndObject()

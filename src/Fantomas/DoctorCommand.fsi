@@ -61,9 +61,27 @@ type IgnoreStep =
     /// out loud: it is an answer, and it is the one somebody looking for the wrong ignore file
     /// needs.
     | NoIgnoreFile
-    /// The nearest `.fantomasignore` at or above the file, what it decided, and every line of it
-    /// whose pattern matches. The last of those lines is the one that decided.
-    | Governed of ignoreFile: string * isIgnored: bool * matches: IgnoreMatch list
+    /// The nearest `.fantomasignore` at or above the file, what it decided, every line of it whose
+    /// pattern matches, and the ignore files above it that had no say. The last of the matching
+    /// lines is the one that decided.
+    | Governed of ignoreFile: string * isIgnored: bool * matches: IgnoreMatch list * shadowed: ShadowedIgnoreFile list
+
+/// A `.fantomasignore` above the one that governs the file. It has no say: Fantomas reads the
+/// nearest and no other.
+///
+/// Reported because the case that brings somebody here is a pattern they wrote in a repository's
+/// ignore file that did nothing, and the reason is a file further down they had forgotten about.
+/// Naming the ignore file that did decide answers "which file" and leaves "then why did mine not"
+/// unanswered, which is the half they came with.
+and [<NoComparison>] ShadowedIgnoreFile =
+    {
+        Path: string
+        /// What it would have decided, had it been the one that applies.
+        WouldIgnore: bool
+        /// Every line of it whose pattern matches, on the same terms as the governing file's.
+        /// Empty where nothing in it matches, which is the ordinary case and the quiet one.
+        Matches: IgnoreMatch list
+    }
 
 /// How the formatted text differs from the file, decided the way a format run decides whether to
 /// write: by comparing the text as it is. A `check` run is the one that overlooks a difference in

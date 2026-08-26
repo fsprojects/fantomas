@@ -377,7 +377,7 @@ let private healthy: Fantomas.DoctorCommand.DoctorReport =
                     LineCount = 20
                     UnreachableUnder = None
                 }
-        Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, []))
+        Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, [], []))
         Settings = Some(Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default)
         Format =
             Some(
@@ -420,7 +420,7 @@ let ``a step the walk never reached is null rather than absent`` () =
     // and a step nothing was asked about is not a step that found nothing.
     let ignored: Fantomas.DoctorCommand.DoctorReport =
         { healthy with
-            Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, []))
+            Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, [], []))
             Settings = None
             Format = None
             Validity = None
@@ -433,6 +433,77 @@ let ``a step the walk never reached is null rather than absent`` () =
         document.GetProperty(key).ValueKind |> shouldEqual JsonValueKind.Null
 
     statusAt document "ignore" |> shouldEqual "ignored"
+
+[<Test>]
+let ``the ignore files that had no say are carried, whether or not they would have decided`` () =
+    // Every one of them rather than only those that disagree: the reader here is a program, which
+    // can filter on `wouldIgnore` itself and cannot ask for the ones that were left out.
+    let document: JsonElement =
+        diagnosed
+            { healthy with
+                Ignore =
+                    Some(
+                        Fantomas.DoctorCommand.IgnoreStep.Governed(
+                            "/repo/src/.fantomasignore",
+                            false,
+                            [],
+                            [
+                                {
+                                    Path = "/repo/.fantomasignore"
+                                    WouldIgnore = true
+                                    Matches =
+                                        [
+                                            {
+                                                LineNumber = 1
+                                                Pattern = "*.g.fs"
+                                                Negated = false
+                                            }
+                                        ]
+                                }
+                                {
+                                    Path = "/.fantomasignore"
+                                    WouldIgnore = false
+                                    Matches = []
+                                }
+                            ]
+                        )
+                    )
+            }
+
+    let shadowed: JsonElement list =
+        document.GetProperty("ignore").GetProperty("shadowed").EnumerateArray()
+        |> List.ofSeq
+
+    shadowed
+    |> List.map (fun entry -> entry.GetProperty("path").GetString(), entry.GetProperty("wouldIgnore").GetBoolean())
+    |> shouldEqual [ ("/repo/.fantomasignore", true); ("/.fantomasignore", false) ]
+
+    shadowed.[0].GetProperty("matches").EnumerateArray()
+    |> Seq.map (fun m -> m.GetProperty("pattern").GetString())
+    |> List.ofSeq
+    |> shouldEqual [ "*.g.fs" ]
+
+[<Test>]
+let ``a file with nothing above its ignore file still carries the key`` () =
+    let document: JsonElement =
+        diagnosed
+            { healthy with
+                Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, [], []))
+            }
+
+    document.GetProperty("ignore").GetProperty("shadowed").GetArrayLength()
+    |> shouldEqual 0
+
+    // The same for a file no ignore file governs at all, for the reason every other key here is
+    // written whether or not it has anything in it.
+    (diagnosed
+        { healthy with
+            Ignore = Some Fantomas.DoctorCommand.IgnoreStep.NoIgnoreFile
+        })
+        .GetProperty("ignore")
+        .GetProperty("shadowed")
+        .GetArrayLength()
+    |> shouldEqual 0
 
 [<Test>]
 let ``every setting is carried, with what set it or nothing`` () =
@@ -464,7 +535,8 @@ let ``the pattern that matched is carried with its line number`` () =
                                 Pattern = "obj/"
                                 Negated = false
                             }
-                        ]
+                        ],
+                        []
                     )
                 )
             Settings = None

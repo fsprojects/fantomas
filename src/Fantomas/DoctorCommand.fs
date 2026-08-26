@@ -65,7 +65,14 @@ and [<NoComparison>] DoctorFile =
 [<RequireQualifiedAccess; NoComparison>]
 type IgnoreStep =
     | NoIgnoreFile
-    | Governed of ignoreFile: string * isIgnored: bool * matches: IgnoreMatch list
+    | Governed of ignoreFile: string * isIgnored: bool * matches: IgnoreMatch list * shadowed: ShadowedIgnoreFile list
+
+and [<NoComparison>] ShadowedIgnoreFile =
+    {
+        Path: string
+        WouldIgnore: bool
+        Matches: IgnoreMatch list
+    }
 
 [<RequireQualifiedAccess; Struct>]
 type FormatChange =
@@ -198,6 +205,20 @@ let askIgnore (env: CliEnvironment) (file: string) : IgnoreStep =
     match env.FindIgnoreFile file with
     | None -> IgnoreStep.NoIgnoreFile
     | Some ignoreFile ->
+        // Each one above asked the same two questions the governing file is asked, so that what is
+        // reported of it is what would have been reported had it been the one that applies. An
+        // ignore file described in weaker terms than the one beside it reads as the lesser fact,
+        // and which of the two governs is the whole point being made.
+        let shadowed: ShadowedIgnoreFile list =
+            env.FindIgnoreFilesAbove ignoreFile
+            |> List.map (fun (above: IgnoreFile) ->
+                {
+                    Path = above.Location.FullName
+                    WouldIgnore = IgnoreFile.isIgnoredFile env.Log (Some above) file
+                    Matches = IgnoreFile.matchingLines above file
+                }
+            )
+
         // The verdict comes from the same function every run uses, and the lines are the same
         // question asked one pattern at a time. The verdict is the one to report: it is what
         // decides what happens to the file, and a disagreement between the two is this command's
@@ -205,7 +226,8 @@ let askIgnore (env: CliEnvironment) (file: string) : IgnoreStep =
         IgnoreStep.Governed(
             ignoreFile.Location.FullName,
             IgnoreFile.isIgnoredFile env.Log (Some ignoreFile) file,
-            IgnoreFile.matchingLines ignoreFile file
+            IgnoreFile.matchingLines ignoreFile file,
+            shadowed
         )
 
 let formatOnce (isSignature: bool) (config: FormatConfig) (content: string) : string =
@@ -312,7 +334,7 @@ let diagnose (env: CliEnvironment) (given: string) : DoctorReport =
     // Nothing below this happens to the file, so nothing below this is reported about it. A run
     // that formatted it anyway would answer a question nobody asked, in a report whose whole
     // subject is why the file was left alone.
-    | Some(IgnoreStep.Governed(_, true, _)) -> report
+    | Some(IgnoreStep.Governed(_, true, _, _)) -> report
     | _ ->
 
     let settings: ResolvedConfig = env.ResolveConfiguration path

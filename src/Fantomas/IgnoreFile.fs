@@ -91,6 +91,38 @@ module IgnoreFile =
         // `find` walks up from a file, so it is given a name that need not exist in the directory.
         find fs loadIgnoreList (fs.Path.Combine(currentDirectory, "_"))
 
+    let findAbove
+        (fs: IFileSystem)
+        (loadIgnoreList: string -> IsPathIgnored)
+        (ignoreFile: IgnoreFile)
+        : IgnoreFile list
+        =
+        // Starting one directory above the one holding it, so that the file itself is not the
+        // first thing found again.
+        let rec walkUp (currentDirectory: IDirectoryInfo) (found: IgnoreFile list) : IgnoreFile list =
+            if isNull currentDirectory then
+                List.rev found
+            else
+                let potentialFile: IFileInfo =
+                    fs.Path.Combine(currentDirectory.FullName, IgnoreFileName) |> fs.FileInfo.New
+
+                let found: IgnoreFile list =
+                    if potentialFile.Exists then
+                        {
+                            Location = potentialFile
+                            IsIgnored = loadIgnoreList potentialFile.FullName
+                        }
+                        :: found
+                    else
+                        found
+
+                walkUp currentDirectory.Parent found
+
+        // Every one above rather than the next one up. Two ignore files above the nearest is not a
+        // layout anybody sets out to build, and it is exactly the layout where the reader has the
+        // least chance of working out what happened on their own.
+        walkUp ignoreFile.Location.Directory.Parent []
+
     let cachedFinder (fs: IFileSystem) (loadIgnoreList: string -> IsPathIgnored) : string -> IgnoreFile option =
         // Two caches, because a folder walk asks the same two questions over and over. Every file
         // in a directory resolves to the same ignore file, and every directory under one resolves
