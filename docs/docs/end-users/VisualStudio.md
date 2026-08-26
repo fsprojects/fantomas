@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 8
+index: 9
 ---
 # Visual Studio
 The F# Formatting extension sets up Fantomas as the default formatter for F# files, configurable from Visual Studio's options.  
