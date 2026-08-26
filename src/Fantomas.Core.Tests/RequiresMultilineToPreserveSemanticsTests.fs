@@ -368,6 +368,259 @@ let ``nested open-ended in non-last record field stays multiline`` () =
 }
 """
 
+// Open-ended expression forms
+
+[<Test>]
+let ``let-in in non-last record field stays multiline`` () =
+    formatSourceString
+        """
+{ A = 1
+  B = let y = 1 in y
+  C = 3 }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{
+    A = 1
+    B = let y = 1 in y
+    C = 3
+}
+"""
+
+[<Test>]
+let ``let-in in non-last anonymous record field stays multiline`` () =
+    formatSourceString
+        """
+{| A = 1
+   B = let y = 1 in y
+   C = 3 |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{|
+    A = 1
+    B = let y = 1 in y
+    C = 3
+|}
+"""
+
+[<Test>]
+let ``lazy wrapping a lambda as non-last list element stays multiline`` () =
+    formatSourceString
+        """
+[
+    lazy fun x -> x
+    2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    lazy fun x -> x
+    2
+]
+"""
+
+[<Test>]
+let ``lazy wrapping a plain expression as non-last list element stays on one line`` () =
+    formatSourceString
+        """
+[
+    lazy a
+    2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[ lazy a; 2 ]
+"""
+
+[<Test>]
+let ``yield wrapping a lambda as non-last list element stays multiline`` () =
+    formatSourceString
+        """
+[
+    yield fun x -> x
+    2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    yield fun x -> x
+    2
+]
+"""
+
+[<Test>]
+let ``assert wrapping a lambda as non-last list element stays multiline`` () =
+    formatSourceString
+        """
+[
+    assert fun x -> x
+    2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    assert fun x -> x
+    2
+]
+"""
+
+[<Test>]
+let ``property assignment of a lambda as non-last list element stays multiline`` () =
+    formatSourceString
+        """
+[
+    x.P <- fun y -> y
+    2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    x.P <- fun y -> y
+    2
+]
+"""
+
+[<Test>]
+let ``property assignment of a plain expression as non-last list element stays on one line`` () =
+    formatSourceString
+        """
+[
+    x.P <- 1
+    2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[ x.P <- 1; 2 ]
+"""
+
+[<Test>]
+let ``indexed assignment of a lambda as non-last list element stays multiline`` () =
+    formatSourceString
+        """
+[
+    a.[0] <- fun y -> y
+    2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    a.[0] <- fun y -> y
+    2
+]
+"""
+
+[<Test>]
+let ``indexed assignment of a plain expression as non-last list element stays on one line`` () =
+    formatSourceString
+        """
+[
+    a.[0] <- 1
+    2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[ a.[0] <- 1; 2 ]
+"""
+
+[<Test>]
+let ``dynamic assignment of a lambda as non-last list element stays multiline`` () =
+    formatSourceString
+        """
+[
+    x?y <- fun z -> z
+    2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    x?y <- fun z -> z
+    2
+]
+"""
+
+[<Test>]
+let ``named indexed property assignment of a lambda as non-last list element stays multiline`` () =
+    formatSourceString
+        """
+[
+    a.Item(0) <- fun y -> y
+    2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    a.Item(0) <- fun y -> y
+    2
+]
+"""
+
+[<Test>]
+let ``dot named indexed property assignment of a lambda as non-last list element stays multiline`` () =
+    formatSourceString
+        """
+[
+    (f x).Item(0) <- fun y -> y
+    2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    (f x).Item(0) <- fun y -> y
+    2
+]
+"""
+
 // Regression tests
 
 [<Test>]

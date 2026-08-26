@@ -17,6 +17,8 @@ The benefit of these guides is that this allows us, as the F# community, to writ
 Fantomas rewrites the entire source text after formatting. Think of it like a word document: Fantomas will re-type your entire text according to its rules in a new file.  
 It does not modify the original text. This approach ensures complete consistency and adherence to the formatting rules, but it means that all formatting decisions are made by Fantomas according to its opinionated style guide.
 
+Because the output has to mean what the input meant, Fantomas will sometimes keep code multiline that would otherwise fit on a single line. See [open-ended expressions](https://fsprojects.github.io/fantomas/docs/end-users/OpenEndedExpressions.html).
+
 ## Let it go
 
 If you are not used to having a code formatter, you might struggle a bit at first. A part of using a code formatter is about letting go how you wrote things and accept a common consistent style instead.  
