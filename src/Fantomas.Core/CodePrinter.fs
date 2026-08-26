@@ -408,7 +408,7 @@ let (|IsIfThenElse|_|) (e: Expr) =
 
 /// Does this expression end with a construct whose body extends
 /// unboundedly to the right (lambda, if-then-else, tuple, ...)?
-let rec isOpenEndedExpression (e: Expr) =
+let rec isOpenEndedExpression (e: Expr) : bool =
     match e with
     | Expr.Lambda _
     | Expr.IfThen _
@@ -418,7 +418,23 @@ let rec isOpenEndedExpression (e: Expr) =
     | Expr.MatchLambda _
     | Expr.TryWith _
     | Expr.TryWithSingleClause _
-    | Expr.TryFinally _ -> true
+    | Expr.TryFinally _
+    // The body of `let x = 1 in body` is a sequential expression, so anything written
+    // after it joins that body instead of ending it. The same holds for a loop body.
+    | Expr.CompExprBody _
+    | Expr.While _
+    | Expr.For _
+    | Expr.ForEach _ -> true
+    // `lazy`, `yield`, `return`, `assert`, `fixed`, ... only wrap what follows them,
+    // so they end wherever the expression they wrap ends.
+    | Expr.Lazy node -> isOpenEndedExpression node.Expr
+    | Expr.Single node -> isOpenEndedExpression node.Expr
+    // An assignment ends where the value it assigns ends.
+    | Expr.Set node -> isOpenEndedExpression node.Set
+    | Expr.LongIdentSet node -> isOpenEndedExpression node.Expr
+    | Expr.DotIndexedSet node -> isOpenEndedExpression node.Value
+    | Expr.NamedIndexedPropertySet node -> isOpenEndedExpression node.Value
+    | Expr.DotNamedIndexedPropertySet node -> isOpenEndedExpression node.Set
     | Expr.InfixApp node -> isOpenEndedExpression node.RightHandSide
     | Expr.SameInfixApps node ->
         match List.tryLast node.SubsequentExpressions with
