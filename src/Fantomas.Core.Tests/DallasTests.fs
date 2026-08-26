@@ -1446,7 +1446,7 @@ Foo(fun x -> x).Bar()
     |> should
         equal
         """
-A.B(fun x -> x).x<s> ()
+A.B(fun x -> x).x<s>()
 Foo(fun x -> x).Bar()
 """
 

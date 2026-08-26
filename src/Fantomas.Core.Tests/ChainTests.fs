@@ -641,7 +641,7 @@ a.Foo(x).Bar(y)
     |> should
         equal
         """
-a.Foo(x).Bar (y)
+a.Foo(x).Bar(y)
 """
 
 [<Test>]

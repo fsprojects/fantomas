@@ -502,7 +502,7 @@ let ``don't duplicate new line before LongIdentSet`` () =
         equal
         """
 let options =
-    jsOptions<Vis.Options> (fun o ->
+    jsOptions<Vis.Options>(fun o ->
         let layout =
             match opts.Layout with
             | Graph.Free -> createObj []

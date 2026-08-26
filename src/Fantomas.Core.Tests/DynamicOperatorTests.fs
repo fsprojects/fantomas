@@ -75,7 +75,7 @@ let ``preserve back ticks from checked keyword, 937`` () =
     |> should
         equal
         """
-let toggle = unbox<bool> (e.target?``checked``)
+let toggle = unbox<bool>(e.target?``checked``)
 """
 
 [<Test>]

@@ -674,12 +674,50 @@ let genSegmentOpener (segment: ChainSegment) : Context -> Context =
     | ChainSegment.DotMember _
     | ChainSegment.DotIndex _ -> genSegment segment
 
+/// A name with no dotted content of its own: the shape the head of a chain and a `DotMember`
+/// step both take when nothing is happening beyond navigation.
+///
+/// A type parameter and a literal count too. `'T.set_StaticProperty (3)` and
+/// `"yow".Substring (0, 3)` both call through something atomic, which is what the name in the
+/// rule is standing for. A bracketed receiver such as `[ 1; 2 ]` or `{| X = 1 |}` does not: it is
+/// a compound expression like `(f x)`, and is answered by the wildcard below.
+let isPlainName (expr: Expr) : bool =
+    match expr with
+    | Expr.Ident _
+    | Expr.Typar _
+    | Expr.Constant _ -> true
+    | Expr.OptVar node ->
+        match node.Identifier.Content with
+        | [ IdentifierOrDot.Ident _ ] -> true
+        | _ -> false
+    | _ -> false
+
+/// Whether the whole thing being called is a plain dotted name, which is what the space before
+/// the terminal call's `(` depends on. A call, an index, a bracketed receiver, or a type
+/// application anywhere in it answers no.
+///
+/// A type application does not have to be excluded here. One on the called member lifts the call
+/// out of the chain, so it arrives at `sepSpaceBeforeParenInFuncInvocation` instead, which is
+/// where that half of the rule is answered. It only stays in the chain when something else in the
+/// chain is a call or an index, and either of those already answers no on its own.
+let isCalledOnPlainDottedName (node: ExprChain) : bool =
+    isPlainName node.Head
+    && node.Segments
+       |> List.forall (fun segment ->
+           match segment with
+           | ChainSegment.DotApplication _
+           | ChainSegment.DotIndex _ -> false
+           | ChainSegment.DotMember(_, expr) -> isPlainName expr
+       )
+
 /// The space a setting may ask for between the last member name and the terminal call's `(`.
-/// Only the final call of a chain is eligible; see the note on tightness in `Chains.md`.
+/// Only the final call of a chain is eligible, and only when the chain is a plain dotted name;
+/// see the note on tightness in `Chains.md`.
 let genTerminalSpace (node: ExprChain) (call: ChainCall) : Context -> Context =
     match node.Terminal with
     | ChainTerminal.NoSpaceAllowed _ -> sepNone
     | ChainTerminal.NoTerminal -> sepNone
+    | ChainTerminal.SpaceAllowed _ when not (isCalledOnPlainDottedName node) -> sepNone
     | ChainTerminal.SpaceAllowed _ ->
         match List.tryLast node.Segments with
         | Some(ChainSegment.DotMember(_, funcExpr)) ->
@@ -3272,6 +3310,12 @@ let sepSpaceBeforeParenInFuncInvocation (functionExpr: Expr) (argExpr: Expr) ctx
 
     match functionExpr, argExpr with
     | Expr.IndexWithoutDot _, ParenExpr _ -> ctx
+    // A type application means the thing being called is not a plain dotted name, so the
+    // parenthesis stays tight and neither setting gets a say. This is the half of the
+    // fslang-design#648 rule that `isCalledOnPlainDottedName` cannot see: `a.Foo<int>(x)` puts
+    // the type application outside the chain, leaving a chain with no terminal call at all.
+    // It also covers a generic call with no receiver, `unbox<int>(obj)`.
+    | Expr.TypeApp _, ParenExpr _ -> ctx
     | _ when chainEndsInIndex || isEmptyIndex -> ctx
     | Expr.Constant _, _ -> sepSpace ctx
     | ParenExpr _, _ -> sepSpace ctx

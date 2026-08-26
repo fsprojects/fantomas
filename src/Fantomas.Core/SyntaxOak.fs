@@ -1853,8 +1853,14 @@ type ExprIfThenElifNode(branches: ExprIfThenNode list, elseBranch: (SingleTextNo
     member val Branches = branches
     member val Else = elseBranch
 
-/// Example: `?name` in a function call — a named optional argument passed explicitly.
-/// `IsOptional` is `true` when the `?` prefix is present; `Identifier` is the argument name.
+/// A name used as an expression, the compiler's <c>SynExpr.LongIdent</c>.
+/// Despite the case name, <c>IsOptional</c> is true only for the last shape below.
+///
+/// <code>
+/// value           // a name
+/// Module.value    // two of these inside a chain: `Module`, then `.value`
+/// f (?x = 1)      // the `?x`, the one shape IsOptional is true for
+/// </code>
 type ExprOptVarNode(isOptional: bool, identifier: IdentListNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield identifier |]
@@ -2104,6 +2110,7 @@ type Expr =
     | IfThenElse of ExprIfThenElseNode
     | IfThenElif of ExprIfThenElifNode
     | Ident of SingleTextNode
+    /// A name used as an expression: `value`, `Module.value`. See <see cref="ExprOptVarNode"/>.
     | OptVar of ExprOptVarNode
     | LongIdentSet of ExprLongIdentSetNode
     | DotIndexedSet of ExprDotIndexedSetNode
