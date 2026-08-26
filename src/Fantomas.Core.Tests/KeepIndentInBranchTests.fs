@@ -1548,7 +1548,7 @@ module Foo =
                 let m = regex.Match ref.To
 
                 m.Success
-                && things |> Set.contains (m.Groups.[1].ToString ())
+                && things |> Set.contains (m.Groups.[1].ToString())
             )
 
         0
@@ -1600,7 +1600,7 @@ module Foo =
                     let m = regex.Match ref.To
 
                     m.Success
-                    && things |> Set.contains (m.Groups.[1].ToString ())
+                    && things |> Set.contains (m.Groups.[1].ToString())
                 )
 
         0

@@ -155,7 +155,7 @@ let ``should not add space around ? operator`` () =
     formatSourceString """let x = y?z.d?c.[2]?d.xpto()""" config
     |> should
         equal
-        """let x = y?z.d?c.[2]?d.xpto ()
+        """let x = y?z.d?c.[2]?d.xpto()
 """
 
 [<Test>]

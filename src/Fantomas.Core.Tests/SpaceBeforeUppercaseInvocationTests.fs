@@ -404,3 +404,190 @@ Bar(1)[key]
         """
 Bar(1)[key]
 """
+
+/// The setting only gets a say when the whole thing being called is a plain dotted name.
+/// A call, an index, a bracketed receiver, or a type application anywhere in it, and the
+/// parenthesis stays tight. Agreed at https://github.com/fsharp/fslang-design/issues/648.
+/// The lowercase half of these live in SpaceBeforeLowercaseInvocationTests.
+
+[<Test>]
+let ``space before a call reached by a single dot from a plain identifier`` () =
+    formatSourceString
+        """
+a.Foo(x)
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+a.Foo (x)
+"""
+
+[<Test>]
+let ``space before a call however many dots the name has`` () =
+    formatSourceString
+        """
+a.B.C.Foo(x)
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+a.B.C.Foo (x)
+"""
+
+[<Test>]
+let ``base and this are plain names and take the space`` () =
+    formatSourceString
+        """
+base.Foo(x)
+this.Foo(x)
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+base.Foo (x)
+this.Foo (x)
+"""
+
+[<Test>]
+let ``no space when a call is reached through a dot before it`` () =
+    formatSourceString
+        """
+a.Foo(x).Bar(y)
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+a.Foo(x).Bar(y)
+"""
+
+[<Test>]
+let ``no space when the receiver is itself a call`` () =
+    formatSourceString
+        """
+Foo().Bar(y)
+Dictionary<string, int>().Add(k, v)
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+Foo().Bar(y)
+Dictionary<string, int>().Add(k, v)
+"""
+
+[<Test>]
+let ``no space when an index comes before the call, in either syntax`` () =
+    formatSourceString
+        """
+arr[0].Foo(x)
+arr.[0].Foo(x)
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+arr[0].Foo(x)
+arr.[0].Foo(x)
+"""
+
+[<Test>]
+let ``no space when the receiver is a parenthesised expression`` () =
+    formatSourceString
+        """
+(f x).Bar(y)
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+(f x).Bar(y)
+"""
+
+[<Test>]
+let ``space before a call on a literal, which is atomic like a name`` () =
+    formatSourceString
+        """
+"yow".Substring(0, 3)
+3L.ToString()
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+"yow".Substring (0, 3)
+3L.ToString ()
+"""
+
+[<Test>]
+let ``no space when the receiver is bracketed rather than atomic`` () =
+    formatSourceString
+        """
+[ 1; 2 ].Contains(1)
+{| X = 1 |}.ToString()
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+[ 1; 2 ].Contains(1)
+{| X = 1 |}.ToString()
+"""
+
+[<Test>]
+let ``no space when a literal receiver is followed by a call`` () =
+    formatSourceString
+        """
+"yow".Trim().Substring(0, 3)
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+"yow".Trim().Substring(0, 3)
+"""
+
+[<Test>]
+let ``no space when the receiver carries a type application`` () =
+    formatSourceString
+        """
+X<Y>.Foo(x)
+X<Y>.B.Foo(x)
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+X<Y>.Foo(x)
+X<Y>.B.Foo(x)
+"""
+
+[<Test>]
+let ``no space when the call itself carries a type application`` () =
+    formatSourceString
+        """
+a.Foo<int>(x)
+a.B.Foo<int>(x)
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+a.Foo<int>(x)
+a.B.Foo<int>(x)
+"""

@@ -376,7 +376,7 @@ let private validateLocation =
         equal
         """
 let private validateLocation =
-    createValidatorFor<LocationAdded> () {
+    createValidatorFor<LocationAdded>() {
         validate (fun l -> l.Id) [ isNotEmptyGuid ]
         validate (fun l -> l.Name) [ isNotEmpty; hasMinLengthOf 3 ]
         validate (fun l -> fst l.Location) [ isValidLatitude ]

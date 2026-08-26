@@ -283,3 +283,97 @@ match x with
 | d(e = f) -> ()
 | G.h(i = j) -> ()
 """
+
+/// The setting only gets a say when the whole thing being called is a plain dotted name.
+/// A call, an index, a bracketed receiver, or a type application anywhere in it, and the
+/// parenthesis stays tight. Agreed at https://github.com/fsharp/fslang-design/issues/648.
+/// The uppercase half of these live in SpaceBeforeUppercaseInvocationTests.
+
+[<Test>]
+let ``space before a deeply qualified lowercase function`` () =
+    formatSourceString
+        """
+Fantomas.FCS.Text.Range.unionRanges(r1, r2)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Fantomas.FCS.Text.Range.unionRanges (r1, r2)
+"""
+
+[<Test>]
+let ``the last part of the name decides which of the two settings applies`` () =
+    formatSourceString
+        """
+a.B.foo(x)
+a.b.Foo(x)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a.B.foo (x)
+a.b.Foo(x)
+"""
+
+[<Test>]
+let ``space before a call on a type parameter, which is a plain name`` () =
+    formatSourceString
+        """
+let inline f<'T when 'T: (static member StaticProperty: int with set)> () = 'T.set_StaticProperty(3)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inline f<'T when 'T: (static member StaticProperty: int with set)> () = 'T.set_StaticProperty (3)
+"""
+
+[<Test>]
+let ``no space anywhere in the reported fluent chain, fslang-design 648`` () =
+    formatSourceString
+        """
+xs.map(fun a -> a + 1)
+  .filter(fun a -> a > 1)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+xs.map(fun a -> a + 1).filter(fun a -> a > 1)
+"""
+
+[<Test>]
+let ``no space before a generic call that has no dots`` () =
+    formatSourceString
+        """
+unbox<int>(obj)
+List.map<int>(f)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+unbox<int>(obj)
+List.map<int>(f)
+"""
+
+[<Test>]
+let ``a generic application without parentheses is left alone`` () =
+    formatSourceString
+        """
+unbox<int> obj
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+unbox<int> obj
+"""

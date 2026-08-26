@@ -332,7 +332,7 @@ path.Replace<
         'innerContextLongLongLong,
         'bb -> 'b
      >
- > (
+ >(
     "../../../",
     "...."
 )
@@ -415,7 +415,7 @@ someFunc<
         'innerContextLongLongLong,
         'bb -> 'b
      >
- > (
+ >(
     a,
     b
 )

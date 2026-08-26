@@ -423,7 +423,7 @@ Foo().bar()
     |> should
         equal
         """
-Foo().bar ()
+Foo().bar()
 """
 
 [<Test>]
@@ -543,11 +543,11 @@ SomeFunction(
             "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
         )
 )
-    .ChainedFunctionCall ()
+    .ChainedFunctionCall()
 """
 
 [<Test>]
-let ``space before uppercase invocation should only be respected at end of chain, 1438`` () =
+let ``space before uppercase invocation applies to a plain dotted name but not inside a chain of calls, 1438`` () =
     formatSourceString
         """
 namespace AspNetSerilog
@@ -589,11 +589,11 @@ type IWebHostBuilderExtensions() =
         webHostBuilder.UseSerilog (fun context configuration ->
             configuration.MinimumLevel
                 .Debug()
-                .WriteTo.Logger (fun loggerConfiguration ->
+                .WriteTo.Logger(fun loggerConfiguration ->
                     loggerConfiguration.Enrich
                         .WithProperty("host", Environment.MachineName)
                         .Enrich.WithProperty("user", Environment.UserName)
-                        .Enrich.WithProperty (
+                        .Enrich.WithProperty(
                             "application",
                             context.HostingEnvironment.ApplicationName
                         )
@@ -604,7 +604,7 @@ type IWebHostBuilderExtensions() =
 """
 
 [<Test>]
-let ``space before uppercase invocation only on last lid of chain, 1437`` () =
+let ``a chain of calls is tight throughout despite SpaceBeforeUppercaseInvocation, 1437`` () =
     formatSourceString
         """
 Log.Logger <-
@@ -625,11 +625,11 @@ Log.Logger <-
     LoggerConfiguration()
         .Destructure.FSharpTypes()
         .WriteTo.Console()
-        .CreateLogger ()
+        .CreateLogger()
 """
 
 [<Test>]
-let ``space before uppercase invocation only on last lid of chain, tupled arg`` () =
+let ``a chain of calls with a tupled receiver argument is tight throughout`` () =
     formatSourceString
         """
 Log.Logger <-
@@ -650,7 +650,7 @@ Log.Logger <-
     LoggerConfiguration(1, 2)
         .Destructure.FSharpTypes()
         .WriteTo.Console()
-        .CreateLogger ()
+        .CreateLogger()
 """
 
 [<Test>]
@@ -682,7 +682,7 @@ let blah =
         """
 let blah =
     Mock()
-        .Returns (fun _ ->
+        .Returns(fun _ ->
             {
                 dasdasdsadsadsadsa = ""
                 Sdadsadasdasdas = "sdsadsadasdsa"
@@ -719,7 +719,7 @@ let blah =
         """
 let blah =
     Mock("foo")
-        .Returns (fun _ ->
+        .Returns(fun _ ->
             {
                 dasdasdsadsadsadsa = ""
                 Sdadsadasdasdas = "sdsadsadasdsa"
@@ -747,7 +747,7 @@ let x =
 let x =
     LoggerConfiguration<Foo>("host", Environment.MachineName)
         .Enrich.WithProperty<Bar>("user", Environment.UserName)
-        .Enrich.WithProperty ("application", context.HostingEnvironment.ApplicationName)
+        .Enrich.WithProperty("application", context.HostingEnvironment.ApplicationName)
 """
 
 [<Test>]
@@ -770,7 +770,7 @@ let x =
 let x =
     LoggerConfiguration<Foo>()
         .Enrich.WithProperty<Bar>("user", Environment.UserName)
-        .Enrich.WithProperty ("application", context.HostingEnvironment.ApplicationName)
+        .Enrich.WithProperty("application", context.HostingEnvironment.ApplicationName)
 """
 
 [<Test>]
@@ -794,7 +794,7 @@ let blah =
         """
 let blah =
     Mock<Foo>()
-        .Returns (fun _ ->
+        .Returns(fun _ ->
             { dasdasdsadsadsadsa = ""
               Sdadsadasdasdas = "sdsadsadasdsa" })
 """
@@ -978,7 +978,7 @@ module Foo =
                 .FromDirectoryName(
                     fs.Path.Combine ((ThingThing.rootRoot fs thingThing).FullName, "tada!")
                 )
-                .EnumerateDirectories ()
+                .EnumerateDirectories()
             |> Seq.exactlyOne
 
         ()
@@ -1020,7 +1020,7 @@ module Foo =
                         "tada!"
                     )
                 )
-                .EnumerateDirectories ()
+                .EnumerateDirectories()
             |> Seq.exactlyOne
 
         ()

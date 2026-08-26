@@ -96,9 +96,9 @@ let ``don't add additional new line after SynExpr.LongIndentSet, 1111`` () =
         equal
         """
 let options =
-    jsOptions<Vis.Options> (fun o ->
+    jsOptions<Vis.Options>(fun o ->
         o.autoResize <- Some true
-        o.edges <- Some(jsOptions<Vis.EdgeOptions> (fun e -> e.arrows <- Some <| U2.Case1 "to"))
+        o.edges <- Some(jsOptions<Vis.EdgeOptions>(fun e -> e.arrows <- Some <| U2.Case1 "to"))
 
         o.interaction <-
             Some(
@@ -270,7 +270,7 @@ Log.Logger <-
     |> should
         equal
         """
-Log.Logger <- LoggerConfiguration<Foo>().Destructure.FSharpTypes().WriteTo.Console().CreateLogger ()
+Log.Logger <- LoggerConfiguration<Foo>().Destructure.FSharpTypes().WriteTo.Console().CreateLogger()
 """
 
 [<Test>]

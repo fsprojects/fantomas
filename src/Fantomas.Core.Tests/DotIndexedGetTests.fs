@@ -60,7 +60,7 @@ myList.[7].lowerSomeFunctionCallOnSeven("looooooooooooooooooooooooooooooooonnggg
     |> should
         equal
         """
-myList.[7].lowerSomeFunctionCallOnSeven (
+myList.[7].lowerSomeFunctionCallOnSeven(
     "looooooooooooooooooooooooooooooooonnggggStringArgument",
     otherArg1,
     otherArg2,

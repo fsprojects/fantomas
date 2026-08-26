@@ -944,7 +944,7 @@ module Foo =
                         // blah
                         let exists =
                             try
-                                let defaultTime = (DateTime.FromFileTimeUtc 0L).ToLocalTime ()
+                                let defaultTime = (DateTime.FromFileTimeUtc 0L).ToLocalTime()
 
                                 foo.CreationTime <> defaultTime
                             with

@@ -607,7 +607,7 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
                          Surname = \"\"
                          Avatar = \"guest.png\" } |] }
             )
-            .write ()
+            .write()
 
         Logger.debug \"Database restored\"
 "

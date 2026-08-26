@@ -1,10 +1,15 @@
 # Changelog
 
-## [Unreleased]
+## [8.0.0-alpha-018] - 2026-08-26
 
 ### Added
 
 - `doctor` names the `.fantomasignore` above the one that governs a file, when a pattern in it would have skipped that file. Fantomas reads the nearest ignore file at or above a file and no other, so a pattern written at the root of a repository has no effect on a folder that has an ignore file of its own beside it. Up to now the report named the ignore file that did decide and said nothing about the one that did not, which answers "which file" and leaves "then why did mine not" for the reader to work out. It quotes the pattern that would have matched, with its line number, the way it already quotes the line that decided. `--json` carries every ignore file above the governing one under `shadowed`, each with `wouldIgnore` and the lines of it that match, whether or not it would have decided anything. [#3423](https://github.com/fsprojects/fantomas/pull/3423)
+
+### Changed
+
+- The settings that ask for a space before the parenthesis of a call, `fsharp_space_before_uppercase_invocation` and `fsharp_space_before_lowercase_invocation`, now get a say only when the whole thing being called is a plain dotted name. Put a call, an index, a bracketed receiver, or a type application anywhere in it, and the parenthesis stays tight whatever the settings ask for. On default settings `xs.map(fun a -> a + 1).filter (fun a -> a > 1)` becomes `xs.map(fun a -> a + 1).filter(fun a -> a > 1)`, which is the report this started from, and `Foo().bar ()` and `myList.[7].someFunction (arg)` lose their space for the same reason. A plain dotted name is untouched however long it gets, so `List.map (f)` and `Fantomas.FCS.Text.Range.unionRanges (r1, r2)` keep the space they had, and so is a literal or type parameter receiver, since `"yow".Substring (0, 3)` and `'T.set_StaticProperty (3)` are atomic rather than bracketed. Agreed at [fslang-design#648](https://github.com/fsharp/fslang-design/issues/648) and written up under [Formatting chain expressions](https://fsprojects.github.io/fantomas/docs/contributors/Chains.html). [#3425](https://github.com/fsprojects/fantomas/pull/3425)
+- A type application now makes a call tight with no chain in sight, which is the part of the change above most likely to catch you out, because it reaches ordinary generic calls rather than fluent code. On default settings `unbox<bool> (value)`, `f<int> (x)`, `List.map<int> (f)` and `jsOptions<Vis.Options> (fun o -> ...)` all lose their space, since `fsharp_space_before_lowercase_invocation` is `true` and each of those is a lower-case name carrying type arguments. An upper-case generic call such as `Dictionary<string, int>(x)` was already tight by default and only moves if `fsharp_space_before_uppercase_invocation` is on. Fantomas does not add parentheses, so the far more common form without them, `unbox<int> obj`, is left exactly as written and never comes into it. [#3425](https://github.com/fsprojects/fantomas/pull/3425)
 
 ### Fixed
 
