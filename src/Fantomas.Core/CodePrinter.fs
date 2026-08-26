@@ -677,15 +677,14 @@ let genSegmentOpener (segment: ChainSegment) : Context -> Context =
 /// A name with no dotted content of its own: the shape the head of a chain and a `DotMember`
 /// step both take when nothing is happening beyond navigation.
 ///
-/// A type parameter and a literal count too. `'T.set_StaticProperty (3)` and
-/// `"yow".Substring (0, 3)` both call through something atomic, which is what the name in the
-/// rule is standing for. A bracketed receiver such as `[ 1; 2 ]` or `{| X = 1 |}` does not: it is
-/// a compound expression like `(f x)`, and is answered by the wildcard below.
+/// A type parameter counts too, since `'T` is a name like any other. A constant does not: `"yow"`
+/// and `3L` are values, and the rule asks for a name. Neither does a receiver that is bracketed
+/// rather than written out, such as `(f x)`, `[ 1; 2 ]` or `{| X = 1 |}`; those are answered by
+/// the wildcard below.
 let isPlainName (expr: Expr) : bool =
     match expr with
     | Expr.Ident _
-    | Expr.Typar _
-    | Expr.Constant _ -> true
+    | Expr.Typar _ -> true
     | Expr.OptVar node ->
         match node.Identifier.Content with
         | [ IdentifierOrDot.Ident _ ] -> true
@@ -693,7 +692,7 @@ let isPlainName (expr: Expr) : bool =
     | _ -> false
 
 /// Whether the whole thing being called is a plain dotted name, which is what the space before
-/// the terminal call's `(` depends on. A call, an index, a bracketed receiver, or a type
+/// the terminal call's `(` depends on. A call, an index, a receiver that is not a name, or a type
 /// application anywhere in it answers no.
 ///
 /// A type application does not have to be excluded here. One on the called member lifts the call

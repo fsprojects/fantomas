@@ -406,7 +406,7 @@ Bar(1)[key]
 """
 
 /// The setting only gets a say when the whole thing being called is a plain dotted name.
-/// A call, an index, a bracketed receiver, or a type application anywhere in it, and the
+/// A call, an index, a receiver that is not a name, or a type application anywhere in it, and the
 /// parenthesis stays tight. Agreed at https://github.com/fsharp/fslang-design/issues/648.
 /// The lowercase half of these live in SpaceBeforeLowercaseInvocationTests.
 
@@ -515,7 +515,7 @@ let ``no space when the receiver is a parenthesised expression`` () =
 """
 
 [<Test>]
-let ``space before a call on a literal, which is atomic like a name`` () =
+let ``no space when the receiver is a constant`` () =
     formatSourceString
         """
 "yow".Substring(0, 3)
@@ -526,12 +526,12 @@ let ``space before a call on a literal, which is atomic like a name`` () =
     |> should
         equal
         """
-"yow".Substring (0, 3)
-3L.ToString ()
+"yow".Substring(0, 3)
+3L.ToString()
 """
 
 [<Test>]
-let ``no space when the receiver is bracketed rather than atomic`` () =
+let ``no space when the receiver is a list or an anonymous record`` () =
     formatSourceString
         """
 [ 1; 2 ].Contains(1)
@@ -544,20 +544,6 @@ let ``no space when the receiver is bracketed rather than atomic`` () =
         """
 [ 1; 2 ].Contains(1)
 {| X = 1 |}.ToString()
-"""
-
-[<Test>]
-let ``no space when a literal receiver is followed by a call`` () =
-    formatSourceString
-        """
-"yow".Trim().Substring(0, 3)
-"""
-        spaceBeforeConfig
-    |> prepend newline
-    |> should
-        equal
-        """
-"yow".Trim().Substring(0, 3)
 """
 
 [<Test>]

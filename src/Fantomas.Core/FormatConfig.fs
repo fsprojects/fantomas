@@ -102,12 +102,12 @@ type FormatConfig =
 
         [<Category("Spacing")>]
         [<DisplayName("Before lowercase invocation")>]
-        [<Description("Add a space between a lower-case function or method name and the opening parenthesis of its argument. Only the name immediately in front of the parenthesis decides which of the two invocation settings applies, and neither applies unless the whole thing being called is a plain dotted name: a call, an index, a bracketed receiver, or a type application anywhere in it keeps the parenthesis tight.")>]
+        [<Description("Add a space between a lower-case function or method name and the opening parenthesis of its argument. Only the name immediately in front of the parenthesis decides which of the two invocation settings applies, and neither applies unless the whole thing being called is a plain dotted name: a call, an index, a receiver that is not a name, or a type application anywhere in it keeps the parenthesis tight.")>]
         SpaceBeforeLowercaseInvocation: bool
 
         [<Category("Spacing")>]
         [<DisplayName("Before uppercase invocation")>]
-        [<Description("Add a space between an upper-case function or method name and the opening parenthesis of its argument. Only the name immediately in front of the parenthesis decides which of the two invocation settings applies, and neither applies unless the whole thing being called is a plain dotted name: a call, an index, a bracketed receiver, or a type application anywhere in it keeps the parenthesis tight.")>]
+        [<Description("Add a space between an upper-case function or method name and the opening parenthesis of its argument. Only the name immediately in front of the parenthesis decides which of the two invocation settings applies, and neither applies unless the whole thing being called is a plain dotted name: a call, an index, a receiver that is not a name, or a type application anywhere in it keeps the parenthesis tight.")>]
         SpaceBeforeUppercaseInvocation: bool
 
         [<Category("Spacing")>]

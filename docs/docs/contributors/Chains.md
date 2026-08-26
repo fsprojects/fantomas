@@ -112,7 +112,7 @@ Neither setting is about chains as such. Both govern a call with no receiver at 
 
 #### Neither setting applies once the chain is more than a name
 
-**Neither setting can put the space back.** Once a call, an index, a bracketed receiver, or a type application appears anywhere in the chain, the parenthesis is tight and no configuration will change it.
+**Neither setting can put the space back.** Once a call, an index, a receiver that is not a name, or a type application appears anywhere in the chain, the parenthesis is tight and no configuration will change it.
 
 The space survives only when **the whole thing being called is a plain dotted name**.
 
@@ -124,20 +124,19 @@ Every line below calls the same `.Bar`, and the only difference is what else the
 // a plain dotted name, so the setting applies and the space is there
 obj.Bar ()
 a.B.C.Bar ()        // however long the name gets
-"yow".Bar ()        // a literal is atomic, so it counts as a name
-3L.Bar ()           // as does any other constant
 
 // something other than a name is in the way, so no space is available to ask for
 a.Foo(x).Bar(y)     // a call, before the final one
 Foo().Bar(y)        // a call, as the receiver
 arr[0].Bar(y)       // an index, before the final call
-(f x).Bar(y)        // a bracketed receiver
-[ 1; 2 ].Bar(y)     // and brackets of any kind count
+(f x).Bar(y)        // a receiver that is not a name
+[ 1; 2 ].Bar(y)     // brackets of any kind count
+"yow".Bar(y)        // and a constant is a value rather than a name
 X<Y>.Bar(y)         // a type application, before the final call
 a.B.Bar<int>(y)     // a type application, on the final call itself
 ```
 
-A type parameter is atomic in the same way, so `'T.set_StaticProperty (3)` keeps its space too.
+A type parameter is a name like any other, so `'T.set_StaticProperty (3)` keeps its space.
 
 This one is a style decision rather than a grammar requirement. Unlike the tightness of an intermediate call above, nothing here would fail to parse with the space in place. It exists so that a chain does not end up with one surviving space that has no visible reason to be there, and it was agreed at [fslang-design#648](https://github.com/fsharp/fslang-design/issues/648).
 
