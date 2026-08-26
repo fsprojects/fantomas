@@ -345,7 +345,7 @@ Ignored files will be picked up by the <a href="https://www.nuget.org/packages/f
 <p>If you are not sure which ignore file governs a given source file, or which line of it decided, ask:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fantomas doctor src/App.fs
 </code></pre></td></tr></table>
-<p>It names the ignore file, quotes the line that matched with its line number, and writes nothing. See <a href="./GettingStarted.html">Getting Started</a> for the rest of what it reports.</p>
+<p>It names the ignore file, quotes the line that matched with its line number, and writes nothing. Where a pattern in an ignore file further up would have skipped the file, it names that file too and quotes the pattern, which is the answer when something you wrote at the root of a repository turns out to have had no effect. See <a href="./GettingStarted.html">Getting Started</a> for the rest of what it reports.</p>
 <p>Also note that if you are less familiar with <code>.gitignore</code>, <code>.gitgnore</code> processes everything using Unix slashes <code>/</code>.<br />
 Windows slashes <code>\</code> will not work correctly. See <a href="https://git-scm.com/docs/gitignore#_pattern_format">official Git documentation</a> for more info.</p>
 <h2><a name="Great-for-gradual-adoption" class="anchor" href="#Great-for-gradual-adoption">Great for gradual adoption</a></h2>

@@ -125,7 +125,7 @@ Note that `fsharp_multiline_block_brackets_on_same_column` and `fsharp_experimen
 * `--force` announces invalid output as a warning on standard error rather than on standard out, and says what happened rather than only that it happened.
 * Output that Fantomas will not accept from itself is reported as a bug in Fantomas rather than as a problem with your file, and says that nothing was written and where to report it. `Formatting A.fs leads to invalid F# code` became `src/A.fs could not be formatted by Fantomas:` followed by that explanation, what the parser said about the output, and the lines of the output around it with a caret under the failure. Those are lines of the output, which is written nowhere and is not your file, and the report says so; the diagnostics carry no line and column of their own for the same reason. Up to `v7` you were told only that something was invalid and left to run again with `--force` and find it yourself. `--check` reports it the same way. A script matching on the old text needs updating.
 * `--version` prints the commit hash trimmed to the short form the `--help` page has always shown, and the whole of it at `--verbosity d`. `Fantomas.Client` is unaffected: it cuts the version at `+`.
-* A `.fantomasignore` in a subfolder is now honoured by the command line. See "`.fantomasignore` in a subfolder" below.
+* The `.fantomasignore` that applies to a file is found by walking up from that file rather than from the directory Fantomas was started in, so where you run the command from no longer decides which ignore file applies. See "Which `.fantomasignore` applies" below.
 * `--json` no longer names a file that `.fantomasignore` matched, and `ignored` is no longer a status a file can carry. See "What a run says about skipped files" below.
 * A run writing to `--out` reports what was written rather than what changed, `32 files written to build, 2 reformatted.`, since under `--out` every input produces an output file whether or not its content changed. A single file named on the command line says where it went, `+ src/A.fs was formatted and written to build/A.fs.`
 
@@ -161,12 +161,23 @@ decided separately, so piping one of them does not take the colour off the other
 If you parse this output, move to `--json`, which puts one document on standard out describing
 every file the run looked at.
 
-#### `.fantomasignore` in a subfolder
+#### Which `.fantomasignore` applies
 
 Up to now the command line resolved one ignore file for the whole run, the nearest at or above the
-directory it started in. The daemon resolved one per file, the nearest at or above that file. So an
-ignore file in a subfolder was honoured by an editor and invisible to a pipeline, and the same file
-was skipped in one and formatted in the other:
+directory it started in. It is now found by walking up from the file being formatted, which is what
+the daemon has always done. Of everything in this release this is the change most likely to be
+noticed.
+
+The first thing it changes is that the directory you run from no longer decides which ignore file
+applies. Up to `v7` this skipped every file under `src`, on the strength of an ignore file that had
+nothing to do with them, and never read the one sitting above `src`:
+
+```text
+$ cd tools && dotnet fantomas ../src     # v7: matched ../src/*.fs against tools/.fantomasignore
+```
+
+The second is that an ignore file in a subfolder was honoured by an editor and invisible to a
+pipeline, so the same file was skipped in one and formatted in the other:
 
 ```text
 repo/.fantomasignore          # found by both
@@ -179,7 +190,10 @@ run has one. If a subfolder of your repository carries a `.fantomasignore`, chec
 files you have been formatting all along.
 
 Note that this is still the nearest ignore file and not the union of every one above it, which is
-where Fantomas differs from `.gitignore`.
+where Fantomas differs from `.gitignore`. A pattern you wrote at the root of a repository therefore
+has no effect on a folder that carries an ignore file of its own, and `fantomas doctor <file>` will
+say so: it names the ignore file that governs the file, and names one further up whose pattern
+would have skipped it.
 
 A folder that `.fantomasignore` names is no longer opened at all. Up to now every file inside it
 was found and then rejected one at a time. Nothing is formatted that was not formatted before, and

@@ -444,7 +444,7 @@ Note that <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>
 <li><code>--force</code> announces invalid output as a warning on standard error rather than on standard out, and says what happened rather than only that it happened.</li>
 <li>Output that Fantomas will not accept from itself is reported as a bug in Fantomas rather than as a problem with your file, and says that nothing was written and where to report it. <code>Formatting A.fs leads to invalid F# code</code> became <code>src/A.fs could not be formatted by Fantomas:</code> followed by that explanation, what the parser said about the output, and the lines of the output around it with a caret under the failure. Those are lines of the output, which is written nowhere and is not your file, and the report says so; the diagnostics carry no line and column of their own for the same reason. Up to <code>v7</code> you were told only that something was invalid and left to run again with <code>--force</code> and find it yourself. <code>--check</code> reports it the same way. A script matching on the old text needs updating.</li>
 <li><code>--version</code> prints the commit hash trimmed to the short form the <code>--help</code> page has always shown, and the whole of it at <code>--verbosity d</code>. <code>Fantomas.Client</code> is unaffected: it cuts the version at <code>+</code>.</li>
-<li>A <code>.fantomasignore</code> in a subfolder is now honoured by the command line. See "<code>.fantomasignore</code> in a subfolder" below.</li>
+<li>The <code>.fantomasignore</code> that applies to a file is found by walking up from that file rather than from the directory Fantomas was started in, so where you run the command from no longer decides which ignore file applies. See "Which <code>.fantomasignore</code> applies" below.</li>
 <li><code>--json</code> no longer names a file that <code>.fantomasignore</code> matched, and <code>ignored</code> is no longer a status a file can carry. See "What a run says about skipped files" below.</li>
 <li>A run writing to <code>--out</code> reports what was written rather than what changed, <code>32 files written to build, 2 reformatted.</code>, since under <code>--out</code> every input produces an output file whether or not its content changed. A single file named on the command line says where it went, <code>+ src/A.fs was formatted and written to build/A.fs.</code></li>
 </ul>
@@ -471,11 +471,18 @@ where the stream is redirected, and <code>NO_COLOR</code> is honoured. Standard 
 decided separately, so piping one of them does not take the colour off the other.</p>
 <p>If you parse this output, move to <code>--json</code>, which puts one document on standard out describing
 every file the run looked at.</p>
-<h4><a name="in-a-subfolder" class="anchor" href="#in-a-subfolder"><code>.fantomasignore</code> in a subfolder</a></h4>
+<h4><a name="Which-applies" class="anchor" href="#Which-applies">Which <code>.fantomasignore</code> applies</a></h4>
 <p>Up to now the command line resolved one ignore file for the whole run, the nearest at or above the
-directory it started in. The daemon resolved one per file, the nearest at or above that file. So an
-ignore file in a subfolder was honoured by an editor and invisible to a pipeline, and the same file
-was skipped in one and formatted in the other:</p>
+directory it started in. It is now found by walking up from the file being formatted, which is what
+the daemon has always done. Of everything in this release this is the change most likely to be
+noticed.</p>
+<p>The first thing it changes is that the directory you run from no longer decides which ignore file
+applies. Up to <code>v7</code> this skipped every file under <code>src</code>, on the strength of an ignore file that had
+nothing to do with them, and never read the one sitting above <code>src</code>:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="text">$ cd tools &amp;&amp; dotnet fantomas ../src     # v7: matched ../src/*.fs against tools/.fantomasignore
+</code></pre></td></tr></table>
+<p>The second is that an ignore file in a subfolder was honoured by an editor and invisible to a
+pipeline, so the same file was skipped in one and formatted in the other:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="text">repo/.fantomasignore          # found by both
 repo/sub/.fantomasignore      # found by the editor, ignored by the command line
 repo/sub/S.fs                 # skipped in the editor, formatted by CI
@@ -484,7 +491,10 @@ repo/sub/S.fs                 # skipped in the editor, formatted by CI
 run has one. If a subfolder of your repository carries a <code>.fantomasignore</code>, check whether it names
 files you have been formatting all along.</p>
 <p>Note that this is still the nearest ignore file and not the union of every one above it, which is
-where Fantomas differs from <code>.gitignore</code>.</p>
+where Fantomas differs from <code>.gitignore</code>. A pattern you wrote at the root of a repository therefore
+has no effect on a folder that carries an ignore file of its own, and <code>fantomas doctor &lt;file&gt;</code> will
+say so: it names the ignore file that governs the file, and names one further up whose pattern
+would have skipped it.</p>
 <p>A folder that <code>.fantomasignore</code> names is no longer opened at all. Up to now every file inside it
 was found and then rejected one at a time. Nothing is formatted that was not formatted before, and
 a run over a repository that ignores a vendored checkout no longer reads it.</p>

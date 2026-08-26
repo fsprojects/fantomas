@@ -32,7 +32,7 @@ If you are not sure which ignore file governs a given source file, or which line
 dotnet fantomas doctor src/App.fs
 ```
 
-It names the ignore file, quotes the line that matched with its line number, and writes nothing. See [Getting Started](./GettingStarted.html) for the rest of what it reports.
+It names the ignore file, quotes the line that matched with its line number, and writes nothing. Where a pattern in an ignore file further up would have skipped the file, it names that file too and quotes the pattern, which is the answer when something you wrote at the root of a repository turns out to have had no effect. See [Getting Started](./GettingStarted.html) for the rest of what it reports.
 
 Also note that if you are less familiar with `.gitignore`, `.gitgnore` processes everything using Unix slashes `/`.  
 Windows slashes `\` will not work correctly. See [official Git documentation](https://git-scm.com/docs/gitignore#_pattern_format) for more info.
