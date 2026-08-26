@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 7
+index: 8
 ---
 
 # JetBrains Rider

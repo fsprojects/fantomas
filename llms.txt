@@ -32,6 +32,7 @@
 - [Getting Started](https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.md)
 - [Git hooks](https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.md)
 - [Ignore Files](https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.md)
+- [Open-ended expressions](https://fsprojects.github.io/fantomas/docs/end-users/OpenEndedExpressions.md)
 - [Recipes](https://fsprojects.github.io/fantomas/docs/end-users/Recipes.md)
 - [JetBrains Rider](https://fsprojects.github.io/fantomas/docs/end-users/Rider.md)
 - [Style guide](https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.md)

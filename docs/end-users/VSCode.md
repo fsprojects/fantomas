@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 9
+index: 10
 ---
 
 # Visual Studio Code

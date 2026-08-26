@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 3
+index: 4
 ---
 
 <link rel="stylesheet" type="text/css" href="https://fsprojects.github.io/fantomas/content/configuration.css" />
@@ -14,7 +14,7 @@ Your IDE should respect your settings, however the implementation of that is edi
 UI might be available depending on the IDE.
 
 ```
-version: 8.0.0-alpha-017+ce8ad1fc652f12c82bd72653e93f246b6b25b33c
+version: 8.0.0-alpha-017+fe560f8cbd696f5eac61e1ad149b051883b9e65f
 ```
 
 ## Usage
@@ -1468,4 +1468,4 @@ let singleList =
     ]
 ```
 
-<fantomas-nav previous="StyleGuide.md" next="IgnoreFiles.md"></fantomas-nav>
+<fantomas-nav previous="OpenEndedExpressions.md" next="IgnoreFiles.md"></fantomas-nav>

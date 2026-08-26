@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en" data-root="https://fsprojects.github.io/fantomas/">
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
+    <!-- Opengraph properties (https://ogp.me/) -->
+    <meta property="og:site_name" content="fantomas">
+    <meta property="og:title" content="Open-ended expressions
+" />
+    <meta property="og:url" content="https://fsprojects.github.io/fantomas/docs/end-users/OpenEndedExpressions.html">
+    <meta property="og:type" content="website" />
+    <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
+    <meta name="twitter:title" content="Open-ended expressions
+">
+    
+    <title>Open-ended expressions
+ | fantomas</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fsprojects.github.io/fantomas/images/favicon.ico" rel="icon" sizes="32x32" type="image/png"/>
+    <script type="application/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-set-dark.js"></script>
+    <script type="application/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-set-expanded.js"></script>
+    <link href="https://fsprojects.github.io/fantomas/content/fsdocs-default.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fsprojects.github.io/fantomas/content/fsdocs-theme.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+
+    
+</head>
+<body class="content">
+<header>
+    <div class="start">
+        <div id="menu-toggle">
+            <iconify-icon class="icon closed" height="22" icon="eva:menu-fill" width="22"></iconify-icon>
+            <iconify-icon class="icon open" height="22" icon="mi:close" width="22"></iconify-icon>
+            <input type="checkbox" name="mobile-menu" />
+            <ul class="menu">
+                <li class="nav-header">Links</li>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                </li>
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
+                                        href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+                    Notes</a></li>
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                    Repository</a></li>
+                <li class="nav-header active" id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link" > Style guide
+</a></li>
+
+<li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/docs/end-users/OpenEndedExpressions.html" class="nav-link" > Open-ended expressions
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link" > Upgrade guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Recipes.html" class="nav-link" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.html" class="nav-link" > Formatting from an editor with Fantomas.Client
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header " id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link" > F#
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Multiple Times.html" class="nav-link" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.html" class="nav-link" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link" > Releases
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatting Conventions.html" class="nav-link" > Formatting Conventions
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/History.html" class="nav-link" > History
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/EventList Architecture.html" class="nav-link" > Writer Events and the EventList
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
+</a></li>
+
+</div>
+                <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link" > All Namespaces</a></li>
+
+</div>
+            </ul>
+        </div>
+        <a href="https://fsprojects.github.io/fantomas/">
+            <img alt="Logo" src="https://fsprojects.github.io/fantomas/images/logo.png">
+            <strong>fantomas</strong>
+        </a>
+    </div>
+    <div class="end">
+        <a href="https://github.com/fsprojects/fantomas/" target="_blank">
+            <iconify-icon icon="uil:github" width="26" height="26"></iconify-icon>
+        </a>
+        <iconify-icon id="search-btn" icon="carbon:search" class="search" width="24" height="24"></iconify-icon>
+        <fsdocs-theme-toggle></fsdocs-theme-toggle>
+    </div>
+</header>
+<aside id="fsdocs-main-menu">
+    <ul class="menu">
+        <li class="nav-header">Links</li>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        </li>
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
+                                href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+            Notes</a></li>
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+            Repository</a></li>
+        <li class="nav-header active" id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link" > Style guide
+</a></li>
+
+<li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/docs/end-users/OpenEndedExpressions.html" class="nav-link" > Open-ended expressions
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link" > Upgrade guide
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/Recipes.html" class="nav-link" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" > Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.html" class="nav-link" > Formatting from an editor with Fantomas.Client
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header " id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link" > F#
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Multiple Times.html" class="nav-link" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.html" class="nav-link" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link" > Releases
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatting Conventions.html" class="nav-link" > Formatting Conventions
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/History.html" class="nav-link" > History
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/EventList Architecture.html" class="nav-link" > Writer Events and the EventList
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+</a></li>
+
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
+</a></li>
+
+</div>
+        <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item active"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link" > All Namespaces</a></li>
+
+</div>
+    </ul>
+</aside>
+<main>
+    <div id="content">
+        
+<h1><a name="Open-ended-expressions" class="anchor" href="#Open-ended-expressions">Open-ended expressions</a></h1>
+<p>Sometimes Fantomas leaves a short record, list or tuple spread over several lines when it would
+comfortably fit on one. This page explains when that happens and why, because it is deliberate
+rather than a missed opportunity.</p>
+<h2><a name="The-symptom" class="anchor" href="#The-symptom">The symptom</a></h2>
+<p>This record is well under the width Fantomas would collapse at, and it stays as it is:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">r</span> <span class="o">=</span>
+    <span class="pn">{</span>
+        <span class="id">A</span> <span class="o">=</span> <span class="n">1</span>
+        <span class="id">B</span> <span class="o">=</span> <span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="id">x</span> <span class="o">+</span> <span class="n">1</span>
+        <span class="id">C</span> <span class="o">=</span> <span class="n">3</span>
+    <span class="pn">}</span>
+</code></pre>
+<p>Take the lambda out and the same record goes to one line:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="2" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="n">2</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span> <span class="pn">}</span>
+</code></pre>
+<h2><a name="Why" class="anchor" href="#Why">Why</a></h2>
+<p>In F#, <code>fun</code> extends as far to the right as it can. That is a rule of the language, not a
+formatting preference. Written on one line, the record above says something else entirely:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="3" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="id">x</span> <span class="o">+</span> <span class="n">1</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span> <span class="pn">}</span>
+</code></pre>
+<p>The compiler reads that as a record with <strong>two</strong> fields, not three, because everything after
+the arrow belongs to the lambda:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="4" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="pn">(</span><span class="id">x</span> <span class="o">+</span> <span class="n">1</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span><span class="pn">)</span> <span class="pn">}</span>
+</code></pre>
+<p>The <code>;</code> that Fantomas would write to separate the fields becomes a sequential expression inside
+the lambda body instead.</p>
+<p><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html#How-Fantomas-formats-code">Fantomas re-types your entire source</a> rather than
+adjusting whitespace in place, so it carries the responsibility that what it prints means what
+you wrote. Collapsing here would break that, so it does not collapse.</p>
+<h2><a name="Where-it-applies" class="anchor" href="#Where-it-applies">Where it applies</a></h2>
+<p>An expression is <em>open-ended</em> when it has no closing token and so runs on to the right. The
+common ones are <code>fun</code>, <code>if ... then ... else</code>, <code>match</code>, <code>function</code> and <code>try</code>, along with
+anything that wraps one of them, such as <code>lazy</code>, <code>yield</code> or an assignment.</p>
+<p>Fantomas keeps the layout multiline when an open-ended expression sits anywhere but <strong>last</strong> in
+a record, an anonymous record, a list, an array or a tuple, or on the <strong>left</strong> of an infix
+operator:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="5" class="id">xs</span> <span class="o">=</span>
+    <span class="pn">[</span>
+        <span class="n">1</span><span class="pn">,</span> <span class="k">fun</span> <span class="pn">(</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="n">1</span>
+        <span class="n">2</span><span class="pn">,</span> <span class="k">fun</span> <span class="pn">(</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="n">2</span>
+    <span class="pn">]</span>
+
+<span class="k">let</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="6" class="id">a</span> <span class="o">=</span>
+    <span class="k">fun</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="7" class="fn">x</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="8" class="fn">x</span> <span class="o">+</span> <span class="n">1</span>
+    <span class="o">|&gt;</span> <span class="id">g</span>
+</code></pre>
+<p>The last position is fine as it is, because the closing bracket ends the expression and there is
+nothing left for it to swallow:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="9" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="id">x</span> <span class="o">+</span> <span class="n">1</span> <span class="pn">}</span>
+</code></pre>
+<p>What counts is whether the expression really does run on. <code>lazy</code> around a lambda does, <code>lazy</code>
+around a plain value does not, so only the first of these stays multiline:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="10" class="id">xs</span> <span class="o">=</span>
+    <span class="pn">[</span>
+        <span class="k">lazy</span> <span class="k">fun</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="11" class="fn">x</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="12" class="fn">x</span>
+        <span class="n">2</span>
+    <span class="pn">]</span>
+
+<span class="k">let</span> <span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="13" class="id">ys</span> <span class="o">=</span> <span class="pn">[</span> <span class="k">lazy</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="14" class="id">a</span><span class="pn">;</span> <span class="n">2</span> <span class="pn">]</span>
+</code></pre>
+<h2><a name="Getting-the-single-line-back" class="anchor" href="#Getting-the-single-line-back">Getting the single line back</a></h2>
+<p>Put the parentheses in yourself. They close the expression, so nothing can run past them and
+Fantomas is free to collapse:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="15" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="id">x</span> <span class="o">+</span> <span class="n">1</span><span class="pn">)</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span> <span class="pn">}</span>
+
+<span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="16" class="id">xs</span> <span class="o">=</span> <span class="pn">[</span> <span class="n">1</span><span class="pn">,</span> <span class="pn">(</span><span class="k">fun</span> <span class="pn">(</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="n">1</span><span class="pn">)</span><span class="pn">;</span> <span class="n">2</span><span class="pn">,</span> <span class="pn">(</span><span class="k">fun</span> <span class="pn">(</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="n">2</span><span class="pn">)</span> <span class="pn">]</span>
+</code></pre>
+<p>This is a change to your code rather than to your formatting, which is exactly why Fantomas
+leaves it to you.</p>
+<h2><a name="Why-not-add-the-parentheses-for-you" class="anchor" href="#Why-not-add-the-parentheses-for-you">Why not add the parentheses for you</a></h2>
+<p>That was the other option, and it was put to the community as
+<a href="https://github.com/fsprojects/fantomas/issues/3279">RFC #3279</a>. Both options produce
+deterministic output; the question was only which one. The vote went 23 to 3 in favour of
+staying multiline, on the grounds that a formatter should not introduce syntax that was not in
+the source, and Fantomas has behaved this way since <code>v8.0.0-alpha-008</code>.</p>
+<p>Note that neither option is about preserving what you wrote. Written on one line to begin with,
+the parenthesised record above stays on one line; written across several, it is collapsed onto
+one. What decides the layout is the expression, never the way you happened to type it.</p>
+<fantomas-nav previous="StyleGuide.html" next="Configuration.html"></fantomas-nav>
+
+        <div popover class="fsdocs-tip" id="fs1">val r: &#39;a</div>
+<div popover class="fsdocs-tip" id="fs2">val xs: (int * (unit -&gt; int)) list</div>
+<div popover class="fsdocs-tip" id="fs3">val a: obj</div>
+<div popover class="fsdocs-tip" id="fs4">val x: int</div>
+<div popover class="fsdocs-tip" id="fs5">val xs: Lazy&lt;(obj -&gt; obj)&gt; list</div>
+<div popover class="fsdocs-tip" id="fs6">val x: obj</div>
+<div popover class="fsdocs-tip" id="fs7">val ys: Lazy&lt;obj&gt; list</div>
+
+    </div>
+</main>
+<aside id="fsdocs-page-menu">
+    <p id="on-this-page">On this page</p>
+    <ul>
+  <li class="level-1">
+    <a href="#Open-ended-expressions">
+      Open-ended expressions
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#The-symptom">
+      The symptom
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Why">
+      Why
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Where-it-applies">
+      Where it applies
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Getting-the-single-line-back">
+      Getting the single line back
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Why-not-add-the-parentheses-for-you">
+      Why not add the parentheses for you
+    </a>
+  </li>
+</ul>
+</aside>
+<dialog>
+    <input type="search" placeholder="Search docs" />
+    <div class="results">
+        <ul></ul>
+        <p class="empty">Type something to start searching.</p>
+    </div>
+</dialog>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-tips.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme-toggle.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-details-toggle.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-theme.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/fsdocs-copy-button.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        })
+    })
+</script>
+<script type="module">
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        themeVariables: {
+            primaryColor: '#338cbb',
+            primaryTextColor: '#FFF',
+            primaryBorderColor: '#5aacd6'
+        }
+    });
+</script>
+<script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
+</body>
+</html>

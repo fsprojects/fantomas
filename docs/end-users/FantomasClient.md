@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 14
+index: 15
 ---
 
 # Formatting from an editor with Fantomas.Client
