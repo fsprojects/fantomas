@@ -14,7 +14,7 @@ Your IDE should respect your settings, however the implementation of that is edi
 UI might be available depending on the IDE.
 
 ```
-version: 8.0.0-alpha-017+fe560f8cbd696f5eac61e1ad149b051883b9e65f
+version: 8.0.0-alpha-018+ff3c10254ec5d0de7737a6e1ea98efc7438a6ef3
 ```
 
 ## Usage
@@ -196,8 +196,11 @@ let DumpTrace() = ()
 ### fsharp_space_before_lowercase_invocation
 
 <copy-to-clipboard text="fsharp_space_before_lowercase_invocation = false"></copy-to-clipboard>
-Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.  
+Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.
 This setting influences function invocation in expressions and patterns.
+Only the name immediately in front of the parenthesis decides whether this setting or `fsharp_space_before_uppercase_invocation` applies, so `a.B.foo (x)` follows this one and `a.b.Foo(x)` follows the other.
+Neither applies unless the whole thing being called is a plain dotted name: a call, an index, a bracketed receiver, or a type application anywhere in it keeps the parenthesis tight, which leaves `xs.map(f).filter(g)` and `unbox<int>(obj)` untouched by either setting.
+See [Formatting chain expressions](../contributors/Chains.html#The-two-space-settings).
 
 ```
 # Default
@@ -230,8 +233,11 @@ match x with
 ### fsharp_space_before_uppercase_invocation
 
 <copy-to-clipboard text="fsharp_space_before_uppercase_invocation = true"></copy-to-clipboard>
-Add a space after the name of a uppercase function and before the opening parenthesis of the first argument.  
+Add a space after the name of a uppercase function and before the opening parenthesis of the first argument.
 This setting influences function invocation in expressions and patterns.
+Only the name immediately in front of the parenthesis decides whether this setting or `fsharp_space_before_lowercase_invocation` applies, so `a.b.Foo (x)` follows this one and `a.B.foo(x)` follows the other.
+Neither applies unless the whole thing being called is a plain dotted name: a call, an index, a bracketed receiver, or a type application anywhere in it keeps the parenthesis tight, which leaves `a.Foo(x).Bar(y)` and `X<Y>.Foo(x)` untouched by either setting.
+See [Formatting chain expressions](../contributors/Chains.html#The-two-space-settings).
 
 ```
 # Default

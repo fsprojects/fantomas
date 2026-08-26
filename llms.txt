@@ -3,7 +3,7 @@
 ## Docs
 
 - [Fantomas](https://fsprojects.github.io/fantomas/docs/index.md)
-- [Chains](https://fsprojects.github.io/fantomas/docs/contributors/Chains.md)
+- [Formatting chain expressions](https://fsprojects.github.io/fantomas/docs/contributors/Chains.md)
 - [Formatting Conditional Compilation Directives](https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.md)
 - [Writer Events and the EventList](https://fsprojects.github.io/fantomas/docs/contributors/EventList Architecture.md)
 - [Fantomas.Core overview (3)](https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.md)

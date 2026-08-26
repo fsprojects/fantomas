@@ -161,7 +161,7 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
-<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Formatting chain expressions
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
@@ -314,7 +314,7 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
-<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Formatting chain expressions
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
@@ -562,11 +562,43 @@ dotnet fantomas ./input/array.fs --out ./output/array.fs
 <code>mkdir -p</code> and its equivalents are unaffected by this change.</p>
 <h3><a name="Formatting" class="anchor" href="#Formatting">Formatting</a></h3>
 <p>Chains (dotted member access and calls) are laid out by a new set of rules, written up in full in
-<a href="../contributors/Chains.html">Chains</a>. They are a proposal for the F# style guide and may still
+<a href="../contributors/Chains.html">Formatting chain expressions</a>. They are a proposal for the F# style guide and may still
 change before <code>v8.0.0</code> is final.</p>
-<p>The rules only apply once a chain has to break, so a chain that already fits on one line is left
-alone. Reformatting the whole of <code>Fantomas.Core</code> with <code>v8</code> moves a handful of lines, none of them
-in a chain. The changes below are the ones you are most likely to notice.</p>
+<p>The layout rules only apply once a chain has to break, so a chain that already fits on one line is
+left alone. The spacing rule directly below is the exception: it applies whether or not the chain
+breaks, and it reaches a few things that are not chains at all. The changes here are the ones you
+are most likely to notice.</p>
+<h4><a name="A-call-keeps-its-space-only-when-the-whole-name-is-plain" class="anchor" href="#A-call-keeps-its-space-only-when-the-whole-name-is-plain">A call keeps its space only when the whole name is plain</a></h4>
+<p><code>fsharp_space_before_uppercase_invocation</code> and <code>fsharp_space_before_lowercase_invocation</code> ask for a
+space before the parenthesis of a call. They now get a say only when the whole thing being called
+is a plain dotted name. A call, an index, a bracketed receiver, or a type application
+anywhere in it, and the parenthesis stays tight whatever the settings say.</p>
+<p>On default settings, where <code>fsharp_space_before_lowercase_invocation</code> is <code>true</code>:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
+<span class="id">xs</span><span class="pn">.</span><span class="id">map</span><span class="pn">(</span><span class="k">fun</span> <span class="id">a</span> <span class="k">-&gt;</span> <span class="id">a</span> <span class="o">+</span> <span class="n">1</span><span class="pn">)</span><span class="pn">.</span><span class="id">filter</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">a</span> <span class="k">-&gt;</span> <span class="id">a</span> <span class="pn">&gt;</span> <span class="n">1</span><span class="pn">)</span>
+<span class="id">Foo</span><span class="pn">(</span><span class="pn">)</span><span class="pn">.</span><span class="id">bar</span> <span class="pn">(</span><span class="pn">)</span>
+<span class="id">myList</span><span class="pn">.</span><span class="pn">[</span><span class="n">7</span><span class="pn">]</span><span class="pn">.</span><span class="id">someFunction</span> <span class="pn">(</span><span class="id">arg</span><span class="pn">)</span>
+<span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">unbox</span><span class="pn">&lt;</span><span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">bool</span><span class="pn">&gt;</span> <span class="pn">(</span><span class="id">value</span><span class="pn">)</span>
+<span class="id">jsOptions</span><span class="pn">&lt;</span><span class="id">Vis</span><span class="pn">.</span><span class="id">Options</span><span class="pn">&gt;</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">o</span> <span class="k">-&gt;</span> <span class="id">o</span><span class="pn">.</span><span class="id">autoResize</span> <span class="k">&lt;-</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="3" class="id">Some</span> <span class="k">true</span><span class="pn">)</span>
+
+<span class="c">// v8</span>
+<span class="id">xs</span><span class="pn">.</span><span class="id">map</span><span class="pn">(</span><span class="k">fun</span> <span class="id">a</span> <span class="k">-&gt;</span> <span class="id">a</span> <span class="o">+</span> <span class="n">1</span><span class="pn">)</span><span class="pn">.</span><span class="id">filter</span><span class="pn">(</span><span class="k">fun</span> <span class="id">a</span> <span class="k">-&gt;</span> <span class="id">a</span> <span class="pn">&gt;</span> <span class="n">1</span><span class="pn">)</span>
+<span class="id">Foo</span><span class="pn">(</span><span class="pn">)</span><span class="pn">.</span><span class="id">bar</span><span class="pn">(</span><span class="pn">)</span>
+<span class="id">myList</span><span class="pn">.</span><span class="pn">[</span><span class="n">7</span><span class="pn">]</span><span class="pn">.</span><span class="id">someFunction</span><span class="pn">(</span><span class="id">arg</span><span class="pn">)</span>
+<span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="4" class="id">unbox</span><span class="pn">&lt;</span><span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="5" class="id">bool</span><span class="pn">&gt;</span><span class="pn">(</span><span class="id">value</span><span class="pn">)</span>
+<span class="id">jsOptions</span><span class="pn">&lt;</span><span class="id">Vis</span><span class="pn">.</span><span class="id">Options</span><span class="pn">&gt;</span><span class="pn">(</span><span class="k">fun</span> <span class="id">o</span> <span class="k">-&gt;</span> <span class="id">o</span><span class="pn">.</span><span class="id">autoResize</span> <span class="k">&lt;-</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="6" class="id">Some</span> <span class="k">true</span><span class="pn">)</span>
+</code></pre>
+<p>A plain dotted name is untouched, however long it is, so module-qualified functions keep the space
+they had:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7 and v8 agree</span>
+<span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="7" class="id">List</span><span class="pn">.</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="8" class="id">map</span> <span class="pn">(</span><span class="id">f</span><span class="pn">)</span>
+<span class="id">Fantomas</span><span class="pn">.</span><span class="id">FCS</span><span class="pn">.</span><span class="id">Text</span><span class="pn">.</span><span class="id">Range</span><span class="pn">.</span><span class="id">unionRanges</span> <span class="pn">(</span><span class="id">r1</span><span class="pn">,</span> <span class="id">r2</span><span class="pn">)</span>
+</code></pre>
+<p>Fantomas does not add parentheses, so a generic application written without them never comes into
+it and <code>unbox&lt;int&gt; obj</code> is left as written.</p>
+<p>This is the rule agreed at
+<a href="https://github.com/fsharp/fslang-design/issues/648">fslang-design#648</a>, where the reasoning is
+laid out in full.</p>
 <h4><a name="A-run-of-property-access-wraps-instead-of-overflowing" class="anchor" href="#A-run-of-property-access-wraps-instead-of-overflowing">A run of property access wraps instead of overflowing</a></h4>
 <p>Navigation that does not fit is spread over balanced lines, chosen so the longest resulting line is
 as short as possible. Previously it was left to overflow the margin. At <code>max_line_length = 80</code>:</p>
@@ -606,8 +638,8 @@ A chain now follows what the receiverless call already did:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7 and v8 agree here: no receiver, `function` stays beside the `(`</span>
 <span class="k">let</span> <span class="id">a</span> <span class="o">=</span>
     <span class="id">configureTheThing</span> <span class="pn">(</span><span class="k">function</span>
-        <span class="pn">|</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
-        <span class="pn">|</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="9" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="10" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
 
 <span class="c">// v7: the same argument, reached through a dot, was laid out differently</span>
 <span class="k">let</span> <span class="id">b</span> <span class="o">=</span>
@@ -615,8 +647,8 @@ A chain now follows what the receiverless call already did:</p>
         <span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
         <span class="pn">.</span><span class="id">Configure</span><span class="pn">(</span>
             <span class="k">function</span>
-            <span class="pn">|</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="3" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
-            <span class="pn">|</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="4" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span>
+            <span class="pn">|</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="11" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
+            <span class="pn">|</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="12" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span>
         <span class="pn">)</span>
 
 <span class="c">// v8: the dot makes no difference any more</span>
@@ -624,8 +656,8 @@ A chain now follows what the receiverless call already did:</p>
     <span class="id">builder</span>
         <span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
         <span class="pn">.</span><span class="id">Configure</span><span class="pn">(</span><span class="k">function</span>
-            <span class="pn">|</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="5" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
-            <span class="pn">|</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="6" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+            <span class="pn">|</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="13" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
+            <span class="pn">|</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="14" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
 </code></pre>
 <h4><a name="A-lambda-whose-opening-line-does-not-fit-moves-to-its-own-line" class="anchor" href="#A-lambda-whose-opening-line-does-not-fit-moves-to-its-own-line">A lambda whose opening line does not fit moves to its own line</a></h4>
 <p>This applies with <strong><code>fsharp_multi_line_lambda_closing_newline = true</code></strong>. With the setting left at
@@ -636,18 +668,18 @@ indents normally. This affects calls with and without a receiver alike. At <code
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
 <span class="k">let</span> <span class="id">dotted</span> <span class="id">ifaces</span> <span class="o">=</span>
     <span class="id">ifaces</span>
-    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="7" class="id">List</span><span class="pn">.</span><span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="8" class="id">tryPick</span> <span class="pn">(</span><span class="k">fun</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="15" class="id">List</span><span class="pn">.</span><span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="16" class="id">tryPick</span> <span class="pn">(</span><span class="k">fun</span>
                          <span class="pn">(</span><span class="id">SynInterfaceImpl</span><span class="pn">(</span>
                              <span class="id">interfaceTy</span> <span class="o">=</span> <span class="id">ty</span><span class="pn">;</span> <span class="id">withKeyword</span> <span class="o">=</span> <span class="id">withRange</span><span class="pn">)</span><span class="pn">)</span> <span class="k">-&gt;</span>
-        <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="9" class="id">Some</span><span class="pn">(</span><span class="id">ty</span><span class="pn">,</span> <span class="id">withRange</span><span class="pn">)</span>
+        <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="17" class="id">Some</span><span class="pn">(</span><span class="id">ty</span><span class="pn">,</span> <span class="id">withRange</span><span class="pn">)</span>
     <span class="pn">)</span>
 
 <span class="c">// v8</span>
 <span class="k">let</span> <span class="id">dotted</span> <span class="id">ifaces</span> <span class="o">=</span>
     <span class="id">ifaces</span>
-    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="10" class="id">List</span><span class="pn">.</span><span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="11" class="id">tryPick</span>
+    <span class="o">|&gt;</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="18" class="id">List</span><span class="pn">.</span><span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="19" class="id">tryPick</span>
         <span class="pn">(</span><span class="k">fun</span> <span class="pn">(</span><span class="id">SynInterfaceImpl</span><span class="pn">(</span><span class="id">interfaceTy</span> <span class="o">=</span> <span class="id">ty</span><span class="pn">;</span> <span class="id">withKeyword</span> <span class="o">=</span> <span class="id">withRange</span><span class="pn">)</span><span class="pn">)</span> <span class="k">-&gt;</span>
-            <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="12" class="id">Some</span><span class="pn">(</span><span class="id">ty</span><span class="pn">,</span> <span class="id">withRange</span><span class="pn">)</span>
+            <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="20" class="id">Some</span><span class="pn">(</span><span class="id">ty</span><span class="pn">,</span> <span class="id">withRange</span><span class="pn">)</span>
         <span class="pn">)</span>
 </code></pre>
 <h3><a name="Fantomas-Core-API" class="anchor" href="#Fantomas-Core-API">Fantomas.Core API</a></h3>
@@ -685,7 +717,7 @@ If you catch <code>FormatException</code>, you already catch this.
 <h4><a name="Oak-chains" class="anchor" href="#Oak-chains">Oak: chains</a></h4>
 <p><code>Expr.Chain</code> no longer holds a flat <code>ChainLink list</code>. A chain is now a head expression, a list of
 dot-prefixed segments, and a terminal call:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">ExprChain</span><span class="pn">(</span><span class="id">head</span><span class="pn">:</span> <span class="id">Expr</span><span class="pn">,</span> <span class="id">segments</span><span class="pn">:</span> <span class="id">ChainSegment</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="13" class="id">list</span><span class="pn">,</span> <span class="id">terminal</span><span class="pn">:</span> <span class="id">ChainTerminal</span><span class="pn">,</span> <span class="id">range</span><span class="pn">)</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">ExprChain</span><span class="pn">(</span><span class="id">head</span><span class="pn">:</span> <span class="id">Expr</span><span class="pn">,</span> <span class="id">segments</span><span class="pn">:</span> <span class="id">ChainSegment</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="21" class="id">list</span><span class="pn">,</span> <span class="id">terminal</span><span class="pn">:</span> <span class="id">ChainTerminal</span><span class="pn">,</span> <span class="id">range</span><span class="pn">)</span>
 
 <span class="k">type</span> <span class="id">ChainCall</span> <span class="o">=</span>
     <span class="pn">|</span> <span class="id">Paren</span> <span class="k">of</span> <span class="id">ExprParenNode</span>
@@ -781,9 +813,10 @@ a <code>NamePatPairNode list</code>, and the old <code>Prefix</code> and <code>F
 </ul>
 <fantomas-nav previous="GeneratingCode.html" next="Recipes.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs2">union case Option.None: Option&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs3">Multiple items<br />module List
+        <div popover class="fsdocs-tip" id="fs1">val unbox: value: objnull -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs2">type bool = System.Boolean</div>
+<div popover class="fsdocs-tip" id="fs3">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs4">Multiple items<br />module List
 
 from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List&lt;&#39;T&gt; =
   | op_Nil
@@ -799,8 +832,10 @@ from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List
   member IsEmpty: bool
   member Item: index: int -&gt; &#39;T with get
   ...</div>
-<div popover class="fsdocs-tip" id="fs4">val tryPick: chooser: (&#39;T -&gt; &#39;U option) -&gt; list: &#39;T list -&gt; &#39;U option</div>
-<div popover class="fsdocs-tip" id="fs5">type &#39;T list = List&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs5">val map: mapping: (&#39;T -&gt; &#39;U) -&gt; list: &#39;T list -&gt; &#39;U list</div>
+<div popover class="fsdocs-tip" id="fs6">union case Option.None: Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs7">val tryPick: chooser: (&#39;T -&gt; &#39;U option) -&gt; list: &#39;T list -&gt; &#39;U option</div>
+<div popover class="fsdocs-tip" id="fs8">type &#39;T list = List&lt;&#39;T&gt;</div>
 
     </div>
 </main>
@@ -925,6 +960,11 @@ from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List
   <li class="level-3">
     <a href="#Formatting">
       Formatting
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#A-call-keeps-its-space-only-when-the-whole-name-is-plain">
+      A call keeps its space only when the whole name is plain
     </a>
   </li>
   <li class="level-4">

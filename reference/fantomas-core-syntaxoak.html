@@ -158,7 +158,7 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
-<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Formatting chain expressions
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
@@ -311,7 +311,7 @@
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.html" class="nav-link" > Trivia Assignment
 </a></li>
 
-<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Chains
+<li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Chains.html" class="nav-link" > Formatting chain expressions
 </a></li>
 
 <li class="nav-item "><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link" > Glossary
@@ -2094,8 +2094,14 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                   Example: `?name` in a function call — a named optional argument passed explicitly.
- `IsOptional` is `true` when the `?` prefix is present; `Identifier` is the argument name.
+                   A name used as an expression, the compiler's <c>SynExpr.LongIdent</c>.
+ Despite the case name, <c>IsOptional</c> is true only for the last shape below.
+
+ <code>
+ value           // a name
+ Module.value    // two of these inside a chain: `Module`, then `.value`
+ f (?x = 1)      // the `?x`, the one shape IsOptional is true for
+ </code>
                 </p>
               </div>
               <div class="icon-button-row">

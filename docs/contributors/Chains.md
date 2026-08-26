@@ -4,7 +4,7 @@ categoryindex: 2
 index: 19
 ---
 
-# Chains
+# Formatting chain expressions
 
 A *chain* is a starting value followed by a series of steps, where every step is reached through a dot:
 
@@ -14,8 +14,13 @@ document.Body.FirstChild.AppendChild(newNode)
 
 Here `document` is the starting value, and `.Body`, `.FirstChild` and `.AppendChild(newNode)` are the steps.
 
-Chains are one of the few shapes where Fantomas has a real choice to make about line breaks.
+Chains are one of the few shapes where Fantomas has a real choice to make.
 This page states the rules it follows and the reasoning behind each one, in plain language and without reference to any internal types.
+
+It answers two questions, and they have nothing to do with each other:
+
+1. **Where do the line breaks go**, once the chain no longer fits on one line? A style decision, and the bulk of this page.
+2. **Does a space go before a call's parenthesis?** Mostly *not* a style decision, and much the shorter of the two, so it is settled first.
 
 Every code block on this page is Fantomas output, except where marked ⛔.
 A ⛔ block is the alternative that was considered and turned down, shown so that the reasoning is visible rather than implied, and ✅ marks what Fantomas does instead.
@@ -36,27 +41,10 @@ That is the order of work here: implement the rules in Fantomas first, use the i
 So treat this page as the current best answer rather than a settled one.
 If you disagree with a rule, the discussion belongs at [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide), and having the implementation in hand is exactly what makes that discussion productive.
 
-## A reminder of how Fantomas works
-
-Fantomas does not edit your text.
-Think of it like a word processor: it re-types your entire file from scratch, following its own rules.
-
-Most of that re-typing is mechanical: spacing, indentation and parentheses follow fixed rules with nothing to decide.
-The one real choice is **where to put line breaks**, and it comes down to a single question:
-
-> Does this fit within the max line length?
-
-If the answer is yes, it stays on one line and there is nothing more to decide.
-Everything below is about what happens when the answer is **no**.
-
-One thing overrides the fit question: trivia the user wrote between the steps.
-A trailing comment on the starting value, or an `#if` directive in front of a step, pins that step to its own line no matter how much room is left.
-
-```fsharp
-// ✅ at a max line length of 80 this fits on one line, and is still broken up
-config // note
-    .Settings.GetValue(theKeyName)
-```
+**One rule on this page has been through that loop already.** The space before a call's parenthesis was reported in 2021 and agreed at [fslang-design#648](https://github.com/fsharp/fslang-design/issues/648): a call keeps that space only when the whole thing being called is a plain dotted name.
+Fantomas implements what was agreed, and it is set out under [The two space settings](#The-two-space-settings) below.
+The style guide has yet to be amended to carry it, so that rule is agreed upstream without being written down there yet.
+Everything else on this page, which is to say every rule about where the line breaks go, has not been through the loop at all and remains a proposal.
 
 ## What counts as a chain
 
@@ -70,20 +58,20 @@ arr.[i]         // a chain, this indexing syntax does have a dot
 
 An expression without any dots is laid out by other rules, not the ones on this page.
 
-## Two decisions, not one
+## Does a space go before a call's parenthesis?
 
-Formatting a chain settles two questions that have nothing to do with each other:
+The shorter of the two questions, and mostly not a matter of style at all.
+For every call but the last, the parser decides and there is nothing to choose.
+For the last one, a rule and two settings decide between them.
 
-1. **Where do the line breaks go?** A style decision, and the bulk of this page.
-2. **Is the method name welded to its argument?** Mostly *not* a style decision, and the shorter of the two, so it is settled first.
-
-## An intermediate call is welded to its parenthesis
+### An intermediate call is welded to its parenthesis
 
 A call in the middle of a chain may not be separated from its `(` by anything at all, because that changes what the code *means*:
 
 ```fsharp
-// ⛔ parsed as a.Foo ((x).Bar()) — a different program
+// ⛔ parsed as a.Foo ((x).Bar()), which is a different program
 a.Foo (x).Bar()
+//   ^ this one space hands (x).Bar() to a.Foo as a single argument
 
 // ✅ parsed the way you intended
 a.Foo(x).Bar()
@@ -91,28 +79,69 @@ a.Foo(x).Bar()
 
 The parser reads `(x).Bar()` as a single parenthesised argument handed to `a.Foo`. So for every call except the last one, tightness is a grammar requirement rather than a preference, and nothing on this page can override it. A space, a line break and a comment are all the same gap as far as the parser is concerned.
 
-**The last call is under no such constraint.** Nothing follows it to be reparsed, so its `(` is free to leave the method name. Three things make use of that freedom, and each is covered where it belongs:
+The same constraint turns up wherever an expression has to stay glued to its neighbour. In `getBuilder().Build()` the starting value keeps its own `()` tight, in `x.Foo()[0]` the indexed call keeps its own `()` tight, and the dynamic-access operator `?` behaves the same way: `settings?Section("db")?ConnectionString` stays tight throughout. In each case a space there would rebind the parentheses to the wrong thing. The final call of those first two is tight as well, but for the separate reason set out below: a call and an index are both things a plain dotted name does not contain.
 
-* a setting asking for a space, just below;
-* a comment written between the name and the argument, see [A comment beside the parentheses](#a-comment-beside-the-parentheses);
-* an argument that needs a line of its own, see [Arguments are not the chain's business](#arguments-are-not-the-chains-business).
+### The final call is free
+
+Nothing follows the last call to be reparsed, so the parser has no view on it and its `(` is free to leave the method name.
+Three things make use of that freedom, and each is covered where it belongs:
+
+* a setting asking for a space, which only a chain that is a plain dotted name can honour, just below;
+* a comment written between the name and the argument, see [A comment beside the parentheses](#A-comment-beside-the-parentheses);
+* an argument that needs a line of its own, see [Arguments are not the chain's business](#Arguments-are-not-the-chain-s-business).
 
 That is the whole of it. What follows are those three, not three exceptions to a rule. One shape takes the freedom away again, the `_.` lambda body below.
 
-Fantomas has settings that ask for a space before the parentheses of a call, [`space_before_uppercase_invocation`](../end-users/Configuration.html) and [`space_before_lowercase_invocation`](../end-users/Configuration.html). In a chain, **they apply to the final call only**. Every earlier call stays tight, whatever the settings say:
+#### The two space settings
+
+Two settings ask for a space between the name of a call and the `(` that follows it: [`fsharp_space_before_uppercase_invocation`](../end-users/Configuration.html#fsharp_space_before_uppercase_invocation), off by default, and [`fsharp_space_before_lowercase_invocation`](../end-users/Configuration.html#fsharp_space_before_lowercase_invocation), on by default.
+
+Which of the two applies is decided by the case of the name immediately in front of the parenthesis. Nothing earlier in a dotted name has a say:
 
 ```fsharp
-// both examples with space_before_uppercase_invocation = true
+// all on default settings
 
-obj.Bar ()          // a call on its own: the setting applies
+foo (x)             // lower case, and the lowercase setting is on by default
+Foo(x)              // upper case, and the uppercase setting is off by default
 
-a.Foo(x).Bar (y)    // in a chain: only the final .Bar takes the space,
-                    // the intermediate .Foo stays tight
+a.B.foo (x)         // `foo` decides, not `a` or `B`
+a.b.Foo(x)          // `Foo` decides, not `a` or `b`
 ```
 
-The same constraint turns up wherever an expression has to stay glued to its neighbour. In `getBuilder().Build()` the starting value keeps its own `()` tight, in `x.Foo()[0]` the indexed call keeps its own `()` tight, and the dynamic-access operator `?` behaves the same way: `settings?Section("db")?ConnectionString` stays tight throughout. In each case a space there would rebind the parentheses to the wrong thing. (The *final* call is still free to take a space: with the setting on, that first example formats as `getBuilder().Build ()`.)
+Neither setting is about chains as such. Both govern a call with no receiver at all, and both reach into patterns as well. What follows is only what they do to a chain.
 
-### The `_.` shorthand lambda
+#### Neither setting applies once the chain is more than a name
+
+**Neither setting can put the space back.** Once a call, an index, a bracketed receiver, or a type application appears anywhere in the chain, the parenthesis is tight and no configuration will change it.
+
+The space survives only when **the whole thing being called is a plain dotted name**.
+
+Every line below calls the same `.Bar`, and the only difference is what else the chain contains:
+
+```fsharp
+// all with fsharp_space_before_uppercase_invocation = true
+
+// a plain dotted name, so the setting applies and the space is there
+obj.Bar ()
+a.B.C.Bar ()        // however long the name gets
+"yow".Bar ()        // a literal is atomic, so it counts as a name
+3L.Bar ()           // as does any other constant
+
+// something other than a name is in the way, so no space is available to ask for
+a.Foo(x).Bar(y)     // a call, before the final one
+Foo().Bar(y)        // a call, as the receiver
+arr[0].Bar(y)       // an index, before the final call
+(f x).Bar(y)        // a bracketed receiver
+[ 1; 2 ].Bar(y)     // and brackets of any kind count
+X<Y>.Bar(y)         // a type application, before the final call
+a.B.Bar<int>(y)     // a type application, on the final call itself
+```
+
+A type parameter is atomic in the same way, so `'T.set_StaticProperty (3)` keeps its space too.
+
+This one is a style decision rather than a grammar requirement. Unlike the tightness of an intermediate call above, nothing here would fail to parse with the space in place. It exists so that a chain does not end up with one surviving space that has no visible reason to be there, and it was agreed at [fslang-design#648](https://github.com/fsharp/fslang-design/issues/648).
+
+#### The `_.` shorthand lambda
 
 There is one place where even the last call stays tight.
 F# lets you write `_.Property` as a short lambda, and Fantomas treats it as a chain whose starting value is `_`:
@@ -121,17 +150,19 @@ F# lets you write `_.Property` as a short lambda, and Fantomas treats it as a ch
 "yow" |> _.Substring(0, 16).ToLower()
 ```
 
-Everywhere else the *last* call of a chain may take a space when a setting asks for one. Here it may not: the F# compiler requires the body of a `_.` lambda to stay atomic.
+A chain that is a plain dotted name may take a space on its last call when a setting asks for one. Under a `_.` lambda it may not, however plain the name is: the F# compiler requires the body to stay atomic.
 
 ```fsharp
-// both with space_before_uppercase_invocation = true
+// both with fsharp_space_before_uppercase_invocation = true
 
-// ⛔ what the setting would ask for here — this fails to compile with FS3584
-"yow" |> _.Substring(0, 16).ToLower ()
+// ⛔ what the setting would ask for here, and it fails to compile with FS3584
+"yow" |> _.ToLower ()
 
 // ✅ the body of a `_.` lambda stays tight regardless of the setting
-"yow" |> _.Substring(0, 16).ToLower()
+"yow" |> _.ToLower()
 ```
+
+The chain in the heading above, `_.Substring(0, 16).ToLower()`, would be tight anyway, since it contains a call. This section is about the single-call case, where the compiler is what decides rather than the rule.
 
 This was [issue 3364](https://github.com/fsprojects/fantomas/issues/3364).
 
@@ -144,9 +175,31 @@ _
     .ToLower()
 ```
 
-Everything from here on is about the first question, where the line breaks go.
+## Where do the line breaks go?
 
-## Two kinds of step
+The longer question, and the one that is entirely a matter of style.
+Everything from here on is about where a chain breaks when it does not fit.
+
+### The fit question
+
+Fantomas re-types your file rather than editing it, as [How Fantomas formats code](../end-users/StyleGuide.html#How-Fantomas-formats-code) sets out.
+Most of that re-typing is mechanical. The one real choice a chain presents is **where to put the line breaks**, and it comes down to a single question:
+
+> Does this fit within the [max line length](../end-users/Configuration.html#max_line_length)?
+
+If the answer is yes, it stays on one line and there is nothing more to decide.
+Everything below is about what happens when the answer is **no**.
+
+One thing overrides the fit question: trivia the user wrote between the steps.
+A trailing comment on the starting value, or an `#if` directive in front of a step, pins that step to its own line no matter how much room is left.
+
+```fsharp
+// ✅ at a max line length of 80 this fits on one line, and is still broken up
+config // note
+    .Settings.GetValue(theKeyName)
+```
+
+### Two kinds of step
 
 Once Fantomas has to break a chain, it sorts the steps into two weights.
 
@@ -176,7 +229,7 @@ That is the one pair worth keeping straight:
 .Cast<T>()      // action, this calls something
 ```
 
-## Working through a chain
+### Working through a chain
 
 Before the rules are stated one by one, here is the whole process applied to a single chain, at a max line length of 60.
 Everything after this section is the detail behind one of these five steps.
@@ -184,6 +237,7 @@ Everything after this section is the detail behind one of these five steps.
 ```fsharp
 // ⛔ the chain as written: 95 characters against a margin of 60
 builder.Connect(hostName).Configuration.Database.PrimaryConnection.Settings.Apply(spec).Build()
+// --- max_line_length ------------------------------------|
 ```
 
 **Step 1. Does it fit?** No: 95 characters against a margin of 60. Had it fitted, that would have been the end of it and no rule below would ever have been consulted.
@@ -192,8 +246,8 @@ builder.Connect(hostName).Configuration.Database.PrimaryConnection.Settings.Appl
 
 ```text
 builder               starting value
-  .Connect(hostName)  action        — it calls something
-  .Configuration      navigation    — it only names something
+  .Connect(hostName)  action        it calls something
+  .Configuration      navigation    it only names something
   .Database           navigation
   .PrimaryConnection  navigation
   .Settings           navigation
@@ -212,6 +266,7 @@ builder
     .Connect(hostName)
     .Configuration.Database.PrimaryConnection.Settings.Apply(spec)
     .Build()
+// --- max_line_length ------------------------------------|
 ```
 
 **Step 5. Is any line still too long?** The third one is. Its run of navigation wraps, balanced so that the longest line comes out as short as possible, and wrapped one step earlier than strictly necessary so that `.Apply(spec)` is not forced to break its argument:
@@ -223,11 +278,12 @@ builder
     .Configuration.Database
     .PrimaryConnection.Settings.Apply(spec)
     .Build()
+// --- max_line_length ------------------------------------|
 ```
 
 Those five steps are the whole algorithm. To apply it to a chain of your own: check the width, label the parts, count the actions, let the navigation ride, then wrap any line that is still too long.
 
-## Steps 1 to 3: the rule for line breaks
+### Steps 1 to 3: the rule for line breaks
 
 The rule behind the first three steps:
 
@@ -263,6 +319,7 @@ Every example from here to the end of the page is a chain that did *not* fit, so
 ```fsharp
 // ⛔ 65 characters at a margin of 50
 config.Settings.GetValue(theConfigurationKeyNameThatIsRatherLong)
+// --- max_line_length --------------------------|
 ```
 
 A bare identifier or dotted path qualifies as a plain starting value, so this chain is kept together and only the argument moves:
@@ -272,6 +329,7 @@ A bare identifier or dotted path qualifies as a plain starting value, so this ch
 config.Settings.GetValue(
     theConfigurationKeyNameThatIsRatherLong
 )
+// --- max_line_length --------------------------|
 ```
 
 A call, a parenthesised expression or a generic name does not qualify. Doing the same thing to one of those would be the obvious move, since such a chain still has just one action and that action is still last:
@@ -324,15 +382,46 @@ config.AVeryVeryLongMethodNameThatIsCertainlyTooLong(
 
 That second guard is also why step 5, wrapping a long run of navigation, never applies to this branch: a chain is only kept together when its navigation already fits on one line, and in the escape-hatch case the overflow is the method name, which wrapping the navigation would not fix either.
 
-## Step 4: navigation rides along
+### Step 4: navigation rides along
 
 Navigation is never worth a line of its own. It rides at the front of the line belonging to the action it introduces.
+
+At a max line length of 60:
+
+```fsharp
+// ⛔ 68 characters, so step 3 has already made this a pipeline
+connection.Open(settings).Response.Headers.Add(key, value).Dispose()
+// --- max_line_length ------------------------------------|
+```
+
+There are three actions, so each of them takes a line. The two navigation steps in the middle, `.Response` and `.Headers`, do not:
+
+```fsharp
+// ✅ .Response.Headers rides in front of the call it introduces
+connection
+    .Open(settings)
+    .Response.Headers.Add(key, value)
+    .Dispose()
+// --- max_line_length ------------------------------------|
+```
+
+Handing them lines of their own would make the chain half as long again while saying nothing more, since neither of them does anything:
+
+```fsharp
+// ⛔ a line for every step, including the ones that only name something
+connection
+    .Open(settings)
+    .Response
+    .Headers
+    .Add(key, value)
+    .Dispose()
+```
 
 Riding along only works while the navigation itself stays on one line.
 If an index (or a set of type arguments) has to break across several lines, it can no longer be a passenger, and the question above then counts it as an action: it claims a line of its own, and the chain around it becomes a pipeline.
 It is still navigation in what it *does*; it has simply grown too big to ride along.
 
-## Step 5: when a line is still too long
+### Step 5: when a line is still too long
 
 Steps 3 and 4 decide which steps share a line. They leave one question open, because navigation accumulates: a line they hand you can itself be too long.
 So the fit question from step 1 comes round a second time, now asked of a line the rules have just produced rather than of the chain as a whole.
@@ -370,7 +459,7 @@ The reason to prefer the second is that neither break point *means* anything.
 A run of navigation has no internal structure that makes one dot a better stopping place than another, unlike the boundary between two actions, which is a real seam in what the code does.
 When the choice is arbitrary the only thing left to weigh is how easy the result is to read, and two comparable lines are easier to scan than a full one followed by a remnant.
 
-### The starting value never sits alone
+#### The starting value never sits alone
 
 A run of navigation often begins on the same line as the starting value, which is `defineCombinationValue` in the example below.
 That value is not a step, so a line holding it and nothing else has nothing on it to balance: it is a wasted line rather than a short one.
@@ -389,7 +478,7 @@ defineCombinationValue.Value
 With only two steps to place, no split avoids a short line, and stranding the starting value costs more than a short last line does.
 This matters much less as a run grows: once there are several steps, the first line is full anyway and the rule never comes up.
 
-### The wrap makes room for the arguments
+#### The wrap makes room for the arguments
 
 When a wrapped line ends in a call, there are two ways to find the width it needs: move some navigation down, or let the argument break.
 
@@ -435,7 +524,7 @@ Microsoft.FSharp.Reflection.FSharpType
     .Assembly
 ```
 
-### Balancing never crosses an action
+#### Balancing never crosses an action
 
 Only a run of consecutive navigation steps is balanced.
 Widths alone would suggest pulling the first call up onto the starting value's line, since that evens the lines out nicely:
@@ -457,11 +546,11 @@ serviceCollection
 
 The boundary between two actions is a real seam in the code. The dots inside a run of navigation are not, which is exactly why balancing is free to move those and not these.
 
-## Examples
+### Examples
 
-The examples below assume a narrower [max line length](../end-users/Configuration.html) than the default, so the breaks are visible on this page.
+The examples below assume a narrower [max line length](../end-users/Configuration.html#max_line_length) than the default, so the breaks are visible on this page.
 
-### One call at the end: the arguments break
+#### One call at the end: the arguments break
 
 ```fsharp
 config.GetConnectionString(
@@ -472,7 +561,7 @@ config.GetConnectionString(
 There is a single action and it is the last step, so `config.GetConnectionString(` stays together and only the argument moves.
 This is exactly how an ordinary call breaks. Having a starting value in front of it changes nothing.
 
-### Navigation in front of a single call: still just the arguments
+#### Navigation in front of a single call: still just the arguments
 
 ```fsharp
 response.Content.Headers.GetValues(
@@ -483,7 +572,7 @@ response.Content.Headers.GetValues(
 `.Content` and `.Headers` are navigation, so there is still only one action.
 The chain is not a pipeline and the navigation stays with the starting value.
 
-### Two or more calls: a pipeline
+#### Two or more calls: a pipeline
 
 ```fsharp
 serviceCollection
@@ -493,7 +582,7 @@ serviceCollection
 
 Two actions, so each one gets its own line led by its dot.
 
-### Navigation between calls rides along
+#### Navigation between calls rides along
 
 ```fsharp
 document.Body.FirstChild
@@ -504,7 +593,7 @@ document.Body.FirstChild
 `.Body` and `.FirstChild` lead the first line.
 `.ParentElement` is navigation introducing `.RemoveChild(oldNode)`, so it rides at the front of that line instead of claiming one of its own.
 
-### An index too big to ride along
+#### An index too big to ride along
 
 ```fsharp
 lookupTable.[0].AppendEntry(
@@ -526,7 +615,7 @@ lookupTable
 
 Nothing about the index started executing. It just stopped fitting on someone else's line.
 
-### A chain that ends in navigation
+#### A chain that ends in navigation
 
 There is only one call here, but it is **not** the last step. Breaking just its arguments would leave the navigation stranded after the closing `)`:
 
@@ -546,16 +635,16 @@ lookupTable
     .Entries.[indexWithinTheBucket]
 ```
 
-### A chain with no calls at all
+#### A chain with no calls at all
 
 ```fsharp
 this.Configuration.Database.PrimaryConnection
     .Settings.IdleTimeoutInSeconds
 ```
 
-There are no actions to lead any lines, so the whole chain is one long line of navigation and it is wrapped by the rule in [step 5](#step-5-when-a-line-is-still-too-long).
+There are no actions to lead any lines, so the whole chain is one long line of navigation and it is wrapped by the rule in [step 5](#Step-5-when-a-line-is-still-too-long).
 
-### A starting value that is itself a call
+#### A starting value that is itself a call
 
 ```fsharp
 getConfiguredServiceBuilder()
@@ -568,7 +657,7 @@ It has to stay glued: a space there would change what the code means.
 
 This one is a pipeline on the strength of its two calls alone, but a starting value of this shape leads a pipeline even with a single call, as noted in the rule above.
 
-## Arguments are not the chain's business
+### Arguments are not the chain's business
 
 It is worth stating the boundary explicitly, because it is what keeps the rules above so short:
 
@@ -579,10 +668,10 @@ An argument is laid out by the ordinary rules for call arguments, exactly as it 
 A chain never overrides them.
 That is the same idea as "hand the argument over" in the rule above: at that point Fantomas stops making chain decisions and hands the argument to the normal machinery.
 
-The boundary is drawn there, rather than at the `(`, because moving the argument is one of the answers those rules can give, shown under [Any part of a chain can grow](#any-part-of-a-chain-can-grow) below. Only a terminal call can be moved that way, for the reason given under [An intermediate call is welded to its parenthesis](#an-intermediate-call-is-welded-to-its-parenthesis). An earlier call keeps its `(` where it is, so its argument breaks after the parenthesis instead.
+The boundary is drawn there, rather than at the `(`, because moving the argument is one of the answers those rules can give, shown under [Any part of a chain can grow](#Any-part-of-a-chain-can-grow) below. Only a terminal call can be moved that way, for the reason given under [An intermediate call is welded to its parenthesis](#An-intermediate-call-is-welded-to-its-parenthesis). An earlier call keeps its `(` where it is, so its argument breaks after the parenthesis instead.
 
 The practical consequence is that **every setting that governs argument layout keeps working unchanged inside a chain**.
-The one you are most likely to notice is [`multi_line_lambda_closing_newline`](../end-users/Configuration.html), which decides where the closing `)` lands when a lambda argument needs several lines.
+The one you are most likely to notice is [`fsharp_multi_line_lambda_closing_newline`](../end-users/Configuration.html#fsharp_multi_line_lambda_closing_newline), which decides where the closing `)` lands when a lambda argument needs several lines.
 
 With the default (`false`), the `)` trails the last line of the lambda:
 
@@ -625,13 +714,13 @@ repo
     .ToList()
 ```
 
-### Any part of a chain can grow
+#### Any part of a chain can grow
 
 The rules above are stated with short steps, but any part of a chain can turn out to be an expression that needs several lines of its own. Where that happens is what decides the consequence, and each case is already covered above:
 
-* **the starting value**, when it is a call or a parenthesised expression, leads a pipeline rather than serving as a prefix, see [Steps 1 to 3](#steps-1-to-3-the-rule-for-line-breaks);
-* **an index or a set of type arguments** stops being able to ride along, claims a line of its own and turns the chain into a pipeline, see [Step 4](#step-4-navigation-rides-along);
-* **a run of navigation** that overflows wraps, balanced, see [Step 5](#step-5-when-a-line-is-still-too-long);
+* **the starting value**, when it is a call or a parenthesised expression, leads a pipeline rather than serving as a prefix, see [Steps 1 to 3](#Steps-1-to-3-the-rule-for-line-breaks);
+* **an index or a set of type arguments** stops being able to ride along, claims a line of its own and turns the chain into a pipeline, see [Step 4](#Step-4-navigation-rides-along);
+* **a run of navigation** that overflows wraps, balanced, see [Step 5](#Step-5-when-a-line-is-still-too-long);
 * **the final argument** is the one the chain has no say over, and it has two answers of its own.
 
 Those two answers are worth seeing side by side. All three examples are at a max line length of 70.
@@ -671,7 +760,7 @@ let connectionString () =
 
 The difference is not the chain choosing between them. It is the same deference twice: a lambda opener wants to sit on one line with its arrow, and a tuple does not care, so the ordinary argument rules answer differently.
 
-### Match lambdas are no exception
+#### Match lambdas are no exception
 
 Match lambdas, written `(function`, are the argument shape most likely to look like an exception, so it is worth showing in full that they are not one.
 The F# style guide asks for them to be treated the same as `fun` lambdas ("Treat match lambda's in a similar fashion"), and they are: where the call sits in its chain makes no difference to either form.
@@ -756,7 +845,7 @@ The setting is the only thing that moves it. Writing `function` on the line belo
 
 In none of these does the chain have a say. `.Configure` is an intermediate call in half of them, so its `(` is welded to it either way; where the lambda goes is the argument's business, and it answers the same way in both positions.
 
-### A comment beside the parentheses
+#### A comment beside the parentheses
 
 A comment can sit on either side of a call's opening parenthesis, and which side it is on decides what moves.
 

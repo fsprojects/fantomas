@@ -279,12 +279,54 @@ If your build script creates the output folders before calling Fantomas, it can 
 ### Formatting
 
 Chains (dotted member access and calls) are laid out by a new set of rules, written up in full in
-[Chains](../contributors/Chains.html). They are a proposal for the F# style guide and may still
+[Formatting chain expressions](../contributors/Chains.html). They are a proposal for the F# style guide and may still
 change before `v8.0.0` is final.
 
-The rules only apply once a chain has to break, so a chain that already fits on one line is left
-alone. Reformatting the whole of `Fantomas.Core` with `v8` moves a handful of lines, none of them
-in a chain. The changes below are the ones you are most likely to notice.
+The layout rules only apply once a chain has to break, so a chain that already fits on one line is
+left alone. The spacing rule directly below is the exception: it applies whether or not the chain
+breaks, and it reaches a few things that are not chains at all. The changes here are the ones you
+are most likely to notice.
+
+#### A call keeps its space only when the whole name is plain
+
+`fsharp_space_before_uppercase_invocation` and `fsharp_space_before_lowercase_invocation` ask for a
+space before the parenthesis of a call. They now get a say only when the whole thing being called
+is a plain dotted name. A call, an index, a bracketed receiver, or a type application
+anywhere in it, and the parenthesis stays tight whatever the settings say.
+
+On default settings, where `fsharp_space_before_lowercase_invocation` is `true`:
+
+```fsharp
+// v7
+xs.map(fun a -> a + 1).filter (fun a -> a > 1)
+Foo().bar ()
+myList.[7].someFunction (arg)
+unbox<bool> (value)
+jsOptions<Vis.Options> (fun o -> o.autoResize <- Some true)
+
+// v8
+xs.map(fun a -> a + 1).filter(fun a -> a > 1)
+Foo().bar()
+myList.[7].someFunction(arg)
+unbox<bool>(value)
+jsOptions<Vis.Options>(fun o -> o.autoResize <- Some true)
+```
+
+A plain dotted name is untouched, however long it is, so module-qualified functions keep the space
+they had:
+
+```fsharp
+// v7 and v8 agree
+List.map (f)
+Fantomas.FCS.Text.Range.unionRanges (r1, r2)
+```
+
+Fantomas does not add parentheses, so a generic application written without them never comes into
+it and `unbox<int> obj` is left as written.
+
+This is the rule agreed at
+[fslang-design#648](https://github.com/fsharp/fslang-design/issues/648), where the reasoning is
+laid out in full.
 
 #### A run of property access wraps instead of overflowing
 
