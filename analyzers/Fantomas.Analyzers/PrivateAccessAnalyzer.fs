@@ -47,33 +47,34 @@ let analyze (fileName: string) (sourceFiles: string list) (parsedInput: ParsedIn
         []
     else
 
-        let ranges: ResizeArray<range> = ResizeArray<range>()
+    let ranges: ResizeArray<range> = ResizeArray<range>()
 
-        let walker: SyntaxCollectorBase =
-            { new SyntaxCollectorBase() with
-                override _.WalkBinding(_path: SyntaxVisitorPath, binding: SynBinding) : unit =
-                    match binding with
-                    | SynBinding(headPat = headPattern; trivia = { LeadingKeyword = keyword }) when isLetBinding keyword ->
-                        match accessibilityOf headPattern with
-                        | Some(SynAccess.Private range) -> ranges.Add range
-                        | _ -> ()
+    let walker: SyntaxCollectorBase =
+        { new SyntaxCollectorBase() with
+            override _.WalkBinding(_path: SyntaxVisitorPath, binding: SynBinding) : unit =
+                match binding with
+                | SynBinding(headPat = headPattern; trivia = { LeadingKeyword = keyword }) when isLetBinding keyword ->
+                    match accessibilityOf headPattern with
+                    | Some(SynAccess.Private range) -> ranges.Add range
                     | _ -> ()
-            }
+                | _ -> ()
+        }
 
-        walkAst walker parsedInput
+    walkAst walker parsedInput
 
-        ranges
-        |> Seq.map (fun (keyword: range) ->
-            {
-                Type = Name
-                Message =
-                    "Remove `private`. The signature file is the visibility boundary, so anything it does not list is already hidden."
-                Code = Code
-                Severity = Severity.Error
-                Range = keyword
-                Fixes = []
-            })
-        |> Seq.toList
+    ranges
+    |> Seq.map (fun (keyword: range) ->
+        {
+            Type = Name
+            Message =
+                "Remove `private`. The signature file is the visibility boundary, so anything it does not list is already hidden."
+            Code = Code
+            Severity = Severity.Error
+            Range = keyword
+            Fixes = []
+        }
+    )
+    |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =
     async { return analyze ctx.FileName ctx.ProjectOptions.SourceFiles ctx.ParseFileResults.ParseTree }

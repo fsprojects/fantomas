@@ -73,22 +73,23 @@ let runCheckCommand (env: CliEnvironment) (inputPath: InputPath) : CheckCommandR
         match plan env.FileSystem env.Log env.FindIgnoreFile inputPath OutputPath.NotKnown with
         | Error problem -> CheckCommandResult.InvalidInput problem
         | Ok items ->
-            let ignored: string list =
-                items
-                |> List.choose (fun item ->
-                    match item with
-                    | WorkItem.Ignored file -> Some file
-                    | WorkItem.Format _ -> None
-                )
 
-            let toCheck: string list =
-                items
-                |> List.choose (fun item ->
-                    match item with
-                    | WorkItem.Ignored _ -> None
-                    | WorkItem.Format(inputFile, _) -> Some inputFile
-                )
+        let ignored: string list =
+            items
+            |> List.choose (fun item ->
+                match item with
+                | WorkItem.Ignored file -> Some file
+                | WorkItem.Format _ -> None
+            )
 
-            CheckCommandResult.Completed(ignored, Async.RunSynchronously(checkCode env toCheck))
+        let toCheck: string list =
+            items
+            |> List.choose (fun item ->
+                match item with
+                | WorkItem.Ignored _ -> None
+                | WorkItem.Format(inputFile, _) -> Some inputFile
+            )
+
+        CheckCommandResult.Completed(ignored, Async.RunSynchronously(checkCode env toCheck))
     with exn ->
         CheckCommandResult.Failed exn

@@ -149,12 +149,13 @@ module WriterModel =
                     }
                 )
 
-            if List.exists (fun i -> i.ConfirmedMultiline) updatedInfos then
-                { m with
-                    Mode = ShortExpression(updatedInfos)
-                }
-            else
+            if not (List.exists (fun i -> i.ConfirmedMultiline) updatedInfos) then
                 updateCmd cmd
+            else
+
+            { m with
+                Mode = ShortExpression(updatedInfos)
+            }
 
 module WriterEvents =
     let normalize ev =
@@ -252,12 +253,13 @@ type Context =
             if List.exists (fun i -> i = info) infos then
                 x
             else
-                { x with
-                    WriterModel =
-                        { x.WriterModel with
-                            Mode = ShortExpression(info :: infos)
-                        }
-                }
+
+            { x with
+                WriterModel =
+                    { x.WriterModel with
+                        Mode = ShortExpression(info :: infos)
+                    }
+            }
         | _ ->
             { x with
                 WriterModel =
@@ -555,10 +557,11 @@ let sepSpace (ctx: Context) =
     if ctx.WriterModel.IsDummy then
         (!-" ") ctx
     else
-        match lastWriteEventOnLastLine ctx with
-        | Some w when (String.endsWithOrdinal " " w || String.endsWithOrdinal Environment.NewLine w) -> ctx
-        | None -> ctx
-        | _ -> (!-" ") ctx
+
+    match lastWriteEventOnLastLine ctx with
+    | Some w when (String.endsWithOrdinal " " w || String.endsWithOrdinal Environment.NewLine w) -> ctx
+    | None -> ctx
+    | _ -> (!-" ") ctx
 
 // add actual spaces until the target column is reached, regardless of previous content
 // use with care
@@ -663,10 +666,11 @@ let isSmallExpression size (smallExpression: Context -> Context) fallbackExpress
     match size with
     | CharacterWidth maxWidth -> isShortExpression maxWidth smallExpression fallbackExpression ctx
     | NumberOfItems(items, maxItems) ->
-        if items > maxItems then
-            fallbackExpression ctx
-        else
-            expressionFitsOnRestOfLine smallExpression fallbackExpression ctx
+
+    if items > maxItems then
+        fallbackExpression ctx
+    else
+        expressionFitsOnRestOfLine smallExpression fallbackExpression ctx
 
 let leadingExpressionResult leadingExpression continuationExpression (ctx: Context) =
     let lineCountBefore, columnBefore =
@@ -794,66 +798,69 @@ let findTrailingTriviaNewline (events: EventList) : EventNode =
     if isNull current then
         null
     else
-        match current.Event with
-        | WriteLineBecauseOfTrivia ->
-            let mutable check = current.Prev
-            let mutable foundTrivia = false
 
-            while not (isNull check) && not foundTrivia do
-                match check.Event with
-                // Block comment internals — keep walking
-                | WriteLineInsideTrivia -> check <- check.Prev
-                // Single-line comment, block comment, XML doc, or directive
-                | WriteTrivia _ -> foundTrivia <- true
-                // Hit something that isn't part of trivia — stop
-                | _ -> check <- null
+    match current.Event with
+    | WriteLineBecauseOfTrivia ->
+        let mutable check = current.Prev
+        let mutable foundTrivia = false
 
-            if foundTrivia then current else null
-        | _ -> null
+        while not (isNull check) && not foundTrivia do
+            match check.Event with
+            // Block comment internals — keep walking
+            | WriteLineInsideTrivia -> check <- check.Prev
+            // Single-line comment, block comment, XML doc, or directive
+            | WriteTrivia _ -> foundTrivia <- true
+            // Hit something that isn't part of trivia — stop
+            | _ -> check <- null
+
+        if foundTrivia then current else null
+    | _ -> null
 
 let indentSepNlnWithTriviaAwareness (ctx: Context) =
     let indentAmount = ctx.Config.IndentSize
     let triviaNewline = findTrailingTriviaNewline ctx.WriterEvents
 
-    if not (isNull triviaNewline) then
-        // Find the start of the trivia block — walk backward from the trivia newline
-        // past trivia events to find where the block begins.
-        let mutable start = triviaNewline
-
-        while not (isNull start.Prev)
-              && (
-                  match start.Prev.Event with
-                  | WriteTrivia _
-                  | WriteLineInsideTrivia
-                  | WriteLineBecauseOfTrivia -> true
-                  | _ -> false
-              ) do
-            start <- start.Prev
-
-        // Splice IndentBy before the trivia block — the trivia's newline acts as sepNln
-        ctx.WriterEvents.InsertBefore(start, IndentBy indentAmount) |> ignore
-
-        { ctx with
-            WriterModel = WriterModel.update ctx.Config.MaxLineLength (IndentBy indentAmount) ctx.WriterModel
-        }
-    else
+    if isNull triviaNewline then
         (indent +> sepNln) ctx
+    else
+
+    // Find the start of the trivia block — walk backward from the trivia newline
+    // past trivia events to find where the block begins.
+    let mutable start = triviaNewline
+
+    while not (isNull start.Prev)
+          && (
+              match start.Prev.Event with
+              | WriteTrivia _
+              | WriteLineInsideTrivia
+              | WriteLineBecauseOfTrivia -> true
+              | _ -> false
+          ) do
+        start <- start.Prev
+
+    // Splice IndentBy before the trivia block — the trivia's newline acts as sepNln
+    ctx.WriterEvents.InsertBefore(start, IndentBy indentAmount) |> ignore
+
+    { ctx with
+        WriterModel = WriterModel.update ctx.Config.MaxLineLength (IndentBy indentAmount) ctx.WriterModel
+    }
 
 let unindentWithTriviaAwareness (ctx: Context) =
     let unindentAmount = ctx.Config.IndentSize
     let triviaNewline = findTrailingTriviaNewline ctx.WriterEvents
 
-    if not (isNull triviaNewline) then
-        // Splice the UnIndentBy into the DLL before the trailing trivia newline,
-        // and update the WriterModel using the same logic as WriterModel.update.
-        ctx.WriterEvents.InsertBefore(triviaNewline, UnIndentBy unindentAmount)
-        |> ignore
-
-        { ctx with
-            WriterModel = WriterModel.update ctx.Config.MaxLineLength (UnIndentBy unindentAmount) ctx.WriterModel
-        }
-    else
+    if isNull triviaNewline then
         writerEvent (UnIndentBy unindentAmount) ctx
+    else
+
+    // Splice the UnIndentBy into the DLL before the trailing trivia newline,
+    // and update the WriterModel using the same logic as WriterModel.update.
+    ctx.WriterEvents.InsertBefore(triviaNewline, UnIndentBy unindentAmount)
+    |> ignore
+
+    { ctx with
+        WriterModel = WriterModel.update ctx.Config.MaxLineLength (UnIndentBy unindentAmount) ctx.WriterModel
+    }
 
 let indentSepNlnUnindent f =
     indentSepNlnWithTriviaAwareness +> f +> unindentWithTriviaAwareness
@@ -865,19 +872,20 @@ let expressionExceedsPageWidthWithLayout (layout: LongExpressionLayout) (addSpac
     | NewlineOnly -> expressionExceedsPageWidth beforeShort sepNone sepNln sepNone expr ctx
     | IndentAndUnindent
     | DoubleIndentAndUnindent ->
-        let beforeLong =
-            match layout with
-            | IndentAndUnindent -> indent +> sepNln
-            | DoubleIndentAndUnindent -> indent +> indent +> sepNln
-            | NewlineOnly -> sepNln
 
-        let afterLong =
-            match layout with
-            | IndentAndUnindent -> unindentWithTriviaAwareness
-            | DoubleIndentAndUnindent -> unindentWithTriviaAwareness +> unindentWithTriviaAwareness
-            | NewlineOnly -> sepNone
+    let beforeLong =
+        match layout with
+        | IndentAndUnindent -> indent +> sepNln
+        | DoubleIndentAndUnindent -> indent +> indent +> sepNln
+        | NewlineOnly -> sepNln
 
-        expressionExceedsPageWidth beforeShort sepNone beforeLong afterLong expr ctx
+    let afterLong =
+        match layout with
+        | IndentAndUnindent -> unindentWithTriviaAwareness
+        | DoubleIndentAndUnindent -> unindentWithTriviaAwareness +> unindentWithTriviaAwareness
+        | NewlineOnly -> sepNone
+
+    expressionExceedsPageWidth beforeShort sepNone beforeLong afterLong expr ctx
 
 let autoIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidthWithLayout IndentAndUnindent false expr ctx
@@ -938,10 +946,11 @@ let futureNlnCheckMem (f, ctx: Context) =
     if ctx.WriterModel.IsDummy then
         (false, false)
     else
-        let dummyResult = ctx.WithDummy(f, keepPageWidth = true)
-        let isMultiline = dummyResult.WriterModel.LineCount > ctx.WriterModel.LineCount
-        let isLong = dummyResult.Column > ctx.Config.MaxLineLength
-        isMultiline, isLong
+
+    let dummyResult = ctx.WithDummy(f, keepPageWidth = true)
+    let isMultiline = dummyResult.WriterModel.LineCount > ctx.WriterModel.LineCount
+    let isLong = dummyResult.Column > ctx.Config.MaxLineLength
+    isMultiline, isLong
 
 let futureNlnCheck f (ctx: Context) =
     let isMultiLine, isLong = futureNlnCheckMem (f, ctx)
@@ -981,10 +990,11 @@ let sepColon (ctx: Context) =
     if ctx.WriterModel.IsDummy then
         defaultExpr ctx
     else
-        match lastWriteEventOnLastLine ctx with
-        | Some w when String.endsWithOrdinal " " w -> !- ": " ctx
-        | None -> !- ": " ctx
-        | _ -> defaultExpr ctx
+
+    match lastWriteEventOnLastLine ctx with
+    | Some w when String.endsWithOrdinal " " w -> !- ": " ctx
+    | None -> !- ": " ctx
+    | _ -> defaultExpr ctx
 
 let sepColonFixed = !-":"
 
@@ -1168,55 +1178,57 @@ let colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) 
     | [] -> ctx
     | [ (ColMultilineItem(expr, _)) ] -> expr ctx
     | ColMultilineItem(initialExpr, _) :: items ->
-        let result =
-            // The first item can be written as is.
-            let initialIsMultiline, initialCtx = isMultilineItem initialExpr ctx
 
-            let itemsState =
+    let result =
+        // The first item can be written as is.
+        let initialIsMultiline, initialCtx = isMultilineItem initialExpr ctx
+
+        let itemsState =
+            {
+                Context = initialCtx
+                LastBlockMultiline = initialIsMultiline
+            }
+
+        let rec loop (acc: ColMultilineItemsState) (items: ColMultilineItem list) =
+            match items with
+            | [] -> acc.Context
+            | ColMultilineItem(expr, sepNlnItem) :: rest ->
+
+            // Optimistic path: assume the item (or its predecessor) is multiline,
+            // so emit an extra blank line separator before running the expression.
+            // If both turn out to be single-line, we roll back and replay without the extra blank line.
+            let backupPoint = acc.Context.WriterEvents.CreateBackupPoint()
+
+            let ctxAfterNln =
+                (ifElseCtx
+                    hasBlankLineBeforeLastWrite
+                    sepNone // don't add extra newline if there already is a full blank line at the end of the stream.
+                    sepNlnUnlessLastEventIsNewline // trivia may have already produced a newline
+                 +> sepNlnItem)
+                    acc.Context
+
+            let isMultiline, nextCtx = isMultilineItem expr ctxAfterNln
+
+            let nextCtx =
+                if not isMultiline && not acc.LastBlockMultiline then
+                    // Both the previous and current items are single-line.
+                    // The optimistic blank line was wrong — roll back those events
+                    // and replay with just the regular separator.
+                    acc.Context.WriterEvents.RollbackTo(backupPoint)
+                    (sepNlnUnlessLastEventIsNewline +> expr) acc.Context
+                else
+                    nextCtx
+
+            loop
                 {
-                    Context = initialCtx
-                    LastBlockMultiline = initialIsMultiline
+                    Context = nextCtx
+                    LastBlockMultiline = isMultiline
                 }
+                rest
 
-            let rec loop (acc: ColMultilineItemsState) (items: ColMultilineItem list) =
-                match items with
-                | [] -> acc.Context
-                | ColMultilineItem(expr, sepNlnItem) :: rest ->
-                    // Optimistic path: assume the item (or its predecessor) is multiline,
-                    // so emit an extra blank line separator before running the expression.
-                    // If both turn out to be single-line, we roll back and replay without the extra blank line.
-                    let backupPoint = acc.Context.WriterEvents.CreateBackupPoint()
+        loop itemsState items
 
-                    let ctxAfterNln =
-                        (ifElseCtx
-                            hasBlankLineBeforeLastWrite
-                            sepNone // don't add extra newline if there already is a full blank line at the end of the stream.
-                            sepNlnUnlessLastEventIsNewline // trivia may have already produced a newline
-                         +> sepNlnItem)
-                            acc.Context
-
-                    let isMultiline, nextCtx = isMultilineItem expr ctxAfterNln
-
-                    let nextCtx =
-                        if not isMultiline && not acc.LastBlockMultiline then
-                            // Both the previous and current items are single-line.
-                            // The optimistic blank line was wrong — roll back those events
-                            // and replay with just the regular separator.
-                            acc.Context.WriterEvents.RollbackTo(backupPoint)
-                            (sepNlnUnlessLastEventIsNewline +> expr) acc.Context
-                        else
-                            nextCtx
-
-                    loop
-                        {
-                            Context = nextCtx
-                            LastBlockMultiline = isMultiline
-                        }
-                        rest
-
-            loop itemsState items
-
-        result
+    result
 
 let colWithNlnWhenItemIsMultilineUsingConfig (items: ColMultilineItem list) (ctx: Context) =
     if ctx.Config.BlankLinesAroundNestedMultilineExpressions then

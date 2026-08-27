@@ -79,22 +79,23 @@ type EndToEndTests() =
             match failure with
             | Some error -> return Error error
             | None ->
-                let fsharpFile = Path.Combine(subDirectory.FullName, "File.fs")
-                File.Create(fsharpFile).Dispose()
 
-                // Create a .editorconfig file to override any parent configuration
-                let editorConfigPath = Path.Combine(subDirectory.FullName, ".editorconfig")
+            let fsharpFile = Path.Combine(subDirectory.FullName, "File.fs")
+            File.Create(fsharpFile).Dispose()
 
-                let editorConfigContent =
-                    """
+            // Create a .editorconfig file to override any parent configuration
+            let editorConfigPath = Path.Combine(subDirectory.FullName, ".editorconfig")
+
+            let editorConfigContent =
+                """
 root = true
 
 [*.fs]
 end_of_line = lf
 """
 
-                File.WriteAllText(editorConfigPath, editorConfigContent)
-                return Ok()
+            File.WriteAllText(editorConfigPath, editorConfigContent)
+            return Ok()
         }
 
     /// Installing from NuGet is the flaky part of these tests, so give it a couple of goes before

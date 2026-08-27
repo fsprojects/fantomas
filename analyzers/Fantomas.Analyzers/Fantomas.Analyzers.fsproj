@@ -33,6 +33,10 @@
     <Compile Include="PrivateAccessAnalyzer.fs" />
     <Compile Include="ArmOrderAnalyzer.fsi" />
     <Compile Include="ArmOrderAnalyzer.fs" />
+    <Compile Include="KeepIndentAnalyzer.fsi" />
+    <Compile Include="KeepIndentAnalyzer.fs" />
+    <Compile Include="BranchOrderAnalyzer.fsi" />
+    <Compile Include="BranchOrderAnalyzer.fs" />
     <Compile Include="AnnotationAnalyzer.fsi" />
     <Compile Include="AnnotationAnalyzer.fs" />
     <Compile Include="XmlDocAnalyzer.fsi" />

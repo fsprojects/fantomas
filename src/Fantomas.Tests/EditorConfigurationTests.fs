@@ -35,14 +35,15 @@ type ConfigurationFile
 
     let editorConfigPath =
         match subFolder with
-        | Some sf ->
-            let dirPath = Path.Join(rootDir, sf)
-
-            if not (Directory.Exists(dirPath)) then
-                Directory.CreateDirectory(dirPath) |> ignore
-
-            Path.Join(rootDir, sf, ".editorconfig")
         | None -> Path.Join(rootDir, ".editorconfig")
+        | Some sf ->
+
+        let dirPath = Path.Join(rootDir, sf)
+
+        if not (Directory.Exists(dirPath)) then
+            Directory.CreateDirectory(dirPath) |> ignore
+
+        Path.Join(rootDir, sf, ".editorconfig")
 
     let header = Option.defaultValue "[*.fs]" editorConfigHeader
 
@@ -50,12 +51,13 @@ type ConfigurationFile
         match content with
         | Some c -> c
         | None ->
-            let root =
-                match isRoot with
-                | Some true -> "root=true"
-                | _ -> String.empty
 
-            $"%s{root}\n\n%s{header}\n%s{EditorConfig.configToEditorConfig config}"
+        let root =
+            match isRoot with
+            | Some true -> "root=true"
+            | _ -> String.empty
+
+        $"%s{root}\n\n%s{header}\n%s{EditorConfig.configToEditorConfig config}"
 
     do File.WriteAllText(editorConfigPath, content)
 
@@ -81,14 +83,15 @@ type FSharpFile
 
     let fsharpFilePath =
         match subFolder with
-        | Some sf ->
-            let dirPath = Path.Join(rootDir, sf)
-
-            if not (Directory.Exists(dirPath)) then
-                Directory.CreateDirectory(dirPath) |> ignore
-
-            Path.Join(rootDir, sf, fsharpFile)
         | None -> Path.Join(rootDir, fsharpFile)
+        | Some sf ->
+
+        let dirPath = Path.Join(rootDir, sf)
+
+        if not (Directory.Exists(dirPath)) then
+            Directory.CreateDirectory(dirPath) |> ignore
+
+        Path.Join(rootDir, sf, fsharpFile)
 
     let content = Option.defaultValue String.empty content
     do File.WriteAllText(fsharpFilePath, content)

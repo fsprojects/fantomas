@@ -10,13 +10,15 @@ let nameOf (processPath: string option) : string =
     match processPath with
     | None -> "fantomas"
     | Some path ->
-        match Path.GetFileNameWithoutExtension path with
-        | "" -> "fantomas"
-        | executable ->
-            if String.Equals(executable, "dotnet", StringComparison.OrdinalIgnoreCase) then
-                "dotnet fantomas"
-            else
-                executable
+
+    match Path.GetFileNameWithoutExtension path with
+    | "" -> "fantomas"
+    | executable ->
+
+    if String.Equals(executable, "dotnet", StringComparison.OrdinalIgnoreCase) then
+        "dotnet fantomas"
+    else
+        executable
 
 let name () : string =
     nameOf (Option.ofObj Environment.ProcessPath)

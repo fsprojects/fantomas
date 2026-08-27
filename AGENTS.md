@@ -32,6 +32,8 @@ pipelines run them alongside the two analyzer packages.
 | `FANTOMAS-PIPEBACK-001` | No backward pipe | Error |
 | `FANTOMAS-PRIVATE-001` | No `let private` beside a signature file | Error |
 | `FANTOMAS-ARMORDER-001` | Shortest match arm first | Warning |
+| `FANTOMAS-BRANCHORDER-001` | Shortest `if` branch first | Warning |
+| `FANTOMAS-KEEPINDENT-001` | Last branch keeps the indentation | Warning |
 | `FANTOMAS-ANNOTATE-001` | Annotate every `let` binding | Warning |
 | `FANTOMAS-XMLDOC-001` | No doc comment the signature file already carries | Warning |
 
@@ -78,11 +80,12 @@ changed. A finding in a file you did not touch is dropped, whatever its rule: wi
 changed `.fsproj` pulling in the whole project buries the two files you added under the project's
 existing debt.
 
-Within a file that did change, the one rule that reports on pre-existing debt,
-`FANTOMAS-ANNOTATE-001`, is narrowed further to the lines `git diff` says you touched. A file is a
-much coarser scope than that rule asks for: one line changed in `ASTTransformer.fs` otherwise
-surfaces every unannotated binding in it. Every other rule reports wherever it fires in a file you
-edited. A file git has never seen is new in its entirety, so everything in it is reported.
+Within a file that did change, `FANTOMAS-ANNOTATE-001` is narrowed further to the lines `git diff`
+says you touched. A file is a much coarser scope than that rule asks for: one line changed in
+`ASTTransformer.fs` otherwise surfaces every unannotated binding in it. Every other rule reports
+wherever it fires in a file you edited, including `FANTOMAS-KEEPINDENT-001`, which also reports on
+pre-existing debt but means an arm's body rather than the `|` lines a swap touches. A file git has
+never seen is new in its entirety, so everything in it is reported.
 
 ```bash
 dotnet fsi build.fsx -- -p Analyze

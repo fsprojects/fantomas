@@ -10,6 +10,8 @@ feedback arrives while you work instead of in review. They are ordinary F# analy
 | [`FANTOMAS-PIPEBACK-001`](#fantomas-pipeback-001) | No backward pipe | Error | both pipelines |
 | [`FANTOMAS-PRIVATE-001`](#fantomas-private-001) | No `let private` beside a signature file | Error | both pipelines |
 | [`FANTOMAS-ARMORDER-001`](#fantomas-armorder-001) | Shortest match arm first | Warning | both pipelines |
+| [`FANTOMAS-BRANCHORDER-001`](#fantomas-branchorder-001) | Shortest `if` branch first | Warning | both pipelines |
+| [`FANTOMAS-KEEPINDENT-001`](#fantomas-keepindent-001) | Last branch keeps the indentation | Warning | both pipelines |
 | [`FANTOMAS-ANNOTATE-001`](#fantomas-annotate-001) | Annotate every `let` binding | Warning | `AnalyzeChanged` only |
 | [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries | Warning | both pipelines |
 
@@ -67,6 +69,119 @@ something other than a swap, and it offers no fix, because swapping two clauses 
 and indentation is the kind of edit that goes wrong quietly.
 
 So a match it says nothing about is not necessarily in the right order. The rule is still the rule.
+
+## FANTOMAS-BRANCHORDER-001
+
+The same for an `if`. Put the shorter branch first, negating the condition to get there:
+
+```fsharp
+if not contentChanged then
+    return FormatResult.Unchanged(filename = formatParams.File)
+else
+    let! validation = CodeFormatter.ValidateFSharpCodeAsync(isSignatureFile, formattedContent)
+    ...
+```
+
+This asks for more than `FANTOMAS-ARMORDER-001` does. A match arm can only be moved, where a branch
+has to be negated as well, so the rule is doing something to the condition and not only to the
+layout. What it does not have to worry about is overlap: the two branches of an `if` are exclusive by
+construction, so the swap is always sound, where reordering two match arms need not be.
+
+What is not always an improvement is the condition it leaves behind. A comparison flips into its
+opposite and an existing `not` falls away, and both of those are still one thing to read. A condition
+joined by `&&` or `||` would have to grow a `not` and a pair of parentheses around the whole of it,
+which is a worse sentence than the branches were worth, so those are left alone. Everything else can
+only gain a `not`, which is fine, and is the common case.
+
+It speaks only for a plain `if`/`then`/`else`. A chain with an `elif` has more than two ways through
+it and no single swap that puts the short one first. It stays quiet on a conditional directive inside
+the expression, and offers no fix, because rewriting a condition is a thing to read before doing.
+
+## FANTOMAS-KEEPINDENT-001
+
+Once the short branch is first, let the last branch keep the indentation of the expression:
+
+```fsharp
+match localToolsListResult with
+| Ok(CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.LocalTool workingDir))
+| Error err -> Error(FantomasToolError.DotNetListError err)
+| Ok _localToolListResult ->
+
+let globalToolsListResult = runToolListCmd workingDir true
+
+match globalToolsListResult with
+| Ok(CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.GlobalTool))
+| Error err -> Error(FantomasToolError.DotNetListError err)
+| Ok _nonCompatibleGlobalVersion ->
+
+let fantomasOnPathVersion = fantomasVersionOnPath ()
+```
+
+This is the other half of what `FANTOMAS-ARMORDER-001` starts, and the reason that rule cares about
+order in the first place. The short arms say what the rest of the expression is not about and then
+get out of the way, and what is left is the one path that continues, written at the indentation it
+started at. Three lookups falling through to each other cost no indentation at all, where nesting
+them would have cost twelve columns by the third.
+
+`fsharp_experimental_keep_indent_in_branch`, which the repository's `.editorconfig` turns on, is what
+holds the body there, and it only holds a body that was already written that way: it will not
+de-indent for you, and it will re-indent one written that way where the setting is off. So the whole
+style depends on somebody writing it, which is what this rule is for. The `.editorconfig` covers
+`src` and `analyzers`, which together are everything the pipelines analyze, so a finding is never one
+the formatter will undo.
+
+The analyzer is narrower than the rule, because moving a body left can change what runs:
+
+- Only the **last** arm, since that is the only one `CodePrinter` offers the choice to, and since a
+  following arm of the same match would be the first thing a de-indented body swallowed.
+- Only a body that is a **block**: another `match`, an `if`, or a sequence of bindings and
+  statements. That is where the columns are saved again by everything inside. A single application
+  or pipeline has nothing under it to save them for and reads oddly under the blank line the setting
+  writes.
+- Only a body **already on a line of its own** and spanning more than one line. A body that fits
+  beside its arrow gets pulled up next to it and never reaches the branch that would keep it.
+- Only where **every other arm is a one liner**. That is the early return shape, and it is what
+  makes the de-indent mean anything: the arms that decline say so and get out of the way, and what
+  is left is the one path that carries on. A match whose other arms are blocks too is not that
+  shape, and de-indenting the last of them alone puts arms of the same kind at two different
+  indentations and says the last is special when it is not.
+- Only where **nothing follows the match in that column**. This is the one way the reshape changes
+  meaning. De-indenting moves the offside line of the body out to the bar, so the first thing after
+  the match that starts in that column or further right stops following the match and starts
+  belonging to its last arm. Anything further left ends the arm exactly as it ended the match.
+
+  The rule answers this by reading the source: it takes the first line after the one the match ends
+  on that has any content, and compares its indentation. Whatever shares the match's last line moves
+  with the body and keeps its place, which is how a closing bracket stays out of it.
+
+  That is deliberately a question about text rather than about the tree, and it is the third
+  attempt. Collecting `SynExpr.Sequential` pairs missed the `json.WriteEndObject()` after the match
+  in `writeDoctorFile`, so it ran for one case out of three and every doctor report came out as
+  truncated JSON. Flattening those sequences properly then missed the `|> genNode attr` under the
+  match in `genAttributesCore`, which applied to the whole match and would have applied to one arm,
+  so everything reached through the other arm lost its trivia and the compiler-define tests failed.
+  Both were shapes to enumerate and there was always going to be another one. The text has none, and
+  it costs a comment its place at worst: a comment under the match counts as content, so the rule
+  stays quiet rather than move it into the arm.
+
+It stays quiet on a `when` guard, because a multiline guard takes a path in `CodePrinter` that
+indents the body whatever column it is in, and whether a guard prints multiline is a page width
+question rather than a tree one. It stays quiet on a conditional directive inside the match. And it
+offers no fix, because re-indenting a block means leaving the multiline strings inside it exactly
+where they are, which is not a thing to do blind, least of all in `Fantomas.Core.Tests`.
+
+`match`, `match!` and `function` all reach the same clause printer, so all three are covered. So is
+the final `else` of an `if`, which reaches `genKeepIdentIfThenElse` rather than
+`genKeepIdentMatchClause` and is a shade more permissive: it accepts the body in the column of the
+`else` or of the `if`, where a match arm has only the `|` to match. Fantomas prints both in the same
+column, so the rule aims at the `else` and one target is enough. An `elif` chain is printed flat and
+offers the choice to its last `else` alone, so the chain is walked to reach it and every `then` above
+has to be a one liner like any other branch.
+
+The two halves compose, and the composition is the point. `FANTOMAS-BRANCHORDER-001` and
+`FANTOMAS-ARMORDER-001` put the short branches first, which leaves the one that carries on last,
+which is where this rule can reach it. Fixing them in that order is worth doing, because a swap
+creates candidates here that were not there before.
 
 ## FANTOMAS-ANNOTATE-001
 
@@ -134,6 +249,12 @@ scanning whatever its severity, and still reports locally.
 a much coarser scope than that rule asks for, and one line changed in a file of several thousand
 otherwise surfaces every unannotated binding in it. Every other rule reports wherever it fires in a
 file you edited, because a finding from one of those is worth seeing.
+
+`FANTOMAS-KEEPINDENT-001` arrived with debt of its own and is still in both pipelines, because that
+debt was cleared in the change that added it. The full run therefore has nothing old to report, and
+anything it does report is something the change in front of you introduced, which is the state to
+keep it in: a new case is cheap to fix while you are writing it and becomes a code scanning alert if
+you do not.
 
 The narrowing reads the tool's own output format and fails open, so anything it cannot parse is
 kept. A change upstream makes it stop narrowing rather than start hiding.

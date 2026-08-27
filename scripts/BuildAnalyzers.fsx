@@ -314,6 +314,10 @@ let localErrorRules: string list =
 /// It reports on debt that predates it, and a finding in `Analyze` becomes a code scanning alert on
 /// the pull request whatever its severity. `AnalyzeChanged` still runs it, over the files you
 /// touched, which is the scope the rule asks for. Drop this once the debt is gone.
+///
+/// `FANTOMAS-KEEPINDENT-001` is deliberately not here. It arrived with debt of its own, and that
+/// debt was cleared in the change that added it, so the full run has nothing old to report and
+/// anything it does report is something the change in front of you introduced.
 let localAdvisoryAnalyzers: string list = [ "AnnotationAnalyzer" ]
 
 /// The code of that same rule, which is what a finding carries.

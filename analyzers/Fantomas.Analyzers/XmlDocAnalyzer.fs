@@ -57,20 +57,23 @@ let declaredInSignature
     (checkResults: FSharpCheckFileResults)
     (sourceText: ISourceText)
     (declaration: DocumentedDeclaration)
-    : bool =
+    : bool
+    =
     let line: int = declaration.NameRange.EndLine
 
     if line < 1 || line > sourceText.GetLineCount() then
         false
     else
-        let lineText: string = sourceText.GetLineString(line - 1)
 
-        checkResults.GetSymbolUseAtLocation(line, declaration.NameRange.EndColumn, lineText, [ declaration.Name ])
-        |> Option.map (fun (symbolUse: FSharpSymbolUse) ->
-            match symbolUse.Symbol.SignatureLocation, symbolUse.Symbol.DeclarationLocation with
-            | Some signature, Some declaration -> signature.FileName <> declaration.FileName
-            | _ -> false)
-        |> Option.defaultValue false
+    let lineText: string = sourceText.GetLineString(line - 1)
+
+    checkResults.GetSymbolUseAtLocation(line, declaration.NameRange.EndColumn, lineText, [ declaration.Name ])
+    |> Option.map (fun (symbolUse: FSharpSymbolUse) ->
+        match symbolUse.Symbol.SignatureLocation, symbolUse.Symbol.DeclarationLocation with
+        | Some signature, Some declaration -> signature.FileName <> declaration.FileName
+        | _ -> false
+    )
+    |> Option.defaultValue false
 
 // Documentation comments that the signature file already carries.
 //
@@ -83,54 +86,60 @@ let analyze
     (fileName: string)
     (sourceFiles: string list)
     (parsedInput: ParsedInput)
-    : Message list =
+    : Message list
+    =
     if not (hasSignatureFile fileName sourceFiles) then
         []
     else
 
-        let documented: ResizeArray<DocumentedDeclaration> =
-            ResizeArray<DocumentedDeclaration>()
+    let documented: ResizeArray<DocumentedDeclaration> =
+        ResizeArray<DocumentedDeclaration>()
 
-        let collect (doc: PreXmlDoc) (name: Ident option) : unit =
-            match name with
-            | None -> ()
-            | Some ident ->
-                if not doc.IsEmpty then
-                    documented.Add
-                        {
-                            DocRange = doc.Range
-                            Name = ident.idText
-                            NameRange = ident.idRange
-                        }
+    let collect (doc: PreXmlDoc) (name: Ident option) : unit =
+        match name with
+        | None -> ()
+        | Some ident ->
 
-        let walker: SyntaxCollectorBase =
-            { new SyntaxCollectorBase() with
-                override _.WalkBinding(_path: SyntaxVisitorPath, binding: SynBinding) : unit =
-                    match binding with
-                    | SynBinding(xmlDoc = doc; headPat = pat) -> collect doc (bindingName pat)
+        if not doc.IsEmpty then
+            documented.Add
+                {
+                    DocRange = doc.Range
+                    Name = ident.idText
+                    NameRange = ident.idRange
+                }
 
-                override _.WalkComponentInfo(_path: SyntaxVisitorPath, info: SynComponentInfo) : unit =
-                    match info with
-                    | SynComponentInfo(xmlDoc = doc; longId = ids) -> collect doc (List.tryLast ids)
+    let walker: SyntaxCollectorBase =
+        { new SyntaxCollectorBase() with
+            override _.WalkBinding(_path: SyntaxVisitorPath, binding: SynBinding) : unit =
+                match binding with
+                | SynBinding(xmlDoc = doc; headPat = pat) -> collect doc (bindingName pat)
 
-                override _.WalkUnionCase(_path: SyntaxVisitorPath, unionCase: SynUnionCase) : unit =
-                    match unionCase with
-                    | SynUnionCase(xmlDoc = doc; ident = SynIdent(ident, _)) -> collect doc (Some ident)
+            override _.WalkComponentInfo(_path: SyntaxVisitorPath, info: SynComponentInfo) : unit =
+                match info with
+                | SynComponentInfo(xmlDoc = doc; longId = ids) -> collect doc (List.tryLast ids)
 
-                override _.WalkEnumCase(_path: SyntaxVisitorPath, enumCase: SynEnumCase) : unit =
-                    match enumCase with
-                    | SynEnumCase(xmlDoc = doc; ident = SynIdent(ident, _)) -> collect doc (Some ident)
+            override _.WalkUnionCase(_path: SyntaxVisitorPath, unionCase: SynUnionCase) : unit =
+                match unionCase with
+                | SynUnionCase(xmlDoc = doc; ident = SynIdent(ident, _)) -> collect doc (Some ident)
 
-                override _.WalkField(_path: SyntaxVisitorPath, field: SynField) : unit =
-                    match field with
-                    | SynField(xmlDoc = doc; idOpt = idOpt) -> collect doc idOpt
-            }
+            override _.WalkEnumCase(_path: SyntaxVisitorPath, enumCase: SynEnumCase) : unit =
+                match enumCase with
+                | SynEnumCase(xmlDoc = doc; ident = SynIdent(ident, _)) -> collect doc (Some ident)
 
-        walkAst walker parsedInput
+            override _.WalkField(_path: SyntaxVisitorPath, field: SynField) : unit =
+                match field with
+                | SynField(xmlDoc = doc; idOpt = idOpt) -> collect doc idOpt
+        }
 
-        documented
-        |> Seq.filter (declaredInSignature checkResults sourceText)
-        |> Seq.map (fun (declaration: DocumentedDeclaration) ->
+    walkAst walker parsedInput
+
+    documented
+    |> Seq.choose (fun (declaration: DocumentedDeclaration) ->
+        if not (declaredInSignature checkResults sourceText declaration) then
+            None
+        else
+
+        Some
             {
                 Type = Name
                 Message =
@@ -139,8 +148,9 @@ let analyze
                 Severity = Severity.Warning
                 Range = declaration.DocRange
                 Fixes = []
-            })
-        |> Seq.toList
+            }
+    )
+    |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =
     async {

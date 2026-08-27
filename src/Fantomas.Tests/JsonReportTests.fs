@@ -633,12 +633,13 @@ let ``a setting an .editorconfig set names the file that set it`` () =
             Settings =
                 plain.Settings
                 |> List.map (fun (setting: Fantomas.EditorConfig.ResolvedSetting) ->
-                    if setting.Setting = "max_line_length" then
-                        { setting with
-                            SetBy = Some "/repo/.editorconfig"
-                        }
-                    else
+                    if setting.Setting <> "max_line_length" then
                         setting
+                    else
+
+                    { setting with
+                        SetBy = Some "/repo/.editorconfig"
+                    }
                 )
         }
 

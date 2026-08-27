@@ -12,25 +12,26 @@ let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: rang
             if idx < 0 then
                 None
             else
-                let line = sourceText.GetLineString(idx)
 
-                if String.isNotNullOrWhitespace line then
-                    Some(lineNumber, line)
-                else
-                    None
+            let line = sourceText.GetLineString(idx)
+
+            if String.isNotNullOrWhitespace line then
+                Some(lineNumber, line)
+            else
+                None
         )
 
     match Array.tryHead lines, Array.tryLast lines with
     | Some(startLineNumber, startLine), Some(endLineNumber, endLine) ->
         let startColumn =
-            // The selection is on the same line as the code but appears to be inside whitespace
-            if startLineNumber = selection.StartLine then
+            // The selection is on a different line than the code, take first non-whitespace character
+            if startLineNumber <> selection.StartLine then
+                Seq.takeWhile System.Char.IsWhiteSpace startLine |> Seq.length
+            else
+                // The selection is on the same line as the code but appears to be inside whitespace
                 Seq.takeWhile System.Char.IsWhiteSpace startLine
                 |> Seq.length
                 |> fun firstCharOnLine -> System.Math.Max(firstCharOnLine, selection.StartColumn)
-            else
-                // The selection is on a different line than the code, take first non-whitespace character
-                Seq.takeWhile System.Char.IsWhiteSpace startLine |> Seq.length
 
         let endColumn =
             // The selection is on the same line as the code but appears to be inside whitespace
@@ -383,41 +384,41 @@ let formatSelection
         match treeWithSelection with
         | None -> return raise (FormatException("No suitable AST node was found for the given selection."))
         | Some tree ->
-            let maxLineLength = config.MaxLineLength - selection.StartColumn
 
-            let selectionConfig =
-                { config with
-                    InsertFinalNewline = false
-                    MaxLineLength = maxLineLength
-                }
+        let maxLineLength = config.MaxLineLength - selection.StartColumn
 
-            let formattedSelection =
-                let context = Context.Context.Create selectionConfig
+        let selectionConfig =
+            { config with
+                InsertFinalNewline = false
+                MaxLineLength = maxLineLength
+            }
 
-                match tree with
-                | TreeForSelection.Unsupported ->
-                    raise (FormatException("The current selection is not supported right now."))
-                | TreeForSelection.Standalone tree ->
-                    let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
+        let formattedSelection =
+            let context = Context.Context.Create selectionConfig
 
-                    CodePrinter.genFile enrichedTree context
-                    |> Context.dump true
-                    |> fun result -> result.Code
-                | TreeForSelection.RequiresExtraction(tree, t) ->
-                    let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
+            match tree with
+            | TreeForSelection.Unsupported ->
+                raise (FormatException("The current selection is not supported right now."))
+            | TreeForSelection.Standalone tree ->
+                let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
 
-                    let { Code = formattedCode } =
-                        CodePrinter.genFile enrichedTree context |> Context.dump true
+                CodePrinter.genFile enrichedTree context
+                |> Context.dump true
+                |> fun result -> result.Code
+            | TreeForSelection.RequiresExtraction(tree, t) ->
+                let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
 
-                    let source = SourceText.ofString formattedCode
-                    let formattedAST, _ = Fantomas.FCS.Parse.parseFile isSignature source []
-                    let formattedTree = ASTTransformer.mkOak (Some source) formattedAST
-                    let rangeOfSelection = findRangeOf t formattedTree
+                let { Code = formattedCode } =
+                    CodePrinter.genFile enrichedTree context |> Context.dump true
 
-                    match rangeOfSelection with
-                    | None ->
-                        raise (FormatException("No suitable AST node could be extracted from formatted selection."))
-                    | Some m -> source.GetSubTextFromRange m
+                let source = SourceText.ofString formattedCode
+                let formattedAST, _ = Fantomas.FCS.Parse.parseFile isSignature source []
+                let formattedTree = ASTTransformer.mkOak (Some source) formattedAST
+                let rangeOfSelection = findRangeOf t formattedTree
 
-            return formattedSelection.TrimEnd([| '\r'; '\n' |]), selection
+                match rangeOfSelection with
+                | Some m -> source.GetSubTextFromRange m
+                | None -> raise (FormatException("No suitable AST node could be extracted from formatted selection."))
+
+        return formattedSelection.TrimEnd([| '\r'; '\n' |]), selection
     }

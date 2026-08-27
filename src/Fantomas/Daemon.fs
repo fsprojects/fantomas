@@ -61,8 +61,9 @@ let configurationFor
         match requestConfig with
         | None -> config, []
         | Some properties ->
-            let config, problems = parseOptionsFromEditorConfig config properties
-            config, List.map (toConfigurationProblem ConfigurationProblemSource.Request) problems
+
+        let config, problems = parseOptionsFromEditorConfig config properties
+        config, List.map (toConfigurationProblem ConfigurationProblemSource.Request) problems
 
     let problems = List.toArray (fromEditorConfig @ fromRequest)
 
@@ -277,18 +278,19 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                                         if formatResponse.Code = request.SourceCode then
                                             return FormatDocumentResponse.Unchanged request.FilePath
                                         else
-                                            let cursor =
-                                                formatResponse.Cursor
-                                                |> Option.map (fun cursorPos ->
-                                                    FormatCursorPosition(cursorPos.Line, cursorPos.Column)
-                                                )
 
-                                            return
-                                                FormatDocumentResponse.Formatted(
-                                                    request.FilePath,
-                                                    formatResponse.Code,
-                                                    cursor
-                                                )
+                                        let cursor =
+                                            formatResponse.Cursor
+                                            |> Option.map (fun cursorPos ->
+                                                FormatCursorPosition(cursorPos.Line, cursorPos.Column)
+                                            )
+
+                                        return
+                                            FormatDocumentResponse.Formatted(
+                                                request.FilePath,
+                                                formatResponse.Code,
+                                                cursor
+                                            )
                                     }
                                 )
                                 (fun message -> FormatDocumentResponse.Error(request.FilePath, message))

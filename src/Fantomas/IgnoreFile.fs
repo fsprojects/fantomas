@@ -45,17 +45,19 @@ module IgnoreFile =
             if isNull currentDirectory then
                 None
             else
-                let potentialFile =
-                    fs.Path.Combine(currentDirectory.FullName, IgnoreFileName) |> fs.FileInfo.New
 
-                if potentialFile.Exists then
-                    {
-                        Location = potentialFile
-                        IsIgnored = loadIgnoreList potentialFile.FullName
-                    }
-                    |> Some
-                else
-                    walkUp currentDirectory.Parent
+            let potentialFile =
+                fs.Path.Combine(currentDirectory.FullName, IgnoreFileName) |> fs.FileInfo.New
+
+            if not potentialFile.Exists then
+                walkUp currentDirectory.Parent
+            else
+
+            {
+                Location = potentialFile
+                IsIgnored = loadIgnoreList potentialFile.FullName
+            }
+            |> Some
 
         walkUp (fs.FileInfo.New(filePath).Directory)
 
@@ -103,20 +105,21 @@ module IgnoreFile =
             if isNull currentDirectory then
                 List.rev found
             else
-                let potentialFile: IFileInfo =
-                    fs.Path.Combine(currentDirectory.FullName, IgnoreFileName) |> fs.FileInfo.New
 
-                let found: IgnoreFile list =
-                    if potentialFile.Exists then
-                        {
-                            Location = potentialFile
-                            IsIgnored = loadIgnoreList potentialFile.FullName
-                        }
-                        :: found
-                    else
-                        found
+            let potentialFile: IFileInfo =
+                fs.Path.Combine(currentDirectory.FullName, IgnoreFileName) |> fs.FileInfo.New
 
-                walkUp currentDirectory.Parent found
+            let found: IgnoreFile list =
+                if not potentialFile.Exists then
+                    found
+                else
+                    {
+                        Location = potentialFile
+                        IsIgnored = loadIgnoreList potentialFile.FullName
+                    }
+                    :: found
+
+            walkUp currentDirectory.Parent found
 
         // Every one above rather than the next one up. Two ignore files above the nearest is not a
         // layout anybody sets out to build, and it is exactly the layout where the reader has the
@@ -149,22 +152,23 @@ module IgnoreFile =
         match ignoreFile with
         | None -> false
         | Some ignoreFile ->
-            let fs: IFileSystem = ignoreFile.Location.FileSystem
-            let fullPath: AbsoluteFilePath = AbsoluteFilePath.Create fs file
 
-            try
-                ignoreFile.IsIgnored fullPath
-            with ex ->
-                // Matching a path against the ignore file is not something that should fail. If it
-                // does, say which file and which ignore file could not be told apart, and go on to
-                // format the file rather than abandon the run over it.
-                log.Error
-                    $"Could not tell whether '%s{file}' is matched by %s{ignoreFile.Location.FullName}: %s{ex.Message}"
+        let fs: IFileSystem = ignoreFile.Location.FileSystem
+        let fullPath: AbsoluteFilePath = AbsoluteFilePath.Create fs file
 
-                // The line above is the one to act on; this keeps the type and the stack trace for
-                // whoever asks for detail.
-                log.Debug $"%A{ex}"
-                false
+        try
+            ignoreFile.IsIgnored fullPath
+        with ex ->
+            // Matching a path against the ignore file is not something that should fail. If it
+            // does, say which file and which ignore file could not be told apart, and go on to
+            // format the file rather than abandon the run over it.
+            log.Error
+                $"Could not tell whether '%s{file}' is matched by %s{ignoreFile.Location.FullName}: %s{ex.Message}"
+
+            // The line above is the one to act on; this keeps the type and the stack trace for
+            // whoever asks for detail.
+            log.Debug $"%A{ex}"
+            false
 
     let matchingLines (ignoreFile: IgnoreFile) (file: string) : IgnoreMatch list =
         let fs: IFileSystem = ignoreFile.Location.FileSystem

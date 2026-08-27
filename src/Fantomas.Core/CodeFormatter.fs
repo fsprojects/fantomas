@@ -117,10 +117,11 @@ type CodeFormatter =
                 if List.isEmpty defines then
                     asts.[0]
                 else
-                    let sortedDefines = List.sort defines
 
-                    asts
-                    |> Array.find (fun (_, DefineCombination(d)) -> List.sort d = sortedDefines)
+                let sortedDefines = List.sort defines
+
+                asts
+                |> Array.find (fun (_, DefineCombination(d)) -> List.sort d = sortedDefines)
 
             let oak = ASTTransformer.mkOak (Some sourceText) ast
             let oak = Trivia.enrichTree config sourceText ast oak

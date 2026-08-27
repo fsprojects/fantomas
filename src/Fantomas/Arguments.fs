@@ -206,20 +206,22 @@ let parse (argv: string array) : Result<Arguments list, ArgumentProblem> =
         match tryFindFlag name with
         | None -> problem <- Some(ArgumentProblem.UnknownFlag(name, flagSuggestion name))
         | Some flag ->
-            match flag.Kind, attached with
-            | FlagKind.Switch argument, None -> given.Add argument
-            | FlagKind.Switch _, Some value -> problem <- Some(ArgumentProblem.UnexpectedValue(name, value))
-            | FlagKind.Valued build, Some value -> given.Add(build value)
-            | FlagKind.Valued build, None ->
-                // A token beginning with a dash is never swallowed as a value: `--out --check` is
-                // a missing output path, not an output path named `--check`.
-                if index < argv.Length && not (isFlagToken argv.[index]) then
-                    given.Add(build argv.[index])
-                    index <- index + 1
-                else
-                    let found: string option = if index < argv.Length then Some argv.[index] else None
 
-                    problem <- Some(ArgumentProblem.MissingValue(name, found))
+        match flag.Kind, attached with
+        | FlagKind.Switch argument, None -> given.Add argument
+        | FlagKind.Switch _, Some value -> problem <- Some(ArgumentProblem.UnexpectedValue(name, value))
+        | FlagKind.Valued build, Some value -> given.Add(build value)
+        | FlagKind.Valued build, None ->
+
+        // A token beginning with a dash is never swallowed as a value: `--out --check` is
+        // a missing output path, not an output path named `--check`.
+        if index < argv.Length && not (isFlagToken argv.[index]) then
+            given.Add(build argv.[index])
+            index <- index + 1
+        else
+            let found: string option = if index < argv.Length then Some argv.[index] else None
+
+            problem <- Some(ArgumentProblem.MissingValue(name, found))
 
     match problem with
     | Some problem -> Error problem
@@ -337,13 +339,14 @@ let classifyInputPath (fs: IFileSystem) (maybeInput: string list option) : Input
         match missing with
         | Some x -> InputPath.NotFound x
         | None ->
-            // Every path here is known to exist, so which of the two it is can be asked rather
-            // than guessed from whether it carries an extension. Guessing called a folder named
-            // `my.stuff` a file, and a file with no extension a folder.
-            let folders, files =
-                inputs |> List.partition (fun (path: string) -> fs.Directory.Exists path)
 
-            InputPath.Multiple(files, folders)
+        // Every path here is known to exist, so which of the two it is can be asked rather
+        // than guessed from whether it carries an extension. Guessing called a folder named
+        // `my.stuff` a file, and a file with no extension a folder.
+        let folders, files =
+            inputs |> List.partition (fun (path: string) -> fs.Directory.Exists path)
+
+        InputPath.Multiple(files, folders)
 
 let tryOut (given: Arguments list) : string option =
     given

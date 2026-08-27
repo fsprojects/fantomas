@@ -3,8 +3,8 @@ module Fantomas.Analyzers.ArmOrderAnalyzer
 open FSharp.Analyzers.SDK
 open FSharp.Analyzers.SDK.ASTCollecting
 open FSharp.Compiler.Syntax
-open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
+open Fantomas.Analyzers.Common
 
 [<Literal>]
 let Code: string = "FANTOMAS-ARMORDER-001"
@@ -20,32 +20,6 @@ let ShortDescription: string =
 let HelpUri: string =
     "https://github.com/fsprojects/fantomas/blob/main/analyzers/AGENTS.md#fantomas-armorder-001"
 
-// The comments and the conditional directives of a file, which are the two things that make a
-// textual swap of two arms something other than a swap.
-let triviaOf (parsedInput: ParsedInput) : range list * range list =
-    let comments, directives =
-        match parsedInput with
-        | ParsedInput.SigFile(ParsedSigFileInput(trivia = trivia)) -> trivia.CodeComments, trivia.ConditionalDirectives
-        | ParsedInput.ImplFile(ParsedImplFileInput(trivia = trivia)) ->
-            trivia.CodeComments, trivia.ConditionalDirectives
-
-    let commentRanges: range list =
-        comments
-        |> List.map (fun (comment: CommentTrivia) ->
-            match comment with
-            | CommentTrivia.LineComment range -> range
-            | CommentTrivia.BlockComment range -> range)
-
-    let directiveRanges: range list =
-        directives
-        |> List.map (fun (directive: ConditionalDirectiveTrivia) ->
-            match directive with
-            | ConditionalDirectiveTrivia.Else range -> range
-            | ConditionalDirectiveTrivia.EndIf range -> range
-            | ConditionalDirectiveTrivia.If(range = range) -> range)
-
-    commentRanges, directiveRanges
-
 // The final identifier of a pattern that heads an arm, when that pattern is one this rule is
 // willing to reason about.
 //
@@ -57,6 +31,14 @@ let caseNameOf (pattern: SynPat) : string option =
     match pattern with
     | SynPat.LongIdent(longDotId = SynLongIdent(id = identifiers)) ->
         identifiers |> List.tryLast |> Option.map (fun (ident: Ident) -> ident.idText)
+    // A list is matched by its own two shapes rather than by union cases, and those two are as
+    // disjoint as any pair of cases: an empty list never has a head. Naming them is what lets the
+    // rule speak about the recursive function that walks a list, which is where the shape lives.
+    //
+    // A non-empty literal such as `[ x ]` is deliberately left unnamed. It overlaps `x :: rest`, so
+    // those two cannot be swapped, and the rule has to stay quiet rather than guess.
+    | SynPat.ListCons _ -> Some "::"
+    | SynPat.ArrayOrList(isArray = isArray; elementPats = []) -> Some(if isArray then "[||]" else "[]")
     | _ -> None
 
 // Whether two arms can never match the same value, which is what makes reordering them sound.
@@ -88,7 +70,8 @@ let shouldSwap
     (matchRange: range)
     (first: SynMatchClause)
     (second: SynMatchClause)
-    : bool =
+    : bool
+    =
     match first, second with
     | SynMatchClause(pat = firstPattern; whenExpr = None; range = firstRange),
       SynMatchClause(pat = secondPattern; whenExpr = None; range = secondRange) ->
@@ -107,10 +90,8 @@ let analyze (parsedInput: ParsedInput) : Message list =
     let walker: SyntaxCollectorBase =
         { new SyntaxCollectorBase() with
             override _.WalkExpr(_path: SyntaxVisitorPath, expr: SynExpr) : unit =
-                match expr with
-                | SynExpr.Match(clauses = [ first; second ]; range = matchRange) when
-                    shouldSwap comments directives matchRange first second
-                    ->
+                match matchClausesOf expr with
+                | Some(matchRange, [ first; second ]) when shouldSwap comments directives matchRange first second ->
                     match second with
                     | SynMatchClause(pat = pattern; range = clauseRange) ->
                         let name: string = defaultArg (caseNameOf pattern) "this"
@@ -130,7 +111,8 @@ let analyze (parsedInput: ParsedInput) : Message list =
             Severity = Severity.Warning
             Range = clause
             Fixes = []
-        })
+        }
+    )
     |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =

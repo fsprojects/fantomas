@@ -50,26 +50,27 @@ let describe (origin: string) (problems: EditorConfigProblem list) : string opti
     if List.isEmpty problems then
         None
     else
-        let namesAnyUnknownSetting =
-            problems
-            |> List.exists (fun problem ->
-                match problem with
-                | EditorConfigProblem.UnknownSetting _ -> true
-                | EditorConfigProblem.UnrecognizedValue _ -> false
-            )
 
-        [
-            yield ""
-            yield $"Fantomas cannot use some settings from %s{origin}:"
-            for problem in problems do
-                yield String.Concat("  ", describeProblem problem)
-            if namesAnyUnknownSetting then
-                yield
-                    $"Run fantomas with --verbosity d to see every .editorconfig setting fantomas %s{fantomasVersion} supports."
-            yield ""
-        ]
-        |> String.concat Environment.NewLine
-        |> Some
+    let namesAnyUnknownSetting =
+        problems
+        |> List.exists (fun problem ->
+            match problem with
+            | EditorConfigProblem.UnknownSetting _ -> true
+            | EditorConfigProblem.UnrecognizedValue _ -> false
+        )
+
+    [
+        yield ""
+        yield $"Fantomas cannot use some settings from %s{origin}:"
+        for problem in problems do
+            yield String.Concat("  ", describeProblem problem)
+        if namesAnyUnknownSetting then
+            yield
+                $"Run fantomas with --verbosity d to see every .editorconfig setting fantomas %s{fantomasVersion} supports."
+        yield ""
+    ]
+    |> String.concat Environment.NewLine
+    |> Some
 
 let describeSupportedSettings () : string =
     [
@@ -94,30 +95,32 @@ let createReporter (log: ILogger) : EditorConfigReporter =
         match describe origin problems with
         | None -> ()
         | Some report ->
-            if reported.TryAdd(report, ()) then
-                // The report carries what someone wrote in their `.editorconfig`, so it travels as
-                // a property rather than as the message template: a `{` in a value would otherwise
-                // be read as the start of one.
-                log.Warning("{EditorConfigReport}", report)
 
-            if
-                log.IsEnabled LogEventLevel.Debug
-                && Threading.Interlocked.Exchange(&supportedSettingsWritten.contents, 1) = 0
-            then
-                log.Debug("{SupportedEditorConfigSettings}", describeSupportedSettings ())
+        if reported.TryAdd(report, ()) then
+            // The report carries what someone wrote in their `.editorconfig`, so it travels as
+            // a property rather than as the message template: a `{` in a value would otherwise
+            // be read as the start of one.
+            log.Warning("{EditorConfigReport}", report)
+
+        if
+            log.IsEnabled LogEventLevel.Debug
+            && Threading.Interlocked.Exchange(&supportedSettingsWritten.contents, 1) = 0
+        then
+            log.Debug("{SupportedEditorConfigSettings}", describeSupportedSettings ())
 
 let readConfiguration (report: EditorConfigReporter) (fsharpFile: string) : FormatConfig =
     match tryReadConfiguration fsharpFile with
     | None -> FormatConfig.Default
     | Some result ->
-        let origin =
-            match result.EditorConfigFiles with
-            // The editorconfig library only reports settings it read from a file, so it should
-            // always name at least one. Keep a way through anyway, because that is its invariant
-            // and not ours, but do not name the F# file as the origin: nothing is wrong with it,
-            // and pointing at it sends someone looking in the wrong place.
-            | [] -> $"the .editorconfig that applies to %s{fsharpFile}"
-            | files -> String.concat ", " files
 
-        report origin result.Problems
-        result.Config
+    let origin =
+        match result.EditorConfigFiles with
+        // The editorconfig library only reports settings it read from a file, so it should
+        // always name at least one. Keep a way through anyway, because that is its invariant
+        // and not ours, but do not name the F# file as the origin: nothing is wrong with it,
+        // and pointing at it sends someone looking in the wrong place.
+        | [] -> $"the .editorconfig that applies to %s{fsharpFile}"
+        | files -> String.concat ", " files
+
+    report origin result.Problems
+    result.Config

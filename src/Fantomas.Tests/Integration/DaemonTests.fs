@@ -118,9 +118,10 @@ let private runWithDaemonCollectingWarnings
                 if (before > 0 && steadyFor >= 2) || attemptsLeft = 0 then
                     return ()
                 else
-                    do! Async.Sleep 50
-                    let steadyFor = if count () = before then steadyFor + 1 else 0
-                    return! settle (attemptsLeft - 1) steadyFor
+
+                do! Async.Sleep 50
+                let steadyFor = if count () = before then steadyFor + 1 else 0
+                return! settle (attemptsLeft - 1) steadyFor
             }
 
         try
@@ -144,8 +145,9 @@ let private theOnlyWarning (warnings: ConfigurationWarning list) : Configuration
     match warnings with
     | [ warning ] -> warning
     | otherwise ->
-        Assert.Fail $"Expected exactly one configuration warning, got %A{otherwise}"
-        failwith "unreachable"
+
+    Assert.Fail $"Expected exactly one configuration warning, got %A{otherwise}"
+    failwith "unreachable"
 
 let private problemsOf (warning: ConfigurationWarning) : (int * int * string * string) array =
     warning.Problems

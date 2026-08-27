@@ -1,6 +1,23 @@
 module Fantomas.Analyzers.Common
 
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.Text
+
+/// The comments of a file and its conditional directives, in that order.
+///
+/// These are the two things that make a reshape of a match something other than a reshape. A
+/// comment between two arms belongs to neither once they have moved, and a conditional directive
+/// inside a match means the arms one rule reads are not the arms every build sees. Both rules that
+/// speak about match arms have to ask, so both ask here.
+val triviaOf: parsedInput: ParsedInput -> range list * range list
+
+/// The arms of everything that prints as a list of match arms, with the range of the expression they
+/// belong to.
+///
+/// `match`, `match!` and `function` all reach the same clause printer in `CodePrinter`, so a rule
+/// about arms means all three of them. Both rules that speak about arms ask here, so neither can
+/// quietly cover fewer shapes than the other.
+val matchClausesOf: expr: SynExpr -> (range * SynMatchClause list) option
 
 /// Whether the file being analyzed has a signature file in the same project.
 ///

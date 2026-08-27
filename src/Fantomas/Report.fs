@@ -130,11 +130,12 @@ let reportIgnored
     let mutable saidOutLoud: bool = false
 
     for file in List.sort ignored do
-        if Set.contains file named then
-            saidOutLoud <- true
-            env.Log.Information(fileLine theme glyphs.Ignored file "was ignored by .fantomasignore.")
-        else
+        if not (Set.contains file named) then
             env.Log.Debug $"'%s{file}' was ignored"
+        else
+
+        saidOutLoud <- true
+        env.Log.Information(fileLine theme glyphs.Ignored file "was ignored by .fantomasignore.")
 
     saidOutLoud
 
@@ -156,11 +157,11 @@ let summaryLine (theme: Theme) (counts: (int * string) list) : string =
             // one that carries the noun. Asking the line what it has so far is what lets the states
             // at zero be dropped, the separator be placed and the noun be put in front of exactly
             // one of them without walking the list three times to find out.
-            if line.Length = 0 then
+            if line.Length <> 0 then
+                line.Append(", ").Append(heading theme (string<int> count)) |> ignore
+            else
                 line.Append(heading theme (string<int> count)).Append(' ').Append(plural count "file" "files")
                 |> ignore
-            else
-                line.Append(", ").Append(heading theme (string<int> count)) |> ignore
 
             line.Append(' ').Append(label) |> ignore
 
@@ -217,11 +218,12 @@ let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string,
     match describeItself env.ErrorTheme file source verbose error with
     | Some report -> env.Log.Error(String.Concat(glyphs.Errored, " ", report))
     | None ->
-        env.Log.Error(describeOther ())
 
-        // The line above is the one to act on; this keeps the type and the stack trace for whoever
-        // asks for detail, rather than replacing the message with them.
-        env.Log.Debug $"%A{error}"
+    env.Log.Error(describeOther ())
+
+    // The line above is the one to act on; this keeps the type and the stack trace for whoever
+    // asks for detail, rather than replacing the message with them.
+    env.Log.Debug $"%A{error}"
 
 // A single named file is answered on its own terms: the caller asked about this file, so every
 // state it can be in is said out loud, and there is no summary to add to one line.
@@ -501,16 +503,17 @@ let reportCheckResults
         if needing = 0 then
             None
         else
-            let subject: string = if needing = 1 then "it" else "them"
 
-            Some(
-                String.Concat(
-                    "Run ",
-                    muted theme env.Invocation,
-                    flagName theme (String.Concat(" ", describeInputPaths inputPath)),
-                    $" to format %s{subject}."
-                )
+        let subject: string = if needing = 1 then "it" else "them"
+
+        Some(
+            String.Concat(
+                "Run ",
+                muted theme env.Invocation,
+                flagName theme (String.Concat(" ", describeInputPaths inputPath)),
+                $" to format %s{subject}."
             )
+        )
 
     // Counted whenever the run found anything, rather than only when something needs formatting: an
     // error is a finding too, and a check that reported one used to end without saying how many
@@ -541,8 +544,9 @@ let reportCheckResults
     match List.choose id [ summary; fix ] with
     | [] -> ()
     | lines ->
-        env.Log.Information ""
-        env.Log.Information(String.concat " " lines)
+
+    env.Log.Information ""
+    env.Log.Information(String.concat " " lines)
 
 // What is printed and what the process ends with are decided apart from each other, so that this
 // reporter and the JSON one cannot end the same run with different codes.
@@ -664,16 +668,17 @@ let describeDoctorFile (theme: Theme) (glyphs: StatusGlyphs) (step: FileStep) : 
         match file.UnreachableUnder with
         | None -> doctorRow glyphs.Formatted "File" says
         | Some folder ->
-            // Not a failure: naming the file, which is what this run did, formats it. It is the
-            // answer to the question that brings somebody here with a file under `obj`, and the
-            // ignore file they were about to go and read has nothing to do with it.
-            { doctorRow glyphs.NeedsFormatting "File" says with
-                Detail =
-                    [
-                        $"It sits under %s{link theme folder}, which Fantomas never opens, so a run over a"
-                        "folder above it does not reach this file. Naming the file itself, as here, does."
-                    ]
-            }
+
+        // Not a failure: naming the file, which is what this run did, formats it. It is the
+        // answer to the question that brings somebody here with a file under `obj`, and the
+        // ignore file they were about to go and read has nothing to do with it.
+        { doctorRow glyphs.NeedsFormatting "File" says with
+            Detail =
+                [
+                    $"It sits under %s{link theme folder}, which Fantomas never opens, so a run over a"
+                    "folder above it does not reach this file. Naming the file itself, as here, does."
+                ]
+        }
 
 let describeIgnoreMatch (theme: Theme) (matched: IgnoreMatch) : string =
     String.Concat("line ", string<int> matched.LineNumber, ": ", flagName theme matched.Pattern)
@@ -682,115 +687,117 @@ let describeDoctorIgnore (theme: Theme) (glyphs: StatusGlyphs) (verbose: bool) (
     match step with
     | IgnoreStep.NoIgnoreFile -> doctorRow glyphs.Formatted "Ignore" "No .fantomasignore at or above this file."
     | IgnoreStep.Governed(ignoreFile, isIgnored, matches, shadowed) ->
-        let deciding: IgnoreMatch option = List.tryLast matches
 
-        // A path is somewhere the reader can go and a pattern is something they can type, here as
-        // in the lines below. A sentence is no reason for either to lose its colour.
-        let ignoreFile: string = link theme ignoreFile
-        let pattern (matched: IgnoreMatch) : string = flagName theme matched.Pattern
+    let deciding: IgnoreMatch option = List.tryLast matches
 
-        let says: string =
-            match isIgnored, deciding with
-            | true, Some matched -> $"Matched by %s{ignoreFile}, line %d{matched.LineNumber}: %s{pattern matched}"
-            | true, None ->
-                // The ignore library said yes and no pattern of the file says so on its own. That
-                // should not happen, and if it does the verdict is the one that decides what
-                // happens to the file, so the verdict is what is reported.
-                $"Matched by %s{ignoreFile}. Which pattern matched could not be worked out."
-            | false, Some matched when matched.Negated ->
-                $"Not matched: line %d{matched.LineNumber} of %s{ignoreFile}, %s{pattern matched}, takes it back out."
-            | false, _ -> $"Governed by %s{ignoreFile}, and no pattern in it matches."
+    // A path is somewhere the reader can go and a pattern is something they can type, here as
+    // in the lines below. A sentence is no reason for either to lose its colour.
+    let ignoreFile: string = link theme ignoreFile
+    let pattern (matched: IgnoreMatch) : string = flagName theme matched.Pattern
 
-        // Read out one at a time only where there is more than one, since a single match is
-        // already quoted in the line above. Several is where it earns its space: what decided is
-        // the last of them, and a `!` line further down is exactly the case nobody spots by eye.
-        let listed: string list =
-            if List.length matches > 1 then
-                List.map (describeIgnoreMatch theme) matches @ [ "The last of these decides." ]
-            else
-                []
+    let says: string =
+        match isIgnored, deciding with
+        | true, Some matched -> $"Matched by %s{ignoreFile}, line %d{matched.LineNumber}: %s{pattern matched}"
+        | true, None ->
+            // The ignore library said yes and no pattern of the file says so on its own. That
+            // should not happen, and if it does the verdict is the one that decides what
+            // happens to the file, so the verdict is what is reported.
+            $"Matched by %s{ignoreFile}. Which pattern matched could not be worked out."
+        | false, Some matched when matched.Negated ->
+            $"Not matched: line %d{matched.LineNumber} of %s{ignoreFile}, %s{pattern matched}, takes it back out."
+        | false, _ -> $"Governed by %s{ignoreFile}, and no pattern in it matches."
 
-        // An ignore file further up that would have skipped this file, where the one that governs
-        // it does not. The only arrangement of ignore files worth interrupting the report for, and
-        // the one somebody arrives with: a pattern written in a repository's ignore file that had
-        // no effect, and an ignore file in a subfolder they had forgotten writing.
-        //
-        // The other direction says nothing. Where the governing file already skips the file, what
-        // one further up would have made of it changes neither the outcome nor what the reader is
-        // puzzled by, and the line that names the pattern which decided is already there.
-        let overruled: ShadowedIgnoreFile list =
-            if isIgnored then
-                []
-            else
-                List.filter (fun (above: ShadowedIgnoreFile) -> above.WouldIgnore) shadowed
+    // Read out one at a time only where there is more than one, since a single match is
+    // already quoted in the line above. Several is where it earns its space: what decided is
+    // the last of them, and a `!` line further down is exactly the case nobody spots by eye.
+    let listed: string list =
+        if List.length matches > 1 then
+            List.map (describeIgnoreMatch theme) matches @ [ "The last of these decides." ]
+        else
+            []
 
-        let overruledLines: string list =
-            match overruled with
-            | [] -> []
-            | files ->
-                [
-                    for file in files do
-                        let path: string = link theme file.Path
+    // An ignore file further up that would have skipped this file, where the one that governs
+    // it does not. The only arrangement of ignore files worth interrupting the report for, and
+    // the one somebody arrives with: a pattern written in a repository's ignore file that had
+    // no effect, and an ignore file in a subfolder they had forgotten writing.
+    //
+    // The other direction says nothing. Where the governing file already skips the file, what
+    // one further up would have made of it changes neither the outcome nor what the reader is
+    // puzzled by, and the line that names the pattern which decided is already there.
+    let overruled: ShadowedIgnoreFile list =
+        if isIgnored then
+            []
+        else
+            List.filter (fun (above: ShadowedIgnoreFile) -> above.WouldIgnore) shadowed
 
-                        match List.tryLast file.Matches with
-                        | Some matched ->
-                            $"%s{path} is above it and has no say: line %d{matched.LineNumber}, %s{pattern matched}, would have skipped this file."
-                        | None ->
-                            // Same disagreement between the verdict and the lines that the
-                            // governing file can have, and survived the same way.
-                            $"%s{path} is above it and has no say. It would have skipped this file."
+    let overruledLines: string list =
+        match overruled with
+        | [] -> []
+        | files ->
 
-                    "Fantomas reads the nearest .fantomasignore and no other, where .gitignore applies"
-                    "every one above the file as well."
-                ]
+        [
+            for file in files do
+                let path: string = link theme file.Path
 
-        // The rest of the chain, for whoever asked for detail. Named rather than described: none of
-        // them decided anything, and the one that would have is already spelled out above.
-        let alsoAbove: string list =
-            // The complement of `overruled`, said the same way round rather than by subtracting one
-            // list from the other, which would ask an equality of the record that nothing else
-            // needs.
-            let quiet: string list =
-                shadowed
-                |> List.choose (fun (above: ShadowedIgnoreFile) ->
-                    if isIgnored || not above.WouldIgnore then
-                        Some(link theme above.Path)
-                    else
-                        None
-                )
+                match List.tryLast file.Matches with
+                | Some matched ->
+                    $"%s{path} is above it and has no say: line %d{matched.LineNumber}, %s{pattern matched}, would have skipped this file."
+                | None ->
+                    // Same disagreement between the verdict and the lines that the
+                    // governing file can have, and survived the same way.
+                    $"%s{path} is above it and has no say. It would have skipped this file."
 
-            if verbose && not (List.isEmpty quiet) then
-                [ $"Also above it, with no say: %s{andList quiet}." ]
-            else
-                []
+            "Fantomas reads the nearest .fantomasignore and no other, where .gitignore applies"
+            "every one above the file as well."
+        ]
 
-        // The difference from `.gitignore` that catches people out, said to whoever asked for
-        // detail rather than on every run. Not said twice: where an ignore file above was actually
-        // overruled, the lines that report it carry the rule already.
-        let nearestOnly: string list =
-            if verbose && List.isEmpty overruled then
-                [
-                    "This is the nearest .fantomasignore at or above the file and the only one that"
-                    "applies. Unlike .gitignore, Fantomas does not merge in the ones above it."
-                ]
-            else
-                []
+    // The rest of the chain, for whoever asked for detail. Named rather than described: none of
+    // them decided anything, and the one that would have is already spelled out above.
+    let alsoAbove: string list =
+        // The complement of `overruled`, said the same way round rather than by subtracting one
+        // list from the other, which would ask an equality of the record that nothing else
+        // needs.
+        let quiet: string list =
+            shadowed
+            |> List.choose (fun (above: ShadowedIgnoreFile) ->
+                if isIgnored || not above.WouldIgnore then
+                    Some(link theme above.Path)
+                else
+                    None
+            )
 
-        { doctorRow glyphs.Ignored "Ignore" says with
-            Detail = listed @ overruledLines @ alsoAbove @ nearestOnly
-        }
-        |> fun (row: DoctorRow) ->
-            if isIgnored then
-                row
-            elif not (List.isEmpty overruled) then
-                // Not a failure, and not the plain answer either: the file is formatted, and an
-                // ignore file the reader may well have meant to apply says it should not be. The
-                // same mark a file under a folder no walk opens carries, for the same reason.
-                { row with
-                    Glyph = glyphs.NeedsFormatting
-                }
-            else
-                { row with Glyph = glyphs.Formatted }
+        if verbose && not (List.isEmpty quiet) then
+            [ $"Also above it, with no say: %s{andList quiet}." ]
+        else
+            []
+
+    // The difference from `.gitignore` that catches people out, said to whoever asked for
+    // detail rather than on every run. Not said twice: where an ignore file above was actually
+    // overruled, the lines that report it carry the rule already.
+    let nearestOnly: string list =
+        if verbose && List.isEmpty overruled then
+            [
+                "This is the nearest .fantomasignore at or above the file and the only one that"
+                "applies. Unlike .gitignore, Fantomas does not merge in the ones above it."
+            ]
+        else
+            []
+
+    { doctorRow glyphs.Ignored "Ignore" says with
+        Detail = listed @ overruledLines @ alsoAbove @ nearestOnly
+    }
+    |> fun (row: DoctorRow) ->
+        if isIgnored then
+            row
+        elif not (List.isEmpty overruled) then
+            // Not a failure, and not the plain answer either: the file is formatted, and an
+            // ignore file the reader may well have meant to apply says it should not be. The
+            // same mark a file under a folder no walk opens carries, for the same reason.
+            { row with
+                Glyph = glyphs.NeedsFormatting
+            }
+        else
+            { row with Glyph = glyphs.Formatted }
 
 let describeDoctorSettings (theme: Theme) (glyphs: StatusGlyphs) (resolved: ResolvedConfig) : DoctorRow =
     let fromEditorConfig: ResolvedSetting list = resolved.FromEditorConfig
@@ -825,11 +832,12 @@ let describeDoctorSettings (theme: Theme) (glyphs: StatusGlyphs) (resolved: Reso
         | [], _ -> $"No .editorconfig applies. All %d{total} settings are Fantomas defaults."
         | files, [] -> $"All %d{total} settings are Fantomas defaults: %s{named files} sets nothing Fantomas reads."
         | _, set ->
-            let count: int = List.length set
 
-            // Named, and named absolutely, as every path this report prints is. `.editorconfig` on
-            // its own is the one thing somebody reading this cannot go and open.
-            $"%d{count} of %d{total} settings come from %s{named contributing}, the rest are Fantomas defaults."
+        let count: int = List.length set
+
+        // Named, and named absolutely, as every path this report prints is. `.editorconfig` on
+        // its own is the one thing somebody reading this cannot go and open.
+        $"%d{count} of %d{total} settings come from %s{named contributing}, the rest are Fantomas defaults."
 
     let written (setting: ResolvedSetting) : string =
         String.Concat(setting.Setting, " = ", setting.Value)
@@ -1049,8 +1057,9 @@ let reportDoctorReport (env: CliEnvironment) (settings: CliSettings) (report: Do
     match footer with
     | None -> ()
     | Some report ->
-        blank ()
-        write report
+
+    blank ()
+    write report
 
 let reportDoctorCommand (env: CliEnvironment) (settings: CliSettings) (result: DoctorCommandResult) : int =
     match result with

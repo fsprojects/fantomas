@@ -37,9 +37,10 @@ type TemporaryFileCodeSample
         match subFolders with
         | Some sf -> Some sf
         | None ->
-            match subFolder with
-            | Some sf -> Array.singleton sf |> Some
-            | None -> None
+
+        match subFolder with
+        | Some sf -> Array.singleton sf |> Some
+        | None -> None
 
     let filename =
         let name =
@@ -52,12 +53,13 @@ type TemporaryFileCodeSample
         match internalSubFolders with
         | None -> Path.Join(Path.GetTempPath(), sprintf "%s.%s" name extension)
         | Some sf ->
-            let tempFolder = Path.Join(Path.GetTempPath(), Path.Join(sf))
 
-            if not (Directory.Exists(tempFolder)) then
-                Directory.CreateDirectory(tempFolder) |> ignore
+        let tempFolder = Path.Join(Path.GetTempPath(), Path.Join(sf))
 
-            Path.Join(tempFolder, sprintf "%s.%s" name extension)
+        if not (Directory.Exists(tempFolder)) then
+            Directory.CreateDirectory(tempFolder) |> ignore
+
+        Path.Join(tempFolder, sprintf "%s.%s" name extension)
 
     do
         (if hasByteOrderMark then

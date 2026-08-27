@@ -96,15 +96,16 @@ type CodeFragment =
                 elif not hasOwnContent && hasOtherContent then
                     -1
                 else
-                    // This only really tailors to #1026
-                    // The shortest content is chosen because it will lead to the branch with less indentation.
-                    // This is again very specific to that exact unit test.
-                    let ownLength = ownContent.Length
-                    let otherLength = otherContent.Length
 
-                    if ownLength < otherLength then 1
-                    elif ownLength > otherLength then -1
-                    else 0
+                // This only really tailors to #1026
+                // The shortest content is chosen because it will lead to the branch with less indentation.
+                // This is again very specific to that exact unit test.
+                let ownLength = ownContent.Length
+                let otherLength = otherContent.Length
+
+                if ownLength < otherLength then 1
+                elif ownLength > otherLength then -1
+                else 0
             // This is an unexpected situation.
             // You should never enter the case where you need to compare a hash line with something other than a hash line.
             | x, other -> failwith $"Cannot compare %A{x} with %A{other}"
@@ -256,8 +257,9 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
         if List.isEmpty headItems then
             continuation []
         else
-            let max = List.max headItems
-            traverseFragments (List.map List.tail input) (fun xs -> max :: xs |> continuation)
+
+        let max = List.max headItems
+        traverseFragments (List.map List.tail input) (fun xs -> max :: xs |> continuation)
 
     let selectedFragments: CodeFragment list =
         traverseFragments (allInFragments |> List.map (fun r -> r.Fragments)) id

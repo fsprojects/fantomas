@@ -1,4 +1,4 @@
-[src/**/*.{fs,fsi}]
+[{src,analyzers}/**/*.{fs,fsi}]
 fsharp_keep_max_number_of_blank_lines=1
 fsharp_align_function_signature_to_indentation=true
 fsharp_alternative_long_member_definitions=true

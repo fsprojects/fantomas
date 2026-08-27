@@ -216,8 +216,9 @@ let writeFlag
     match description with
     | [] -> write left
     | first :: rest ->
-        writeRow write descriptionColumn left first
-        List.iter (writeContinuation write descriptionColumn) rest
+
+    writeRow write descriptionColumn left first
+    List.iter (writeContinuation write descriptionColumn) rest
 
 let writeExample
     (write: string -> unit)
@@ -236,8 +237,9 @@ let writeLink (write: string -> unit) (theme: Theme) (label: string, urls: strin
     match urls with
     | [] -> ()
     | first :: rest ->
-        writeRow write linkColumn label (link theme first)
-        List.iter (fun (url: string) -> writeContinuation write linkColumn (link theme url)) rest
+
+    writeRow write linkColumn label (link theme first)
+    List.iter (fun (url: string) -> writeContinuation write linkColumn (link theme url)) rest
 
 let renderOverview (theme: Theme) (invocation: string) : string list =
     let lines: ResizeArray<string> = ResizeArray()
