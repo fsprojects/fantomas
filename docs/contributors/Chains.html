@@ -844,6 +844,28 @@ A long call does not drag the short ones open:</p>
     <span class="pn">)</span>
 </code></pre>
 <p>The difference is not the chain choosing between them. It is the same deference twice: a lambda opener wants to sit on one line with its arrow, and a tuple does not care, so the ordinary argument rules answer differently.</p>
+<h4><a name="Only-the-last-call-may-move-its-parenthesis" class="anchor" href="#Only-the-last-call-may-move-its-parenthesis">Only the last call may move its parenthesis</a></h4>
+<p>Moving the argument down is the one answer the ordinary rules can give that the chain does get a say over, and the answer is that only the last call may take it, for the reason set out under <a href="#An-intermediate-call-is-welded-to-its-parenthesis">An intermediate call is welded to its parenthesis</a>. A line break is the same gap there as a space.</p>
+<p>Worth knowing what the two mistakes look like, because only one of them is loud. With a call behind it, <code>.Create()</code>, the compiler rejects the result with "This argument expression needs parentheses". With a plain member behind it, <code>.Value</code>, nothing warns at all: the code reparses quietly and the member becomes part of the argument.</p>
+<p>So an intermediate call keeps its <code>(</code> welded to the member name and breaks behind it instead. The closing <code>)</code> still answers to <code>fsharp_multi_line_lambda_closing_newline</code>, exactly as it does when the argument moves:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// ✅ a step follows, so the parenthesis cannot move</span>
+<span class="k">let</span> <span class="id">register</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
+    <span class="id">Mock</span><span class="pn">&lt;</span><span class="id">IInstanceApi</span><span class="pn">&gt;</span><span class="pn">(</span><span class="pn">)</span>
+        <span class="pn">.</span><span class="id">Calls</span><span class="pn">(</span>
+            <span class="k">fun</span> <span class="pn">(</span><span class="id">path</span><span class="pn">:</span> <span class="id">StepPath</span><span class="pn">)</span> <span class="pn">(</span><span class="id">key</span><span class="pn">:</span> <span class="id">WellKnownStepMetadata</span><span class="pn">)</span> <span class="pn">(</span><span class="id">value</span><span class="pn">:</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="12" class="id">string</span><span class="pn">)</span> <span class="k">-&gt;</span>
+                <span class="id">metadata</span><span class="pn">.</span><span class="id">Add</span><span class="pn">(</span><span class="id">key</span><span class="pn">,</span> <span class="id">value</span><span class="pn">)</span><span class="pn">)</span>
+        <span class="pn">.</span><span class="id">Create</span><span class="pn">(</span><span class="pn">)</span>
+</code></pre>
+<p>Hanging the parameters under <code>(fun</code> would keep the <code>(</code> in place too, and the F# style guide rules that out, because the column they hang from is the length of the member name. The shape the guide asks for when a lambda's parameters do not fit, one indent below <code>fun</code>, is not available here: below a <code>(</code> that sits mid-line it breaks the offside rule.</p>
+<p>The two shapes read as an inconsistency, and it is worth being clear about what divides them. It is not fluent code against ordinary code. A last call is reached the same way whether the chain is <code>Mock&lt;IInstanceApi&gt;().Create().Calls</code> or plain <code>List.tryPick</code>, and the style guide asks for the moved parenthesis there:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// ✔️ the F# style guide, under Formatting lambda expressions</span>
+<span class="k">let</span> <span class="id">printListWithOffset</span> <span class="id">a</span> <span class="id">list1</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="13" class="id">List</span><span class="pn">.</span><span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="14" class="id">iter</span>
+        <span class="pn">(</span><span class="k">fun</span> <span class="id">elem</span> <span class="k">-&gt;</span>
+             <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="15" class="id">printfn</span> <span class="s">$&quot;A very long line to format the value: %d{</span><span class="id">a</span> <span class="o">+</span> <span class="id">elem</span><span class="s">}&quot;</span><span class="pn">)</span>
+        <span class="id">list1</span>
+</code></pre>
+<p>What divides them is whether anything to the right consumes the call's result. Where nothing does, the call is an ordinary application and is laid out like one. Where something does, it is not an ordinary application, and the parser reads the gap as handing that step to the argument. So the same call really is laid out two ways, and adding a step behind it reshapes it, but the difference is one the compiler enforces rather than one chosen here.</p>
 <h4><a name="Match-lambdas-are-no-exception" class="anchor" href="#Match-lambdas-are-no-exception">Match lambdas are no exception</a></h4>
 <p>Match lambdas, written <code>(function</code>, are the argument shape most likely to look like an exception, so it is worth showing in full that they are not one.
 The F# style guide asks for them to be treated the same as <code>fun</code> lambdas ("Treat match lambda's in a similar fashion"), and they are: where the call sits in its chain makes no difference to either form.</p>
@@ -853,7 +875,7 @@ The F# style guide asks for them to be treated the same as <code>fun</code> lamb
     <span class="pn">.</span><span class="id">Configure</span><span class="pn">(</span><span class="k">fun</span> <span class="id">v</span> <span class="k">-&gt;</span>
         <span class="id">handleSomeValue</span> <span class="id">v</span> <span class="o">|&gt;</span> <span class="id">andThenSomethingElse</span> <span class="id">v</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
-    <span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="12" class="id">Result</span>
+    <span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="16" class="id">Result</span>
 
 <span class="c">// ✅ fun, last step</span>
 <span class="id">builder</span>
@@ -864,17 +886,17 @@ The F# style guide asks for them to be treated the same as <code>fun</code> lamb
 <span class="c">// ✅ function, mid-pipeline</span>
 <span class="id">builder</span>
     <span class="pn">.</span><span class="id">Configure</span><span class="pn">(</span><span class="k">function</span>
-        <span class="pn">|</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="13" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
-        <span class="pn">|</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="14" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="17" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="18" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
-    <span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="15" class="id">Result</span>
+    <span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="19" class="id">Result</span>
 
 <span class="c">// ✅ function, last step</span>
 <span class="id">builder</span>
     <span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">Configure</span><span class="pn">(</span><span class="k">function</span>
-        <span class="pn">|</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="16" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
-        <span class="pn">|</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="17" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="20" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="21" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
 </code></pre>
 <p>Read down the column: each form keeps its shape when the call moves. Read across the pair: both forms keep the opener attached to the <code>(</code>.</p>
 <p>Now the same four with <code>multi_line_lambda_closing_newline</code> set to <code>true</code>:</p>
@@ -884,7 +906,7 @@ The F# style guide asks for them to be treated the same as <code>fun</code> lamb
         <span class="id">handleSomeValue</span> <span class="id">v</span> <span class="o">|&gt;</span> <span class="id">andThenSomethingElse</span> <span class="id">v</span>
     <span class="pn">)</span>
     <span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
-    <span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="18" class="id">Result</span>
+    <span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="22" class="id">Result</span>
 
 <span class="c">// ✅ fun, last step</span>
 <span class="id">builder</span>
@@ -897,25 +919,26 @@ The F# style guide asks for them to be treated the same as <code>fun</code> lamb
 <span class="id">builder</span>
     <span class="pn">.</span><span class="id">Configure</span><span class="pn">(</span>
         <span class="k">function</span>
-        <span class="pn">|</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="19" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
-        <span class="pn">|</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="20" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="23" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="24" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span>
     <span class="pn">)</span>
     <span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
-    <span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="21" class="id">Result</span>
+    <span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="25" class="id">Result</span>
 
 <span class="c">// ✅ function, last step</span>
 <span class="id">builder</span>
     <span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">Configure</span><span class="pn">(</span>
         <span class="k">function</span>
-        <span class="pn">|</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="22" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
-        <span class="pn">|</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="23" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="26" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
+        <span class="pn">|</span> <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="27" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span>
     <span class="pn">)</span>
 </code></pre>
 <p>Position still makes no difference. What the setting changes is the closing <code>)</code>, which now takes a line of its own in all four.</p>
 <p>The one difference left between the two forms is that <code>function</code> also moves down off the <code>(</code>, while <code>(fun v -&gt;</code> stays put. That is not about the chain either: a <code>fun</code> lambda's parameters have to stay with their arrow, so there is nothing to move, whereas <code>function</code> takes no parameters and can. The setting simply has a visible effect on the opener as well as on the closing <code>)</code> for that one argument shape.</p>
 <p>The setting is the only thing that moves it. Writing <code>function</code> on the line below the <code>(</code> yourself makes no difference: the same call written across more lines is still the same call, and Fantomas has to land on one answer for both.</p>
 <p>In none of these does the chain have a say. <code>.Configure</code> is an intermediate call in half of them, so its <code>(</code> is welded to it either way; where the lambda goes is the argument's business, and it answers the same way in both positions.</p>
+<p>That holds because every opener above fits beside its method name. Once one does not, position is the one thing that does decide, since moving the argument down is an answer only the last call can take; see <a href="#Only-the-last-call-may-move-its-parenthesis">Only the last call may move its parenthesis</a>.</p>
 <h4><a name="A-comment-beside-the-parentheses" class="anchor" href="#A-comment-beside-the-parentheses">A comment beside the parentheses</a></h4>
 <p>A comment can sit on either side of a call's opening parenthesis, and which side it is on decides what moves.</p>
 <p>In front of the argument, the comment is written after the <code>(</code>. The parenthesis has no reason to leave the method name, so it stays where it is and only the argument moves down:</p>
@@ -962,8 +985,27 @@ from Microsoft.FSharp.Core<br /><br />--------------------<br />
 type Result&lt;&#39;T,&#39;TError&gt; =
   | Ok of ResultValue: &#39;T
   | Error of ErrorValue: &#39;TError</div>
-<div popover class="fsdocs-tip" id="fs11">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs12">union case Option.None: Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs11">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
+<div popover class="fsdocs-tip" id="fs12">Multiple items<br />module List
+
+from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List&lt;&#39;T&gt; =
+  | op_Nil
+  | op_ColonColon of Head: &#39;T * Tail: &#39;T list
+  interface IReadOnlyList&lt;&#39;T&gt;
+  interface IReadOnlyCollection&lt;&#39;T&gt;
+  interface IEnumerable
+  interface IEnumerable&lt;&#39;T&gt;
+  member GetReverseIndex: rank: int * offset: int -&gt; int
+  member GetSlice: startIndex: int option * endIndex: int option -&gt; &#39;T list
+  static member Cons: head: &#39;T * tail: &#39;T list -&gt; &#39;T list
+  member Head: &#39;T
+  member IsEmpty: bool
+  member Item: index: int -&gt; &#39;T with get
+  ...</div>
+<div popover class="fsdocs-tip" id="fs13">val iter: action: (&#39;T -&gt; unit) -&gt; list: &#39;T list -&gt; unit</div>
+<div popover class="fsdocs-tip" id="fs14">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs15">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs16">union case Option.None: Option&lt;&#39;T&gt;</div>
 
     </div>
 </main>
@@ -1113,6 +1155,11 @@ type Result&lt;&#39;T,&#39;TError&gt; =
   <li class="level-4">
     <a href="#Any-part-of-a-chain-can-grow">
       Any part of a chain can grow
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#Only-the-last-call-may-move-its-parenthesis">
+      Only the last call may move its parenthesis
     </a>
   </li>
   <li class="level-4">
