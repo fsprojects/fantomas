@@ -1647,18 +1647,37 @@ let genExpr (e: Expr) =
         if isOpenEndedExpression node.LeftHandSide then
             genMultilineInfixExpr node |> genNode node
         // No-break operators (=, >, <, %) keep the operator on the same line as the LHS.
-        // When the expression doesn't fit on one line, indent the RHS to preserve
-        // correct indentation when trivia (comments) precedes it. See #2944.
         elif isNoBreakInfixOp then
+            // The right-hand side is indented so that a comment between it and the operator lands
+            // below the operator rather than at the column of the left-hand side, and so that the
+            // lines under an application or a chain are not read as a continuation of the
+            // left-hand side. See #2944.
+            // A list or an array that opens on the line of the operator needs neither: the bracket
+            // says where the right-hand side begins and indents its items from the left-hand side
+            // itself, so indenting it again pushes the items and the closing bracket a level too
+            // far. See #3428. Other bracketed right-hand sides have the same problem and are left
+            // alone here on purpose: where a no-break operator should put what follows it is a
+            // wider question than this fix.
+            let genRightHandSide (ctx: Context) : Context =
+                let opensBracketOnThisLine: bool =
+                    (match node.RightHandSide with
+                     | Expr.ArrayOrList _ -> true
+                     | _ -> false)
+                    && not (hasWriteBeforeNewlineContent ctx)
+                    && not (Expr.Node node.RightHandSide).HasContentBefore
+
+                (onlyIfNot opensBracketOnThisLine indent
+                 +> sepNlnWhenWriteBeforeNewlineNotEmpty
+                 +> sepSpace
+                 +> genRhsExpr node.RightHandSide
+                 +> onlyIfNot opensBracketOnThisLine unindent)
+                    ctx
+
             let genLongNoBreakInfixExpr =
                 genExpr node.LeftHandSide
                 +> sepSpace
                 +> genSingleTextNode node.Operator
-                +> indent
-                +> sepNlnWhenWriteBeforeNewlineNotEmpty
-                +> sepSpace
-                +> genRhsExpr node.RightHandSide
-                +> unindent
+                +> genRightHandSide
 
             fun ctx ->
                 genNode

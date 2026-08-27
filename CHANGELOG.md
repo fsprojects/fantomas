@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.0-alpha-020] - 2026-08-27
+
+### Fixed
+
+- A list or an array on the right of `=`, `>`, `<`, `%` or `%%` is indented from the binding again, so `let a = b = [ ... ]` breaks to `b = [` with its items one level in and the `]` back at the column of `b`. Since `8.0.0-alpha-003` both the items and the closing bracket sat a further level to the right. The right-hand side of these operators is indented so that a comment between the operator and that side lands below the operator, which is what [#2944](https://github.com/fsprojects/fantomas/issues/2944) asked for, and so that the lines under a chain or an application are not read as a continuation of the left-hand side. A list or an array needs neither: its bracket says where the right-hand side begins and indents its items from the left-hand side by itself, so indenting it again pushed the items and the closing bracket a level too far. This concerns `aligned`, which is the default, and `stroustrup`. `cramped` lines the items up under the opening bracket, so the indent never reached them and nothing changes there. Right-hand sides that open a bracket in some other way, such as `seq { }`, `<@ @>`, `begin ... end` and `new T(...)`, still carry the extra level; where a no-break operator should put what follows it is a wider question than this fix. [#3428](https://github.com/fsprojects/fantomas/issues/3428)
+
 ## [8.0.0-alpha-019] - 2026-08-26
 
 ### Fixed
