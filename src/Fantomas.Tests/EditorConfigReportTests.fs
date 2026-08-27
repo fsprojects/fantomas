@@ -31,13 +31,14 @@ let ``every problem is named, and the origin with them`` () =
     match report with
     | None -> Assert.Fail "Expected a report"
     | Some report ->
-        Assert.That(report, Does.Contain "/repo/.editorconfig")
-        Assert.That(report, Does.Contain "'fsharp_wibble' is not a Fantomas setting")
 
-        Assert.That(
-            report,
-            Does.Contain "'fsharp_experimental_elmish' does not accept the value 'yes', so the default is used instead"
-        )
+    Assert.That(report, Does.Contain "/repo/.editorconfig")
+    Assert.That(report, Does.Contain "'fsharp_wibble' is not a Fantomas setting")
+
+    Assert.That(
+        report,
+        Does.Contain "'fsharp_experimental_elmish' does not accept the value 'yes', so the default is used instead"
+    )
 
 [<Test>]
 let ``a misspelling is answered with the spelling that works`` () =
@@ -60,8 +61,9 @@ let ``the settings list is not written out for a value that could not be read`` 
     match describe "/repo/.editorconfig" [ unrecognized ("fsharp_max_record_width", "banana") ] with
     | None -> Assert.Fail "Expected a report"
     | Some report ->
-        Assert.That(report, Does.Not.Contain "--verbosity d")
-        Assert.That(report, Does.Not.Contain "fsharp_multiline_bracket_style")
+
+    Assert.That(report, Does.Not.Contain "--verbosity d")
+    Assert.That(report, Does.Not.Contain "fsharp_multiline_bracket_style")
 
 [<Test>]
 let ``a setting Fantomas does not have points at where the whole list is`` () =

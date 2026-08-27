@@ -127,9 +127,10 @@ let rec resolveDaemon
                     match running with
                     | None -> startInfo
                     | Some daemon ->
-                        let asItWasStarted = (daemon :> IDaemon).StartInfo
-                        (daemon :> IDaemon).Dispose()
-                        asItWasStarted
+
+                    let asItWasStarted = (daemon :> IDaemon).StartInfo
+                    (daemon :> IDaemon).Dispose()
+                    asItWasStarted
 
                 startDaemon operations version startInfo folder state
         | Error FantomasToolError.NoCompatibleVersionFound -> Error GetDaemonError.InCompatibleVersionFound, state

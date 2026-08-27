@@ -51,12 +51,13 @@ type ConfigurationFile
         match content with
         | Some c -> c
         | None ->
-            let root =
-                match isRoot with
-                | Some true -> "root=true"
-                | _ -> String.empty
 
-            $"%s{root}\n\n%s{header}\n%s{EditorConfig.configToEditorConfig config}"
+        let root =
+            match isRoot with
+            | Some true -> "root=true"
+            | _ -> String.empty
+
+        $"%s{root}\n\n%s{header}\n%s{EditorConfig.configToEditorConfig config}"
 
     do File.WriteAllText(editorConfigPath, content)
 

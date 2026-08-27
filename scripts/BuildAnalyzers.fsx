@@ -309,22 +309,18 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
 let localErrorRules: string list =
     [ "FANTOMAS-PIPEBACK-001"; "FANTOMAS-PRIVATE-001" ]
 
-/// The local analyzers that are kept out of the full run.
+/// The local analyzer that is kept out of the full run.
 ///
-/// Both report on debt that predates them, and a finding in `Analyze` becomes a code scanning alert
-/// on the pull request whatever its severity. `AnalyzeChanged` still runs them, over the files you
-/// touched, which is the scope those rules ask for. Drop one once its debt is gone.
-let localAdvisoryAnalyzers: string list =
-    [ "AnnotationAnalyzer"; "KeepIndentAnalyzer" ]
+/// It reports on debt that predates it, and a finding in `Analyze` becomes a code scanning alert on
+/// the pull request whatever its severity. `AnalyzeChanged` still runs it, over the files you
+/// touched, which is the scope the rule asks for. Drop this once the debt is gone.
+///
+/// `FANTOMAS-KEEPINDENT-001` is deliberately not here. It arrived with debt of its own, and that
+/// debt was cleared in the change that added it, so the full run has nothing old to report and
+/// anything it does report is something the change in front of you introduced.
+let localAdvisoryAnalyzers: string list = [ "AnnotationAnalyzer" ]
 
-/// The codes narrowed further still, to the lines the working tree touched.
-///
-/// A smaller set than the analyzers above, and deliberately so. `FANTOMAS-ANNOTATE-001` fires on
-/// every unannotated binding of a file, which one changed line should not surface all of.
-/// `FANTOMAS-KEEPINDENT-001` fires on an arm's body, which is rarely a line you touched: swapping
-/// two arms for `FANTOMAS-ARMORDER-001` changes the two lines carrying the `|` and none of the body
-/// it then asks you to de-indent. Narrowing that one would hide the finding the swap exists to
-/// reach.
+/// The code of that same rule, which is what a finding carries.
 let localAdvisoryCodes: Set<string> = set [ "FANTOMAS-ANNOTATE-001" ]
 
 /// Decides whether a finding is worth showing, from its rule, its file and its line. `Analyze`

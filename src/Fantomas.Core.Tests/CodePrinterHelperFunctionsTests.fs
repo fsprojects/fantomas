@@ -315,10 +315,11 @@ let a =
                 match Seq.tryHead identNode.ContentBefore with
                 | None -> sepNone
                 | Some triviaNode ->
-                    // If found we check the content and try to print the comment text followed by a newline
-                    match triviaNode.Content with
-                    | CommentOnSingleLine comment -> !-comment +> sepNln
-                    | _ -> !-"error"
+
+                // If found we check the content and try to print the comment text followed by a newline
+                match triviaNode.Content with
+                | CommentOnSingleLine comment -> !-comment +> sepNln
+                | _ -> !-"error"
 
             firstComment +> !-identNode.Text
         | _ -> !-"error"

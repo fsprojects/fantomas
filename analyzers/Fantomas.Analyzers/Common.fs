@@ -70,12 +70,13 @@ let isTest (attributes: SynAttributes) : bool =
             match List.tryLast attribute.TypeName.LongIdent with
             | None -> false
             | Some name ->
-                let bare: string =
-                    if name.idText.EndsWith("Attribute", StringComparison.Ordinal) then
-                        name.idText.Substring(0, name.idText.Length - "Attribute".Length)
-                    else
-                        name.idText
 
-                testAttributes.Contains bare
+            let bare: string =
+                if name.idText.EndsWith("Attribute", StringComparison.Ordinal) then
+                    name.idText.Substring(0, name.idText.Length - "Attribute".Length)
+                else
+                    name.idText
+
+            testAttributes.Contains bare
         )
     )

@@ -10,7 +10,7 @@ feedback arrives while you work instead of in review. They are ordinary F# analy
 | [`FANTOMAS-PIPEBACK-001`](#fantomas-pipeback-001) | No backward pipe | Error | both pipelines |
 | [`FANTOMAS-PRIVATE-001`](#fantomas-private-001) | No `let private` beside a signature file | Error | both pipelines |
 | [`FANTOMAS-ARMORDER-001`](#fantomas-armorder-001) | Shortest match arm first | Warning | both pipelines |
-| [`FANTOMAS-KEEPINDENT-001`](#fantomas-keepindent-001) | Last match arm keeps the indentation | Warning | `AnalyzeChanged` only |
+| [`FANTOMAS-KEEPINDENT-001`](#fantomas-keepindent-001) | Last match arm keeps the indentation | Warning | both pipelines |
 | [`FANTOMAS-ANNOTATE-001`](#fantomas-annotate-001) | Annotate every `let` binding | Warning | `AnalyzeChanged` only |
 | [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries | Warning | both pipelines |
 
@@ -112,13 +112,29 @@ The analyzer is narrower than the rule, because moving a body left can change wh
   writes.
 - Only a body **already on a line of its own** and spanning more than one line. A body that fits
   beside its arrow gets pulled up next to it and never reaches the branch that would keep it.
-- Only where **nothing follows the match in the same block**. This is the one way the reshape
-  changes meaning. De-indenting moves the offside line of the body out to the bar, and code that
-  follows the match in that block sits in exactly that column, so what was the first thing past the
-  match becomes the last thing inside the arm: it stops running whatever matched and starts running
-  only for that one arm. The rule collects every place one expression is followed by another and
-  stays quiet inside the first of such a pair, unless the follower starts further left than the bar,
-  where an enclosing block is what continues and the arm still ends.
+- Only where **every other arm is a one liner**. That is the early return shape, and it is what
+  makes the de-indent mean anything: the arms that decline say so and get out of the way, and what
+  is left is the one path that carries on. A match whose other arms are blocks too is not that
+  shape, and de-indenting the last of them alone puts arms of the same kind at two different
+  indentations and says the last is special when it is not.
+- Only where **nothing follows the match in that column**. This is the one way the reshape changes
+  meaning. De-indenting moves the offside line of the body out to the bar, so the first thing after
+  the match that starts in that column or further right stops following the match and starts
+  belonging to its last arm. Anything further left ends the arm exactly as it ended the match.
+
+  The rule answers this by reading the source: it takes the first line after the one the match ends
+  on that has any content, and compares its indentation. Whatever shares the match's last line moves
+  with the body and keeps its place, which is how a closing bracket stays out of it.
+
+  That is deliberately a question about text rather than about the tree, and it is the third
+  attempt. Collecting `SynExpr.Sequential` pairs missed the `json.WriteEndObject()` after the match
+  in `writeDoctorFile`, so it ran for one case out of three and every doctor report came out as
+  truncated JSON. Flattening those sequences properly then missed the `|> genNode attr` under the
+  match in `genAttributesCore`, which applied to the whole match and would have applied to one arm,
+  so everything reached through the other arm lost its trivia and the compiler-define tests failed.
+  Both were shapes to enumerate and there was always going to be another one. The text has none, and
+  it costs a comment its place at worst: a comment under the match counts as content, so the rule
+  stays quiet rather than move it into the arm.
 
 It stays quiet on a `when` guard, because a multiline guard takes a path in `CodePrinter` that
 indents the body whatever column it is in, and whether a guard prints multiline is a page width
@@ -190,17 +206,17 @@ non-zero on any finding at error severity, so the two error rules fail `Analyze`
 decides who has to look: a rule excluded from `Analyze` is absent from CI and from GitHub code
 scanning whatever its severity, and still reports locally.
 
-`FANTOMAS-ANNOTATE-001` and `FANTOMAS-KEEPINDENT-001` are excluded from `Analyze` because both report
-on debt that predates them. `AnalyzeChanged` runs both.
+`FANTOMAS-ANNOTATE-001` is excluded from `Analyze` because it reports on debt that predates it.
+`AnalyzeChanged` runs it, and narrows it further to the lines `git diff` says you touched: a file is
+a much coarser scope than that rule asks for, and one line changed in a file of several thousand
+otherwise surfaces every unannotated binding in it. Every other rule reports wherever it fires in a
+file you edited, because a finding from one of those is worth seeing.
 
-It narrows `FANTOMAS-ANNOTATE-001` further, to the lines `git diff` says you touched: a file is a
-much coarser scope than that rule asks for, and one line changed in a file of several thousand
-otherwise surfaces every unannotated binding in it. `FANTOMAS-KEEPINDENT-001` is deliberately not
-narrowed that way, and the difference is worth knowing before adding a third. It fires on an arm's
-body, which is rarely a line you touched: swapping two arms for `FANTOMAS-ARMORDER-001` changes the
-two lines carrying the `|` and none of the body it then asks you to de-indent, so narrowing to
-changed lines would hide the finding the swap exists to reach. Every other rule reports wherever it
-fires in a file you edited, because a finding from one of those is worth seeing.
+`FANTOMAS-KEEPINDENT-001` arrived with debt of its own and is still in both pipelines, because that
+debt was cleared in the change that added it. The full run therefore has nothing old to report, and
+anything it does report is something the change in front of you introduced, which is the state to
+keep it in: a new case is cheap to fix while you are writing it and becomes a code scanning alert if
+you do not.
 
 The narrowing reads the tool's own output format and fails open, so anything it cannot parse is
 kept. A change upstream makes it stop narrowing rather than start hiding.

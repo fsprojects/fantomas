@@ -18,8 +18,9 @@ let private getExprFromBinding (oak: Oak) =
     match oak.ModulesOrNamespaces.[0].Declarations.[0] with
     | ModuleDecl.TopLevelBinding binding -> binding.Expr
     | _ ->
-        Assert.Fail "Expected TopLevelBinding"
-        raise (System.Exception())
+
+    Assert.Fail "Expected TopLevelBinding"
+    raise (System.Exception())
 
 let private assertIdent (text: string) (expr: Expr) =
     match expr with
@@ -171,8 +172,9 @@ let ``_.Substring(0,16).ToLower() — DotLambda becomes NoSpaceAllowed terminal`
         | Expr.Chain node -> node
         | Expr.InfixApp app -> findChain app.RightHandSide
         | _ ->
-            Assert.Fail "Expected to find Chain in expression"
-            raise (System.Exception())
+
+        Assert.Fail "Expected to find Chain in expression"
+        raise (System.Exception())
 
     let chainNode = findChain expr
 

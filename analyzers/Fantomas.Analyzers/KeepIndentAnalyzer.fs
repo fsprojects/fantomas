@@ -39,9 +39,10 @@ let matchClausesOf (expr: SynExpr) : (range * SynMatchClause list) option =
 let keepIndentColumnOf (clause: SynMatchClause) : int =
     match clause with
     | SynMatchClause(pat = pattern; trivia = trivia) ->
-        match trivia.BarRange with
-        | Some bar -> bar.StartColumn
-        | None -> pattern.Range.StartColumn
+
+    match trivia.BarRange with
+    | Some bar -> bar.StartColumn
+    | None -> pattern.Range.StartColumn
 
 // Whether a body is the kind of expression that goes on to indent things of its own.
 //
@@ -59,33 +60,61 @@ let isBlockBody (expr: SynExpr) : bool =
     | SynExpr.IfThenElse _ -> true
     | _ -> false
 
-// Where one expression is followed by another in the same block: the range of the first, and the
-// column the second starts in.
-let followerOf (expr: SynExpr) : (range * int) option =
-    match expr with
-    | SynExpr.Sequential(expr1 = before; expr2 = after)
-    | SynExpr.SequentialOrImplicitYield(expr1 = before; expr2 = after) -> Some(before.Range, after.Range.StartColumn)
-    | _ -> None
+// Whether the last arm is the only one that is not a one liner.
+//
+// The setting is for the early return shape, which is what makes the de-indent read as anything at
+// all: the arms that decline say so on one line and get out of the way, and what is left is the one
+// path that carries on, written at the indentation it started at. A match whose other arms are
+// blocks too is not that shape, and de-indenting the last of them alone puts arms of the same kind
+// at two different indentations, saying the last one is special when it is not.
+//
+// `collectTriviaFromCodeComments` in Trivia.fs is the case that showed it: both of its arms are a
+// dozen lines, and de-indenting the second read as a mistake rather than as a happy path.
+//
+// One liner is measured on the whole clause, which is how `FANTOMAS-ARMORDER-001` measures it, and
+// that rule is what puts those arms first to begin with. A match with a single arm, destructuring a
+// single case union, qualifies: there is no other arm for it to be out of step with.
+let onlyLastArmIsBlock (clauses: SynMatchClause list) : bool =
+    match List.rev clauses with
+    | [] -> false
+    | _ :: earlier ->
+        earlier
+        |> List.forall (fun (SynMatchClause(range = range)) -> range.EndLine = range.StartLine)
 
-// Whether keeping the indentation would pull in code that follows the match.
+// Whether anything follows the match that keeping the indentation would take into the last arm.
 //
-// This is the one way the reshape changes meaning, and the only reason the rule needs to look
-// further than the arm. De-indenting moves the offside line of the body out to the bar, and code
-// that follows the match in the same block starts in that same column. What was the first thing
-// past the match becomes the last thing inside the arm: it stops running whatever matched and
-// starts running only for that one arm.
+// This is the one way the reshape changes meaning, and it is a question about the text rather than
+// the tree. De-indenting moves the offside line of the body out to the bar, so the first thing
+// after the match that starts in that column, or further right, stops following the match and
+// starts belonging to its last arm. What that thing is does not matter: a statement of the
+// enclosing block, an operator carrying the match into a pipeline, a comment. Anything further left
+// ends the arm exactly as it ended the match before.
 //
-// So every place one expression is followed by another is collected, and a match sitting inside the
-// first of such a pair is left alone. Unless the second starts further left than the bar, which is
-// an enclosing block continuing rather than this one, and still ends the arm afterwards.
+// Only lines after the one the match ends on are asked about. Whatever shares that last line moves
+// with the body and keeps its place, which is how a closing bracket on the same line stays out of
+// this.
 //
-// A following arm of the same match needs no such care. Only the last arm is ever a candidate, so
-// there is never one of those left to swallow.
-let wouldSwallowFollowingCode (followers: (range * int) list) (matchRange: range) (column: int) : bool =
-    followers
-    |> List.exists (fun (before: range, followerColumn: int) ->
-        followerColumn >= column && Range.rangeContainsRange before matchRange
-    )
+// Reading the source rather than the tree is deliberate, and is the third attempt. Collecting
+// `SynExpr.Sequential` pairs missed the `json.WriteEndObject()` after the match in
+// `writeDoctorFile`, which then ran for one case out of three. Flattening those sequences properly
+// missed the `|> genNode attr` under the match in `genAttributesCore`, which applied to the whole
+// match and would have applied to one arm, so every attribute reached through the other arm lost
+// its trivia. Both were shapes to enumerate, and there was always going to be another. The text has
+// none.
+let followedByContentInColumn (source: ISourceText) (matchRange: range) (column: int) : bool =
+    let mutable line: int = matchRange.EndLine
+    let mutable answer: bool option = None
+
+    while answer.IsNone && line < source.GetLineCount() do
+        let text: string = source.GetLineString line
+        let content: string = text.TrimStart()
+
+        if content <> "" then
+            answer <- Some(text.Length - content.Length >= column)
+
+        line <- line + 1
+
+    defaultArg answer false
 
 // Whether the last arm of a match should keep the indentation of the match.
 //
@@ -98,9 +127,10 @@ let wouldSwallowFollowingCode (followers: (range * int) list) (matchRange: range
 // arrow has no indentation to keep, and it has to span more than that one line, because a body that
 // fits beside the arrow is pulled up next to it and never reaches the branch that would keep it.
 let shouldKeepIndent
+    (source: ISourceText)
     (directives: range list)
-    (followers: (range * int) list)
     (matchRange: range)
+    (clauses: SynMatchClause list)
     (clause: SynMatchClause)
     : bool
     =
@@ -110,47 +140,39 @@ let shouldKeepIndent
         let column: int = keepIndentColumnOf clause
         let bodyRange: range = body.Range
 
-        bodyRange.StartLine > arrow.EndLine
+        onlyLastArmIsBlock clauses
+        && bodyRange.StartLine > arrow.EndLine
         && bodyRange.EndLine > bodyRange.StartLine
         && bodyRange.StartColumn > column
         && isBlockBody body
         && not (List.exists (fun (directive: range) -> Range.rangeContainsRange matchRange directive) directives)
-        && not (wouldSwallowFollowingCode followers matchRange column)
+        && not (followedByContentInColumn source matchRange column)
     | _ -> false
 
 // Reported on the body, which is the part that moves.
-let analyze (parsedInput: ParsedInput) : Message list =
+let analyze (source: ISourceText) (parsedInput: ParsedInput) : Message list =
     let _, directives = triviaOf parsedInput
-    let followers: ResizeArray<range * int> = ResizeArray<range * int>()
 
-    let candidates: ResizeArray<range * SynMatchClause> =
-        ResizeArray<range * SynMatchClause>()
+    let candidates: ResizeArray<range * SynMatchClause list> =
+        ResizeArray<range * SynMatchClause list>()
 
     let walker: SyntaxCollectorBase =
         { new SyntaxCollectorBase() with
             override _.WalkExpr(_path: SyntaxVisitorPath, expr: SynExpr) : unit =
-                match followerOf expr with
-                | None -> ()
-                | Some follower -> followers.Add follower
-
                 match matchClausesOf expr with
                 | None -> ()
-                | Some(matchRange, clauses) ->
-                    match List.tryLast clauses with
-                    | None -> ()
-                    | Some clause -> candidates.Add(matchRange, clause)
+                | Some(matchRange, clauses) -> candidates.Add(matchRange, clauses)
         }
 
     walkAst walker parsedInput
 
-    // Judged after the walk rather than during it. A match is reached before the sequence that holds
-    // it in some shapes and after it in others, so anything deciding on the followers has to wait
-    // until all of them are in.
-    let followers: (range * int) list = List.ofSeq followers
-
     candidates
-    |> Seq.choose (fun (matchRange: range, clause: SynMatchClause) ->
-        if not (shouldKeepIndent directives followers matchRange clause) then
+    |> Seq.choose (fun (matchRange: range, clauses: SynMatchClause list) ->
+        match List.tryLast clauses with
+        | None -> None
+        | Some clause ->
+
+        if not (shouldKeepIndent source directives matchRange clauses clause) then
             None
         else
 
@@ -160,7 +182,7 @@ let analyze (parsedInput: ParsedInput) : Message list =
                 {
                     Type = Name
                     Message =
-                        "Keep the indentation of the match in this arm. It is the last one, its body is a block, and nothing follows the match in this block, so the body can start in the column of the `|` rather than a level in. `fsharp_experimental_keep_indent_in_branch` keeps it there, but only once it is written that way."
+                        "Keep the indentation of the match in this arm. It is the last one, its body is a block, the arms above it are one liners, and nothing follows the match in this block, so the body can start in the column of the `|` rather than a level in. `fsharp_experimental_keep_indent_in_branch` keeps it there, but only once it is written that way."
                     Code = Code
                     Severity = Severity.Warning
                     Range = body.Range
@@ -170,7 +192,7 @@ let analyze (parsedInput: ParsedInput) : Message list =
     |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =
-    async { return analyze ctx.ParseFileResults.ParseTree }
+    async { return analyze ctx.SourceText ctx.ParseFileResults.ParseTree }
 
 let editorAnalyzer (ctx: EditorContext) : Async<Message list> =
-    async { return analyze ctx.ParseFileResults.ParseTree }
+    async { return analyze ctx.SourceText ctx.ParseFileResults.ParseTree }

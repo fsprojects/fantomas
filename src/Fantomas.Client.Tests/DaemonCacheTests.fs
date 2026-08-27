@@ -62,8 +62,9 @@ let private expectOk (result: Result<'a, GetDaemonError>) : 'a =
     match result with
     | Ok value -> value
     | Error error ->
-        Assert.Fail $"Expected a daemon, got %A{error}"
-        failwith "unreachable"
+
+    Assert.Fail $"Expected a daemon, got %A{error}"
+    failwith "unreachable"
 
 [<Test>]
 let ``two folders on the same version share one daemon`` () =

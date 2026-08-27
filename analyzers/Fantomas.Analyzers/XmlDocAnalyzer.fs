@@ -98,13 +98,14 @@ let analyze
             match name with
             | None -> ()
             | Some ident ->
-                if not doc.IsEmpty then
-                    documented.Add
-                        {
-                            DocRange = doc.Range
-                            Name = ident.idText
-                            NameRange = ident.idRange
-                        }
+
+            if not doc.IsEmpty then
+                documented.Add
+                    {
+                        DocRange = doc.Range
+                        Name = ident.idText
+                        NameRange = ident.idRange
+                    }
 
         let walker: SyntaxCollectorBase =
             { new SyntaxCollectorBase() with
@@ -132,17 +133,21 @@ let analyze
         walkAst walker parsedInput
 
         documented
-        |> Seq.filter (declaredInSignature checkResults sourceText)
-        |> Seq.map (fun (declaration: DocumentedDeclaration) ->
-            {
-                Type = Name
-                Message =
-                    "Move this documentation comment to the signature file. Keeping a copy in both is a second one to keep in step, and the signature is the one readers and tooling see."
-                Code = Code
-                Severity = Severity.Warning
-                Range = declaration.DocRange
-                Fixes = []
-            }
+        |> Seq.choose (fun (declaration: DocumentedDeclaration) ->
+            if not (declaredInSignature checkResults sourceText declaration) then
+                None
+            else
+
+            Some
+                {
+                    Type = Name
+                    Message =
+                        "Move this documentation comment to the signature file. Keeping a copy in both is a second one to keep in step, and the signature is the one readers and tooling see."
+                    Code = Code
+                    Severity = Severity.Warning
+                    Range = declaration.DocRange
+                    Fixes = []
+                }
         )
         |> Seq.toList
 
