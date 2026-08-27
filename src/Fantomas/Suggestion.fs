@@ -12,7 +12,7 @@ let editDistance (limit: int) (left: string) (right: string) : int =
         limit + 1
     else
         let mutable previous: int array = Array.init (right.Length + 1) id
-        let mutable current: int array = Array.zeroCreate<int> (right.Length + 1)
+        let mutable current: int array = Array.zeroCreate<int>(right.Length + 1)
 
         for row in 1 .. left.Length do
             current[0] <- row
