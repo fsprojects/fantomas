@@ -2227,73 +2227,11 @@ let (|OperatorWithStar|_|) (si: SynIdent) =
         ValueSome(IdentifierOrDot.Ident(stn $"( %s{text} )" ident.idRange))
     | _ -> ValueNone
 
-/// The parser moves a `[<return: ...>]` attribute written in front of a binding out of the
-/// binding's attribute list and into the arity information, where nothing prints it. Put those
-/// attributes back in the list they were written in, otherwise they are dropped from the output.
-let restoreRotatedReturnAttributes
-    (attributes: SynAttributes)
-    (SynValData(valInfo = SynValInfo(returnInfo = SynArgInfo(attributes = arityAttributes))))
-    (returnInfo: SynBindingReturnInfo option)
-    : SynAttributes
-    =
-    let sortAttributes (attributes: SynAttribute list) =
-        List.sortBy (fun (a: SynAttribute) -> a.Range.StartLine, a.Range.StartColumn) attributes
-
-    let sortAttributeLists (attributes: SynAttributes) =
-        List.sortBy (fun (al: SynAttributeList) -> al.Range.StartLine, al.Range.StartColumn) attributes
-
-    // A return attribute written on the return type, `let f x : [<return: Foo>] int = x`, ends up in
-    // the arity information as well. That one is printed by the return type node, so leave it there.
-    let returnTypeAttributes =
-        match returnInfo with
-        | None -> []
-        | Some(SynBindingReturnInfo(attributes = attributes)) ->
-            List.collect (fun (al: SynAttributeList) -> al.Attributes) attributes
-
-    let rotated =
-        arityAttributes
-        |> List.collect (fun al -> al.Attributes)
-        |> List.filter (fun a ->
-            not (List.exists (fun (rta: SynAttribute) -> equals rta.Range a.Range) returnTypeAttributes)
-        )
-
-    match rotated with
-    | [] -> attributes
-    | rotated ->
-        let wasWrittenIn (al: SynAttributeList) (a: SynAttribute) =
-            RangeHelpers.rangeContainsRange al.Range a.Range
-
-        let restored =
-            attributes
-            |> List.map (fun al ->
-                match List.filter (wasWrittenIn al) rotated with
-                | [] -> al
-                | inThisList ->
-                    { al with
-                        Attributes = sortAttributes (al.Attributes @ inThisList)
-                    }
-            )
-
-        // An attribute list that held nothing but return attributes was removed altogether, so it
-        // has to be recreated. Its own range is gone, the attribute range is the closest we have.
-        let recreated =
-            rotated
-            |> List.choose (fun a ->
-                if List.exists (fun al -> wasWrittenIn al a) attributes then
-                    None
-                else
-                    Some({ Attributes = [ a ]; Range = a.Range }: SynAttributeList)
-            )
-
-        sortAttributeLists (restored @ recreated)
-
 let mkBinding
     (creationAide: CreationAide)
-    (SynBinding(_, _, _, isMutable, attributes, xmlDoc, valData, pat, returnInfo, expr, _, _, trivia))
+    (SynBinding(_, _, _, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, _, _, trivia))
     (inKeyword: SingleTextNode option)
     =
-    let attributes = restoreRotatedReturnAttributes attributes valData returnInfo
-
     let mkFunctionName (sli: SynLongIdent) : IdentListNode =
         match sli.IdentsWithTrivia with
         | [ prefix; OperatorWithStar operatorNode ] ->
@@ -2380,16 +2318,12 @@ let mkExternBinding
         accessibility = accessibility
         attributes = attributes
         xmlDoc = xmlDoc
-        valData = valData
         headPat = pat
         returnInfo = returnInfo
         range = range
         trivia = trivia))
     : ExternBindingNode
     =
-    let attributes: SynAttributes =
-        restoreRotatedReturnAttributes attributes valData returnInfo
-
     let m =
         if not xmlDoc.IsEmpty then
             unionRanges xmlDoc.Range pat.Range
@@ -2504,6 +2438,11 @@ let mkXmlDoc (px: PreXmlDoc) =
         let lines = Array.map (sprintf "///%s") xmlDoc.UnprocessedLines
         Some(XmlDocNode(lines, xmlDoc.Range))
 
+let mkModuleName (SynComponentInfo(synType = synType; range = m) as info) : IdentListNode =
+    match synType with
+    | Some(SynType.LongIdent(SynLongIdent(lid, _, _))) -> mkLongIdent lid
+    | _ -> invariantViolationAbout m info "module name is not an identifier"
+
 let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
     let declRange = decl.Range
 
@@ -2535,7 +2474,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
     | SynModuleDecl.ModuleAbbrev(ident, lid, StartRange 6 (mModule, _)) ->
         ModuleAbbrevNode(stn "module" mModule, mkIdent ident, mkLongIdent lid, declRange)
         |> ModuleDecl.ModuleAbbrev
-    | SynModuleDecl.NestedModule(SynComponentInfo(ats, _, _, lid, px, _, ao, _),
+    | SynModuleDecl.NestedModule(SynComponentInfo(ats, _, _, _, px, _, ao, _) as info,
                                  isRecursive,
                                  decls,
                                  _,
@@ -2550,7 +2489,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             stn "module" mModule,
             mkSynAccess ao,
             isRecursive,
-            mkLongIdent lid,
+            mkModuleName info,
             stn "=" mEq,
             mkModuleDecls creationAide decls id,
             declRange
@@ -3035,6 +2974,14 @@ let mkImplicitCtor
         range
     )
 
+/// The name of a type definition. Besides an identifier this can be a tuple type, for
+/// `type (int * int) with ...` extensions. The parser only leaves it out while recovering from a
+/// missing name, and a parse error never reaches the transformation.
+let mkComponentInfoName (creationAide: CreationAide) (SynComponentInfo(synType = synType; range = m) as info) : Type =
+    match synType with
+    | Some t -> mkType creationAide t
+    | None -> invariantViolationAbout m info "component info without a name"
+
 let mkTypeDefn
     (creationAide: CreationAide)
     (SynTypeDefn(typeInfo, typeRepr, members, implicitConstructor, range, trivia))
@@ -3042,9 +2989,9 @@ let mkTypeDefn
     =
     let typeNameNode =
         match typeInfo with
-        | SynComponentInfo(ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
-            let identifierNode = mkLongIdent lid
-            let mIdentifierNode = identifierNode.Range
+        | SynComponentInfo(ats, tds, tcs, _, px, _preferPostfix, ao, _) ->
+            let identifierNode = mkComponentInfoName creationAide typeInfo
+            let mIdentifierNode = (Type.Node identifierNode).Range
 
             let leadingKeyword =
                 match trivia.LeadingKeyword with
@@ -3905,7 +3852,7 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
     | SynModuleSigDecl.ModuleAbbrev(ident, lid, StartRange 6 (mModule, _)) ->
         ModuleAbbrevNode(stn "module" mModule, mkIdent ident, mkLongIdent lid, declRange)
         |> ModuleDecl.ModuleAbbrev
-    | SynModuleSigDecl.NestedModule(SynComponentInfo(ats, _, _, lid, px, _, ao, _),
+    | SynModuleSigDecl.NestedModule(SynComponentInfo(ats, _, _, _, px, _, ao, _) as info,
                                     isRecursive,
                                     decls,
                                     _,
@@ -3919,7 +3866,7 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
             stn "module" mModule,
             mkSynAccess ao,
             isRecursive,
-            mkLongIdent lid,
+            mkModuleName info,
             stn "=" mEq,
             mkModuleSigDecls creationAide decls id,
             declRange
@@ -3931,9 +3878,9 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
 let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRepr, members, range, trivia)) : TypeDefn =
     let typeNameNode =
         match typeInfo with
-        | SynComponentInfo(ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
-            let identifierNode = mkLongIdent lid
-            let mIdentifierNode = identifierNode.Range
+        | SynComponentInfo(ats, tds, tcs, _, px, _preferPostfix, ao, _) ->
+            let identifierNode = mkComponentInfoName creationAide typeInfo
+            let mIdentifierNode = (Type.Node identifierNode).Range
 
             let leadingKeyword =
                 match trivia.LeadingKeyword with

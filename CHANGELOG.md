@@ -1,5 +1,15 @@
 # Changelog
 
+## [8.0.0-alpha-022] - 2026-08-27
+
+### Added
+
+- Extension members on tuple types, `type (int * int) with ...` and `type struct (int * int) with ...`, format instead of failing. The parser accepts them since [dotnet/fsharp#19602](https://github.com/dotnet/fsharp/pull/19602), and a type definition's name is now any type in the Oak tree rather than only an identifier. The tuple prints as written; no layout decision was added for it. [#3436](https://github.com/fsprojects/fantomas/pull/3436)
+
+### Changed
+
+- Update FCS to 'Rotate [<return: X>] attributes during binding normalization', commit 74ec4f7df70717a162d6ffd23007603cf298fb8b [#3436](https://github.com/fsprojects/fantomas/pull/3436)
+
 ## [8.0.0-alpha-021] - 2026-08-27
 
 ### Fixed
