@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- A call in the middle of a chain keeps its parenthesis against the member name when its lambda argument no longer fits, and breaks behind it instead. Up to now the whole argument moved down a line, `(` and all, which is what the last call of a chain does, but for an earlier one it changes what the code means: `a.Foo (x).Bar()` passes `(x).Bar()` to `Foo` rather than calling `Bar` on the result. With a call behind it the compiler rejected the result with "This argument expression needs parentheses"; with a plain member behind it, such as `.Value`, nothing warned at all and the member quietly became part of the argument. Hanging the parameters under `(fun` would keep the parenthesis in place too, and the F# style guide rules that out, because the column they hang from is the length of the member name. The closing `)` answers to `fsharp_multi_line_lambda_closing_newline` as it did before, and the last call of a chain is untouched, since nothing follows it to be swallowed. [#3432](https://github.com/fsprojects/fantomas/issues/3432)
+
 ## [8.0.0-alpha-020] - 2026-08-27
 
 ### Fixed

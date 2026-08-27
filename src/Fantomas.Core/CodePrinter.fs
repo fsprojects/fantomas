@@ -475,23 +475,46 @@ type ChainStepPlacement =
     /// The step opens a fresh line, indented to the run's own column.
     | OpensNewLine
 
-/// Layout for `(fun params -> body)`. Identical wherever the call sits: `MultiLineLambdaClosingNewline`
-/// decides where the closing `)` lands, exactly as it would for a call with no receiver.
-let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : Context -> Context =
-    // `startColumn` is remembered so the closing `)` can be indented back to it — important
-    // when the body ends at a shallow column (e.g. a verbatim string in column 0), where a `)`
-    // left there breaks the offside rule and produces invalid F#.
-    let genParenLambda (ctx: Context) : Context =
-        let startColumn: int = ctx.WriterModel.Indent
+/// Where a call sits in its chain, as far as its parenthesis is concerned.
+[<RequireQualifiedAccess; Struct>]
+type ChainCallPosition =
+    /// The last call of the chain. Nothing follows it, so an argument that no longer fits beside
+    /// the member name may take the line below and bring the `(` with it.
+    | Last
+    /// A call with a step behind it. Its `(` may not leave the member name, because the gap would
+    /// change the parse: `a.Foo (x).Bar()` passes `(x).Bar()` to `Foo` rather than calling `Bar`
+    /// on the result.
+    | BeforeAnotherStep
 
-        // The closing parenthesis takes a line of its own when the setting asks for it and the
-        // lambda spans several lines, which is the case the setting is about. Asking whether it
-        // did, rather than assuming it will, matters once the argument can move down: from its own
-        // line the lambda may well fit, and a `)` below a single line would be left dangling.
-        (leadingExpressionIsMultiline
-            (genSingleTextNode parenNode.OpeningParen +> genLambdaWithParen lambdaNode)
+/// Layout for `(fun params -> body)`. `MultiLineLambdaClosingNewline` decides where the closing
+/// `)` lands, exactly as it would for a call with no receiver.
+///
+/// `position` decides whether the `(` is free to move down with the lambda. The note above the
+/// decision below says what it costs when it is not.
+let genLambdaParenArg
+    (position: ChainCallPosition)
+    (parenNode: ExprParenNode)
+    (lambdaNode: ExprLambdaNode)
+    : Context -> Context
+    =
+    // The lambda and the `)` behind it. Both layouts below write the `(` themselves and then hand
+    // over to this, so where the `)` lands is answered once.
+    //
+    // The closing parenthesis takes a line of its own when the setting asks for it and the lambda
+    // spans several lines, which is the case the setting is about. Asking whether it did, rather
+    // than assuming it will, matters once the argument can move down: from its own line the lambda
+    // may well fit, and a `)` below a single line would be left dangling.
+    //
+    // `startColumn` is the column the `(` was written at, so the `)` can be brought back to it,
+    // which matters when the body ends at a shallow column (e.g. a verbatim string in column 0),
+    // where a `)` left there breaks the offside rule and produces invalid F#. `beforeClosing` runs
+    // between the lambda and the `)`, which is where a layout that indented the lambda unindents.
+    let genLambdaAndClosingParen (startColumn: int) (beforeClosing: Context -> Context) : Context -> Context =
+        leadingExpressionIsMultiline
+            (genLambdaWithParen lambdaNode)
             (fun isMultiline ->
-                ifElseCtx
+                beforeClosing
+                +> ifElseCtx
                     (fun ctx ->
                         isMultiline
                         && ctx.Config.MultiLineLambdaClosingNewline
@@ -500,7 +523,12 @@ let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : 
                     sepNln
                     (sepNlnWhenWriteBeforeNewlineNotEmpty +> addFixedSpaces startColumn)
                 +> genSingleTextNode parenNode.ClosingParen
-            ))
+            )
+
+    // The lambda beside its `(`, wherever that parenthesis has ended up.
+    let genParenLambda (ctx: Context) : Context =
+        (genSingleTextNode parenNode.OpeningParen
+         +> genLambdaAndClosingParen ctx.WriterModel.Indent sepNone)
             ctx
 
     // Move the whole lambda argument onto its own indented line when leaving it where it is
@@ -525,6 +553,22 @@ let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : 
     //         items
     //         |> List.tryPick (fun
     //                              (Interface(ty = t; keyword = k)) -> body)
+    //
+    // The same argument for a call that may not let its `(` go: an intermediate call in a chain.
+    // Moving the parenthesis down there changes what the code means, since `a.Foo (x).Bar()`
+    // passes `(x).Bar()` to `Foo` rather than calling `Bar` on the result. So the `(` stays put
+    // and the break happens behind it instead.
+    //
+    //     .CallsSomething(
+    //         fun
+    //             (path, key, value) ->
+    //             body)
+    //
+    // The alternative is to leave `(fun` on the line and hang the parameters underneath it, but
+    // the column they would hang from is the length of the member name, which is what
+    // "Avoid formatting that is sensitive to name length" asks us not to do. Indenting them one
+    // level instead, the shape the guide shows for a lambda whose parameters do not fit, is not
+    // available here: below a `(` that sits mid-line it breaks the offside rule.
     fun (ctx: Context) ->
         let singleMultilineParameter: bool =
             match lambdaNode.Parameters with
@@ -541,10 +585,17 @@ let genLambdaParenArg (parenNode: ExprParenNode) (lambdaNode: ExprLambdaNode) : 
                  +> genSingleTextNode lambdaNode.Arrow)
                 ctx
 
-        if singleMultilineParameter || openerDoesNotFit then
+        if not (singleMultilineParameter || openerDoesNotFit) then
+            genParenLambda ctx
+        elif position = ChainCallPosition.Last then
             indentSepNlnUnindent genParenLambda ctx
         else
-            genParenLambda ctx
+
+        (genSingleTextNode parenNode.OpeningParen
+         +> indent
+         +> sepNln
+         +> genLambdaAndClosingParen ctx.WriterModel.Indent unindent)
+            ctx
 
 /// Layout for `(function | ... -> ...)`. Identical wherever the call sits in its chain:
 /// `MultiLineLambdaClosingNewline` decides whether `function` goes on its own line.
@@ -575,15 +626,17 @@ let genMatchLambdaParenArg (parenNode: ExprParenNode) (matchLambdaNode: ExprMatc
     ifElseCtx (fun ctx -> ctx.Config.MultiLineLambdaClosingNewline) breakAfterParen keepFunctionWithParen
 
 /// Multiline layout of a call's parenthesised argument `( ... )`, shared by intermediate calls
-/// (genSegment) and the terminal call (genTerminal). Where the call sits in its chain makes no
-/// difference: everything between `(` and `)` is laid out by the ordinary argument rules, and the
-/// chain only decides whether the call itself has to move down.
-let genMultilineParenArg (parenNode: ExprParenNode) : Context -> Context =
+/// (genSegment) and the terminal call (genTerminal). Everything between `(` and `)` is laid out by
+/// the ordinary argument rules; the chain only decides whether the call itself has to move down.
+///
+/// `position` is the one thing it does decide. An intermediate call may not let go of its `(`,
+/// because the gap would change the parse; the terminal call is free to.
+let genMultilineParenArg (position: ChainCallPosition) (parenNode: ExprParenNode) : Context -> Context =
     // How the argument breaks, once it is settled where the call starts. Whatever sits between
     // the parentheses is the argument's business, so this is the ordinary layout for one.
     let genByArgumentShape: Context -> Context =
         match parenNode.Expr with
-        | Expr.Lambda lambdaNode -> genLambdaParenArg parenNode lambdaNode
+        | Expr.Lambda lambdaNode -> genLambdaParenArg position parenNode lambdaNode
         | Expr.MatchLambda matchLambdaNode -> genMatchLambdaParenArg parenNode matchLambdaNode
         | _ -> genMultilineFunctionApplicationArguments (Expr.Paren parenNode)
 
@@ -652,8 +705,11 @@ let genSegment (segment: ChainSegment) : Context -> Context =
         +> match call with
            | ChainCall.Unit u -> genUnit u
            | ChainCall.Paren parenNode ->
-               // Intermediate paren calls are always tight — space would change the parse tree.
-               expressionFitsOnRestOfLine (genExpr (Expr.Paren parenNode)) (genMultilineParenArg parenNode)
+               // Intermediate paren calls are always tight: any gap would change the parse tree,
+               // whether it is a space or a line break.
+               expressionFitsOnRestOfLine
+                   (genExpr (Expr.Paren parenNode))
+                   (genMultilineParenArg ChainCallPosition.BeforeAnotherStep parenNode)
     | ChainSegment.DotIndex(dot, index) ->
         // DotIndex (.[i]) is structurally like DotMember with no call: the dot is explicit
         // for trivia, but the [ ] brackets are not part of the index expression and must
@@ -775,7 +831,8 @@ let genTerminal (node: ExprChain) : Context -> Context =
         | ChainCall.Paren parenNode ->
             let short: Context -> Context = addSpace +> genExpr (Expr.Paren parenNode)
 
-            let long: Context -> Context = addSpace +> genMultilineParenArg parenNode
+            let long: Context -> Context =
+                addSpace +> genMultilineParenArg ChainCallPosition.Last parenNode
 
             expressionFitsOnRestOfLine short long
 
