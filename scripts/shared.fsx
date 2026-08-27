@@ -1,6 +1,6 @@
 #r "../artifacts/bin/Fantomas.FCS/debug/Fantomas.FCS.dll"
 #r "../artifacts/bin/Fantomas.Core/debug/Fantomas.Core.dll"
-#r "nuget: editorconfig"
+#r "nuget: editorconfig, 0.15.0"
 
 #load "../src/Fantomas/Suggestion.fs"
 #load "../src/Fantomas/EditorConfig.fs"

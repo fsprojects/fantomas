@@ -1492,3 +1492,221 @@ let ``comment between lines breaks indentation, 2944`` () =
   // a comment
   5
 """
+
+// A list or an array on the right of a no-break infix operator indents its items from the binding,
+// not from the operator. `Cramped` lines the items up under the opening bracket instead and is
+// unaffected either way. See 3428.
+
+[<Test>]
+let ``list on the right of a no-break infix operator, cramped`` () =
+    formatSourceString
+        """
+let v = xs = [ "aaaaaaaaaa"; "bbbbbbbbbb"; "cccccccccc"; "dddddddddd"; "eeeeeeeeee"; "ffffffffff" ]
+"""
+        { config with
+            MaxLineLength = 80
+            MultilineBracketStyle = Cramped
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    xs = [ "aaaaaaaaaa"
+           "bbbbbbbbbb"
+           "cccccccccc"
+           "dddddddddd"
+           "eeeeeeeeee"
+           "ffffffffff" ]
+"""
+
+[<Test>]
+let ``list on the right of a no-break infix operator, aligned, 3428`` () =
+    formatSourceString
+        """
+let v = xs = [ "aaaaaaaaaa"; "bbbbbbbbbb"; "cccccccccc"; "dddddddddd"; "eeeeeeeeee"; "ffffffffff" ]
+"""
+        { config with
+            MaxLineLength = 80
+            MultilineBracketStyle = Aligned
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    xs = [
+        "aaaaaaaaaa"
+        "bbbbbbbbbb"
+        "cccccccccc"
+        "dddddddddd"
+        "eeeeeeeeee"
+        "ffffffffff"
+    ]
+"""
+
+[<Test>]
+let ``list on the right of a no-break infix operator, stroustrup, 3428`` () =
+    formatSourceString
+        """
+let v = xs = [ "aaaaaaaaaa"; "bbbbbbbbbb"; "cccccccccc"; "dddddddddd"; "eeeeeeeeee"; "ffffffffff" ]
+"""
+        { config with
+            MaxLineLength = 80
+            MultilineBracketStyle = Stroustrup
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    xs = [
+        "aaaaaaaaaa"
+        "bbbbbbbbbb"
+        "cccccccccc"
+        "dddddddddd"
+        "eeeeeeeeee"
+        "ffffffffff"
+    ]
+"""
+
+[<Test>]
+let ``array on the right of a no-break infix operator, cramped`` () =
+    formatSourceString
+        """
+let v = xs = [| "aaaaaaaaaa"; "bbbbbbbbbb"; "cccccccccc"; "dddddddddd"; "eeeeeeeeee"; "ffffff" |]
+"""
+        { config with
+            MaxLineLength = 80
+            MultilineBracketStyle = Cramped
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    xs = [| "aaaaaaaaaa"
+            "bbbbbbbbbb"
+            "cccccccccc"
+            "dddddddddd"
+            "eeeeeeeeee"
+            "ffffff" |]
+"""
+
+[<Test>]
+let ``array on the right of a no-break infix operator, aligned, 3428`` () =
+    formatSourceString
+        """
+let v = xs = [| "aaaaaaaaaa"; "bbbbbbbbbb"; "cccccccccc"; "dddddddddd"; "eeeeeeeeee"; "ffffff" |]
+"""
+        { config with
+            MaxLineLength = 80
+            MultilineBracketStyle = Aligned
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    xs = [|
+        "aaaaaaaaaa"
+        "bbbbbbbbbb"
+        "cccccccccc"
+        "dddddddddd"
+        "eeeeeeeeee"
+        "ffffff"
+    |]
+"""
+
+[<Test>]
+let ``array on the right of a no-break infix operator, stroustrup, 3428`` () =
+    formatSourceString
+        """
+let v = xs = [| "aaaaaaaaaa"; "bbbbbbbbbb"; "cccccccccc"; "dddddddddd"; "eeeeeeeeee"; "ffffff" |]
+"""
+        { config with
+            MaxLineLength = 80
+            MultilineBracketStyle = Stroustrup
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    xs = [|
+        "aaaaaaaaaa"
+        "bbbbbbbbbb"
+        "cccccccccc"
+        "dddddddddd"
+        "eeeeeeeeee"
+        "ffffff"
+    |]
+"""
+
+[<Test>]
+let ``short list forced multiline on the right of a no-break infix operator, 3428`` () =
+    formatSourceString
+        """
+let a = b = [ 1; 2 ]
+"""
+        { config with
+            ArrayOrListMultilineFormatter = NumberOfItems
+            MaxArrayOrListNumberOfItems = 1
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    b = [
+        1
+        2
+    ]
+"""
+
+[<Test>]
+let ``chain on the right of a no-break infix operator keeps its indent, 3428`` () =
+    formatSourceString
+        """
+let v = xs = expected.Replace(1, 2).Replace(3, 4).Replace(5, 6).Replace(7, 8).Replace(9, 10)
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    xs = expected
+            .Replace(1, 2)
+            .Replace(3, 4)
+            .Replace(5, 6)
+            .Replace(7, 8)
+            .Replace(9, 10)
+"""
+
+[<Test>]
+let ``comment in front of a list on the right of a no-break infix operator keeps the indent, 3428`` () =
+    formatSourceString
+        """
+let v =
+    xs =
+        // a comment
+        [ "aaaaaaaaaa"; "bbbbbbbbbb"; "cccccccccc"; "dddddddddd"; "eeeeeeeeee"; "ffffffffff" ]
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    xs =
+        // a comment
+        [
+            "aaaaaaaaaa"
+            "bbbbbbbbbb"
+            "cccccccccc"
+            "dddddddddd"
+            "eeeeeeeeee"
+            "ffffffffff"
+        ]
+"""
