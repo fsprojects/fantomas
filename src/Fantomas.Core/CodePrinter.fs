@@ -4291,7 +4291,7 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
         )
         node.Self
 
-let hasTriviaAfterLeadingKeyword (identifier: IdentListNode) (accessibility: SingleTextNode option) =
+let hasTriviaAfterLeadingKeyword (identifier: Node) (accessibility: SingleTextNode option) =
     let beforeAccess =
         match accessibility with
         | Some n -> n.HasContentBefore
@@ -4310,7 +4310,7 @@ let genTypeDefn (td: TypeDefn) =
 
         // Workaround for https://github.com/fsprojects/fantomas/issues/628
         let hasTriviaAfterLeadingKeyword =
-            hasTriviaAfterLeadingKeyword typeName.Identifier typeName.Accessibility
+            hasTriviaAfterLeadingKeyword (Type.Node typeName.Identifier) typeName.Accessibility
 
         genXml typeName.XmlDoc
         +> onlyIfNot hasAndKeyword (genAttributes typeName.Attributes)
@@ -4319,7 +4319,7 @@ let genTypeDefn (td: TypeDefn) =
         +> onlyIf hasAndKeyword (sepSpace +> genOnelinerAttributes typeName.Attributes)
         +> sepSpace
         +> genAccessOpt typeName.Accessibility
-        +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
+        +> genTypeAndParam (genType typeName.Identifier) typeName.TypeParameters
         +> onlyIfNot typeName.Constraints.IsEmpty (sepSpace +> genTypeConstraints typeName.Constraints)
         +> onlyIf hasTriviaAfterLeadingKeyword unindent
         +> leadingExpressionIsMultiline

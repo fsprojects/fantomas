@@ -324,6 +324,44 @@ type System.Int32 with
 """
 
 [<Test>]
+let ``tuple type extension`` () =
+    formatSourceString
+        """
+type (int * int) with
+    member this.Sum = fst this + snd this
+
+type (string * int * bool) with
+    member this.Arity = 3
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type (int * int) with
+    member this.Sum = fst this + snd this
+
+type (string * int * bool) with
+    member this.Arity = 3
+"""
+
+[<Test>]
+let ``struct tuple type extension`` () =
+    formatSourceString
+        """
+type struct (int * int) with
+    member this.Sum = fst this + snd this
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type struct (int * int) with
+    member this.Sum = fst this + snd this
+"""
+
+[<Test>]
 let ``auto property`` () =
     formatSourceString
         """

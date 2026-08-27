@@ -45,7 +45,7 @@ Some common use cases include:
 
     <!-- Versions -->
     <PropertyGroup>
-        <FCSCommitHash>d05075e098278aedcea3379159504d664628a495</FCSCommitHash>
+        <FCSCommitHash>4507f94a47b615329ba5ebd6afab5846ae3d898e</FCSCommitHash>
     </PropertyGroup>
 
     <PropertyGroup>

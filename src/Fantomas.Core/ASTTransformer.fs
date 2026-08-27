@@ -2504,6 +2504,11 @@ let mkXmlDoc (px: PreXmlDoc) =
         let lines = Array.map (sprintf "///%s") xmlDoc.UnprocessedLines
         Some(XmlDocNode(lines, xmlDoc.Range))
 
+let mkModuleName (SynComponentInfo(synType = synType; range = m) as info) : IdentListNode =
+    match synType with
+    | Some(SynType.LongIdent(SynLongIdent(lid, _, _))) -> mkLongIdent lid
+    | _ -> invariantViolationAbout m info "module name is not an identifier"
+
 let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
     let declRange = decl.Range
 
@@ -2535,7 +2540,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
     | SynModuleDecl.ModuleAbbrev(ident, lid, StartRange 6 (mModule, _)) ->
         ModuleAbbrevNode(stn "module" mModule, mkIdent ident, mkLongIdent lid, declRange)
         |> ModuleDecl.ModuleAbbrev
-    | SynModuleDecl.NestedModule(SynComponentInfo(ats, _, _, lid, px, _, ao, _),
+    | SynModuleDecl.NestedModule(SynComponentInfo(ats, _, _, _, px, _, ao, _) as info,
                                  isRecursive,
                                  decls,
                                  _,
@@ -2550,7 +2555,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             stn "module" mModule,
             mkSynAccess ao,
             isRecursive,
-            mkLongIdent lid,
+            mkModuleName info,
             stn "=" mEq,
             mkModuleDecls creationAide decls id,
             declRange
@@ -3035,6 +3040,14 @@ let mkImplicitCtor
         range
     )
 
+/// The name of a type definition. Besides an identifier this can be a tuple type, for
+/// `type (int * int) with ...` extensions. The parser only leaves it out while recovering from a
+/// missing name, and a parse error never reaches the transformation.
+let mkComponentInfoName (creationAide: CreationAide) (SynComponentInfo(synType = synType; range = m) as info) : Type =
+    match synType with
+    | Some t -> mkType creationAide t
+    | None -> invariantViolationAbout m info "component info without a name"
+
 let mkTypeDefn
     (creationAide: CreationAide)
     (SynTypeDefn(typeInfo, typeRepr, members, implicitConstructor, range, trivia))
@@ -3042,9 +3055,9 @@ let mkTypeDefn
     =
     let typeNameNode =
         match typeInfo with
-        | SynComponentInfo(ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
-            let identifierNode = mkLongIdent lid
-            let mIdentifierNode = identifierNode.Range
+        | SynComponentInfo(ats, tds, tcs, _, px, _preferPostfix, ao, _) ->
+            let identifierNode = mkComponentInfoName creationAide typeInfo
+            let mIdentifierNode = (Type.Node identifierNode).Range
 
             let leadingKeyword =
                 match trivia.LeadingKeyword with
@@ -3905,7 +3918,7 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
     | SynModuleSigDecl.ModuleAbbrev(ident, lid, StartRange 6 (mModule, _)) ->
         ModuleAbbrevNode(stn "module" mModule, mkIdent ident, mkLongIdent lid, declRange)
         |> ModuleDecl.ModuleAbbrev
-    | SynModuleSigDecl.NestedModule(SynComponentInfo(ats, _, _, lid, px, _, ao, _),
+    | SynModuleSigDecl.NestedModule(SynComponentInfo(ats, _, _, _, px, _, ao, _) as info,
                                     isRecursive,
                                     decls,
                                     _,
@@ -3919,7 +3932,7 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
             stn "module" mModule,
             mkSynAccess ao,
             isRecursive,
-            mkLongIdent lid,
+            mkModuleName info,
             stn "=" mEq,
             mkModuleSigDecls creationAide decls id,
             declRange
@@ -3931,9 +3944,9 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
 let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRepr, members, range, trivia)) : TypeDefn =
     let typeNameNode =
         match typeInfo with
-        | SynComponentInfo(ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
-            let identifierNode = mkLongIdent lid
-            let mIdentifierNode = identifierNode.Range
+        | SynComponentInfo(ats, tds, tcs, _, px, _preferPostfix, ao, _) ->
+            let identifierNode = mkComponentInfoName creationAide typeInfo
+            let mIdentifierNode = (Type.Node identifierNode).Range
 
             let leadingKeyword =
                 match trivia.LeadingKeyword with

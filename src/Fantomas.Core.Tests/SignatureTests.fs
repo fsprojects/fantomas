@@ -578,6 +578,31 @@ type T with
 """
 
 [<Test>]
+let ``tuple type extension member signature`` () =
+    formatSignatureString
+        """namespace ExtensionParts
+
+type (int * int) with
+    member Sum: int
+
+type struct (int * int) with
+    member Sum: int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace ExtensionParts
+
+type (int * int) with
+    member Sum: int
+
+type struct (int * int) with
+    member Sum: int
+"""
+
+[<Test>]
 let ``comment above static member, 680`` () =
     formatSignatureString
         """

@@ -2598,7 +2598,7 @@ type TypeNameNode
         attributes: MultipleAttributeListNode option,
         leadingKeyword: SingleTextNode,
         ao: SingleTextNode option,
-        identifier: IdentListNode,
+        identifier: Type,
         typeParams: TyparDecls option,
         constraints: TypeConstraint list,
         implicitConstructor: ImplicitConstructorNode option,
@@ -2615,7 +2615,7 @@ type TypeNameNode
             yield! noa attributes
             yield leadingKeyword
             yield! noa ao
-            yield identifier
+            yield Type.Node identifier
             yield! noa (Option.map TyparDecls.Node typeParams)
             yield! List.map TypeConstraint.Node constraints
             yield! noa implicitConstructor
