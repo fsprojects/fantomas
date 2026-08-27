@@ -38,15 +38,16 @@ type Queue<'T>(data: 'T array list, length: int) =
         match data with
         | [] -> x
         | head :: tail ->
-            if Array.isEmpty head then
-                x
-            else
-                let newHead = Array.skip 1 head
 
-                if Array.isEmpty newHead then
-                    Queue(tail, length - 1)
-                else
-                    Queue(newHead :: tail, length - 1)
+        if Array.isEmpty head then
+            x
+        else
+            let newHead = Array.skip 1 head
+
+            if Array.isEmpty newHead then
+                Queue(tail, length - 1)
+            else
+                Queue(newHead :: tail, length - 1)
 
     member x.IsEmpty = length = 0
 

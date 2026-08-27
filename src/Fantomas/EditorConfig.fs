@@ -213,13 +213,15 @@ let parseOptionsFromEditorConfig
             match properties.TryGetValue setting with
             | false, _ -> defaultValue
             | true, struct (written, value) ->
-                match parseSettingValue defaultValue value with
-                | Some parsed -> parsed
-                | None ->
-                    if not (isSpecDefinedNonValue setting value) then
-                        unrecognizedValues.Add(written, value)
 
-                    defaultValue
+            match parseSettingValue defaultValue value with
+            | Some parsed -> parsed
+            | None ->
+
+            if not (isSpecDefinedNonValue setting value) then
+                unrecognizedValues.Add(written, value)
+
+            defaultValue
         )
 
     let config =

@@ -280,10 +280,11 @@ let rec findNodeBeforeWithMatchingColumn (node: Node) (triviaRange: range) : Nod
         match deeperMatch with
         | Some _ -> deeperMatch
         | None ->
-            if child.Range.StartColumn = triviaColumn then
-                Some child
-            else
-                None
+
+        if child.Range.StartColumn = triviaColumn then
+            Some child
+        else
+            None
     )
 
 /// Assigns a trivia node (comment, blank line, directive) to the appropriate child
@@ -458,14 +459,15 @@ let addToTree (tree: Oak) (trivia: TriviaNode array) =
         match smallestNodeThatContainsTrivia with
         | None -> triviaBeforeOrAfterEntireTree tree trivia
         | Some parentNode ->
-            match trivia.Content with
-            | LineCommentAfterSourceCode _ -> lineCommentAfterSourceCodeToTriviaInstruction parentNode trivia
-            | CommentOnSingleLine _
-            | CommentOnSingleLineWithLeadingNewlines _
-            | Newline
-            | Directive _ -> assignTriviaToTriviaInstruction parentNode trivia
-            | BlockComment _
-            | Cursor -> blockCommentToTriviaInstruction parentNode trivia
+
+        match trivia.Content with
+        | LineCommentAfterSourceCode _ -> lineCommentAfterSourceCodeToTriviaInstruction parentNode trivia
+        | CommentOnSingleLine _
+        | CommentOnSingleLineWithLeadingNewlines _
+        | Newline
+        | Directive _ -> assignTriviaToTriviaInstruction parentNode trivia
+        | BlockComment _
+        | Cursor -> blockCommentToTriviaInstruction parentNode trivia
 
 let internal collectCommentTextsFromAST (sourceText: ISourceText) (ast: ParsedInput) : Set<TriviaContent> =
     let parsedTrivia =

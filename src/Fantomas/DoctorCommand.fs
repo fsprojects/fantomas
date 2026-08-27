@@ -205,30 +205,31 @@ let askIgnore (env: CliEnvironment) (file: string) : IgnoreStep =
     match env.FindIgnoreFile file with
     | None -> IgnoreStep.NoIgnoreFile
     | Some ignoreFile ->
-        // Each one above asked the same two questions the governing file is asked, so that what is
-        // reported of it is what would have been reported had it been the one that applies. An
-        // ignore file described in weaker terms than the one beside it reads as the lesser fact,
-        // and which of the two governs is the whole point being made.
-        let shadowed: ShadowedIgnoreFile list =
-            env.FindIgnoreFilesAbove ignoreFile
-            |> List.map (fun (above: IgnoreFile) ->
-                {
-                    Path = above.Location.FullName
-                    WouldIgnore = IgnoreFile.isIgnoredFile env.Log (Some above) file
-                    Matches = IgnoreFile.matchingLines above file
-                }
-            )
 
-        // The verdict comes from the same function every run uses, and the lines are the same
-        // question asked one pattern at a time. The verdict is the one to report: it is what
-        // decides what happens to the file, and a disagreement between the two is this command's
-        // to survive rather than to resolve.
-        IgnoreStep.Governed(
-            ignoreFile.Location.FullName,
-            IgnoreFile.isIgnoredFile env.Log (Some ignoreFile) file,
-            IgnoreFile.matchingLines ignoreFile file,
-            shadowed
+    // Each one above asked the same two questions the governing file is asked, so that what is
+    // reported of it is what would have been reported had it been the one that applies. An
+    // ignore file described in weaker terms than the one beside it reads as the lesser fact,
+    // and which of the two governs is the whole point being made.
+    let shadowed: ShadowedIgnoreFile list =
+        env.FindIgnoreFilesAbove ignoreFile
+        |> List.map (fun (above: IgnoreFile) ->
+            {
+                Path = above.Location.FullName
+                WouldIgnore = IgnoreFile.isIgnoredFile env.Log (Some above) file
+                Matches = IgnoreFile.matchingLines above file
+            }
         )
+
+    // The verdict comes from the same function every run uses, and the lines are the same
+    // question asked one pattern at a time. The verdict is the one to report: it is what
+    // decides what happens to the file, and a disagreement between the two is this command's
+    // to survive rather than to resolve.
+    IgnoreStep.Governed(
+        ignoreFile.Location.FullName,
+        IgnoreFile.isIgnoredFile env.Log (Some ignoreFile) file,
+        IgnoreFile.matchingLines ignoreFile file,
+        shadowed
+    )
 
 let formatOnce (isSignature: bool) (config: FormatConfig) (content: string) : string =
     CodeFormatter.FormatDocumentAsync(isSignature, content, config)
@@ -268,10 +269,11 @@ let walkFormatting
         match firstDifference original after with
         | Some line -> FormatChange.Reformatted(line, after.Length)
         | None ->
-            if content <> formatted then
-                FormatChange.LineEndingsOnly
-            else
-                FormatChange.Nothing
+
+        if content <> formatted then
+            FormatChange.LineEndingsOnly
+        else
+            FormatChange.Nothing
 
     let report: DoctorReport =
         { report with
@@ -305,13 +307,14 @@ let walkFormatting
             match firstDifference first second with
             | None -> IdempotencyStep.Idempotent
             | Some line ->
-                let at (source: string array) : string =
-                    if line <= source.Length then
-                        source.[line - 1]
-                    else
-                        String.Empty
 
-                IdempotencyStep.NotIdempotent(line, at first, at second)
+            let at (source: string array) : string =
+                if line <= source.Length then
+                    source.[line - 1]
+                else
+                    String.Empty
+
+            IdempotencyStep.NotIdempotent(line, at first, at second)
         with error ->
             IdempotencyStep.Failed error
 

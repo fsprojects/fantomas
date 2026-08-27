@@ -663,10 +663,11 @@ let isSmallExpression size (smallExpression: Context -> Context) fallbackExpress
     match size with
     | CharacterWidth maxWidth -> isShortExpression maxWidth smallExpression fallbackExpression ctx
     | NumberOfItems(items, maxItems) ->
-        if items > maxItems then
-            fallbackExpression ctx
-        else
-            expressionFitsOnRestOfLine smallExpression fallbackExpression ctx
+
+    if items > maxItems then
+        fallbackExpression ctx
+    else
+        expressionFitsOnRestOfLine smallExpression fallbackExpression ctx
 
 let leadingExpressionResult leadingExpression continuationExpression (ctx: Context) =
     let lineCountBefore, columnBefore =
@@ -865,19 +866,20 @@ let expressionExceedsPageWidthWithLayout (layout: LongExpressionLayout) (addSpac
     | NewlineOnly -> expressionExceedsPageWidth beforeShort sepNone sepNln sepNone expr ctx
     | IndentAndUnindent
     | DoubleIndentAndUnindent ->
-        let beforeLong =
-            match layout with
-            | IndentAndUnindent -> indent +> sepNln
-            | DoubleIndentAndUnindent -> indent +> indent +> sepNln
-            | NewlineOnly -> sepNln
 
-        let afterLong =
-            match layout with
-            | IndentAndUnindent -> unindentWithTriviaAwareness
-            | DoubleIndentAndUnindent -> unindentWithTriviaAwareness +> unindentWithTriviaAwareness
-            | NewlineOnly -> sepNone
+    let beforeLong =
+        match layout with
+        | IndentAndUnindent -> indent +> sepNln
+        | DoubleIndentAndUnindent -> indent +> indent +> sepNln
+        | NewlineOnly -> sepNln
 
-        expressionExceedsPageWidth beforeShort sepNone beforeLong afterLong expr ctx
+    let afterLong =
+        match layout with
+        | IndentAndUnindent -> unindentWithTriviaAwareness
+        | DoubleIndentAndUnindent -> unindentWithTriviaAwareness +> unindentWithTriviaAwareness
+        | NewlineOnly -> sepNone
+
+    expressionExceedsPageWidth beforeShort sepNone beforeLong afterLong expr ctx
 
 let autoIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidthWithLayout IndentAndUnindent false expr ctx
@@ -1168,55 +1170,57 @@ let colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) 
     | [] -> ctx
     | [ (ColMultilineItem(expr, _)) ] -> expr ctx
     | ColMultilineItem(initialExpr, _) :: items ->
-        let result =
-            // The first item can be written as is.
-            let initialIsMultiline, initialCtx = isMultilineItem initialExpr ctx
 
-            let itemsState =
+    let result =
+        // The first item can be written as is.
+        let initialIsMultiline, initialCtx = isMultilineItem initialExpr ctx
+
+        let itemsState =
+            {
+                Context = initialCtx
+                LastBlockMultiline = initialIsMultiline
+            }
+
+        let rec loop (acc: ColMultilineItemsState) (items: ColMultilineItem list) =
+            match items with
+            | [] -> acc.Context
+            | ColMultilineItem(expr, sepNlnItem) :: rest ->
+
+            // Optimistic path: assume the item (or its predecessor) is multiline,
+            // so emit an extra blank line separator before running the expression.
+            // If both turn out to be single-line, we roll back and replay without the extra blank line.
+            let backupPoint = acc.Context.WriterEvents.CreateBackupPoint()
+
+            let ctxAfterNln =
+                (ifElseCtx
+                    hasBlankLineBeforeLastWrite
+                    sepNone // don't add extra newline if there already is a full blank line at the end of the stream.
+                    sepNlnUnlessLastEventIsNewline // trivia may have already produced a newline
+                 +> sepNlnItem)
+                    acc.Context
+
+            let isMultiline, nextCtx = isMultilineItem expr ctxAfterNln
+
+            let nextCtx =
+                if not isMultiline && not acc.LastBlockMultiline then
+                    // Both the previous and current items are single-line.
+                    // The optimistic blank line was wrong — roll back those events
+                    // and replay with just the regular separator.
+                    acc.Context.WriterEvents.RollbackTo(backupPoint)
+                    (sepNlnUnlessLastEventIsNewline +> expr) acc.Context
+                else
+                    nextCtx
+
+            loop
                 {
-                    Context = initialCtx
-                    LastBlockMultiline = initialIsMultiline
+                    Context = nextCtx
+                    LastBlockMultiline = isMultiline
                 }
+                rest
 
-            let rec loop (acc: ColMultilineItemsState) (items: ColMultilineItem list) =
-                match items with
-                | [] -> acc.Context
-                | ColMultilineItem(expr, sepNlnItem) :: rest ->
-                    // Optimistic path: assume the item (or its predecessor) is multiline,
-                    // so emit an extra blank line separator before running the expression.
-                    // If both turn out to be single-line, we roll back and replay without the extra blank line.
-                    let backupPoint = acc.Context.WriterEvents.CreateBackupPoint()
+        loop itemsState items
 
-                    let ctxAfterNln =
-                        (ifElseCtx
-                            hasBlankLineBeforeLastWrite
-                            sepNone // don't add extra newline if there already is a full blank line at the end of the stream.
-                            sepNlnUnlessLastEventIsNewline // trivia may have already produced a newline
-                         +> sepNlnItem)
-                            acc.Context
-
-                    let isMultiline, nextCtx = isMultilineItem expr ctxAfterNln
-
-                    let nextCtx =
-                        if not isMultiline && not acc.LastBlockMultiline then
-                            // Both the previous and current items are single-line.
-                            // The optimistic blank line was wrong — roll back those events
-                            // and replay with just the regular separator.
-                            acc.Context.WriterEvents.RollbackTo(backupPoint)
-                            (sepNlnUnlessLastEventIsNewline +> expr) acc.Context
-                        else
-                            nextCtx
-
-                    loop
-                        {
-                            Context = nextCtx
-                            LastBlockMultiline = isMultiline
-                        }
-                        rest
-
-            loop itemsState items
-
-        result
+    result
 
 let colWithNlnWhenItemIsMultilineUsingConfig (items: ColMultilineItem list) (ctx: Context) =
     if ctx.Config.BlankLinesAroundNestedMultilineExpressions then

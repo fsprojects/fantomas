@@ -81,6 +81,28 @@ let f (x: Wrapper) : int =
 
     analyzeSource cliAnalyzer source |> assertLines [ 8 ]
 
+// A bracketed body indents its items, and the items of a `for` inside it again. Fantomas holds it
+// in the column of the bar like any other block. `overruledLines` in Report.fs is the case this
+// came from.
+[<Test>]
+let ``a last arm holding a list is reported`` () =
+    let source: string =
+        """module M
+
+let f (xs: string list) : string list =
+    match xs with
+    | [] -> []
+    | files ->
+        [
+            for file in files do
+                let path: string = file
+                path
+
+            "trailing line"
+        ]"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 7 ]
+
 [<Test>]
 let ``a last arm holding a single expression is not reported`` () =
     let source: string =

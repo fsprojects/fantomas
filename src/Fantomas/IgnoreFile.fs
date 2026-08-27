@@ -149,22 +149,23 @@ module IgnoreFile =
         match ignoreFile with
         | None -> false
         | Some ignoreFile ->
-            let fs: IFileSystem = ignoreFile.Location.FileSystem
-            let fullPath: AbsoluteFilePath = AbsoluteFilePath.Create fs file
 
-            try
-                ignoreFile.IsIgnored fullPath
-            with ex ->
-                // Matching a path against the ignore file is not something that should fail. If it
-                // does, say which file and which ignore file could not be told apart, and go on to
-                // format the file rather than abandon the run over it.
-                log.Error
-                    $"Could not tell whether '%s{file}' is matched by %s{ignoreFile.Location.FullName}: %s{ex.Message}"
+        let fs: IFileSystem = ignoreFile.Location.FileSystem
+        let fullPath: AbsoluteFilePath = AbsoluteFilePath.Create fs file
 
-                // The line above is the one to act on; this keeps the type and the stack trace for
-                // whoever asks for detail.
-                log.Debug $"%A{ex}"
-                false
+        try
+            ignoreFile.IsIgnored fullPath
+        with ex ->
+            // Matching a path against the ignore file is not something that should fail. If it
+            // does, say which file and which ignore file could not be told apart, and go on to
+            // format the file rather than abandon the run over it.
+            log.Error
+                $"Could not tell whether '%s{file}' is matched by %s{ignoreFile.Location.FullName}: %s{ex.Message}"
+
+            // The line above is the one to act on; this keeps the type and the stack trace for
+            // whoever asks for detail.
+            log.Debug $"%A{ex}"
+            false
 
     let matchingLines (ignoreFile: IgnoreFile) (file: string) : IgnoreMatch list =
         let fs: IFileSystem = ignoreFile.Location.FileSystem

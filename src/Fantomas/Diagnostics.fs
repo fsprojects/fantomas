@@ -137,15 +137,16 @@ let snippetFor (theme: Theme) (source: string) (target: range option) : string l
     match target with
     | None -> []
     | Some range ->
-        if String.IsNullOrEmpty source then
-            []
-        else
 
-        let lines: string array = source.Replace("\r\n", "\n").Split('\n')
+    if String.IsNullOrEmpty source then
+        []
+    else
 
-        match snippet theme lines range with
-        | [] -> []
-        | snippetLines -> "" :: snippetLines
+    let lines: string array = source.Replace("\r\n", "\n").Split('\n')
+
+    match snippet theme lines range with
+    | [] -> []
+    | snippetLines -> "" :: snippetLines
 
 let renderParseFailure
     (theme: Theme)

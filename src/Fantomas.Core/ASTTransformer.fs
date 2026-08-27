@@ -80,49 +80,52 @@ let mkSynIdent (creationAide: CreationAide) (SynIdent(ident, trivia)) =
     | Some(IdentTrivia.OriginalNotation text) -> stn text ident.idRange
     | Some(IdentTrivia.OriginalNotationWithParen(_, text, _)) -> stn $"(%s{text})" ident.idRange
     | Some(IdentTrivia.HasParenthesis _) ->
-        let width = ident.idRange.EndColumn - ident.idRange.StartColumn
 
-        let text =
-            if ident.idText.Length < width then
-                // preserve backticks inside the idText, e.g. the idText could be "|``Is Even``|``Is Odd``|"
-                creationAide.TextFromSource (fun () -> $"(%s{ident.idText})") ident.idRange
-            else
-                ident.idText
+    let width = ident.idRange.EndColumn - ident.idRange.StartColumn
 
-        stn $"(%s{text})" ident.idRange
+    let text =
+        if ident.idText.Length < width then
+            // preserve backticks inside the idText, e.g. the idText could be "|``Is Even``|``Is Odd``|"
+            creationAide.TextFromSource (fun () -> $"(%s{ident.idText})") ident.idRange
+        else
+            ident.idText
+
+    stn $"(%s{text})" ident.idRange
 
 let mkSynLongIdent (creationAide: CreationAide) (sli: SynLongIdent) =
     match sli.IdentsWithTrivia with
     | [] -> IdentListNode.Empty
     | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(mkSynIdent creationAide single) ], sli.Range)
     | head :: tail ->
-        assert (tail.Length = sli.Dots.Length)
 
-        let rest =
-            (sli.Dots, tail)
-            ||> List.zip
-            |> List.collect (fun (dot, ident) ->
-                [
-                    IdentifierOrDot.KnownDot(stn "." dot)
-                    IdentifierOrDot.Ident(mkSynIdent creationAide ident)
-                ]
-            )
+    assert (tail.Length = sli.Dots.Length)
 
-        IdentListNode(IdentifierOrDot.Ident(mkSynIdent creationAide head) :: rest, sli.Range)
+    let rest =
+        (sli.Dots, tail)
+        ||> List.zip
+        |> List.collect (fun (dot, ident) ->
+            [
+                IdentifierOrDot.KnownDot(stn "." dot)
+                IdentifierOrDot.Ident(mkSynIdent creationAide ident)
+            ]
+        )
+
+    IdentListNode(IdentifierOrDot.Ident(mkSynIdent creationAide head) :: rest, sli.Range)
 
 let mkLongIdent (longIdent: LongIdent) : IdentListNode =
     match longIdent with
     | [] -> IdentListNode.Empty
     | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(mkIdent single) ], single.idRange)
     | head :: tail ->
-        let rest =
-            tail
-            |> List.collect (fun ident -> [ IdentifierOrDot.UnknownDot; IdentifierOrDot.Ident(mkIdent ident) ])
 
-        let range =
-            longIdent |> List.map (fun ident -> ident.idRange) |> List.reduce unionRanges
+    let rest =
+        tail
+        |> List.collect (fun ident -> [ IdentifierOrDot.UnknownDot; IdentifierOrDot.Ident(mkIdent ident) ])
 
-        IdentListNode(IdentifierOrDot.Ident(mkIdent head) :: rest, range)
+    let range =
+        longIdent |> List.map (fun ident -> ident.idRange) |> List.reduce unionRanges
+
+    IdentListNode(IdentifierOrDot.Ident(mkIdent head) :: rest, range)
 
 let mkSynAccess (vis: SynAccess option) =
     match vis with
@@ -279,9 +282,10 @@ let mkAttributes (creationAide: CreationAide) (al: SynAttributeList list) : Mult
     match al with
     | [] -> None
     | _ ->
-        let attributeLists = List.map (mkAttributeList creationAide) al
-        let range = attributeLists |> List.map (fun al -> al.Range) |> combineRanges
-        Some(MultipleAttributeListNode(attributeLists, range))
+
+    let attributeLists = List.map (mkAttributeList creationAide) al
+    let range = attributeLists |> List.map (fun al -> al.Range) |> combineRanges
+    Some(MultipleAttributeListNode(attributeLists, range))
 
 /// Only used to get items of SynExpr.ArrayOrListComputed
 /// We can safely assume the SequentialTrivia.SeparatorRange is not going to be `then`.
@@ -332,13 +336,14 @@ let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range li
     match exprs with
     | [] -> invariantViolation m "a tuple expression has no elements"
     | head :: tail ->
-        let rest =
-            assert (tail.Length = commas.Length)
 
-            List.zip commas tail
-            |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkExpr creationAide e) ])
+    let rest =
+        assert (tail.Length = commas.Length)
 
-        ExprTupleNode([ yield Choice1Of2(mkExpr creationAide head); yield! rest ], m)
+        List.zip commas tail
+        |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkExpr creationAide e) ])
+
+    ExprTupleNode([ yield Choice1Of2(mkExpr creationAide head); yield! rest ], m)
 
 /// Unfold a list of let bindings
 /// Recursive and use properties have to be determined at this point
@@ -505,14 +510,16 @@ let (|MultipleConsInfixApps|_|) expr =
             match headAndLastOperator with
             | None -> visit rhs (Some(lhs, operator)) xs
             | Some(head, lastOperator) ->
-                xs.Enqueue(lastOperator, lhs)
-                visit rhs (Some(head, operator)) xs
+
+            xs.Enqueue(lastOperator, lhs)
+            visit rhs (Some(head, operator)) xs
         | e ->
             match headAndLastOperator with
             | None -> e, xs
             | Some(head, lastOperator) ->
-                xs.Enqueue(lastOperator, e)
-                head, xs
+
+            xs.Enqueue(lastOperator, e)
+            head, xs
 
     match expr with
     | ColonColonInfixApp _ ->
@@ -572,8 +579,9 @@ let (|SameInfixApps|_|) expr =
             match headAndLastOperator with
             | None -> e, xs
             | Some(head, lastOperator) ->
-                xs.Enqueue(lastOperator, e)
-                head, xs
+
+            xs.Enqueue(lastOperator, e)
+            head, xs
 
     match expr with
     | InfixApp(_, operator, _) ->
@@ -1949,12 +1957,13 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                         | SynInterpolationFormatting.Printf _ -> mkExpr creationAide fillExpr, None
                         | SynInterpolationFormatting.DotNet(None, format) -> mkExpr creationAide fillExpr, format
                         | SynInterpolationFormatting.DotNet(Some alignment, format) ->
-                            let mComma =
-                                mkRange fillExpr.Range.FileName fillExpr.Range.End alignment.Range.Start
 
-                            let mTuple = unionRanges fillExpr.Range alignment.Range
+                        let mComma =
+                            mkRange fillExpr.Range.FileName fillExpr.Range.End alignment.Range.Start
 
-                            mkTuple creationAide [ fillExpr; alignment ] [ mComma ] mTuple |> Expr.Tuple, format
+                        let mTuple = unionRanges fillExpr.Range alignment.Range
+
+                        mkTuple creationAide [ fillExpr; alignment ] [ mComma ] mTuple |> Expr.Tuple, format
 
                     let m =
                         match format with
@@ -2078,16 +2087,17 @@ let mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range l
     match pats with
     | [] -> invariantViolation m "a tuple pattern has no elements"
     | head :: tail ->
-        let rest =
-            if tail.Length <> commas.Length then
-                invariantViolation
-                    m
-                    $"Number of elements in tail of tuple (%i{tail.Length}) was not equal to number of commas (%i{commas.Length}), at range %O{m}."
 
-            List.zip commas tail
-            |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkPat creationAide e) ])
+    let rest =
+        if tail.Length <> commas.Length then
+            invariantViolation
+                m
+                $"Number of elements in tail of tuple (%i{tail.Length}) was not equal to number of commas (%i{commas.Length}), at range %O{m}."
 
-        PatTupleNode([ yield Choice1Of2(mkPat creationAide head); yield! rest ], m)
+        List.zip commas tail
+        |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkPat creationAide e) ])
+
+    PatTupleNode([ yield Choice1Of2(mkPat creationAide head); yield! rest ], m)
 
 let mkPat (creationAide: CreationAide) (p: SynPat) =
     let patternRange = p.Range
@@ -2962,8 +2972,9 @@ let mkImplicitCtor
         match self with
         | None -> None
         | Some(mAs, self) ->
-            let m = unionRanges mAs self.idRange
-            Some(AsSelfIdentifierNode(stn "as" mAs, mkIdent self, m))
+
+        let m = unionRanges mAs self.idRange
+        Some(AsSelfIdentifierNode(stn "as" mAs, mkIdent self, m))
 
     ImplicitConstructorNode(
         mkXmlDoc xmlDoc,
@@ -2990,62 +3001,63 @@ let mkTypeDefn
     let typeNameNode =
         match typeInfo with
         | SynComponentInfo(ats, tds, tcs, _, px, _preferPostfix, ao, _) ->
-            let identifierNode = mkComponentInfoName creationAide typeInfo
-            let mIdentifierNode = (Type.Node identifierNode).Range
 
-            let leadingKeyword =
-                match trivia.LeadingKeyword with
-                | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
-                | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
-                | SynTypeDefnLeadingKeyword.StaticType _
-                | SynTypeDefnLeadingKeyword.Synthetic ->
-                    invariantViolationAbout
-                        range
-                        trivia.LeadingKeyword
-                        $"unexpected leading keyword %s{UnionCase.name trivia.LeadingKeyword}"
+        let identifierNode = mkComponentInfoName creationAide typeInfo
+        let mIdentifierNode = (Type.Node identifierNode).Range
 
-            let implicitConstructorNode =
-                match implicitConstructor with
-                | Some(SynMemberDefn.ImplicitCtor(vis, attrs, pats, self, xmlDoc, _, trivia)) ->
-                    let self =
-                        match self, trivia.AsKeyword with
-                        | Some self, Some mAs -> Some(mAs, self)
-                        | _ -> None
+        let leadingKeyword =
+            match trivia.LeadingKeyword with
+            | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
+            | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
+            | SynTypeDefnLeadingKeyword.StaticType _
+            | SynTypeDefnLeadingKeyword.Synthetic ->
+                invariantViolationAbout
+                    range
+                    trivia.LeadingKeyword
+                    $"unexpected leading keyword %s{UnionCase.name trivia.LeadingKeyword}"
 
-                    mkImplicitCtor creationAide vis attrs pats self xmlDoc |> Some
-                | _ -> None
+        let implicitConstructorNode =
+            match implicitConstructor with
+            | Some(SynMemberDefn.ImplicitCtor(vis, attrs, pats, self, xmlDoc, _, trivia)) ->
+                let self =
+                    match self, trivia.AsKeyword with
+                    | Some self, Some mAs -> Some(mAs, self)
+                    | _ -> None
 
-            let m =
-                let startRange =
-                    if not px.IsEmpty then
-                        px.Range
-                    elif leadingKeyword.Text = "and" then
-                        leadingKeyword.Range
-                    else
-                        match ats with
-                        | [] -> leadingKeyword.Range
-                        | firstAttr :: _ -> firstAttr.Range
+                mkImplicitCtor creationAide vis attrs pats self xmlDoc |> Some
+            | _ -> None
 
-                let endRange =
-                    match trivia.EqualsRange with
-                    | None -> mIdentifierNode
-                    | Some mEq -> mEq
+        let m =
+            let startRange =
+                if not px.IsEmpty then
+                    px.Range
+                elif leadingKeyword.Text = "and" then
+                    leadingKeyword.Range
+                else
+                    match ats with
+                    | [] -> leadingKeyword.Range
+                    | firstAttr :: _ -> firstAttr.Range
 
-                unionRanges startRange endRange
+            let endRange =
+                match trivia.EqualsRange with
+                | None -> mIdentifierNode
+                | Some mEq -> mEq
 
-            TypeNameNode(
-                mkXmlDoc px,
-                mkAttributes creationAide ats,
-                leadingKeyword,
-                mkSynAccess ao,
-                identifierNode,
-                Option.map (mkSynTyparDecls creationAide) tds,
-                List.map (mkSynTypeConstraint creationAide) tcs,
-                implicitConstructorNode,
-                Option.map (stn "=") trivia.EqualsRange,
-                Option.map (stn "with") trivia.WithKeyword,
-                m
-            )
+            unionRanges startRange endRange
+
+        TypeNameNode(
+            mkXmlDoc px,
+            mkAttributes creationAide ats,
+            leadingKeyword,
+            mkSynAccess ao,
+            identifierNode,
+            Option.map (mkSynTyparDecls creationAide) tds,
+            List.map (mkSynTypeConstraint creationAide) tcs,
+            implicitConstructorNode,
+            Option.map (stn "=") trivia.EqualsRange,
+            Option.map (stn "with") trivia.WithKeyword,
+            m
+        )
 
     let members = List.map (mkMemberDefn creationAide) members
     let typeDefnRange = unionRanges typeNameNode.Range range
@@ -3181,32 +3193,33 @@ let mkWithGetSet
         | GetSetKeywords.Get mGet -> Some(MultipleTextsNode([ withNode; yield! visNodes visGet; stn "get" mGet ], m))
         | GetSetKeywords.Set mSet -> Some(MultipleTextsNode([ withNode; yield! visNodes visSet; stn "set" mSet ], m))
         | GetSetKeywords.GetSet(mGet, mSet) ->
-            if rangeBeforePos mGet mSet.Start then
-                Some(
-                    MultipleTextsNode(
-                        [
-                            withNode
-                            yield! visNodes visGet
-                            stn "get," mGet
-                            yield! visNodes visSet
-                            stn "set" mSet
-                        ],
-                        m
-                    )
+
+        if rangeBeforePos mGet mSet.Start then
+            Some(
+                MultipleTextsNode(
+                    [
+                        withNode
+                        yield! visNodes visGet
+                        stn "get," mGet
+                        yield! visNodes visSet
+                        stn "set" mSet
+                    ],
+                    m
                 )
-            else
-                Some(
-                    MultipleTextsNode(
-                        [
-                            withNode
-                            yield! visNodes visSet
-                            stn "set," mSet
-                            yield! visNodes visGet
-                            stn "get" mGet
-                        ],
-                        m
-                    )
+            )
+        else
+            Some(
+                MultipleTextsNode(
+                    [
+                        withNode
+                        yield! visNodes visSet
+                        stn "set," mSet
+                        yield! visNodes visGet
+                        stn "get" mGet
+                    ],
+                    m
                 )
+            )
     | _ -> None
 
 let mkPropertyGetSetBinding
@@ -3582,10 +3595,11 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             match ao with
             | None -> None, None
             | Some ao ->
-                if rangeBeforePos ao.Range memberName.Range.Start then
-                    Some ao, None
-                else
-                    None, Some ao
+
+            if rangeBeforePos ao.Range memberName.Range.Start then
+                Some ao, None
+            else
+                None, Some ao
 
         match getKeyword, setKeyword with
         | Some getKeyword, None ->
@@ -3764,33 +3778,34 @@ let mkModuleOrNamespace
         match leadingKeyword with
         | None -> None
         | Some leadingKeyword ->
-            match name with
-            | None ->
-                let m = mkFileIndexRange range.FileIndex range.Start leadingKeyword.Range.End
 
-                ModuleOrNamespaceHeaderNode(
-                    mkXmlDoc xmlDoc,
-                    mkAttributes creationAide attribs,
-                    leadingKeyword,
-                    mkSynAccess accessibility,
-                    isRecursive,
-                    None,
-                    m
-                )
-                |> Some
-            | Some name ->
-                let m = mkFileIndexRange range.FileIndex range.Start name.Range.End
+        match name with
+        | None ->
+            let m = mkFileIndexRange range.FileIndex range.Start leadingKeyword.Range.End
 
-                ModuleOrNamespaceHeaderNode(
-                    mkXmlDoc xmlDoc,
-                    mkAttributes creationAide attribs,
-                    leadingKeyword,
-                    mkSynAccess accessibility,
-                    isRecursive,
-                    Some name,
-                    m
-                )
-                |> Some
+            ModuleOrNamespaceHeaderNode(
+                mkXmlDoc xmlDoc,
+                mkAttributes creationAide attribs,
+                leadingKeyword,
+                mkSynAccess accessibility,
+                isRecursive,
+                None,
+                m
+            )
+            |> Some
+        | Some name ->
+            let m = mkFileIndexRange range.FileIndex range.Start name.Range.End
+
+            ModuleOrNamespaceHeaderNode(
+                mkXmlDoc xmlDoc,
+                mkAttributes creationAide attribs,
+                leadingKeyword,
+                mkSynAccess accessibility,
+                isRecursive,
+                Some name,
+                m
+            )
+            |> Some
 
     let decls = mkModuleDecls creationAide decls id
 
@@ -3879,41 +3894,42 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
     let typeNameNode =
         match typeInfo with
         | SynComponentInfo(ats, tds, tcs, _, px, _preferPostfix, ao, _) ->
-            let identifierNode = mkComponentInfoName creationAide typeInfo
-            let mIdentifierNode = (Type.Node identifierNode).Range
 
-            let leadingKeyword =
-                match trivia.LeadingKeyword with
-                | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
-                | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
-                | SynTypeDefnLeadingKeyword.StaticType _
-                | SynTypeDefnLeadingKeyword.Synthetic ->
-                    invariantViolationAbout
-                        range
-                        trivia.LeadingKeyword
-                        $"unexpected leading keyword %s{UnionCase.name trivia.LeadingKeyword}"
+        let identifierNode = mkComponentInfoName creationAide typeInfo
+        let mIdentifierNode = (Type.Node identifierNode).Range
 
-            let m =
-                if not px.IsEmpty then
-                    unionRanges px.Range mIdentifierNode
-                else
-                    match ats with
-                    | [] -> unionRanges leadingKeyword.Range mIdentifierNode
-                    | firstAttr :: _ -> unionRanges firstAttr.Range mIdentifierNode
+        let leadingKeyword =
+            match trivia.LeadingKeyword with
+            | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
+            | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
+            | SynTypeDefnLeadingKeyword.StaticType _
+            | SynTypeDefnLeadingKeyword.Synthetic ->
+                invariantViolationAbout
+                    range
+                    trivia.LeadingKeyword
+                    $"unexpected leading keyword %s{UnionCase.name trivia.LeadingKeyword}"
 
-            TypeNameNode(
-                mkXmlDoc px,
-                mkAttributes creationAide ats,
-                leadingKeyword,
-                mkSynAccess ao,
-                identifierNode,
-                Option.map (mkSynTyparDecls creationAide) tds,
-                List.map (mkSynTypeConstraint creationAide) tcs,
-                None,
-                Option.map (stn "=") trivia.EqualsRange,
-                Option.map (stn "with") trivia.WithKeyword,
-                m
-            )
+        let m =
+            if not px.IsEmpty then
+                unionRanges px.Range mIdentifierNode
+            else
+                match ats with
+                | [] -> unionRanges leadingKeyword.Range mIdentifierNode
+                | firstAttr :: _ -> unionRanges firstAttr.Range mIdentifierNode
+
+        TypeNameNode(
+            mkXmlDoc px,
+            mkAttributes creationAide ats,
+            leadingKeyword,
+            mkSynAccess ao,
+            identifierNode,
+            Option.map (mkSynTyparDecls creationAide) tds,
+            List.map (mkSynTypeConstraint creationAide) tcs,
+            None,
+            Option.map (stn "=") trivia.EqualsRange,
+            Option.map (stn "with") trivia.WithKeyword,
+            m
+        )
 
     let members = List.map (mkMemberSig creationAide) members
     let typeDefnRange = unionRanges typeNameNode.Range range
@@ -4113,33 +4129,34 @@ let mkModuleOrNamespaceSig
         match leadingKeyword with
         | None -> None
         | Some leadingKeyword ->
-            match name with
-            | None ->
-                let m = mkFileIndexRange range.FileIndex range.Start leadingKeyword.Range.End
 
-                ModuleOrNamespaceHeaderNode(
-                    mkXmlDoc xmlDoc,
-                    mkAttributes creationAide attribs,
-                    leadingKeyword,
-                    mkSynAccess accessibility,
-                    isRecursive,
-                    None,
-                    m
-                )
-                |> Some
-            | Some name ->
-                let m = mkFileIndexRange range.FileIndex range.Start name.Range.End
+        match name with
+        | None ->
+            let m = mkFileIndexRange range.FileIndex range.Start leadingKeyword.Range.End
 
-                ModuleOrNamespaceHeaderNode(
-                    mkXmlDoc xmlDoc,
-                    mkAttributes creationAide attribs,
-                    leadingKeyword,
-                    mkSynAccess accessibility,
-                    isRecursive,
-                    Some name,
-                    m
-                )
-                |> Some
+            ModuleOrNamespaceHeaderNode(
+                mkXmlDoc xmlDoc,
+                mkAttributes creationAide attribs,
+                leadingKeyword,
+                mkSynAccess accessibility,
+                isRecursive,
+                None,
+                m
+            )
+            |> Some
+        | Some name ->
+            let m = mkFileIndexRange range.FileIndex range.Start name.Range.End
+
+            ModuleOrNamespaceHeaderNode(
+                mkXmlDoc xmlDoc,
+                mkAttributes creationAide attribs,
+                leadingKeyword,
+                mkSynAccess accessibility,
+                isRecursive,
+                Some name,
+                m
+            )
+            |> Some
 
     ModuleOrNamespaceNode(header, decls, range)
 
@@ -4216,9 +4233,10 @@ let mkFullTreeRange ast =
             match directives with
             | ParsedHashDirective(range = r) :: _ -> r
             | [] ->
-                match modules with
-                | m :: _ -> mkSynModuleOrNamespaceFullRange m
-                | _ -> RangeHelpers.absoluteZeroRange
+
+            match modules with
+            | m :: _ -> mkSynModuleOrNamespaceFullRange m
+            | _ -> RangeHelpers.absoluteZeroRange
 
         let endPos =
             match List.tryLast modules with
@@ -4237,9 +4255,10 @@ let mkFullTreeRange ast =
             match directives with
             | ParsedHashDirective(range = r) :: _ -> r
             | [] ->
-                match modules with
-                | m :: _ -> mkSynModuleOrNamespaceSigFullRange m
-                | _ -> RangeHelpers.absoluteZeroRange
+
+            match modules with
+            | m :: _ -> mkSynModuleOrNamespaceSigFullRange m
+            | _ -> RangeHelpers.absoluteZeroRange
 
         let endPos =
             match List.tryLast modules with

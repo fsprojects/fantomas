@@ -17,11 +17,12 @@ module private DefineCombinationSolver =
         match f e with
         | Some x -> x
         | None ->
-            match e with
-            | IfDirectiveExpression.Not e -> IfDirectiveExpression.Not(map f e)
-            | IfDirectiveExpression.And(e1, e2) -> IfDirectiveExpression.And(map f e1, map f e2)
-            | IfDirectiveExpression.Or(e1, e2) -> IfDirectiveExpression.Or(map f e1, map f e2)
-            | _ -> e
+
+        match e with
+        | IfDirectiveExpression.Not e -> IfDirectiveExpression.Not(map f e)
+        | IfDirectiveExpression.And(e1, e2) -> IfDirectiveExpression.And(map f e1, map f e2)
+        | IfDirectiveExpression.Or(e1, e2) -> IfDirectiveExpression.Or(map f e1, map f e2)
+        | _ -> e
 
     let rec forall f e =
         f e

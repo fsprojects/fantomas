@@ -155,33 +155,34 @@ let checkReport (workingDirectory: string) (result: CheckCommandResult) : RunRep
         | CheckCommandResult.Failed error -> Some error.Message, []
         | CheckCommandResult.InvalidInput problem -> Some(describeInputProblem problem), []
         | CheckCommandResult.Completed(_, checkResult) ->
-            // A file that could not be formatted is counted as changed as well as errored, so it
-            // would otherwise be listed twice under two different answers.
-            let failed: Set<string> = checkResult.Errors |> List.map fst |> Set.ofList
 
-            let files: FileReport list =
-                [
-                    for file, error in checkResult.Errors do
+        // A file that could not be formatted is counted as changed as well as errored, so it
+        // would otherwise be listed twice under two different answers.
+        let failed: Set<string> = checkResult.Errors |> List.map fst |> Set.ofList
+
+        let files: FileReport list =
+            [
+                for file, error in checkResult.Errors do
+                    {
+                        Path = file
+                        Outcome = describeFileFailure file error
+                    }
+
+                for file in checkResult.Formatted do
+                    if not (Set.contains file failed) then
                         {
                             Path = file
-                            Outcome = describeFileFailure file error
+                            Outcome = FileOutcome.NeedsFormatting
                         }
 
-                    for file in checkResult.Formatted do
-                        if not (Set.contains file failed) then
-                            {
-                                Path = file
-                                Outcome = FileOutcome.NeedsFormatting
-                            }
+                for file in checkResult.Unchanged do
+                    {
+                        Path = file
+                        Outcome = FileOutcome.Unchanged
+                    }
+            ]
 
-                    for file in checkResult.Unchanged do
-                        {
-                            Path = file
-                            Outcome = FileOutcome.Unchanged
-                        }
-                ]
-
-            None, sortByPath files
+        None, sortByPath files
 
     {
         Command = Command.Check
@@ -198,27 +199,28 @@ let profileReport (workingDirectory: string) (result: ProfileCommand.ProfileComm
         | ProfileCommand.ProfileCommandResult.Failed error -> Some error.Message, None, []
         | ProfileCommand.ProfileCommandResult.InvalidInput problem -> Some(describeInputProblem problem), None, []
         | ProfileCommand.ProfileCommandResult.Completed profile ->
-            let files: FileReport list =
-                [
-                    for file, error in profile.Errors do
-                        {
-                            Path = file
-                            Outcome = describeFileFailure file error
-                        }
 
-                    for timing in profile.Timings do
-                        {
-                            Path = timing.File
-                            Outcome =
-                                FileOutcome.Timed(
-                                    timing.LineCount,
-                                    timing.DefineCombinations,
-                                    int (round timing.TimeTaken.TotalMilliseconds)
-                                )
-                        }
-                ]
+        let files: FileReport list =
+            [
+                for file, error in profile.Errors do
+                    {
+                        Path = file
+                        Outcome = describeFileFailure file error
+                    }
 
-            None, Some(int (round profile.Elapsed.TotalMilliseconds)), sortByPath files
+                for timing in profile.Timings do
+                    {
+                        Path = timing.File
+                        Outcome =
+                            FileOutcome.Timed(
+                                timing.LineCount,
+                                timing.DefineCombinations,
+                                int (round timing.TimeTaken.TotalMilliseconds)
+                            )
+                    }
+            ]
+
+        None, Some(int (round profile.Elapsed.TotalMilliseconds)), sortByPath files
 
     {
         Command = Command.Profile
@@ -389,41 +391,42 @@ let writeDoctorIgnore (json: Utf8JsonWriter) (step: IgnoreStep option) : unit =
     match step with
     | None -> json.WriteNull "ignore"
     | Some step ->
-        json.WriteStartObject "ignore"
 
-        match step with
-        | IgnoreStep.NoIgnoreFile ->
-            json.WriteString("status", "no-ignore-file")
-            json.WriteNull "ignoreFile"
+    json.WriteStartObject "ignore"
+
+    match step with
+    | IgnoreStep.NoIgnoreFile ->
+        json.WriteString("status", "no-ignore-file")
+        json.WriteNull "ignoreFile"
+        json.WriteStartArray "matches"
+        json.WriteEndArray()
+        json.WriteStartArray "shadowed"
+        json.WriteEndArray()
+    | IgnoreStep.Governed(ignoreFile, isIgnored, matches, shadowed) ->
+        json.WriteString("status", (if isIgnored then "ignored" else "not-ignored"))
+        json.WriteString("ignoreFile", ignoreFile)
+        json.WriteStartArray "matches"
+        List.iter (writeIgnoreMatch json) matches
+        json.WriteEndArray()
+
+        // Every ignore file above the one that governs the file, whether or not it would have
+        // decided anything, rather than only the ones that disagree. The reader of the document
+        // is a program, which can filter on `wouldIgnore` itself and cannot ask for the ones
+        // that were left out.
+        json.WriteStartArray "shadowed"
+
+        for above in shadowed do
+            json.WriteStartObject()
+            json.WriteString("path", above.Path)
+            json.WriteBoolean("wouldIgnore", above.WouldIgnore)
             json.WriteStartArray "matches"
+            List.iter (writeIgnoreMatch json) above.Matches
             json.WriteEndArray()
-            json.WriteStartArray "shadowed"
-            json.WriteEndArray()
-        | IgnoreStep.Governed(ignoreFile, isIgnored, matches, shadowed) ->
-            json.WriteString("status", (if isIgnored then "ignored" else "not-ignored"))
-            json.WriteString("ignoreFile", ignoreFile)
-            json.WriteStartArray "matches"
-            List.iter (writeIgnoreMatch json) matches
-            json.WriteEndArray()
+            json.WriteEndObject()
 
-            // Every ignore file above the one that governs the file, whether or not it would have
-            // decided anything, rather than only the ones that disagree. The reader of the document
-            // is a program, which can filter on `wouldIgnore` itself and cannot ask for the ones
-            // that were left out.
-            json.WriteStartArray "shadowed"
+        json.WriteEndArray()
 
-            for above in shadowed do
-                json.WriteStartObject()
-                json.WriteString("path", above.Path)
-                json.WriteBoolean("wouldIgnore", above.WouldIgnore)
-                json.WriteStartArray "matches"
-                List.iter (writeIgnoreMatch json) above.Matches
-                json.WriteEndArray()
-                json.WriteEndObject()
-
-            json.WriteEndArray()
-
-        json.WriteEndObject()
+    json.WriteEndObject()
 
 let writeEditorConfigProblem (json: Utf8JsonWriter) (problem: EditorConfigProblem) : unit =
     json.WriteStartObject()
@@ -447,67 +450,69 @@ let writeDoctorConfiguration (json: Utf8JsonWriter) (resolved: ResolvedConfig op
     match resolved with
     | None -> json.WriteNull "configuration"
     | Some resolved ->
-        json.WriteStartObject "configuration"
 
-        json.WriteStartArray "editorConfigFiles"
+    json.WriteStartObject "configuration"
 
-        for file in resolved.EditorConfigFiles do
-            json.WriteStringValue file
+    json.WriteStartArray "editorConfigFiles"
 
-        json.WriteEndArray()
+    for file in resolved.EditorConfigFiles do
+        json.WriteStringValue file
 
-        json.WriteStartArray "problems"
-        List.iter (writeEditorConfigProblem json) resolved.Problems
-        json.WriteEndArray()
+    json.WriteEndArray()
 
-        json.WriteStartArray "settings"
+    json.WriteStartArray "problems"
+    List.iter (writeEditorConfigProblem json) resolved.Problems
+    json.WriteEndArray()
 
-        for setting in resolved.Settings do
-            json.WriteStartObject()
-            json.WriteString("setting", setting.Setting)
-            json.WriteString("value", setting.Value)
+    json.WriteStartArray "settings"
 
-            match setting.SetBy with
-            | None -> json.WriteNull "setBy"
-            | Some file -> json.WriteString("setBy", file)
+    for setting in resolved.Settings do
+        json.WriteStartObject()
+        json.WriteString("setting", setting.Setting)
+        json.WriteString("value", setting.Value)
 
-            json.WriteEndObject()
+        match setting.SetBy with
+        | None -> json.WriteNull "setBy"
+        | Some file -> json.WriteString("setBy", file)
 
-        json.WriteEndArray()
         json.WriteEndObject()
+
+    json.WriteEndArray()
+    json.WriteEndObject()
 
 let writeDoctorFormat (json: Utf8JsonWriter) (path: string) (step: FormatStep option) : unit =
     match step with
     | None -> json.WriteNull "format"
     | Some step ->
-        json.WriteStartObject "format"
 
-        match step with
-        | FormatStep.Produced(_, FormatChange.Nothing) -> json.WriteString("status", "unchanged")
-        // No line of the file changes and the file is still rewritten. `status` is what tells this
-        // apart from a file that needs nothing, which is why there is no count here to read instead.
-        | FormatStep.Produced(_, FormatChange.LineEndingsOnly) -> json.WriteString("status", "line-endings")
-        | FormatStep.Produced(_, FormatChange.Reformatted(firstChangedLine, lineCountAfter)) ->
-            json.WriteString("status", "changed")
-            json.WriteNumber("firstChangedLine", firstChangedLine)
-            json.WriteNumber("lineCountAfter", lineCountAfter)
-        | FormatStep.Failed error ->
-            json.WriteString("status", "failed")
+    json.WriteStartObject "format"
 
-            match describeFileFailure path error with
-            | FileOutcome.Failed(message, diagnostics) ->
-                json.WriteString("message", message)
-                json.WriteStartArray "diagnostics"
-                List.iter (writeDiagnostic json) diagnostics
-                json.WriteEndArray()
-            // `describeFileFailure` answers with nothing else. Named rather than swept up by a
-            // wildcard, so that a case added to it has to be placed here deliberately.
-            | FileOutcome.Formatted
-            | FileOutcome.Unchanged
-            | FileOutcome.NeedsFormatting
-            | FileOutcome.Timed _ -> ()
+    match step with
+    | FormatStep.Produced(_, FormatChange.Nothing) -> json.WriteString("status", "unchanged")
+    // No line of the file changes and the file is still rewritten. `status` is what tells this
+    // apart from a file that needs nothing, which is why there is no count here to read instead.
+    | FormatStep.Produced(_, FormatChange.LineEndingsOnly) -> json.WriteString("status", "line-endings")
+    | FormatStep.Produced(_, FormatChange.Reformatted(firstChangedLine, lineCountAfter)) ->
+        json.WriteString("status", "changed")
+        json.WriteNumber("firstChangedLine", firstChangedLine)
+        json.WriteNumber("lineCountAfter", lineCountAfter)
+    | FormatStep.Failed error ->
+        json.WriteString("status", "failed")
 
-        json.WriteEndObject()
+        match describeFileFailure path error with
+        | FileOutcome.Failed(message, diagnostics) ->
+            json.WriteString("message", message)
+            json.WriteStartArray "diagnostics"
+            List.iter (writeDiagnostic json) diagnostics
+            json.WriteEndArray()
+        // `describeFileFailure` answers with nothing else. Named rather than swept up by a
+        // wildcard, so that a case added to it has to be placed here deliberately.
+        | FileOutcome.Formatted
+        | FileOutcome.Unchanged
+        | FileOutcome.NeedsFormatting
+        | FileOutcome.Timed _ -> ()
+
+    json.WriteEndObject()
 
 // The diagnostics of invalid output are positions in output that was thrown away rather than in the
 // file at `path`, exactly as they are for a format run, and the same warning applies: a caller
@@ -516,39 +521,41 @@ let writeDoctorValidity (json: Utf8JsonWriter) (step: ValidityStep option) : uni
     match step with
     | None -> json.WriteNull "validity"
     | Some step ->
-        json.WriteStartObject "validity"
 
-        match step with
-        | ValidityStep.Valid ->
-            json.WriteString("status", "valid")
-            json.WriteStartArray "diagnostics"
-            json.WriteEndArray()
-        | ValidityStep.Invalid diagnostics ->
-            json.WriteString("status", "invalid")
-            json.WriteStartArray "diagnostics"
-            List.iter (writeDiagnostic json) (List.map describeDiagnostic diagnostics)
-            json.WriteEndArray()
+    json.WriteStartObject "validity"
 
-        json.WriteEndObject()
+    match step with
+    | ValidityStep.Valid ->
+        json.WriteString("status", "valid")
+        json.WriteStartArray "diagnostics"
+        json.WriteEndArray()
+    | ValidityStep.Invalid diagnostics ->
+        json.WriteString("status", "invalid")
+        json.WriteStartArray "diagnostics"
+        List.iter (writeDiagnostic json) (List.map describeDiagnostic diagnostics)
+        json.WriteEndArray()
+
+    json.WriteEndObject()
 
 let writeDoctorIdempotency (json: Utf8JsonWriter) (step: IdempotencyStep option) : unit =
     match step with
     | None -> json.WriteNull "idempotency"
     | Some step ->
-        json.WriteStartObject "idempotency"
 
-        match step with
-        | IdempotencyStep.Idempotent -> json.WriteString("status", "idempotent")
-        | IdempotencyStep.Failed error ->
-            json.WriteString("status", "failed")
-            json.WriteString("message", error.Message)
-        | IdempotencyStep.NotIdempotent(line, afterFirstPass, afterSecondPass) ->
-            json.WriteString("status", "not-idempotent")
-            json.WriteNumber("line", line)
-            json.WriteString("afterFirstPass", afterFirstPass)
-            json.WriteString("afterSecondPass", afterSecondPass)
+    json.WriteStartObject "idempotency"
 
-        json.WriteEndObject()
+    match step with
+    | IdempotencyStep.Idempotent -> json.WriteString("status", "idempotent")
+    | IdempotencyStep.Failed error ->
+        json.WriteString("status", "failed")
+        json.WriteString("message", error.Message)
+    | IdempotencyStep.NotIdempotent(line, afterFirstPass, afterSecondPass) ->
+        json.WriteString("status", "not-idempotent")
+        json.WriteNumber("line", line)
+        json.WriteString("afterFirstPass", afterFirstPass)
+        json.WriteString("afterSecondPass", afterSecondPass)
+
+    json.WriteEndObject()
 
 let writeDoctorDocument (json: Utf8JsonWriter) (workingDirectory: string) (result: DoctorCommandResult) : unit =
     json.WriteStartObject()

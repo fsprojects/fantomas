@@ -46,10 +46,14 @@ let keepIndentColumnOf (clause: SynMatchClause) : int =
 
 // Whether a body is the kind of expression that goes on to indent things of its own.
 //
-// This is what the de-indent is for. A block holds bindings, statements or arms that each sit a
-// level in again, so the four columns it saves are saved for everything inside it, and saved again
+// This is what the de-indent is for. A block holds bindings, statements, arms or items that each sit
+// a level in again, so the four columns it saves are saved for everything inside it, and saved again
 // by the next block in. A single application or pipeline has nothing under it to save them for, and
 // reads oddly under the blank line the setting writes.
+//
+// A bracketed body counts as much as a `match` does. `[` holding a `for` loop indents everything in
+// the loop twice over, and Fantomas holds it in the column of the bar like anything else. The
+// `overruledLines` list in Report.fs is the case that showed it.
 let isBlockBody (expr: SynExpr) : bool =
     match expr with
     | SynExpr.Sequential _
@@ -57,7 +61,13 @@ let isBlockBody (expr: SynExpr) : bool =
     | SynExpr.Match _
     | SynExpr.MatchBang _
     | SynExpr.MatchLambda _
-    | SynExpr.IfThenElse _ -> true
+    | SynExpr.IfThenElse _
+    | SynExpr.ArrayOrList _
+    | SynExpr.ArrayOrListComputed _
+    | SynExpr.Record _
+    | SynExpr.AnonRecd _
+    | SynExpr.ComputationExpr _
+    | SynExpr.ObjExpr _ -> true
     | _ -> false
 
 // Whether the last arm is the only one that is not a one liner.

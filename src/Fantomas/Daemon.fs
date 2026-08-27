@@ -61,8 +61,9 @@ let configurationFor
         match requestConfig with
         | None -> config, []
         | Some properties ->
-            let config, problems = parseOptionsFromEditorConfig config properties
-            config, List.map (toConfigurationProblem ConfigurationProblemSource.Request) problems
+
+        let config, problems = parseOptionsFromEditorConfig config properties
+        config, List.map (toConfigurationProblem ConfigurationProblemSource.Request) problems
 
     let problems = List.toArray (fromEditorConfig @ fromRequest)
 
