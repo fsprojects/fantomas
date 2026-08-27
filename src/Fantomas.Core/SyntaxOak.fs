@@ -84,15 +84,16 @@ let private hasLayoutAffectingTrivia (nodes: Queue<TriviaNode>) =
     if nodes.Count = 0 then
         false
     else
-        let mutable found = false
-        let mutable e = nodes.GetEnumerator()
 
-        while not found && e.MoveNext() do
-            match e.Current.Content with
-            | Cursor -> ()
-            | _ -> found <- true
+    let mutable found = false
+    let mutable e = nodes.GetEnumerator()
 
-        found
+    while not found && e.MoveNext() do
+        match e.Current.Content with
+        | Cursor -> ()
+        | _ -> found <- true
+
+    found
 
 /// Base implementation of <see cref="Node"/> shared by all concrete Oak node types.
 /// Manages the mutable trivia queues (<c>ContentBefore</c> / <c>ContentAfter</c>) and
@@ -133,40 +134,41 @@ type NodeBase(range: range) =
         let hasContentAfter = not (Seq.isEmpty x.ContentAfter)
         let hasContent = hasContentBefore || hasChildren || hasContentAfter
 
-        if hasContent then
-            sb.AppendLine() |> ignore
-
-            if hasContentBefore then
-                for tn in x.ContentBefore do
-                    sb.Append(contentIndent).Append("▼ ").Append(tn.ToString()).AppendLine()
-                    |> ignore
-
-            if hasChildren then
-                for n in x.Children do
-                    match n with
-                    | :? SingleTextNode as stn ->
-                        for tn in stn.ContentBefore do
-                            sb.Append(contentIndent).Append("▼ ").Append(tn.ToString()).AppendLine()
-                            |> ignore
-
-                        sb.Append(contentIndent).Append(stn.ToString()).AppendLine() |> ignore
-
-                        for tn in stn.ContentAfter do
-                            sb.Append(contentIndent).Append("▲ ").Append(tn.ToString()).AppendLine()
-                            |> ignore
-                    | :? NodeBase as nb ->
-                        nb.AppendToStringWithIndent(sb, depth + 1)
-                        sb.AppendLine() |> ignore
-                    | _ -> sb.Append(contentIndent).Append(n.ToString()).AppendLine() |> ignore
-
-            if hasContentAfter then
-                for tn in x.ContentAfter do
-                    sb.Append(contentIndent).Append("▲ ").Append(tn.ToString()).AppendLine()
-                    |> ignore
-
-            sb.Append(indent).Append(")") |> ignore
-        else
+        if not hasContent then
             sb.Append(")") |> ignore
+        else
+
+        sb.AppendLine() |> ignore
+
+        if hasContentBefore then
+            for tn in x.ContentBefore do
+                sb.Append(contentIndent).Append("▼ ").Append(tn.ToString()).AppendLine()
+                |> ignore
+
+        if hasChildren then
+            for n in x.Children do
+                match n with
+                | :? SingleTextNode as stn ->
+                    for tn in stn.ContentBefore do
+                        sb.Append(contentIndent).Append("▼ ").Append(tn.ToString()).AppendLine()
+                        |> ignore
+
+                    sb.Append(contentIndent).Append(stn.ToString()).AppendLine() |> ignore
+
+                    for tn in stn.ContentAfter do
+                        sb.Append(contentIndent).Append("▲ ").Append(tn.ToString()).AppendLine()
+                        |> ignore
+                | :? NodeBase as nb ->
+                    nb.AppendToStringWithIndent(sb, depth + 1)
+                    sb.AppendLine() |> ignore
+                | _ -> sb.Append(contentIndent).Append(n.ToString()).AppendLine() |> ignore
+
+        if hasContentAfter then
+            for tn in x.ContentAfter do
+                sb.Append(contentIndent).Append("▲ ").Append(tn.ToString()).AppendLine()
+                |> ignore
+
+        sb.Append(indent).Append(")") |> ignore
 
     member private x.ToStringWithIndent(depth: int) =
         let sb = StringBuilder()

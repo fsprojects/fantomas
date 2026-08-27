@@ -10,7 +10,8 @@ feedback arrives while you work instead of in review. They are ordinary F# analy
 | [`FANTOMAS-PIPEBACK-001`](#fantomas-pipeback-001) | No backward pipe | Error | both pipelines |
 | [`FANTOMAS-PRIVATE-001`](#fantomas-private-001) | No `let private` beside a signature file | Error | both pipelines |
 | [`FANTOMAS-ARMORDER-001`](#fantomas-armorder-001) | Shortest match arm first | Warning | both pipelines |
-| [`FANTOMAS-KEEPINDENT-001`](#fantomas-keepindent-001) | Last match arm keeps the indentation | Warning | both pipelines |
+| [`FANTOMAS-BRANCHORDER-001`](#fantomas-branchorder-001) | Shortest `if` branch first | Warning | both pipelines |
+| [`FANTOMAS-KEEPINDENT-001`](#fantomas-keepindent-001) | Last branch keeps the indentation | Warning | both pipelines |
 | [`FANTOMAS-ANNOTATE-001`](#fantomas-annotate-001) | Annotate every `let` binding | Warning | `AnalyzeChanged` only |
 | [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries | Warning | both pipelines |
 
@@ -69,9 +70,36 @@ and indentation is the kind of edit that goes wrong quietly.
 
 So a match it says nothing about is not necessarily in the right order. The rule is still the rule.
 
+## FANTOMAS-BRANCHORDER-001
+
+The same for an `if`. Put the shorter branch first, negating the condition to get there:
+
+```fsharp
+if not contentChanged then
+    return FormatResult.Unchanged(filename = formatParams.File)
+else
+    let! validation = CodeFormatter.ValidateFSharpCodeAsync(isSignatureFile, formattedContent)
+    ...
+```
+
+This asks for more than `FANTOMAS-ARMORDER-001` does. A match arm can only be moved, where a branch
+has to be negated as well, so the rule is doing something to the condition and not only to the
+layout. What it does not have to worry about is overlap: the two branches of an `if` are exclusive by
+construction, so the swap is always sound, where reordering two match arms need not be.
+
+What is not always an improvement is the condition it leaves behind. A comparison flips into its
+opposite and an existing `not` falls away, and both of those are still one thing to read. A condition
+joined by `&&` or `||` would have to grow a `not` and a pair of parentheses around the whole of it,
+which is a worse sentence than the branches were worth, so those are left alone. Everything else can
+only gain a `not`, which is fine, and is the common case.
+
+It speaks only for a plain `if`/`then`/`else`. A chain with an `elif` has more than two ways through
+it and no single swap that puts the short one first. It stays quiet on a conditional directive inside
+the expression, and offers no fix, because rewriting a condition is a thing to read before doing.
+
 ## FANTOMAS-KEEPINDENT-001
 
-Once the short arm is first, let the last arm keep the indentation of the match:
+Once the short branch is first, let the last branch keep the indentation of the expression:
 
 ```fsharp
 match localToolsListResult with
@@ -142,8 +170,18 @@ question rather than a tree one. It stays quiet on a conditional directive insid
 offers no fix, because re-indenting a block means leaving the multiline strings inside it exactly
 where they are, which is not a thing to do blind, least of all in `Fantomas.Core.Tests`.
 
-`match`, `match!` and `function` all reach the same clause printer, so all three are covered.
-`if`/`then`/`else` has the same setting behind it and is deliberately left out for now.
+`match`, `match!` and `function` all reach the same clause printer, so all three are covered. So is
+the final `else` of an `if`, which reaches `genKeepIdentIfThenElse` rather than
+`genKeepIdentMatchClause` and is a shade more permissive: it accepts the body in the column of the
+`else` or of the `if`, where a match arm has only the `|` to match. Fantomas prints both in the same
+column, so the rule aims at the `else` and one target is enough. An `elif` chain is printed flat and
+offers the choice to its last `else` alone, so the chain is walked to reach it and every `then` above
+has to be a one liner like any other branch.
+
+The two halves compose, and the composition is the point. `FANTOMAS-BRANCHORDER-001` and
+`FANTOMAS-ARMORDER-001` put the short branches first, which leaves the one that carries on last,
+which is where this rule can reach it. Fixing them in that order is worth doing, because a swap
+creates candidates here that were not there before.
 
 ## FANTOMAS-ANNOTATE-001
 

@@ -10,7 +10,7 @@ val Name: string = "KeepIndentAnalyzer"
 
 [<Literal>]
 val ShortDescription: string =
-    "Detects a last match arm whose body is a block indented a level past the match, where the indentation of the match could be kept instead."
+    "Detects a last branch whose body is a block indented a level past the expression it belongs to, where that indentation could be kept instead."
 
 [<Literal>]
 val HelpUri: string = "https://github.com/fsprojects/fantomas/blob/main/analyzers/AGENTS.md#fantomas-keepindent-001"

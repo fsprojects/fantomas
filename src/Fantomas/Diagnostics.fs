@@ -96,22 +96,23 @@ let snippet (theme: Theme) (lines: string array) (range: range) : string list =
     if range.StartLine < 1 || range.StartLine > lines.Length then
         []
     else
-        let firstLine = max 1 (range.StartLine - contextLines)
-        let lastLine = min lines.Length (range.StartLine + contextLines)
-        let gutter = String.length (string<int> lastLine)
 
-        let blankGutter: string = muted theme (String.Concat(String(' ', gutter), " |"))
+    let firstLine = max 1 (range.StartLine - contextLines)
+    let lastLine = min lines.Length (range.StartLine + contextLines)
+    let gutter = String.length (string<int> lastLine)
 
-        [
-            for number in firstLine..lastLine do
-                let lineNumber: string = (string<int> number).PadLeft(gutter)
-                let numberedGutter: string = muted theme (String.Concat(lineNumber, " |"))
-                yield String.Concat(numberedGutter, " ", expandTabs lines.[number - 1])
+    let blankGutter: string = muted theme (String.Concat(String(' ', gutter), " |"))
 
-                if number = range.StartLine then
-                    let indent, carets = caretRun lines.[number - 1] range
-                    yield String.Concat(blankGutter, " ", indent, negative theme carets)
-        ]
+    [
+        for number in firstLine..lastLine do
+            let lineNumber: string = (string<int> number).PadLeft(gutter)
+            let numberedGutter: string = muted theme (String.Concat(lineNumber, " |"))
+            yield String.Concat(numberedGutter, " ", expandTabs lines.[number - 1])
+
+            if number = range.StartLine then
+                let indent, carets = caretRun lines.[number - 1] range
+                yield String.Concat(blankGutter, " ", indent, negative theme carets)
+    ]
 
 // Where to draw the caret. The first error by position, since in an offside cascade that is the
 // line that caused it rather than the innocent line the parser gave up on. Falling back to the
@@ -224,8 +225,9 @@ let renderInvariantViolation
         if not verbose || String.IsNullOrWhiteSpace violation.SyntaxNode then
             []
         else
-            [ ""; "Syntax tree node:"; "" ]
-            @ List.ofArray (violation.SyntaxNode.Split('\n'))
+
+        [ ""; "Syntax tree node:"; "" ]
+        @ List.ofArray (violation.SyntaxNode.Split('\n'))
 
     let reportIt: string = reportAsBug theme "the snippet above"
 
@@ -300,13 +302,14 @@ let renderInvalidOutput
         if List.isEmpty ordered then
             []
         else
-            [
-                yield ""
-                yield "This is what the parser made of that output. The lines below are the output, not your file."
-                yield ""
-                yield! List.map (outputHeadline theme) ordered
-                yield! snippetFor theme output (caretTarget ordered)
-            ]
+
+        [
+            yield ""
+            yield "This is what the parser made of that output. The lines below are the output, not your file."
+            yield ""
+            yield! List.map (outputHeadline theme) ordered
+            yield! snippetFor theme output (caretTarget ordered)
+        ]
 
     [
         yield $"%s{link theme file} could not be formatted by Fantomas:"

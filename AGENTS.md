@@ -32,7 +32,8 @@ pipelines run them alongside the two analyzer packages.
 | `FANTOMAS-PIPEBACK-001` | No backward pipe | Error |
 | `FANTOMAS-PRIVATE-001` | No `let private` beside a signature file | Error |
 | `FANTOMAS-ARMORDER-001` | Shortest match arm first | Warning |
-| `FANTOMAS-KEEPINDENT-001` | Last match arm keeps the indentation | Warning |
+| `FANTOMAS-BRANCHORDER-001` | Shortest `if` branch first | Warning |
+| `FANTOMAS-KEEPINDENT-001` | Last branch keeps the indentation | Warning |
 | `FANTOMAS-ANNOTATE-001` | Annotate every `let` binding | Warning |
 | `FANTOMAS-XMLDOC-001` | No doc comment the signature file already carries | Warning |
 

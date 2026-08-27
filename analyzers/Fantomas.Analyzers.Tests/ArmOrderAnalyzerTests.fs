@@ -44,6 +44,53 @@ let f (x: int option) : int =
 
     analyzeSource cliAnalyzer source |> assertLines []
 
+// A list is matched by `::` and `[]` rather than by union cases, and those two are as disjoint as
+// any pair. `dataToEnd` in Queue.fs is the shape this came from, which is also a `function` rather
+// than a `match`.
+[<Test>]
+let ``a cons arm before an empty list arm is reported`` () =
+    let source: string =
+        """module M
+
+let rec f (acc: int list) : int list -> int list =
+    function
+    | hd :: tl ->
+        let a: int = hd
+        f (a :: acc) tl
+    | [] -> acc"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 8 ]
+
+[<Test>]
+let ``an empty list arm coming first is not reported`` () =
+    let source: string =
+        """module M
+
+let rec f (acc: int list) : int list -> int list =
+    function
+    | [] -> acc
+    | hd :: tl ->
+        let a: int = hd
+        f (a :: acc) tl"""
+
+    analyzeSource cliAnalyzer source |> assertLines []
+
+// `[ x ]` and `x :: rest` both match a one element list, so those two cannot be swapped and the
+// rule has to stay quiet.
+[<Test>]
+let ``a cons arm before a single element list arm is not reported`` () =
+    let source: string =
+        """module M
+
+let f (xs: int list) : int =
+    match xs with
+    | hd :: _ ->
+        let a: int = hd
+        a + 1
+    | [ x ] -> x"""
+
+    analyzeSource cliAnalyzer source |> assertLines []
+
 [<Test>]
 let ``a wildcard arm is not reported`` () =
     let source: string =
@@ -197,7 +244,7 @@ let f (x: int option) : int =
     analyzeSource cliAnalyzer source |> assertLines [ 8 ]
 
 [<Test>]
-let ``a function keyword is not reported`` () =
+let ``a function keyword is reported`` () =
     let source: string =
         """module M
 
@@ -208,7 +255,7 @@ let f: int option -> int =
         a + 1
     | None -> 0"""
 
-    analyzeSource cliAnalyzer source |> assertLines []
+    analyzeSource cliAnalyzer source |> assertLines [ 8 ]
 
 [<Test>]
 let ``a try with is not reported`` () =

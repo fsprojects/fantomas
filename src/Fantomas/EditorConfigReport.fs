@@ -50,26 +50,27 @@ let describe (origin: string) (problems: EditorConfigProblem list) : string opti
     if List.isEmpty problems then
         None
     else
-        let namesAnyUnknownSetting =
-            problems
-            |> List.exists (fun problem ->
-                match problem with
-                | EditorConfigProblem.UnknownSetting _ -> true
-                | EditorConfigProblem.UnrecognizedValue _ -> false
-            )
 
-        [
-            yield ""
-            yield $"Fantomas cannot use some settings from %s{origin}:"
-            for problem in problems do
-                yield String.Concat("  ", describeProblem problem)
-            if namesAnyUnknownSetting then
-                yield
-                    $"Run fantomas with --verbosity d to see every .editorconfig setting fantomas %s{fantomasVersion} supports."
-            yield ""
-        ]
-        |> String.concat Environment.NewLine
-        |> Some
+    let namesAnyUnknownSetting =
+        problems
+        |> List.exists (fun problem ->
+            match problem with
+            | EditorConfigProblem.UnknownSetting _ -> true
+            | EditorConfigProblem.UnrecognizedValue _ -> false
+        )
+
+    [
+        yield ""
+        yield $"Fantomas cannot use some settings from %s{origin}:"
+        for problem in problems do
+            yield String.Concat("  ", describeProblem problem)
+        if namesAnyUnknownSetting then
+            yield
+                $"Run fantomas with --verbosity d to see every .editorconfig setting fantomas %s{fantomasVersion} supports."
+        yield ""
+    ]
+    |> String.concat Environment.NewLine
+    |> Some
 
 let describeSupportedSettings () : string =
     [

@@ -95,17 +95,18 @@ let missingAnnotations (binding: SynBinding) : (range * string) list =
             if hasReturnType then
                 []
             else
-                // An uppercase name parses as a `LongIdent` rather than a `Named`, because it
-                // could be a union case, so a value can arrive here with no parameters at all.
-                // It is still a value, and asking it for a return type would read oddly.
-                let what: string =
-                    match parameters with
-                    | [] -> "type"
-                    | _ -> "return type"
 
-                match List.tryLast identifiers with
-                | None -> []
-                | Some last -> [ last.idRange, $"`%s{name}` has no %s{what} annotation." ]
+            // An uppercase name parses as a `LongIdent` rather than a `Named`, because it
+            // could be a union case, so a value can arrive here with no parameters at all.
+            // It is still a value, and asking it for a return type would read oddly.
+            let what: string =
+                match parameters with
+                | [] -> "type"
+                | _ -> "return type"
+
+            match List.tryLast identifiers with
+            | None -> []
+            | Some last -> [ last.idRange, $"`%s{name}` has no %s{what} annotation." ]
 
         untypedParameters @ missingReturn
     | _ -> []

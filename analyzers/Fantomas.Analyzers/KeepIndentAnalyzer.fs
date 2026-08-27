@@ -3,6 +3,7 @@ module Fantomas.Analyzers.KeepIndentAnalyzer
 open FSharp.Analyzers.SDK
 open FSharp.Analyzers.SDK.ASTCollecting
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
 open Fantomas.Analyzers.Common
 
@@ -14,35 +15,26 @@ let Name: string = "KeepIndentAnalyzer"
 
 [<Literal>]
 let ShortDescription: string =
-    "Detects a last match arm whose body is a block indented a level past the match, where the indentation of the match could be kept instead."
+    "Detects a last branch whose body is a block indented a level past the expression it belongs to, where that indentation could be kept instead."
 
 [<Literal>]
 let HelpUri: string =
     "https://github.com/fsprojects/fantomas/blob/main/analyzers/AGENTS.md#fantomas-keepindent-001"
 
-// The arms of everything that prints as a list of match arms, with the range of the expression they
-// belong to. `match`, `match!` and `function` all reach the same clause printer in `CodePrinter`, so
-// the last arm of each is one `fsharp_experimental_keep_indent_in_branch` can speak about.
-let matchClausesOf (expr: SynExpr) : (range * SynMatchClause list) option =
-    match expr with
-    | SynExpr.Match(clauses = clauses; range = range)
-    | SynExpr.MatchBang(clauses = clauses; range = range)
-    | SynExpr.MatchLambda(matchClauses = clauses; range = range) -> Some(range, clauses)
-    | _ -> None
-
-// The column a body has to start in for Fantomas to leave it there.
+// The expression a body really starts with, looking through the operators it is piped into.
 //
-// `genKeepIdentMatchClause` compares the body against the bar, falling back to the pattern where
-// there is none, so this is that same column and not a column of this rule's choosing. Only the
-// last arm is ever asked, and the arm without a bar is the first one, but the fallback keeps the
-// two definitions in step.
-let keepIndentColumnOf (clause: SynMatchClause) : int =
-    match clause with
-    | SynMatchClause(pat = pattern; trivia = trivia) ->
-
-    match trivia.BarRange with
-    | Some bar -> bar.StartColumn
-    | None -> pattern.Range.StartColumn
+// `{ ... } |> Some` is an application at the top and a record underneath, and the record is what
+// indents things. What is to the right of the operator is a name, so what decides whether the body
+// is a block is what stands on the left of the first one. `walkUp` in IgnoreFile.fs is the case that
+// showed it, and the same reading covers `{ ... } :: rest`.
+//
+// A pipeline whose left hand side is itself an application is left where it was: `someCall a b |>
+// Some` has nothing under it that a de-indent would save columns for, which is the whole reason a
+// plain application is passed over.
+let rec bodyHead (expr: SynExpr) : SynExpr =
+    match expr with
+    | SynExpr.App(funcExpr = SynExpr.App(isInfix = true; argExpr = leftHandSide)) -> bodyHead leftHandSide
+    | _ -> expr
 
 // Whether a body is the kind of expression that goes on to indent things of its own.
 //
@@ -55,7 +47,7 @@ let keepIndentColumnOf (clause: SynMatchClause) : int =
 // the loop twice over, and Fantomas holds it in the column of the bar like anything else. The
 // `overruledLines` list in Report.fs is the case that showed it.
 let isBlockBody (expr: SynExpr) : bool =
-    match expr with
+    match bodyHead expr with
     | SynExpr.Sequential _
     | SynExpr.LetOrUse _
     | SynExpr.Match _
@@ -70,49 +62,33 @@ let isBlockBody (expr: SynExpr) : bool =
     | SynExpr.ObjExpr _ -> true
     | _ -> false
 
-// Whether the last arm is the only one that is not a one liner.
-//
-// The setting is for the early return shape, which is what makes the de-indent read as anything at
-// all: the arms that decline say so on one line and get out of the way, and what is left is the one
-// path that carries on, written at the indentation it started at. A match whose other arms are
-// blocks too is not that shape, and de-indenting the last of them alone puts arms of the same kind
-// at two different indentations, saying the last one is special when it is not.
-//
-// `collectTriviaFromCodeComments` in Trivia.fs is the case that showed it: both of its arms are a
-// dozen lines, and de-indenting the second read as a mistake rather than as a happy path.
-//
-// One liner is measured on the whole clause, which is how `FANTOMAS-ARMORDER-001` measures it, and
-// that rule is what puts those arms first to begin with. A match with a single arm, destructuring a
-// single case union, qualifies: there is no other arm for it to be out of step with.
-let onlyLastArmIsBlock (clauses: SynMatchClause list) : bool =
-    match List.rev clauses with
-    | [] -> false
-    | _ :: earlier ->
-        earlier
-        |> List.forall (fun (SynMatchClause(range = range)) -> range.EndLine = range.StartLine)
+// Whether a range is a single line, which is how both halves of this rule measure a branch that
+// gets out of the way. `FANTOMAS-ARMORDER-001` measures a short arm the same way.
+let isOneLiner (range: range) : bool = range.EndLine = range.StartLine
 
-// Whether anything follows the match that keeping the indentation would take into the last arm.
+// Whether anything follows the expression that keeping the indentation would take into its last
+// branch.
 //
 // This is the one way the reshape changes meaning, and it is a question about the text rather than
-// the tree. De-indenting moves the offside line of the body out to the bar, so the first thing
-// after the match that starts in that column, or further right, stops following the match and
-// starts belonging to its last arm. What that thing is does not matter: a statement of the
-// enclosing block, an operator carrying the match into a pipeline, a comment. Anything further left
-// ends the arm exactly as it ended the match before.
+// the tree. De-indenting moves the offside line of the body out to the column of the `|` or the
+// `else`, so the first thing after the expression that starts in that column, or further right,
+// stops following the expression and starts belonging to that branch. What that thing is does not
+// matter: a statement of the enclosing block, an operator carrying the expression into a pipeline,
+// a comment. Anything further left ends the branch exactly as it ended the expression before.
 //
-// Only lines after the one the match ends on are asked about. Whatever shares that last line moves
-// with the body and keeps its place, which is how a closing bracket on the same line stays out of
-// this.
+// Only lines after the one the expression ends on are asked about. Whatever shares that last line
+// moves with the body and keeps its place, which is how a closing bracket on the same line stays
+// out of this.
 //
 // Reading the source rather than the tree is deliberate, and is the third attempt. Collecting
 // `SynExpr.Sequential` pairs missed the `json.WriteEndObject()` after the match in
 // `writeDoctorFile`, which then ran for one case out of three. Flattening those sequences properly
 // missed the `|> genNode attr` under the match in `genAttributesCore`, which applied to the whole
-// match and would have applied to one arm, so every attribute reached through the other arm lost
-// its trivia. Both were shapes to enumerate, and there was always going to be another. The text has
+// match and would have applied to one arm, so everything reached through the other arm lost its
+// trivia. Both were shapes to enumerate, and there was always going to be another. The text has
 // none.
-let followedByContentInColumn (source: ISourceText) (matchRange: range) (column: int) : bool =
-    let mutable line: int = matchRange.EndLine
+let followedByContentInColumn (source: ISourceText) (expressionRange: range) (column: int) : bool =
+    let mutable line: int = expressionRange.EndLine
     let mutable answer: bool option = None
 
     while answer.IsNone && line < source.GetLineCount() do
@@ -126,78 +102,143 @@ let followedByContentInColumn (source: ISourceText) (matchRange: range) (column:
 
     defaultArg answer false
 
-// Whether the last arm of a match should keep the indentation of the match.
+// The column a match body has to start in for Fantomas to leave it there.
 //
-// A `when` guard is passed over: a multiline guard takes a different path in `CodePrinter` that
-// indents the body whatever its column, so the rule would be asking for something the formatter
-// then undoes. Which guards print multiline is a page width question rather than a tree one, so all
-// of them are left alone.
+// `genKeepIdentMatchClause` compares the body against the bar, falling back to the pattern where
+// there is none, so this is that same column and not a column of this rule's choosing. Only the
+// last arm is ever asked, and the arm without a bar is the first one, but the fallback keeps the
+// two definitions in step.
+let keepIndentColumnOf (clause: SynMatchClause) : int =
+    match clause with
+    | SynMatchClause(pat = pattern; trivia = trivia) ->
+
+    match trivia.BarRange with
+    | Some bar -> bar.StartColumn
+    | None -> pattern.Range.StartColumn
+
+// The `then` bodies of an if chain, and its final `else` along with the trivia of the branch that
+// owns it.
 //
-// The body has to be on a line of its own already, because an arm whose body shares the line of its
-// arrow has no indentation to keep, and it has to span more than that one line, because a body that
-// fits beside the arrow is pulled up next to it and never reaches the branch that would keep it.
+// `elif` nests in the tree: an `if` whose else is another `if` marked `IsElif`. Fantomas prints the
+// chain flat and offers the choice to the last `else` alone, so the chain has to be walked to reach
+// it, and the branches above are what decides whether the choice is worth taking.
+let rec ifChain (expr: SynExpr) : SynExpr list * (SynExpr * SynExprIfThenElseTrivia) option =
+    match expr with
+    | SynExpr.IfThenElse(thenExpr = thenExpr; elseExpr = elseExpr; trivia = trivia) ->
+        match elseExpr with
+        | None -> [ thenExpr ], None
+        | Some(SynExpr.IfThenElse(trivia = { IsElif = true }) as nested) ->
+            let branches, final = ifChain nested
+            thenExpr :: branches, final
+        | Some elseBody -> [ thenExpr ], Some(elseBody, trivia)
+    | _ -> [], None
+
+// A branch this rule could speak about: the range of the whole expression it belongs to, the column
+// its body would have to start in, and the body itself.
+//
+// A match and an if reach different printers and answer the column differently, one from the `|` and
+// one from the `else`, but everything after that is the same question of the same shape, so both are
+// reduced to this before it gets asked.
+//
+// The two conditions that belong here rather than there are the ones about the other branches. Every
+// branch above the last has to be a one liner, which is the early return shape the setting exists
+// for: the branches that decline say so and get out of the way, and what is left is the one path
+// that carries on. An expression whose other branches are blocks too is not that shape, and
+// de-indenting the last of them alone puts branches of the same kind at two different indentations
+// and says the last is special when it is not. And the body has to be on a line of its own already,
+// because a branch whose body shares the line of its `->` or its `else` has no indentation to keep.
+let keepIndentCandidateOf (expr: SynExpr) : (range * int * SynExpr) option =
+    match matchClausesOf expr with
+    | Some(matchRange, clauses) ->
+        match List.tryLast clauses with
+        | Some(SynMatchClause(whenExpr = None; resultExpr = body; trivia = { ArrowRange = Some arrow }) as clause) ->
+            let earlier: SynMatchClause list = List.truncate (clauses.Length - 1) clauses
+
+            let othersAreOneLiners: bool =
+                earlier |> List.forall (fun (SynMatchClause(range = range)) -> isOneLiner range)
+
+            if othersAreOneLiners && body.Range.StartLine > arrow.EndLine then
+                Some(matchRange, keepIndentColumnOf clause, body)
+            else
+                None
+        | _ -> None
+    | None ->
+
+    // Only the outermost `if` of a chain is asked. An `elif` is reached again as a node of its own,
+    // and answering there as well would report the same `else` twice.
+    match expr with
+    | SynExpr.IfThenElse(range = ifRange; trivia = { IsElif = false }) ->
+        match ifChain expr with
+        | branches, Some(elseBody, { ElseKeyword = Some elseKeyword }) ->
+            let othersAreOneLiners: bool =
+                branches |> List.forall (fun (branch: SynExpr) -> isOneLiner branch.Range)
+
+            if othersAreOneLiners && elseBody.Range.StartLine > elseKeyword.EndLine then
+                Some(ifRange, elseKeyword.StartColumn, elseBody)
+            else
+                None
+        | _ -> None
+    | _ -> None
+
+// Whether a candidate should keep the indentation of the expression it belongs to.
+//
+// The body has to span more than the one line it starts on, because a body that fits beside its
+// `->` or its `else` is pulled up next to it and never reaches the branch that would keep it. A
+// conditional directive inside the expression means the branches this reads are not the branches
+// every build sees, so those are left alone.
+//
+// A `when` guard is already gone by here, filtered out with the rest of the match shape: a multiline
+// guard takes a path in `CodePrinter` that indents the body whatever its column, and whether a guard
+// prints multiline is a page width question rather than a tree one, so all of them are passed over.
 let shouldKeepIndent
     (source: ISourceText)
     (directives: range list)
-    (matchRange: range)
-    (clauses: SynMatchClause list)
-    (clause: SynMatchClause)
+    (expressionRange: range)
+    (column: int)
+    (body: SynExpr)
     : bool
     =
-    match clause with
-    | SynMatchClause(whenExpr = Some _) -> false
-    | SynMatchClause(resultExpr = body; trivia = { ArrowRange = Some arrow }) ->
-        let column: int = keepIndentColumnOf clause
-        let bodyRange: range = body.Range
+    let bodyRange: range = body.Range
 
-        onlyLastArmIsBlock clauses
-        && bodyRange.StartLine > arrow.EndLine
-        && bodyRange.EndLine > bodyRange.StartLine
-        && bodyRange.StartColumn > column
-        && isBlockBody body
-        && not (List.exists (fun (directive: range) -> Range.rangeContainsRange matchRange directive) directives)
-        && not (followedByContentInColumn source matchRange column)
-    | _ -> false
+    not (isOneLiner bodyRange)
+    && bodyRange.StartColumn > column
+    && isBlockBody body
+    && not (List.exists (fun (directive: range) -> Range.rangeContainsRange expressionRange directive) directives)
+    && not (followedByContentInColumn source expressionRange column)
 
 // Reported on the body, which is the part that moves.
 let analyze (source: ISourceText) (parsedInput: ParsedInput) : Message list =
     let _, directives = triviaOf parsedInput
 
-    let candidates: ResizeArray<range * SynMatchClause list> =
-        ResizeArray<range * SynMatchClause list>()
+    let candidates: ResizeArray<range * int * SynExpr> =
+        ResizeArray<range * int * SynExpr>()
 
     let walker: SyntaxCollectorBase =
         { new SyntaxCollectorBase() with
             override _.WalkExpr(_path: SyntaxVisitorPath, expr: SynExpr) : unit =
-                match matchClausesOf expr with
+                match keepIndentCandidateOf expr with
                 | None -> ()
-                | Some(matchRange, clauses) -> candidates.Add(matchRange, clauses)
+                | Some candidate -> candidates.Add candidate
         }
 
     walkAst walker parsedInput
 
     candidates
-    |> Seq.choose (fun (matchRange: range, clauses: SynMatchClause list) ->
-        match List.tryLast clauses with
-        | None -> None
-        | Some clause ->
-
-        if not (shouldKeepIndent source directives matchRange clauses clause) then
+    |> Seq.choose (fun (expressionRange: range, column: int, body: SynExpr) ->
+        if not (shouldKeepIndent source directives expressionRange column body) then
             None
         else
 
-        match clause with
-        | SynMatchClause(resultExpr = body) ->
-            Some
-                {
-                    Type = Name
-                    Message =
-                        "Keep the indentation of the match in this arm. It is the last one, its body is a block, the arms above it are one liners, and nothing follows the match in this block, so the body can start in the column of the `|` rather than a level in. `fsharp_experimental_keep_indent_in_branch` keeps it there, but only once it is written that way."
-                    Code = Code
-                    Severity = Severity.Warning
-                    Range = body.Range
-                    Fixes = []
-                }
+        Some
+            {
+                Type = Name
+                Message =
+                    "Keep the indentation of this expression in its last branch. Every branch above it is a one liner, its own body is a block, and nothing follows the expression in this block, so the body can start in the column of the `|` or the `else` rather than a level in. `fsharp_experimental_keep_indent_in_branch` keeps it there, but only once it is written that way."
+                Code = Code
+                Severity = Severity.Warning
+                Range = body.Range
+                Fixes = []
+            }
     )
     |> Seq.toList
 

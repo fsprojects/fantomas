@@ -45,17 +45,19 @@ module IgnoreFile =
             if isNull currentDirectory then
                 None
             else
-                let potentialFile =
-                    fs.Path.Combine(currentDirectory.FullName, IgnoreFileName) |> fs.FileInfo.New
 
-                if potentialFile.Exists then
-                    {
-                        Location = potentialFile
-                        IsIgnored = loadIgnoreList potentialFile.FullName
-                    }
-                    |> Some
-                else
-                    walkUp currentDirectory.Parent
+            let potentialFile =
+                fs.Path.Combine(currentDirectory.FullName, IgnoreFileName) |> fs.FileInfo.New
+
+            if not potentialFile.Exists then
+                walkUp currentDirectory.Parent
+            else
+
+            {
+                Location = potentialFile
+                IsIgnored = loadIgnoreList potentialFile.FullName
+            }
+            |> Some
 
         walkUp (fs.FileInfo.New(filePath).Directory)
 
@@ -103,20 +105,21 @@ module IgnoreFile =
             if isNull currentDirectory then
                 List.rev found
             else
-                let potentialFile: IFileInfo =
-                    fs.Path.Combine(currentDirectory.FullName, IgnoreFileName) |> fs.FileInfo.New
 
-                let found: IgnoreFile list =
-                    if potentialFile.Exists then
-                        {
-                            Location = potentialFile
-                            IsIgnored = loadIgnoreList potentialFile.FullName
-                        }
-                        :: found
-                    else
-                        found
+            let potentialFile: IFileInfo =
+                fs.Path.Combine(currentDirectory.FullName, IgnoreFileName) |> fs.FileInfo.New
 
-                walkUp currentDirectory.Parent found
+            let found: IgnoreFile list =
+                if not potentialFile.Exists then
+                    found
+                else
+                    {
+                        Location = potentialFile
+                        IsIgnored = loadIgnoreList potentialFile.FullName
+                    }
+                    :: found
+
+            walkUp currentDirectory.Parent found
 
         // Every one above rather than the next one up. Two ignore files above the nearest is not a
         // layout anybody sets out to build, and it is exactly the layout where the reader has the

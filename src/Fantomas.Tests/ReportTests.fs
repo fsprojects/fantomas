@@ -914,12 +914,13 @@ let ``the settings line names the .editorconfig it means, absolutely`` () =
             Settings =
                 plain.Settings
                 |> List.map (fun (setting: Fantomas.EditorConfig.ResolvedSetting) ->
-                    if setting.Setting = "max_line_length" then
-                        { setting with
-                            SetBy = Some "/repo/.editorconfig"
-                        }
-                    else
+                    if setting.Setting <> "max_line_length" then
                         setting
+                    else
+
+                    { setting with
+                        SetBy = Some "/repo/.editorconfig"
+                    }
                 )
         }
 
@@ -955,12 +956,13 @@ let ``the settings an .editorconfig set are set apart from the defaults by a bla
             Settings =
                 resolved.Settings
                 |> List.map (fun (setting: Fantomas.EditorConfig.ResolvedSetting) ->
-                    if setting.Setting = "max_line_length" then
-                        { setting with
-                            SetBy = Some "/repo/.editorconfig"
-                        }
-                    else
+                    if setting.Setting <> "max_line_length" then
                         setting
+                    else
+
+                    { setting with
+                        SetBy = Some "/repo/.editorconfig"
+                    }
                 )
         }
 

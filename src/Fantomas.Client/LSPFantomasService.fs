@@ -209,14 +209,15 @@ let isPathAbsolute (path: string) : bool =
     then
         false
     else
-        let pathRoot = Path.GetPathRoot path
-        // Accepts X:\ and \\UNC\PATH, rejects empty string, \ and X:, but accepts / to support Linux
-        if pathRoot.Length <= 2 && pathRoot <> "/" then
-            false
-        else if pathRoot.[0] <> '\\' || pathRoot.[1] <> '\\' then
-            true
-        else
-            pathRoot.Trim('\\').IndexOf('\\') <> -1 // A UNC server name without a share name (e.g "\\NAME" or "\\NAME\") is invalid
+
+    let pathRoot = Path.GetPathRoot path
+    // Accepts X:\ and \\UNC\PATH, rejects empty string, \ and X:, but accepts / to support Linux
+    if pathRoot.Length <= 2 && pathRoot <> "/" then
+        false
+    else if pathRoot.[0] <> '\\' || pathRoot.[1] <> '\\' then
+        true
+    else
+        pathRoot.Trim('\\').IndexOf('\\') <> -1 // A UNC server name without a share name (e.g "\\NAME" or "\\NAME\") is invalid
 
 let isCancellationRequested (requested: bool) : Result<unit, FantomasServiceError> =
     if requested then
@@ -344,83 +345,80 @@ let decodeFormatResult (inputFilePath: string) (json: JObject) : FantomasRespons
         if not (json.ContainsKey("Case")) || not (json.ContainsKey("Fields")) then
             mkError "Expected \"Case\" and \"Fields\" to be present in the response json"
         else
-            let caseName = json.["Case"].Value<string>()
-            let fields = json.["Fields"].Value<JArray>()
 
-            match caseName with
-            | "Formatted" when fields.Count = 2 ->
-                let fileName = fields.[0].Value<string>()
-                let formattedContent = fields.[1].Value<string>()
+        let caseName = json.["Case"].Value<string>()
+        let fields = json.["Fields"].Value<JArray>()
 
-                {
-                    Code = int FantomasResponseCode.Formatted
-                    FilePath = fileName
-                    Content = Some formattedContent
-                    SelectedRange = None
-                    Cursor = None
-                }
-            | "Formatted" when fields.Count = 3 ->
-                let fileName = fields.[0].Value<string>()
-                let formattedContent = fields.[1].Value<string>()
+        match caseName with
+        | "Formatted" when fields.Count = 2 ->
+            let fileName = fields.[0].Value<string>()
+            let formattedContent = fields.[1].Value<string>()
 
-                let cursor =
-                    if fields.[2].Type = JTokenType.Null then
-                        None
-                    else
-                        // This is wrapped as an option, the Case is "Some" here.
-                        // We need to extract the Line and Column from the first item in Fields
-                        let cursorObject = fields.[2].Value<JObject>()
-                        let cursorObject = cursorObject.["Fields"].[0].Value<JObject>()
+            {
+                Code = int FantomasResponseCode.Formatted
+                FilePath = fileName
+                Content = Some formattedContent
+                SelectedRange = None
+                Cursor = None
+            }
+        | "Formatted" when fields.Count = 3 ->
+            let fileName = fields.[0].Value<string>()
+            let formattedContent = fields.[1].Value<string>()
 
-                        Some(
-                            FormatCursorPosition(
-                                cursorObject.["Line"].Value<int>(),
-                                cursorObject.["Column"].Value<int>()
-                            )
-                        )
+            let cursor =
+                if fields.[2].Type = JTokenType.Null then
+                    None
+                else
 
-                {
-                    Code = int FantomasResponseCode.Formatted
-                    FilePath = fileName
-                    Content = Some formattedContent
-                    SelectedRange = None
-                    Cursor = cursor
-                }
+                // This is wrapped as an option, the Case is "Some" here.
+                // We need to extract the Line and Column from the first item in Fields
+                let cursorObject = fields.[2].Value<JObject>()
+                let cursorObject = cursorObject.["Fields"].[0].Value<JObject>()
 
-            | "Unchanged" when fields.Count = 1 ->
-                let fileName = fields.[0].Value<string>()
+                Some(FormatCursorPosition(cursorObject.["Line"].Value<int>(), cursorObject.["Column"].Value<int>()))
 
-                {
-                    Code = int FantomasResponseCode.UnChanged
-                    FilePath = fileName
-                    Content = None
-                    SelectedRange = None
-                    Cursor = None
-                }
-            | "Error" when fields.Count = 2 ->
-                let fileName = fields.[0].Value<string>()
-                let formattingError = fields.[1].Value<string>()
+            {
+                Code = int FantomasResponseCode.Formatted
+                FilePath = fileName
+                Content = Some formattedContent
+                SelectedRange = None
+                Cursor = cursor
+            }
 
-                {
-                    Code = int FantomasResponseCode.Error
-                    FilePath = fileName
-                    Content = Some formattingError
-                    SelectedRange = None
-                    Cursor = None
-                }
-            | "IgnoredFile" when fields.Count = 1 ->
-                let fileName = fields.[0].Value<string>()
+        | "Unchanged" when fields.Count = 1 ->
+            let fileName = fields.[0].Value<string>()
 
-                {
-                    Code = int FantomasResponseCode.Ignored
-                    FilePath = fileName
-                    Content = None
-                    SelectedRange = None
-                    Cursor = None
-                }
-            | _ ->
-                mkError
-                    $"Could not deserialize the message from the daemon, got unexpected case name %s{caseName} with %i{fields.Count} fields."
+            {
+                Code = int FantomasResponseCode.UnChanged
+                FilePath = fileName
+                Content = None
+                SelectedRange = None
+                Cursor = None
+            }
+        | "Error" when fields.Count = 2 ->
+            let fileName = fields.[0].Value<string>()
+            let formattingError = fields.[1].Value<string>()
+
+            {
+                Code = int FantomasResponseCode.Error
+                FilePath = fileName
+                Content = Some formattingError
+                SelectedRange = None
+                Cursor = None
+            }
+        | "IgnoredFile" when fields.Count = 1 ->
+            let fileName = fields.[0].Value<string>()
+
+            {
+                Code = int FantomasResponseCode.Ignored
+                FilePath = fileName
+                Content = None
+                SelectedRange = None
+                Cursor = None
+            }
+        | _ ->
+            mkError
+                $"Could not deserialize the message from the daemon, got unexpected case name %s{caseName} with %i{fields.Count} fields."
 
     with ex ->
         mkError $"Could not deserialize the message from the daemon, %s{ex.Message}"

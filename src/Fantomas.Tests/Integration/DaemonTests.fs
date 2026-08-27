@@ -118,9 +118,10 @@ let private runWithDaemonCollectingWarnings
                 if (before > 0 && steadyFor >= 2) || attemptsLeft = 0 then
                     return ()
                 else
-                    do! Async.Sleep 50
-                    let steadyFor = if count () = before then steadyFor + 1 else 0
-                    return! settle (attemptsLeft - 1) steadyFor
+
+                do! Async.Sleep 50
+                let steadyFor = if count () = before then steadyFor + 1 else 0
+                return! settle (attemptsLeft - 1) steadyFor
             }
 
         try

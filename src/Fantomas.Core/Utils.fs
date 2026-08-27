@@ -13,8 +13,9 @@ module UnionCase =
         if isNull (box value) || not (FSharpType.IsUnion unionType) then
             unionType.Name
         else
-            let case, _ = FSharpValue.GetUnionFields(value, unionType)
-            $"%s{unionType.Name}.%s{case.Name}"
+
+        let case, _ = FSharpValue.GetUnionFields(value, unionType)
+        $"%s{unionType.Name}.%s{case.Name}"
 
 [<RequireQualifiedAccess>]
 module String =
@@ -67,11 +68,12 @@ module List =
     let partitionWhile (f: int -> 'a -> bool) (xs: 'a list) : 'a list * 'a list =
         let rec go i before after =
             match after with
-            | head :: tail ->
-                match f i head with
-                | true -> go (i + 1) (head :: before) tail
-                | false -> List.rev before, after
             | [] -> List.rev before, after
+            | head :: tail ->
+
+            match f i head with
+            | true -> go (i + 1) (head :: before) tail
+            | false -> List.rev before, after
 
         go 0 [] xs
 

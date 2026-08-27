@@ -139,53 +139,55 @@ module private DefineCombinationSolver =
         if groupedLiterals enforcedLit |> List.exists (fun (_, g) -> List.length g > 1) then
             Unsatisfiable
         else
-            let singletons, toSolve =
-                groupedLiterals allLiterals |> List.partition (fun (_, g) -> List.length g = 1)
 
-            let singletonsLit = singletons |> List.collect snd
-            let solvedSet = set (enforcedLit @ singletonsLit)
+        let singletons, toSolve =
+            groupedLiterals allLiterals |> List.partition (fun (_, g) -> List.length g = 1)
 
-            let toSolve =
-                toSolve
-                |> List.filter (fun (k, _) ->
-                    not (Set.contains (Positive k) solvedSet || Set.contains (Negative k) solvedSet)
-                )
+        let singletonsLit = singletons |> List.collect snd
+        let solvedSet = set (enforcedLit @ singletonsLit)
 
-            let rec genCombinations groups =
-                seq {
-                    match groups with
-                    | [] -> yield []
-                    | g :: gs -> yield! genCombinations gs |> Seq.collect (fun l -> g |> Seq.map (fun x -> x :: l))
-                }
+        let toSolve =
+            toSolve
+            |> List.filter (fun (k, _) ->
+                not (Set.contains (Positive k) solvedSet || Set.contains (Negative k) solvedSet)
+            )
 
-            let solve vals groups =
-                let combinations = genCombinations (groups |> List.map snd)
+        let rec genCombinations groups =
+            seq {
+                match groups with
+                | [] -> yield []
+                | g :: gs -> yield! genCombinations gs |> Seq.collect (fun l -> g |> Seq.map (fun x -> x :: l))
+            }
 
-                combinations
-                |> Seq.mapi (fun i comb ->
-                    if i > maxSteps then
-                        Some Unconclusive
-                    else
-                        let vals = vals @ comb
+        let solve vals groups =
+            let combinations = genCombinations (groups |> List.map snd)
 
-                        if eval cnf vals then
-                            Some(
-                                Satisfiable(
-                                    vals
-                                    |> List.choose (
-                                        function
-                                        | Positive x -> Some x
-                                        | _ -> None
-                                    )
-                                )
+            combinations
+            |> Seq.mapi (fun i comb ->
+                if i > maxSteps then
+                    Some Unconclusive
+                else
+
+                let vals = vals @ comb
+
+                if not (eval cnf vals) then
+                    None
+                else
+                    Some(
+                        Satisfiable(
+                            vals
+                            |> List.choose (
+                                function
+                                | Positive x -> Some x
+                                | _ -> None
                             )
-                        else
-                            None
-                )
-                |> Seq.tryPick id
-                |> Option.defaultValue Unsatisfiable
+                        )
+                    )
+            )
+            |> Seq.tryPick id
+            |> Option.defaultValue Unsatisfiable
 
-            solve (Seq.toList solvedSet) toSolve
+        solve (Seq.toList solvedSet) toSolve
 
     let mergeBoolExprs maxSolveSteps exprs =
         let solve e =

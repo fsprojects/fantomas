@@ -19,6 +19,7 @@
     <Compile Include="PrivateAccessAnalyzerTests.fs" />
     <Compile Include="ArmOrderAnalyzerTests.fs" />
     <Compile Include="KeepIndentAnalyzerTests.fs" />
+    <Compile Include="BranchOrderAnalyzerTests.fs" />
     <Compile Include="AnnotationAnalyzerTests.fs" />
     <Compile Include="XmlDocAnalyzerTests.fs" />
   </ItemGroup>

@@ -64,15 +64,16 @@ let declaredInSignature
     if line < 1 || line > sourceText.GetLineCount() then
         false
     else
-        let lineText: string = sourceText.GetLineString(line - 1)
 
-        checkResults.GetSymbolUseAtLocation(line, declaration.NameRange.EndColumn, lineText, [ declaration.Name ])
-        |> Option.map (fun (symbolUse: FSharpSymbolUse) ->
-            match symbolUse.Symbol.SignatureLocation, symbolUse.Symbol.DeclarationLocation with
-            | Some signature, Some declaration -> signature.FileName <> declaration.FileName
-            | _ -> false
-        )
-        |> Option.defaultValue false
+    let lineText: string = sourceText.GetLineString(line - 1)
+
+    checkResults.GetSymbolUseAtLocation(line, declaration.NameRange.EndColumn, lineText, [ declaration.Name ])
+    |> Option.map (fun (symbolUse: FSharpSymbolUse) ->
+        match symbolUse.Symbol.SignatureLocation, symbolUse.Symbol.DeclarationLocation with
+        | Some signature, Some declaration -> signature.FileName <> declaration.FileName
+        | _ -> false
+    )
+    |> Option.defaultValue false
 
 // Documentation comments that the signature file already carries.
 //
@@ -91,65 +92,65 @@ let analyze
         []
     else
 
-        let documented: ResizeArray<DocumentedDeclaration> =
-            ResizeArray<DocumentedDeclaration>()
+    let documented: ResizeArray<DocumentedDeclaration> =
+        ResizeArray<DocumentedDeclaration>()
 
-        let collect (doc: PreXmlDoc) (name: Ident option) : unit =
-            match name with
-            | None -> ()
-            | Some ident ->
+    let collect (doc: PreXmlDoc) (name: Ident option) : unit =
+        match name with
+        | None -> ()
+        | Some ident ->
 
-            if not doc.IsEmpty then
-                documented.Add
-                    {
-                        DocRange = doc.Range
-                        Name = ident.idText
-                        NameRange = ident.idRange
-                    }
-
-        let walker: SyntaxCollectorBase =
-            { new SyntaxCollectorBase() with
-                override _.WalkBinding(_path: SyntaxVisitorPath, binding: SynBinding) : unit =
-                    match binding with
-                    | SynBinding(xmlDoc = doc; headPat = pat) -> collect doc (bindingName pat)
-
-                override _.WalkComponentInfo(_path: SyntaxVisitorPath, info: SynComponentInfo) : unit =
-                    match info with
-                    | SynComponentInfo(xmlDoc = doc; longId = ids) -> collect doc (List.tryLast ids)
-
-                override _.WalkUnionCase(_path: SyntaxVisitorPath, unionCase: SynUnionCase) : unit =
-                    match unionCase with
-                    | SynUnionCase(xmlDoc = doc; ident = SynIdent(ident, _)) -> collect doc (Some ident)
-
-                override _.WalkEnumCase(_path: SyntaxVisitorPath, enumCase: SynEnumCase) : unit =
-                    match enumCase with
-                    | SynEnumCase(xmlDoc = doc; ident = SynIdent(ident, _)) -> collect doc (Some ident)
-
-                override _.WalkField(_path: SyntaxVisitorPath, field: SynField) : unit =
-                    match field with
-                    | SynField(xmlDoc = doc; idOpt = idOpt) -> collect doc idOpt
-            }
-
-        walkAst walker parsedInput
-
-        documented
-        |> Seq.choose (fun (declaration: DocumentedDeclaration) ->
-            if not (declaredInSignature checkResults sourceText declaration) then
-                None
-            else
-
-            Some
+        if not doc.IsEmpty then
+            documented.Add
                 {
-                    Type = Name
-                    Message =
-                        "Move this documentation comment to the signature file. Keeping a copy in both is a second one to keep in step, and the signature is the one readers and tooling see."
-                    Code = Code
-                    Severity = Severity.Warning
-                    Range = declaration.DocRange
-                    Fixes = []
+                    DocRange = doc.Range
+                    Name = ident.idText
+                    NameRange = ident.idRange
                 }
-        )
-        |> Seq.toList
+
+    let walker: SyntaxCollectorBase =
+        { new SyntaxCollectorBase() with
+            override _.WalkBinding(_path: SyntaxVisitorPath, binding: SynBinding) : unit =
+                match binding with
+                | SynBinding(xmlDoc = doc; headPat = pat) -> collect doc (bindingName pat)
+
+            override _.WalkComponentInfo(_path: SyntaxVisitorPath, info: SynComponentInfo) : unit =
+                match info with
+                | SynComponentInfo(xmlDoc = doc; longId = ids) -> collect doc (List.tryLast ids)
+
+            override _.WalkUnionCase(_path: SyntaxVisitorPath, unionCase: SynUnionCase) : unit =
+                match unionCase with
+                | SynUnionCase(xmlDoc = doc; ident = SynIdent(ident, _)) -> collect doc (Some ident)
+
+            override _.WalkEnumCase(_path: SyntaxVisitorPath, enumCase: SynEnumCase) : unit =
+                match enumCase with
+                | SynEnumCase(xmlDoc = doc; ident = SynIdent(ident, _)) -> collect doc (Some ident)
+
+            override _.WalkField(_path: SyntaxVisitorPath, field: SynField) : unit =
+                match field with
+                | SynField(xmlDoc = doc; idOpt = idOpt) -> collect doc idOpt
+        }
+
+    walkAst walker parsedInput
+
+    documented
+    |> Seq.choose (fun (declaration: DocumentedDeclaration) ->
+        if not (declaredInSignature checkResults sourceText declaration) then
+            None
+        else
+
+        Some
+            {
+                Type = Name
+                Message =
+                    "Move this documentation comment to the signature file. Keeping a copy in both is a second one to keep in step, and the signature is the one readers and tooling see."
+                Code = Code
+                Severity = Severity.Warning
+                Range = declaration.DocRange
+                Fixes = []
+            }
+    )
+    |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =
     async {

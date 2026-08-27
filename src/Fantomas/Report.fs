@@ -130,11 +130,12 @@ let reportIgnored
     let mutable saidOutLoud: bool = false
 
     for file in List.sort ignored do
-        if Set.contains file named then
-            saidOutLoud <- true
-            env.Log.Information(fileLine theme glyphs.Ignored file "was ignored by .fantomasignore.")
-        else
+        if not (Set.contains file named) then
             env.Log.Debug $"'%s{file}' was ignored"
+        else
+
+        saidOutLoud <- true
+        env.Log.Information(fileLine theme glyphs.Ignored file "was ignored by .fantomasignore.")
 
     saidOutLoud
 
@@ -156,11 +157,11 @@ let summaryLine (theme: Theme) (counts: (int * string) list) : string =
             // one that carries the noun. Asking the line what it has so far is what lets the states
             // at zero be dropped, the separator be placed and the noun be put in front of exactly
             // one of them without walking the list three times to find out.
-            if line.Length = 0 then
+            if line.Length <> 0 then
+                line.Append(", ").Append(heading theme (string<int> count)) |> ignore
+            else
                 line.Append(heading theme (string<int> count)).Append(' ').Append(plural count "file" "files")
                 |> ignore
-            else
-                line.Append(", ").Append(heading theme (string<int> count)) |> ignore
 
             line.Append(' ').Append(label) |> ignore
 
@@ -502,16 +503,17 @@ let reportCheckResults
         if needing = 0 then
             None
         else
-            let subject: string = if needing = 1 then "it" else "them"
 
-            Some(
-                String.Concat(
-                    "Run ",
-                    muted theme env.Invocation,
-                    flagName theme (String.Concat(" ", describeInputPaths inputPath)),
-                    $" to format %s{subject}."
-                )
+        let subject: string = if needing = 1 then "it" else "them"
+
+        Some(
+            String.Concat(
+                "Run ",
+                muted theme env.Invocation,
+                flagName theme (String.Concat(" ", describeInputPaths inputPath)),
+                $" to format %s{subject}."
             )
+        )
 
     // Counted whenever the run found anything, rather than only when something needs formatting: an
     // error is a finding too, and a check that reported one used to end without saying how many

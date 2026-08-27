@@ -660,17 +660,18 @@ let (|ElIf|_|) expr =
                     if i = 0 then
                         ifNode
                     else
-                        // Get the previous entry's elseKw to merge into this entry
-                        let (_, prevElseKw, _, _, _) = rawEntries[i - 1]
 
-                        match prevElseKw with
-                        | None -> ifNode
-                        | Some mElse ->
+                    // Get the previous entry's elseKw to merge into this entry
+                    let (_, prevElseKw, _, _, _) = rawEntries[i - 1]
 
-                        match ifNode with
-                        | Choice1Of2 ifNode -> Choice2Of2(mElse, ifNode.Range)
-                        | Choice2Of2 _ ->
-                            invariantViolation expr.Range "cannot merge a second else keyword into existing else if"
+                    match prevElseKw with
+                    | None -> ifNode
+                    | Some mElse ->
+
+                    match ifNode with
+                    | Choice1Of2 ifNode -> Choice2Of2(mElse, ifNode.Range)
+                    | Choice2Of2 _ ->
+                        invariantViolation expr.Range "cannot merge a second else keyword into existing else if"
 
                 (node, e1, thenKw, e2)
             )
@@ -2295,9 +2296,10 @@ let mkBinding
             elif not attributes.IsEmpty then
                 attributes.Head.Range
             else
-                match trivia.LeadingKeyword, pat with
-                | SynLeadingKeyword.Member _, SynPat.LongIdent(extraId = Some _) -> pat.Range
-                | _ -> trivia.LeadingKeyword.Range
+
+            match trivia.LeadingKeyword, pat with
+            | SynLeadingKeyword.Member _, SynPat.LongIdent(extraId = Some _) -> pat.Range
+            | _ -> trivia.LeadingKeyword.Range
 
         let range = unionRanges start e.Range
 
@@ -2338,9 +2340,10 @@ let mkExternBinding
         if not xmlDoc.IsEmpty then
             unionRanges xmlDoc.Range pat.Range
         else
-            match attributes with
-            | [] -> range
-            | head :: _ -> unionRanges head.Range pat.Range
+
+        match attributes with
+        | [] -> range
+        | head :: _ -> unionRanges head.Range pat.Range
 
     let externNode =
         match trivia.LeadingKeyword with
@@ -2444,9 +2447,10 @@ let mkXmlDoc (px: PreXmlDoc) =
     if px.IsEmpty then
         None
     else
-        let xmlDoc = px.ToXmlDoc(false, None)
-        let lines = Array.map (sprintf "///%s") xmlDoc.UnprocessedLines
-        Some(XmlDocNode(lines, xmlDoc.Range))
+
+    let xmlDoc = px.ToXmlDoc(false, None)
+    let lines = Array.map (sprintf "///%s") xmlDoc.UnprocessedLines
+    Some(XmlDocNode(lines, xmlDoc.Range))
 
 let mkModuleName (SynComponentInfo(synType = synType; range = m) as info) : IdentListNode =
     match synType with
@@ -2790,9 +2794,9 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
                     Type.Var(mkSynTypar typar), ts
                 | None ->
                     match ts with
+                    | head :: tail -> mkType creationAide head, tail
                     | [] ->
                         invariantViolation t.Range "a type intersection contains neither a typar nor any constraints"
-                    | head :: tail -> mkType creationAide head, tail
 
             assert (ts.Length = trivia.AmpersandRanges.Length)
 
@@ -2928,9 +2932,10 @@ let mkSynUnionCase
         if not xmlDoc.IsEmpty then
             m
         else
-            match trivia.BarRange with
-            | None -> m
-            | Some barRange -> unionRanges barRange m
+
+        match trivia.BarRange with
+        | None -> m
+        | Some barRange -> unionRanges barRange m
 
     let fields =
         match caseType with
@@ -3034,9 +3039,10 @@ let mkTypeDefn
                 elif leadingKeyword.Text = "and" then
                     leadingKeyword.Range
                 else
-                    match ats with
-                    | [] -> leadingKeyword.Range
-                    | firstAttr :: _ -> firstAttr.Range
+
+                match ats with
+                | [] -> leadingKeyword.Range
+                | firstAttr :: _ -> firstAttr.Range
 
             let endRange =
                 match trivia.EqualsRange with
@@ -3913,9 +3919,10 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             if not px.IsEmpty then
                 unionRanges px.Range mIdentifierNode
             else
-                match ats with
-                | [] -> unionRanges leadingKeyword.Range mIdentifierNode
-                | firstAttr :: _ -> unionRanges firstAttr.Range mIdentifierNode
+
+            match ats with
+            | [] -> unionRanges leadingKeyword.Range mIdentifierNode
+            | firstAttr :: _ -> unionRanges firstAttr.Range mIdentifierNode
 
         TypeNameNode(
             mkXmlDoc px,

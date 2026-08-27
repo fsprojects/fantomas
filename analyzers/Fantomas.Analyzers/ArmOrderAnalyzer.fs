@@ -31,6 +31,14 @@ let caseNameOf (pattern: SynPat) : string option =
     match pattern with
     | SynPat.LongIdent(longDotId = SynLongIdent(id = identifiers)) ->
         identifiers |> List.tryLast |> Option.map (fun (ident: Ident) -> ident.idText)
+    // A list is matched by its own two shapes rather than by union cases, and those two are as
+    // disjoint as any pair of cases: an empty list never has a head. Naming them is what lets the
+    // rule speak about the recursive function that walks a list, which is where the shape lives.
+    //
+    // A non-empty literal such as `[ x ]` is deliberately left unnamed. It overlaps `x :: rest`, so
+    // those two cannot be swapped, and the rule has to stay quiet rather than guess.
+    | SynPat.ListCons _ -> Some "::"
+    | SynPat.ArrayOrList(isArray = isArray; elementPats = []) -> Some(if isArray then "[||]" else "[]")
     | _ -> None
 
 // Whether two arms can never match the same value, which is what makes reordering them sound.
@@ -82,10 +90,8 @@ let analyze (parsedInput: ParsedInput) : Message list =
     let walker: SyntaxCollectorBase =
         { new SyntaxCollectorBase() with
             override _.WalkExpr(_path: SyntaxVisitorPath, expr: SynExpr) : unit =
-                match expr with
-                | SynExpr.Match(clauses = [ first; second ]; range = matchRange) when
-                    shouldSwap comments directives matchRange first second
-                    ->
+                match matchClausesOf expr with
+                | Some(matchRange, [ first; second ]) when shouldSwap comments directives matchRange first second ->
                     match second with
                     | SynMatchClause(pat = pattern; range = clauseRange) ->
                         let name: string = defaultArg (caseNameOf pattern) "this"

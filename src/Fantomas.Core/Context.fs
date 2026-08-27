@@ -149,12 +149,13 @@ module WriterModel =
                     }
                 )
 
-            if List.exists (fun i -> i.ConfirmedMultiline) updatedInfos then
-                { m with
-                    Mode = ShortExpression(updatedInfos)
-                }
-            else
+            if not (List.exists (fun i -> i.ConfirmedMultiline) updatedInfos) then
                 updateCmd cmd
+            else
+
+            { m with
+                Mode = ShortExpression(updatedInfos)
+            }
 
 module WriterEvents =
     let normalize ev =
@@ -252,12 +253,13 @@ type Context =
             if List.exists (fun i -> i = info) infos then
                 x
             else
-                { x with
-                    WriterModel =
-                        { x.WriterModel with
-                            Mode = ShortExpression(info :: infos)
-                        }
-                }
+
+            { x with
+                WriterModel =
+                    { x.WriterModel with
+                        Mode = ShortExpression(info :: infos)
+                    }
+            }
         | _ ->
             { x with
                 WriterModel =
@@ -555,10 +557,11 @@ let sepSpace (ctx: Context) =
     if ctx.WriterModel.IsDummy then
         (!-" ") ctx
     else
-        match lastWriteEventOnLastLine ctx with
-        | Some w when (String.endsWithOrdinal " " w || String.endsWithOrdinal Environment.NewLine w) -> ctx
-        | None -> ctx
-        | _ -> (!-" ") ctx
+
+    match lastWriteEventOnLastLine ctx with
+    | Some w when (String.endsWithOrdinal " " w || String.endsWithOrdinal Environment.NewLine w) -> ctx
+    | None -> ctx
+    | _ -> (!-" ") ctx
 
 // add actual spaces until the target column is reached, regardless of previous content
 // use with care
@@ -795,66 +798,69 @@ let findTrailingTriviaNewline (events: EventList) : EventNode =
     if isNull current then
         null
     else
-        match current.Event with
-        | WriteLineBecauseOfTrivia ->
-            let mutable check = current.Prev
-            let mutable foundTrivia = false
 
-            while not (isNull check) && not foundTrivia do
-                match check.Event with
-                // Block comment internals — keep walking
-                | WriteLineInsideTrivia -> check <- check.Prev
-                // Single-line comment, block comment, XML doc, or directive
-                | WriteTrivia _ -> foundTrivia <- true
-                // Hit something that isn't part of trivia — stop
-                | _ -> check <- null
+    match current.Event with
+    | WriteLineBecauseOfTrivia ->
+        let mutable check = current.Prev
+        let mutable foundTrivia = false
 
-            if foundTrivia then current else null
-        | _ -> null
+        while not (isNull check) && not foundTrivia do
+            match check.Event with
+            // Block comment internals — keep walking
+            | WriteLineInsideTrivia -> check <- check.Prev
+            // Single-line comment, block comment, XML doc, or directive
+            | WriteTrivia _ -> foundTrivia <- true
+            // Hit something that isn't part of trivia — stop
+            | _ -> check <- null
+
+        if foundTrivia then current else null
+    | _ -> null
 
 let indentSepNlnWithTriviaAwareness (ctx: Context) =
     let indentAmount = ctx.Config.IndentSize
     let triviaNewline = findTrailingTriviaNewline ctx.WriterEvents
 
-    if not (isNull triviaNewline) then
-        // Find the start of the trivia block — walk backward from the trivia newline
-        // past trivia events to find where the block begins.
-        let mutable start = triviaNewline
-
-        while not (isNull start.Prev)
-              && (
-                  match start.Prev.Event with
-                  | WriteTrivia _
-                  | WriteLineInsideTrivia
-                  | WriteLineBecauseOfTrivia -> true
-                  | _ -> false
-              ) do
-            start <- start.Prev
-
-        // Splice IndentBy before the trivia block — the trivia's newline acts as sepNln
-        ctx.WriterEvents.InsertBefore(start, IndentBy indentAmount) |> ignore
-
-        { ctx with
-            WriterModel = WriterModel.update ctx.Config.MaxLineLength (IndentBy indentAmount) ctx.WriterModel
-        }
-    else
+    if isNull triviaNewline then
         (indent +> sepNln) ctx
+    else
+
+    // Find the start of the trivia block — walk backward from the trivia newline
+    // past trivia events to find where the block begins.
+    let mutable start = triviaNewline
+
+    while not (isNull start.Prev)
+          && (
+              match start.Prev.Event with
+              | WriteTrivia _
+              | WriteLineInsideTrivia
+              | WriteLineBecauseOfTrivia -> true
+              | _ -> false
+          ) do
+        start <- start.Prev
+
+    // Splice IndentBy before the trivia block — the trivia's newline acts as sepNln
+    ctx.WriterEvents.InsertBefore(start, IndentBy indentAmount) |> ignore
+
+    { ctx with
+        WriterModel = WriterModel.update ctx.Config.MaxLineLength (IndentBy indentAmount) ctx.WriterModel
+    }
 
 let unindentWithTriviaAwareness (ctx: Context) =
     let unindentAmount = ctx.Config.IndentSize
     let triviaNewline = findTrailingTriviaNewline ctx.WriterEvents
 
-    if not (isNull triviaNewline) then
-        // Splice the UnIndentBy into the DLL before the trailing trivia newline,
-        // and update the WriterModel using the same logic as WriterModel.update.
-        ctx.WriterEvents.InsertBefore(triviaNewline, UnIndentBy unindentAmount)
-        |> ignore
-
-        { ctx with
-            WriterModel = WriterModel.update ctx.Config.MaxLineLength (UnIndentBy unindentAmount) ctx.WriterModel
-        }
-    else
+    if isNull triviaNewline then
         writerEvent (UnIndentBy unindentAmount) ctx
+    else
+
+    // Splice the UnIndentBy into the DLL before the trailing trivia newline,
+    // and update the WriterModel using the same logic as WriterModel.update.
+    ctx.WriterEvents.InsertBefore(triviaNewline, UnIndentBy unindentAmount)
+    |> ignore
+
+    { ctx with
+        WriterModel = WriterModel.update ctx.Config.MaxLineLength (UnIndentBy unindentAmount) ctx.WriterModel
+    }
 
 let indentSepNlnUnindent f =
     indentSepNlnWithTriviaAwareness +> f +> unindentWithTriviaAwareness
@@ -940,10 +946,11 @@ let futureNlnCheckMem (f, ctx: Context) =
     if ctx.WriterModel.IsDummy then
         (false, false)
     else
-        let dummyResult = ctx.WithDummy(f, keepPageWidth = true)
-        let isMultiline = dummyResult.WriterModel.LineCount > ctx.WriterModel.LineCount
-        let isLong = dummyResult.Column > ctx.Config.MaxLineLength
-        isMultiline, isLong
+
+    let dummyResult = ctx.WithDummy(f, keepPageWidth = true)
+    let isMultiline = dummyResult.WriterModel.LineCount > ctx.WriterModel.LineCount
+    let isLong = dummyResult.Column > ctx.Config.MaxLineLength
+    isMultiline, isLong
 
 let futureNlnCheck f (ctx: Context) =
     let isMultiLine, isLong = futureNlnCheckMem (f, ctx)
@@ -983,10 +990,11 @@ let sepColon (ctx: Context) =
     if ctx.WriterModel.IsDummy then
         defaultExpr ctx
     else
-        match lastWriteEventOnLastLine ctx with
-        | Some w when String.endsWithOrdinal " " w -> !- ": " ctx
-        | None -> !- ": " ctx
-        | _ -> defaultExpr ctx
+
+    match lastWriteEventOnLastLine ctx with
+    | Some w when String.endsWithOrdinal " " w -> !- ": " ctx
+    | None -> !- ": " ctx
+    | _ -> defaultExpr ctx
 
 let sepColonFixed = !-":"
 

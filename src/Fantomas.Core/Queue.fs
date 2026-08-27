@@ -42,12 +42,13 @@ type Queue<'T>(data: 'T array list, length: int) =
         if Array.isEmpty head then
             x
         else
-            let newHead = Array.skip 1 head
 
-            if Array.isEmpty newHead then
-                Queue(tail, length - 1)
-            else
-                Queue(newHead :: tail, length - 1)
+        let newHead = Array.skip 1 head
+
+        if Array.isEmpty newHead then
+            Queue(tail, length - 1)
+        else
+            Queue(newHead :: tail, length - 1)
 
     member x.IsEmpty = length = 0
 
@@ -65,35 +66,38 @@ type Queue<'T>(data: 'T array list, length: int) =
         if n >= length then
             false
         else
-            let mutable i = length - n // how many items at end
-            let mutable r = false
 
-            let rec dataToEnd acc =
-                function
-                | hd: _ array :: tl ->
-                    if i > hd.Length then
-                        i <- i - hd.Length
-                        dataToEnd (hd :: acc) tl
-                    else
-                        i <- hd.Length - i // index in first array
-                        hd :: acc
-                | [] -> acc
+        let mutable i = length - n // how many items at end
+        let mutable r = false
 
-            let rec exists xs =
-                match xs with
-                | arr: _ array :: tl ->
-                    while not r && i < arr.Length do
-                        if f arr.[i] then
-                            r <- true
+        let rec dataToEnd acc =
+            function
+            | [] -> acc
+            | hd: _ array :: tl ->
 
-                        i <- i + 1
+            if i > hd.Length then
+                i <- i - hd.Length
+                dataToEnd (hd :: acc) tl
+            else
+                i <- hd.Length - i // index in first array
+                hd :: acc
 
-                    i <- 0
-                    if r then true else exists tl
-                | [] -> r
+        let rec exists xs =
+            match xs with
+            | [] -> r
+            | arr: _ array :: tl ->
 
-            let d = dataToEnd [] data
-            d |> List.skipWhile p |> exists
+            while not r && i < arr.Length do
+                if f arr.[i] then
+                    r <- true
+
+                i <- i + 1
+
+            i <- 0
+            if r then true else exists tl
+
+        let d = dataToEnd [] data
+        d |> List.skipWhile p |> exists
 
     interface System.Collections.Generic.IReadOnlyCollection<'T> with
         member x.Count = x.Length

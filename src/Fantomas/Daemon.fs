@@ -278,18 +278,19 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                                         if formatResponse.Code = request.SourceCode then
                                             return FormatDocumentResponse.Unchanged request.FilePath
                                         else
-                                            let cursor =
-                                                formatResponse.Cursor
-                                                |> Option.map (fun cursorPos ->
-                                                    FormatCursorPosition(cursorPos.Line, cursorPos.Column)
-                                                )
 
-                                            return
-                                                FormatDocumentResponse.Formatted(
-                                                    request.FilePath,
-                                                    formatResponse.Code,
-                                                    cursor
-                                                )
+                                        let cursor =
+                                            formatResponse.Cursor
+                                            |> Option.map (fun cursorPos ->
+                                                FormatCursorPosition(cursorPos.Line, cursorPos.Column)
+                                            )
+
+                                        return
+                                            FormatDocumentResponse.Formatted(
+                                                request.FilePath,
+                                                formatResponse.Code,
+                                                cursor
+                                            )
                                     }
                                 )
                                 (fun message -> FormatDocumentResponse.Error(request.FilePath, message))

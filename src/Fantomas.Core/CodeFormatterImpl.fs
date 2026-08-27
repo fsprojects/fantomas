@@ -48,13 +48,14 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
                         if errors.IsEmpty then
                             return Ok(untypedTree, defineCombination)
                         else
-                            let defineNames =
-                                if defineCombination.Value.IsEmpty then
-                                    "no defines"
-                                else
-                                    defineCombination.Value |> String.concat ", "
 
-                            return Error defineNames
+                        let defineNames =
+                            if defineCombination.Value.IsEmpty then
+                                "no defines"
+                            else
+                                defineCombination.Value |> String.concat ", "
+
+                        return Error defineNames
                     }
                 )
                 |> Async.Parallel

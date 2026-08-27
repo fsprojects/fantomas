@@ -41,28 +41,30 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
                 CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, formatParams.Config)
 
             let contentChanged: bool =
-                if formatParams.CompareWithoutLineEndings then
-                    let stripNewlines (s: string) : string = carriageReturn.Replace(s, String.Empty)
-
-                    (stripNewlines originalContent) <> (stripNewlines formattedContent)
-                else
+                if not formatParams.CompareWithoutLineEndings then
                     originalContent <> formattedContent
-
-            if contentChanged then
-                let! (validation: ValidationResult) =
-                    CodeFormatter.ValidateFSharpCodeAsync(isSignatureFile, formattedContent)
-
-                if not validation.IsValid then
-                    return
-                        FormatResult.InvalidCode(
-                            filename = formatParams.File,
-                            formattedContent = formattedContent,
-                            diagnostics = validation.Diagnostics
-                        )
                 else
-                    return FormatResult.Formatted(filename = formatParams.File, formattedContent = formattedContent)
-            else
+
+                let stripNewlines (s: string) : string = carriageReturn.Replace(s, String.Empty)
+
+                (stripNewlines originalContent) <> (stripNewlines formattedContent)
+
+            if not contentChanged then
                 return FormatResult.Unchanged(filename = formatParams.File)
+            else
+
+            let! (validation: ValidationResult) =
+                CodeFormatter.ValidateFSharpCodeAsync(isSignatureFile, formattedContent)
+
+            if validation.IsValid then
+                return FormatResult.Formatted(filename = formatParams.File, formattedContent = formattedContent)
+            else
+                return
+                    FormatResult.InvalidCode(
+                        filename = formatParams.File,
+                        formattedContent = formattedContent,
+                        diagnostics = validation.Diagnostics
+                    )
         with ex ->
             return FormatResult.Error(formatParams.File, ex)
     }
@@ -178,12 +180,12 @@ let processFile
                 if not inPlace then
                     ensureParentFolderExists fs outputFile
 
-                if source.HasByteOrderMark then
+                if not source.HasByteOrderMark then
+                    do! fs.File.WriteAllTextAsync(outputFile, contents) |> Async.AwaitTask
+                else
                     do!
                         fs.File.WriteAllTextAsync(outputFile, contents, Encoding.UTF8)
                         |> Async.AwaitTask
-                else
-                    do! fs.File.WriteAllTextAsync(outputFile, contents) |> Async.AwaitTask
 
                 env.Log.Debug $"%s{outputFile} has been written."
 

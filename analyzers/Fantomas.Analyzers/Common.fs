@@ -32,6 +32,13 @@ let triviaOf (parsedInput: ParsedInput) : range list * range list =
 
     commentRanges, directiveRanges
 
+let matchClausesOf (expr: SynExpr) : (range * SynMatchClause list) option =
+    match expr with
+    | SynExpr.Match(clauses = clauses; range = range)
+    | SynExpr.MatchBang(clauses = clauses; range = range)
+    | SynExpr.MatchLambda(matchClauses = clauses; range = range) -> Some(range, clauses)
+    | _ -> None
+
 let hasSignatureFile (fileName: string) (sourceFiles: string list) : bool =
     let normalize (path: string) : string =
         Path.GetFullPath(path).Replace('\\', '/')
@@ -39,12 +46,13 @@ let hasSignatureFile (fileName: string) (sourceFiles: string list) : bool =
     if not (fileName.EndsWith(".fs", StringComparison.OrdinalIgnoreCase)) then
         false
     else
-        let signatureFile: string = normalize (fileName + "i")
 
-        sourceFiles
-        |> List.exists (fun (source: string) ->
-            String.Equals(normalize source, signatureFile, StringComparison.OrdinalIgnoreCase)
-        )
+    let signatureFile: string = normalize (fileName + "i")
+
+    sourceFiles
+    |> List.exists (fun (source: string) ->
+        String.Equals(normalize source, signatureFile, StringComparison.OrdinalIgnoreCase)
+    )
 
 let testAttributes: Set<string> =
     set

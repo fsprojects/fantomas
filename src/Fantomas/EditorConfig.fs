@@ -274,20 +274,21 @@ let tryReadConfiguration (fsharpFile: string) : EditorConfigResult option =
     if editorConfigSettings.Properties.Count = 0 then
         None
     else
-        let config, problems =
-            parseOptionsFromEditorConfig FormatConfig.Default editorConfigSettings.Properties
 
-        let editorConfigFiles =
-            editorConfigSettings.EditorConfigFiles
-            |> Seq.map editorConfigFilePath
-            |> Seq.toList
+    let config, problems =
+        parseOptionsFromEditorConfig FormatConfig.Default editorConfigSettings.Properties
 
-        Some
-            {
-                Config = config
-                EditorConfigFiles = editorConfigFiles
-                Problems = problems
-            }
+    let editorConfigFiles =
+        editorConfigSettings.EditorConfigFiles
+        |> Seq.map editorConfigFilePath
+        |> Seq.toList
+
+    Some
+        {
+            Config = config
+            EditorConfigFiles = editorConfigFiles
+            Problems = problems
+        }
 
 type ResolvedSetting =
     {

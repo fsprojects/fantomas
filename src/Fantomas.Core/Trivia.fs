@@ -26,40 +26,41 @@ let internal collectTriviaFromCodeComments
         if not (RangeHelpers.rangeContainsRange codeRange ct.Range) then
             None
         else
-            match ct with
-            | CommentTrivia.BlockComment r ->
-                let content = source.GetSubTextFromRange r
-                let startLine = source.GetLineString(r.StartLine - 1)
-                let endLine = source.GetLineString(r.EndLine - 1)
 
-                let contentBeforeComment =
-                    startLine.Substring(0, r.StartColumn).TrimStart(' ', ';').Length
+        match ct with
+        | CommentTrivia.BlockComment r ->
+            let content = source.GetSubTextFromRange r
+            let startLine = source.GetLineString(r.StartLine - 1)
+            let endLine = source.GetLineString(r.EndLine - 1)
 
-                let contentAfterComment = endLine.Substring(r.EndColumn).TrimEnd(' ', ';').Length
+            let contentBeforeComment =
+                startLine.Substring(0, r.StartColumn).TrimStart(' ', ';').Length
 
-                let content =
-                    if contentBeforeComment = 0 && contentAfterComment = 0 then
-                        CommentOnSingleLine content
-                    else
-                        BlockComment(content, false, false)
+            let contentAfterComment = endLine.Substring(r.EndColumn).TrimEnd(' ', ';').Length
 
-                Some(TriviaNode(content, r))
-            | CommentTrivia.LineComment r ->
-                let content = source.GetSubTextFromRange r
-                let index = r.StartLine - 1
-                let line = source.GetLineString index
+            let content =
+                if contentBeforeComment = 0 && contentAfterComment = 0 then
+                    CommentOnSingleLine content
+                else
+                    BlockComment(content, false, false)
 
-                let content =
-                    let trimmedLine = line.TrimStart(' ', ';')
+            Some(TriviaNode(content, r))
+        | CommentTrivia.LineComment r ->
+            let content = source.GetSubTextFromRange r
+            let index = r.StartLine - 1
+            let line = source.GetLineString index
 
-                    if index = 0 && String.startsWithOrdinal "#!" trimmedLine then // shebang
-                        CommentOnSingleLine content
-                    else if String.startsWithOrdinal "//" trimmedLine then
-                        CommentOnSingleLine content
-                    else
-                        LineCommentAfterSourceCode content
+            let content =
+                let trimmedLine = line.TrimStart(' ', ';')
 
-                Some(TriviaNode(content, r))
+                if index = 0 && String.startsWithOrdinal "#!" trimmedLine then // shebang
+                    CommentOnSingleLine content
+                else if String.startsWithOrdinal "//" trimmedLine then
+                    CommentOnSingleLine content
+                else
+                    LineCommentAfterSourceCode content
+
+            Some(TriviaNode(content, r))
     )
 
 let internal collectTriviaFromBlankLines
@@ -74,70 +75,73 @@ let internal collectTriviaFromBlankLines
         // weird edge cases where there is no source code but only hash defines
         []
     else
-        let fileIndex = codeRange.FileIndex
 
-        let captureLinesIfMultiline (r: range) =
-            if r.StartLine = r.EndLine then
-                []
-            else
-                [ r.StartLine .. r.EndLine ]
+    let fileIndex = codeRange.FileIndex
 
-        let multilineStringsLines =
-            let rec visit (node: Node) (finalContinuation: int list -> int list) =
-                let continuations: ((int list -> int list) -> int list) list =
-                    Array.toList node.Children |> List.map visit
+    let captureLinesIfMultiline (r: range) =
+        if r.StartLine = r.EndLine then
+            []
+        else
+            [ r.StartLine .. r.EndLine ]
 
-                let currentLines =
-                    match node with
-                    | :? StringNode as node -> captureLinesIfMultiline node.Range
-                    | _ -> []
+    let multilineStringsLines =
+        let rec visit (node: Node) (finalContinuation: int list -> int list) =
+            let continuations: ((int list -> int list) -> int list) list =
+                Array.toList node.Children |> List.map visit
 
-                let finalContinuation (lines: int list list) : int list =
-                    List.collect id (currentLines :: lines) |> finalContinuation
+            let currentLines =
+                match node with
+                | :? StringNode as node -> captureLinesIfMultiline node.Range
+                | _ -> []
 
-                Continuation.sequence continuations finalContinuation
+            let finalContinuation (lines: int list list) : int list =
+                List.collect id (currentLines :: lines) |> finalContinuation
 
-            visit rootNode id
+            Continuation.sequence continuations finalContinuation
 
-        let blockCommentLines =
-            codeComments
-            |> List.collect (
-                function
-                | CommentTrivia.BlockComment r -> captureLinesIfMultiline r
-                | CommentTrivia.LineComment _ -> []
-            )
+        visit rootNode id
 
-        let ignoreLines =
-            Set(
-                seq {
-                    yield! multilineStringsLines
-                    yield! blockCommentLines
-                }
-            )
-
-        let min = System.Math.Max(0, codeRange.StartLine - 1)
-
-        let max = System.Math.Min(source.Length - 1, codeRange.EndLine - 1)
-
-        (min, [ min..max ])
-        ||> List.chooseState (fun count idx ->
-            if ignoreLines.Contains(idx + 1) then
-                0, None
-            else
-                let line = source.GetLineString(idx)
-
-                if String.isNotNullOrWhitespace line then
-                    0, None
-                else
-                    let range =
-                        let p = Position.mkPos (idx + 1) 0
-                        Range.mkFileIndexRange fileIndex p p
-
-                    if count < config.KeepMaxNumberOfBlankLines then
-                        (count + 1), Some(TriviaNode(Newline, range))
-                    else
-                        count, None
+    let blockCommentLines =
+        codeComments
+        |> List.collect (
+            function
+            | CommentTrivia.BlockComment r -> captureLinesIfMultiline r
+            | CommentTrivia.LineComment _ -> []
         )
+
+    let ignoreLines =
+        Set(
+            seq {
+                yield! multilineStringsLines
+                yield! blockCommentLines
+            }
+        )
+
+    let min = System.Math.Max(0, codeRange.StartLine - 1)
+
+    let max = System.Math.Min(source.Length - 1, codeRange.EndLine - 1)
+
+    (min, [ min..max ])
+    ||> List.chooseState (fun count idx ->
+        if ignoreLines.Contains(idx + 1) then
+            0, None
+        else
+
+        let line = source.GetLineString(idx)
+
+        if String.isNotNullOrWhitespace line then
+            0, None
+        else
+
+        let range =
+            let p = Position.mkPos (idx + 1) 0
+            Range.mkFileIndexRange fileIndex p p
+
+        if count < config.KeepMaxNumberOfBlankLines then
+            (count + 1), Some(TriviaNode(Newline, range))
+        else
+            count, None
+    )
 
 type ConditionalDirectiveTrivia with
 
@@ -159,9 +163,10 @@ let internal collectTriviaFromDirectiveRanges
         if not (RangeHelpers.rangeContainsRange codeRange directiveRange) then
             None
         else
-            let text = (source.GetSubTextFromRange directiveRange).TrimEnd()
-            let content = Directive text
-            Some(TriviaNode(content, directiveRange))
+
+        let text = (source.GetSubTextFromRange directiveRange).TrimEnd()
+        let content = Directive text
+        Some(TriviaNode(content, directiveRange))
     )
 
 let rec findNodeWhereRangeFitsIn (root: Node) (range: range) : Node option =
@@ -170,12 +175,13 @@ let rec findNodeWhereRangeFitsIn (root: Node) (range: range) : Node option =
     if not doesSelectionFitInNode then
         None
     else
-        // The more specific the node fits the selection, the better
-        let betterChildNode =
-            root.Children
-            |> Array.tryPick (fun childNode -> findNodeWhereRangeFitsIn childNode range)
 
-        betterChildNode |> Option.orElseWith (fun () -> Some root)
+    // The more specific the node fits the selection, the better
+    let betterChildNode =
+        root.Children
+        |> Array.tryPick (fun childNode -> findNodeWhereRangeFitsIn childNode range)
+
+    betterChildNode |> Option.orElseWith (fun () -> Some root)
 
 let triviaBeforeOrAfterEntireTree (rootNode: Node) (trivia: TriviaNode) : unit =
     let isBefore = trivia.Range.EndLine < rootNode.Range.StartLine

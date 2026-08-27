@@ -11,23 +11,24 @@ let editDistance (limit: int) (left: string) (right: string) : int =
     if abs (left.Length - right.Length) > limit then
         limit + 1
     else
-        let mutable previous: int array = Array.init (right.Length + 1) id
-        let mutable current: int array = Array.zeroCreate<int>(right.Length + 1)
 
-        for row in 1 .. left.Length do
-            current[0] <- row
+    let mutable previous: int array = Array.init (right.Length + 1) id
+    let mutable current: int array = Array.zeroCreate<int>(right.Length + 1)
 
-            for column in 1 .. right.Length do
-                let substitution: int =
-                    previous[column - 1] + (if left[row - 1] = right[column - 1] then 0 else 1)
+    for row in 1 .. left.Length do
+        current[0] <- row
 
-                current[column] <- min (min (current[column - 1] + 1) (previous[column] + 1)) substitution
+        for column in 1 .. right.Length do
+            let substitution: int =
+                previous[column - 1] + (if left[row - 1] = right[column - 1] then 0 else 1)
 
-            let swap: int array = previous
-            previous <- current
-            current <- swap
+            current[column] <- min (min (current[column - 1] + 1) (previous[column] + 1)) substitution
 
-        min previous[right.Length] (limit + 1)
+        let swap: int array = previous
+        previous <- current
+        current <- swap
+
+    min previous[right.Length] (limit + 1)
 
 let nearest (limit: int) (candidates: string list) (term: string) : string option =
     candidates
