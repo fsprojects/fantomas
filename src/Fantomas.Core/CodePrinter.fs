@@ -2433,6 +2433,7 @@ let genSmallRecordBaseExpr genExtra (node: ExprRecordBaseNode) =
         node.Fields
         (fun _i item ->
             match item with
+            | ExprRecordFieldOrSpread.Spread node -> genExprSpreadNode node
             | ExprRecordFieldOrSpread.Field rf ->
                 genIdentListNode rf.FieldName
                 +> sepSpace
@@ -2440,7 +2441,6 @@ let genSmallRecordBaseExpr genExtra (node: ExprRecordBaseNode) =
                 +> sepSpace
                 +> genExpr rf.Expr
                 |> genNode rf
-            | ExprRecordFieldOrSpread.Spread node -> genExprSpreadNode node
         )
     +> addSpaceIfSpaceAroundDelimiter
     +> genSingleTextNode node.ClosingBrace
@@ -4233,11 +4233,12 @@ let inline (|ParameterWithTupleTypePattern|_|) (pat: Pattern) =
     match pat with
     | Pattern.Parameter parameterNode ->
         match parameterNode.Type with
-        | Some t ->
-            match t with
-            | Type.Tuple _ -> ValueSome()
-            | _ -> ValueNone
         | None -> ValueNone
+        | Some t ->
+
+        match t with
+        | Type.Tuple _ -> ValueSome()
+        | _ -> ValueNone
     | _ -> ValueNone
 
 /// Format a long parentheses parameter pattern in a binding or constructor.

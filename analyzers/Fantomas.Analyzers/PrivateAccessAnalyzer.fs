@@ -72,7 +72,8 @@ let analyze (fileName: string) (sourceFiles: string list) (parsedInput: ParsedIn
                 Severity = Severity.Error
                 Range = keyword
                 Fixes = []
-            })
+            }
+        )
         |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =

@@ -10,6 +10,7 @@ feedback arrives while you work instead of in review. They are ordinary F# analy
 | [`FANTOMAS-PIPEBACK-001`](#fantomas-pipeback-001) | No backward pipe | Error | both pipelines |
 | [`FANTOMAS-PRIVATE-001`](#fantomas-private-001) | No `let private` beside a signature file | Error | both pipelines |
 | [`FANTOMAS-ARMORDER-001`](#fantomas-armorder-001) | Shortest match arm first | Warning | both pipelines |
+| [`FANTOMAS-KEEPINDENT-001`](#fantomas-keepindent-001) | Last match arm keeps the indentation | Warning | `AnalyzeChanged` only |
 | [`FANTOMAS-ANNOTATE-001`](#fantomas-annotate-001) | Annotate every `let` binding | Warning | `AnalyzeChanged` only |
 | [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries | Warning | both pipelines |
 
@@ -67,6 +68,66 @@ something other than a swap, and it offers no fix, because swapping two clauses 
 and indentation is the kind of edit that goes wrong quietly.
 
 So a match it says nothing about is not necessarily in the right order. The rule is still the rule.
+
+## FANTOMAS-KEEPINDENT-001
+
+Once the short arm is first, let the last arm keep the indentation of the match:
+
+```fsharp
+match localToolsListResult with
+| Ok(CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.LocalTool workingDir))
+| Error err -> Error(FantomasToolError.DotNetListError err)
+| Ok _localToolListResult ->
+
+let globalToolsListResult = runToolListCmd workingDir true
+
+match globalToolsListResult with
+| Ok(CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.GlobalTool))
+| Error err -> Error(FantomasToolError.DotNetListError err)
+| Ok _nonCompatibleGlobalVersion ->
+
+let fantomasOnPathVersion = fantomasVersionOnPath ()
+```
+
+This is the other half of what `FANTOMAS-ARMORDER-001` starts, and the reason that rule cares about
+order in the first place. The short arms say what the rest of the expression is not about and then
+get out of the way, and what is left is the one path that continues, written at the indentation it
+started at. Three lookups falling through to each other cost no indentation at all, where nesting
+them would have cost twelve columns by the third.
+
+`fsharp_experimental_keep_indent_in_branch`, which the repository's `.editorconfig` turns on, is what
+holds the body there, and it only holds a body that was already written that way: it will not
+de-indent for you, and it will re-indent one written that way where the setting is off. So the whole
+style depends on somebody writing it, which is what this rule is for. The `.editorconfig` covers
+`src` and `analyzers`, which together are everything the pipelines analyze, so a finding is never one
+the formatter will undo.
+
+The analyzer is narrower than the rule, because moving a body left can change what runs:
+
+- Only the **last** arm, since that is the only one `CodePrinter` offers the choice to, and since a
+  following arm of the same match would be the first thing a de-indented body swallowed.
+- Only a body that is a **block**: another `match`, an `if`, or a sequence of bindings and
+  statements. That is where the columns are saved again by everything inside. A single application
+  or pipeline has nothing under it to save them for and reads oddly under the blank line the setting
+  writes.
+- Only a body **already on a line of its own** and spanning more than one line. A body that fits
+  beside its arrow gets pulled up next to it and never reaches the branch that would keep it.
+- Only where **nothing follows the match in the same block**. This is the one way the reshape
+  changes meaning. De-indenting moves the offside line of the body out to the bar, and code that
+  follows the match in that block sits in exactly that column, so what was the first thing past the
+  match becomes the last thing inside the arm: it stops running whatever matched and starts running
+  only for that one arm. The rule collects every place one expression is followed by another and
+  stays quiet inside the first of such a pair, unless the follower starts further left than the bar,
+  where an enclosing block is what continues and the arm still ends.
+
+It stays quiet on a `when` guard, because a multiline guard takes a path in `CodePrinter` that
+indents the body whatever column it is in, and whether a guard prints multiline is a page width
+question rather than a tree one. It stays quiet on a conditional directive inside the match. And it
+offers no fix, because re-indenting a block means leaving the multiline strings inside it exactly
+where they are, which is not a thing to do blind, least of all in `Fantomas.Core.Tests`.
+
+`match`, `match!` and `function` all reach the same clause printer, so all three are covered.
+`if`/`then`/`else` has the same setting behind it and is deliberately left out for now.
 
 ## FANTOMAS-ANNOTATE-001
 
@@ -129,11 +190,17 @@ non-zero on any finding at error severity, so the two error rules fail `Analyze`
 decides who has to look: a rule excluded from `Analyze` is absent from CI and from GitHub code
 scanning whatever its severity, and still reports locally.
 
-`FANTOMAS-ANNOTATE-001` is excluded from `Analyze` because it reports on debt that predates it.
-`AnalyzeChanged` runs it, and narrows it further to the lines `git diff` says you touched: a file is
-a much coarser scope than that rule asks for, and one line changed in a file of several thousand
-otherwise surfaces every unannotated binding in it. Every other rule reports wherever it fires in a
-file you edited, because a finding from one of those is worth seeing.
+`FANTOMAS-ANNOTATE-001` and `FANTOMAS-KEEPINDENT-001` are excluded from `Analyze` because both report
+on debt that predates them. `AnalyzeChanged` runs both.
+
+It narrows `FANTOMAS-ANNOTATE-001` further, to the lines `git diff` says you touched: a file is a
+much coarser scope than that rule asks for, and one line changed in a file of several thousand
+otherwise surfaces every unannotated binding in it. `FANTOMAS-KEEPINDENT-001` is deliberately not
+narrowed that way, and the difference is worth knowing before adding a third. It fires on an arm's
+body, which is rarely a line you touched: swapping two arms for `FANTOMAS-ARMORDER-001` changes the
+two lines carrying the `|` and none of the body it then asks you to de-indent, so narrowing to
+changed lines would hide the finding the swap exists to reach. Every other rule reports wherever it
+fires in a file you edited, because a finding from one of those is worth seeing.
 
 The narrowing reads the tool's own output format and fails open, so anything it cannot parse is
 kept. A change upstream makes it stop narrowing rather than start hiding.

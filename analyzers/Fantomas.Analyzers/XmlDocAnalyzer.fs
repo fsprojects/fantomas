@@ -57,7 +57,8 @@ let declaredInSignature
     (checkResults: FSharpCheckFileResults)
     (sourceText: ISourceText)
     (declaration: DocumentedDeclaration)
-    : bool =
+    : bool
+    =
     let line: int = declaration.NameRange.EndLine
 
     if line < 1 || line > sourceText.GetLineCount() then
@@ -69,7 +70,8 @@ let declaredInSignature
         |> Option.map (fun (symbolUse: FSharpSymbolUse) ->
             match symbolUse.Symbol.SignatureLocation, symbolUse.Symbol.DeclarationLocation with
             | Some signature, Some declaration -> signature.FileName <> declaration.FileName
-            | _ -> false)
+            | _ -> false
+        )
         |> Option.defaultValue false
 
 // Documentation comments that the signature file already carries.
@@ -83,7 +85,8 @@ let analyze
     (fileName: string)
     (sourceFiles: string list)
     (parsedInput: ParsedInput)
-    : Message list =
+    : Message list
+    =
     if not (hasSignatureFile fileName sourceFiles) then
         []
     else
@@ -139,7 +142,8 @@ let analyze
                 Severity = Severity.Warning
                 Range = declaration.DocRange
                 Fixes = []
-            })
+            }
+        )
         |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =

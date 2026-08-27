@@ -415,9 +415,9 @@ let formatSelection
                     let rangeOfSelection = findRangeOf t formattedTree
 
                     match rangeOfSelection with
+                    | Some m -> source.GetSubTextFromRange m
                     | None ->
                         raise (FormatException("No suitable AST node could be extracted from formatted selection."))
-                    | Some m -> source.GetSubTextFromRange m
 
             return formattedSelection.TrimEnd([| '\r'; '\n' |]), selection
     }

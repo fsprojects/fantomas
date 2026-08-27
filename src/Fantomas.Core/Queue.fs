@@ -7,15 +7,16 @@ type Queue<'T>(data: 'T array list, length: int) =
 
     override x.GetHashCode() =
         match hashCode with
-        | None ->
-            let mutable hash = 1
-
-            for x' in x do
-                hash <- 31 * hash + Unchecked.hash x'
-
-            hashCode <- Some hash
-            hash
         | Some hash -> hash
+        | None ->
+
+        let mutable hash: int = 1
+
+        for x' in x do
+            hash <- 31 * hash + Unchecked.hash x'
+
+        hashCode <- Some hash
+        hash
 
     override x.Equals(other) =
         match other with

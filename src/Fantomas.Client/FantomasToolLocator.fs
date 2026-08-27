@@ -226,18 +226,20 @@ let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasTo
     | Ok(CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.LocalTool workingDir))
     | Error err -> Error(FantomasToolError.DotNetListError err)
     | Ok _localToolListResult ->
-        let globalToolsListResult = runToolListCmd workingDir true
 
-        match globalToolsListResult with
-        | Ok(CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.GlobalTool))
-        | Error err -> Error(FantomasToolError.DotNetListError err)
-        | Ok _nonCompatibleGlobalVersion ->
-            let fantomasOnPathVersion = fantomasVersionOnPath ()
+    let globalToolsListResult = runToolListCmd workingDir true
 
-            match fantomasOnPathVersion with
-            | Some(executableFile, FantomasVersion(CompatibleVersion version)) ->
-                Ok(FantomasToolFound((FantomasVersion(version)), FantomasToolStartInfo.ToolOnPath executableFile))
-            | _ -> Error FantomasToolError.NoCompatibleVersionFound
+    match globalToolsListResult with
+    | Ok(CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.GlobalTool))
+    | Error err -> Error(FantomasToolError.DotNetListError err)
+    | Ok _nonCompatibleGlobalVersion ->
+
+    let fantomasOnPathVersion = fantomasVersionOnPath ()
+
+    match fantomasOnPathVersion with
+    | Some(executableFile, FantomasVersion(CompatibleVersion version)) ->
+        Ok(FantomasToolFound((FantomasVersion(version)), FantomasToolStartInfo.ToolOnPath executableFile))
+    | _ -> Error FantomasToolError.NoCompatibleVersionFound
 
 // Fantomas added `fantomas daemon` beside `fantomas --daemon` in 8.0.0-alpha-016, and both do the
 // same thing. The flag is kept working so that an older client can start a newer Fantomas, and this

@@ -656,26 +656,26 @@ let (|ElIf|_|) expr =
                         let (_, prevElseKw, _, _, _) = rawEntries[i - 1]
 
                         match prevElseKw with
-                        | Some mElse ->
-                            match ifNode with
-                            | Choice1Of2 ifNode -> Choice2Of2(mElse, ifNode.Range)
-                            | Choice2Of2 _ ->
-                                invariantViolation
-                                    expr.Range
-                                    "cannot merge a second else keyword into existing else if"
                         | None -> ifNode
+                        | Some mElse ->
+
+                        match ifNode with
+                        | Choice1Of2 ifNode -> Choice2Of2(mElse, ifNode.Range)
+                        | Choice2Of2 _ ->
+                            invariantViolation expr.Range "cannot merge a second else keyword into existing else if"
 
                 (node, e1, thenKw, e2)
             )
 
         let elseInfo =
             match elseBody with
+            | None -> None
             | Some elseExpr ->
-                let (_, lastElseKw, _, _, _) = List.last rawEntries
 
-                match lastElseKw with
-                | Some elseKw -> Some(stn "else" elseKw, elseExpr)
-                | None -> None
+            let (_, lastElseKw, _, _, _) = List.last rawEntries
+
+            match lastElseKw with
+            | Some elseKw -> Some(stn "else" elseKw, elseExpr)
             | None -> None
 
         ValueSome(clauses, elseInfo)
@@ -2816,10 +2816,10 @@ let (|OpenL|_|) decls =
 
 let mkOpenNodeForImpl (creationAide: CreationAide) (target, range) : Open =
     match target with
+    | SynOpenDeclTarget.Type(typeName, _) -> OpenTargetNode(mkType creationAide typeName, range) |> Open.Target
     | SynOpenDeclTarget.ModuleOrNamespace(longId, _) ->
         OpenModuleOrNamespaceNode(mkSynLongIdent creationAide longId, range)
         |> Open.ModuleOrNamespace
-    | SynOpenDeclTarget.Type(typeName, _) -> OpenTargetNode(mkType creationAide typeName, range) |> Open.Target
 
 [<TailCall>]
 let rec visitHashDirectiveL acc decls =
@@ -3265,11 +3265,11 @@ let mkPropertyGetSetBinding
                 [
                     tuplePat
                     match List.tryLast ps with
+                    | Some indexerPat -> mkPat creationAide indexerPat
                     | None ->
                         invariantViolation
                             binding.RangeOfBindingWithRhs
                             "an indexed property setter has no indexer pattern"
-                    | Some indexerPat -> mkPat creationAide indexerPat
                 ]
             | [ SynPat.Tuple(false, [ p1; p2 ], _, _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
             | ps -> List.map (mkPat creationAide) ps
@@ -3362,6 +3362,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     | SynMemberDefn.Member(memberDefn, _) -> mkBinding creationAide memberDefn None |> MemberDefn.Member
     | SynMemberDefn.Inherit(baseTypeOpt, _, _isInline, trivia) ->
         match baseTypeOpt with
+        | None -> invariantViolation md.Range "a successful parse produced an unfinished inherit member"
         | Some baseType ->
             MemberDefnInheritNode(
                 stn "inherit" trivia.InheritKeyword,
@@ -3369,7 +3370,6 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                 memberDefinitionRange
             )
             |> MemberDefn.Inherit
-        | None -> invariantViolation md.Range "a successful parse produced an unfinished inherit member"
     | SynMemberDefn.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
     | SynMemberDefn.LetBindings(
         bindings = [ SynBinding(
@@ -4222,11 +4222,12 @@ let mkFullTreeRange ast =
 
         let endPos =
             match List.tryLast modules with
-            | None ->
-                match List.tryLast directives with
-                | None -> RangeHelpers.absoluteZeroRange
-                | Some(ParsedHashDirective(range = r)) -> r
             | Some lastModule -> mkSynModuleOrNamespaceFullRange lastModule
+            | None ->
+
+            match List.tryLast directives with
+            | None -> RangeHelpers.absoluteZeroRange
+            | Some(ParsedHashDirective(range = r)) -> r
 
         let astRange = unionRanges startPos endPos
         includeTrivia astRange trivia
@@ -4242,11 +4243,12 @@ let mkFullTreeRange ast =
 
         let endPos =
             match List.tryLast modules with
-            | None ->
-                match List.tryLast directives with
-                | None -> RangeHelpers.absoluteZeroRange
-                | Some(ParsedHashDirective(range = r)) -> r
             | Some lastModule -> mkSynModuleOrNamespaceSigFullRange lastModule
+            | None ->
+
+            match List.tryLast directives with
+            | None -> RangeHelpers.absoluteZeroRange
+            | Some(ParsedHashDirective(range = r)) -> r
 
         let astRange = unionRanges startPos endPos
         includeTrivia astRange trivia

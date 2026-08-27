@@ -734,14 +734,15 @@ let ``_.Values[0] — indexed member arrives as one opaque segment with no termi
         | _ -> node.Children |> Array.tryPick search
 
     match search (Expr.Node expr) with
-    | Some chain ->
-        assertCount 1 chain.Segments
-
-        match chain.Segments with
-        | [ ChainSegment.DotMember(dot, _) ] -> assertText "." dot
-        | _ -> Assert.Fail $"Unexpected segments: %A{chain.Segments}"
-
-        match chain.Terminal with
-        | ChainTerminal.NoTerminal -> ()
-        | _ -> Assert.Fail $"Expected NoTerminal, got %A{chain.Terminal}"
     | None -> Assert.Fail "Expected to find the `_` dot-lambda chain"
+    | Some chain ->
+
+    assertCount 1 chain.Segments
+
+    match chain.Segments with
+    | [ ChainSegment.DotMember(dot, _) ] -> assertText "." dot
+    | _ -> Assert.Fail $"Unexpected segments: %A{chain.Segments}"
+
+    match chain.Terminal with
+    | ChainTerminal.NoTerminal -> ()
+    | _ -> Assert.Fail $"Expected NoTerminal, got %A{chain.Terminal}"

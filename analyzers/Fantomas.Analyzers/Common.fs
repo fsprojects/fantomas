@@ -3,6 +3,34 @@ module Fantomas.Analyzers.Common
 open System
 open System.IO
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
+open FSharp.Compiler.Text
+
+let triviaOf (parsedInput: ParsedInput) : range list * range list =
+    let comments, directives =
+        match parsedInput with
+        | ParsedInput.SigFile(ParsedSigFileInput(trivia = trivia)) -> trivia.CodeComments, trivia.ConditionalDirectives
+        | ParsedInput.ImplFile(ParsedImplFileInput(trivia = trivia)) ->
+            trivia.CodeComments, trivia.ConditionalDirectives
+
+    let commentRanges: range list =
+        comments
+        |> List.map (fun (comment: CommentTrivia) ->
+            match comment with
+            | CommentTrivia.LineComment range -> range
+            | CommentTrivia.BlockComment range -> range
+        )
+
+    let directiveRanges: range list =
+        directives
+        |> List.map (fun (directive: ConditionalDirectiveTrivia) ->
+            match directive with
+            | ConditionalDirectiveTrivia.Else range -> range
+            | ConditionalDirectiveTrivia.EndIf range -> range
+            | ConditionalDirectiveTrivia.If(range = range) -> range
+        )
+
+    commentRanges, directiveRanges
 
 let hasSignatureFile (fileName: string) (sourceFiles: string list) : bool =
     let normalize (path: string) : string =
@@ -15,7 +43,8 @@ let hasSignatureFile (fileName: string) (sourceFiles: string list) : bool =
 
         sourceFiles
         |> List.exists (fun (source: string) ->
-            String.Equals(normalize source, signatureFile, StringComparison.OrdinalIgnoreCase))
+            String.Equals(normalize source, signatureFile, StringComparison.OrdinalIgnoreCase)
+        )
 
 let testAttributes: Set<string> =
     set
@@ -47,4 +76,6 @@ let isTest (attributes: SynAttributes) : bool =
                     else
                         name.idText
 
-                testAttributes.Contains bare))
+                testAttributes.Contains bare
+        )
+    )

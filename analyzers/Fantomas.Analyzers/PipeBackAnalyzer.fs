@@ -52,7 +52,8 @@ let analyze (parsedInput: ParsedInput) : Message list =
             Severity = Severity.Error
             Range = operator
             Fixes = []
-        })
+        }
+    )
     |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =

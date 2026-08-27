@@ -264,11 +264,12 @@ let a =
 
             let genFunctionName =
                 match bindingNode.FunctionName with
-                | Choice1Of2 functionNameNode ->
-                    match functionNameNode.Content with
-                    | [ IdentifierOrDot.Ident node ] -> !-node.Text
-                    | _ -> !-"error"
                 | Choice2Of2 _ -> !-"error"
+                | Choice1Of2 functionNameNode ->
+
+                match functionNameNode.Content with
+                | [ IdentifierOrDot.Ident node ] -> !-node.Text
+                | _ -> !-"error"
 
             let genEq = !-bindingNode.Equals.Text
 

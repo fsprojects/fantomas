@@ -23,6 +23,9 @@ val HelpUri: string = "https://github.com/fsprojects/fantomas/blob/main/analyzer
 /// a guard, on a wildcard or a bare binder, on anything other than two arms, and where a comment
 /// between the arms or a conditional directive inside the match would make a swap something other
 /// than a swap. No fix is offered: the point is to make a person look.
+///
+/// Once the arms are the right way around, `FANTOMAS-KEEPINDENT-001` is what asks for the other
+/// half of the reshape.
 [<CliAnalyzer(Name, ShortDescription, HelpUri)>]
 val cliAnalyzer: ctx: CliContext -> Async<Message list>
 

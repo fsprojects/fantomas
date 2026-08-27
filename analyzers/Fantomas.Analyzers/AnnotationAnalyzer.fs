@@ -87,7 +87,8 @@ let missingAnnotations (binding: SynBinding) : (range * string) list =
                     if isTyped parameter || isUnit parameter then
                         None
                     else
-                        Some(parameter.Range, $"A parameter of `%s{name}` has no type annotation."))
+                        Some(parameter.Range, $"A parameter of `%s{name}` has no type annotation.")
+                )
 
             let missingReturn: (range * string) list =
                 if hasReturnType then
@@ -150,7 +151,8 @@ let analyze (parsedInput: ParsedInput) : Message list =
                         Severity = Severity.Warning
                         Range = name
                         Fixes = []
-                    })
+                    }
+        )
         |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =
