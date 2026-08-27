@@ -759,6 +759,39 @@ let connectionString () =
 
 The difference is not the chain choosing between them. It is the same deference twice: a lambda opener wants to sit on one line with its arrow, and a tuple does not care, so the ordinary argument rules answer differently.
 
+#### Only the last call may move its parenthesis
+
+Moving the argument down is the one answer the ordinary rules can give that the chain does get a say over, and the answer is that only the last call may take it, for the reason set out under [An intermediate call is welded to its parenthesis](#An-intermediate-call-is-welded-to-its-parenthesis). A line break is the same gap there as a space.
+
+Worth knowing what the two mistakes look like, because only one of them is loud. With a call behind it, `.Create()`, the compiler rejects the result with "This argument expression needs parentheses". With a plain member behind it, `.Value`, nothing warns at all: the code reparses quietly and the member becomes part of the argument.
+
+So an intermediate call keeps its `(` welded to the member name and breaks behind it instead. The closing `)` still answers to `fsharp_multi_line_lambda_closing_newline`, exactly as it does when the argument moves:
+
+```fsharp
+// ✅ a step follows, so the parenthesis cannot move
+let register () =
+    Mock<IInstanceApi>()
+        .Calls(
+            fun (path: StepPath) (key: WellKnownStepMetadata) (value: string) ->
+                metadata.Add(key, value))
+        .Create()
+```
+
+Hanging the parameters under `(fun` would keep the `(` in place too, and the F# style guide rules that out, because the column they hang from is the length of the member name. The shape the guide asks for when a lambda's parameters do not fit, one indent below `fun`, is not available here: below a `(` that sits mid-line it breaks the offside rule.
+
+The two shapes read as an inconsistency, and it is worth being clear about what divides them. It is not fluent code against ordinary code. A last call is reached the same way whether the chain is `Mock<IInstanceApi>().Create().Calls` or plain `List.tryPick`, and the style guide asks for the moved parenthesis there:
+
+```fsharp
+// ✔️ the F# style guide, under Formatting lambda expressions
+let printListWithOffset a list1 =
+    List.iter
+        (fun elem ->
+             printfn $"A very long line to format the value: %d{a + elem}")
+        list1
+```
+
+What divides them is whether anything to the right consumes the call's result. Where nothing does, the call is an ordinary application and is laid out like one. Where something does, it is not an ordinary application, and the parser reads the gap as handing that step to the argument. So the same call really is laid out two ways, and adding a step behind it reshapes it, but the difference is one the compiler enforces rather than one chosen here.
+
 #### Match lambdas are no exception
 
 Match lambdas, written `(function`, are the argument shape most likely to look like an exception, so it is worth showing in full that they are not one.
@@ -843,6 +876,8 @@ The one difference left between the two forms is that `function` also moves down
 The setting is the only thing that moves it. Writing `function` on the line below the `(` yourself makes no difference: the same call written across more lines is still the same call, and Fantomas has to land on one answer for both.
 
 In none of these does the chain have a say. `.Configure` is an intermediate call in half of them, so its `(` is welded to it either way; where the lambda goes is the argument's business, and it answers the same way in both positions.
+
+That holds because every opener above fits beside its method name. Once one does not, position is the one thing that does decide, since moving the argument down is an answer only the last call can take; see [Only the last call may move its parenthesis](#Only-the-last-call-may-move-its-parenthesis).
 
 #### A comment beside the parentheses
 

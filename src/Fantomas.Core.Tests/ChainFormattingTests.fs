@@ -1027,3 +1027,329 @@ let undotted () =
     storageSetConfigurationSettingPublisher
         (fun configName publisher -> publish configName publisher)
 """
+
+// ── A lambda argument to a call that is not the last step ───────────────────
+//
+// The call above is the last step of its chain, which is what lets the `(` move down with the
+// lambda. A call with a step behind it cannot do that: the gap makes `a.Foo (x).Bar()`, which
+// passes `(x).Bar()` to `Foo` instead of calling `Bar` on the result. So the `(` stays against
+// the member name and the break happens behind it.
+//
+// Hanging the parameters under `(fun` is the other way to keep the `(` where it is, and the
+// style guide rules it out: the column would be the length of the member name. The shape the
+// guide asks for instead, parameters indented one level, is not valid F# below a `(` that sits
+// mid-line.
+
+[<Test>]
+let ``lambda argument to an intermediate call keeps its opening parenthesis, 3432`` () =
+    formatSourceString
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls(fun (path: StepPath) (key: WellKnownStepMetadata) (value: string) -> metadata.Add(key, value))
+        .Create()
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls(
+            fun (path: StepPath) (key: WellKnownStepMetadata) (value: string) ->
+                metadata.Add(key, value))
+        .Create()
+"""
+
+[<Test>]
+let ``lambda argument to an intermediate call, member behind it`` () =
+    // A member rather than a call behind the lambda reparses without a diagnostic: the
+    // `.Value` would silently become part of the argument.
+    formatSourceString
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls(fun (path: StepPath) (key: WellKnownStepMetadata) (value: string) -> metadata.Add(key, value))
+        .Value
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls(
+            fun (path: StepPath) (key: WellKnownStepMetadata) (value: string) ->
+                metadata.Add(key, value))
+        .Value
+"""
+
+[<Test>]
+let ``lambda argument to an intermediate call, closing newline true`` () =
+    formatSourceString
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls(fun (path: StepPath) (key: WellKnownStepMetadata) (value: string) -> metadata.Add(key, value))
+        .Create()
+"""
+        { config with
+            MaxLineLength = 80
+            MultiLineLambdaClosingNewline = true
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls(
+            fun (path: StepPath) (key: WellKnownStepMetadata) (value: string) ->
+                metadata.Add(key, value)
+        )
+        .Create()
+"""
+
+[<Test>]
+let ``multiline parameter of a lambda argument to an intermediate call`` () =
+    // A single parameter that is multiline by itself moves the lambda down for the same reason
+    // an opener that does not fit does, so it arrives at the same rule.
+    formatSourceString
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls(fun { Path = path; Key = key; Value = value; Attempt = attempt } -> metadata.Add(key, value))
+        .Create()
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls(
+            fun
+                {
+                    Path = path
+                    Key = key
+                    Value = value
+                    Attempt = attempt
+                } -> metadata.Add(key, value))
+        .Create()
+"""
+
+[<Test>]
+let ``multiline parameter of a lambda argument to an intermediate call, closing newline true`` () =
+    formatSourceString
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls(fun { Path = path; Key = key; Value = value; Attempt = attempt } -> metadata.Add(key, value))
+        .Create()
+"""
+        { config with
+            MaxLineLength = 80
+            MultiLineLambdaClosingNewline = true
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls(
+            fun
+                {
+                    Path = path
+                    Key = key
+                    Value = value
+                    Attempt = attempt
+                } -> metadata.Add(key, value)
+        )
+        .Create()
+"""
+
+[<Test>]
+let ``type arguments on an intermediate call taking a lambda`` () =
+    // Type arguments lift the call out of the chain and lengthen the opener, but neither is what
+    // decides this: the rule is the same one the plain member above answers to.
+    formatSourceString
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls<StepPath * WellKnownStepMetadata>(fun (path: StepPath) (key: WellKnownStepMetadata) -> metadata.Add key)
+        .Create()
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls<StepPath * WellKnownStepMetadata>(
+            fun (path: StepPath) (key: WellKnownStepMetadata) ->
+                metadata.Add key)
+        .Create()
+"""
+
+[<Test>]
+let ``type arguments on an intermediate call taking a lambda, closing newline true`` () =
+    formatSourceString
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls<StepPath * WellKnownStepMetadata>(fun (path: StepPath) (key: WellKnownStepMetadata) -> metadata.Add key)
+        .Create()
+"""
+        { config with
+            MaxLineLength = 80
+            MultiLineLambdaClosingNewline = true
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Calls<StepPath * WellKnownStepMetadata>(
+            fun (path: StepPath) (key: WellKnownStepMetadata) ->
+                metadata.Add key
+        )
+        .Create()
+"""
+
+[<Test>]
+let ``generic intermediate call taking a lambda, 3432`` () =
+    formatSourceString
+        """
+let instanceMetadata =
+            Mock<IInstanceApi>()
+                .Calls<StepPath * AttemptNumber * JobNumber * DateTime option * WellKnownStepMetadata * string>(fun
+                                                                                                                    (path,
+                                                                                                                     _,
+                                                                                                                     _,
+                                                                                                                     _,
+                                                                                                                     key,
+                                                                                                                     value) ->
+                    path |> shouldEqual (StepPath.Parse "/Foo")
+                    metadata.Add (key, value)
+                )
+                .Create ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let instanceMetadata =
+    Mock<IInstanceApi>()
+        .Calls<StepPath * AttemptNumber * JobNumber * DateTime option * WellKnownStepMetadata * string>(
+            fun (path, _, _, _, key, value) ->
+                path |> shouldEqual (StepPath.Parse "/Foo")
+                metadata.Add(key, value))
+        .Create()
+"""
+
+// The counterparts of the four above, with the lambda call as the last step of the chain. There
+// the `(` is free to move down with the argument, because nothing follows it to be swallowed, so
+// these keep the layout they always had. They are here to mark where the rule above stops.
+
+[<Test>]
+let ``lambda argument to the last call keeps moving down`` () =
+    formatSourceString
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Create()
+        .Calls(fun (path: StepPath) (key: WellKnownStepMetadata) (value: string) -> metadata.Add(key, value))
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Create()
+        .Calls
+            (fun (path: StepPath) (key: WellKnownStepMetadata) (value: string) ->
+                metadata.Add(key, value))
+"""
+
+[<Test>]
+let ``type arguments on the last call taking a lambda`` () =
+    formatSourceString
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Create()
+        .Calls<StepPath * WellKnownStepMetadata>(fun (path: StepPath) (key: WellKnownStepMetadata) -> metadata.Add key)
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Create()
+        .Calls<StepPath * WellKnownStepMetadata>
+            (fun (path: StepPath) (key: WellKnownStepMetadata) ->
+                metadata.Add key)
+"""
+
+[<Test>]
+let ``lambda argument to the last call, closing newline true`` () =
+    formatSourceString
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Create()
+        .Calls(fun (path: StepPath) (key: WellKnownStepMetadata) (value: string) -> metadata.Add(key, value))
+"""
+        { config with
+            MaxLineLength = 80
+            MultiLineLambdaClosingNewline = true
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Create()
+        .Calls
+            (fun (path: StepPath) (key: WellKnownStepMetadata) (value: string) ->
+                metadata.Add(key, value)
+            )
+"""
+
+[<Test>]
+let ``type arguments on the last call taking a lambda, closing newline true`` () =
+    formatSourceString
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Create()
+        .Calls<StepPath * WellKnownStepMetadata>(fun (path: StepPath) (key: WellKnownStepMetadata) -> metadata.Add key)
+"""
+        { config with
+            MaxLineLength = 80
+            MultiLineLambdaClosingNewline = true
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let mock () =
+    Mock<IInstanceApi>()
+        .Create()
+        .Calls<StepPath * WellKnownStepMetadata>
+            (fun (path: StepPath) (key: WellKnownStepMetadata) ->
+                metadata.Add key
+            )
+"""
