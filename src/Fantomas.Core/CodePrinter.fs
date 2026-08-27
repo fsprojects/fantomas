@@ -1737,38 +1737,54 @@ let genExpr (e: Expr) =
         // always use the multiline layout to avoid any change in semantics.
         if isOpenEndedExpression node.LeftHandSide then
             genMultilineInfixExpr node |> genNode node
-        // No-break operators (=, >, <, %) keep the operator on the same line as the LHS.
+        // No-break operators (=, >, <, %, %%) cannot start a line at the column of the left-hand
+        // side: there the parser reads `=`, `>` and `<` as the `=` of a binding, and reads `%` and
+        // `%%` inside a quotation as a splice. So the operator either ends the line the left-hand
+        // side is on, or takes a line of its own one level in.
         elif isNoBreakInfixOp then
-            // The right-hand side is indented so that a comment between it and the operator lands
-            // below the operator rather than at the column of the left-hand side, and so that the
-            // lines under an application or a chain are not read as a continuation of the
-            // left-hand side. See #2944.
-            // A list or an array that opens on the line of the operator needs neither: the bracket
-            // says where the right-hand side begins and indents its items from the left-hand side
-            // itself, so indenting it again pushes the items and the closing bracket a level too
-            // far. See #3428. Other bracketed right-hand sides have the same problem and are left
-            // alone here on purpose: where a no-break operator should put what follows it is a
-            // wider question than this fix.
-            let genRightHandSide (ctx: Context) : Context =
-                let opensBracketOnThisLine: bool =
-                    (match node.RightHandSide with
-                     | Expr.ArrayOrList _ -> true
-                     | _ -> false)
-                    && not (hasWriteBeforeNewlineContent ctx)
-                    && not (Expr.Node node.RightHandSide).HasContentBefore
+            let genLeftHandSide: Context -> Context = genExpr node.LeftHandSide
+            let genOperator: Context -> Context = genSingleTextNode node.Operator
 
-                (onlyIfNot opensBracketOnThisLine indent
-                 +> sepNlnWhenWriteBeforeNewlineNotEmpty
-                 +> sepSpace
-                 +> genRhsExpr node.RightHandSide
-                 +> onlyIfNot opensBracketOnThisLine unindent)
-                    ctx
+            let genLongNoBreakInfixExpr (ctx: Context) : Context =
+                // Someone who set `stroustrup` asked for a bracket to open on the line of what
+                // precedes it, and that outranks the operator taking a line of its own. A comment
+                // in front of the right-hand side forces a break, so the bracket cannot open there
+                // after all. See #3428.
+                let hugsOperator: bool =
+                    isStroustrupStyleExpr ctx.Config node.RightHandSide
+                    && canSafelyUseStroustrup (Expr.Node node.RightHandSide) ctx
 
-            let genLongNoBreakInfixExpr =
-                genExpr node.LeftHandSide
-                +> sepSpace
-                +> genSingleTextNode node.Operator
-                +> genRightHandSide
+                // When the left-hand side spans several lines, the operator has no line to end that
+                // is not also the last line of the left-hand side, and the right-hand side would
+                // start at the column that line ends at. The operator takes a line between the two
+                // instead, which is what both style guides ask for in a long function signature.
+                let operatorTakesItsOwnLine: bool =
+                    not hugsOperator && futureNlnCheck genLeftHandSide ctx
+
+                let layout: Context -> Context =
+                    if operatorTakesItsOwnLine then
+                        genLeftHandSide
+                        +> indent
+                        +> sepNln
+                        +> genOperator
+                        +> sepNln
+                        +> genRhsExpr node.RightHandSide
+                        +> unindent
+                    else
+                        // The right-hand side is indented when it moves down, so that a comment
+                        // between it and the operator lands below the operator rather than at the
+                        // column of the left-hand side, and so that the lines under an application
+                        // or a chain are not read as a continuation of the left-hand side.
+                        // See #2944.
+                        genLeftHandSide
+                        +> sepSpace
+                        +> genOperator
+                        +> sepNlnWhenWriteBeforeNewlineNotEmpty
+                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
+                            genRhsExpr
+                            node.RightHandSide
+
+                layout ctx
 
             fun ctx ->
                 genNode

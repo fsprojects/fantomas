@@ -499,7 +499,11 @@ let ``modulo operator on same line, 780`` () =
         """
 let hasUnEvenAmount regex line =
     (Regex.Matches(line, regex).Count
-     - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
+     - Regex.Matches(line, "\\\\" + regex).Count)
+        %
+        2
+        =
+        1
 """
 
 [<Test>]
@@ -522,7 +526,9 @@ let a =
     (if aVeryLongVariableNameThatForceLineBreaking = 0 then
          1
      else
-         -1) %% 4
+         -1)
+        %%
+        4
 """
 
 [<Test>]
@@ -1512,12 +1518,13 @@ let v = xs = [ "aaaaaaaaaa"; "bbbbbbbbbb"; "cccccccccc"; "dddddddddd"; "eeeeeeee
         equal
         """
 let v =
-    xs = [ "aaaaaaaaaa"
-           "bbbbbbbbbb"
-           "cccccccccc"
-           "dddddddddd"
-           "eeeeeeeeee"
-           "ffffffffff" ]
+    xs =
+        [ "aaaaaaaaaa"
+          "bbbbbbbbbb"
+          "cccccccccc"
+          "dddddddddd"
+          "eeeeeeeeee"
+          "ffffffffff" ]
 """
 
 [<Test>]
@@ -1535,14 +1542,15 @@ let v = xs = [ "aaaaaaaaaa"; "bbbbbbbbbb"; "cccccccccc"; "dddddddddd"; "eeeeeeee
         equal
         """
 let v =
-    xs = [
-        "aaaaaaaaaa"
-        "bbbbbbbbbb"
-        "cccccccccc"
-        "dddddddddd"
-        "eeeeeeeeee"
-        "ffffffffff"
-    ]
+    xs =
+        [
+            "aaaaaaaaaa"
+            "bbbbbbbbbb"
+            "cccccccccc"
+            "dddddddddd"
+            "eeeeeeeeee"
+            "ffffffffff"
+        ]
 """
 
 [<Test>]
@@ -1585,12 +1593,13 @@ let v = xs = [| "aaaaaaaaaa"; "bbbbbbbbbb"; "cccccccccc"; "dddddddddd"; "eeeeeee
         equal
         """
 let v =
-    xs = [| "aaaaaaaaaa"
-            "bbbbbbbbbb"
-            "cccccccccc"
-            "dddddddddd"
-            "eeeeeeeeee"
-            "ffffff" |]
+    xs =
+        [| "aaaaaaaaaa"
+           "bbbbbbbbbb"
+           "cccccccccc"
+           "dddddddddd"
+           "eeeeeeeeee"
+           "ffffff" |]
 """
 
 [<Test>]
@@ -1608,14 +1617,15 @@ let v = xs = [| "aaaaaaaaaa"; "bbbbbbbbbb"; "cccccccccc"; "dddddddddd"; "eeeeeee
         equal
         """
 let v =
-    xs = [|
-        "aaaaaaaaaa"
-        "bbbbbbbbbb"
-        "cccccccccc"
-        "dddddddddd"
-        "eeeeeeeeee"
-        "ffffff"
-    |]
+    xs =
+        [|
+            "aaaaaaaaaa"
+            "bbbbbbbbbb"
+            "cccccccccc"
+            "dddddddddd"
+            "eeeeeeeeee"
+            "ffffff"
+        |]
 """
 
 [<Test>]
@@ -1658,10 +1668,11 @@ let a = b = [ 1; 2 ]
         equal
         """
 let a =
-    b = [
-        1
-        2
-    ]
+    b =
+        [
+            1
+            2
+        ]
 """
 
 [<Test>]
@@ -1676,7 +1687,8 @@ let v = xs = expected.Replace(1, 2).Replace(3, 4).Replace(5, 6).Replace(7, 8).Re
         equal
         """
 let v =
-    xs = expected
+    xs =
+        expected
             .Replace(1, 2)
             .Replace(3, 4)
             .Replace(5, 6)
