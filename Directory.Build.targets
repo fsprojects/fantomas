@@ -7,8 +7,8 @@
     </ItemGroup>
 
     <!--
-      Overrides the CallFsYacc target from the FsLexYacc package. This file is imported after the
-      package's targets, so this definition is the one that runs.
+      Overrides the CallFsLex and CallFsYacc targets from the FsLexYacc package. This file is
+      imported after the package's targets, so these definitions are the ones that run.
 
       fsyacc prints every shift/reduce and reduce/reduce conflict it finds, unconditionally: there
       is no quiet or nowarn flag. For pars.fsy that is over 1400 lines of conflict reports on every
@@ -27,8 +27,26 @@
         2. The FileWrites ItemGroup is a copy-paste of the one in CallFsLex and registers the fslex
            output paths, so the generated parsers are never removed by dotnet clean.
 
-      Once those are fixed and released, this override can go away.
+      Bug 1 applies to CallFsLex too, and it is the reason that target is overridden here as well:
+      every generated .fsi is a Compile item, so deleting one on its own leaves the build unable to
+      find a source file it was told to compile, and no rebuild puts it back. CallFsLex needs the
+      Outputs fix alone; its FileWrites group already names the fslex paths. fslex is quiet, so
+      that Exec keeps the default output importance.
+
+      Once those are fixed and released, these overrides can go away.
     -->
+    <Target Name="CallFsLex"
+            Inputs="@(FsLex)"
+            Outputs="@(FsLex->'$(FsLexOutputFolder)%(Filename).fs');@(FsLex->'$(FsLexOutputFolder)%(Filename).fsi')"
+            Condition="'@(FsLex)'!=''"
+            BeforeTargets="CoreCompile">
+        <MakeDir Directories="$(FsLexOutputFolder)" />
+        <Exec Command="$(FsLexYaccToolRunner)&quot;$(FsLexToolPath)\$(FsLexToolExe)&quot; -o &quot;$(FsLexOutputFolder)%(FsLex.Filename).fs&quot; %(FsLex.OtherFlags) %(FsLex.Identity)" />
+        <ItemGroup>
+            <FileWrites Include="$(FsLexOutputFolder)%(FsLex.Filename).fs;$(FsLexOutputFolder)%(FsLex.Filename).fsi" />
+        </ItemGroup>
+    </Target>
+
     <Target Name="CallFsYacc"
             Inputs="@(FsYacc)"
             Outputs="@(FsYacc->'$(FsYaccOutputFolder)%(Filename).fs');@(FsYacc->'$(FsYaccOutputFolder)%(Filename).fsi')"

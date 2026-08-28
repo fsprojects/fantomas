@@ -16,12 +16,12 @@
       },
       "FsLexYacc": {
         "type": "Direct",
-        "requested": "[11.3.0, )",
-        "resolved": "11.3.0",
-        "contentHash": "v0Q3/c0tizN8vRZ72Tdo+OKU767Yjul0wRJgG1/W15H4tK/9qHne/mylw/gTEIC8FV2zgiDlAudhQpdZXYG3IA==",
+        "requested": "[11.4.1, )",
+        "resolved": "11.4.1",
+        "contentHash": "t77MbPw80ndxR0GGkoFByCl27/oWW5jtLN7S4aYQ21IfoBnskXNdtOlxt7cJw/F9aD2dd8kqCrRbpMuE0cDyaQ==",
         "dependencies": {
           "FSharp.Core": "4.6.2",
-          "FsLexYacc.Runtime": "11.3.0"
+          "FsLexYacc.Runtime": "11.4.1"
         }
       },
       "G-Research.FSharp.Analyzers": {
@@ -94,8 +94,8 @@
       },
       "FsLexYacc.Runtime": {
         "type": "Transitive",
-        "resolved": "11.3.0",
-        "contentHash": "36b+4G+85WXU3kmbtq9hFSMGCLkn1nLzJoPgNaLUusnjXrC5ndAyS+hl13H6frpLCS3DB1wAmx/1SGYDe0avMw==",
+        "resolved": "11.4.1",
+        "contentHash": "BNLDgkJMztlyUgVV2SuECN5nPZK1C70g06r/dMKmyG7BbbLnQjTuCjAjrde0A5PLEKuVobIQAhuS7ljpoDX9aA==",
         "dependencies": {
           "FSharp.Core": "4.6.2"
         }

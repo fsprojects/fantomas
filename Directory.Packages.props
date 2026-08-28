@@ -9,7 +9,7 @@
         <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="10.0.6" />
         <PackageVersion Include="System.Memory" Version="4.6.3" />
         <PackageVersion Include="System.Runtime" Version="4.3.1" />
-        <PackageVersion Include="FsLexYacc" Version="11.3.0" />
+        <PackageVersion Include="FsLexYacc" Version="11.4.1" />
 
         <!-- Hosts the vendored FSharpEmbedResourceText MSBuild task, see Fantomas.FCS.BuildTasks. -->
         <PackageVersion Include="Microsoft.Build.Framework" Version="18.0.2" />
