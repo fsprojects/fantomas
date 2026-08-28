@@ -133,6 +133,41 @@ goes on the wire byte for byte:
 `Value` is `null` for `Code` `1`, because no value was ever read. `EditorConfigFiles` is empty when
 `Problems` is empty.
 
+## Seeing which Fantomas was used
+
+The whole point of this package is that the *user's* Fantomas formats their code, so the question
+you will eventually be asked is which one that was. Nothing in a `FantomasResponse` answers it: a
+Fantomas found on the `PATH` formats exactly as successfully as the version the repository pins, and
+if the two differ the only visible symptom is a diff nobody expected.
+
+[`LSPFantomasService`](../../reference/fantomas-client-lspfantomasservice-lspfantomasservice.html)
+takes an optional log delegate for that:
+
+```fsharp
+let service: FantomasService =
+    new LSPFantomasService(
+        Action<FantomasLogLevel, string>(fun level message ->
+            // Route it into whatever your tool already logs with.
+            myLogger.Write(level, message))
+    )
+```
+
+It reports which Fantomas a folder resolved to and where it was found, when none could be found at
+all, and when a daemon is started or fails to start. The levels are
+[`FantomasLogLevel`](../../reference/fantomas-client-lspfantomasservicetypes-fantomasloglevel.html).
+
+Worth knowing:
+
+* A resolution is logged **once per folder**, not once per request. A folder already mapped to a
+version does not resolve again, so this does not grow with how often you format.
+* The delegate is called on whichever thread did the work, which for tool resolution is the
+service's own mailbox rather than the thread that asked for the formatting. Marshal before
+touching a UI.
+* A delegate that throws is swallowed. It is called from inside the mailbox that resolves daemons,
+and an exception escaping there would leave every later request waiting on a reply that never
+comes, so a lost log line is the cheaper end of that trade.
+* The parameterless constructor logs nothing, so nothing changes for a tool that does not want this.
+
 ## Formatting a selection
 
 ```fsharp

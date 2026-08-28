@@ -435,6 +435,38 @@
         <tr>
           <td class="fsdocs-entity-name">
             <p>
+              <a name="FantomasLogLevel">
+                <a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes-fantomasloglevel.html">
+                  FantomasLogLevel
+                </a>
+              </a>
+            </p>
+          </td>
+          <td class="fsdocs-entity-xmldoc">
+            <div>
+              <div class="fsdocs-summary-contents">
+                <p class="fsdocs-summary">
+                   How much a log message matters, for a host to route on. A real enum rather than an int: this
+ never travels over the wire, unlike `FantomasResponseCode` and `ConfigurationProblemCode`.
+                </p>
+              </div>
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+                <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Fantomas.Client.LSPFantomasServiceTypes.FantomasLogLevel\'/>')">
+                  <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                </div>
+                <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Fantomas.Client.LSPFantomasServiceTypes.FantomasLogLevel`')">
+                  <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-entity-name">
+            <p>
               <a name="FantomasResponseCode">
                 <a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes-fantomasresponsecode.html">
                   FantomasResponseCode
@@ -570,7 +602,13 @@
             <div>
               <div class="fsdocs-summary-contents">
                 <p class="fsdocs-summary">
-                  
+                   A Fantomas version in the one shape daemons are cached under: as `dotnet tool list` writes it,
+ with no `Fantomas` in front, no leading `v`, no `+<commit>` on the end, and folded to lower case.
+
+ The case is internal so that every value comes out of `FantomasToolLocator.findFantomasTool`,
+ which is what makes that shape a fact rather than a hope. The cache compares these as plain
+ strings, so the same Fantomas resolved once from a tool manifest and once from the PATH has to
+ arrive as the same text, or it gets two daemon processes.
                 </p>
               </div>
               <div class="icon-button-row">

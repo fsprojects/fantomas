@@ -461,15 +461,50 @@ goes on the wire byte for byte:</p>
 <code>1</code> for a <code>.editorconfig</code> on disk and <code>2</code> for the <code>Config</code> dictionary sent with the request.
 <code>Value</code> is <code>null</code> for <code>Code</code> <code>1</code>, because no value was ever read. <code>EditorConfigFiles</code> is empty when
 <code>Problems</code> is empty.</p>
+<h2><a name="Seeing-which-Fantomas-was-used" class="anchor" href="#Seeing-which-Fantomas-was-used">Seeing which Fantomas was used</a></h2>
+<p>The whole point of this package is that the <em>user's</em> Fantomas formats their code, so the question
+you will eventually be asked is which one that was. Nothing in a <code>FantomasResponse</code> answers it: a
+Fantomas found on the <code>PATH</code> formats exactly as successfully as the version the repository pins, and
+if the two differ the only visible symptom is a diff nobody expected.</p>
+<p><a href="../../reference/fantomas-client-lspfantomasservice-lspfantomasservice.html"><code>LSPFantomasService</code></a>
+takes an optional log delegate for that:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="27" class="id">service</span><span class="pn">:</span> <span class="id">FantomasService</span> <span class="o">=</span>
+    <span class="k">new</span> <span class="id">LSPFantomasService</span><span class="pn">(</span>
+        <span class="id">Action</span><span class="pn">&lt;</span><span class="id">FantomasLogLevel</span><span class="pn">,</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="28" class="id">string</span><span class="pn">&gt;</span><span class="pn">(</span><span class="k">fun</span> <span class="id">level</span> <span class="id">message</span> <span class="k">-&gt;</span>
+            <span class="c">// Route it into whatever your tool already logs with.</span>
+            <span class="id">myLogger</span><span class="pn">.</span><span class="id">Write</span><span class="pn">(</span><span class="id">level</span><span class="pn">,</span> <span class="id">message</span><span class="pn">)</span><span class="pn">)</span>
+    <span class="pn">)</span>
+</code></pre>
+<p>It reports which Fantomas a folder resolved to and where it was found, when none could be found at
+all, and when a daemon is started or fails to start. The levels are
+<a href="../../reference/fantomas-client-lspfantomasservicetypes-fantomasloglevel.html"><code>FantomasLogLevel</code></a>.</p>
+<p>Worth knowing:</p>
+<ul>
+<li>
+A resolution is logged <strong>once per folder</strong>, not once per request. A folder already mapped to a
+version does not resolve again, so this does not grow with how often you format.
+</li>
+<li>
+The delegate is called on whichever thread did the work, which for tool resolution is the
+service's own mailbox rather than the thread that asked for the formatting. Marshal before
+touching a UI.
+</li>
+<li>
+A delegate that throws is swallowed. It is called from inside the mailbox that resolves daemons,
+and an exception escaping there would leave every later request waiting on a reply that never
+comes, so a lost log line is the cheaper end of that trade.
+</li>
+<li>The parameterless constructor logs nothing, so nothing changes for a tool that does not want this.</li>
+</ul>
 <h2><a name="Formatting-a-selection" class="anchor" href="#Formatting-a-selection">Formatting a selection</a></h2>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">selectionRequest</span> <span class="o">=</span>
     <span class="pn">{</span> <span class="id">SourceCode</span> <span class="o">=</span> <span class="id">sourceCode</span>
       <span class="id">FilePath</span> <span class="o">=</span> <span class="s">&quot;/home/me/MyProject/Library.fs&quot;</span>
-      <span class="id">Config</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="27" class="id">None</span>
+      <span class="id">Config</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="29" class="id">None</span>
       <span class="c">// Same semantics as the F# compiler&#39;s range: one-based lines, zero-based columns.</span>
       <span class="id">Range</span> <span class="o">=</span> <span class="id">FormatSelectionRange</span><span class="pn">(</span><span class="n">1</span><span class="pn">,</span> <span class="n">0</span><span class="pn">,</span> <span class="n">3</span><span class="pn">,</span> <span class="n">12</span><span class="pn">)</span> <span class="pn">}</span>
 
-<span class="k">let</span> <span class="id">selectionResponse</span> <span class="o">=</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="28" class="id">service</span><span class="pn">.</span><span class="id">FormatSelectionAsync</span><span class="pn">(</span><span class="id">selectionRequest</span><span class="pn">)</span><span class="pn">.</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="29" class="id">Result</span>
+<span class="k">let</span> <span class="id">selectionResponse</span> <span class="o">=</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="30" class="id">service</span><span class="pn">.</span><span class="id">FormatSelectionAsync</span><span class="pn">(</span><span class="id">selectionRequest</span><span class="pn">)</span><span class="pn">.</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="31" class="id">Result</span>
 </code></pre>
 <p>The range that actually got formatted comes back in <code>SelectedRange</code>, which can differ from what you
 asked for when the selection had leading or trailing whitespace. Use the returned range when you
@@ -477,23 +512,23 @@ splice the result back into the document, not the one you sent.</p>
 <h2><a name="Keeping-the-cursor-in-place" class="anchor" href="#Keeping-the-cursor-in-place">Keeping the cursor in place</a></h2>
 <p>Pass <code>Cursor</code> on a format request and the response tells you where that position ended up after
 formatting, so the caret does not jump when you format on save.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="30" class="id">request</span> <span class="o">=</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="32" class="id">request</span> <span class="o">=</span>
     <span class="pn">{</span> <span class="id">SourceCode</span> <span class="o">=</span> <span class="id">sourceCode</span>
       <span class="id">FilePath</span> <span class="o">=</span> <span class="s">&quot;/home/me/MyProject/Library.fs&quot;</span>
-      <span class="id">Config</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="31" class="id">None</span>
-      <span class="id">Cursor</span> <span class="o">=</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="32" class="id">Some</span><span class="pn">(</span><span class="id">FormatCursorPosition</span><span class="pn">(</span><span class="n">4</span><span class="pn">,</span> <span class="n">2</span><span class="pn">)</span><span class="pn">)</span> <span class="pn">}</span>
+      <span class="id">Config</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="33" class="id">None</span>
+      <span class="id">Cursor</span> <span class="o">=</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="34" class="id">Some</span><span class="pn">(</span><span class="id">FormatCursorPosition</span><span class="pn">(</span><span class="n">4</span><span class="pn">,</span> <span class="n">2</span><span class="pn">)</span><span class="pn">)</span> <span class="pn">}</span>
 </code></pre>
 <h2><a name="Discovering-settings" class="anchor" href="#Discovering-settings">Discovering settings</a></h2>
 <p><code>ConfigurationAsync</code> returns the settings schema of the Fantomas version resolved for a file: every
 setting name, its type, default, and description. Because it comes from the daemon rather than from
 whatever you compiled against, it is the authoritative list for that repository, and it is what you
 want backing a settings UI or a <code>.editorconfig</code> completion list.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">schema</span> <span class="o">=</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="33" class="id">service</span><span class="pn">.</span><span class="id">ConfigurationAsync</span><span class="pn">(</span><span class="s">&quot;/home/me/MyProject/Library.fs&quot;</span><span class="pn">)</span><span class="pn">.</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="34" class="id">Result</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">schema</span> <span class="o">=</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="35" class="id">service</span><span class="pn">.</span><span class="id">ConfigurationAsync</span><span class="pn">(</span><span class="s">&quot;/home/me/MyProject/Library.fs&quot;</span><span class="pn">)</span><span class="pn">.</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="36" class="id">Result</span>
 <span class="c">// schema.Content holds JSON describing every setting.</span>
 </code></pre>
 <h2><a name="Lifetime" class="anchor" href="#Lifetime">Lifetime</a></h2>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// Stop every daemon this service started. Call it when your tool shuts down.</span>
-<span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="35" class="id">service</span><span class="pn">.</span><span class="id">Dispose</span><span class="pn">(</span><span class="pn">)</span>
+<span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="37" class="id">service</span><span class="pn">.</span><span class="id">Dispose</span><span class="pn">(</span><span class="pn">)</span>
 </code></pre>
 <p><code>ClearCache</code> throws away the daemons without disposing the service, which is what you want after the
 user changes the Fantomas version in their <code>dotnet-tools.json</code>. Otherwise the old process keeps
@@ -522,7 +557,8 @@ from Microsoft.FSharp.Core</div>
 from Microsoft.FSharp.Collections</div>
 <div popover class="fsdocs-tip" id="fs12">val isEmpty: array: &#39;T array -&gt; bool</div>
 <div popover class="fsdocs-tip" id="fs13">val map: mapping: (&#39;T -&gt; &#39;U) -&gt; array: &#39;T array -&gt; &#39;U array</div>
-<div popover class="fsdocs-tip" id="fs14">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs14">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
+<div popover class="fsdocs-tip" id="fs15">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
 
     </div>
 </main>
@@ -537,6 +573,11 @@ from Microsoft.FSharp.Collections</div>
   <li class="level-2">
     <a href="#Formatting-a-document">
       Formatting a document
+    </a>
+  </li>
+  <li class="level-2">
+    <a href="#Seeing-which-Fantomas-was-used">
+      Seeing which Fantomas was used
     </a>
   </li>
   <li class="level-2">

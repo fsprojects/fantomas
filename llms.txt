@@ -87,6 +87,7 @@
 - [LSPFantomasServiceTypes](https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes.html)
 - [DotNetToolListError](https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes-dotnettoollisterror.html)
 - [FantomasExecutableFile](https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes-fantomasexecutablefile.html)
+- [FantomasLogLevel](https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes-fantomasloglevel.html)
 - [FantomasResponseCode](https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes-fantomasresponsecode.html)
 - [FantomasToolError](https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes-fantomastoolerror.html)
 - [FantomasToolFound](https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes-fantomastoolfound.html)
