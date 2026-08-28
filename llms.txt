@@ -388,7 +388,6 @@
 - [LexFilter](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexfilter.html)
 - [LexFilter](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexfilter-lexfilter.html)
 - [Lexer](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexer.html)
-- [Ranges](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexer-ranges.html)
 - [LexerStore](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore.html)
 - [CommentStore](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-commentstore.html)
 - [IfdefStore](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-lexerstore-ifdefstore.html)

@@ -14,7 +14,7 @@ Your IDE should respect your settings, however the implementation of that is edi
 UI might be available depending on the IDE.
 
 ```
-version: 8.0.0-alpha-025+b78fb9c5adfd11fce0d29ef45af96f9ae5884c85
+version: 8.0.0-alpha-025+3a5bfe17544052aba555aa21e6fe609fded1405d
 ```
 
 ## Usage
