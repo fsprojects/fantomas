@@ -3,7 +3,6 @@ module Fantomas.Report
 open System
 open System.IO.Abstractions
 open System.Text
-open Serilog
 // Fantomas.Core has a FormatResult of its own. Opening Fantomas last is what makes the
 // FormatResult named here the one this project defines.
 open Fantomas.Core

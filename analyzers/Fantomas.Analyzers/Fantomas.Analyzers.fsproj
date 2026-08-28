@@ -41,6 +41,8 @@
     <Compile Include="AnnotationAnalyzer.fs" />
     <Compile Include="XmlDocAnalyzer.fsi" />
     <Compile Include="XmlDocAnalyzer.fs" />
+    <Compile Include="UnusedOpensAnalyzer.fsi" />
+    <Compile Include="UnusedOpensAnalyzer.fs" />
   </ItemGroup>
   <ItemGroup>
     <!-- Must track the fsharp-analyzers version pinned in .config/dotnet-tools.json. -->

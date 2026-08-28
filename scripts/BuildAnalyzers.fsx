@@ -486,10 +486,17 @@ let analyzeTargets (extraArguments: string list) (keep: FindingFilter) (targets:
                 let arguments =
                     [
                         "fsharp-analyzers"
-                        // The test SDK generates this entry point into the compilation from the
-                        // package cache. It is part of what gets type checked but it is not ours.
+                        // Neither of these is source anybody wrote. The test SDK generates its
+                        // entry point into the compilation from the package cache, and MSBuild
+                        // generates an `AssemblyInfo` per project under `obj`. Both are part of
+                        // what gets type checked, and a finding in either is not a finding about
+                        // this repository. `AssemblyInfo` earns its place here because it opens
+                        // `System` and `System.Reflection` and then writes every attribute out
+                        // fully qualified, so `FANTOMAS-OPENS-001` has two true things to say
+                        // about each of them and nowhere to say them.
                         "--exclude-files"
                         "**/Microsoft.NET.Test.Sdk.Program.fs"
+                        "**/*.AssemblyInfo.fs"
                         for analyzer in analyzers do
                             "--analyzers-path"
                             analyzer

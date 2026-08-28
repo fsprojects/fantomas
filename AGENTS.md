@@ -27,19 +27,10 @@ The style rules for this repository are analyzers rather than prose, so the feed
 you work instead of in review. They live in `analyzers/`, and the `Analyze` and `AnalyzeChanged`
 pipelines run them alongside the two analyzer packages.
 
-| Code | Rule | Severity |
-| --- | --- | --- |
-| `FANTOMAS-PIPEBACK-001` | No backward pipe | Error |
-| `FANTOMAS-PRIVATE-001` | No `let private` beside a signature file | Error |
-| `FANTOMAS-ARMORDER-001` | Shortest match arm first | Warning |
-| `FANTOMAS-BRANCHORDER-001` | Shortest `if` branch first | Warning |
-| `FANTOMAS-KEEPINDENT-001` | Last branch keeps the indentation | Warning |
-| `FANTOMAS-ANNOTATE-001` | Annotate every `let` binding | Warning |
-| `FANTOMAS-XMLDOC-001` | No doc comment the signature file already carries | Warning |
-
-[analyzers/AGENTS.md](analyzers/AGENTS.md) has what each one asks for and why, how to suppress a
-finding, and what to know before writing another. `dotnet fsi build.fsx -- -p AnalyzeChanged` will
-tell you the same thing about the code in front of you.
+[analyzers/AGENTS.md](analyzers/AGENTS.md) lists them and has what each one asks for and why, how to
+suppress a finding, and what to know before writing another. Every finding links to its own section
+there. `dotnet fsi build.fsx -- -p AnalyzeChanged` will tell you the same thing about the code in
+front of you.
 
 ## Changelog
 

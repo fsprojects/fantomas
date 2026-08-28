@@ -1,6 +1,5 @@
 module Fantomas.Tests.ProfileCommandTests
 
-open System
 open System.IO.Abstractions
 open System.IO.Abstractions.TestingHelpers
 open NUnit.Framework

@@ -1,7 +1,6 @@
 module Fantomas.Tests.EditorConfigReportTests
 
 open NUnit.Framework
-open Fantomas
 open Fantomas.EditorConfig
 open Fantomas.EditorConfigReport
 open Fantomas.Tests.TestHelpers
