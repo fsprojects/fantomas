@@ -80,7 +80,7 @@ service.ConfigurationWarnings.Add(fun warning ->
         warning.Problems
         |> Array.map (fun problem ->
             if problem.Code = int ConfigurationProblemCode.UnknownSetting then
-                $"%s{problem.Setting} is not a Fantomas setting"
+                $"Fantomas %s{warning.Version} does not have the setting %s{problem.Setting}"
             else
                 $"%s{problem.Setting} does not accept the value %s{problem.Value}")
         |> showWarnings warning.FilePath warning.EditorConfigFiles)
@@ -105,6 +105,13 @@ single set of properties before Fantomas sees it. There is no line number either
 setting rather than trying to point at it.
 * `Source` tells you whether the setting came from a `.editorconfig` on disk or from the `Config`
 dictionary your own tool sent along with the request.
+* `Version` is the Fantomas that raised the warning, such as `8.0.0-alpha-022`, ready to show to a
+user: no `Fantomas` in front, no leading `v`, and no `+<commit>` on the end. Say it, because a
+`fsharp_` setting that does nothing is more often a Fantomas older than the setting than it is a
+typo, and a message that does not name a version invites exactly that question. Do not ask
+`VersionAsync` for it: that is a round trip for something you were already handed, and it races
+`ClearCache`, so a user who has just installed a newer Fantomas gets told the wrong one ignored
+their setting.
 * Only Fantomas 8 daemons send these. Against an older one the event simply never fires, so no
 version check is needed.
 * The event is raised on whichever thread the daemon's message arrived on, never on the thread that
@@ -131,7 +138,9 @@ goes on the wire byte for byte:
 `Code` is `1` for a setting Fantomas does not have and `2` for a value it cannot parse; `Source` is
 `1` for a `.editorconfig` on disk and `2` for the `Config` dictionary sent with the request.
 `Value` is `null` for `Code` `1`, because no value was ever read. `EditorConfigFiles` is empty when
-`Problems` is empty.
+`Problems` is empty. There is no `Version` on the wire: `Fantomas.Client` fills that in for the
+daemon it started, which is how it can name daemons released before the field existed, and driving
+the daemon yourself you already know which version you launched.
 
 ## Seeing which Fantomas was used
 

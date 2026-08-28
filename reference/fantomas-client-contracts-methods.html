@@ -460,7 +460,8 @@
  naming the settings in the resolved configuration that Fantomas could not act on. Purely
  informational: the request still succeeds, using defaults for whatever could not be read.
 
- The notification carries one `ConfigurationWarning`, serialized as it is written here:
+ The notification carries one `ConfigurationWarning`, serialized as it is written here
+ except for `Version`, which the daemon does not send:
  `{"FilePath": "...", "EditorConfigFiles": ["..."], "Problems": [{"Code": 1, "Source": 1,
  "Setting": "fsharp_bogus_option", "Value": null}]}`.
                     </p>

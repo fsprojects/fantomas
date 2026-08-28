@@ -399,7 +399,7 @@ setting quietly not apply.</p>
         <span class="id">warning</span><span class="pn">.</span><span class="id">Problems</span>
         <span class="o">|&gt;</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="24" class="id">Array</span><span class="pn">.</span><span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="25" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">problem</span> <span class="k">-&gt;</span>
             <span class="k">if</span> <span class="id">problem</span><span class="pn">.</span><span class="id">Code</span> <span class="o">=</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="26" class="id">int</span> <span class="id">ConfigurationProblemCode</span><span class="pn">.</span><span class="id">UnknownSetting</span> <span class="k">then</span>
-                <span class="s">$&quot;%s{</span><span class="id">problem</span><span class="pn">.</span><span class="id">Setting</span><span class="s">} is not a Fantomas setting&quot;</span>
+                <span class="s">$&quot;Fantomas %s{</span><span class="id">warning</span><span class="pn">.</span><span class="id">Version</span><span class="s">} does not have the setting %s{</span><span class="id">problem</span><span class="pn">.</span><span class="id">Setting</span><span class="s">}&quot;</span>
             <span class="k">else</span>
                 <span class="s">$&quot;%s{</span><span class="id">problem</span><span class="pn">.</span><span class="id">Setting</span><span class="s">} does not accept the value %s{</span><span class="id">problem</span><span class="pn">.</span><span class="id">Value</span><span class="s">}&quot;</span><span class="pn">)</span>
         <span class="o">|&gt;</span> <span class="id">showWarnings</span> <span class="id">warning</span><span class="pn">.</span><span class="id">FilePath</span> <span class="id">warning</span><span class="pn">.</span><span class="id">EditorConfigFiles</span><span class="pn">)</span>
@@ -434,6 +434,15 @@ setting rather than trying to point at it.
 dictionary your own tool sent along with the request.
 </li>
 <li>
+<code>Version</code> is the Fantomas that raised the warning, such as <code>8.0.0-alpha-022</code>, ready to show to a
+user: no <code>Fantomas</code> in front, no leading <code>v</code>, and no <code>+&lt;commit&gt;</code> on the end. Say it, because a
+<code>fsharp_</code> setting that does nothing is more often a Fantomas older than the setting than it is a
+typo, and a message that does not name a version invites exactly that question. Do not ask
+<code>VersionAsync</code> for it: that is a round trip for something you were already handed, and it races
+<code>ClearCache</code>, so a user who has just installed a newer Fantomas gets told the wrong one ignored
+their setting.
+</li>
+<li>
 Only Fantomas 8 daemons send these. Against an older one the event simply never fires, so no
 version check is needed.
 </li>
@@ -460,7 +469,9 @@ goes on the wire byte for byte:</p>
 <p><code>Code</code> is <code>1</code> for a setting Fantomas does not have and <code>2</code> for a value it cannot parse; <code>Source</code> is
 <code>1</code> for a <code>.editorconfig</code> on disk and <code>2</code> for the <code>Config</code> dictionary sent with the request.
 <code>Value</code> is <code>null</code> for <code>Code</code> <code>1</code>, because no value was ever read. <code>EditorConfigFiles</code> is empty when
-<code>Problems</code> is empty.</p>
+<code>Problems</code> is empty. There is no <code>Version</code> on the wire: <code>Fantomas.Client</code> fills that in for the
+daemon it started, which is how it can name daemons released before the field existed, and driving
+the daemon yourself you already know which version you launched.</p>
 <h2><a name="Seeing-which-Fantomas-was-used" class="anchor" href="#Seeing-which-Fantomas-was-used">Seeing which Fantomas was used</a></h2>
 <p>The whole point of this package is that the <em>user's</em> Fantomas formats their code, so the question
 you will eventually be asked is which one that was. Nothing in a <code>FantomasResponse</code> answers it: a
