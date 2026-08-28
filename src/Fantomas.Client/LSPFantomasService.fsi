@@ -18,6 +18,10 @@ type internal GetDaemonError =
     | DotNetToolListError of error: DotNetToolListError
     | FantomasProcessStart of error: ProcessStartError
     | InCompatibleVersionFound
+    /// Something the cache does not model went wrong while resolving a daemon. Carried so that the
+    /// caller gets an answer: the mailbox behind this is reached by a `PostAndReply` with no
+    /// timeout, and a loop that died would leave every later request waiting forever.
+    | UnexpectedException of error: string
 
 /// What the cache needs of a daemon it is holding: enough to tell a live one from a crashed one,
 /// to start a replacement the way the original was started, and to let one go.
@@ -61,4 +65,20 @@ val internal resolveDaemon:
 type LSPFantomasService =
     interface Contracts.FantomasService
 
+    /// Report what the service does that no `FantomasResponse` can carry: which Fantomas a folder
+    /// resolved to and where it was found, when none could be found at all, and when a daemon is
+    /// started or fails to start. Resolving to a tool on the PATH is the one a user most needs to
+    /// see, since it formats exactly as successfully as the version their repository pins.
+    ///
+    /// Called on whichever thread the work happened on, which for tool resolution is the service's
+    /// own mailbox rather than the caller's, and never more than once per folder for a resolution:
+    /// a folder already mapped to a version does not resolve again. A delegate that throws is
+    /// swallowed, because these are called from inside that mailbox and an exception out of there
+    /// would leave every later request waiting on a reply that never comes.
+    ///
+    /// A delegate rather than a logging abstraction, so that this package keeps its three
+    /// dependencies and a host can adapt it to whatever it already has.
+    new: log: System.Action<FantomasLogLevel, string> -> LSPFantomasService
+
+    /// Nothing is logged.
     new: unit -> LSPFantomasService

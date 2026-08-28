@@ -7,6 +7,7 @@ open System.Diagnostics
 open System.IO
 open System.Text.RegularExpressions
 open System.Runtime.InteropServices
+open Newtonsoft.Json.Linq
 open StreamJsonRpc
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
@@ -61,103 +62,178 @@ let startProcess (ps: ProcessStartInfo) : Result<Process, ProcessStartError> =
         )
     | ex -> Error(ProcessStartError.UnExpectedException(ps.FileName, ps.Arguments, ex.Message))
 
-let runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Result<string list, DotNetToolListError> =
+/// One tool of what `dotnet tool list` reported, however that SDK chose to print it.
+[<NoComparison>]
+type ListedTool = { PackageId: string; Version: string }
+
+let packageSidVersionRegex: Regex = Regex(@"^Package\sId\s+Version.+$")
+
+/// The rows of the table `dotnet tool list` prints for a person to read. Empty for anything not
+/// recognised as that table, which is the answer that keeps a mistake cheap: `findFantomasTool`
+/// treats finding nothing as a reason to go on looking, where a row read out of the wrong column
+/// would have it start a daemon on a version nobody asked for.
+let toolsFromTable (lines: string list) : ListedTool list =
+    // These are local bindings, which cannot carry an attribute, so they stay on option.
+    let (|HeaderLine|_|) (line: string) : unit option =
+        if packageSidVersionRegex.IsMatch line then Some() else None
+
+    let (|Dashes|_|) (line: string) : unit option =
+        if String.forall ((=) '-') line then Some() else None
+
+    match lines with
+    | HeaderLine :: Dashes :: rows ->
+        rows
+        |> List.choose (fun (line: string) ->
+            let parts: string array =
+                line.Split([| ' ' |], StringSplitOptions.RemoveEmptyEntries)
+
+            if parts.Length <= 2 then
+                None
+            else
+                Some
+                    {
+                        PackageId = parts.[0]
+                        Version = parts.[1]
+                    }
+        )
+    | _ -> []
+
+/// The tools of `dotnet tool list --format json`, which carries a `version` of its own and is the
+/// SDK naming a shape it intends to keep, rather than a table laid out to be read by a person.
+/// `None` for output that is not that, so the caller can fall back to the table.
+let toolsFromJson (output: string) : ListedTool list option =
+    try
+        match JObject.Parse(output).["data"] with
+        | :? JArray as data ->
+            data
+            |> Seq.choose (fun entry ->
+                match entry.["packageId"], entry.["version"] with
+                | null, _
+                | _, null -> None
+                | packageId, version ->
+                    Some
+                        {
+                            PackageId = packageId.Value<string>()
+                            Version = version.Value<string>()
+                        }
+            )
+            |> List.ofSeq
+            |> Some
+        | _ -> None
+    with _ ->
+        None
+
+let toolListStartInfo (workingDir: string) (arguments: string) : ProcessStartInfo =
     let ps = ProcessStartInfo("dotnet")
     ps.WorkingDirectory <- workingDir
 
+    // Only the table is localised, but asking for one language costs nothing on the JSON path and
+    // saves having to remember which of the two needed it.
     if ps.EnvironmentVariables.ContainsKey "DOTNET_CLI_UI_LANGUAGE" then
         ps.EnvironmentVariables.["DOTNET_CLI_UI_LANGUAGE"] <- "en-us"
     else
         ps.EnvironmentVariables.Add("DOTNET_CLI_UI_LANGUAGE", "en-us")
 
     ps.CreateNoWindow <- true
-    ps.Arguments <- if globalFlag then "tool list -g" else "tool list"
+    ps.Arguments <- arguments
     ps.RedirectStandardOutput <- true
     ps.RedirectStandardError <- true
     ps.UseShellExecute <- false
+    ps
 
-    match startProcess ps with
-    | Error err -> Error(DotNetToolListError.ProcessStartError err)
-    | Ok p ->
+/// Whether this SDK takes `dotnet tool list --format json`.
+[<RequireQualifiedAccess; Struct>]
+type JsonToolListSupport =
+    /// Nothing has asked yet, so ask.
+    | NotAsked
+    /// It answered in JSON, and will again.
+    | Supported
+    /// It refused the flag, as every SDK before 9.0.100 does. Read the table instead, and do not
+    /// spend another process finding that out.
+    | Unsupported
 
-    p.WaitForExit()
-    let exitCode = p.ExitCode
+/// Remembered so that a folder resolved after the first does not pay for the same discovery again.
+///
+/// One answer for the whole process, even though a `global.json` can pin a different SDK per folder,
+/// so this is not strictly a property of the machine. Being wrong in either direction is cheap: a
+/// folder whose SDK would have answered in JSON is read from the table instead, which every SDK
+/// prints, and a folder whose SDK refuses the flag discovers that and falls back. Neither can name
+/// the wrong version, so this buys a process rather than an answer.
+let mutable jsonToolListSupport: JsonToolListSupport = JsonToolListSupport.NotAsked
 
-    if exitCode = 0 then
-        let output = readOutputStreamAsLines p.StandardOutput
-        Ok output
-    else
-        let error = p.StandardError.ReadToEnd()
-        Error(DotNetToolListError.ExitCodeNonZero(ps.FileName, ps.Arguments, exitCode, error))
+let runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Result<ListedTool list, DotNetToolListError> =
+    let listArguments: string = if globalFlag then "tool list -g" else "tool list"
 
-let packageSidVersionRegex = Regex(@"^Package\sId\s+Version.+$")
+    let fromTable () : Result<ListedTool list, DotNetToolListError> =
+        let ps: ProcessStartInfo = toolListStartInfo workingDir listArguments
+
+        match startProcess ps with
+        | Error err -> Error(DotNetToolListError.ProcessStartError err)
+        | Ok p ->
+
+        p.WaitForExit()
+
+        if p.ExitCode = 0 then
+            Ok(toolsFromTable (readOutputStreamAsLines p.StandardOutput))
+        else
+
+        let error: string = p.StandardError.ReadToEnd()
+        Error(DotNetToolListError.ExitCodeNonZero(ps.FileName, ps.Arguments, p.ExitCode, error))
+
+    /// `None` when this SDK would not answer in JSON, which is the caller's cue to read the table.
+    /// `--format json` arrived in the 9.0.100 SDK and is refused with a non zero exit before that,
+    /// which is also how a genuine failure looks, so the two are not told apart here: the table run
+    /// is what decides either way, and it is the answer this package has always used.
+    let fromJson () : Result<ListedTool list, DotNetToolListError> option =
+        let ps: ProcessStartInfo =
+            toolListStartInfo workingDir $"%s{listArguments} --format json"
+
+        match startProcess ps with
+        | Error err -> Some(Error(DotNetToolListError.ProcessStartError err))
+        | Ok p ->
+
+        p.WaitForExit()
+
+        if p.ExitCode <> 0 then
+            None
+        else
+
+        readOutputStreamAsLines p.StandardOutput
+        |> String.concat ""
+        |> toolsFromJson
+        |> Option.map Ok
+
+    match jsonToolListSupport with
+    | JsonToolListSupport.Unsupported -> fromTable ()
+    | JsonToolListSupport.NotAsked
+    | JsonToolListSupport.Supported ->
+
+    match fromJson () with
+    | Some(Ok tools) ->
+        jsonToolListSupport <- JsonToolListSupport.Supported
+        Ok tools
+    // `dotnet` itself would not start, so the table run would fail the same way. Nothing was
+    // learned about the flag, so nothing is remembered about it.
+    | Some(Error error) -> Error error
+    | None ->
+        jsonToolListSupport <- JsonToolListSupport.Unsupported
+        fromTable ()
 
 [<return: Struct>]
-let (|CompatibleTool|_|) (lines: string list) : FantomasVersion voption =
-    // These are local bindings, which cannot carry an attribute, so they stay on option.
-    let (|HeaderLine|_|) line =
-        if packageSidVersionRegex.IsMatch line then Some() else None
+let (|CompatibleTool|_|) (tools: ListedTool list) : FantomasVersion voption =
+    let compatible: ListedTool option =
+        tools
+        |> List.tryFind (fun tool ->
+            match tool.PackageId, tool.Version with
+            | CompatibleToolName _, CompatibleVersion _ -> true
+            | _ -> false
+        )
 
-    let (|Dashes|_|) line =
-        if String.forall ((=) '-') line then Some() else None
+    match compatible with
+    | None -> ValueNone
+    | Some tool -> ValueSome(FantomasVersion.Create tool.Version)
 
-    let (|Tools|_|) lines =
-        let tools =
-            lines
-            |> List.choose (fun (line: string) ->
-                let parts = line.Split([| ' ' |], StringSplitOptions.RemoveEmptyEntries)
-
-                if parts.Length > 2 then
-                    Some(parts.[0], parts.[1])
-                else
-                    None
-            )
-
-        if List.isEmpty tools then None else Some tools
-
-    match lines with
-    | HeaderLine :: Dashes :: Tools tools ->
-        let tool: (string * string) option =
-            List.tryFind
-                (fun (packageId, version) ->
-                    match packageId, version with
-                    | CompatibleToolName _, CompatibleVersion _ -> true
-                    | _ -> false
-                )
-                tools
-
-        // Folded to match `normalizeVersion`. Daemons are cached under this string and the two
-        // producers are compared as plain strings, so both sides have to normalise the same way.
-        match tool with
-        | None -> ValueNone
-        | Some(_, version) -> ValueSome(FantomasVersion(version.ToLowerInvariant()))
-    | _ -> ValueNone
-
-let isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-
-let normalizeVersion (printed: string) : string =
-    let dropPrefix (prefix: string) (text: string) : string =
-        if text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) then
-            text.Substring(prefix.Length).Trim()
-        else
-            text
-
-    let printed: string = printed.Trim() |> dropPrefix "fantomas" |> dropPrefix "v"
-
-    let buildMetadata: int = printed.IndexOf('+')
-
-    let withoutBuildMetadata: string =
-        if buildMetadata = -1 then
-            printed
-        else
-            printed.Substring(0, buildMetadata)
-
-    // Folded, and folded on the other side too, in `CompatibleTool`. Doing it here alone would be
-    // worse than not doing it: the two producers have to agree, and they are compared as plain
-    // strings. Semver reads prerelease identifiers case sensitively, so this is a deliberate
-    // decision that `8.0.0-Alpha-014` and `8.0.0-alpha-014` name one Fantomas, which is true of
-    // every package either path can resolve.
-    withoutBuildMetadata.ToLowerInvariant()
+let isWindows: bool = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 
 /// How long a freshly started daemon has to answer the version handshake before it is given up on.
 [<Literal>]
@@ -210,9 +286,7 @@ let fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option
 
             stdOut
             |> Option.ofObj
-            |> Option.map (fun s ->
-                FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(normalizeVersion s)
-            )
+            |> Option.map (fun s -> FantomasExecutableFile(fantomasExecutablePath), FantomasVersion.Create s)
         | Error(ProcessStartError.ExecutableFileNotFound _)
         | Error(ProcessStartError.UnExpectedException _) -> None
     )
@@ -238,8 +312,8 @@ let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasTo
     let fantomasOnPathVersion = fantomasVersionOnPath ()
 
     match fantomasOnPathVersion with
-    | Some(executableFile, FantomasVersion(CompatibleVersion version)) ->
-        Ok(FantomasToolFound(FantomasVersion(version), FantomasToolStartInfo.ToolOnPath executableFile))
+    | Some(executableFile, (FantomasVersion(CompatibleVersion _) as version)) ->
+        Ok(FantomasToolFound(version, FantomasToolStartInfo.ToolOnPath executableFile))
     | _ -> Error FantomasToolError.NoCompatibleVersionFound
 
 // Fantomas added `fantomas daemon` beside `fantomas --daemon` in 8.0.0-alpha-016, and both do the

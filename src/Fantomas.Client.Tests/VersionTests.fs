@@ -16,7 +16,7 @@ open Fantomas.Client.LSPFantomasServiceTypes
 // and the two producers have to pick the same one.
 [<TestCase("Fantomas v8.0.0-Alpha-014", "8.0.0-alpha-014")>]
 let ``a printed version reads as the version a tool manifest names`` (printed: string, expected: string) =
-    Assert.That(normalizeVersion printed, Is.EqualTo expected)
+    Assert.That(string<FantomasVersion>(FantomasVersion.Create printed), Is.EqualTo expected)
 
 // Fantomas added `fantomas daemon` beside `fantomas --daemon` in 8.0.0-alpha-016. Getting this the
 // wrong way round does not fail loudly: the client would ask an older Fantomas for a subcommand it
