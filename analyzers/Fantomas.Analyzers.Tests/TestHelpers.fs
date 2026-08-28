@@ -49,9 +49,15 @@ let analyzeSource (analyzer: Analyzer<CliContext>) (source: string) : Message li
     let ctx: CliContext = getContext projectOptions source
     analyzer ctx |> Async.RunSynchronously
 
-/// Runs an analyzer over an implementation file that has a signature file beside it, which is what
-/// the rules keyed on the signature file need in order to see one.
-let analyzeWithSignature (analyzer: Analyzer<CliContext>) (signature: string) (implementation: string) : Message list =
+/// Builds a context over a signature file and its implementation, analyzing whichever of the two
+/// `target` names. A signature file cannot be type checked on its own, so both are always compiled
+/// and only the file under analysis changes.
+let private contextForPair
+    (signature: string)
+    (implementation: string)
+    (target: SourceFile -> SourceFile -> SourceFile)
+    : CliContext
+    =
     let signatureFile: SourceFile =
         {
             FileName = "M.fsi"
@@ -64,13 +70,25 @@ let analyzeWithSignature (analyzer: Analyzer<CliContext>) (signature: string) (i
             Source = implementation
         }
 
+    getContextFor
+        (AnalyzerProjectOptions.BackgroundCompilerOptions projectOptions)
+        [ signatureFile; implementationFile ]
+        (target signatureFile implementationFile)
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
+
+/// Runs an analyzer over an implementation file that has a signature file beside it, which is what
+/// the rules keyed on the signature file need in order to see one.
+let analyzeWithSignature (analyzer: Analyzer<CliContext>) (signature: string) (implementation: string) : Message list =
     let ctx: CliContext =
-        getContextFor
-            (AnalyzerProjectOptions.BackgroundCompilerOptions projectOptions)
-            [ signatureFile; implementationFile ]
-            implementationFile
-        |> Async.AwaitTask
-        |> Async.RunSynchronously
+        contextForPair signature implementation (fun _ implementationFile -> implementationFile)
+
+    analyzer ctx |> Async.RunSynchronously
+
+/// Runs an analyzer over the signature file of such a pair rather than over its implementation.
+let analyzeSignature (analyzer: Analyzer<CliContext>) (signature: string) (implementation: string) : Message list =
+    let ctx: CliContext =
+        contextForPair signature implementation (fun signatureFile _ -> signatureFile)
 
     analyzer ctx |> Async.RunSynchronously
 

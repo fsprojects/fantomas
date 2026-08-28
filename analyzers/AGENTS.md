@@ -14,6 +14,7 @@ feedback arrives while you work instead of in review. They are ordinary F# analy
 | [`FANTOMAS-KEEPINDENT-001`](#fantomas-keepindent-001) | Last branch keeps the indentation | Warning | both pipelines |
 | [`FANTOMAS-ANNOTATE-001`](#fantomas-annotate-001) | Annotate every `let` binding | Warning | `AnalyzeChanged` only |
 | [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries | Warning | both pipelines |
+| [`FANTOMAS-OPENS-001`](#fantomas-opens-001) | No `open` nothing in the file uses | Warning | both pipelines |
 
 ## FANTOMAS-PIPEBACK-001
 
@@ -237,6 +238,43 @@ falls back to the declaration itself, so it is `Some` for every symbol and `IsSo
 What separates the two is which file it points at — into the `.fsi` for a symbol the signature
 declares, back at the `.fs` for one it does not.
 
+## FANTOMAS-OPENS-001
+
+Remove an `open` that nothing in the file resolves through. It is a name the reader has to hold
+while reading everything below it, and it says the file depends on something it does not.
+
+The compiler answers this rather than the rule: `FSharp.Compiler.EditorServices.UnusedOpens`, which
+is the same call FsAutoComplete makes for the diagnostic it raises as `FSAC0001`. It walks every
+symbol use of the file and keeps the opens that were needed to write a name the way it is written,
+so an open kept only to shorten a type annotation counts as used. That is a question about the typed
+tree, which is why the rule reads `ctx.CheckFileResults` and is quiet in the editor without them.
+
+**The reported range is the module identifier, not the declaration.** `open System` reports
+`System` alone, columns 5 to 11. What has to go is the whole line, including its linebreak, so no
+blank line is left where the declaration was. There is no fix attached, for the reason every other
+rule here has none, and here it costs the least: deleting a line needs no re-indentation and cannot
+glue two tokens together.
+
+It runs on signature files as well as implementation files. An `open` in an `.fsi` that no `val` or
+type in it resolves through is unused in exactly the same sense, and the compiler answers it the
+same way.
+
+Two things it does not see, both inherited from the compiler's own detection: an `open` that only
+brings an operator into scope, and one that only brings a type extension into scope. FsAutoComplete
+ships this analyzer disabled by default where it ships the parentheses one enabled, which is the
+clearest available signal about how far to trust it. Nothing in this repository triggers either gap
+today: every finding of the first full run was real, and the whole solution still built with all
+eight of them removed. But a finding that looks wrong is worth checking against the build before
+acting on it, because deleting a needed `open` breaks the build rather than failing quietly.
+
+Generated sources are excluded rather than reported. `scripts/BuildAnalyzers.fsx` passes
+`**/*.AssemblyInfo.fs` to `--exclude-files`: MSBuild writes one per project under `obj`, opening
+`System` and `System.Reflection` and then writing every attribute out fully qualified, so the rule
+has two true things to say about each of them and nowhere to say them. Note that `--exclude-files`
+and `--include-files` are mutually exclusive in the tool, which drops the former with a warning when
+both are given. `AnalyzeChanged` therefore ignores the exclusion, and does not need it: it includes
+the files the working tree changed, and a generated file under `obj` is never one of them.
+
 ## Severity and scope
 
 Severity and scope are separate levers. Severity decides whether the run fails: the tool exits
@@ -250,8 +288,10 @@ a much coarser scope than that rule asks for, and one line changed in a file of 
 otherwise surfaces every unannotated binding in it. Every other rule reports wherever it fires in a
 file you edited, because a finding from one of those is worth seeing.
 
-`FANTOMAS-KEEPINDENT-001` arrived with debt of its own and is still in both pipelines, because that
-debt was cleared in the change that added it. The full run therefore has nothing old to report, and
+`FANTOMAS-KEEPINDENT-001` and `FANTOMAS-OPENS-001` each arrived with debt of their own and are both
+in both pipelines, because that debt was cleared in the change that added them. The unused-open
+count was the thing to measure before deciding: eight findings in hand-written source, all of them
+real, which is small enough to fix outright rather than carry in the advisory lists. The full run therefore has nothing old to report, and
 anything it does report is something the change in front of you introduced, which is the state to
 keep it in: a new case is cheap to fix while you are writing it and becomes a code scanning alert if
 you do not.
@@ -320,8 +360,9 @@ Ionide as you type. Four of the five rules read only `ctx.FileName`, `ctx.Projec
 and `ctx.ParseFileResults.ParseTree`, all of which `EditorContext` carries as well as `CliContext`
 does.
 
-`FANTOMAS-XMLDOC-001` also reads `ctx.CheckFileResults`, because the untyped tree cannot say whether
-the signature file declares the same binding. That does not cost the editor registration:
+`FANTOMAS-XMLDOC-001` and `FANTOMAS-OPENS-001` also read `ctx.CheckFileResults`, because the untyped
+tree can say neither whether the signature file declares the same binding nor what a name resolved
+through. That does not cost the editor registration:
 `EditorContext` carries check results too, as an option rather than outright, so the editor analyzer
 matches on it and says nothing when they are absent. A rule that needs the typed tree is fine; one
 that cannot answer without it has to be quiet in the editor rather than wrong there.
@@ -338,7 +379,8 @@ Tests live in `Fantomas.Analyzers.Tests` and go through `cliAnalyzer`, using
 the pipelines use, so the wiring is covered rather than bypassed: read `ctx.FileName` or
 `ctx.ProjectOptions.SourceFiles` wrongly and a test notices. `analyzeSource` covers a single
 snippet, `analyzeWithSignature` builds an implementation with a signature file beside it, which is
-what the two rules keyed on the signature file need. A snippet has to begin with a module
+what the two rules keyed on the signature file need, and `analyzeSignature` builds the same pair and
+analyzes the `.fsi` of it instead, which is how `FANTOMAS-OPENS-001` is held to what it does there. A snippet has to begin with a module
 declaration, because the harness type checks it as part of a project and raises on any compiler
 error. Give every rule a test for the finding and a test for each shape that looks like it but is
 not.
@@ -369,6 +411,6 @@ dotnet msbuild src/Fantomas.Core/Fantomas.Core.fsproj -t:CoreCompile \
 None of this is currently load bearing for the four rules that read only the untyped tree. Parsing
 every file of `Fantomas.Core` under the default options, both define sets, `--strict-indentation+`
 and `--langversion:preview` produces identical findings from them, which is what you would expect.
-`FANTOMAS-XMLDOC-001` reads the typed tree and so does depend on the project options resolving, which
-is another reason the fixture checks they came back non-empty. The defines are the only option that could change a verdict, since they decide which branch of
+`FANTOMAS-XMLDOC-001` and `FANTOMAS-OPENS-001` read the typed tree and so do depend on the project
+options resolving, which is another reason the fixture checks they came back non-empty. The defines are the only option that could change a verdict, since they decide which branch of
 an `#if` reaches the tree, and `DEBUG` in `Selection.fs` is the only one in real source anywhere.
