@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.0-alpha-024] - 2026-08-28
+
+### Fixed
+
+- The dots of a chain that breaks are indented past the head of the chain, instead of landing on the head's own column or to the left of it. A dot on the head's column reads as a new item rather than as the chain continuing, and inside a parenthesis the parser refuses the output outright: `let v = ((someObject.First(a).Second(b).Third(c)))` at two-space indentation produced code Fantomas would not accept from itself, so the file was left unformatted with a bug report on the console. The dots now step one indent level at a time until they clear the head, which keeps every column a multiple of the indent size; a chain whose dots already cleared its head is untouched. This replaces a branch that anchored a parenthesised chain on its opening parenthesis, written when only a real dot chain reached it. Since `8.0.0-alpha-014` a dotted long identifier is a chain too, so it also fired for the likes of `Seq.map`, which never breaks, and moved a lambda written behind such a call three columns for no reason. [#3445](https://github.com/fsprojects/fantomas/pull/3445)
+
 ## [8.0.0-alpha-023] - 2026-08-28
 
 ### Fixed
@@ -297,6 +303,7 @@
 ### Changed
 
 - Update FCS to 'Remove LetOrUseKeyword from SynExprLetOrUseTrivia', commit 43932b4c7984d6562e91e5f1484868cd4f5befcf [#3167](https://github.com/fsprojects/fantomas/pull/3167)
+- `let!` and `use!` answer to `fsharp_max_value_binding_width`, as `let` and `use` always did, so a binding whose right-hand side is wider than that setting breaks after the `=` instead of holding one line up to the page width. The two of them were printed by a branch of their own that consulted the page width and nothing else, and the FCS update above is what let that branch go: once the parser stopped carrying the leading keyword in `SynExprLetOrUseTrivia`, a `let!` was built the way a `let` is and could be printed by the same code, which took three cases of `ComputationExpressionStatement` down to one. On default settings the two widths are 80 and 120, so a line of 110 characters carrying a body of 86 moves where it used to stay put. Code written in computation expressions is where this is felt. [#3167](https://github.com/fsprojects/fantomas/pull/3167)
 
 ## [7.0.6] - 2026-08-19
 

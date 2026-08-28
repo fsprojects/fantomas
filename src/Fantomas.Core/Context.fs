@@ -58,7 +58,10 @@ type WriterModel =
         | _ -> false
 
 module WriterModel =
-    let init =
+    /// A function rather than a value: a module-level value is a static field, and a thread
+    /// reading it while the module is still initializing sees null. Every context starts from
+    /// a fresh record anyway, so there is nothing to share.
+    let init () =
         {
             LineCount = 0
             Indent = 0
@@ -203,7 +206,7 @@ type Context =
     static member Default =
         {
             Config = FormatConfig.Default
-            WriterModel = WriterModel.init
+            WriterModel = WriterModel.init ()
             WriterEvents = EventList()
             FormattedCursor = None
             DebugMode = false

@@ -1213,7 +1213,32 @@ let genChain (node: ExprChain) : Context -> Context =
         if terminalIsCall && everySegmentIsLight && headIsSimple && headAndSegmentsFit then
             genChainKeptTogether ctx
         else
+
+        // Put the dots of the chain further right than where the chain started:
+        //
+        //     |> (someObject
+        //             .First(one)
+        //             .Second(two))
+        //
+        // A dot level with the head, or left of it, reads as a new item rather than as the
+        // chain continuing. Inside a parenthesis the parser agrees and refuses the output.
+
+        // Nothing is written yet, so this is the column the head will start on.
+        let headColumn: ChainColumn = ctx.Column
+
+        // Where a dot would land if we indented and broke the line right here.
+        let segmentColumn: ChainColumn =
+            ctx.WithDummy(indent +> sepNln, keepPageWidth = true).Column
+
+        if segmentColumn > headColumn then
             genLeadingDotPipeline ctx
+        else
+
+        // One whole level at a time until the dots clear the head, so every column stays a
+        // multiple of the indent size.
+        let levels: int = (headColumn - segmentColumn) / ctx.Config.IndentSize + 1
+
+        (rep levels indent +> genLeadingDotPipeline +> rep levels unindent) ctx
 
     // Try the whole chain on one line first; otherwise `long` decides between keeping the
     // chain together (with wrapped arguments) and the leading-dot pipeline.
@@ -3064,7 +3089,6 @@ let genExprInMultilineInfixExpr (e: Expr) =
             match infixNode.LeftHandSide with
             | Expr.Chain _ -> atCurrentColumnIndent (genExpr e)
             | _ -> genExpr e
-        | Expr.Chain _
         | Expr.Record _ -> atCurrentColumnIndent (genExpr e)
         | _ -> genExpr e
     | Expr.MatchLambda matchLambdaNode ->
