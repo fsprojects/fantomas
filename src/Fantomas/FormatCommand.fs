@@ -5,8 +5,6 @@ open System.IO
 open System.IO.Abstractions
 open System.Text
 open Fantomas.Core
-open Fantomas
-open Fantomas.Logging
 open Fantomas.Arguments
 open Fantomas.Cli
 open Fantomas.CommandResult

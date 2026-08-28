@@ -1,7 +1,6 @@
 namespace Fantomas.Core
 
 open Fantomas.FCS.SyntaxTrivia
-open Fantomas.Core
 
 type internal DefineCombination =
     | DefineCombination of defines: string list

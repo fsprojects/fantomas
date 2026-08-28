@@ -3,7 +3,6 @@ module Fantomas.CommandResult
 open System
 open Fantomas.Core
 open Fantomas.FCS.Parse
-open Fantomas.Theme
 
 [<RequireQualifiedAccess; NoComparison>]
 type FormatResult =
