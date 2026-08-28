@@ -4,6 +4,7 @@ open System
 open System.Diagnostics
 open System.IO
 open System.IO.Abstractions
+open System.Runtime.InteropServices
 open System.Text
 open Serilog
 open Serilog.Core
@@ -298,7 +299,10 @@ type FantomasToolResult =
         Error: string
     }
 
-let getFantomasToolStartInfo (arguments: string list) : ProcessStartInfo =
+/// Where this build put the tool. Resolved from where this file sits rather than from where the
+/// test assembly is running, because those are not the same place under a coverage run: AltCover
+/// executes the tests from an instrumented copy of the output folder.
+let private fantomasOutputFile (fileName: string) : string =
     let configuration: string =
 #if DEBUG
         "debug"
@@ -306,12 +310,27 @@ let getFantomasToolStartInfo (arguments: string list) : ProcessStartInfo =
         "release"
 #endif
 
-    // Resolved from where this file sits rather than from where the test assembly is running,
-    // because those are not the same place under a coverage run: AltCover executes the tests from
-    // an instrumented copy of the output folder.
-    let fantomasDll: string =
-        Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "artifacts", "bin", "Fantomas", configuration, "fantomas.dll")
-        |> Path.GetFullPath
+    Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "artifacts", "bin", "Fantomas", configuration, fileName)
+    |> Path.GetFullPath
+
+/// The executable beside the dll the tests below run, for a test that hands a real fantomas to
+/// something that starts the process itself.
+let fantomasExecutable () : string =
+    let fileName: string =
+        if RuntimeInformation.IsOSPlatform OSPlatform.Windows then
+            "fantomas.exe"
+        else
+            "fantomas"
+
+    let executable: string = fantomasOutputFile fileName
+
+    if not (File.Exists executable) then
+        failwithf $"The fantomas executable at \"%s{executable}\" does not exist!"
+
+    executable
+
+let getFantomasToolStartInfo (arguments: string list) : ProcessStartInfo =
+    let fantomasDll: string = fantomasOutputFile "fantomas.dll"
 
     if not (File.Exists fantomasDll) then
         failwithf $"The fantomas dll at \"%s{fantomasDll}\" does not exist!"

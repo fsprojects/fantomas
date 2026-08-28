@@ -23,7 +23,8 @@ module Methods =
     /// naming the settings in the resolved configuration that Fantomas could not act on. Purely
     /// informational: the request still succeeds, using defaults for whatever could not be read.
     ///
-    /// The notification carries one `ConfigurationWarning`, serialized as it is written here:
+    /// The notification carries one `ConfigurationWarning`, serialized as it is written here
+    /// except for `Version`, which the daemon does not send:
     /// `{"FilePath": "...", "EditorConfigFiles": ["..."], "Problems": [{"Code": 1, "Source": 1,
     /// "Setting": "fsharp_bogus_option", "Value": null}]}`.
     [<Literal>]
@@ -141,6 +142,16 @@ type ConfigurationProblem =
 [<NoComparison>]
 type ConfigurationWarning =
     {
+        /// The Fantomas that raised this, in the shape `dotnet tool list` writes: no `Fantomas` in
+        /// front, no leading `v`, no `+<commit>` on the end, such as `8.0.0-alpha-022`. Ready to
+        /// put in front of a user, which is the one thing this is here for.
+        ///
+        /// Filled in by `Fantomas.Client` from the daemon that raised the warning, rather than
+        /// sent by the daemon: that is what lets it name every Fantomas 8 daemon there already is
+        /// rather than only the ones released after this. Talking to a daemon yourself, this
+        /// arrives as `null` and you already know which version you started.
+        Version: string
+
         /// The file that was being formatted, echoed back from the request unchanged.
         /// Absolute, because `Fantomas.Client` rejects a relative path before sending the request.
         FilePath: string
@@ -183,6 +194,10 @@ type FantomasService =
     ///
     /// Only Fantomas 8 daemons send these; an older one never raises it, so no version check is
     /// needed.
+    ///
+    /// `Version` names the daemon that raised the warning, so reporting one needs no separate
+    /// `VersionAsync` call. Asking afterwards would also be a race against `ClearCache`, which can
+    /// leave a newly installed daemon answering for a warning the one it replaced raised.
     abstract ConfigurationWarnings: IEvent<ConfigurationWarning>
 
     abstract ConfigurationAsync: filePath: string * ?cancellationToken: CancellationToken -> Task<FantomasResponse>

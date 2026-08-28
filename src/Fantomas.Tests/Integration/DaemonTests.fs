@@ -3,6 +3,7 @@ module Fantomas.Tests.Integration.DaemonTests
 open System
 open System.Threading.Tasks
 open Fantomas
+open Fantomas.Client
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Daemon
 open NUnit.Framework
@@ -882,3 +883,72 @@ let a =
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
         }
     )
+
+// The one thing a warning is for is telling a user which settings their Fantomas ignored, and the
+// version is the load-bearing part of that: a `fsharp_` setting that does nothing is more often an
+// older Fantomas than a typo. It is not on the wire, so this covers the whole of the path that puts
+// it there, which is `Fantomas.Client` starting a real daemon and reading the version it answers
+// with. `createFor` is the harder half of that: it starts a daemon without being told which version
+// it is, so nothing but the handshake can name it.
+[<Test>]
+let ``a warning forwarded by Fantomas.Client names the daemon that raised it`` () =
+    use codeFile = new TemporaryFileCodeSample("module Foo\n\nlet add a  b = a + b")
+
+    let tool =
+        match
+            FantomasToolLocator.createFor (
+                FantomasToolStartInfo.ToolOnPath(FantomasExecutableFile(fantomasExecutable ()))
+            )
+        with
+        | Ok tool -> tool
+        | Error error -> failwith $"Could not start the daemon under test: %A{error}"
+
+    use _tool = tool :> IDisposable
+
+    let warnings = ResizeArray<ConfigurationWarning>()
+    tool.ConfigurationWarnings.Add(fun warning -> lock warnings (fun () -> warnings.Add warning))
+
+    let request =
+        {
+            SourceCode = "module Foo\n\nlet add a  b = a + b"
+            FilePath = codeFile.Filename
+            Config = Some(readOnlyDict [ "fsharp_bogus_option", "true" ])
+            Cursor = None
+        }
+
+    tool.RpcClient.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
+    |> ignore<FormatDocumentResponse>
+
+    // The notification is one-way, so it can still be in flight when the response arrives.
+    let rec settle (attemptsLeft: int) : unit =
+        if lock warnings (fun () -> warnings.Count) = 0 && attemptsLeft > 0 then
+            System.Threading.Thread.Sleep 50
+            settle (attemptsLeft - 1)
+
+    settle 100
+
+    // What the daemon prints for itself, minus the build metadata nobody reading a notification
+    // needs. The tool's own version request answers with that longer form, which is the thing this
+    // saves a consumer from having to trim.
+    let expected: string =
+        let printed = CodeFormatter.GetVersion()
+
+        match printed.IndexOf '+' with
+        | -1 -> printed
+        | plus -> printed.Substring(0, plus)
+
+    let warning = theOnlyWarning (List.ofSeq warnings)
+
+    problemsOf warning
+    |> should
+        equal
+        [|
+            int ConfigurationProblemCode.UnknownSetting,
+            int ConfigurationProblemSource.Request,
+            "fsharp_bogus_option",
+            null
+        |]
+
+    warning.Version |> should equal expected

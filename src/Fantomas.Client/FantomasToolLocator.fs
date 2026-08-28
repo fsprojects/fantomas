@@ -441,17 +441,29 @@ let createForVersion
         // every format request for the rest of the session with nothing to show for it. Generous
         // enough that a cold start on a loaded machine is not mistaken for a hang; a daemon that
         // is still silent by then is one the cleanup below should get its hands on.
-        let _version =
+        let printedVersion: string =
             client.InvokeAsync<string>(Fantomas.Client.Contracts.Methods.Version)
             |> Async.AwaitTask
             |> fun handshake -> Async.RunSynchronously(handshake, timeout = handshakeTimeoutInMs)
+
+        // What the daemon answered rather than the version it was started for, because `createFor`
+        // starts one without knowing which version that is, and a warning has to name the Fantomas
+        // that raised it. Read through `FantomasVersion`, so what a consumer shows a user is
+        // `8.0.0-alpha-022` rather than the `+<commit>` form `fantomas --version` prints.
+        let daemonVersion: string =
+            string<FantomasVersion>(FantomasVersion.Create printedVersion)
 
         Ok
             {
                 RpcClient = client
                 Process = daemonProcess
                 StartInfo = startInfo
-                ConfigurationWarnings = configurationWarnings.Publish
+                // Stamped as the warning is forwarded, so every one that leaves this package names
+                // its daemon whichever way a caller started it. The daemon does not send a version,
+                // which means this works against every Fantomas 8 daemon there already is.
+                ConfigurationWarnings =
+                    configurationWarnings.Publish
+                    |> Event.map (fun warning -> { warning with Version = daemonVersion })
             }
     with ex ->
         let error =
