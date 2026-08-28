@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.0-alpha-023] - 2026-08-28
+
+### Fixed
+
+- An operator that starts with a star keeps a space on either side of it inside the parentheses wherever its name is written, so `val inline ( *. ): ...` and `abstract member ( *. ): ...` survive formatting. Only `let ( *. ) a b = ...` was spaced before; a `val` in a signature file and an abstract member in either kind of file came out as `(*.)`, which opens a block comment and swallows the rest of the file. Multiplication is unaffected, because `(*)` is a token the lexer knows. [#3443](https://github.com/fsprojects/fantomas/pull/3443)
+
 ## [8.0.0-alpha-022] - 2026-08-27
 
 ### Added

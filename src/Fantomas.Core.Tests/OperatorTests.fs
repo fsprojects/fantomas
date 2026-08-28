@@ -1710,3 +1710,21 @@ let v =
             "ffffffffff"
         ]
 """
+
+[<Test>]
+let ``abstract member for operator starting with a star keeps the space inside the parentheses, 3442`` () =
+    formatSourceString
+        """
+type Foo =
+    abstract member ( *.) : int * int -> int
+    abstract member (.*) : int * int -> int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo =
+    abstract member ( *. ): int * int -> int
+    abstract member (.*): int * int -> int
+"""

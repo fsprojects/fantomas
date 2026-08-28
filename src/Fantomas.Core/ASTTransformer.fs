@@ -74,11 +74,22 @@ let mkIdent (ident: Ident) =
 
     stn text ident.idRange
 
+/// Whether an operator written between parentheses needs a space on either side of it.
+///
+/// A leading star would otherwise open a comment: `( *. )` printed as `(*.)` swallows the rest of
+/// the file. Multiplication is the exception, because `(*)` is a token the lexer knows.
+let operatorNeedsSpaceInsideParens (text: string) : bool =
+    text.Length > 1 && String.startsWithOrdinal "*" text
+
 let mkSynIdent (creationAide: CreationAide) (SynIdent(ident, trivia)) =
     match trivia with
     | None -> mkIdent ident
     | Some(IdentTrivia.OriginalNotation text) -> stn text ident.idRange
-    | Some(IdentTrivia.OriginalNotationWithParen(_, text, _)) -> stn $"(%s{text})" ident.idRange
+    | Some(IdentTrivia.OriginalNotationWithParen(_, text, _)) ->
+        if operatorNeedsSpaceInsideParens text then
+            stn $"( %s{text} )" ident.idRange
+        else
+            stn $"(%s{text})" ident.idRange
     | Some(IdentTrivia.HasParenthesis _) ->
 
     let width = ident.idRange.EndColumn - ident.idRange.StartColumn
@@ -2067,7 +2078,7 @@ let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
 let (|ParenStarSynIdent|_|) =
     function
     | IdentTrivia.OriginalNotationWithParen(lpr, originalNotation, rpr) ->
-        if originalNotation.Length > 1 && String.startsWithOrdinal "*" originalNotation then
+        if operatorNeedsSpaceInsideParens originalNotation then
             ValueSome(lpr, originalNotation, rpr)
         else
             ValueNone
