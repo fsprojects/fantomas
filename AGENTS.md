@@ -36,6 +36,22 @@ front of you.
 
 When updating `CHANGELOG.md`, add new entries to the **end** of the relevant section (e.g. `### Fixed`), not the top. One entry per issue.
 
+An entry ends in a link to the issue it closes, and to the pull request only when no issue lies
+behind the change. `docs/docs/contributors/Pull request ground rules.md` is where that convention
+is written down.
+
+A pull request has no number until it is opened, so an entry that needs one is written last, in a
+commit of its own:
+
+1. Commit the work, leaving every `CHANGELOG.md` out of it.
+2. Push, and open the pull request.
+3. Write the entry against that pull request's URL, and commit it on its own.
+
+Wait for the URL rather than guessing the number. An entry that links an issue needs none of this
+and can be written with the work.
+
+`src/Fantomas.Client/CHANGELOG.md` is a second changelog, covering that package alone.
+
 ## Post-task Steps
 
 Run these after completing a task rather than during iterative development.

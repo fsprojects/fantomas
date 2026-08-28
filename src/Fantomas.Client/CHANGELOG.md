@@ -2,6 +2,14 @@
 
 This is the changelog for the Fantomas.Client package specifically. It's distinct from that of the overall libraries and command-line tool.
 
+## [0.12.0-beta-002] - 2026-08-28
+
+### Added
+- `ConfigurationWarning.Version`, the Fantomas that raised the warning, such as `8.0.0-alpha-022`. A `fsharp_` setting that silently does nothing is more often an older Fantomas than a typo, so a message about one wants to name the version, and asking `VersionAsync` for it was both a round trip for something the cache already knew and a race against `ClearCache`, which could name whichever daemon answered second. It arrives in the shape `FantomasVersion` guarantees, with no `Fantomas` in front, no leading `v` and no `+<commit>` on the end, rather than the longer form `VersionAsync` answers with. Stamped on by this package from the version the daemon answered its handshake with, so it needs no wire change and works against every Fantomas 8 daemon that already exists; `RunningFantomasTool.ConfigurationWarnings` carries it too. [#3441](https://github.com/fsprojects/fantomas/issues/3441)
+
+### Changed
+- Breaking: `ConfigurationWarning` gained the `Version` field. Source-breaking only for code that *constructs* one, which is a daemon rather than a client; reading a warning needs no source change. [#3441](https://github.com/fsprojects/fantomas/issues/3441)
+
 ## [0.12.0-beta-001] - 2026-08-28
 
 ### Added
