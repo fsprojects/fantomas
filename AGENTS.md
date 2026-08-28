@@ -66,17 +66,10 @@ asks for the whole project, because what it compiles is no longer what it compil
 Scoping it to the changed files is what makes this quick: analyzing one file of
 `Fantomas.Core.Tests` takes seconds where the whole project takes minutes.
 
-Nothing here fails the run, and everything it reports is a finding in a file `git status` names as
-changed. A finding in a file you did not touch is dropped, whatever its rule: without that, a
-changed `.fsproj` pulling in the whole project buries the two files you added under the project's
-existing debt.
-
-Within a file that did change, `FANTOMAS-ANNOTATE-001` is narrowed further to the lines `git diff`
-says you touched. A file is a much coarser scope than that rule asks for: one line changed in
-`ASTTransformer.fs` otherwise surfaces every unannotated binding in it. Every other rule reports
-wherever it fires in a file you edited, including `FANTOMAS-KEEPINDENT-001`, which also reports on
-pre-existing debt but means an arm's body rather than the `|` lines a swap touches. A file git has
-never seen is new in its entirety, so everything in it is reported.
+Everything it reports is about the code in front of you: findings in files you did not touch are
+dropped, and a few rules that report on pre-existing debt are narrowed to the lines `git diff` says
+you touched. Which rules and why is in `scripts/BuildAnalyzers.fsx`, and you do not need to know it
+to act on a run. What comes out is the thing to fix.
 
 ```bash
 dotnet fsi build.fsx -- -p Analyze
@@ -94,8 +87,8 @@ The findings also land in `analysis.sarif` in the repo root, merged from the per
 `analysisreports/`. Both files hold the last run and nothing more, so after `AnalyzeChanged` they
 cover only the files it looked at. **Read one of them afterwards.** `AnalyzeChanged` exits 0
 whatever it found, so a run finishing tells you nothing. `Analyze` does fail on a finding at error
-severity, which today means the two local rules that carry it. GitHub raises everything else as
-code scanning alerts on the pull request, which is a slower way to learn about them.
+severity. GitHub raises everything else as code scanning alerts on the pull request, which is a
+slower way to learn about them.
 
 When you read the SARIF, read the results for every project you touched. Filtering the paths down
 to `src/Fantomas/` looks right and silently drops `src/Fantomas.Tests/`, which does not contain

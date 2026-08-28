@@ -5,16 +5,17 @@ feedback arrives while you work instead of in review. They are ordinary F# analy
 `FSharp.Analyzers.SDK`, and the `Analyze` and `AnalyzeChanged` pipelines run them alongside
 `Ionide.Analyzers` and `G-Research.FSharp.Analyzers`.
 
-| Code | Rule | Severity | Runs in |
-| --- | --- | --- | --- |
-| [`FANTOMAS-PIPEBACK-001`](#fantomas-pipeback-001) | No backward pipe | Error | both pipelines |
-| [`FANTOMAS-PRIVATE-001`](#fantomas-private-001) | No `let private` beside a signature file | Error | both pipelines |
-| [`FANTOMAS-ARMORDER-001`](#fantomas-armorder-001) | Shortest match arm first | Warning | both pipelines |
-| [`FANTOMAS-BRANCHORDER-001`](#fantomas-branchorder-001) | Shortest `if` branch first | Warning | both pipelines |
-| [`FANTOMAS-KEEPINDENT-001`](#fantomas-keepindent-001) | Last branch keeps the indentation | Warning | both pipelines |
-| [`FANTOMAS-ANNOTATE-001`](#fantomas-annotate-001) | Annotate every `let` binding | Warning | `AnalyzeChanged` only |
-| [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries | Warning | both pipelines |
-| [`FANTOMAS-OPENS-001`](#fantomas-opens-001) | No `open` nothing in the file uses | Warning | both pipelines |
+| Code | Rule |
+| --- | --- |
+| [`FANTOMAS-PIPEBACK-001`](#fantomas-pipeback-001) | No backward pipe |
+| [`FANTOMAS-PRIVATE-001`](#fantomas-private-001) | No `let private` beside a signature file |
+| [`FANTOMAS-ARMORDER-001`](#fantomas-armorder-001) | Shortest match arm first |
+| [`FANTOMAS-BRANCHORDER-001`](#fantomas-branchorder-001) | Shortest `if` branch first |
+| [`FANTOMAS-KEEPINDENT-001`](#fantomas-keepindent-001) | Last branch keeps the indentation |
+| [`FANTOMAS-ANNOTATE-001`](#fantomas-annotate-001) | Annotate every `let` binding |
+| [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries |
+| [`FANTOMAS-OPENS-001`](#fantomas-opens-001) | No `open` nothing in the file uses |
+| [`FANTOMAS-PARENS-001`](#fantomas-parens-001) | No parentheses the code parses the same without |
 
 ## FANTOMAS-PIPEBACK-001
 
@@ -202,10 +203,9 @@ name holds. Modules with a signature file already state this at the boundary; an
 implementation as well. This applies inside a function as much as at the top level: a local `let` in
 a long body is exactly where a reader loses track of what something is.
 
-It is guidance for code you are writing or revisiting, not a reason to sweep the codebase, which is
-why the rule runs in `AnalyzeChanged` and not in the full `Analyze`. When you touch a binding for
-some other reason, add the annotations it is missing. Leave the bindings you had no reason to open
-alone.
+It is guidance for code you are writing or revisiting, not a reason to sweep the codebase. When you
+touch a binding for some other reason, add the annotations it is missing. Leave the bindings you had
+no reason to open alone.
 
 A tuple parameter counts as annotated when every element of it is, so `(a: int, b: string)` is
 accepted and does not have to be rewritten as `((a, b): int * string)`. Both state the type of
@@ -275,37 +275,55 @@ and `--include-files` are mutually exclusive in the tool, which drops the former
 both are given. `AnalyzeChanged` therefore ignores the exclusion, and does not need it: it includes
 the files the working tree changed, and a generated file under `obj` is never one of them.
 
-## Severity and scope
+## FANTOMAS-PARENS-001
 
-Severity and scope are separate levers. Severity decides whether the run fails: the tool exits
-non-zero on any finding at error severity, so the two error rules fail `Analyze` and fail CI. Scope
-decides who has to look: a rule excluded from `Analyze` is absent from CI and from GitHub code
-scanning whatever its severity, and still reports locally.
+Remove a pair of parentheses the code parses the same without. It is a pair of characters the reader
+has to match to find out that it says nothing, and the thing inside it reads as though it had been
+grouped for a reason.
 
-`FANTOMAS-ANNOTATE-001` is excluded from `Analyze` because it reports on debt that predates it.
-`AnalyzeChanged` runs it, and narrows it further to the lines `git diff` says you touched: a file is
-a much coarser scope than that rule asks for, and one line changed in a file of several thousand
-otherwise surfaces every unannotated binding in it. Every other rule reports wherever it fires in a
-file you edited, because a finding from one of those is worth seeing.
+```fsharp
+let indent: int = ctx.Config.IndentSize * depth
+```
 
-`FANTOMAS-KEEPINDENT-001` and `FANTOMAS-OPENS-001` each arrived with debt of their own and are both
-in both pipelines, because that debt was cleared in the change that added them. The unused-open
-count was the thing to measure before deciding: eight findings in hand-written source, all of them
-real, which is small enough to fix outright rather than carry in the advisory lists. The full run therefore has nothing old to report, and
-anything it does report is something the change in front of you introduced, which is the state to
-keep it in: a new case is cheap to fix while you are writing it and becomes a code scanning alert if
-you do not.
+rather than
 
-The narrowing reads the tool's own output format and fails open, so anything it cannot parse is
-kept. A change upstream makes it stop narrowing rather than start hiding.
+```fsharp
+let indent: int = (ctx.Config.IndentSize * depth)
+```
 
-`AnalyzeChanged` also demotes the two error rules to warnings, because the run you do while working
-should report everything and stop for nothing.
+The compiler answers whether a pair is needed, through `SynExpr.shouldBeParenthesizedInContext` and
+`SynPat.shouldBeParenthesizedInContext`, which is the same pair of calls FsAutoComplete makes for
+the diagnostic it raises as `FSAC0004`. Both read only the untyped tree, so the rule needs no check
+results and says the same thing in the editor as on the command line. Asking the compiler is what
+makes the rule trustworthy on the pairs that look removable and are not: `-(f 1)` keeps its
+parentheses because `- f 1` would negate `f` and then apply the result, and `f (-1)` loses them
+because `f -1` really does apply `f` to a negative literal.
 
-All four severities print at the tool's default verbosity, so choosing a lower one does not hide a
-finding, it only stops the run failing. `Info` and `Hint` are real options for a rule that should be
-seen but never block. What they do change is how GitHub code scanning classifies the alert, so the
-scope column above is still the lever for a rule with existing debt.
+Expressions and patterns are both reported, under the one code. `let f (x) = x` is the same question
+as `let x = (1)` and the same answer, and the only thing that differs is what to watch for while
+editing, which is what the message says.
+
+**A parenthesis written against what comes before it is passed over.** `Some(x)`,
+`new StringBuilder(64)`, `Dictionary<int, string>(comparer)` and `s.TrimEnd('\n')` are all removable
+in the compiler's sense, and `Some x` and `new StringBuilder 64` do compile, but that pair is how
+this repository writes a union case, a constructor and a method call. Reporting them would make the
+rule a request to restyle the codebase rather than a rule about parentheses that say nothing, and
+they were half of everything it had to say. The same call with a space in front of it, `Some (1)`,
+is reported, which makes the guard a question about the text rather than about the tree: the tree
+cannot tell the two apart and they are written for different reasons.
+
+**The reported range spans the opening parenthesis through the closing one**, so it says exactly what
+to delete. There is no fix attached, for the reason every other rule here has none, and here the
+reason is the sharpest: `FSharp.Analyzers.Cli` has no handling of `Fix` at all, so a fix would be
+written for the editor alone. What the deletion does not do for you is re-indent a body that spans
+more than one line, whose offside line moves when the opening parenthesis goes. This is the Fantomas
+repository, so `FormatChanged` puts right whatever you get wrong there, which is not a reason to
+skip reading the diff. What you never have to think about is two tokens ending up against each
+other, because a parenthesis with nothing but whitespace in front of it is the only kind reported.
+
+The rule reports debt that predates it, so it is guidance for code you are writing or revisiting
+rather than a reason to sweep the codebase. Remove the pairs in the code you touch. Leave the ones
+you had no reason to open alone.
 
 ## Suppressing a finding
 
@@ -356,9 +374,9 @@ rather than that the run succeeded.
 
 Every rule is registered twice, as a `CliAnalyzer` and as an `EditorAnalyzer`, with both attributes
 in the signature file. The pipelines use the first; the second is what makes the rule show up in
-Ionide as you type. Four of the five rules read only `ctx.FileName`, `ctx.ProjectOptions.SourceFiles`
-and `ctx.ParseFileResults.ParseTree`, all of which `EditorContext` carries as well as `CliContext`
-does.
+Ionide as you type. Most of them read only `ctx.FileName`, `ctx.ProjectOptions.SourceFiles`,
+`ctx.SourceText` and `ctx.ParseFileResults.ParseTree`, all of which `EditorContext` carries as well
+as `CliContext` does.
 
 `FANTOMAS-XMLDOC-001` and `FANTOMAS-OPENS-001` also read `ctx.CheckFileResults`, because the untyped
 tree can say neither whether the signature file declares the same binding nor what a name resolved
@@ -373,6 +391,12 @@ test that builds its sources in memory has no filesystem to look at.
 
 A new rule needs a section above, because `HelpUri` links to it. Anything a person is told to do
 belongs there rather than only in the message.
+
+Severity decides whether a finding fails the run, not whether it prints, and a rule that arrives
+with debt behind it has to be kept out of the full `Analyze` or every old finding becomes a code
+scanning alert. Both decisions are made in `scripts/BuildAnalyzers.fsx`, in lists that say why
+beside each entry. Measure what a new rule reports over `src` before deciding: debt small enough to
+clear in the same change is better cleared.
 
 Tests live in `Fantomas.Analyzers.Tests` and go through `cliAnalyzer`, using
 `FSharp.Analyzers.SDK.Testing` to build a real `CliContext`. That is deliberately the entry point
@@ -408,7 +432,7 @@ dotnet msbuild src/Fantomas.Core/Fantomas.Core.fsproj -t:CoreCompile \
   -p:BuildProjectReferences=false -p:DesignTimeBuild=true -getItem:FscCommandLineArgs
 ```
 
-None of this is currently load bearing for the four rules that read only the untyped tree. Parsing
+None of this is currently load bearing for the rules that read only the untyped tree. Parsing
 every file of `Fantomas.Core` under the default options, both define sets, `--strict-indentation+`
 and `--langversion:preview` produces identical findings from them, which is what you would expect.
 `FANTOMAS-XMLDOC-001` and `FANTOMAS-OPENS-001` read the typed tree and so do depend on the project

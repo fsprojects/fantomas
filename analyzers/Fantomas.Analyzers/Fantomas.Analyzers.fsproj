@@ -43,6 +43,8 @@
     <Compile Include="XmlDocAnalyzer.fs" />
     <Compile Include="UnusedOpensAnalyzer.fsi" />
     <Compile Include="UnusedOpensAnalyzer.fs" />
+    <Compile Include="UnnecessaryParensAnalyzer.fsi" />
+    <Compile Include="UnnecessaryParensAnalyzer.fs" />
   </ItemGroup>
   <ItemGroup>
     <!-- Must track the fsharp-analyzers version pinned in .config/dotnet-tools.json. -->

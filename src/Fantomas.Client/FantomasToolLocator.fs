@@ -239,7 +239,7 @@ let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasTo
 
     match fantomasOnPathVersion with
     | Some(executableFile, FantomasVersion(CompatibleVersion version)) ->
-        Ok(FantomasToolFound((FantomasVersion(version)), FantomasToolStartInfo.ToolOnPath executableFile))
+        Ok(FantomasToolFound(FantomasVersion(version), FantomasToolStartInfo.ToolOnPath executableFile))
     | _ -> Error FantomasToolError.NoCompatibleVersionFound
 
 // Fantomas added `fantomas daemon` beside `fantomas --daemon` in 8.0.0-alpha-016, and both do the
@@ -384,7 +384,7 @@ let createForVersion
             // A timeout says nothing about what was being waited for, so say it here. The next
             // field report should carry a number someone can argue about rather than "it said
             // something timed out".
-            if (ex :? TimeoutException) then
+            if ex :? TimeoutException then
                 $"Daemon did not answer the version request within %i{handshakeTimeoutInMs} ms."
             elif daemonProcess.HasExited then
                 // `HasExited` only says the process is gone; the handler above is fed
