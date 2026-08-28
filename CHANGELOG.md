@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.0-alpha-025] - 2026-08-28
+
+### Fixed
+
+- A `!` line of a `.fantomasignore` takes a path back out again even when a line above it matched the folder holding that path, so `sub/*` followed by `!sub/keep` formats and checks the files under `sub/keep`. Since `8.0.0-alpha-016` a folder an ignore file names is never opened, which is what a folder pattern should mean and is not what it can mean here: closing `sub` decides that `sub/keep` is not there, and the line that would have taken it back out is never reached. The files were not reported as ignored, they were never found, so `--check` passed over a scope smaller than the ignore file describes and `doctor`, which asks about one file and answers correctly, disagreed with the run about that same file. An ignore file that negates anything now leaves every folder open and asks about the files inside one at a time, which is what every version up to `8.0.0-alpha-015` did. An ignore file with no `!` line in it still closes the folders it names. [#3447](https://github.com/fsprojects/fantomas/issues/3447)
+
 ## [8.0.0-alpha-024] - 2026-08-28
 
 ### Fixed
