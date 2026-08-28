@@ -2262,3 +2262,25 @@ val repro: '``QuotedWithIllegalChar<'T>`` -> unit
         """
 val repro: '``QuotedWithIllegalChar<'T>`` -> unit
 """
+
+[<Test>]
+let ``val for operator starting with a star keeps the space inside the parentheses, 3442`` () =
+    formatSignatureString
+        """
+module MahSignature
+
+val inline (.*)  : (unit -> ^a) -> ^b           -> unit -> ^c
+val inline ( *.) : ^a           -> (unit -> ^b) -> unit -> ^c
+val inline (.*.) : (unit -> ^a) -> (unit -> ^b) -> unit -> ^c
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module MahSignature
+
+val inline (.*): (unit -> ^a) -> ^b -> unit -> ^c
+val inline ( *. ): ^a -> (unit -> ^b) -> unit -> ^c
+val inline (.*.): (unit -> ^a) -> (unit -> ^b) -> unit -> ^c
+"""
