@@ -81,6 +81,9 @@ type RunningFantomasTool =
         /// message arrived on. Subscribed to by `createFor` before the connection starts
         /// listening, so no notification can outrun a subscriber added there. A daemon older than
         /// Fantomas 8 does not send these, so the event simply never fires.
+        ///
+        /// `Version` is stamped on from the version this daemon answered the handshake with, so a
+        /// warning names the Fantomas that raised it even when the daemon was started without one.
         ConfigurationWarnings: IEvent<ConfigurationWarning>
     }
 

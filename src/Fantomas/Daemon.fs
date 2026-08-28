@@ -69,6 +69,10 @@ let configurationFor
 
     config,
     {
+        // Filled in by Fantomas.Client for the daemon that sent this. A daemon has no reason to
+        // name itself here: the client already knows which one it started, and stamping it there
+        // is what lets it name daemons released before this field existed.
+        Version = null
         FilePath = filePath
         // Only worth sending when there is something to point at. It is the same list on every
         // request for a file, and a client has nothing to do with it while nothing is wrong.
@@ -82,6 +86,7 @@ let configurationFor
 
 let noConfigurationProblems (filePath: string) : ConfigurationWarning =
     {
+        Version = null
         FilePath = filePath
         EditorConfigFiles = Array.empty
         Problems = Array.empty

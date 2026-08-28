@@ -99,6 +99,7 @@ type ConfigurationProblem =
 [<NoComparison>]
 type ConfigurationWarning =
     {
+        Version: string
         FilePath: string
         EditorConfigFiles: string array
         Problems: ConfigurationProblem array
