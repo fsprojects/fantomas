@@ -23,6 +23,7 @@
     <Compile Include="AnnotationAnalyzerTests.fs" />
     <Compile Include="XmlDocAnalyzerTests.fs" />
     <Compile Include="UnusedOpensAnalyzerTests.fs" />
+    <Compile Include="UnnecessaryParensAnalyzerTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Analyzers\Fantomas.Analyzers.fsproj" />
