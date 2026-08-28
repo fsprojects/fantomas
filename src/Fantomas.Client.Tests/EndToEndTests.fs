@@ -1,6 +1,7 @@
 module Fantomas.Client.Tests
 
 open System
+open System.Collections.Concurrent
 open System.IO
 open System.Text
 open System.Threading.Tasks
@@ -16,7 +17,13 @@ type EndToEndTests() =
     let folder: DirectoryInfo =
         DirectoryInfo(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N")))
 
-    let service: FantomasService = new LSPFantomasService()
+    let logMessages: ConcurrentQueue<FantomasLogLevel * string> =
+        ConcurrentQueue<FantomasLogLevel * string>()
+
+    let service: FantomasService =
+        new LSPFantomasService(
+            Action<FantomasLogLevel, string>(fun level message -> logMessages.Enqueue(level, message))
+        )
 
     let unformattedCode = "let a    =    8"
 
@@ -220,6 +227,33 @@ end_of_line = lf
             do! Task.Delay(200)
             folder.Delete(true)
         }
+
+    // Nothing in a `FantomasResponse` says which Fantomas answered it or where it was found, and a
+    // tool resolved from the PATH formats exactly as successfully as the version a repository pins.
+    // The log is the only place that difference is visible.
+    [<TestCase("6.3.16")>]
+    [<TestCase("7.0.5")>]
+    member _.``resolving a tool is reported to the log``(version: string) =
+        withVersion
+            version
+            (fun fsharpFile ->
+                backgroundTask {
+                    // Whichever test resolved this version first did the logging, so ask for it
+                    // here too rather than depending on the order they run in.
+                    let! _ = service.VersionAsync(fsharpFile)
+
+                    let resolved: (FantomasLogLevel * string) list =
+                        logMessages
+                        |> Seq.filter (fun (level, message) ->
+                            level = FantomasLogLevel.Info
+                            && message.Contains $"Resolved Fantomas %s{version}"
+                            && message.Contains "from a local tool in"
+                        )
+                        |> List.ofSeq
+
+                    Assert.That(resolved, Is.Not.Empty)
+                }
+            )
 
     [<TestCase("6.3.16")>]
     [<TestCase("7.0.5")>]

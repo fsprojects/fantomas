@@ -29,8 +29,34 @@ type FormatDocumentResponse =
     | Error of filename: string * formattingError: string
     | IgnoredFile of filename: string
 
+/// How much a log message matters, for a host to route on. A real enum rather than an int: this
+/// never travels over the wire, unlike `FantomasResponseCode` and `ConfigurationProblemCode`.
+type FantomasLogLevel =
+    | Debug = 0
+    | Info = 1
+    | Warning = 2
+    | Error = 3
+
+/// A Fantomas version in the one shape daemons are cached under: as `dotnet tool list` writes it,
+/// with no `Fantomas` in front, no leading `v`, no `+<commit>` on the end, and folded to lower case.
+///
+/// The case is internal so that every value comes out of `FantomasToolLocator.findFantomasTool`,
+/// which is what makes that shape a fact rather than a hope. The cache compares these as plain
+/// strings, so the same Fantomas resolved once from a tool manifest and once from the PATH has to
+/// arrive as the same text, or it gets two daemon processes.
 [<Struct>]
-type FantomasVersion = | FantomasVersion of string
+type FantomasVersion =
+    internal
+    | FantomasVersion of string
+
+    /// The version as `dotnet tool list` writes it, such as `8.0.0-alpha-020`. For display only:
+    /// nothing in this API takes a version string.
+    override ToString: unit -> string
+
+    /// Read a version the way whichever producer wrote it and fold it to the one cached shape.
+    /// `fantomas --version` answers `Fantomas v8.0.0-alpha-020+e4a1c9d`, `dotnet tool list` answers
+    /// `8.0.0-alpha-020`, and both have to arrive here as the latter.
+    static member internal Create: printed: string -> FantomasVersion
 
 [<Struct>]
 type FantomasExecutableFile = | FantomasExecutableFile of string

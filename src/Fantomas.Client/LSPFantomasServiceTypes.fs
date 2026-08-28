@@ -49,8 +49,42 @@ type FormatDocumentResponse =
     | Error of filename: string * formattingError: string
     | IgnoredFile of filename: string
 
+type FantomasLogLevel =
+    | Debug = 0
+    | Info = 1
+    | Warning = 2
+    | Error = 3
+
 [<Struct>]
-type FantomasVersion = | FantomasVersion of string
+type FantomasVersion =
+    | FantomasVersion of string
+
+    override this.ToString() =
+        let (FantomasVersion version) = this
+        version
+
+    static member internal Create(printed: string) : FantomasVersion =
+        let dropPrefix (prefix: string) (text: string) : string =
+            if text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) then
+                text.Substring(prefix.Length).Trim()
+            else
+                text
+
+        let printed: string = printed.Trim() |> dropPrefix "fantomas" |> dropPrefix "v"
+
+        let buildMetadata: int = printed.IndexOf('+')
+
+        let withoutBuildMetadata: string =
+            if buildMetadata = -1 then
+                printed
+            else
+                printed.Substring(0, buildMetadata)
+
+        // Folded because the two producers are compared as plain strings, and semver reads a
+        // prerelease identifier case sensitively. This is a deliberate decision that
+        // `8.0.0-Alpha-014` and `8.0.0-alpha-014` name one Fantomas, which is true of every
+        // package either path can resolve.
+        FantomasVersion(withoutBuildMetadata.ToLowerInvariant())
 
 [<Struct>]
 type FantomasExecutableFile = | FantomasExecutableFile of string

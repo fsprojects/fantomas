@@ -28,6 +28,7 @@ type GetDaemonError =
     | DotNetToolListError of error: DotNetToolListError
     | FantomasProcessStart of error: ProcessStartError
     | InCompatibleVersionFound
+    | UnexpectedException of error: string
 
 [<NoComparison>]
 type Msg =
@@ -153,13 +154,58 @@ type CachedDaemon(tool: RunningFantomasTool) =
 
         member _.Dispose() = (tool :> IDisposable).Dispose()
 
-let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWarning -> unit) : MailboxProcessor<Msg> =
+/// Where a daemon was started from, for a log line to name.
+let describeStartInfo (startInfo: FantomasToolStartInfo) : string =
+    match startInfo with
+    | FantomasToolStartInfo.LocalTool(Folder workingDirectory) -> $"a local tool in \"%s{workingDirectory}\""
+    | FantomasToolStartInfo.GlobalTool -> "a global tool"
+    | FantomasToolStartInfo.ToolOnPath(FantomasExecutableFile executableFile) -> $"the PATH, at \"%s{executableFile}\""
+
+let createAgent
+    (ct: CancellationToken)
+    (onConfigurationWarning: ConfigurationWarning -> unit)
+    (log: FantomasLogLevel -> string -> unit)
+    : MailboxProcessor<Msg>
+    =
     let operations: DaemonOperations<CachedDaemon> =
         {
-            FindTool = findFantomasTool
+            // Wrapped rather than passed straight through, because how a folder resolved is the
+            // question a user asks when the wrong Fantomas formatted their code, and nothing in a
+            // `FantomasResponse` answers it: a tool found on the PATH formats exactly as
+            // successfully as the one their repository pins.
+            FindTool =
+                fun folder ->
+                    let result: Result<FantomasToolFound, FantomasToolError> = findFantomasTool folder
+                    let (Folder path) = folder
+
+                    match result with
+                    | Ok(FantomasToolFound(version, startInfo)) ->
+                        log
+                            FantomasLogLevel.Info
+                            $"Resolved Fantomas %O{version} for \"%s{path}\" from %s{describeStartInfo startInfo}."
+                    | Error FantomasToolError.NoCompatibleVersionFound ->
+                        log
+                            FantomasLogLevel.Warning
+                            $"No compatible Fantomas for \"%s{path}\": no local tool, no global tool, and nothing on the PATH."
+                    | Error(FantomasToolError.DotNetListError error) ->
+                        log FantomasLogLevel.Error $"Could not list the dotnet tools for \"%s{path}\": %A{error}"
+
+                    result
             Create =
                 fun version startInfo ->
-                    createForVersion version startInfo
+                    log
+                        FantomasLogLevel.Info
+                        $"Starting a Fantomas %O{version} daemon from %s{describeStartInfo startInfo}."
+
+                    let result: Result<RunningFantomasTool, ProcessStartError> =
+                        createForVersion version startInfo
+
+                    match result with
+                    | Ok _ -> ()
+                    | Error error ->
+                        log FantomasLogLevel.Error $"Could not start the Fantomas %O{version} daemon: %A{error}"
+
+                    result
                     |> Result.map (fun daemon ->
                         // Subscribed here rather than where the daemon is handed out, so that it happens
                         // once per daemon however many folders end up sharing it.
@@ -175,17 +221,47 @@ let createAgent (ct: CancellationToken) (onConfigurationWarning: ConfigurationWa
                     let! msg = inbox.Receive()
 
                     let nextState =
-                        match msg with
-                        | GetDaemon(folder, replyChannel) ->
-                            let daemon, nextState = resolveDaemon operations state folder
-                            replyChannel.Reply(Result.map (fun (daemon: CachedDaemon) -> daemon.Tool.RpcClient) daemon)
-                            nextState
-                        | Reset replyChannel ->
-                            Map.toList state.Daemons
-                            |> List.iter (fun (_, daemon) -> (daemon :> IDaemon).Dispose())
+                        try
+                            match msg with
+                            | GetDaemon(folder, replyChannel) ->
+                                let daemon, nextState = resolveDaemon operations state folder
 
-                            replyChannel.Reply()
-                            ServiceState.Empty
+                                replyChannel.Reply(
+                                    Result.map (fun (daemon: CachedDaemon) -> daemon.Tool.RpcClient) daemon
+                                )
+
+                                nextState
+                            | Reset replyChannel ->
+                                Map.toList state.Daemons
+                                |> List.iter (fun (_, daemon) -> (daemon :> IDaemon).Dispose())
+
+                                replyChannel.Reply()
+                                ServiceState.Empty
+                        with ex ->
+                            // This loop must not die. Every caller reaches it through a
+                            // `PostAndReply` with no timeout, so an exception escaping here is not
+                            // an error anyone sees: it ends the loop, and every request from then
+                            // on waits forever on a reply that can never arrive. Resolving a tool
+                            // shells out to `dotnet` and reads its pipes, which is where something
+                            // unforeseen would come from.
+                            //
+                            // Answer the caller instead, and keep the daemons already running: the
+                            // state is only advanced by an arm that got far enough to return one.
+                            log
+                                FantomasLogLevel.Error
+                                $"The Fantomas daemon cache hit an unexpected error: %s{ex.Message}"
+
+                            try
+                                // Both arms throw before they reply, so this is the first answer
+                                // the caller gets rather than a second one.
+                                match msg with
+                                | Reset replyChannel -> replyChannel.Reply()
+                                | GetDaemon(_, replyChannel) ->
+                                    replyChannel.Reply(Error(GetDaemonError.UnexpectedException ex.Message))
+                            with _ ->
+                                ()
+
+                            state
 
                     return! messageLoop nextState
                 }
@@ -290,6 +366,9 @@ let daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasRespo
         | GetDaemonError.InCompatibleVersionFound ->
             "Fantomas.Client did not found a compatible dotnet tool version to launch as daemon process",
             FantomasResponseCode.ToolNotFound
+        | GetDaemonError.UnexpectedException error ->
+            $"Fantomas.Client hit an unexpected error while resolving a daemon: %s{error}",
+            FantomasResponseCode.DaemonCreationFailed
 
     {
         Code = int code
@@ -423,10 +502,27 @@ let decodeFormatResult (inputFilePath: string) (json: JObject) : FantomasRespons
     with ex ->
         mkError $"Could not deserialize the message from the daemon, %s{ex.Message}"
 
-type LSPFantomasService() =
+type LSPFantomasService(log: Action<FantomasLogLevel, string>) =
     let cts = new CancellationTokenSource()
     let configurationWarnings = Event<ConfigurationWarning>()
-    let agent = createAgent cts.Token configurationWarnings.Trigger
+
+    let agent: MailboxProcessor<Msg> =
+        createAgent
+            cts.Token
+            configurationWarnings.Trigger
+            (fun level message ->
+                try
+                    log.Invoke(level, message)
+                with _ ->
+                    // A log delegate that throws must not take the service down with it. These are
+                    // called from inside the mailbox that resolves daemons, and an exception out of
+                    // there ends the loop: `getDaemon` then waits on a reply that can never come,
+                    // so every format request from then on hangs rather than fails. Losing a log
+                    // line is the cheaper end of that trade.
+                    ()
+            )
+
+    new() = new LSPFantomasService(Action<FantomasLogLevel, string>(fun _ _ -> ()))
 
     interface FantomasService with
         member this.Dispose() =
