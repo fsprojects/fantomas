@@ -323,6 +323,24 @@ let ``the last line that matches is the one the ignore file itself decided by`` 
         byTheLastMatch |> shouldEqual expected
 
 [<Test>]
+let ``an ignore file is asked whether any line takes a path back out`` () =
+    // What a walk consults before it closes a folder whole, so the cases that matter are the ones
+    // that decide it: a `!` line is one, and a line that only looks like one is not.
+    let cases: (string list * bool) list =
+        [
+            [ "*.fs" ], false
+            [ "*.fs"; "!A.fs" ], true
+            [ "# !A.fs" ], false
+            [ "" ], false
+            // A backslash takes the `!` literally, so this names a file called `!A.fs`.
+            [ "\\!A.fs" ], false
+        ]
+
+    for patterns, expected in cases do
+        let ignoreFile, _ = governing patterns "A.fs"
+        IgnoreFile.hasNegatedPattern ignoreFile |> shouldEqual expected
+
+[<Test>]
 let ``a pattern the ignore library will not compile fails the whole ignore file`` () =
     // Worth pinning rather than assuming, because it decides what every caller can be told. The
     // rules are compiled as the file is read, so one unclosed bracket takes the file with it and

@@ -1,6 +1,7 @@
 module Fantomas.Plan
 
 open System
+open System.Collections.Concurrent
 open System.IO.Abstractions
 open Fantomas
 open Fantomas.Arguments
@@ -27,18 +28,44 @@ let plan
         else
             WorkItem.Format(inputFile, outputFile)
 
+    // Asked once per ignore file rather than once per folder, because the answer is about the file
+    // as a whole and the walk puts the question at every directory it meets.
+    let negations: ConcurrentDictionary<string, bool> =
+        ConcurrentDictionary<string, bool>()
+
     // A folder the ignore file names is never opened, so nothing inside it is planned, counted or
     // reported. `isIgnoredFile` reads a path rather than a file, so a directory is asked the same
     // question a file is; what makes this the parent's answer is that `findIgnoreFile` walks up
     // from the directory it is given, which for a folder is the one above it.
+    //
+    // Unless the ignore file negates something. A `!` line takes a path back out of what a line
+    // above it matched, and the path it takes back out can be one inside a folder an earlier line
+    // matched: `sub/*` followed by `!sub/keep` is how `.gitignore` spells "all of it but that
+    // one". Closing `sub` would decide that `sub/keep` is not there and the line that takes it
+    // back out would never be reached, so such an ignore file leaves every folder open and every
+    // file inside is asked about one at a time.
     let isIgnoredDirectory (directory: string) : bool =
+        match findIgnoreFile directory with
+        | None -> false
+        | Some ignoreFile ->
+
+        let negates: bool =
+            negations.GetOrAdd(
+                ignoreFile.Location.FullName,
+                Func<string, bool>(fun _ -> IgnoreFile.hasNegatedPattern ignoreFile)
+            )
+
+        if negates then
+            false
+        else
+
         let asDirectory: string =
             String.Concat(
                 directory.TrimEnd(fs.Path.DirectorySeparatorChar),
                 string<char> fs.Path.DirectorySeparatorChar
             )
 
-        IgnoreFile.isIgnoredFile log (findIgnoreFile directory) asDirectory
+        IgnoreFile.isIgnoredFile log (Some ignoreFile) asDirectory
 
     let folder (inputFolder: string) (outputFolder: string) : WorkItem list =
         let inPlace: bool = isSamePath fs inputFolder outputFolder

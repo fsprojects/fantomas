@@ -170,6 +170,21 @@ module IgnoreFile =
             log.Debug $"%A{ex}"
             false
 
+    let hasNegatedPattern (ignoreFile: IgnoreFile) : bool =
+        let fs: IFileSystem = ignoreFile.Location.FileSystem
+
+        fs.File.ReadAllLines ignoreFile.Location.FullName
+        |> Array.exists (fun (line: string) ->
+            // The library reads the line the way it reads it anywhere else, so a comment, a blank
+            // line and a `\!` that means a literal exclamation mark are all told apart here the
+            // same way they are told apart when the pattern is matched. A line it will not compile
+            // is not a negation; whatever it is, it is not this function's to report.
+            try
+                IgnoreRule(line).Negate
+            with _ ->
+                false
+        )
+
     let matchingLines (ignoreFile: IgnoreFile) (file: string) : IgnoreMatch list =
         let fs: IFileSystem = ignoreFile.Location.FileSystem
         let ignoreRoot: string = ignoreFile.Location.Directory.FullName

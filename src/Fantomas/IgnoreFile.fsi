@@ -87,6 +87,16 @@ module IgnoreFile =
     /// if it does, the failure is reported through the sink and the file counts as not ignored.
     val isIgnoredFile: log: ILogger -> ignoreFile: IgnoreFile option -> file: string -> bool
 
+    /// Does any line of the ignore file take a path back out of what a line above it matched?
+    ///
+    /// What this decides is whether a folder may be closed whole. `sub/*` followed by `!sub/keep`
+    /// is how `.gitignore` spells "all of it but that one", and the second line is only ever
+    /// reached for a path the walk turns up: closing `sub` decides that `sub/keep` is not there.
+    /// So an ignore file that negates anything keeps every folder open, and the files inside are
+    /// asked about one at a time, which costs a walk over a folder nothing will come out of and is
+    /// the only way the answer can come out right.
+    val hasNegatedPattern: ignoreFile: IgnoreFile -> bool
+
     /// Every line of the ignore file whose pattern matches the path, in the order they are
     /// written. The last of them is the one that decided: a pattern overrules every pattern above
     /// it, so a `!` line that comes last un-ignores what an earlier line matched and an ordinary
