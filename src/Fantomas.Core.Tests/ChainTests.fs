@@ -888,3 +888,131 @@ let a =
     config // note
         .Settings.GetValue(key)
 """
+
+// ── A chain inside parentheses and the offside rule ─────────────────────────
+//
+// A segment that lands on the chain head's own column reads as a new item rather than
+// as a continuation. Inside a parenthesis the parser agrees and refuses the output,
+// because the parenthesis opened its offside context at that very column. `genChain`
+// compares the head's column with the column a fresh line would land on and adds a
+// level of indentation when they meet, whatever encloses the chain. The collision
+// depends on the indent size, so both 4 and 2 are covered here.
+
+[<Test>]
+let ``chain inside parentheses indents its segments past the head`` () =
+    formatSourceString
+        """
+let a xs =
+    xs
+    |> (someObject.First(one).Second(two).Third(three).Fourth(four).Fifth(five).Sixth(six))
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let a xs =
+    xs
+    |> (someObject
+            .First(one)
+            .Second(two)
+            .Third(three)
+            .Fourth(four)
+            .Fifth(five)
+            .Sixth(six))
+"""
+
+[<Test>]
+let ``chain that stays on one line inside parentheses does not indent what follows it`` () =
+    formatSourceString
+        """
+let b xs =
+    xs
+    |> (Seq.map (fun line -> transformTheLine line otherArgument finalArgument extraArgument))
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let b xs =
+    xs
+    |> (Seq.map (fun line ->
+        transformTheLine line otherArgument finalArgument extraArgument))
+"""
+
+[<Test>]
+let ``chain segments are moved off the head's column with no parenthesis in sight`` () =
+    formatSourceString
+        """
+let c xs =
+    xs
+    |>> someObject.First(one).Second(two).Third(three).Fourth(four).Fifth(five).Sixth(six)
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let c xs =
+    xs
+    |>> someObject
+            .First(one)
+            .Second(two)
+            .Third(three)
+            .Fourth(four)
+            .Fifth(five)
+            .Sixth(six)
+"""
+
+[<Test>]
+let ``chain inside parentheses indents its segments past the head at two space indentation`` () =
+    formatSourceString
+        """
+let d =
+  ((someObject.First(one).Second(two).Third(three).Fourth(four).Fifth(five).Sixth(six)))
+"""
+        { config with
+            MaxLineLength = 80
+            IndentSize = 2
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let d =
+  ((someObject
+      .First(one)
+      .Second(two)
+      .Third(three)
+      .Fourth(four)
+      .Fifth(five)
+      .Sixth(six)))
+"""
+
+[<Test>]
+let ``chain inside parentheses clears a head that a pipe pushed to the right`` () =
+    formatSourceString
+        """
+let e xs =
+  xs
+  |> (someObject.First(one).Second(two).Third(three).Fourth(four).Fifth(five).Sixth(six))
+"""
+        { config with
+            MaxLineLength = 80
+            IndentSize = 2
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let e xs =
+  xs
+  |> (someObject
+        .First(one)
+        .Second(two)
+        .Third(three)
+        .Fourth(four)
+        .Fifth(five)
+        .Sixth(six))
+"""
