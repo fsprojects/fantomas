@@ -142,3 +142,24 @@ myMutable[x] <- [|
     itemFive
 |]
 """
+
+[<Test>]
+let ``set with object expression`` () =
+    formatSourceString
+        """
+myMutable[x] <-
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+myMutable[x] <- {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+}
+"""

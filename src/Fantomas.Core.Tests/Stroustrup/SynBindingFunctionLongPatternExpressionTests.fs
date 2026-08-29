@@ -42,12 +42,11 @@ let private addTaskToScheduler
     prio
     (task: unit -> unit)
     groupName
-    =
-    {
-        A = longTypeName
-        B = someOtherVariable
-        C = ziggyBarX
-    }
+    = {
+    A = longTypeName
+    B = someOtherVariable
+    C = ziggyBarX
+}
 """
 
 [<Test>]
@@ -76,11 +75,10 @@ let private addTaskToScheduler
     prio
     (task: unit -> unit)
     groupName
-    =
-    {
-        astContext with
-            IsInsideMatchClausePattern = true
-    }
+    = {
+    astContext with
+        IsInsideMatchClausePattern = true
+}
 """
 
 [<Test>]
@@ -111,12 +109,11 @@ let private addTaskToScheduler
     prio
     (task: unit -> unit)
     groupName
-    =
-    {|
-        A = longTypeName
-        B = someOtherVariable
-        C = ziggyBarX
-    |}
+    = {|
+    A = longTypeName
+    B = someOtherVariable
+    C = ziggyBarX
+|}
 """
 
 [<Test>]
@@ -185,14 +182,13 @@ let private addTaskToScheduler
     prio
     (task: unit -> unit)
     groupName
-    =
-    [
-        itemOne
-        itemTwo
-        itemThree
-        itemFour
-        itemFive
-    ]
+    = [
+    itemOne
+    itemTwo
+    itemThree
+    itemFour
+    itemFive
+]
 """
 
 [<Test>]
@@ -225,14 +221,48 @@ let private addTaskToScheduler
     prio
     (task: unit -> unit)
     groupName
+    = [|
+    itemOne
+    itemTwo
+    itemThree
+    itemFour
+    itemFive
+|]
+"""
+
+[<Test>]
+let ``synbinding function with object expression`` () =
+    formatSourceString
+        """
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
     =
-    [|
-        itemOne
-        itemTwo
-        itemThree
-        itemFour
-        itemFive
-    |]
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
+    = {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+}
 """
 
 [<Test>]
@@ -265,12 +295,11 @@ type Foo() =
         prio
         (task: unit -> unit)
         groupName
-        =
-        {
-            A = longTypeName
-            B = someOtherVariable
-            C = ziggyBarX
-        }
+        = {
+        A = longTypeName
+        B = someOtherVariable
+        C = ziggyBarX
+    }
 """
 
 [<Test>]
@@ -300,11 +329,10 @@ type Foo() =
         prio
         (task: unit -> unit)
         groupName
-        =
-        {
-            astContext with
-                IsInsideMatchClausePattern = true
-        }
+        = {
+        astContext with
+            IsInsideMatchClausePattern = true
+    }
 """
 
 [<Test>]
@@ -337,12 +365,11 @@ type Foo() =
         prio
         (task: unit -> unit)
         groupName
-        =
-        {|
-            A = longTypeName
-            B = someOtherVariable
-            C = ziggyBarX
-        |}
+        = {|
+        A = longTypeName
+        B = someOtherVariable
+        C = ziggyBarX
+    |}
 """
 
 [<Test>]
@@ -376,12 +403,11 @@ type Foo() =
         prio
         (task: unit -> unit)
         groupName
-        =
-        struct {|
-            A = longTypeName
-            B = someOtherVariable
-            C = ziggyBarX
-        |}
+        = struct {|
+        A = longTypeName
+        B = someOtherVariable
+        C = ziggyBarX
+    |}
 """
 
 [<Test>]
@@ -454,14 +480,13 @@ type Foo() =
         prio
         (task: unit -> unit)
         groupName
-        =
-        [
-            itemOne
-            itemTwo
-            itemThree
-            itemFour
-            itemFive
-        ]
+        = [
+        itemOne
+        itemTwo
+        itemThree
+        itemFour
+        itemFive
+    ]
 """
 
 [<Test>]
@@ -496,12 +521,48 @@ type Foo() =
         prio
         (task: unit -> unit)
         groupName
+        = [|
+        itemOne
+        itemTwo
+        itemThree
+        itemFour
+        itemFive
+    |]
+"""
+
+[<Test>]
+let ``type member function with object expression`` () =
+    formatSourceString
+        """
+type Foo() =
+    member this.addTaskToScheduler
+        (scheduler: IScheduler)
+        taskName
+        taskCron
+        prio
+        (task: unit -> unit)
+        groupName
         =
-        [|
-            itemOne
-            itemTwo
-            itemThree
-            itemFour
-            itemFive
-        |]
+        { new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo() =
+    member this.addTaskToScheduler
+        (scheduler: IScheduler)
+        taskName
+        taskCron
+        prio
+        (task: unit -> unit)
+        groupName
+        = {
+        new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable
+    }
 """

@@ -144,6 +144,27 @@ fun x -> [|
 """
 
 [<Test>]
+let ``lambda with object expression`` () =
+    formatSourceString
+        """
+fun x ->
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun x -> {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+}
+"""
+
+[<Test>]
 let ``paren lambda with record instance `` () =
     formatSourceString
         """
@@ -276,6 +297,27 @@ let ``paren lambda with array`` () =
 """
 
 [<Test>]
+let ``paren lambda with object expression`` () =
+    formatSourceString
+        """
+(fun x ->
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable })
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(fun x -> {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+})
+"""
+
+[<Test>]
 let ``app paren lambda with record instance `` () =
     formatSourceString
         """
@@ -405,6 +447,27 @@ List.map (fun x -> [|
     itemFour
     itemFive
 |])
+"""
+
+[<Test>]
+let ``app paren lambda with object expression`` () =
+    formatSourceString
+        """
+List.map (fun x ->
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable })
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+List.map (fun x -> {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+})
 """
 
 [<Test>]
@@ -553,6 +616,30 @@ List.map
         itemFour
         itemFive
     |])
+    b
+    c
+"""
+
+[<Test>]
+let ``app paren lambda with object expression and other args`` () =
+    formatSourceString
+        """
+List.map (fun x ->
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }) b c
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+List.map
+    (fun x -> {
+        new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable
+    })
     b
     c
 """
@@ -708,5 +795,27 @@ Bar
         itemFour
         itemFive
     |])
+    .Bar()
+"""
+
+[<Test>]
+let ``dotGetApp with lambda with object expression`` () =
+    formatSourceString
+        """
+Bar.Foo(fun x -> { new IFoo with
+                     member _.Bar() = longTypeName
+                     member _.Baz() = someOtherVariable }).Bar()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Bar
+    .Foo(fun x -> {
+        new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable
+    })
     .Bar()
 """

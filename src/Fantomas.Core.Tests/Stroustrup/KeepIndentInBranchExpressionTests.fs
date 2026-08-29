@@ -33,12 +33,11 @@ match x with
         equal
         """
 match x with
-| _ ->
-    {
-        A = longTypeName
-        B = someOtherVariable
-        C = ziggyBarX
-    }
+| _ -> {
+    A = longTypeName
+    B = someOtherVariable
+    C = ziggyBarX
+  }
 """
 
 [<Test>]
@@ -55,11 +54,10 @@ match x with
         equal
         """
 match x with
-| _ ->
-    {
-        astContext with
-            IsInsideMatchClausePattern = true
-    }
+| _ -> {
+    astContext with
+        IsInsideMatchClausePattern = true
+  }
 """
 
 [<Test>]
@@ -78,12 +76,11 @@ match x with
         equal
         """
 match x with
-| _ ->
-    {|
-        A = longTypeName
-        B = someOtherVariable
-        C = ziggyBarX
-    |}
+| _ -> {|
+    A = longTypeName
+    B = someOtherVariable
+    C = ziggyBarX
+  |}
 """
 
 [<Test>]
@@ -103,12 +100,11 @@ match x with
         equal
         """
 match x with
-| _ ->
-    struct {|
-        A = longTypeName
-        B = someOtherVariable
-        C = ziggyBarX
-    |}
+| _ -> struct {|
+    A = longTypeName
+    B = someOtherVariable
+    C = ziggyBarX
+  |}
 """
 
 [<Test>]
@@ -153,14 +149,13 @@ match x with
         equal
         """
 match x with
-| _ ->
-    [
-        itemOne
-        itemTwo
-        itemThree
-        itemFour
-        itemFive
-    ]
+| _ -> [
+    itemOne
+    itemTwo
+    itemThree
+    itemFour
+    itemFive
+  ]
 """
 
 [<Test>]
@@ -181,12 +176,34 @@ match x with
         equal
         """
 match x with
+| _ -> [|
+    itemOne
+    itemTwo
+    itemThree
+    itemFour
+    itemFive
+  |]
+"""
+
+[<Test>]
+let ``synMatchClause in match expression with object expression`` () =
+    formatSourceString
+        """
+match x with
 | _ ->
-    [|
-        itemOne
-        itemTwo
-        itemThree
-        itemFour
-        itemFive
-    |]
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| _ -> {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+  }
 """
