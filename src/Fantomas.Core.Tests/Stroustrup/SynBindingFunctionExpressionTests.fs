@@ -156,6 +156,27 @@ let x y = [|
 """
 
 [<Test>]
+let ``synbinding function with object expression`` () =
+    formatSourceString
+        """
+let x y =
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x y = {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+}
+"""
+
+[<Test>]
 let ``type member function with record instance`` () =
     formatSourceString
         """
@@ -296,6 +317,29 @@ type Foo() =
         itemFour
         itemFive
     |]
+"""
+
+[<Test>]
+let ``type member function with object expression`` () =
+    formatSourceString
+        """
+type Foo() =
+    member this.Bar x =
+        { new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo() =
+    member this.Bar x = {
+        new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable
+    }
 """
 
 [<Test>]

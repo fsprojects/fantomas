@@ -210,3 +210,35 @@ collect {
     return items
 }
 """
+
+[<Test>]
+let ``andBang with object expression`` () =
+    formatSourceString
+        """
+opt {
+    let! abc = def ()
+    and! foo =
+        { new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable }
+
+    ()
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+opt {
+    let! abc = def ()
+
+    and! foo = {
+        new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable
+    }
+
+    ()
+}
+"""

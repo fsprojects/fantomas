@@ -239,3 +239,38 @@ myComp {
     |]
 }
 """
+
+[<Test>]
+let ``yieldOrReturn with object expression`` () =
+    formatSourceString
+        """
+myComp {
+    yield
+        { new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable }
+    return
+        { new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable }
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+myComp {
+    yield {
+        new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable
+    }
+
+    return {
+        new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable
+    }
+}
+"""

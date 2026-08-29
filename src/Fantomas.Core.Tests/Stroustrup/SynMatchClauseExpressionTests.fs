@@ -159,6 +159,29 @@ match x with
 // Similar to long patterns in synbinding functions.
 
 [<Test>]
+let ``synMatchClause in match expression with object expression`` () =
+    formatSourceString
+        """
+match x with
+| _ ->
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| _ -> {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+  }
+"""
+
+[<Test>]
 let ``synMatchClause in match expression with long when expression with record instance `` () =
     formatSourceString
         """
@@ -348,6 +371,31 @@ with ex -> [|
     itemFour
     itemFive
 |]
+"""
+
+[<Test>]
+let ``synMatchClause in try/with expression with object expression`` () =
+    formatSourceString
+        """
+try
+    foo()
+with ex ->
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    foo ()
+with ex -> {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+}
 """
 
 [<Test>]

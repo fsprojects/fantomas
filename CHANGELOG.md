@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.0.0-alpha-026] - 2026-08-29
+
+### Changed
+
+- `fsharp_multiline_bracket_style = stroustrup` now applies to object expressions, so `{` stays on the line that opens the binding and `new T with` moves below it. Up to now object expressions were printed by the `aligned` branch whatever the setting said, which left `{ new T with` on one line and made stroustrup the only bracket style that did not reach every bracket it names. The [Microsoft style guide](https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-object-expressions) writes the form out under "Formatting object expressions" and Fantomas now produces it character for character. This was left alone in the belief that the layout was an offside error waiting to happen; it is not, and the compiler accepts it in a binding, a list item, a function argument, a lambda body, a match clause and a nested `let` alike. An object expression under stroustrup now lands where a record already landed in each of those positions. `aligned`, which is the default since `8.0.0-alpha-002`, and `cramped` are untouched. [#2990](https://github.com/fsprojects/fantomas/issues/2990)
+- `fsharp_multiline_bracket_style = stroustrup` now survives a binding whose signature broke across lines, and a match clause under `fsharp_experimental_keep_indent_in_branch`. Both were printed by branches written before stroustrup existed and never given a stroustrup-aware counterpart, so the setting was quietly overruled in each: a `let` whose parameters wrapped left its `=` alone on a line and indented the bracket below it, and a match clause under keep-indent did the same below the arrow. They now read `= {` and `| _ -> {`, with the items one level in and the closing bracket back at the column the binding or the clause started from, which is what the same code already produced when the signature fitted on one line or the setting was off. This reaches every bracket the setting names, so records, update records, anonymous records, anonymous structs, lists and arrays move with the object expressions of the entry above rather than behind them. The closing bracket of a match clause stays two columns right of the bar, because on the bar's own column the `|` of the next clause no longer parses. [#3450](https://github.com/fsprojects/fantomas/pull/3450)
+
 ## [8.0.0-alpha-025] - 2026-08-28
 
 ### Fixed

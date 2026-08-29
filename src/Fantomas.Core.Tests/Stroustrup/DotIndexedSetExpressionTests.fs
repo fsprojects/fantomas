@@ -144,6 +144,27 @@ myMutable.[x] <- [|
 """
 
 [<Test>]
+let ``dotIndexedSet with object expression`` () =
+    formatSourceString
+        """
+myMutable.[x] <-
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+myMutable.[x] <- {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+}
+"""
+
+[<Test>]
 let ``application unit dotIndexedSet with record instance `` () =
     formatSourceString
         """
@@ -278,6 +299,27 @@ app().[x] <- [|
 // See https://github.com/fsprojects/fantomas/issues/1999
 
 [<Test>]
+let ``application unit dotIndexedSet with object expression`` () =
+    formatSourceString
+        """
+app().[x] <-
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+app().[x] <- {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+}
+"""
+
+[<Test>]
 let ``application parenthesis expr dotIndexedSet with record instance `` () =
     formatSourceString
         """
@@ -407,4 +449,25 @@ app(meh).[x] <- [|
     itemFour
     itemFive
 |]
+"""
+
+[<Test>]
+let ``application parenthesis expr dotIndexedSet with object expression`` () =
+    formatSourceString
+        """
+app(meh).[x] <-
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+app(meh).[x] <- {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+}
 """
