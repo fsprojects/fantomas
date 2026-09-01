@@ -2145,9 +2145,10 @@ let compareThings (first: Thing) (second: Thing) =
         equal
         """
 let compareThings (first: Thing) (second: Thing) =
-    first = { second with
-                Foo = first.Foo
-                Bar = first.Bar }
+    first =
+        { second with
+            Foo = first.Foo
+            Bar = first.Bar }
 """
 
 [<Test>]

@@ -16,6 +16,7 @@
     <Compile Include="CommentTests.fs" />
     <Compile Include="ShebangTests.fs" />
     <Compile Include="OperatorTests.fs" />
+    <Compile Include="NoBreakInfixOperatorTests.fs" />
     <Compile Include="ComparisonTests.fs" />
     <Compile Include="ControlStructureTests.fs" />
     <Compile Include="PipingTests.fs" />

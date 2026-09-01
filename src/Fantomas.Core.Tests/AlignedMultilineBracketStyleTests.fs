@@ -1499,10 +1499,11 @@ let compareThings (first: Thing) (second: Thing) =
         equal
         """
 let compareThings (first : Thing) (second : Thing) =
-    first = { second with
-                Foo = first.Foo
-                Bar = first.Bar
-            }
+    first =
+        { second with
+            Foo = first.Foo
+            Bar = first.Bar
+        }
 """
 
 // `Aligned` copy-and-update expression keeps label on first line to match G-Research style guide.
