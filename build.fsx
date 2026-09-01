@@ -1,6 +1,6 @@
-#!/usr/bin/env -S dotnet fsi
+#!/usr/bin/env -S dotnet fsi --
 
-#r "nuget: Fun.Build, 1.1.16"
+#r "nuget: Fun.Build, 1.1.18"
 #r "nuget: CliWrap, 3.6.4"
 #r "nuget: FSharp.Data, 6.3.0"
 #r "nuget: Ionide.KeepAChangelog, 0.1.8"
