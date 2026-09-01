@@ -1,6 +1,6 @@
 module Fantomas.Core.Tests.ChainFormattingTests
 
-// This file encodes the specification in `docs/docs/contributors/Chains.md`.
+// This file encodes the specification in `docs/docs/end-users/Chains.md`.
 // Most tests mirror a before/after example from that document, at a narrow
 // page width so the intended line breaks are visible. Where the spec shows a
 // setting explicitly, the test uses it (default vs. MultiLineLambdaClosingNewline).

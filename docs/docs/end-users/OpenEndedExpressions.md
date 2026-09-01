@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 3
+index: 16
 ---
 # Open-ended expressions
 
@@ -47,7 +47,7 @@ let r = { A = 1; B = fun x -> (x + 1; C = 3) }
 The `;` that Fantomas would write to separate the fields becomes a sequential expression inside
 the lambda body instead.
 
-[Fantomas re-types your entire source](https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html#How-Fantomas-formats-code) rather than
+[Fantomas re-types your entire source](./DesignDecisions.html) rather than
 adjusting whitespace in place, so it carries the responsibility that what it prints means what
 you wrote. Collapsing here would break that, so it does not collapse.
 
