@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.0-beta-001] - 2026-09-01
+
+### Changed
+
+- `=`, `>`, `<`, `%` and `%%` cannot start a line at the column of their left-hand side: there the parser reads `=`, `>` and `<` as the `=` of a binding, and reads `%` and `%%` inside a quotation as a splice. Fantomas already kept them off that column, but did so with the layout that keeps the right-hand side beside the operator whenever it is short enough to fit, which needs the page width and a column count to predict and moves a `0` around when an unrelated part of the line changes length. It now follows the rule proposed in [fsharp/fslang-design#836](https://github.com/fsharp/fslang-design/issues/836): the expression fits on one line, or it does not and the operator stays with the left-hand side while the right-hand side moves one level in, or the left-hand side itself spans several lines, in which case the operator and the right-hand side each take a line of their own. `fsharp_multiline_bracket_style = stroustrup` still overrides this for a right-hand side that opens a bracket, which keeps hugging the operator. This is the first beta of `8.0.0`: the style guide for this is not settled yet, so give it a try and report back on [the design issue](https://github.com/fsharp/fslang-design/issues/836) if something reads worse than what it replaces. [#3434](https://github.com/fsprojects/fantomas/pull/3434)
+
 ## [8.0.0-alpha-026] - 2026-08-29
 
 ### Changed

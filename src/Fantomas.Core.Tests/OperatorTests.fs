@@ -486,7 +486,7 @@ module Types =
 "
 
 [<Test>]
-let ``modulo operator on same line, 780`` () =
+let ``modulo operator, multiline left-hand side, 780`` () =
     formatSourceString
         """let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
 """
