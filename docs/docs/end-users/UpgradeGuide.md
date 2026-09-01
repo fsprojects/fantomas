@@ -90,7 +90,7 @@ fsharp_experimental_stroustrup_style = true
 ### .editorconfig
 - `fsharp_max_dot_get_expression_width` was removed.
 
-## v8 alpha
+## v8 beta
 
 ### .editorconfig
 - The default setting for `fsharp_multiline_bracket_style` is now `aligned`, to restore the previous behaviour use `fsharp_multiline_bracket_style = cramped`.
