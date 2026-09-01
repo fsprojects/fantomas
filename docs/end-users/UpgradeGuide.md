@@ -94,7 +94,7 @@ Note that `fsharp_multiline_block_brackets_on_same_column` and `fsharp_experimen
 
 * `fsharp_max_dot_get_expression_width` was removed.
 
-## v8 alpha
+## v8 beta
 
 ### .editorconfig
 
