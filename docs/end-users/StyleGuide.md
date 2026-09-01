@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 2
+index: 13
 ---
 
 # Style guide
@@ -15,10 +15,9 @@ The benefit of these guides is that this allows us, as the F# community, to writ
 
 ## How Fantomas formats code
 
-Fantomas rewrites the entire source text after formatting. Think of it like a word document: Fantomas will re-type your entire text according to its rules in a new file.  
-It does not modify the original text. This approach ensures complete consistency and adherence to the formatting rules, but it means that all formatting decisions are made by Fantomas according to its opinionated style guide.
-
-Because the output has to mean what the input meant, Fantomas will sometimes keep code multiline that would otherwise fit on a single line. See [open-ended expressions](https://fsprojects.github.io/fantomas/docs/end-users/OpenEndedExpressions.html).
+Fantomas rewrites the entire source text after formatting rather than adjusting it in place, which
+means the output has to mean what the input meant. That constraint is behind a handful of behaviors
+that can be surprising at first but are deliberate. See [Design decisions](./DesignDecisions.html).
 
 ## Let it go
 
@@ -62,4 +61,4 @@ To strengthen the message of unity we advise that you do not change the default 
 The **out-of-the-box experience** should be a result of what the **brightest minds of the community** came up with.
 If you are *new* to the F# language, this is what you want.
 
-<fantomas-nav previous="GettingStarted.md" next="OpenEndedExpressions.md"></fantomas-nav>
+<fantomas-nav previous="Recipes.md" next="DesignDecisions.md"></fantomas-nav>

@@ -20,4 +20,4 @@ Do note that the extension might not be up to date with the latest version of Fa
 4. Run fantomas inside Tools -&gt; fantomas
 
 <img src="https://fsprojects.github.io/fantomas//images/vsmac-external-tool.png" alt="drawing" width="70%"/>
-<fantomas-nav previous="Rider.md" next="VSCode.md"></fantomas-nav>
+<fantomas-nav previous="VSCode.md" next="GeneratingCode.md"></fantomas-nav>

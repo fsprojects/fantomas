@@ -3,7 +3,6 @@
 ## Docs
 
 - [Fantomas](https://fsprojects.github.io/fantomas/docs/index.md)
-- [Formatting chain expressions](https://fsprojects.github.io/fantomas/docs/contributors/Chains.md)
 - [Formatting Conditional Compilation Directives](https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.md)
 - [Writer Events and the EventList](https://fsprojects.github.io/fantomas/docs/contributors/EventList Architecture.md)
 - [Fantomas.Core overview (3)](https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.md)
@@ -23,8 +22,10 @@
 - [Fantomas.Core overview (2)](https://fsprojects.github.io/fantomas/docs/contributors/Traverse.md)
 - [Trivia Assignment](https://fsprojects.github.io/fantomas/docs/contributors/Trivia Assignment.md)
 - [Updating the compiler sources](https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.md)
+- [Formatting chain expressions](https://fsprojects.github.io/fantomas/docs/end-users/Chains.md)
 - [Conditional Compilation Directives](https://fsprojects.github.io/fantomas/docs/end-users/ConditionalCompilationDirectives.md)
 - [Configuration](https://fsprojects.github.io/fantomas/docs/end-users/Configuration.md)
+- [Design decisions](https://fsprojects.github.io/fantomas/docs/end-users/DesignDecisions.md)
 - [Formatting from an editor with Fantomas.Client](https://fsprojects.github.io/fantomas/docs/end-users/FantomasClient.md)
 - [FAQ](https://fsprojects.github.io/fantomas/docs/end-users/FAQ.md)
 - [Formatting Check](https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.md)

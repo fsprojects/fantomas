@@ -1,7 +1,7 @@
 ---
-category: Contributors
-categoryindex: 2
-index: 19
+category: End-users
+categoryindex: 1
+index: 15
 ---
 
 # Formatting chain expressions
@@ -30,9 +30,9 @@ The two markers appear wherever there was a real choice to make; elsewhere the o
 
 The [F# style guide](https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting) currently says very little about how to lay out a long chain.
 The rules described here are meant to fill that gap and to eventually become part of that guide.
-This page lives under Contributors for that reason: until the rules are officially adopted, they are a proposal we are testing, not settled guidance to hand to end-users.
+Until they are officially adopted there, they remain a proposal being tested against real code, even though it is the layout Fantomas applies by default today.
 
-As noted in the [Fantomas style guide page](../end-users/StyleGuide.html), the style itself is not decided in the Fantomas repository.
+As noted in the [Fantomas style guide page](./StyleGuide.html), the style itself is not decided in the Fantomas repository.
 Those conversations happen at [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide), and they go much better when there is something concrete to react to.
 A written proposal invites arguments about hypothetical snippets.
 A proposal that is already implemented lets everyone run it over a real code base and see what it does to code they care about.
@@ -94,7 +94,7 @@ That is the whole of it. What follows are those three, not three exceptions to a
 
 #### The two space settings
 
-Two settings ask for a space between the name of a call and the `(` that follows it: [`fsharp_space_before_uppercase_invocation`](../end-users/Configuration.html#fsharp_space_before_uppercase_invocation), off by default, and [`fsharp_space_before_lowercase_invocation`](../end-users/Configuration.html#fsharp_space_before_lowercase_invocation), on by default.
+Two settings ask for a space between the name of a call and the `(` that follows it: [`fsharp_space_before_uppercase_invocation`](./Configuration.html#fsharp_space_before_uppercase_invocation), off by default, and [`fsharp_space_before_lowercase_invocation`](./Configuration.html#fsharp_space_before_lowercase_invocation), on by default.
 
 Which of the two applies is decided by the case of the name immediately in front of the parenthesis. Nothing earlier in a dotted name has a say:
 
@@ -181,10 +181,10 @@ Everything from here on is about where a chain breaks when it does not fit.
 
 ### The fit question
 
-Fantomas re-types your file rather than editing it, as [How Fantomas formats code](../end-users/StyleGuide.html#How-Fantomas-formats-code) sets out.
+Fantomas re-types your file rather than editing it, as [Design decisions](./DesignDecisions.html) sets out.
 Most of that re-typing is mechanical. The one real choice a chain presents is **where to put the line breaks**, and it comes down to a single question:
 
-> Does this fit within the [max line length](../end-users/Configuration.html#max_line_length)?
+> Does this fit within the [max line length](./Configuration.html#max_line_length)?
 
 If the answer is yes, it stays on one line and there is nothing more to decide.
 Everything below is about what happens when the answer is **no**.
@@ -547,7 +547,7 @@ The boundary between two actions is a real seam in the code. The dots inside a r
 
 ### Examples
 
-The examples below assume a narrower [max line length](../end-users/Configuration.html#max_line_length) than the default, so the breaks are visible on this page.
+The examples below assume a narrower [max line length](./Configuration.html#max_line_length) than the default, so the breaks are visible on this page.
 
 #### One call at the end: the arguments break
 
@@ -670,7 +670,7 @@ That is the same idea as "hand the argument over" in the rule above: at that poi
 The boundary is drawn there, rather than at the `(`, because moving the argument is one of the answers those rules can give, shown under [Any part of a chain can grow](#Any-part-of-a-chain-can-grow) below. Only a terminal call can be moved that way, for the reason given under [An intermediate call is welded to its parenthesis](#An-intermediate-call-is-welded-to-its-parenthesis). An earlier call keeps its `(` where it is, so its argument breaks after the parenthesis instead.
 
 The practical consequence is that **every setting that governs argument layout keeps working unchanged inside a chain**.
-The one you are most likely to notice is [`fsharp_multi_line_lambda_closing_newline`](../end-users/Configuration.html#fsharp_multi_line_lambda_closing_newline), which decides where the closing `)` lands when a lambda argument needs several lines.
+The one you are most likely to notice is [`fsharp_multi_line_lambda_closing_newline`](./Configuration.html#fsharp_multi_line_lambda_closing_newline), which decides where the closing `)` lands when a lambda argument needs several lines.
 
 With the default (`false`), the `)` trails the last line of the lambda:
 
@@ -906,4 +906,4 @@ The first of these happens wherever the call sits in the chain. The second can o
 
 Which side the comment is on is the whole of it. How the call was spread over lines in the source has no say, and in both layouts the argument is laid out by the ordinary rules, exactly as the rest of this section promises.
 
-<fantomas-nav previous="Trivia%20Assignment.md" next="Glossary.md"></fantomas-nav>
+<fantomas-nav previous="DesignDecisions.md" next="OpenEndedExpressions.md"></fantomas-nav>

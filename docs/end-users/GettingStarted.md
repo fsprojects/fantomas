@@ -43,7 +43,7 @@ dotnet fantomas --help
 ```
 
 ```
-Fantomas is an opinionated source code formatter for F#. (8.0.0-beta-001+d4d465ccc)
+Fantomas is an opinionated source code formatter for F#. (8.0.0-beta-001+572c86a55)
 
 Usage: dotnet fantomas [command] [...flags] [...paths]
 
@@ -300,4 +300,4 @@ Or usage with `find` on Unix:
 
 find my-project/ -type f -name "*.fs" -not -path "*obj*" | xargs dotnet fantomas --check
 
-<fantomas-nav previous="../index.html" next="StyleGuide.md"></fantomas-nav>
+<fantomas-nav previous="../index.html" next="Configuration.md"></fantomas-nav>

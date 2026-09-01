@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 8
+index: 7
 ---
 
 # JetBrains Rider
@@ -20,4 +20,4 @@ dotnet tool install fantomas
 Prior to Rider 2022.3 it did not [respect](https://youtrack.jetbrains.com/issue/RIDER-83997/Rider-doesnt-respect-Fantomas-default-settings-not-explicitly-set-in-editorconfig) the default settings of Fantomas.
 If you are stuck on version 2022.2 (or earlier) consider adding the default settings of Fantomas to your `.editorconfig` file.
 
-<fantomas-nav previous="GitHooks.md" next="VisualStudio.md"></fantomas-nav>
+<fantomas-nav previous="GitHooks.md" next="VSCode.md"></fantomas-nav>

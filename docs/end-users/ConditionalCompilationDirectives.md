@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 14
+index: 17
 ---
 
 # Conditional Compilation Directives
@@ -73,4 +73,4 @@ Now, regardless of whether `FOO` is defined, the parser always sees a complete `
 
 If you cannot restructure the directives (e.g. because the code is generated or must match a particular pattern), you can exclude the file from formatting using a [`.fantomasignore`](https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html) file.
 
-<fantomas-nav previous="Recipes.md" next="FantomasClient.md"></fantomas-nav>
+<fantomas-nav previous="OpenEndedExpressions.md" next="FAQ.md"></fantomas-nav>

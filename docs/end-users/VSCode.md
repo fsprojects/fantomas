@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 10
+index: 8
 ---
 
 # Visual Studio Code
@@ -26,4 +26,4 @@ Fantomas version detection will try and find a compatible version in the followi
 2. Your global Fantomas version. If fantomas was installed with `dotnet tool install fantomas -g`. You can see your global installations with `dotnet tool list -g`.
 3. Executable named `fantomas` found in your PATH.
 
-<fantomas-nav previous="VisualStudio.md" next="GeneratingCode.md"></fantomas-nav>
+<fantomas-nav previous="Rider.md" next="VisualStudio.md"></fantomas-nav>
