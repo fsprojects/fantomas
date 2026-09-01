@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 12
+index: 3
 ---
 # Upgrade guide
 
@@ -273,7 +273,7 @@ If your build script creates the output folders before calling Fantomas, it can 
 ### Formatting
 
 Chains (dotted member access and calls) are laid out by a new set of rules, written up in full in
-[Formatting chain expressions](../contributors/Chains.html). They are a proposal for the F# style guide and may still
+[Formatting chain expressions](./Chains.html). They are a proposal for the F# style guide and may still
 change before `v8.0.0` is final.
 
 The layout rules only apply once a chain has to break, so a chain that already fits on one line is

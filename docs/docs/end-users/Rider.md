@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 8
+index: 7
 ---
 # JetBrains Rider
 The resharper-fsharp uses Fantomas under the hood to format the source code. No need for any additional plugins.  

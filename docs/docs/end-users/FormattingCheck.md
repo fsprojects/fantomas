@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 6
+index: 5
 ---
 
 # Formatting Check

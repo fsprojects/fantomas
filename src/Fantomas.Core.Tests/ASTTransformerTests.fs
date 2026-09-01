@@ -110,7 +110,7 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
     Assert.Pass()
 
 // ============================================================
-// Chain transformation tests, worked examples from docs/docs/contributors/Chains.md
+// Chain transformation tests, worked examples from docs/docs/end-users/Chains.md
 // ============================================================
 
 [<Test>]

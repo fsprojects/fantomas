@@ -2,7 +2,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 4
+index: 2
 ---
 *)
 
@@ -217,7 +217,7 @@ Add a space after the name of a lowercased function and before the opening paren
 This setting influences function invocation in expressions and patterns.
 Only the name immediately in front of the parenthesis decides whether this setting or `fsharp_space_before_uppercase_invocation` applies, so `a.B.foo (x)` follows this one and `a.b.Foo(x)` follows the other.
 Neither applies unless the whole thing being called is a plain dotted name: a call, an index, a receiver that is not a name, or a type application anywhere in it keeps the parenthesis tight, which leaves `xs.map(f).filter(g)` and `unbox<int>(obj)` untouched by either setting.
-See [Formatting chain expressions](../contributors/Chains.html#The-two-space-settings).
+See [Formatting chain expressions](./Chains.html#The-two-space-settings).
 *)
 
 (*** hide ***)
@@ -247,7 +247,7 @@ Add a space after the name of a uppercase function and before the opening parent
 This setting influences function invocation in expressions and patterns.
 Only the name immediately in front of the parenthesis decides whether this setting or `fsharp_space_before_lowercase_invocation` applies, so `a.b.Foo (x)` follows this one and `a.B.foo(x)` follows the other.
 Neither applies unless the whole thing being called is a plain dotted name: a call, an index, a receiver that is not a name, or a type application anywhere in it keeps the parenthesis tight, which leaves `a.Foo(x).Bar(y)` and `X<Y>.Foo(x)` untouched by either setting.
-See [Formatting chain expressions](../contributors/Chains.html#The-two-space-settings).
+See [Formatting chain expressions](./Chains.html#The-two-space-settings).
 *)
 
 (*** hide ***)
