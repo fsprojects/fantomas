@@ -905,6 +905,7 @@ let isStroustrupStyleExpr (config: FormatConfig) (e: Expr) =
     match e with
     | Expr.Record _
     | Expr.AnonStructRecord _
+    | Expr.ObjExpr _
     | Expr.ArrayOrList _ -> isStroustrupEnabled
     | Expr.NamedComputation _ -> not config.NewlineBeforeMultilineComputationExpression
     | _ -> false

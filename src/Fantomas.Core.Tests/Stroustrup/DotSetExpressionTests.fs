@@ -165,3 +165,24 @@ App().foo <- [|
     itemFive
 |]
 """
+
+[<Test>]
+let ``dotSet with object expression`` () =
+    formatSourceString
+        """
+App().foo <-
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+App().foo <- {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+}
+"""

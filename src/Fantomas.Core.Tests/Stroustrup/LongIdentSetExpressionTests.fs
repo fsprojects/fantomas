@@ -142,3 +142,24 @@ myMutable <- [|
     itemFive
 |]
 """
+
+[<Test>]
+let ``longIdentSet with object expression`` () =
+    formatSourceString
+        """
+myMutable <-
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+myMutable <- {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+}
+"""

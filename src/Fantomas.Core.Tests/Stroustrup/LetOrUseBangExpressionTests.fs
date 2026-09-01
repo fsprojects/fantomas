@@ -191,3 +191,32 @@ collect {
     return items
 }
 """
+
+[<Test>]
+let ``letOrUseBang with object expression`` () =
+    formatSourceString
+        """
+opt {
+    let! foo =
+        { new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable }
+
+    ()
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+opt {
+    let! foo = {
+        new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable
+    }
+
+    ()
+}
+"""

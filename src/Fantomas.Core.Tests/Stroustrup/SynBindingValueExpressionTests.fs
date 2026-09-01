@@ -168,6 +168,27 @@ let t = [|
 """
 
 [<Test>]
+let ``synbinding value with object expression`` () =
+    formatSourceString
+        """
+let x =
+    { new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x = {
+    new IFoo with
+        member _.Bar() = longTypeName
+        member _.Baz() = someOtherVariable
+}
+"""
+
+[<Test>]
 let ``nested synbinding value with record`` () =
     formatSourceString
         """
@@ -334,6 +355,29 @@ type Foo() =
         itemFour
         itemFive
     |]
+"""
+
+[<Test>]
+let ``type member value with object expression`` () =
+    formatSourceString
+        """
+type Foo() =
+    member this.Bar =
+        { new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo() =
+    member this.Bar = {
+        new IFoo with
+            member _.Bar() = longTypeName
+            member _.Baz() = someOtherVariable
+    }
 """
 
 [<Test>]

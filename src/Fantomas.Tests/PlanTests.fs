@@ -311,3 +311,23 @@ let ``the nearest ignore file wins rather than every one above it`` () =
     // The root would ignore it; the nearer one says nothing about it, and the nearer one is asked.
     planIgnoringUnder fs sub "other.fs" (InputPath.Folder root) OutputPath.NotKnown
     |> shouldPlan [ WorkItem.Format(inside, inside) ]
+
+[<Test>]
+let ``a negated pattern takes a folder back out of one an earlier pattern matched, 3447`` () =
+    // `sub/*` followed by `!sub/keep` is how `.gitignore` spells "all of it but that one", and it
+    // only works if `sub` is opened: closing it decides that `sub/keep` is not there, and the line
+    // that would have taken it back out is never reached.
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let top: string = fs.Path.Combine(root, "Top.fs")
+    let kept: string = fs.Path.Combine(root, "sub", "keep", "A.fs")
+    let skipped: string = fs.Path.Combine(root, "sub", "drop", "B.fs")
+    [ top; kept; skipped ] |> makeFileHierarchy fs
+
+    planIgnoring fs "sub/*\n!sub/keep\n" (InputPath.Folder root) OutputPath.NotKnown
+    |> shouldPlan
+        [
+            WorkItem.Format(top, top)
+            WorkItem.Format(kept, kept)
+            WorkItem.Ignored skipped
+        ]

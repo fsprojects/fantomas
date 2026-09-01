@@ -1436,7 +1436,7 @@ let genExpr (e: Expr) =
                 +> sepNlnBeforeInterfaces
                 +> colEx sepNlnUnlessContentBefore node.Interfaces genInterfaceImpl
 
-            let genObjExpr =
+            let genObjExprCramped: Context -> Context =
                 genSingleTextNode node.OpeningBrace
                 +> addSpaceIfSpaceAroundDelimiter
                 +> atCurrentColumn (
@@ -1451,7 +1451,7 @@ let genExpr (e: Expr) =
                 +> addSpaceIfSpaceAroundDelimiter
                 +> genSingleTextNode node.ClosingBrace
 
-            let genObjExprAlignBrackets =
+            let genObjExprAlignBrackets: Context -> Context =
                 let genObjExpr =
                     atCurrentColumn (
                         genSingleTextNode node.New
@@ -1471,7 +1471,25 @@ let genExpr (e: Expr) =
                     +> genSingleTextNode node.ClosingBrace
                 )
 
-            ifAlignOrStroustrupBrackets genObjExprAlignBrackets genObjExpr
+            let genObjExprStroustrup: Context -> Context =
+                genSingleTextNode node.OpeningBrace
+                +> indentSepNlnUnindent (
+                    genSingleTextNode node.New
+                    +> sepSpace
+                    +> genType node.Type
+                    +> param
+                    +> sepSpace
+                    +> optSingle genSingleTextNode node.With
+                    +> genBody
+                )
+                +> sepNln
+                +> genSingleTextNode node.ClosingBrace
+
+            fun ctx ->
+                match ctx.Config.MultilineBracketStyle with
+                | Stroustrup -> genObjExprStroustrup ctx
+                | Aligned -> genObjExprAlignBrackets ctx
+                | Cramped -> genObjExprCramped ctx
         |> genNode node
     | Expr.While node ->
         atCurrentColumn (
@@ -2923,7 +2941,9 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
 
                 (sepArrow
                  +> ifElse
-                     (ctx.Config.ExperimentalKeepIndentInBranch && isLastItem)
+                     (ctx.Config.ExperimentalKeepIndentInBranch
+                      && isLastItem
+                      && not (isStroustrupStyleExpr ctx.Config node.BodyExpr))
                      genKeepIndentInBranch
                      (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.BodyExpr))
                     ctx
@@ -2934,6 +2954,9 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
             (genPatInClause node.Pattern +> genWhenAndBody) ctx
         else
 
+        // The column is taken after the bar, so a stroustrup closing bracket lands strictly right of
+        // it. On the bar's own column the `|` of the next clause no longer parses, and giving only
+        // the last clause the bar's column would leave two columns in one match. See #2990.
         let startColumn = ctx.Column
         (genPatInClause node.Pattern +> atIndentLevel false startColumn genWhenAndBody) ctx
 
@@ -3903,7 +3926,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
             let genExpr isMultiline =
                 if isMultiline then
-                    indentSepNlnUnindent body
+                    indentSepNlnUnindentUnlessStroustrup (fun e -> sepSpace +> genExpr e) b.Expr
                 else
 
                 let short = sepSpace +> body

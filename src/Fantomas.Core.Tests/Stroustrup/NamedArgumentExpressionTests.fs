@@ -185,6 +185,33 @@ let v =
 """
 
 [<Test>]
+let ``synExprApp with named argument with object expression`` () =
+    formatSourceString
+        """
+let v =
+    SomeConstructor(
+        v =
+            { new IFoo with
+                member _.Bar() = longTypeName
+                member _.Baz() = someOtherVariable }
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    SomeConstructor(
+        v = {
+            new IFoo with
+                member _.Bar() = longTypeName
+                member _.Baz() = someOtherVariable
+        }
+    )
+"""
+
+[<Test>]
 let ``synExprApp with multiple named arguments`` () =
     formatSourceString
         """
@@ -400,6 +427,33 @@ let v =
             itemFour
             itemFive
         |]
+    )
+"""
+
+[<Test>]
+let ``synExprNew with named argument with object expression`` () =
+    formatSourceString
+        """
+let v =
+    new FooBar(
+        v =
+            { new IFoo with
+                member _.Bar() = longTypeName
+                member _.Baz() = someOtherVariable }
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    new FooBar(
+        v = {
+            new IFoo with
+                member _.Bar() = longTypeName
+                member _.Baz() = someOtherVariable
+        }
     )
 """
 
