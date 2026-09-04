@@ -353,7 +353,8 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
 <li>Parses and formats the code once for each combination.</li>
 <li>Merges the results back together.</li>
 </ol>
-<h2><a name="The-limitation-all-define-combinations-must-produce-valid-syntax" class="anchor" href="#The-limitation-all-define-combinations-must-produce-valid-syntax">The limitation: all define combinations must produce valid syntax</a></h2>
+<h2><a name="Limitations" class="anchor" href="#Limitations">Limitations</a></h2>
+<h3><a name="All-define-combinations-must-produce-valid-syntax" class="anchor" href="#All-define-combinations-must-produce-valid-syntax">All define combinations must produce valid syntax</a></h3>
 <p>Because Fantomas parses your code under <strong>every</strong> define combination, <strong>each combination must result in a valid syntax tree</strong>.</p>
 <p>For example, the following code <strong>cannot</strong> be formatted:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="m">F</span> <span class="o">=</span>
@@ -374,7 +375,7 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
     <span class="k">let</span> <span class="id">baz</span><span class="pn">:</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="8" class="id">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
 <p>This is not valid F# — <code>let a</code> has no body — so the parser raises an error and Fantomas cannot proceed.</p>
-<h2><a name="How-to-fix-it" class="anchor" href="#How-to-fix-it">How to fix it</a></h2>
+<h4><a name="How-to-fix-it" class="anchor" href="#How-to-fix-it">How to fix it</a></h4>
 <p>Make sure that every combination of defines still produces valid F# code. The most common fix is to add an <code>#else</code> branch:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="9" class="id">F</span> <span class="o">=</span>
     <span class="k">let</span> <span class="id">a</span><span class="pn">:</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="10" class="id">string</span> <span class="o">=</span>
@@ -387,8 +388,46 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
     <span class="k">let</span> <span class="id">baz</span><span class="pn">:</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="11" class="id">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
 <p>Now, regardless of whether <code>FOO</code> is defined, the parser always sees a complete <code>let</code> binding.</p>
+<h3><a name="Interweaved-documentation" class="anchor" href="#Interweaved-documentation">Interweaved documentation</a></h3>
+<p>If you interweave conditional directives with xml documentation or other trivia you will encounter issues:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="rt">Foo</span> <span class="o">=</span>
+    <span class="id">/// Will give you an option.</span>
+    <span class="pp">#if</span> <span class="id">DEBUG</span>
+<span class="inactive">    </span><span class="inactive">///</span><span class="inactive"> </span><span class="inactive">Default</span><span class="inactive"> </span><span class="inactive">returns</span><span class="inactive"> </span><span class="inactive">Some</span>
+    <span class="pp">#else</span>
+    <span class="c">/// Default returns None</span>
+    <span class="pp">#endif</span>
+    <span class="k">static</span> <span class="k">member</span> <span class="fn">bar</span> <span class="pn">(</span><span class="o">?</span><span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="12" class="fn">giveSome</span><span class="pn">:</span> <span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="13" class="vt">bool</span><span class="pn">)</span> <span class="o">=</span>
+        <span class="k">let</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="14" class="fn">giveSome</span> <span class="o">=</span>
+            <span class="pp">#if</span> <span class="id">DEBUG</span>
+<span class="inactive">            </span><span class="inactive">true</span>
+            <span class="pp">#else</span>
+            <span class="k">false</span>
+            <span class="pp">#endif</span>
+        <span class="k">if</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="15" class="fn">giveSome</span> <span class="k">then</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="16" class="uc">Some</span><span class="pn">(</span><span class="pn">)</span> <span class="k">else</span> <span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="17" class="uc">None</span>
+</code></pre>
+<h4><a name="How-to-fix-it-1" class="anchor" href="#How-to-fix-it-1">How to fix it</a></h4>
+<p>Wrap the documentation/trivia in its entirety.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="18" class="id">Foo</span> <span class="o">=</span>
+    <span class="pp">#if</span> <span class="id">DEBUG</span>
+<span class="inactive">    </span><span class="inactive">///</span><span class="inactive"> </span><span class="inactive">Will</span><span class="inactive"> </span><span class="inactive">give</span><span class="inactive"> </span><span class="inactive">you</span><span class="inactive"> </span><span class="inactive">an</span><span class="inactive"> </span><span class="inactive">option.</span>
+<span class="inactive">    </span><span class="inactive">///</span><span class="inactive"> </span><span class="inactive">Default</span><span class="inactive"> </span><span class="inactive">returns</span><span class="inactive"> </span><span class="inactive">Some</span>
+    <span class="pp">#else</span>
+    <span class="c">/// Will give you an option.</span>
+    <span class="c">/// Default returns None</span>
+    <span class="pp">#endif</span>
+    <span class="k">static</span> <span class="k">member</span> <span class="id">bar</span> <span class="pn">(</span><span class="o">?</span><span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="19" class="id">giveSome</span><span class="pn">:</span> <span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="20" class="id">bool</span><span class="pn">)</span> <span class="o">=</span>
+        <span class="k">let</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="21" class="id">giveSome</span> <span class="o">=</span>
+            <span class="pp">#if</span> <span class="id">DEBUG</span>
+<span class="inactive">            </span><span class="inactive">true</span>
+            <span class="pp">#else</span>
+            <span class="k">false</span>
+            <span class="pp">#endif</span>
+        <span class="k">if</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="22" class="id">giveSome</span> <span class="k">then</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="23" class="id">Some</span><span class="pn">(</span><span class="pn">)</span> <span class="k">else</span> <span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="24" class="id">None</span>
+</code></pre>
 <h2><a name="Using" class="anchor" href="#Using">Using <code>.fantomasignore</code></a></h2>
-<p>If you cannot restructure the directives (e.g. because the code is generated or must match a particular pattern), you can exclude the file from formatting using a <a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html"><code>.fantomasignore</code></a> file.</p>
+<p>If you cannot restructure the directives (e.g. because the code is generated or must match a particular pattern), you
+can exclude the file from formatting using a <a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html"><code>.fantomasignore</code></a> file.</p>
 <fantomas-nav previous="OpenEndedExpressions.html" next="FAQ.html"></fantomas-nav>
 
         <div popover class="fsdocs-tip" id="fs1">module F
@@ -398,6 +437,13 @@ from ConditionalCompilationDirectives</div>
 <div popover class="fsdocs-tip" id="fs3">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
 <div popover class="fsdocs-tip" id="fs4">val baz: unit</div>
 <div popover class="fsdocs-tip" id="fs5">type unit = Unit</div>
+<div popover class="fsdocs-tip" id="fs6">val giveSome: bool option</div>
+<div popover class="fsdocs-tip" id="fs7">type bool = System.Boolean</div>
+<div popover class="fsdocs-tip" id="fs8">val giveSome: bool</div>
+<div popover class="fsdocs-tip" id="fs9">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs10">union case Option.None: Option&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs11">type Foo =
+  static member bar: ?giveSome: bool -&gt; unit option</div>
 
     </div>
 </main>
@@ -415,12 +461,27 @@ from ConditionalCompilationDirectives</div>
     </a>
   </li>
   <li class="level-2">
-    <a href="#The-limitation-all-define-combinations-must-produce-valid-syntax">
-      The limitation: all define combinations must produce valid syntax
+    <a href="#Limitations">
+      Limitations
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-3">
+    <a href="#All-define-combinations-must-produce-valid-syntax">
+      All define combinations must produce valid syntax
+    </a>
+  </li>
+  <li class="level-4">
     <a href="#How-to-fix-it">
+      How to fix it
+    </a>
+  </li>
+  <li class="level-3">
+    <a href="#Interweaved-documentation">
+      Interweaved documentation
+    </a>
+  </li>
+  <li class="level-4">
+    <a href="#How-to-fix-it-1">
       How to fix it
     </a>
   </li>

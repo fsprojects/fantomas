@@ -21,7 +21,9 @@ To handle this, Fantomas:
 3. Parses and formats the code once for each combination.
 4. Merges the results back together.
 
-## The limitation: all define combinations must produce valid syntax
+## Limitations
+
+### All define combinations must produce valid syntax
 
 Because Fantomas parses your code under **every** define combination, **each combination must result in a valid syntax tree**.
 
@@ -51,7 +53,7 @@ module F =
 
 This is not valid F# — `let a` has no body — so the parser raises an error and Fantomas cannot proceed.
 
-## How to fix it
+#### How to fix it
 
 Make sure that every combination of defines still produces valid F# code. The most common fix is to add an `#else` branch:
 
@@ -69,8 +71,54 @@ module F =
 
 Now, regardless of whether `FOO` is defined, the parser always sees a complete `let` binding.
 
+### Interweaved documentation
+
+If you interweave conditional directives with xml documentation or other trivia you will encounter issues:
+
+```fsharp
+type Foo =
+    /// Will give you an option.
+    #if DEBUG
+    /// Default returns Some
+    #else
+    /// Default returns None
+    #endif
+    static member bar (?giveSome: bool) =
+        let giveSome =
+            #if DEBUG
+            true
+            #else
+            false
+            #endif
+        if giveSome then Some() else None
+```
+
+#### How to fix it
+
+Wrap the documentation/trivia in its entirety.
+
+```fsharp
+type Foo =
+    #if DEBUG
+    /// Will give you an option.
+    /// Default returns Some
+    #else
+    /// Will give you an option.
+    /// Default returns None
+    #endif
+    static member bar (?giveSome: bool) =
+        let giveSome =
+            #if DEBUG
+            true
+            #else
+            false
+            #endif
+        if giveSome then Some() else None
+```
+
 ## Using `.fantomasignore`
 
-If you cannot restructure the directives (e.g. because the code is generated or must match a particular pattern), you can exclude the file from formatting using a [`.fantomasignore`](https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html) file.
+If you cannot restructure the directives (e.g. because the code is generated or must match a particular pattern), you
+can exclude the file from formatting using a [`.fantomasignore`](https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html) file.
 
 <fantomas-nav previous="OpenEndedExpressions.md" next="FAQ.md"></fantomas-nav>
