@@ -201,8 +201,8 @@
 
 ### Changed
 
-- Improved formatting performance. Formatting is roughly 1.5 to 2 times faster and allocates around 65% less memory, depending on hardware. [#3388](https://github.com/fsprojects/fantomas/pull/3388)
-- The command line tool now runs with Server GC, which speeds up formatting multiple files in parallel at the cost of a larger memory footprint. [#3388](https://github.com/fsprojects/fantomas/pull/3388)
+- Improved formatting performance. Measured against `7.0.3`, formatting a 2937 line file is roughly 1.5 times faster and allocates around 38% less memory, depending on hardware; part of that speedup is the move to `net10.0` rather than this change. The larger figures first reported here, 1.5 to 2 times faster and around 65% less memory, were measured against `main` at the time, which had drifted well past `7.0.3`, so they describe what this change did to the branch rather than what `v8` does for someone upgrading. [#3388](https://github.com/fsprojects/fantomas/pull/3388)
+- `ServerGarbageCollection` is now set on the command line tool's own project file. It was already reaching the tool through `Directory.Build.props`, which has set it for every project in the repository since `v6`, so nothing about how the tool runs changed here. An earlier version of this entry claimed Server GC was new in `v8`; it is not, and `v7` shipped with it too. [#3388](https://github.com/fsprojects/fantomas/pull/3388)
 
 ## [8.0.0-alpha-012] - 2026-04-16
 
