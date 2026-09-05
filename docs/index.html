@@ -3,528 +3,229 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Fantomas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantomas, the F# source code formatter</title>
+    <meta name="description"
+          content="Fantomas is an opinionated formatter for F#. It follows the F# style guide, runs as a dotnet tool, and checks formatting in CI.">
     <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
     <link rel="manifest" href="./site.webmanifest">
     <link rel="mask-icon" href="./safari-pinned-tab.svg" color="#388cbb">
     <meta name="msapplication-TileColor" content="#388cbb">
-    <meta name="theme-color" content="#ffffff">
-    <link rel="stylesheet" href="./homepage.css">
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <meta name="theme-color" content="#1e1e2e">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="./homepage.css">
     <base target="_blank"/>
-    <script type="text/javascript">
-        var wsUri = "ws://localhost:8901/websocket";
-
-        function init() {
-            websocket = new WebSocket(wsUri);
-            websocket.onmessage = function (evt) {
-                const data = evt.data;
-                if (data.endsWith(".css")) {
-                    console.log(`Trying to reload ${data}`);
-                    const link = document.querySelector(`link[href*='${data}']`);
-                    if (link) {
-                        const href = new URL(link.href);
-                        const ticks = new Date().getTime();
-                        href.searchParams.set("v", ticks);
-                        link.href = href.toString();
-                    }
-                } else {
-                    console.log('closing');
-                    websocket.close();
-                    document.location.reload();
-                }
-            }
-        }
-
-        window.addEventListener("load", init, false);
-    </script>
 </head>
 
 <body>
 <header>
     <nav>
-        <a href="./">
-            <img src="./images/icon-fantomas-white.svg" class="" width="70" height="70" alt="">
+        <a href="./" class="brand" target="_self">
+            <img src="./images/icon-fantomas-white.svg" width="48" height="48" alt="">
             Fantomas
         </a>
-        <iconify-icon class="icon" height=32 width="32" icon="mi:menu"></iconify-icon>
-        <input type="checkbox" id="toggle"/>
+        <input type="checkbox" id="menu-toggle" aria-label="Toggle navigation">
+        <label for="menu-toggle" class="menu-button" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round">
+                <path d="M4 7h16M4 12h16M4 17h16"/>
+            </svg>
+        </label>
         <ul>
+            <li><a href="./docs/index.html">Documentation</a></li>
+            <li><a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview">Try online</a></li>
+            <li><a href="https://github.com/fsprojects/fantomas/releases">Releases</a></li>
+            <li><a href="https://discord.com/channels/196693847965696000/1493226271767924747">Discord</a></li>
             <li>
-                <a class="nav-link" href="./docs/index.html">Documentation</a>
-            </li>
-            <li>
-                <a href="https://github.com/fsprojects/fantomas/releases" class="nav-link">Releases</a>
-            </li>
-            <li>
-                <a class="nav-link"
-                   href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
-            </li>
-            <li>
-                <!-- Place this tag where you want the button to render. -->
-                <a class="github-button" href="https://github.com/fsprojects/fantomas" data-icon="octicon-star"
-                   data-size="large" data-show-count="true"
-                   aria-label="Star fsprojects/fantomas on GitHub">Star</a>
+                <a href="https://github.com/fsprojects/fantomas" class="github">
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                    GitHub
+                </a>
             </li>
         </ul>
     </nav>
-    <h1 id="core-title">F# source code formatter</h1>
-    <div id="cta-buttons">
-        <a href="#getting-started" target="_self" class="btn btn-outline-light">
-            Quickstart
-        </a>
-        <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" class="btn btn-outline-dark">
-            Try Online!
-        </a>
+    <div class="hero">
+        <h1>Format F# the way the community writes it.</h1>
+        <p>Fantomas is an opinionated formatter for F#. It follows the F# style guide, runs as a dotnet tool,
+            and checks your code in CI. Once it is in place, nobody talks about whitespace again.</p>
+        <div class="cta">
+            <a href="#get-started" target="_self" class="btn btn-primary">Get started</a>
+            <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" class="btn">Try it online</a>
+        </div>
+        <video preload="metadata" muted loop playsinline poster="./videos/hero-poster.jpg" aria-hidden="true">
+            <source src="./videos/hero.webm" type="video/webm">
+            <source src="./videos/hero.mp4" type="video/mp4">
+        </video>
     </div>
-    <div class="video-overlay"></div>
-    <video preload="none" muted loop>
-        <source src="./videos/movie.webm" type="video/webm">
-        <source src="./videos/movie.mp4" type="video/mp4">
-    </video>
 </header>
 <main>
-    <section id="intro">
-        <a href="https://www.nuget.org/packages/fantomas">
-            <img src="https://img.shields.io/nuget/vpre/Fantomas?color=2FBADC&label=Fantomas%20on%20Nuget&style=flat-square"
-                 alt="Nuget Shield">
-        </a>
-        <h1>FANTOMAS</h1>
+    <section id="get-started">
+        <h2>Get started</h2>
         <div>
-            <h2>What is Fantomas?</h2>
-            <ul>
-                <li>An opinionated code formatter for F#</li>
-                <li>Integrates with most editors</li>
-                <li>Implements the <a
-                        href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting">F#
-                    community style guide</a></li>
-            </ul>
-        </div>
-        <div>
-            <h2>Why?</h2>
-            <ul>
-                <li>No need to discuss style in code review</li>
-                <li>Cleaner source control diffs</li>
-                <li>Peace of mind</li>
-            </ul>
+            <p>Install Fantomas as a local dotnet tool and format a folder.</p>
+            <pre><code><span class="prompt">$</span> <span data-copy>dotnet tool install fantomas --create-manifest-if-needed</span></code>
+<button class="copy" aria-label="Copy command"></button></pre>
+            <pre><code><span class="prompt">$</span> <span data-copy>dotnet fantomas src</span></code>
+<button class="copy" aria-label="Copy command"></button></pre>
+            <p>To try the next major version before it ships, ask for a prerelease.</p>
+            <pre><code><span class="prompt">$</span> <span data-copy>dotnet tool install fantomas --prerelease</span></code>
+<button class="copy" aria-label="Copy command"></button></pre>
+            <p>Your editor picks the tool up from there. See the setup for
+                <a href="./docs/end-users/Rider.html">Rider</a>,
+                <a href="./docs/end-users/VSCode.html">VS Code</a> and
+                <a href="./docs/end-users/VisualStudio.html">Visual Studio</a>,
+                or read the full <a href="./docs/end-users/GettingStarted.html">getting started guide</a>.</p>
+            <aside class="agents">
+                <h3>Working with a coding agent?</h3>
+                <p>Give it <a href="./llms.txt">llms.txt</a> for an index of the documentation, or
+                    <a href="./llms-full.txt">llms-full.txt</a> for all of it in one file.
+                    The <code>fantomas --help</code> output links to both as well.</p>
+            </aside>
         </div>
     </section>
-    <section id="get-started">
-        <h2 id="getting-started">Get started</h2>
-        <p>Install <strong>Fantomas</strong> as <em>.NET tool</em></p>
-        <code>
-            <iconify-icon icon="ic:twotone-chevron-right" width="32" height="32"></iconify-icon>
-            <span>
-                dotnet tool install fantomas    
-                </span>
-            <div class="tooltip">
-                <iconify-icon id="get-started-copy-button" icon="ph:copy-duotone" width="32" height="32"></iconify-icon>
-                <p class="tooltiptext">Copy to clipboard</p>
-            </div>
-        </code>
-        <p>The easiest way to get started is to install Fantomas as a local .NET tool.<br/>
-            Check out our <a href="./docs" class="text-black-50">documentation</a> for more details.</p>
+    <section id="why">
+        <h2>Why bother</h2>
+        <div class="reasons">
+            <article>
+                <h3>Reviews are about the code</h3>
+                <p>Indentation, line breaks and spacing are decided once, by the tool. Pull requests go back to
+                    discussing what the code does.</p>
+            </article>
+            <article>
+                <h3>Diffs show only the change</h3>
+                <p>Every file is formatted the same way on every machine, so a diff never mixes a real change
+                    with someone's editor settings.</p>
+            </article>
+            <article>
+                <h3>One check keeps it that way</h3>
+                <p><code>dotnet fantomas check</code> fails the build when a file drifts, so formatting stays
+                    fixed without anyone having to remember.</p>
+            </article>
+            <article>
+                <h3>Your coding agent likes it too</h3>
+                <p>An agent writes F# faster than it reasons about layout. Let it run Fantomas after every edit
+                    and its code arrives in the house style, with no review round about whitespace. The
+                    <code>--json</code> report tells it exactly what to fix.</p>
+            </article>
+            <article>
+                <h3>Built on the style guide</h3>
+                <p>The defaults follow the
+                    <a href="https://learn.microsoft.com/dotnet/fsharp/style-guide/formatting">F# style guide</a>
+                    from Microsoft. A handful of <a href="./docs/end-users/Configuration.html">settings</a>
+                    switch to the G-Research conventions.</p>
+            </article>
+        </div>
     </section>
     <section id="testimonials">
-        <div class="container">
-            <h2 id="what-people-say-about-fantomas">What people say about Fantomas</h2>
-            <div class="carousel-item active">
-                <q>It's like playing jazz</q>
-                <div class="carousel-caption">
-                    <h5>
-                        <iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon>
-                        Don Syme
-                    </h5>
-                    <p>Language designer for F#</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <q>As a maintainer, Fantomas makes it <em>easy</em>&nbsp; to
-                    contribute to my projects - I no longer have to care about spacing or style, Fantomas
-                    handles it for me!</q>
-                <div class="carousel-caption">
-                    <h5>
-                        <iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon>
-                        Chet Husk
-                    </h5>
-                    <p>F# community hero</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <q>Fantomas is the next big thing in the F# ecosystem. Not only does
-                    it eliminate the duty for code formatting during typing, but it also integrates into the CI
-                    pipeline and automatically check the formatting for you.</q>
-                <div class="carousel-caption">
-                    <h5>
-                        <iconify-icon icon="octicon:dash-24" width="24" height="24"></iconify-icon>
-                        Sergey Tihon
-                    </h5>
-                    <p>editor of the <a class="text-white" href="https://sergeytihon.com/fsharp-weekly/">F#
-                        weekly newsletter</a></p>
-                </div>
-            </div>
-            <div class="carousel-indicators">
-                <button type="button" class="active"
-                        aria-current="true" aria-label="Slide 1"></button>
-                <button type="button"></button>
-                <button type="button"></button>
-            </div>
+        <h2>What people say</h2>
+        <div class="quotes">
+            <figure>
+                <blockquote>It's like playing jazz.</blockquote>
+                <figcaption>Don Syme, language designer for F#</figcaption>
+            </figure>
+            <figure>
+                <blockquote>As a maintainer, Fantomas makes it easy to contribute to my projects. I no longer
+                    have to care about spacing or style, Fantomas handles it for me.
+                </blockquote>
+                <figcaption>Chet Husk, F# community hero</figcaption>
+            </figure>
+            <figure>
+                <blockquote>Not only does it eliminate the duty for code formatting during typing, but it also
+                    integrates into the CI pipeline and automatically checks the formatting for you.
+                </blockquote>
+                <figcaption>Sergey Tihon, editor of
+                    <a href="https://sergeytihon.com/fsharp-weekly/">F# Weekly</a></figcaption>
+            </figure>
         </div>
     </section>
     <section id="users">
-        <h2 id="who-uses-fantomas">Who uses Fantomas?</h2>
+        <h2>Who uses Fantomas</h2>
         <div>
-            <a href="https://github.com/dotnet/fsharp" target="_blank" class="tooltip">
-                <img src="./images/users/fsharp-compiler.png" alt="F# compiler logo">
-                <p class="tooltiptext">dotnet/fsharp</p>
-            </a>
-            <a href="https://github.com/darklang/dark" target="_blank" class="tooltip">
-                <img src="./images/users/dark.png" alt="Darklang logo">
-                <p class="tooltiptext">darklang/dark</p>
-            </a>
-            <a href="https://github.com/fsharp/FsAutoComplete" target="_blank" class="tooltip">
-                <img src="./images/users/fsautocomplete.png" alt="FsAutocomplete Ionide logo">
-                <p class="tooltiptext">fsharp/FsAutoComplete</p>
-            </a>
-            <a href="https://github.com/fsprojects/Fantomas" target="_blank" class="tooltip">
-                <img src="./images/icon-fantomas-color.svg" alt="Fantomas logo">
-                <p class="tooltiptext">fsprojects/Fantomas</p>
-            </a>
-            <a href="https://github.com/fsprojects/Fabulous" target="_blank" class="tooltip">
-                <img src="./images/users/fabulous.png" alt="Fabulous logo">
-                <p class="tooltiptext">fsprojects/Fabulous</p>
-            </a>
-            <a href="https://github.com/fsprojects/FSharp.Data" target="_blank" class="tooltip">
-                <img src="./images/users/fsharp-data.png" alt="FSharp.Data logo">
-                <p class="tooltiptext">fsprojects/FSharp.Data</p>
-            </a>
-            <a href="https://github.com/TheAngryByrd/MiniScaffold" target="_blank" class="tooltip">
-                <img src="./images/users/unknown-github.png" alt="Default GitHub logo">
-                <p class="tooltiptext">TheAngryByrd/MiniScaffold</p>
-            </a>
-            <a href="https://github.com/CompositionalIT/farmer" target="_blank" class="tooltip">
-                <img src="./images/users/farmer.png" alt="Farmer logo">
-                <p class="tooltiptext">CompositionalIT/farmer</p>
-            </a>
-            <a href="https://plotly.net/" target="_blank" class="tooltip">
-                <img src="./images/users/plotly.png" alt="Plotly.NET logo">
-                <p class="tooltiptext">plotly/Plotly.NET</p>
-            </a>
-            <a href="https://pluralsight.com/" target="_blank" class="tooltip">
-                <img src="./images/users/pluralsight.png" alt="Pluralsight logo">
-                <p class="tooltiptext">Pluralsight</p>
-            </a>
-            <a href="https://github.com/fsprojects/fake" target="_blank" class="tooltip">
-                <img src="./images/users/fake.png" alt="FAKE logo">
-                <p class="tooltiptext">fsprojects/FAKE</p>
-            </a>
-            <a href="https://github.com/fsprojects/FsHttp" target="_blank" class="tooltip">
-                <img src="./images/users/fshttp.png" alt="FsHttp logo">
-                <p class="tooltiptext">fsprojects/FsHttp</p>
-            </a>
-            <a href="https://fable.io/" target="_blank" class="tooltip">
-                <img src="./images/users/fable.png" alt="Fable">
-                <p class="tooltiptext">fable-compiler/fable</p>
-            </a><a href="#getting-started" id="your-logo-here" target="_self">
-            Your logo here?
-        </a>
+            <ul class="logos">
+                <li><a href="https://github.com/dotnet/fsharp" title="dotnet/fsharp">
+                    <img src="./images/users/fsharp-compiler.png" alt="The F# compiler"></a></li>
+                <li><a href="https://github.com/fable-compiler/Fable" title="fable-compiler/Fable">
+                    <img src="./images/users/fable.png" alt="Fable"></a></li>
+                <li><a href="https://github.com/darklang/dark" title="darklang/dark">
+                    <img src="./images/users/dark.png" alt="Darklang"></a></li>
+                <li><a href="https://github.com/giraffe-fsharp/Giraffe" title="giraffe-fsharp/Giraffe">
+                    <img src="https://github.com/giraffe-fsharp.png?size=160" alt="Giraffe"></a></li>
+                <li><a href="https://github.com/ionide/ionide-vscode-fsharp" title="ionide/ionide-vscode-fsharp">
+                    <img src="https://github.com/ionide.png?size=160" alt="Ionide"></a></li>
+                <li><a href="https://github.com/fsharp/FsAutoComplete" title="fsharp/FsAutoComplete">
+                    <img src="./images/users/fsautocomplete.png" alt="FsAutoComplete"></a></li>
+                <li><a href="https://github.com/fabulous-dev/Fabulous" title="fabulous-dev/Fabulous">
+                    <img src="./images/users/fabulous.png" alt="Fabulous"></a></li>
+                <li><a href="https://github.com/fsprojects/FSharp.Data" title="fsprojects/FSharp.Data">
+                    <img src="./images/users/fsharp-data.png" alt="FSharp.Data"></a></li>
+                <li><a href="https://github.com/plotly/Plotly.NET" title="plotly/Plotly.NET">
+                    <img src="./images/users/plotly.png" alt="Plotly.NET"></a></li>
+                <li><a href="https://github.com/CompositionalIT/farmer" title="CompositionalIT/farmer">
+                    <img src="./images/users/farmer.png" alt="Farmer"></a></li>
+                <li><a href="https://github.com/Lanayx/Oxpecker" title="Lanayx/Oxpecker">
+                    <img src="./images/users/oxpecker.png" alt="Oxpecker"></a></li>
+                <li><a href="https://github.com/fable-hub/Feliz" title="fable-hub/Feliz">
+                    <img src="https://github.com/fable-hub.png?size=160" alt="Feliz"></a></li>
+                <li><a href="https://github.com/G-Research/fsharp-analyzers" title="G-Research/fsharp-analyzers">
+                    <img src="https://github.com/G-Research.png?size=160" alt="G-Research F# analyzers"></a></li>
+                <li><a href="https://github.com/artempyanykh/marksman" title="artempyanykh/marksman">
+                    <img src="./images/users/marksman.png" alt="Marksman"></a></li>
+                <li><a href="https://github.com/TheAngryByrd/MiniScaffold" title="TheAngryByrd/MiniScaffold">
+                    <img src="https://github.com/TheAngryByrd.png?size=160" alt="MiniScaffold"></a></li>
+                <li><a href="https://github.com/fsprojects/FAKE" title="fsprojects/FAKE">
+                    <img src="./images/users/fake.png" alt="FAKE"></a></li>
+            </ul>
+            <p>Using Fantomas on a project people know? <a
+                    href="https://github.com/fsprojects/fantomas/issues/new?title=Add%20our%20logo%20to%20the%20landing%20page">Add
+                your logo.</a></p>
         </div>
     </section>
-    <section id="sponsors">
-        <h2 id="our-sponsor">Sponsors</h2>
-        <h3>Enterprise sponsors</h3>
-        <div id="enterprise">
-            <a href="https://www.gresearch.com/" target="_blank">
-                <img src="./images/sponsors/g-research.jpg" alt="G-Research">
-            </a>
-            <a href="https://nojaf.com/" target="_blank">
-                <img src="./images/sponsors/nojaf.svg" alt="Nojaf"/>
-            </a>
-        </div>
-        <h3>Community sponsors</h3>
-        <ul>
-            <li><a href="https://tinybluerobots.com"><img src="https://github.com/TinyBlueRobots.png?size=50"
-                                                          alt="Tiny Blue Robots" class="me-2 img-thumbnail">Tiny
-                Blue Robots</a></li>
-            <li><a href="https://github.com/ThisFunctionalTom"><img
-                    src="https://github.com/ThisFunctionalTom.png?size=50" alt="Tomas Leko"
-                    class="me-2 img-thumbnail">Tomas Leko</a></li>
-            <li><a href="https://github.com/zyzhu"><img src="https://github.com/zyzhu.png?size=50"
-                                                        alt="Zhenyong Zhu" class="me-2 img-thumbnail">Zhenyong
-                Zhu</a></li>
-            <li><a href="https://github.com/sergey-tihon"><img src="https://github.com/sergey-tihon.png?size=50"
-                                                               alt="Sergey Tihon" class="me-2 img-thumbnail">Sergey
-                Tihon</a></li>
-            <li><a href="https://github.com/NicoVIII"><img src="https://github.com/NicoVIII.png?size=50"
-                                                           alt="NicoVIII" class="me-2 img-thumbnail">NicoVIII</a>
-            </li>
-            <li><a href="https://github.com/cartermp"><img src="https://github.com/cartermp.png?size=50"
-                                                           alt="Phillip Carter" class="me-2 img-thumbnail">Phillip
-                Carter</a></li>
-            <li><a href="https://www.gresearch.co.uk"><img src="https://github.com/G-Research.png?size=50"
-                                                           alt="G-Research-OSS" class="me-2 img-thumbnail">G-Research-OSS</a>
-            </li>
-            <li><a href="https://github.com/edgarfgp"><img src="https://github.com/edgarfgp.png?size=50"
-                                                           alt="Edgar Gonzalez" class="me-2 img-thumbnail">Edgar
-                Gonzalez</a></li>
-            <li><a href="https://github.com/OnurGumus"><img src="https://github.com/OnurGumus.png?size=50"
-                                                            alt="Edgar Gonzalez" class="me-2 img-thumbnail">Onur
-                Gumus</a></li>
-        </ul>
-    </section>
-    <section id="media">
-        <div class="container">
-            <h2 id="fantomas-media">Media</h2>
-            <div id="talk">
-                <iframe src="https://www.youtube.com/embed/R9Ob5Vp4a9c"
-                        title="YouTube video player"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen></iframe>
-            </div>
-            <div id="posts">
-                <div class="card">
-                    <h5>
-                        <iconify-icon icon="lets-icons:news-duotone"></iconify-icon>
-                        Fantomas 6: The Legendary Formatter
-                    </h5>
-                    <p>What is new in Fantomas v6!</p>
-                    <a href="https://blog.nojaf.com/2023/03/28/fantomas-six-legendary-formatter/" class="btn">
-                        Read blogpost
-                    </a>
-                </div>
-                <div class="card">
-                    <h5>
-                        <iconify-icon icon="lets-icons:news-duotone"></iconify-icon>
-                        Say Hello to
-                        Fantomas 5
-                    </h5>
-                    <p>A blogpost about migrating to Fantomas V5</p>
-                    <a href="https://blog.nojaf.com/2022/08/25/say-hello-to-fantomas-five/"
-                       class="btn btn-primary text-white d-inline-block float-end mt-1">Read blogpost</a>
-                </div>
-                <div class="tweet">
-                    <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Hey folks! We will be hosting a <a
-                            href="https://twitter.com/hashtag/fantomas?src=hash&amp;ref_src=twsrc%5Etfw">#fantomas</a>
-                        <a href="https://twitter.com/hashtag/v5?src=hash&amp;ref_src=twsrc%5Etfw">#v5</a>
-                        release party 🥳🎉 on Discord on Friday, September 16th. <br><a
-                                href="https://twitter.com/hashtag/fsharp?src=hash&amp;ref_src=twsrc%5Etfw">#fsharp</a>
-                    </p>&mdash; Florian Verdonck (@verdonckflorian) <a
-                            href="https://twitter.com/verdonckflorian/status/1562120800127406081?ref_src=twsrc%5Etfw">August
-                        23, 2022</a></blockquote>
-                    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-                </div>
-                <div class="tweet">
-                    <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Yesterday I had a blast during the
-                        <a
-                                href="https://twitter.com/FSharpLondon?ref_src=twsrc%5Etfw">@FSharpLondon</a>
-                        meetup!
-                        Thanks
-                        again for having me! I wrote a blog post that captures some of the story beats from
-                        yesterday <a
-                                href="https://t.co/ViCkmmMSci">https://t.co/ViCkmmMSci</a>. I&#39;m really happy
-                        how
-                        Fantomas v5 is shaping up😊 <a
-                                href="https://twitter.com/hashtag/fsharp?src=hash&amp;ref_src=twsrc%5Etfw">#fsharp</a>
-                        <a href="https://t.co/83bjAp9ody">https://t.co/83bjAp9ody</a></p>&mdash; Florian
-                        Verdonck
-                        (@verdonckflorian) <a
-                                href="https://twitter.com/verdonckflorian/status/1529019121433821184?ref_src=twsrc%5Etfw">May
-                            24, 2022</a></blockquote>
-                </div>
-                <div class="card">
-                    <h5>
-                        <iconify-icon icon="lets-icons:news-duotone"></iconify-icon>
-                        Fantomas Daemon
-                    </h5>
-                    <p>A blogpost about how to use a custom version of Fantomas in your
-                        editor.</p>
-                    <a href="https://blog.nojaf.com/2021/12/07/fs-advent-2021-fantomas-daemon/"
-                       class="btn">Read blogpost</a>
-                </div>
-                <div class="card">
-                    <h5>
-                        <iconify-icon icon="lets-icons:news-duotone"></iconify-icon>
-                        World domination,
-                        part one
-                    </h5>
-                    <p>A blogpost about the V5 improvements</p>
-                    <a href="https://blog.nojaf.com/2022/05/24/word-domination-part-one/"
-                       class="btn">Read blogpost</a>
-                </div>
-                <div class="card">
-                    <h5>
-                        <iconify-icon icon="mdi:youtube"></iconify-icon>
-                        Daemon
-                    </h5>
-                    <div class="ratio-16x9">
-                        <iframe src="https://www.youtube.com/embed/1jb6K_HZaEY" title="YouTube video player"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowfullscreen></iframe>
-                    </div>
-                    <a href="https://www.youtube.com/watch?v=1jb6K_HZaEY&ab_channel=nojaf"
-                       class="btn">Watch on YouTube</a>
-                </div>
-                <div class="tweet">
-                    <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Hi <a
-                            href="https://twitter.com/hashtag/fsharp?src=hash&amp;ref_src=twsrc%5Etfw">#fsharp</a>,
-                        for
-                        the next major release, I&#39;d like to go with a new logo for Fantomas.<br>Cast your
-                        vote
-                        on <a
-                                href="https://t.co/7akdM6lgrO">https://t.co/7akdM6lgrO</a></p>&mdash; Florian
-                        Verdonck
-                        (@verdonckflorian) <a
-                                href="https://twitter.com/verdonckflorian/status/1516681868221026308?ref_src=twsrc%5Etfw">April
-                            20, 2022</a></blockquote>
-                </div>
-                <div class="card">
-                    <h5>
-                        <iconify-icon icon="lets-icons:news-duotone"></iconify-icon>
-                        Formatting your code
-                        the easy way
-                    </h5>
-                    <p>A blogpost by Isaac Abraham from Compositional IT.</p>
-                    <a href="https://www.compositional-it.com/news-blog/formatting-your-code-the-easy-way/"
-                       class="btn btn-primary text-white d-inline-block float-end mt-1">Read blogpost</a>
-                </div>
-                <div class="card">
-                    <h5>
-                        <iconify-icon icon="mdi:youtube"></iconify-icon>
-                        Custom Ranges
-                    </h5>
-                    <div class="ratio-16x9">
-                        <iframe src="https://www.youtube.com/embed/X02YRO7kOOA"
-                                title="YouTube video player"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowfullscreen></iframe>
-                    </div>
-                    <a href="https://www.youtube.com/watch?v=X02YRO7kOOAs&ab_channel=nojaf"
-                       class="btn">Watch on YouTube</a>
-                </div>
-                <div class="card">
-                    <h5>
-                        <iconify-icon icon="lets-icons:news-duotone"></iconify-icon>
-                        A word on
-                        triple-slash comments
-                    </h5>
-                    <p>A blogpost about the importance of triple-slash comments</p>
-                    <a href="https://blog.nojaf.com/2022/03/05/a-word-on-triple-slash-comments/"
-                       class="btn btn-primary text-white d-inline-block float-end mt-1">Read blogpost</a>
-                </div>
-                <div class="tweet">
-                    <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Automatic code formatting using
-                        Fantomas (<a href="https://t.co/R5SHSjfucF">https://t.co/R5SHSjfucF</a>) is now applied
-                        to (nearly) all signature files under &quot;src&quot;, you format code using<br><br>
-                        dotnet fantomas etc -r<br><br>For example the primary syntax tree file: <a
-                                href="https://t.co/BBQFGEH2VM">https://t.co/BBQFGEH2VM</a></p>&mdash; Don Syme
-                        (@dsymetweets) <a
-                                href="https://twitter.com/dsymetweets/status/1524539611833380865?ref_src=twsrc%5Etfw">May
-                            11, 2022</a></blockquote>
-                </div>
-            </div>
-        </div>
-    </section>
-    <footer>
-        <ul>
-            <li>&copy; Fantomas <span id="year"></span></li>
-            <li><a href="mailto:info@fantomas.com"
-                   class="text-light text-decoration-none d-flex align-items-center">
-                <iconify-icon icon="ic:outline-email" width="24" height="24"></iconify-icon>
-                email us</a></li>
-        </ul>
-    </footer>
 </main>
-<div class="discord">
-    <strong>Join us on the F# Discord</strong>
-    <a href="https://discord.com/channels/196693847965696000/1493226271767924747">
-        <img alt="Discord image link"
-             src="https://img.shields.io/discord/196693847965696000?style=for-the-badge&logo=discord"/>
-    </a>
-</div>
-<script async defer src="https://buttons.github.io/buttons.js"></script>
-<script type="module">
-    import Typewriter from 'https://cdn.skypack.dev/typewriter-effect/dist/core';
-    import {scrollIntoView} from 'https://cdn.skypack.dev/scroll-js';
-    import copyTextToClipboard from 'https://cdn.skypack.dev/copy-text-to-clipboard';
+<footer>
+    <div>
+        <a href="https://github.com/fsprojects/fantomas">GitHub</a>
+        <a href="https://github.com/fsprojects/fantomas/issues/new/choose">Report an issue</a>
+        <a href="https://discord.com/channels/196693847965696000/1493226271767924747">F# Discord</a>
+        <a href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        <a href="https://www.nuget.org/packages/fantomas">NuGet</a>
+    </div>
+    <p>Fantomas is an <a href="https://github.com/fsprojects">fsprojects</a> incubation project.
+        <span id="year"></span></p>
+</footer>
+<script>
+    document.querySelector("#year").textContent = "© " + new Date().getFullYear();
 
-    new Typewriter('#core-title', {
-        strings: [
-            'Fantomas, the F# source code formatter',
-            'Fantomas inspires developers to write code in the same way',
-            'Powered by the F# compiler',
-            'Format F# code according to the community style guide'
-        ],
-        autoStart: true,
-        loop: true,
-        cursor: '_'
-    });
+    const video = document.querySelector("header video");
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const wide = matchMedia("(min-width: 768px)");
 
-    addEventListener("load", () => {
-        const video = document.querySelector("video");
-
-        function playVideoIfWideScreen() {
-            if (window.innerWidth > 768) {
-                video.setAttribute("autoplay", "");
-                video.play();
-            } else {
-                video.pause();
-            }
+    function syncVideo() {
+        if (wide.matches && !reduceMotion.matches) {
+            video.play().catch(() => {});
+        } else {
+            video.pause();
         }
+    }
 
-        playVideoIfWideScreen();
-        addEventListener("resize", playVideoIfWideScreen);
+    syncVideo();
+    wide.addEventListener("change", syncVideo);
+    reduceMotion.addEventListener("change", syncVideo);
 
-        const carouselIndicators = [...document.querySelectorAll(".carousel-indicators button")];
-        const slides = [...document.querySelectorAll(".carousel-item")];
-
-        function toggleSlide(activeIndex) {
-            carouselIndicators.forEach(btn => btn.classList.remove("active"));
-            carouselIndicators[activeIndex].classList.add("active");
-            slides.forEach(btn => btn.classList.remove("active"));
-            slides[activeIndex].classList.add("active");
-        }
-
-        carouselIndicators.forEach((button, idx) => {
-            button.addEventListener("click", () => {
-                toggleSlide(idx)
-            });
-        })
-
-        setInterval(() => {
-            const activeSlide = document.querySelector(".carousel-item.active");
-            if (activeSlide) {
-                const activeIndex = slides.indexOf(activeSlide);
-                const nextIndex = (activeIndex + 1) % slides.length;
-                toggleSlide(nextIndex);
-            }
-        }, 5000);
-
-        const getStartedButton = document.querySelector("#get-started-copy-button");
-        getStartedButton.addEventListener("click", () => {
-            const code = document.querySelector("#get-started code span").textContent.trim();
-            copyTextToClipboard(code);
-            getStartedButton.setAttribute("icon", "ri:check-line");
-            getStartedButton.nextElementSibling.textContent = "Copied!";
-
-            // Reset
-            setTimeout(() => {
-                getStartedButton.setAttribute("icon", "ph:copy-duotone");
-                getStartedButton.nextElementSibling.textContent = "Copy to clipboard";
-            }, 1000)
+    document.querySelectorAll("#get-started .copy").forEach(button => {
+        button.addEventListener("click", async () => {
+            const text = button.parentElement.querySelector("[data-copy]").textContent;
+            await navigator.clipboard.writeText(text);
+            button.classList.add("copied");
+            setTimeout(() => button.classList.remove("copied"), 1200);
         });
-
-        document.querySelector("#year").textContent = "" + new Date().getFullYear();
-    })
+    });
 </script>
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 </body>
-
 </html>
