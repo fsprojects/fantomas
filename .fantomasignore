@@ -2,3 +2,4 @@ obj/**/*.fs
 src/Fantomas.FCS/generated
 .deps
 tests/data
+scripts/hero-video/fixture

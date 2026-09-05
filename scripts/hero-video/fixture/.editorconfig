@@ -1,0 +1,3 @@
+root = true
+[*.fs]
+indent_size = 4
