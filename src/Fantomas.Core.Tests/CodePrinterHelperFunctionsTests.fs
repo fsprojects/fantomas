@@ -40,6 +40,7 @@ let ``+> will compose two functions`` () =
 
     // (+>) is very similar to `>>` in F#
     // There is an implementation detail but conceptually it is the same.
+    // The detail is shown in `+> stops composing once a short expression attempt is confirmed multiline` below.
     let h (context: Context) : Context =
         // This is the equivalent of `g (f context)`
         (f +> g) context
@@ -202,7 +203,7 @@ let ``trying multiple code paths`` () =
     Assert.AreEqual("This fits on\ntwo lines", code)
 
 // There are other various helper functions for code path fallback.
-// `isShortExpression`, `sepSpaceIfShortExpressionOrAddIndentAndNewline`, `leadingExpressionIsMultiline`, ...
+// `isShortExpression`, `sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth`, `leadingExpressionIsMultiline`, ...
 
 [<Test>]
 let ``printing trivia instructions`` () =
@@ -1104,3 +1105,73 @@ let ``autoIndentAndNlnIfExpressionExceedsPageWidth without trailing trivia still
         |> dump
 
     Assert.AreEqual("let x =\n    a long expression that does not fit\nnext", code)
+
+// ============================================================================
+// What a layout attempt costs
+// These tests show two things the signatures cannot: `+>` is not plain composition,
+// and every fallback runs the expression again.
+// ============================================================================
+
+[<Test>]
+let ``+> stops composing once a short expression attempt is confirmed multiline`` () =
+    // Inside a single-line attempt the WriterModel runs in ShortExpression mode.
+    // The first newline confirms that the attempt failed, and from then on `+>` no longer
+    // calls its right-hand side. The rest of the expression is never printed, which is what
+    // keeps a failed attempt cheap.
+    let mutable rightHandSideCalls = 0
+
+    let neverReached (ctx: Context) =
+        rightHandSideCalls <- rightHandSideCalls + 1
+        !- "never reached" ctx
+
+    let short = !-"first" +> sepNln +> neverReached
+    let fallback = !-"fallback"
+    let code = expressionFitsOnRestOfLine short fallback (mkLfCtx ()) |> dump
+
+    Assert.AreEqual("fallback", code)
+    Assert.AreEqual(0, rightHandSideCalls)
+
+    // In Standard mode `+>` always runs both sides, so the same function prints everything.
+    let code = short (mkLfCtx ()) |> dump
+    Assert.AreEqual("first\nnever reached", code)
+    Assert.AreEqual(1, rightHandSideCalls)
+
+[<Test>]
+let ``every fallback layer runs the expression once more`` () =
+    // A page width helper first prints the expression as a single-line attempt.
+    // When that fails, the events are rolled back and the expression is printed again as the long layout.
+    // A helper nested inside another helper is part of the outer attempt as well, so the innermost
+    // expression is printed once per layer that falls back, plus once for the outer attempt.
+    // A subtree wrapped in n of these helpers can therefore be printed n + 1 times.
+    // Decide the layout once, as high in the tree as possible, rather than at every level.
+    let mutable leafCalls = 0
+
+    let leaf (ctx: Context) =
+        leafCalls <- leafCalls + 1
+        !- "a leaf that is far too long for the page" ctx
+
+    let ctx () =
+        { mkLfCtx () with
+            Config =
+                { (mkLfCtx ()).Config with
+                    MaxLineLength = 20
+                }
+        }
+
+    // One helper: the attempt and the fallback.
+    let _ = autoIndentAndNlnIfExpressionExceedsPageWidth leaf (ctx ())
+    Assert.AreEqual(2, leafCalls)
+
+    // Two helpers: the outer attempt, then the inner attempt and the inner fallback.
+    leafCalls <- 0
+
+    let nested =
+        autoIndentAndNlnIfExpressionExceedsPageWidth (!-"x = " +> autoIndentAndNlnIfExpressionExceedsPageWidth leaf)
+
+    let _ = nested (ctx ())
+    Assert.AreEqual(3, leafCalls)
+
+    // A probe such as `futureNlnCheck` is a full run as well. Asking and then printing is two runs.
+    leafCalls <- 0
+    let _ = ifElseCtx (futureNlnCheck leaf) leaf leaf (ctx ())
+    Assert.AreEqual(2, leafCalls)
