@@ -52,6 +52,8 @@ type Context =
         Config: FormatConfig
         WriterModel: WriterModel
         WriterEvents: EventList
+        /// Where the cursor inserted by `Trivia.insertCursor` ended up in the output, once the
+        /// printer has passed it. Reported as `FormatResult.Cursor` by `dump`.
         FormattedCursor: pos option
         /// When enabled, genNode emits NodeStart/NodeEnd WriterEvents around each Oak node.
         /// Only used by CodeFormatter.GetWriterEventsAsync for diagnostic output.

@@ -1,4 +1,4 @@
-module Fantomas.Core.Tests.TokenParserTests
+module Fantomas.Core.Tests.DefinesTests
 
 open NUnit.Framework
 open FsUnit

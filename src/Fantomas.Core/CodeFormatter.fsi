@@ -9,10 +9,14 @@ type CodeFormatter =
     /// Parse a source string using given config
     static member ParseAsync: isSignature: bool * source: string -> Async<(ParsedInput * string list) array>
 
-    /// Format an abstract syntax tree
+    /// Format an abstract syntax tree.
+    /// Without the source, comments and blank lines are not in the tree and cannot be printed, and
+    /// literals are re-rendered from their values rather than kept as they were spelled.
     static member FormatASTAsync: ast: ParsedInput -> Async<string>
 
-    /// Format an abstract syntax tree using a given config
+    /// Format an abstract syntax tree using a given config.
+    /// Without the source, comments and blank lines are not in the tree and cannot be printed, and
+    /// literals are re-rendered from their values rather than kept as they were spelled.
     static member FormatASTAsync: ast: ParsedInput * config: FormatConfig -> Async<string>
 
     /// Format an abstract syntax tree with the original source for trivia processing
@@ -81,10 +85,11 @@ type CodeFormatter =
     /// Parse a source string to SyntaxOak
     static member ParseOakAsync: isSignature: bool * source: string -> Async<(Oak * string list) array>
 
-    /// Transform a ParsedInput to an Oak
+    /// Transform a ParsedInput to an Oak without trivia; the source is needed to attach comments and
+    /// blank lines and to keep the spelling of literals.
     static member TransformAST: ast: ParsedInput -> Oak
 
-    /// Transform a ParsedInput to an Oak
+    /// Transform a ParsedInput to an Oak, with the trivia found in the source attached to its nodes.
     static member TransformAST: ast: ParsedInput * source: string -> Oak
 
     /// Format SyntaxOak to string

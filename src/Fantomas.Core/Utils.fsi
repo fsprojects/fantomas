@@ -43,4 +43,9 @@ module Async =
 
 [<RequireQualifiedAccess>]
 module Continuation =
+    /// Run a list of continuation-passing computations one after the other and hand their results,
+    /// in order, to `finalContinuation`. This is how the transformer recurses over a list of
+    /// children without growing the stack: a deeply nested expression, such as a long chain of
+    /// infix operators or `elif` branches, would otherwise overflow it. Only worth its cost on the
+    /// few node kinds where the nesting can be deep; plain recursion is used everywhere else.
     val sequence<'a, 'ret> : recursions: (('a -> 'ret) -> 'ret) list -> finalContinuation: ('a list -> 'ret) -> 'ret
