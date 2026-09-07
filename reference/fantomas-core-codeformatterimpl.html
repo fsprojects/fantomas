@@ -446,7 +446,10 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       Format an abstract syntax tree using given config
+                       Format one abstract syntax tree using the given config.
+ With `sourceText` the Oak keeps the original spelling of literals and is enriched with trivia;
+ without it, comments and blank lines are gone and literals are re-rendered from their values.
+ `cursor` is inserted into the Oak before printing and reported back in the result.
                     </p>
                   </div>
                   <div class="icon-button-row">
@@ -572,12 +575,28 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       The full pipeline: parse per define combination, format each tree in parallel with the source
+ and cursor, and merge the results into one when there was more than one.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.CodeFormatterImpl.formatDocument\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.CodeFormatterImpl.formatDocument`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
@@ -621,7 +640,7 @@
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
         <tr>
@@ -740,12 +759,29 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Parse the source once per define combination. A source without conditional directives yields
+ a single tree with the empty combination. Raises `FormatException` when any parse has an
+ invalidating diagnostic.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.CodeFormatterImpl.parse\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.CodeFormatterImpl.parse`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
@@ -773,7 +809,7 @@
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
       </tbody>

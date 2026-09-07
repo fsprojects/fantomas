@@ -425,12 +425,28 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       The text of every comment in the source, normalised, so that the comments of the input and of
+ the output can be compared to prove none was lost.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.Trivia.collectCommentTextsFromAST\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.Trivia.collectCommentTextsFromAST`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
@@ -458,7 +474,7 @@
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
         <tr>
@@ -525,12 +541,40 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Attach everything the Oak does not represent, comments, blank lines and directives, to the
+ nodes it belongs with. Mutates `tree` in place and returns it.
+
+ Comments and directives come from the trivia the parser recorded; blank lines are read from the
+ source text. Each piece is attached to the smallest node whose range contains it, as
+ `ContentBefore` of the child that follows it or `ContentAfter` of the child that precedes it.
+
+ Which side wins depends on the kind of trivia. A comment after code on the same line goes after
+ the last node on that line. A comment on its own line goes before the next sibling, unless that
+ sibling is a closing bracket, or the comment is indented to the column of the previous sibling
+ while the next one is not. Blank lines before an indented comment travel with the comment.
+ Trivia outside every node is attached to the root.
+
+ The choices are illustrated in src/Fantomas.Core.Tests/TriviaAssignmentTests.fs.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.Trivia.enrichTree\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.Trivia.enrichTree`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
@@ -574,7 +618,7 @@
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
         <tr>
@@ -625,12 +669,28 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       The smallest node whose range contains `range`, found by descending into the first child that
+ still contains it. This is the node trivia and selections are resolved against.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.Trivia.findNodeWhereRangeFitsIn\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.Trivia.findNodeWhereRangeFitsIn`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
@@ -658,7 +718,7 @@
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
-            </div>
+            </details>
           </td>
         </tr>
         <tr>
@@ -714,8 +774,11 @@
                 <div class="fsdocs-summary">
                   <div class="fsdocs-summary-contents">
                     <p class="fsdocs-summary">
-                       Try and insert a cursor position as Trivia inside the Oak
- The cursor could either be inside a Node or floating around one.
+                       Record the editor's cursor in the Oak so that CodePrinter can report where it ends up.
+ When the cursor sits inside a `SingleTextNode`, the node remembers it and the printer reports
+ the same offset into the printed text. Otherwise a `Cursor` trivia is attached to the smallest
+ node around it, and the printer reports the position after that node. Mutates `tree` in place.
+ The end-to-end behaviour is in src/Fantomas.Core.Tests/CursorTests.fs.
                     </p>
                   </div>
                   <div class="icon-button-row">

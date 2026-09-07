@@ -553,7 +553,8 @@
           <div>
             <div class="fsdocs-summary-contents">
               <p class="fsdocs-summary">
-                
+                 The helpers in this module are illustrated, with the events they emit and the code they produce,
+ in src/Fantomas.Core.Tests/CodePrinterHelperFunctionsTests.fs. Read that file before this one.
               </p>
             </div>
             <div class="icon-button-row">
@@ -615,7 +616,9 @@
           <div>
             <div class="fsdocs-summary-contents">
               <p class="fsdocs-summary">
-                
+                 One set of defines the source is parsed and formatted under, such as `[ "DEBUG"; "NET" ]`.
+ A file with conditional directives is formatted once per combination and the results merged,
+ see `MultipleDefineCombinations`.
               </p>
             </div>
             <div class="icon-button-row">
@@ -1215,7 +1218,11 @@
           <div>
             <div class="fsdocs-summary-contents">
               <p class="fsdocs-summary">
-                
+                 Split the range of a node into the ranges of the tokens that delimit it, so the transformer can
+ give an opening or closing token a `SingleTextNode` of its own. `size` is the length of the
+ token in characters: 1 for `(`, 2 for `[|` or `{|`. The ranges are computed from the ends of the
+ node's range, not looked up, so they are only right when the token really is the first or last
+ thing in the node.
               </p>
             </div>
             <div class="icon-button-row">
