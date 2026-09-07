@@ -1,3 +1,5 @@
+/// The helpers in this module are illustrated, with the events they emit and the code they produce,
+/// in src/Fantomas.Core.Tests/CodePrinterHelperFunctionsTests.fs. Read that file before this one.
 module internal Fantomas.Core.Context
 
 open Fantomas.FCS.Text
@@ -35,7 +37,8 @@ type WriterModel =
         AtColumn: int
         /// text to be written before next newline
         WriteBeforeNewline: string
-        /// dummy = "fake" writer used in `autoNln`, `autoNlnByFuture`
+        /// Dummy is the probing writer used by `WithDummy` and the helpers built on it (`futureNlnCheck`, `exceedsWidth`).
+        /// ShortExpression is the single-line attempt made by `isShortExpression` and `expressionFitsOnRestOfLine`.
         Mode: WriteModelMode
         /// current length of last line of output
         Column: int
@@ -49,6 +52,8 @@ type Context =
         Config: FormatConfig
         WriterModel: WriterModel
         WriterEvents: EventList
+        /// Where the cursor inserted by `Trivia.insertCursor` ended up in the output, once the
+        /// printer has passed it. Reported as `FormatResult.Cursor` by `dump`.
         FormattedCursor: pos option
         /// When enabled, genNode emits NodeStart/NodeEnd WriterEvents around each Oak node.
         /// Only used by CodeFormatter.GetWriterEventsAsync for diagnostic output.

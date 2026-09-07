@@ -12,6 +12,7 @@
     <Compile Include="UtilsTests.fs" />
     <Compile Include="QueueTests.fs" />
     <Compile Include="DefinesTests.fs" />
+    <Compile Include="TriviaAssignmentTests.fs" />
     <Compile Include="StringTests.fs" />
     <Compile Include="CommentTests.fs" />
     <Compile Include="ShebangTests.fs" />
