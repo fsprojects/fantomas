@@ -188,7 +188,7 @@ docs/content/navbar.css
 docs/content/sidebar.css
 docs/global-config.css
 output/
-**/.fsdocs/cache
+**/.fsdocs/
 
 # F# Compiler files
 .deps/
