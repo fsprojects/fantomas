@@ -235,8 +235,15 @@ pipeline "Docs" {
                 "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
                 "DOTNET_ROLL_FORWARD", "LatestMajor"
             |]
-        run
-            $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --nonpublic"
+        run (fun ctx ->
+            let extraArgs =
+                fsi.CommandLineArgs
+                |> Array.skipWhile (fun arg -> arg <> "Docs")
+                |> Array.skip 1
+                |> String.concat " "
+
+            ctx.RunCommand
+                $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --nonpublic %s{extraArgs}")
     }
     runIfOnlySpecified true
 }

@@ -105,3 +105,5 @@ The wrapper functions `autoIndentAndNlnIfExpressionExceedsPageWidth`, `sepSpaceO
 ```
 
 `WriterModel.update` processes each event and updates these fields. The same function is used both during normal formatting and when splicing events (to keep the model in sync after an `InsertBefore`).
+
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

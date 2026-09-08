@@ -292,7 +292,7 @@ class FantomasSetting extends LitElement {
             <div>
                 ${!this.gr ? html`
                     <iconify-icon icon="${icon}" width="24" height="24"></iconify-icon>` : null}
-                ${this.gr ? html`<img src="${root}/images/gresearch.svg" alt="G-Research logo"/>` : null}
+                ${this.gr ? html`<img src="${root}images/gresearch.svg" alt="G-Research logo"/>` : null}
                 <div class="tooltip">${iconTooltip}</div>
             </div>`
     }

@@ -75,7 +75,7 @@ fsharp_multiline_bracket_style = stroustrup
 ## Trying your settings via the online tool
 You can quickly try your settings via the <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" target="_blank">online tool</a>.
 
-<img src="{{root}}/online_tool_usage.gif" alt="drawing" width="100%"/>
+<img src="{{root}}online_tool_usage.gif" alt="drawing" width="100%"/>
 *)
 
 (**

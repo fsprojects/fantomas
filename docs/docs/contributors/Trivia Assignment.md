@@ -144,3 +144,5 @@ Html.a [
 ```
 
 The formatted output is valid and idempotent but more verbose than necessary.
+
+<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

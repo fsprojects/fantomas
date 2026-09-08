@@ -17,6 +17,6 @@ Do note that the extension might not be up to date with the latest version of Fa
 3. Click Add and fill in the information  
 4. Run fantomas inside Tools -> fantomas
   
-<img src="{{root}}/images/vsmac-external-tool.png" alt="drawing" width="70%"/>
+<img src="{{root}}images/vsmac-external-tool.png" alt="drawing" width="70%"/>
 
 <fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
