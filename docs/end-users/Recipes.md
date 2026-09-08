@@ -403,3 +403,5 @@ let fix (getParseResultsForFile: GetParseResultsForFile) : CodeFix =
 ⚠️ The downside of this setting is that it only respects this style of formatting if it was already present in the original source.
 The problem with this approach is that the author of the original code decides whether this style is used.
 Discuss this with your team! ⚠️
+
+<fantomas-nav previous="FantomasClient.md" next="StyleGuide.md"></fantomas-nav>

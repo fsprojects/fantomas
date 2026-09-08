@@ -4,7 +4,7 @@ categoryindex: 1
 index: 2
 ---
 
-<link rel="stylesheet" type="text/css" href="https://fsprojects.github.io/fantomas/content/configuration.css" />
+<link rel="stylesheet" type="text/css" href="../../content/configuration.css" />
 # Configuration
 
 Fantomas ships with a limited series of options.
@@ -14,7 +14,7 @@ Your IDE should respect your settings, however the implementation of that is edi
 UI might be available depending on the IDE.
 
 ```
-version: 8.0.0-beta-001+00fd8194e78be8501fc7d97b392179ade94ea018
+version: 8.0.0-beta-001+99dadf0df476e8cb59dd03401922391f76033606
 ```
 
 ## Usage
@@ -39,7 +39,7 @@ fsharp_multiline_bracket_style = stroustrup
 
 You can quickly try your settings via the <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" target="_blank">online tool</a>.
 
-<img src="https://fsprojects.github.io/fantomas//online_tool_usage.gif" alt="drawing" width="100%"/>
+<img src="../../online_tool_usage.gif" alt="drawing" width="100%"/>
 ## Settings recommendations
 
 Fantomas ships with a series of settings that you can use freely depending  on your case.  
