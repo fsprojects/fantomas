@@ -960,6 +960,21 @@ let futureNlnCheck f (ctx: Context) =
     let isMultiLine, isLong = futureNlnCheckMem (f, ctx)
     isMultiLine || isLong
 
+let indentPast (column: int) (f: Context -> Context) (ctx: Context) : Context =
+    // Nothing is written yet, so this is where a fresh line lands if `f` indents once and
+    // breaks right here.
+    let freshLineColumn: int =
+        ctx.WithDummy(indent +> sepNln, keepPageWidth = true).Column
+
+    if freshLineColumn > column then
+        f ctx
+    else
+
+    // One whole level at a time, so every column stays a multiple of the indent size.
+    let levels: int = (column - freshLineColumn) / ctx.Config.IndentSize + 1
+
+    (rep levels indent +> f +> rep levels unindent) ctx
+
 let exceedsWidth maxWidth f (ctx: Context) =
     let dummyResult = ctx.WithDummy(f, keepPageWidth = true)
 

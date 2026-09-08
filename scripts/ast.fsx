@@ -5,9 +5,11 @@ open Shared
 
 let parseAst (input: string) (isSignature: bool) (defines: string list) =
     try
-        let ast =
+        let ast, diagnostics =
             Fantomas.FCS.Parse.parseFile isSignature (Fantomas.FCS.Text.SourceText.ofString input) defines
-            |> fst
+
+        for d in diagnostics do
+            eprintfn "Diagnostic: %A %A %s %A" d.Severity d.ErrorNumber d.Message d.Range
 
         $"%A{ast}"
     with ex ->

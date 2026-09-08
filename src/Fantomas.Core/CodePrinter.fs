@@ -1222,23 +1222,8 @@ let genChain (node: ExprChain) : Context -> Context =
         //
         // A dot level with the head, or left of it, reads as a new item rather than as the
         // chain continuing. Inside a parenthesis the parser agrees and refuses the output.
-
-        // Nothing is written yet, so this is the column the head will start on.
-        let headColumn: ChainColumn = ctx.Column
-
-        // Where a dot would land if we indented and broke the line right here.
-        let segmentColumn: ChainColumn =
-            ctx.WithDummy(indent +> sepNln, keepPageWidth = true).Column
-
-        if segmentColumn > headColumn then
-            genLeadingDotPipeline ctx
-        else
-
-        // One whole level at a time until the dots clear the head, so every column stays a
-        // multiple of the indent size.
-        let levels: int = (headColumn - segmentColumn) / ctx.Config.IndentSize + 1
-
-        (rep levels indent +> genLeadingDotPipeline +> rep levels unindent) ctx
+        // Nothing is written yet, so `ctx.Column` is the column the head will start on.
+        indentPast ctx.Column genLeadingDotPipeline ctx
 
     // Try the whole chain on one line first; otherwise `long` decides between keeping the
     // chain together (with wrapped arguments) and the leading-dot pipeline.
@@ -1781,13 +1766,18 @@ let genExpr (e: Expr) =
 
                 let layout: Context -> Context =
                     if operatorTakesItsOwnLine then
-                        genLeftHandSide
-                        +> indent
-                        +> sepNln
-                        +> genOperator
-                        +> sepNln
-                        +> genRhsExpr node.RightHandSide
-                        +> unindent
+                        // One level in from the enclosing indent is not always past the column
+                        // the left-hand side starts at: after `&& (` the two differ, and the
+                        // operator on that column is offside. See #3463.
+                        indentPast
+                            ctx.Column
+                            (genLeftHandSide
+                             +> indent
+                             +> sepNln
+                             +> genOperator
+                             +> sepNln
+                             +> genRhsExpr node.RightHandSide
+                             +> unindent)
                     else
                         // The right-hand side is indented when it moves down, so that a comment
                         // between it and the operator lands below the operator rather than at the
