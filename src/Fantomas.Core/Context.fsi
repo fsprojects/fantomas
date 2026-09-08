@@ -115,6 +115,13 @@ val atCurrentColumn: f: (Context -> Context) -> ctx: Context -> Context
 /// }
 /// `atCurrentColumn` was called on `X`, then `indent` was called, "some long string" have indent 6, because it is indented from `atCurrentColumn` pos (2).
 val atCurrentColumnIndent: f: (Context -> Context) -> ctx: Context -> Context
+/// Run `f`, which indents once and breaks the line, with whole indent levels added in front of
+/// it until that fresh line starts past `column`. Nothing is added when it already does.
+/// Use it when what `f` writes on the fresh line is offside of whatever starts at `column`: a
+/// chain's dot on the column of its head, or a `<` on the column of its left-hand side, both
+/// read as a new item there. Unlike `atCurrentColumnIndent` it leaves the indent relative, so
+/// every column stays a multiple of the indent size and nothing under `f` is rebased.
+val indentPast: column: int -> f: (Context -> Context) -> ctx: Context -> Context
 
 /// Indent and open a new line, taking trailing trivia into account.
 /// When the emitted content ends with a comment, the indent is spliced in ahead of that comment

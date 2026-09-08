@@ -121,3 +121,46 @@ let a =
     AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
     BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
 """
+
+[<Test>]
+let ``indentPast leaves the indent alone when a fresh line already clears the column`` () =
+    let expression =
+        !-"let a ="
+        +> indent
+        +> sepNln
+        +> (fun ctx -> indentPast ctx.Column (!-"x" +> indent +> sepNln +> !-"<" +> unindent) ctx)
+        +> unindent
+        +> sepNln
+
+    let result = dump (expression Context.Default)
+
+    result
+    |> prepend newline
+    |> String.normalizeNewLine
+    |> should
+        equal
+        """
+let a =
+    x
+        <
+"""
+
+[<Test>]
+let ``indentPast adds whole levels until a fresh line clears the column`` () =
+    let expression =
+        !-"let a = ("
+        +> (fun ctx -> indentPast ctx.Column (!-"x" +> indent +> sepNln +> !-"<" +> unindent) ctx)
+        +> !-")"
+        +> sepNln
+
+    let result = dump (expression Context.Default)
+
+    result
+    |> prepend newline
+    |> String.normalizeNewLine
+    |> should
+        equal
+        """
+let a = (x
+            <)
+"""

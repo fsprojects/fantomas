@@ -484,3 +484,33 @@ let q =
             otherThingLong
     @>
 """
+
+[<Test>]
+let ``the operator takes its own line one level in from the left-hand side, 3463`` () =
+    formatSourceString
+        """
+let isPointInsidePolygon (polygon: Point list) (p: Point) =
+    pairs
+    |> Seq.filter (fun (pi, pj) ->
+        ((pi.Latitude < p.Latitude && pj.Latitude >= p.Latitude)
+         || (pj.Latitude < p.Latitude && pi.Latitude >= p.Latitude))
+        && (pi.Longitude
+            + (p.Latitude - pi.Latitude) / (pj.Latitude - pi.Latitude)
+              * (pj.Longitude - pi.Longitude) < p.Longitude))
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let isPointInsidePolygon (polygon: Point list) (p: Point) =
+    pairs
+    |> Seq.filter (fun (pi, pj) ->
+        ((pi.Latitude < p.Latitude && pj.Latitude >= p.Latitude)
+         || (pj.Latitude < p.Latitude && pi.Latitude >= p.Latitude))
+        && (pi.Longitude
+            + (p.Latitude - pi.Latitude) / (pj.Latitude - pi.Latitude)
+              * (pj.Longitude - pi.Longitude)
+                <
+                p.Longitude))
+"""

@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.0-beta-002] - 2026-09-08
+
+### Fixed
+
+- Unexpected symbol '<' in expression - Fantomas 8 regression. When the left-hand side of `=`, `>`, `<`, `%` or `%%` spans several lines, the operator takes a line of its own one level in, as `8.0.0-beta-001` introduced. That level was measured from the enclosing indent rather than from the column the left-hand side starts at. The two are the same at the start of a binding, and differ after something like `&& (`, where the operator then landed on the column of the left-hand side and was offside: the parser read `<` as the start of a type application and rejected the output. The layout now asks where its fresh line would land and adds whole indent levels until that clears the left-hand side, the way a chain's dots have cleared its head since `8.0.0-alpha-024`, so the operator and the right-hand side sit one level to the right of it and every column stays a multiple of the indent size. That shared step is `indentPast` in `Context.fs`, the helper [#3446](https://github.com/fsprojects/fantomas/issues/3446) asked for once a second caller turned up. [#3463](https://github.com/fsprojects/fantomas/issues/3463)
+
 ## [8.0.0-beta-001] - 2026-09-01
 
 ### Changed
