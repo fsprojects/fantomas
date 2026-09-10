@@ -44,11 +44,11 @@ Say up front that the builds are long and CPU heavy, and run them in the backgro
 
 Before touching any version, run the pinned version's `--check` and establish the scope it must
 pass. When the docs and CI disagree on which paths to format, trust CI: that is the scope the
-project actually enforces, and the rest is drift they have chosen to live with. FsAutoComplete's
-CONTRIBUTING says to format `src/ test/`, but its CI has only ever checked `build.fsx src`; its
-`test/` tree holds intentionally unparseable fixtures and has never been formatted. Reformatting
-that scope on their behalf is churn they did not ask for, and can break fixture-sensitive tests in
-ways a build will not catch. Only widen beyond the CI scope when they clearly want it.
+project actually enforces, and the rest is drift they have chosen to live with. The usual shape is
+a `test/` tree that the contributing guide says to format and CI never checks, full of fixtures
+that are intentionally unparseable. Reformatting that scope on their behalf is churn they did not
+ask for, and can break fixture-sensitive tests in ways a build will not catch. Only widen beyond
+the CI scope when they clearly want it.
 
 If the check fails on the enforced scope, the base state is dirty, and the first commit on the
 trial branch is fixing that: format with the pinned version, build, and commit as the rung-zero

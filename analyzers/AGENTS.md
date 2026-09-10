@@ -156,15 +156,13 @@ The analyzer is narrower than the rule, because moving a body left can change wh
   on that has any content, and compares its indentation. Whatever shares the match's last line moves
   with the body and keeps its place, which is how a closing bracket stays out of it.
 
-  That is deliberately a question about text rather than about the tree, and it is the third
-  attempt. Collecting `SynExpr.Sequential` pairs missed the `json.WriteEndObject()` after the match
-  in `writeDoctorFile`, so it ran for one case out of three and every doctor report came out as
-  truncated JSON. Flattening those sequences properly then missed the `|> genNode attr` under the
-  match in `genAttributesCore`, which applied to the whole match and would have applied to one arm,
-  so everything reached through the other arm lost its trivia and the compiler-define tests failed.
-  Both were shapes to enumerate and there was always going to be another one. The text has none, and
-  it costs a comment its place at worst: a comment under the match counts as content, so the rule
-  stays quiet rather than move it into the arm.
+  That is deliberately a question about text rather than about the tree. Asking the tree what
+  follows a match means enumerating shapes, and there is always another one: the
+  `json.WriteEndObject()` after the match in `writeDoctorFile` sits in a `SynExpr.Sequential`
+  pair, and the `|> genNode attr` under the match in `genAttributesCore` applies to the whole
+  match and would have applied to one arm. The text has no shapes, and it costs a comment its
+  place at worst: a comment under the match counts as content, so the rule stays quiet rather
+  than move it into the arm.
 
 It stays quiet on a `when` guard, because a multiline guard takes a path in `CodePrinter` that
 indents the body whatever column it is in, and whether a guard prints multiline is a page width
@@ -228,9 +226,8 @@ A declaration the signature file does not carry is left alone, doc comment and a
 second copy to keep in step, so there is nothing for the rule to be about: write `///` on a private
 helper in a file that has an `.fsi` and nothing complains.
 
-The rule used to report every `///` in a file that had a signature file, because it could not tell
-which of them were duplicated, and the answer there was to write `//` instead. That is no longer
-the convention, and the `//` comments left over from it are not worth converting on sight.
+A `//` comment on a declaration the signature file documents is not a doc comment and duplicates
+nothing tooling reads. Leave it; it is not worth converting on sight.
 
 What it asks the compiler is `FSharpSymbol.SignatureLocation`, and that is worth knowing before
 using it elsewhere: it is not the yes or no it reads as. For a symbol the signature does not carry it
@@ -262,10 +259,9 @@ same way.
 Two things it does not see, both inherited from the compiler's own detection: an `open` that only
 brings an operator into scope, and one that only brings a type extension into scope. FsAutoComplete
 ships this analyzer disabled by default where it ships the parentheses one enabled, which is the
-clearest available signal about how far to trust it. Nothing in this repository triggers either gap
-today: every finding of the first full run was real, and the whole solution still built with all
-eight of them removed. But a finding that looks wrong is worth checking against the build before
-acting on it, because deleting a needed `open` breaks the build rather than failing quietly.
+clearest available signal about how far to trust it. A finding that looks wrong is worth checking
+against the build before acting on it, because deleting a needed `open` breaks the build rather
+than failing quietly.
 
 Generated sources are excluded rather than reported. `scripts/BuildAnalyzers.fsx` passes
 `**/*.AssemblyInfo.fs` to `--exclude-files`: MSBuild writes one per project under `obj`, opening
@@ -409,14 +405,14 @@ declaration, because the harness type checks it as part of a project and raises 
 error. Give every rule a test for the finding and a test for each shape that looks like it but is
 not.
 
-Two things about that harness are worth knowing, because both have already cost a day.
+Two things about that harness are worth knowing.
 
 `mkOptionsFromProject` is not cheap or hermetic. It runs `dotnet new classlib` and `dotnet build` in
 a temporary folder and reads the binlog, caching it in the temp directory. The framework it is given
-has to be one the machine can actually build: it was `net8.0` first, which passed on a developer
-machine with an old SDK lying around and failed every test in the dev container, which carries only
-.NET 10. It is `net10.0` now, matching `global.json`, so it works wherever this repository builds at
-all. It also catches its own failures and hands back empty options, which surfaces later as an
+has to be one every machine that builds this repository can build, which is why it is the `net10.0`
+of `global.json`: a framework that only an older SDK lying around on one machine provides passes
+there and fails in the dev container, which carries only .NET 10. It also catches its own failures
+and hands back empty options, which surfaces later as an
 exception about critical errors in the project options and names nothing useful, so the fixture
 checks the options came back non-empty and says so plainly if they did not.
 
