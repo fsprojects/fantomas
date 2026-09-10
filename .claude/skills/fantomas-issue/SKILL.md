@@ -72,10 +72,8 @@ Add an entry under the `## [Unreleased]` section. Never add to an already-publis
 - For `bug (stylistic)` fixes related to a style guide, add under `### Changed`:
   `- Update style of xyz. [#1234](https://github.com/fsprojects/fantomas/issues/1234)`
 
-## 8. Run analyzers
+## 8. Post-task steps
 
-Run `dotnet msbuild /t:AnalyzeSolution` to check for analyzer warnings/errors.
-
-## 9. Format edited files
-
-Run `dotnet fantomas <file>` on all `.fs` and `.fsx` files you edited to ensure they conform to the project's formatting standard.
+Run `dotnet fsi build.fsx -- -p FormatChanged`, then `dotnet fsi build.fsx -- -p AnalyzeChanged`,
+and read `analysis.sarif` afterwards: the analyzer run exits 0 whatever it found. The Post-task
+Steps section of `AGENTS.md` says what each one covers.

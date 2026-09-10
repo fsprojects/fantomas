@@ -55,8 +55,7 @@ mkdir -p .deps/.fcs-walk
 grep -oE '"src/Compiler/[^"]+"' build.fsx | tr -d '"' | sort -u > .deps/.fcs-walk/vendored-files.txt
 ```
 
-Regenerate it whenever `build.fsx` is newer than the cache file, otherwise reuse it. It is about
-85 paths.
+Regenerate it whenever `build.fsx` is newer than the cache file, otherwise reuse it.
 
 `commits/<sha>.tsv` — the changed-file list of one upstream commit. A commit's file list never
 changes, so this is cacheable forever and saves an API round trip on every later run. Read from
@@ -78,10 +77,11 @@ gh api repos/dotnet/fsharp/commits/<current-hash> --jq '.commit.committer.date, 
 
 ```
 gh api "repos/dotnet/fsharp/commits?path=src/Compiler/SyntaxTree&sha=main&since=<date>&per_page=100" \
-  --paginate --jq '.[] | [.sha, .commit.committer.date, (.commit.message | split("\n")[0])] | @tsv' | tail -r
+  --paginate --jq '.[] | [.sha, .commit.committer.date, (.commit.message | split("\n")[0])] | @tsv' \
+  | sort -t "$(printf '\t')" -k2,2
 ```
 
-`tail -r` reverses to oldest-first (this is macOS, there is no `tac`). `since` is inclusive, so
+The sort on the ISO date column puts the rows oldest-first on any platform. `since` is inclusive, so
 the first row is the current hash itself. Drop it.
 
 If nothing is left, report that Fantomas is up to date with the SyntaxTree folder and stop.

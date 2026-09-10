@@ -27,8 +27,8 @@ fetch https://raw.githubusercontent.com/G-Research/fsharp-formatting-conventions
 fetch https://raw.githubusercontent.com/G-Research/fsharp-formatting-conventions/master/.editorconfig g-research.editorconfig
 ```
 
-The `.etag` files next to the documents are what make the second run free; keep them. Verified that
-a repeat run leaves the file byte for byte intact rather than truncating it.
+The `.etag` files next to the documents are what make the second run free; keep them. On a match
+curl writes nothing, so the document is left intact.
 
 ## The sources
 
