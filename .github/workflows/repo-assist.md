@@ -42,6 +42,9 @@ if: needs.pre_activation.outputs.check_result == 'success'
 
 timeout-minutes: 60
 
+concurrency:
+  job-discriminator: ${{ github.run_id }}
+
 permissions: read-all
 
 network:
