@@ -9,7 +9,7 @@ let parseAndFormat sourceCode =
     let ast =
         CodeFormatter.ParseAsync(false, source = sourceCode)
         |> Async.RunSynchronously
-        |> Seq.head
+        |> Array.head
         |> fst
 
     let config =

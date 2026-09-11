@@ -349,10 +349,10 @@ walk up, because they cannot restore under the repository's central package mana
 NU1109 rather than a warning. Inheriting the root would also hand them version-less package
 references that only resolve under central package management.
 
-The two projects target different frameworks on purpose. `Fantomas.Analyzers` is `net8.0`, because
-that is what the `fsharp-analyzers` tool loads, and a `net10.0` assembly fails to load when the tool
-runs on the .NET 8 runtime. `Fantomas.Analyzers.Tests` is `net10.0`, like the rest of the solution,
-because nothing loads it as an analyzer.
+`Fantomas.Analyzers` has to target the framework the `fsharp-analyzers` tool runs on, `net10.0`
+since SDK 0.38.0, because the tool cannot load an assembly built for another runtime. The rest of
+the solution happens to target the same, but the two are pinned for different reasons and only the
+analyzer project moves when the tool does.
 
 ## Two ways a rule silently does nothing
 

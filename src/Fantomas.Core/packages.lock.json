@@ -16,15 +16,15 @@
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
-        "requested": "[0.23.0, )",
-        "resolved": "0.23.0",
-        "contentHash": "OySQ+6afD54e0P4bhGFS7DS7ijVP0tm4MgKw+Qn+JSyr0ObSktOoRGYO2mxUX7wzNuxr/67xO2JkXrkwBWwlnA=="
+        "requested": "[0.25.0, )",
+        "resolved": "0.25.0",
+        "contentHash": "P+u0uXq1PRVD1Wto9j0JrZHJ8JmmSwJM6ogq6mqX849JRrqcsWmgFR3+oRSy4EmrYwtMfCSgp6D+LWe6yAtvSg=="
       },
       "Ionide.Analyzers": {
         "type": "Direct",
-        "requested": "[0.17.0, )",
-        "resolved": "0.17.0",
-        "contentHash": "vTlenH0GbY+MGQHa26EeFaNIf4AfmVa9Jha2DJCTJxFZlYcr11Phi1ngq/Rabpn3Xii/Ri0ZWFqMjI90KgQEMQ=="
+        "requested": "[0.19.0, )",
+        "resolved": "0.19.0",
+        "contentHash": "FBp/etThPSWhbvlM8wLxWtGYWgZ768yYjhwW83y18xZI9VBniG6kFVy4TEleyDkB7QnqfUgVepbT6ryHHFnZEA=="
       },
       "Ionide.KeepAChangelog.Tasks": {
         "type": "Direct",

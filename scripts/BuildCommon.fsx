@@ -123,7 +123,10 @@ type ChangedLines =
 let changedLines () : Async<Map<string, ChangedLines>> =
     async {
         let! files = changedFiles ()
-        let! exitCode, stdout, stdErr = runGitCommand "diff -U0 HEAD --"
+        // The prefixes are spelled out because `diff.mnemonicPrefix` turns them into `c/` and `w/`,
+        // which the header match below would read as no file at all.
+        let! exitCode, stdout, stdErr =
+            runGitCommand "diff -U0 --src-prefix=a/ --dst-prefix=b/ HEAD --"
 
         if exitCode <> 0 then
             failwith $"Could not read the git diff.\n{stdErr}"

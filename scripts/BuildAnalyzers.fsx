@@ -93,7 +93,7 @@ let localAnalyzerPath: string =
     </> "Fantomas.Analyzers"
     </> "bin"
     </> "Release"
-    </> "net8.0"
+    </> "net10.0"
 
 /// The analyzers are in the solution, so `Build` compiles and tests them along with everything
 /// else. The `Analyze` pipelines do not depend on `Build` having run, so they build them again,
@@ -302,12 +302,14 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
 /// Whatever is analyzed here is what `analysis.sarif` holds afterwards, so a run over a couple of
 /// files replaces the report of an earlier run over the solution.
 ///
-/// The local rules that report at error severity, and so fail a run when they fire.
+/// Every local rule, as the pattern the `--treat-as-*` switches take since fsharp-analyzers 0.39.0.
 ///
-/// `AnalyzeChanged` demotes these, because the run you do while working should report everything
-/// and stop for nothing. `Analyze` leaves them alone, so CI is where they bite.
-let localErrorRules: string list =
-    [ "FANTOMAS-PIPEBACK-001"; "FANTOMAS-PRIVATE-001" ]
+/// Two of them report at error severity, and so fail a run when they fire. `AnalyzeChanged` demotes
+/// these, because the run you do while working should report everything and stop for nothing.
+/// `Analyze` leaves them alone, so CI is where they bite. The pattern rather than the two codes,
+/// so that a rule changing severity, or a new one arriving at error, needs no edit here. The others
+/// already report at warning, and a demotion to what they are is a no-op.
+let localRulesPattern: string = "FANTOMAS-*"
 
 /// The local analyzers that are kept out of the full run.
 ///
