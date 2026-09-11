@@ -1,17 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!--
-    net8.0 is what the fsharp-analyzers tool targets and what Ionide.Analyzers and
-    G-Research.FSharp.Analyzers ship. A net10.0 assembly fails to load when the tool runs on the
-    .NET 8 runtime.
+    net10.0 is what the fsharp-analyzers tool targets since 0.38.0, and what Ionide.Analyzers and
+    G-Research.FSharp.Analyzers ship. The tool only loads an assembly built for the runtime it runs
+    on, so this has to follow the tool.
     -->
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <!-- The SDK only ever looks at files matching *Analyzer*.dll, so the name is load bearing. -->
     <AssemblyName>Fantomas.Analyzers</AssemblyName>
     <RootNamespace>Fantomas.Analyzers</RootNamespace>
     <IsPackable>false</IsPackable>
     <!--
-    FSharp.Analyzers.SDK depends on FSharp.Core at exactly 10.1.201, where the repository pins
+    FSharp.Analyzers.SDK depends on FSharp.Core at exactly 10.1.400, where the repository pins
     10.0.100 centrally. Under central package management that is NU1109, a hard error, so this
     project opts out and carries its versions inline. Keeping them here also puts the SDK version
     next to the analyzers rather than in the product's package list.
@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Must track the fsharp-analyzers version pinned in .config/dotnet-tools.json. -->
-    <PackageReference Include="FSharp.Analyzers.SDK" Version="0.37.2" />
-    <PackageReference Include="FSharp.Core" Version="10.1.201" />
+    <PackageReference Include="FSharp.Analyzers.SDK" Version="0.39.0" />
+    <PackageReference Include="FSharp.Core" Version="10.1.400" />
   </ItemGroup>
 </Project>

@@ -28,6 +28,7 @@ let triviaOf (parsedInput: ParsedInput) : range list * range list =
             | ConditionalDirectiveTrivia.Else range -> range
             | ConditionalDirectiveTrivia.EndIf range -> range
             | ConditionalDirectiveTrivia.If(range = range) -> range
+            | ConditionalDirectiveTrivia.Elif(range = range) -> range
         )
 
     commentRanges, directiveRanges

@@ -548,7 +548,7 @@ pipeline "AnalyzeChanged" {
                 // Everything reports and nothing fails. Warning rather than something lower
                 // because these are still findings to act on, and the tool prints every severity
                 // either way; the only thing being given up here is the non-zero exit.
-                let demoteLocalErrors: string list = "--treat-as-warning" :: localErrorRules
+                let demoteLocalErrors: string list = [ "--treat-as-warning"; localRulesPattern ]
 
                 match targetsFor files with
                 | [] ->
