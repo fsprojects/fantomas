@@ -11,11 +11,11 @@ let nameOf (processPath: string option) : string =
     | None -> "fantomas"
     | Some path ->
 
-    match Path.GetFileNameWithoutExtension path with
-    | "" -> "fantomas"
-    | executable ->
+    let executable: string = Path.GetFileNameWithoutExtension path
 
-    if String.Equals(executable, "dotnet", StringComparison.OrdinalIgnoreCase) then
+    if String.IsNullOrEmpty executable then
+        "fantomas"
+    elif String.Equals(executable, "dotnet", StringComparison.OrdinalIgnoreCase) then
         "dotnet fantomas"
     else
         executable

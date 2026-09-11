@@ -246,7 +246,7 @@ let rec visitLastChildNode (node: Node) : Node =
         if Array.isEmpty node.Children then
             node
         else
-            visitLastChildNode (Seq.last node.Children)
+            visitLastChildNode (Array.last node.Children)
     | _ -> node
 
 let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
@@ -369,7 +369,7 @@ let assignTriviaToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) :
 let blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
     let nodeAfter =
         containerNode.Children
-        |> Seq.tryFind (fun tn ->
+        |> Array.tryFind (fun tn ->
             let range = tn.Range
 
             (range.StartLine > trivia.Range.StartLine)
@@ -379,7 +379,7 @@ let blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) :
 
     let nodeBefore =
         containerNode.Children
-        |> Seq.tryFindBack (fun tn ->
+        |> Array.tryFindBack (fun tn ->
             let range = tn.Range
 
             range.EndLine <= trivia.Range.StartLine
