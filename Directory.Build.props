@@ -1,5 +1,15 @@
 <Project>
     <PropertyGroup>
+        <!--
+        Keep FSharp.Core out of the SDK's `library-packs` folder and take it from NuGet like any
+        other package. The SDK ships its own build of FSharp.Core there and adds the folder as a
+        restore source, so an SDK whose bundled version equals the one pinned here wins over
+        nuget.org. That build is not byte for byte the published one, so `packages.lock.json`
+        then records a hash no machine without that SDK can reproduce, and restore fails with
+        NU1403. Pointing the folder at a path that does not exist drops it as a source, because
+        the SDK only adds it `Condition="Exists(...)"`.
+        -->
+        <_FSharpCoreLibraryPacksFolder>$(MSBuildThisFileDirectory)no-library-packs</_FSharpCoreLibraryPacksFolder>
         <!-- Set up version and package release note generation from this changelog. -->
         <ChangelogFile>$(MSBuildThisFileDirectory)CHANGELOG.md</ChangelogFile>
         <!-- Common packaging properties for all packages in this repo -->
