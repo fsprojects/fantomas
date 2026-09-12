@@ -1,12 +1,12 @@
-#r "nuget: CliWrap, 3.6.4"
-#r "nuget: FSharp.Data, 6.3.0"
+#r "nuget: Fun.Build, 1.2.0"
+#r "nuget: FSharp.Data, 8.2.0"
 
 open System
 open System.IO
 open System.Xml.Linq
 open System.Xml.XPath
-open CliWrap
-open CliWrap.Buffered
+open Fun.Build
+open Fun.Build.Internal
 open FSharp.Data
 // Loaded by `build.fsx`, after `BuildCommon.fsx`. An error here saying BuildCommon is not defined
 // means this file was run on its own; it is a library, so run a pipeline from build.fsx instead.
@@ -104,24 +104,21 @@ let buildLocalAnalyzers: string =
 /// Where the analyzers live on disk. The two packages are ordinary package references, so MSBuild
 /// already knows the restored path of each and there is no second place to keep the version in
 /// sync. The third is ours, and is built by the pipeline that is about to use it.
-let analyzerPaths () : Async<string list> =
+let analyzerPaths (ctx: StageContext) : Async<string list> =
     async {
         if not (File.Exists(localAnalyzerPath </> "Fantomas.Analyzers.dll")) then
             failwith
                 $"The local analyzers are not built. Expected an assembly in {localAnalyzerPath}.\nRun `dotnet build analyzers/Fantomas.Analyzers -c Release` first."
 
         let! result =
-            Cli
-                .Wrap("dotnet")
-                .WithArguments(
-                    "msbuild src/Fantomas/Fantomas.fsproj -getProperty:PkgIonide_Analyzers "
-                    + "-getProperty:PkgG-Research_FSharp_Analyzers"
-                )
-                .WithWorkingDirectory(repositoryRoot)
-                .WithValidation(CommandResultValidation.None)
-                .ExecuteBufferedAsync()
-                .Task
-            |> Async.AwaitTask
+            ctx.RunCommandCaptureAll(
+                "dotnet msbuild src/Fantomas/Fantomas.fsproj "
+                + "-getProperty:PkgIonide_Analyzers "
+                + "-getProperty:PkgG-Research_FSharp_Analyzers",
+                workingDir = repositoryRoot,
+                disablePrintCommand = true,
+                disablePrintOutput = true
+            )
 
         if result.ExitCode <> 0 then
             failwith $"Could not resolve the analyzer packages. Run `dotnet restore` first.\n{result.StandardError}"
@@ -461,9 +458,14 @@ let narrowReport (keep: FindingFilter) (report: string) : unit =
 /// the stage rather than passing for want of findings.
 ///
 /// `extraArguments` is passed to every invocation, and is how the two pipelines differ.
-let analyzeTargets (extraArguments: string list) (keep: FindingFilter) (targets: AnalysisTarget list) : Async<int> =
+let analyzeTargets
+    (ctx: StageContext)
+    (extraArguments: string list)
+    (keep: FindingFilter)
+    (targets: AnalysisTarget list)
+    : Async<int> =
     async {
-        let! analyzers = analyzerPaths ()
+        let! analyzers = analyzerPaths ctx
 
         if Directory.Exists analysisReportsDir then
             Directory.Delete(analysisReportsDir, true)
@@ -488,9 +490,8 @@ let analyzeTargets (extraArguments: string list) (keep: FindingFilter) (targets:
                 let report = analysisReportsDir </> $"{name}.sarif"
                 let started = DateTime.UtcNow
 
-                let arguments =
+                let arguments: string list =
                     [
-                        "fsharp-analyzers"
                         // Neither of these is source anybody wrote. The test SDK generates its
                         // entry point into the compilation from the package cache, and MSBuild
                         // generates an `AssemblyInfo` per project under `obj`. Both are part of
@@ -522,15 +523,15 @@ let analyzeTargets (extraArguments: string list) (keep: FindingFilter) (targets:
                         repositoryRoot </> target.Project
                     ]
 
+                let command: string = arguments |> List.map quoteArgument |> String.concat " "
+
                 let! result =
-                    Cli
-                        .Wrap("dotnet")
-                        .WithArguments(arguments)
-                        .WithWorkingDirectory(repositoryRoot)
-                        .WithValidation(CommandResultValidation.None)
-                        .ExecuteBufferedAsync()
-                        .Task
-                    |> Async.AwaitTask
+                    ctx.RunCommandCaptureAll(
+                        $"dotnet fsharp-analyzers {command}",
+                        workingDir = repositoryRoot,
+                        disablePrintCommand = true,
+                        disablePrintOutput = true
+                    )
 
                 narrowReport keep report
 
