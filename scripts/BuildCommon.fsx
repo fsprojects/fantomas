@@ -1,9 +1,11 @@
-#r "nuget: CliWrap, 3.6.4"
+#r "nuget: Fun.Build, 1.2.0"
 
 open System
 open System.IO
-open CliWrap
-open CliWrap.Buffered
+open Fun.Build
+// `StageContext` is the type every command runs through, and Fun.Build puts it here rather than
+// beside the builders. A pipeline never has to name it; anything a `run` step hands off to does.
+open Fun.Build.Internal
 
 // This file is loaded by `build.fsx`. It defines things and runs nothing, so a direct run would
 // look like a success while doing no work at all. Say so instead.
@@ -59,14 +61,28 @@ let cleanFolders (input: string seq) : Async<unit> =
                 do! deleteDirectory 1 dir
     }
 
-let runGitCommand (arguments: string) =
+/// Run a git command in the repository root and hand back what it said, whatever the exit code was.
+///
+/// Neither the command nor its output is printed: every caller here reads the output rather than
+/// showing it, and a `git status` scrolling past says nothing about the stage that asked for it.
+let runGitCommand (ctx: StageContext) (arguments: string) : Async<int * string * string> =
     async {
         let! result =
-            Cli.Wrap("git").WithArguments(arguments).WithWorkingDirectory(repositoryRoot).ExecuteBufferedAsync().Task
-            |> Async.AwaitTask
+            ctx.RunCommandCaptureAll(
+                $"git {arguments}",
+                workingDir = repositoryRoot,
+                disablePrintCommand = true,
+                disablePrintOutput = true
+            )
 
         return result.ExitCode, result.StandardOutput, result.StandardError
     }
+
+/// Quote one argument of a command line, so a path with a space in it stays a single argument.
+///
+/// Fun.Build takes a command as one string and splits it back apart on whitespace, unless quotes
+/// say otherwise.
+let quoteArgument (argument: string) : string = $"\"{argument}\""
 
 /// The files git reports as changed in the working tree, as paths relative to the repository root.
 ///
@@ -77,10 +93,10 @@ let runGitCommand (arguments: string) =
 /// Untracked files are asked for one by one. Git otherwise reports a new folder as a single entry
 /// and the files inside it are never named, which is exactly the case of a feature that arrives as
 /// a new folder of sources.
-let changedFiles () : Async<string list> =
+let changedFiles (ctx: StageContext) : Async<string list> =
     async {
         let! exitCode, stdout, stdErr =
-            runGitCommand "status --porcelain --untracked-files=all"
+            runGitCommand ctx "status --porcelain --untracked-files=all"
 
         if exitCode <> 0 then
             failwith $"Could not read the git status.\n{stdErr}"
@@ -120,13 +136,13 @@ type ChangedLines =
 /// `git diff HEAD` covers staged and unstaged changes alike, and `-U0` asks for no context lines,
 /// so every hunk header names exactly the lines that differ. An untracked file has no diff to read
 /// and is new in its entirety.
-let changedLines () : Async<Map<string, ChangedLines>> =
+let changedLines (ctx: StageContext) : Async<Map<string, ChangedLines>> =
     async {
-        let! files = changedFiles ()
+        let! files = changedFiles ctx
         // The prefixes are spelled out because `diff.mnemonicPrefix` turns them into `c/` and `w/`,
         // which the header match below would read as no file at all.
         let! exitCode, stdout, stdErr =
-            runGitCommand "diff -U0 --src-prefix=a/ --dst-prefix=b/ HEAD --"
+            runGitCommand ctx "diff -U0 --src-prefix=a/ --dst-prefix=b/ HEAD --"
 
         if exitCode <> 0 then
             failwith $"Could not read the git diff.\n{stdErr}"

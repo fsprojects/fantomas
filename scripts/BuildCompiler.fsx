@@ -1,5 +1,4 @@
-#r "nuget: CliWrap, 3.6.4"
-#r "nuget: FSharp.Data, 6.3.0"
+#r "nuget: FSharp.Data, 8.2.0"
 
 open System.IO
 open System.Xml.Linq

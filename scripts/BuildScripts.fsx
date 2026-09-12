@@ -1,9 +1,9 @@
-#r "nuget: CliWrap, 3.6.4"
+#r "nuget: Fun.Build, 1.2.0"
 
 open System.IO
 open System.Text.RegularExpressions
-open CliWrap
-open CliWrap.Buffered
+open Fun.Build
+open Fun.Build.Internal
 // Loaded by `build.fsx`, after `BuildCommon.fsx`. An error here saying BuildCommon is not defined
 // means this file was run on its own; it is a library, so run a pipeline from build.fsx instead.
 open BuildCommon
@@ -78,17 +78,15 @@ let runnableDocScripts () : string list =
     |> runnableIn
 
 /// Compile one script and stop short of running it, reporting whatever the compiler said.
-let private typecheckScript (script: string) : Async<string * int * string> =
+let private typecheckScript (ctx: StageContext) (script: string) : Async<string * int * string> =
     async {
         let! result =
-            Cli
-                .Wrap("dotnet")
-                .WithArguments($"fsi --typecheck-only --nologo \"{script}\"")
-                .WithWorkingDirectory(repositoryRoot)
-                .WithValidation(CommandResultValidation.None)
-                .ExecuteBufferedAsync()
-                .Task
-            |> Async.AwaitTask
+            ctx.RunCommandCaptureAll(
+                $"dotnet fsi --typecheck-only --nologo {quoteArgument script}",
+                workingDir = repositoryRoot,
+                disablePrintCommand = true,
+                disablePrintOutput = true
+            )
 
         return script, result.ExitCode, (result.StandardOutput + result.StandardError).Trim()
     }
@@ -96,11 +94,11 @@ let private typecheckScript (script: string) : Async<string * int * string> =
 /// Compile each of the given scripts, and report what the compiler said about any that would not
 /// compile. Writes nothing: no script is run, and the assemblies they reference are built by the
 /// stage before whichever one calls this.
-let private check (scripts: string list) : Async<int> =
+let private check (ctx: StageContext) (scripts: string list) : Async<int> =
     async {
         // One at a time: the compiler output of a script that fails is the point of this, and
         // running them together interleaves it beyond reading.
-        let! results = scripts |> List.map typecheckScript |> Async.Sequential
+        let! results = scripts |> List.map (typecheckScript ctx) |> Async.Sequential
 
         for (script: string), (exitCode: int), (output: string) in results do
             let name: string = Path.GetRelativePath(repositoryRoot, script)
@@ -118,7 +116,7 @@ let private check (scripts: string list) : Async<int> =
     }
 
 /// Compile `build.fsx` and the diagnostic scripts. Needs the debug build.
-let checkScripts _ : Async<int> = check (runnableScripts ())
+let checkScripts (ctx: StageContext) : Async<int> = check ctx (runnableScripts ())
 
 /// Compile the documentation scripts. Needs the release build.
-let checkDocScripts _ : Async<int> = check (runnableDocScripts ())
+let checkDocScripts (ctx: StageContext) : Async<int> = check ctx (runnableDocScripts ())

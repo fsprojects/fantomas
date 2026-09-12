@@ -4,9 +4,9 @@
     ".NETStandard,Version=v2.0": {
       "DotNet.ReproducibleBuilds": {
         "type": "Direct",
-        "requested": "[2.0.2, )",
-        "resolved": "2.0.2",
-        "contentHash": "VaHoEN6YHp0jXucxm67vfuRy8zo9ufiKSuaZ4ZudRi8xmWcEFMKxfCsg2nvYNvdISFTURDu+IHqADGh53+Bamw=="
+        "requested": "[2.0.5, )",
+        "resolved": "2.0.5",
+        "contentHash": "8LrlvI1KpjjJ4VGSqZ16yoOCKlQnYS+Y8rYNifNrscmVh5anJcF9E4e0NiDP30BHBMUbkoJ5KdcxoRWM7Pz9Aw=="
       },
       "FSharp.Core": {
         "type": "Direct",
@@ -16,12 +16,12 @@
       },
       "FsLexYacc": {
         "type": "Direct",
-        "requested": "[11.4.1, )",
-        "resolved": "11.4.1",
-        "contentHash": "t77MbPw80ndxR0GGkoFByCl27/oWW5jtLN7S4aYQ21IfoBnskXNdtOlxt7cJw/F9aD2dd8kqCrRbpMuE0cDyaQ==",
+        "requested": "[12.0.0, )",
+        "resolved": "12.0.0",
+        "contentHash": "d191/bl1SugbCDu/wywTUGyyH6B4r5tAyqqjzR5Zs6L9R/DNJHqZrm4V8dVmeHAvBgdDBLnfIg6DNjPHYm0dPA==",
         "dependencies": {
-          "FSharp.Core": "4.6.2",
-          "FsLexYacc.Runtime": "11.4.1"
+          "FSharp.Core": "10.1.400",
+          "FsLexYacc.Runtime": "12.0.0"
         }
       },
       "G-Research.FSharp.Analyzers": {
@@ -53,9 +53,9 @@
       },
       "System.Collections.Immutable": {
         "type": "Direct",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "g5J8W/ovAraH1IDCvRZlXmpFc2v9yr1caYbVLIye2kzNtsWjJXD6TzV8vNdXni2b7wASoUeY2pnCBHxWrstXGQ==",
+        "requested": "[10.0.12, )",
+        "resolved": "10.0.12",
+        "contentHash": "tRMzrybcwEEaudfpL9ghzfnSjEVVuhKa5sR86q30mYxXJdcKOLSBkpMFm62CGsbB50diPZta73Pxu8DgjGdDbA==",
         "dependencies": {
           "System.Memory": "4.6.3",
           "System.Runtime.CompilerServices.Unsafe": "6.1.2"
@@ -63,9 +63,9 @@
       },
       "System.Diagnostics.DiagnosticSource": {
         "type": "Direct",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "v/YvmOpq+lv50oxxIDSvZlgiFD2m38DogHTE4MToMEGf6HtgBAmy8gB7Oq0C2pBt+6/bLvUnzLxubWFcvfzTsQ==",
+        "requested": "[10.0.12, )",
+        "resolved": "10.0.12",
+        "contentHash": "CRZTWYO0rzEcJN/6SuN1kMvQOJT7vyHZ64CCkQs0RRWTj7kH2KMkaMalbsbSI/eg5dS5JAQfQFFuuWgn+XRMsQ==",
         "dependencies": {
           "System.Memory": "4.6.3",
           "System.Runtime.CompilerServices.Unsafe": "6.1.2"
@@ -94,10 +94,10 @@
       },
       "FsLexYacc.Runtime": {
         "type": "Transitive",
-        "resolved": "11.4.1",
-        "contentHash": "BNLDgkJMztlyUgVV2SuECN5nPZK1C70g06r/dMKmyG7BbbLnQjTuCjAjrde0A5PLEKuVobIQAhuS7ljpoDX9aA==",
+        "resolved": "12.0.0",
+        "contentHash": "XIhOFQ8SSq05BrObuwxAXPnDFjiM/AEBom83c1F4/fltd2lX+Hu7+0e4EhNw0Vw4viecZ72MkbHQ9sfG5UOYwA==",
         "dependencies": {
-          "FSharp.Core": "4.6.2"
+          "FSharp.Core": "10.1.400"
         }
       },
       "Microsoft.NETCore.Platforms": {

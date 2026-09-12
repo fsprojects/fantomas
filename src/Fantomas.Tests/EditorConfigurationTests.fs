@@ -391,9 +391,11 @@ end_of_line = cr
     // exception, because that is the type the CLI matches on to decide what to print. Anything else
     // reports an empty message at normal verbosity.
     let ex =
-        Assert.Throws<FormatException>(fun () ->
-            EditorConfigReport.readConfiguration ignoreProblems fsharpFile.FSharpFile
-            |> ignore
+        Assert.Throws<FormatException>(
+            Action(fun () ->
+                EditorConfigReport.readConfiguration ignoreProblems fsharpFile.FSharpFile
+                |> ignore
+            )
         )
 
     ex.Message

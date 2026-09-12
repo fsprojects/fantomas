@@ -1,10 +1,9 @@
 #!/usr/bin/env -S dotnet fsi --
 
-#r "nuget: Fun.Build, 1.1.18"
-#r "nuget: CliWrap, 3.6.4"
-#r "nuget: FSharp.Data, 6.3.0"
-#r "nuget: Ionide.KeepAChangelog, 0.1.8"
-#r "nuget: Humanizer.Core, 2.14.1"
+#r "nuget: Fun.Build, 1.2.0"
+#r "nuget: FSharp.Data, 8.2.0"
+#r "nuget: Ionide.KeepAChangelog, 0.2.0"
+#r "nuget: Humanizer.Core, 3.0.10"
 
 // The build is split across these, and they are loaded in dependency order: each expects the ones
 // above it to be in scope and does not load them itself. Loading a file twice would compile it
@@ -18,7 +17,6 @@
 open System
 open System.IO
 open Fun.Build
-open CliWrap
 open BuildCommon
 open BuildScripts
 open BuildAnalyzers
@@ -164,9 +162,9 @@ pipeline "Coverage" {
 pipeline "FormatChanged" {
     workingDir __SOURCE_DIRECTORY__
     stage "Format" {
-        run (fun _ ->
+        run (fun ctx ->
             async {
-                let! files = changedFiles ()
+                let! files = changedFiles ctx
                 let sources: string list =
                     List.filter (hasExtension [ ".fs"; ".fsx"; ".fsi" ]) files
 
@@ -175,27 +173,9 @@ pipeline "FormatChanged" {
                     printfn "No changed F# files to format."
                     return 0
                 | sources ->
-                    let arguments: string =
-                        sources
-                        |> List.map (fun (source: string) -> $"\"{source}\"")
-                        |> String.concat " "
+                    let arguments: string = sources |> List.map quoteArgument |> String.concat " "
 
-                    // CliWrap discards the child's output unless it is given somewhere to put
-                    // it, and what fantomas has to say about the files is the point of the run.
-                    let toConsole: PipeTarget =
-                        PipeTarget.ToDelegate(fun (line: string) -> printfn "%s" line)
-
-                    let! result =
-                        Cli
-                            .Wrap("dotnet")
-                            .WithArguments($"fantomas --json {arguments}")
-                            .WithStandardOutputPipe(toConsole)
-                            .WithStandardErrorPipe(toConsole)
-                            .WithValidation(CommandResultValidation.None)
-                            .ExecuteAsync()
-                            .Task
-                        |> Async.AwaitTask
-
+                    let! result = ctx.RunCommandCaptureAll $"dotnet fantomas --json {arguments}"
                     return result.ExitCode
             })
     }
@@ -206,12 +186,12 @@ pipeline "PushClient" {
     workingDir __SOURCE_DIRECTORY__
     stage "Pack" { run "dotnet pack ./src/Fantomas.Client -c Release --tl" }
     stage "Push" {
-        run (fun _ ->
+        run (fun ctx ->
             async {
                 return!
                     Directory.EnumerateFiles(packagesDir, "Fantomas.Client.*.nupkg", SearchOption.TopDirectoryOnly)
                     |> Seq.tryExactlyOne
-                    |> Option.map pushPackage
+                    |> Option.map (pushPackage ctx)
                     |> Option.defaultValue (
                         async {
                             printfn "Fantomas.Client package was not found."
@@ -380,14 +360,14 @@ pipeline "Release" {
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack -c Release" }
     stage "Release" {
-        run (fun _ ->
+        run (fun ctx ->
             async {
                 if isDryRun then
                     printfn "[DRY-RUN] Starting release pipeline in dry-run mode"
                 else
                     printfn "Starting release pipeline"
 
-                let currentRelease, lastPublishedDate = getCurrentReleaseAndLastPublishedDate ()
+                let! currentRelease, lastPublishedDate = getCurrentReleaseAndLastPublishedDate ctx
 
                 if Option.isSome currentRelease.PublishedDate then
                     printfn $"Release {currentRelease.Version} already exists on GitHub. Skipping release process."
@@ -409,7 +389,8 @@ pipeline "Release" {
                     printfn $"Found {nugetPackages.Length} packages to push to NuGet:"
                     nugetPackages |> Array.iter (fun pkg -> printfn $"  - {Path.GetFileName(pkg)}")
 
-                    let! nugetExitCodes = nugetPackages |> Array.map pushPackage |> Async.Sequential
+                    let! nugetExitCodes =
+                        nugetPackages |> Array.map (pushPackage ctx) |> Async.Sequential
 
                     let nugetSuccess = nugetExitCodes |> Array.forall (fun code -> code = 0)
                     if nugetSuccess then
@@ -418,7 +399,7 @@ pipeline "Release" {
                         let exitCodesStr = nugetExitCodes |> Array.map string |> String.concat ", "
                         printfn $"Warning: Some NuGet packages failed to push. Exit codes: {exitCodesStr}"
 
-                    let notes = getReleaseNotes currentRelease lastPublishedDate
+                    let! notes = getReleaseNotes ctx currentRelease lastPublishedDate
                     printfn "Release notes that will be used:"
                     printfn "---"
                     printfn "%s" notes
@@ -468,14 +449,7 @@ pipeline "Release" {
                         else
                             printfn $"Creating GitHub release: v{currentRelease.Version}"
                             async {
-                                let! result =
-                                    Cli
-                                        .Wrap("gh")
-                                        .WithArguments(releaseCommand)
-                                        .WithValidation(CommandResultValidation.None)
-                                        .ExecuteAsync()
-                                        .Task
-                                    |> Async.AwaitTask
+                                let! result = ctx.RunCommandCaptureAll $"gh {releaseCommand}"
                                 return result.ExitCode
                             }
 
@@ -506,7 +480,8 @@ pipeline "PublishAlpha" {
                     |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
                     |> Seq.toArray
 
-                let! nugetExitCodes = nugetPackages |> Array.map pushPackage |> Async.Sequential
+                let! nugetExitCodes =
+                    nugetPackages |> Array.map (pushPackage ctx) |> Async.Sequential
 
                 return Seq.sum nugetExitCodes
             })
@@ -520,10 +495,14 @@ pipeline "Analyze" {
     stage "RestoreSolution" { run "dotnet restore --tl" }
     stage "BuildAnalyzers" { run buildLocalAnalyzers }
     stage "Analyze" {
-        run (fun _ ->
-            projectsToAnalyze
-            |> List.map (fun (project: string) -> { Project = project; Files = [] })
-            |> analyzeTargets excludeLocalAdvisory everyFinding)
+        run (fun ctx ->
+            [
+                for project: string in projectsToAnalyze do
+                    Project(project, [])
+
+                Scripts analyzableScripts
+            ]
+            |> analyzeTargets ctx localAdvisoryAnalyzers [] everyFinding)
     }
     runIfOnlySpecified true
 }
@@ -541,9 +520,9 @@ pipeline "AnalyzeChanged" {
     stage "BuildAnalyzers" { run buildLocalAnalyzers }
 
     stage "Analyze" {
-        run (fun _ ->
+        run (fun ctx ->
             async {
-                let! files = changedFiles ()
+                let! files = changedFiles ctx
 
                 // Everything reports and nothing fails. Warning rather than something lower
                 // because these are still findings to act on, and the tool prints every severity
@@ -552,11 +531,11 @@ pipeline "AnalyzeChanged" {
 
                 match targetsFor files with
                 | [] ->
-                    printfn "No changed file belongs to a project that is analyzed."
+                    printfn "No changed file is analyzed."
                     return 0
                 | targets ->
-                    let! scopes = changedLines ()
-                    return! analyzeTargets demoteLocalErrors (keepFinding scopes) targets
+                    let! scopes = changedLines ctx
+                    return! analyzeTargets ctx [] demoteLocalErrors (keepFinding scopes) targets
             })
     }
 

@@ -261,7 +261,8 @@ let configToEditorConfig (config: FormatConfig) : string =
     |> List.map (fun (setting: string, value: string) -> $"%s{setting}=%s{value}")
     |> String.concat "\n"
 
-let editorConfigParser = EditorConfigParser(EditorConfigFileCache.GetOrCreate)
+/// One parser for the process, and with it one cache of the `.editorconfig` files it has read.
+let editorConfigParser: EditorConfigParser = EditorConfigParser()
 
 /// Where an `.editorconfig` file lives, as one absolute path.
 let editorConfigFilePath (file: IEditorConfigFile) : string =

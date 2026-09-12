@@ -1,6 +1,8 @@
 #r "../artifacts/bin/Fantomas.FCS/debug/Fantomas.FCS.dll"
 #r "../artifacts/bin/Fantomas.Core/debug/Fantomas.Core.dll"
-#r "nuget: editorconfig, 0.15.0"
+// Must match the version `Directory.Packages.props` gives Fantomas: `EditorConfig.fs` is loaded as
+// source below and compiles against whatever this resolves.
+#r "nuget: editorconfig, 0.18.0"
 
 #load "../src/Fantomas/Suggestion.fs"
 #load "../src/Fantomas/EditorConfig.fs"

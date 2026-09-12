@@ -23,6 +23,9 @@ UI might be available depending on the IDE.
 #r "../../../artifacts/bin/Fantomas.FCS/release/Fantomas.FCS.dll"
 #r "../../../artifacts/bin/Fantomas.Core/release/Fantomas.Core.dll"
 #r "../../../artifacts/bin/Fantomas/release/EditorConfig.Core.dll"
+// Needed to resolve the `EditorConfigParser` constructor in `EditorConfig.fs`: referencing the
+// built assemblies rather than the package brings no transitive dependency along.
+#r "../../../artifacts/bin/Fantomas/release/Testably.Abstractions.FileSystem.Interface.dll"
 #load "../../../src/Fantomas/Suggestion.fs"
 #load "../../../src/Fantomas/EditorConfig.fs"
 

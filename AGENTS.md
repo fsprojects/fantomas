@@ -77,7 +77,8 @@ dotnet fsi build.fsx -- -p AnalyzeChanged
 
 This analyzes the files the working tree changed, and nothing else. A project is loaded when it
 owns a changed `.fs` or `.fsi`, and is then analyzed for those files alone. A changed `.fsproj`
-asks for the whole project, because what it compiles is no longer what it compiled before.
+asks for the whole project, because what it compiles is no longer what it compiled before. A
+changed `.fsx` is reported on through the `Scripts` target.
 
 Scoping it to the changed files is what makes this quick: analyzing one file of
 `Fantomas.Core.Tests` takes seconds where the whole project takes minutes.
@@ -91,10 +92,14 @@ to act on a run. What comes out is the thing to fix.
 dotnet fsi build.fsx -- -p Analyze
 ```
 
-This analyzes every file of every project. The test projects are the largest of the solution and
-decide how long that takes: the smallest projects report within seconds, `Fantomas.Core.Tests`
-takes a couple of minutes. Run it before opening a pull request, and while working use
-`AnalyzeChanged`, which cannot see a finding your change causes in a file you did not edit.
+This analyzes every file of every project, and the scripts. The test projects are the largest of the
+solution and decide how long that takes: the smallest projects report within seconds, the scripts in
+about four, `Fantomas.Core.Tests` takes a couple of minutes. Run it before opening a pull request,
+and while working use `AnalyzeChanged`, which cannot see a finding your change causes in a file you
+did not edit.
+
+The scripts are a weaker check than the projects, for reasons that are all downstream of the typed
+tree a script gets. [analyzers/AGENTS.md](analyzers/AGENTS.md) has what that costs and why.
 
 Both pipelines analyze each project in its own process, so findings are printed per project as
 that project finishes rather than all at the end.
