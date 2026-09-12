@@ -4,7 +4,7 @@
         <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     </PropertyGroup>
     <ItemGroup>
-        <PackageVersion Include="FSharp.Core" Version="10.1.401"/>
+        <PackageVersion Include="FSharp.Core" Version="10.1.203"/>
         <PackageVersion Include="System.Collections.Immutable" Version="10.0.12" />
         <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="10.0.12" />
         <PackageVersion Include="System.Memory" Version="4.6.3" />
