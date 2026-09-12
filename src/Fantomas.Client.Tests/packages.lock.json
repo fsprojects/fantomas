@@ -187,7 +187,7 @@
       "fantomas.client": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[10.1.401, )",
+          "FSharp.Core": "[10.0.100, )",
           "SemanticVersioning": "[3.0.0, )",
           "StreamJsonRpc": "[2.25.29, )"
         }

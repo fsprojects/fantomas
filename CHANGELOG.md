@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.0-beta-003] - 2026-09-12
+
+### Changed
+
+- Updated the packages the command line tool is built against: `editorconfig` to `0.18.0`, `Serilog` to `4.4.0`, `Spectre.Console` to `0.57.2` and `System.IO.Abstractions` to `22.2.0`. Only one of these is visible in what Fantomas does: `editorconfig` `0.18.0` scopes its cache of the `.editorconfig` files it has read to the parser that reads them, where it used to share one statically. Fantomas keeps a single parser for the process, so a file is still read once and no more. `Fantomas.Core` asks for the same `FSharp.Core` it always did, so nothing referencing it has to move. [#3468](https://github.com/fsprojects/fantomas/pull/3468)
+
 ## [8.0.0-beta-002] - 2026-09-08
 
 ### Fixed

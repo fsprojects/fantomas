@@ -2,6 +2,11 @@
 
 This is the changelog for the Fantomas.Client package specifically. It's distinct from that of the overall libraries and command-line tool.
 
+## [0.12.0-beta-003] - 2026-09-12
+
+### Changed
+- `System.Collections.Immutable` and `System.Diagnostics.DiagnosticSource` move to `10.0.12`, a servicing patch of the versions this package already asked for. Nothing else moved: the API, `FSharp.Core`, `StreamJsonRpc` and `SemanticVersioning` are where `0.12.0-beta-002` left them. [#3468](https://github.com/fsprojects/fantomas/pull/3468)
+
 ## [0.12.0-beta-002] - 2026-08-28
 
 ### Added

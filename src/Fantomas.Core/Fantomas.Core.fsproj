@@ -42,7 +42,11 @@
     <Compile Include="CodeFormatter.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FSharp.Core" />
+    <!--
+    A published library, so its FSharp.Core is the lowest version consumers must have rather than
+    the newest one available. `VersionOverride` holds it below what the rest of the solution uses.
+    -->
+    <PackageReference Include="FSharp.Core" VersionOverride="10.0.100" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.FCS\Fantomas.FCS.fsproj" />
