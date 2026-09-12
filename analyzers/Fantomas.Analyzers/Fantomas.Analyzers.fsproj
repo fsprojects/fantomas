@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Must track the fsharp-analyzers version pinned in .config/dotnet-tools.json. -->
-    <PackageReference Include="FSharp.Analyzers.SDK" Version="0.39.0" />
+    <PackageReference Include="FSharp.Analyzers.SDK" Version="0.39.1" />
     <PackageReference Include="FSharp.Core" Version="10.1.400" />
   </ItemGroup>
 </Project>

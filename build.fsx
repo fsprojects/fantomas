@@ -496,9 +496,13 @@ pipeline "Analyze" {
     stage "BuildAnalyzers" { run buildLocalAnalyzers }
     stage "Analyze" {
         run (fun ctx ->
-            projectsToAnalyze
-            |> List.map (fun (project: string) -> { Project = project; Files = [] })
-            |> analyzeTargets ctx excludeLocalAdvisory everyFinding)
+            [
+                for project: string in projectsToAnalyze do
+                    Project(project, [])
+
+                Scripts analyzableScripts
+            ]
+            |> analyzeTargets ctx localAdvisoryAnalyzers [] everyFinding)
     }
     runIfOnlySpecified true
 }
@@ -527,11 +531,11 @@ pipeline "AnalyzeChanged" {
 
                 match targetsFor files with
                 | [] ->
-                    printfn "No changed file belongs to a project that is analyzed."
+                    printfn "No changed file is analyzed."
                     return 0
                 | targets ->
                     let! scopes = changedLines ctx
-                    return! analyzeTargets ctx demoteLocalErrors (keepFinding scopes) targets
+                    return! analyzeTargets ctx [] demoteLocalErrors (keepFinding scopes) targets
             })
     }
 

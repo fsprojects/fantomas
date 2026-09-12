@@ -1,5 +1,6 @@
 #r "nuget: Fun.Build, 1.2.0"
 #r "nuget: FSharp.Data, 8.2.0"
+#r "nuget: Humanizer.Core, 3.0.10"
 
 open System
 open System.IO
@@ -8,9 +9,13 @@ open System.Xml.XPath
 open Fun.Build
 open Fun.Build.Internal
 open FSharp.Data
+open Humanizer
 // Loaded by `build.fsx`, after `BuildCommon.fsx`. An error here saying BuildCommon is not defined
 // means this file was run on its own; it is a library, so run a pipeline from build.fsx instead.
 open BuildCommon
+// `runnableScripts` is the set of scripts handed to `--script`: the ones that compile on their own,
+// which between them reach every other script of the repository through `#load`.
+open BuildScripts
 
 // Running the analyzers, and deciding which of their findings a run set out to report.
 //
@@ -42,18 +47,36 @@ let projectsToAnalyze: string list =
     |> Seq.sortByDescending sourceSize
     |> Seq.toList
 
-/// One project to hand to the analyzers, and which of its files to look at.
+/// What one run of the analyzers covers, and which of the files it reaches to report on.
 ///
-/// `Files` holds absolute paths, because that is the only form `--include-files` matches: give it a
-/// path relative to the repository root and it matches nothing, says nothing about it and reports a
-/// clean project. An empty list asks for every file of the project.
-type AnalysisTarget = { Project: string; Files: string list }
+/// A file list holds absolute paths, because that is the only form `--include-files` matches: give
+/// it a path relative to the repository root and it matches nothing, says nothing about it and
+/// reports a clean run.
+type AnalysisTarget =
+    /// One project. An empty file list asks for every file of it.
+    | Project of project: string * files: string list
+    /// The scripts of this repository. Which scripts are compiled is not a choice, `runnableScripts`
+    /// decides that; the file list says which of the files they reach a finding may be about, and is
+    /// never empty. A script compilation includes whatever it `#load`s, and `shared.fsx` loads
+    /// `EditorConfig.fs` and `Suggestion.fs` out of `src/Fantomas`, which belong to that project's
+    /// run: a script loads the `.fs` alone, so the signature file that keeps several of the rules
+    /// quiet about them is no part of the compilation and they report as debt they are not.
+    | Scripts of files: string list
+
+/// Every script a finding may be about: `build.fsx` and everything beside this file. The ones that
+/// are `#load`ed rather than run are here too, because they are compiled as part of whatever loads
+/// them and are as much this repository's source as the rest.
+let analyzableScripts: string list =
+    [
+        repositoryRoot </> "build.fsx"
+        yield! Directory.EnumerateFiles(repositoryRoot </> "scripts", "*.fsx")
+    ]
 
 /// What to analyze for a set of changed files: every project that owns one, along with the files of
-/// its own that changed. A project owns everything under its own folder, which is how every project
-/// of this solution is laid out. The order is the one `projectsToAnalyze` puts them in.
+/// its own that changed, and the scripts among them. The order is the one `projectsToAnalyze` puts
+/// the projects in, with the scripts last because they are the quickest to answer.
 ///
-/// Only compiled sources and project files count. A script, a document or a test data file is not
+/// Only compiled sources, project files and scripts count. A document or a test data file is not
 /// part of any compilation, so changing one leaves the analyzers with nothing new to say.
 ///
 /// A changed project file asks for the whole project: what it compiles is no longer what it
@@ -61,25 +84,30 @@ type AnalysisTarget = { Project: string; Files: string list }
 let targetsFor (files: string list) : AnalysisTarget list =
     let sources: string list = List.filter (hasExtension [ ".fs"; ".fsi" ]) files
     let projectFiles: string list = List.filter (hasExtension [ ".fsproj" ]) files
+    let scripts: string list = List.filter (hasExtension [ ".fsx" ]) files
 
-    projectsToAnalyze
-    |> List.choose (fun (project: string) ->
-        let folder: string = project.Substring(0, project.LastIndexOf '/' + 1)
+    let projects: AnalysisTarget list =
+        projectsToAnalyze
+        |> List.choose (fun (project: string) ->
+            let folder: string = project.Substring(0, project.LastIndexOf '/' + 1)
 
-        let owns (file: string) : bool =
-            file.StartsWith(folder, StringComparison.Ordinal)
+            let owns (file: string) : bool =
+                file.StartsWith(folder, StringComparison.Ordinal)
 
-        if List.exists owns projectFiles then
-            Some { Project = project; Files = [] }
-        else
-            match List.filter owns sources with
-            | [] -> None
-            | owned ->
-                Some
-                    {
-                        Project = project
-                        Files = List.map (fun (file: string) -> repositoryRoot </> file) owned
-                    })
+            if List.exists owns projectFiles then
+                Some(Project(project, []))
+            else
+                match List.filter owns sources with
+                | [] -> None
+                | owned -> Some(Project(project, List.map (fun (file: string) -> repositoryRoot </> file) owned)))
+
+    [
+        yield! projects
+
+        match scripts with
+        | [] -> ()
+        | scripts -> Scripts(List.map (fun (script: string) -> repositoryRoot </> script) scripts)
+    ]
 
 /// Where the analyzer project this repository owns is built to. It is deliberately outside the
 /// solution and does not inherit the root `Directory.Build.props`, so this is an ordinary
@@ -454,12 +482,20 @@ let narrowReport (keep: FindingFilter) (report: string) : unit =
 
         File.WriteAllText(report, narrowed.ToString())
 
-/// Returns the highest exit code of the runs, so a project the analyzers could not process fails
-/// the stage rather than passing for want of findings.
+/// The name a target reports under, which is also the name of the SARIF it writes.
+let private targetName (target: AnalysisTarget) : string =
+    match target with
+    | Scripts _ -> "Scripts"
+    | Project(project, _) -> Path.GetFileNameWithoutExtension project
+
+/// Returns the highest exit code of the runs, so a target the analyzers could not process fails the
+/// stage rather than passing for want of findings.
 ///
-/// `extraArguments` is passed to every invocation, and is how the two pipelines differ.
+/// `excludedAnalyzers` names the analyzers to keep out of every run, and `extraArguments` is passed
+/// to every invocation; the two pipelines differ in both.
 let analyzeTargets
     (ctx: StageContext)
+    (excludedAnalyzers: string list)
     (extraArguments: string list)
     (keep: FindingFilter)
     (targets: AnalysisTarget list)
@@ -472,55 +508,90 @@ let analyzeTargets
 
         Directory.CreateDirectory analysisReportsDir |> ignore
 
-        let names =
-            targets
-            |> List.map (fun (target: AnalysisTarget) -> Path.GetFileNameWithoutExtension target.Project)
-            |> String.concat ", "
+        let names: string = targets |> List.map targetName |> String.concat ", "
 
-        let count: string =
-            match targets.Length with
-            | 1 -> "1 project"
-            | n -> $"{n} projects"
+        let count: string = "target".ToQuantity targets.Length
 
         printfn $"Analyzing {count}: {names}"
 
-        let analyzeProject (target: AnalysisTarget) =
+        let analyzeTarget (target: AnalysisTarget) : Async<string * int> =
             async {
-                let name = Path.GetFileNameWithoutExtension target.Project
+                let name: string = targetName target
                 let report = analysisReportsDir </> $"{name}.sarif"
                 let started = DateTime.UtcNow
 
+                // Only the analyzers this repository owns are run over the scripts. Both packaged
+                // ones walk the typed tree, and the typed tree of a script is not one they survive:
+                // `Ionide.Analyzers` brings the run down with `error recovery at ...` on every
+                // script that loads `shared.fsx`. See
+                // https://github.com/ionide/FSharp.Analyzers.SDK/issues/332
+                let analyzers: string list =
+                    match target with
+                    | Project _ -> analyzers
+                    | Scripts _ -> [ localAnalyzerPath ]
+
+                // `FANTOMAS-OPENS-001` asks the compiler which opens the file resolves nothing
+                // through, and on a script that question goes wrong twice over. It brings the run
+                // down on anything that references `Fantomas.FCS`, because resolving the members of
+                // `System.ReadOnlySpan` needs an assembly the script never references. And where it
+                // does answer, it answers about a typed tree that is missing every top level bare
+                // expression, so the opens `build.fsx` uses only inside a `pipeline { }` read as
+                // unused. Same issue as above.
+                let excludedAnalyzers: string list =
+                    match target with
+                    | Project _ -> excludedAnalyzers
+                    | Scripts _ -> "UnusedOpensAnalyzer" :: excludedAnalyzers
+
                 let arguments: string list =
                     [
-                        // Neither of these is source anybody wrote. The test SDK generates its
-                        // entry point into the compilation from the package cache, and MSBuild
-                        // generates an `AssemblyInfo` per project under `obj`. Both are part of
-                        // what gets type checked, and a finding in either is not a finding about
-                        // this repository. `AssemblyInfo` earns its place here because it opens
-                        // `System` and `System.Reflection` and then writes every attribute out
-                        // fully qualified, so `FANTOMAS-OPENS-001` has two true things to say
-                        // about each of them and nowhere to say them.
-                        "--exclude-files"
-                        "**/Microsoft.NET.Test.Sdk.Program.fs"
-                        "**/*.AssemblyInfo.fs"
                         for analyzer in analyzers do
                             "--analyzers-path"
                             analyzer
-                        // One flag, then every file. Repeating the flag is an error, and the tool
-                        // answers it by printing its help and finding nothing, which reads as a
-                        // clean project.
-                        match target.Files with
+                        // Each of these takes a list of values after a single flag. Repeating the
+                        // flag is an error, and the tool answers it by printing its help and
+                        // finding nothing, which reads as a clean run.
+                        match excludedAnalyzers with
                         | [] -> ()
-                        | files ->
-                            "--include-files"
-                            yield! files
+                        | excluded ->
+                            "--exclude-analyzers"
+                            yield! excluded
                         "--code-root"
                         repositoryRoot
                         "--report"
                         report
                         yield! extraArguments
-                        "--project"
-                        repositoryRoot </> target.Project
+
+                        match target with
+                        | Scripts files ->
+                            // Every script that compiles on its own, which between them reach the
+                            // ones that only ever get `#load`ed. `--include-files` is what keeps
+                            // the report to scripts: a script compilation pulls in whatever it
+                            // loads, sources of `src/Fantomas` included.
+                            "--include-files"
+                            yield! files
+                            "--script"
+                            yield! runnableScripts ()
+                        | Project(project, files) ->
+                            // Neither of these is source anybody wrote. The test SDK generates its
+                            // entry point into the compilation from the package cache, and MSBuild
+                            // generates an `AssemblyInfo` per project under `obj`. Both are part of
+                            // what gets type checked, and a finding in either is not a finding about
+                            // this repository. `AssemblyInfo` earns its place here because it opens
+                            // `System` and `System.Reflection` and then writes every attribute out
+                            // fully qualified, so `FANTOMAS-OPENS-001` has two true things to say
+                            // about each of them and nowhere to say them.
+                            "--exclude-files"
+                            "**/Microsoft.NET.Test.Sdk.Program.fs"
+                            "**/*.AssemblyInfo.fs"
+
+                            match files with
+                            | [] -> ()
+                            | files ->
+                                "--include-files"
+                                yield! files
+
+                            "--project"
+                            repositoryRoot </> project
                     ]
 
                 let command: string = arguments |> List.map quoteArgument |> String.concat " "
@@ -541,19 +612,25 @@ let analyzeTargets
                 // A non-zero exit is worth saying out loud. The tool exits non-zero both for a
                 // finding at error severity and for a run that never happened, and a bare
                 // "no findings" would read the same either way.
-                let summary =
-                    match result.ExitCode, findings with
-                    | 0, 0 -> "no findings"
-                    | 0, 1 -> "1 finding"
-                    | 0, n -> $"{n} findings"
-                    | code, 0 -> $"no findings, exit code {code}"
-                    | code, n -> $"{n} findings, exit code {code}"
+                let counted: string =
+                    if findings = 0 then
+                        "no findings"
+                    else
+                        "finding".ToQuantity findings
 
-                let scope =
-                    match target.Files with
-                    | [] -> ""
-                    | [ _ ] -> " (1 file)"
-                    | files -> $" ({files.Length} files)"
+                let summary: string =
+                    if result.ExitCode = 0 then
+                        counted
+                    else
+                        $"{counted}, exit code {result.ExitCode}"
+
+                // A whole project says nothing about its scope. Anything else names how many
+                // files it was asked about, which for the scripts is always some of them.
+                let scope: string =
+                    match target with
+                    | Project(_, []) -> ""
+                    | Scripts files
+                    | Project(_, files) -> $""" ({"file".ToQuantity files.Length})"""
 
                 printfn $"\n=== {name}{scope}: {summary} in {elapsed.TotalSeconds:F1}s"
                 printf "%s" (narrowOutput keep result.StandardOutput)
@@ -565,13 +642,9 @@ let analyzeTargets
         // Every analyzer process type checks a whole project, so a handful at a time is what keeps
         // the machine busy without the runs starving each other of memory.
         let! results =
-            Async.Parallel(List.map analyzeProject targets, max 2 (Environment.ProcessorCount / 2))
+            Async.Parallel(List.map analyzeTarget targets, max 2 (Environment.ProcessorCount / 2))
 
         mergeSarifReports (results |> Array.map fst |> List.ofArray) (mergedAnalysisReport)
 
         return results |> Array.map snd |> Array.fold max 0
     }
-
-/// Each of these takes a list of values after a single flag. Repeating the flag is an error.
-let excludeLocalAdvisory: string list =
-    "--exclude-analyzers" :: localAdvisoryAnalyzers
