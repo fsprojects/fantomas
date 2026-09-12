@@ -22,9 +22,9 @@
       },
       "FSharp.Core": {
         "type": "Direct",
-        "requested": "[10.0.100, )",
-        "resolved": "10.0.100",
-        "contentHash": "c/r6T/HE9MWL0O0OispLtaKhVwDsiYQlLS249LoxSo1HNH/wfc0f5DE4pI6WpTXkCEdeXa66K5f9FmKLr/0cmw=="
+        "requested": "[10.1.401, )",
+        "resolved": "10.1.401",
+        "contentHash": "IGqjL9U8pQl7CaCpFP3f5slZMduE8c7ZBx7HycAQ9dc1tawyniNyw7Fh6L2cShIoQDcaDL+S8/kokhWs8WwnBQ=="
       },
       "G-Research.FSharp.Analyzers": {
         "type": "Direct",
@@ -187,14 +187,14 @@
       "fantomas.core": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[10.0.100, )",
+          "FSharp.Core": "[10.1.401, )",
           "Fantomas.FCS": "[1.0.0, )"
         }
       },
       "fantomas.fcs": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[10.0.100, )"
+          "FSharp.Core": "[10.1.401, )"
         }
       }
     }

@@ -12,7 +12,7 @@
     <IsPackable>false</IsPackable>
     <!--
     FSharp.Analyzers.SDK depends on FSharp.Core at exactly 10.1.400, where the repository pins
-    10.0.100 centrally. Under central package management that is NU1109, a hard error, so this
+    10.1.401 centrally. Under central package management that is NU1109, a hard error, so this
     project opts out and carries its versions inline. Keeping them here also puts the SDK version
     next to the analyzers rather than in the product's package list.
     -->
