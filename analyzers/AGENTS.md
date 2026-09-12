@@ -16,6 +16,7 @@ feedback arrives while you work instead of in review. They are ordinary F# analy
 | [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries |
 | [`FANTOMAS-OPENS-001`](#fantomas-opens-001) | No `open` nothing in the file uses |
 | [`FANTOMAS-PARENS-001`](#fantomas-parens-001) | No parentheses the code parses the same without |
+| [`FANTOMAS-SNOBMATCH-001`](#fantomas-snobmatch-001) | No `match` where an `if` would do |
 
 ## FANTOMAS-PIPEBACK-001
 
@@ -320,6 +321,63 @@ other, because a parenthesis with nothing but whitespace in front of it is the o
 The rule reports debt that predates it, so it is guidance for code you are writing or revisiting
 rather than a reason to sweep the codebase. Remove the pairs in the code you touch. Leave the ones
 you had no reason to open alone.
+
+## FANTOMAS-SNOBMATCH-001
+
+Do not write a `match` where an `if` would do:
+
+```fsharp
+if f i head then
+    go (i + 1) (head :: before) tail
+else
+    List.rev before, after
+```
+
+rather than
+
+```fsharp
+match f i head with
+| true -> go (i + 1) (head :: before) tail
+| false -> List.rev before, after
+```
+
+A `match` is for taking a value apart. Where it is only asking whether something is true, it tells
+the reader to expect a destructuring and then does not deliver one, and it spends two `|` and two
+patterns on a question that has a keyword of its own. That is what the name is about: the match is
+dressed up for an occasion the code is not having.
+
+It speaks only for the boolean case, which is the one where the rewrite is mechanical. Both arms
+are `true` and `false` in either order, or one of them against a wildcard, and either way the
+scrutinee becomes the condition and is written once, exactly where it already was. Nothing is
+duplicated, nothing new is bound, and there is no judgement to make about whether the scrutinee is
+cheap enough to evaluate twice.
+
+The shape next door is the one this deliberately leaves alone, a constant arm and a binder holding
+the scrutinee under a second name:
+
+```fsharp
+match text.IndexOf('=') with
+| -1 -> text
+| at -> text.Substring(0, at)
+```
+
+Every instance of that in this repository is this `IndexOf` idiom, where an `if` would have to call
+`IndexOf` twice or grow a `let` above it, so reporting it would be asking for a change worth less
+than the match it replaced. Should a case turn up where the binder is dead weight, the rule can grow
+to reach it.
+
+Three things it says nothing about, each because the rewrite is more than a rewrite:
+
+- **`match!`**, which would need a `let!` above the `if` to have a value to test.
+- **`function`**, which would need a parameter invented to have something to test.
+- **A `when` guard** on either arm, which means the two arms no longer cover the scrutinee between
+  them and the match is asking something its patterns do not say.
+
+It also stays quiet on a conditional directive inside the match, like the other rules that read
+arms, because the two arms it sees are then not the arms every build sees.
+
+**The reported range is the whole match expression**, since the whole of it is what an `if`
+replaces. There is no fix attached, for the reason every other rule here has none.
 
 ## Suppressing a finding
 

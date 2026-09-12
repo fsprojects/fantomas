@@ -71,9 +71,10 @@ module List =
             | [] -> List.rev before, after
             | head :: tail ->
 
-            match f i head with
-            | true -> go (i + 1) (head :: before) tail
-            | false -> List.rev before, after
+            if f i head then
+                go (i + 1) (head :: before) tail
+            else
+                List.rev before, after
 
         go 0 [] xs
 
