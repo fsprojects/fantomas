@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,7 +340,7 @@
 <main>
     <div id="content">
         
-<h1><a name="Formatting-chain-expressions" class="anchor" href="#Formatting-chain-expressions">Formatting chain expressions</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Formatting-chain-expressions" class="anchor" href="#Formatting-chain-expressions">Formatting chain expressions</a></h1>
 <p>A <em>chain</em> is a starting value followed by a series of steps, where every step is reached through a dot:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">document</span><span class="pn">.</span><span class="id">Body</span><span class="pn">.</span><span class="id">FirstChild</span><span class="pn">.</span><span class="id">AppendChild</span><span class="pn">(</span><span class="id">newNode</span><span class="pn">)</span>
 </code></pre>
@@ -355,7 +355,7 @@ This page states the rules it follows and the reasoning behind each one, in plai
 <p>Every code block on this page is Fantomas output, except where marked ⛔.
 A ⛔ block is the alternative that was considered and turned down, shown so that the reasoning is visible rather than implied, and ✅ marks what Fantomas does instead.
 The two markers appear wherever there was a real choice to make; elsewhere the output speaks for itself and goes unmarked.</p>
-<h2><a name="Status-a-proposal-backed-by-an-implementation" class="anchor" href="#Status-a-proposal-backed-by-an-implementation">Status: a proposal, backed by an implementation</a></h2>
+<h2 data-fsdocs-heading="2"><a name="Status-a-proposal-backed-by-an-implementation" class="anchor" href="#Status-a-proposal-backed-by-an-implementation">Status: a proposal, backed by an implementation</a></h2>
 <p>The <a href="https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting">F# style guide</a> currently says very little about how to lay out a long chain.
 The rules described here are meant to fill that gap and to eventually become part of that guide.
 Until they are officially adopted there, they remain a proposal being tested against real code, even though it is the layout Fantomas applies by default today.</p>
@@ -370,18 +370,18 @@ If you disagree with a rule, the discussion belongs at <a href="https://github.c
 Fantomas implements what was agreed, and it is set out under <a href="#The-two-space-settings">The two space settings</a> below.
 The style guide has yet to be amended to carry it, so that rule is agreed upstream without being written down there yet.
 Everything else on this page, which is to say every rule about where the line breaks go, has not been through the loop at all and remains a proposal.</p>
-<h2><a name="What-counts-as-a-chain" class="anchor" href="#What-counts-as-a-chain">What counts as a chain</a></h2>
+<h2 data-fsdocs-heading="3"><a name="What-counts-as-a-chain" class="anchor" href="#What-counts-as-a-chain">What counts as a chain</a></h2>
 <p>The dot is what matters. If there is no dot, there is no step:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">xs</span><span class="pn">[</span><span class="id">i</span><span class="pn">]</span>           <span class="c">// not a chain, there is no dot</span>
 <span class="id">f</span> <span class="pn">(</span><span class="id">args</span><span class="pn">)</span>        <span class="c">// not a chain, there is no dot</span>
 <span class="id">arr</span><span class="pn">.</span><span class="pn">[</span><span class="id">i</span><span class="pn">]</span>         <span class="c">// a chain, this indexing syntax does have a dot</span>
 </code></pre>
 <p>An expression without any dots is laid out by other rules, not the ones on this page.</p>
-<h2><a name="Does-a-space-go-before-a-call-s-parenthesis" class="anchor" href="#Does-a-space-go-before-a-call-s-parenthesis">Does a space go before a call's parenthesis?</a></h2>
+<h2 data-fsdocs-heading="4"><a name="Does-a-space-go-before-a-call-s-parenthesis" class="anchor" href="#Does-a-space-go-before-a-call-s-parenthesis">Does a space go before a call's parenthesis?</a></h2>
 <p>The shorter of the two questions, and mostly not a matter of style at all.
 For every call but the last, the parser decides and there is nothing to choose.
 For the last one, a rule and two settings decide between them.</p>
-<h3><a name="An-intermediate-call-is-welded-to-its-parenthesis" class="anchor" href="#An-intermediate-call-is-welded-to-its-parenthesis">An intermediate call is welded to its parenthesis</a></h3>
+<h3 data-fsdocs-heading="5"><a name="An-intermediate-call-is-welded-to-its-parenthesis" class="anchor" href="#An-intermediate-call-is-welded-to-its-parenthesis">An intermediate call is welded to its parenthesis</a></h3>
 <p>A call in the middle of a chain may not be separated from its <code>(</code> by anything at all, because that changes what the code <em>means</em>:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// ⛔ parsed as a.Foo ((x).Bar()), which is a different program</span>
 <span class="id">a</span><span class="pn">.</span><span class="id">Foo</span> <span class="pn">(</span><span class="id">x</span><span class="pn">)</span><span class="pn">.</span><span class="id">Bar</span><span class="pn">(</span><span class="pn">)</span>
@@ -392,7 +392,7 @@ For the last one, a rule and two settings decide between them.</p>
 </code></pre>
 <p>The parser reads <code>(x).Bar()</code> as a single parenthesised argument handed to <code>a.Foo</code>. So for every call except the last one, tightness is a grammar requirement rather than a preference, and nothing on this page can override it. A space, a line break and a comment are all the same gap as far as the parser is concerned.</p>
 <p>The same constraint turns up wherever an expression has to stay glued to its neighbour. In <code>getBuilder().Build()</code> the starting value keeps its own <code>()</code> tight, in <code>x.Foo()[0]</code> the indexed call keeps its own <code>()</code> tight, and the dynamic-access operator <code>?</code> behaves the same way: <code>settings?Section("db")?ConnectionString</code> stays tight throughout. In each case a space there would rebind the parentheses to the wrong thing. The final call of those first two is tight as well, but for the separate reason set out below: a call and an index are both things a plain dotted name does not contain.</p>
-<h3><a name="The-final-call-is-free" class="anchor" href="#The-final-call-is-free">The final call is free</a></h3>
+<h3 data-fsdocs-heading="6"><a name="The-final-call-is-free" class="anchor" href="#The-final-call-is-free">The final call is free</a></h3>
 <p>Nothing follows the last call to be reparsed, so the parser has no view on it and its <code>(</code> is free to leave the method name.
 Three things make use of that freedom, and each is covered where it belongs:</p>
 <ul>
@@ -401,7 +401,7 @@ Three things make use of that freedom, and each is covered where it belongs:</p>
 <li>an argument that needs a line of its own, see <a href="#Arguments-are-not-the-chain-s-business">Arguments are not the chain's business</a>.</li>
 </ul>
 <p>That is the whole of it. What follows are those three, not three exceptions to a rule. One shape takes the freedom away again, the <code>_.</code> lambda body below.</p>
-<h4><a name="The-two-space-settings" class="anchor" href="#The-two-space-settings">The two space settings</a></h4>
+<h4 data-fsdocs-heading="7"><a name="The-two-space-settings" class="anchor" href="#The-two-space-settings">The two space settings</a></h4>
 <p>Two settings ask for a space between the name of a call and the <code>(</code> that follows it: <a href="./Configuration.html#fsharp_space_before_uppercase_invocation"><code>fsharp_space_before_uppercase_invocation</code></a>, off by default, and <a href="./Configuration.html#fsharp_space_before_lowercase_invocation"><code>fsharp_space_before_lowercase_invocation</code></a>, on by default.</p>
 <p>Which of the two applies is decided by the case of the name immediately in front of the parenthesis. Nothing earlier in a dotted name has a say:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// all on default settings</span>
@@ -413,7 +413,7 @@ Three things make use of that freedom, and each is covered where it belongs:</p>
 <span class="id">a</span><span class="pn">.</span><span class="id">b</span><span class="pn">.</span><span class="id">Foo</span><span class="pn">(</span><span class="id">x</span><span class="pn">)</span>          <span class="c">// `Foo` decides, not `a` or `b`</span>
 </code></pre>
 <p>Neither setting is about chains as such. Both govern a call with no receiver at all, and both reach into patterns as well. What follows is only what they do to a chain.</p>
-<h4><a name="Neither-setting-applies-once-the-chain-is-more-than-a-name" class="anchor" href="#Neither-setting-applies-once-the-chain-is-more-than-a-name">Neither setting applies once the chain is more than a name</a></h4>
+<h4 data-fsdocs-heading="8"><a name="Neither-setting-applies-once-the-chain-is-more-than-a-name" class="anchor" href="#Neither-setting-applies-once-the-chain-is-more-than-a-name">Neither setting applies once the chain is more than a name</a></h4>
 <p><strong>Neither setting can put the space back.</strong> Once a call, an index, a receiver that is not a name, or a type application appears anywhere in the chain, the parenthesis is tight and no configuration will change it.</p>
 <p>The space survives only when <strong>the whole thing being called is a plain dotted name</strong>.</p>
 <p>Every line below calls the same <code>.Bar</code>, and the only difference is what else the chain contains:</p>
@@ -457,10 +457,10 @@ Everything from here on applies to it exactly as to any other chain. The example
     <span class="pn">.</span><span class="id">Substring</span><span class="pn">(</span><span class="n">0</span><span class="pn">,</span> <span class="n">16</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">ToLower</span><span class="pn">(</span><span class="pn">)</span>
 </code></pre>
-<h2><a name="Where-do-the-line-breaks-go" class="anchor" href="#Where-do-the-line-breaks-go">Where do the line breaks go?</a></h2>
+<h2 data-fsdocs-heading="9"><a name="Where-do-the-line-breaks-go" class="anchor" href="#Where-do-the-line-breaks-go">Where do the line breaks go?</a></h2>
 <p>The longer question, and the one that is entirely a matter of style.
 Everything from here on is about where a chain breaks when it does not fit.</p>
-<h3><a name="The-fit-question" class="anchor" href="#The-fit-question">The fit question</a></h3>
+<h3 data-fsdocs-heading="10"><a name="The-fit-question" class="anchor" href="#The-fit-question">The fit question</a></h3>
 <p>Fantomas re-types your file rather than editing it, as <a href="./DesignDecisions.html">Design decisions</a> sets out.
 Most of that re-typing is mechanical. The one real choice a chain presents is <strong>where to put the line breaks</strong>, and it comes down to a single question:</p>
 <blockquote>
@@ -474,7 +474,7 @@ A trailing comment on the starting value, or an <code>#if</code> directive in fr
 <span class="id">config</span> <span class="c">// note</span>
     <span class="pn">.</span><span class="id">Settings</span><span class="pn">.</span><span class="id">GetValue</span><span class="pn">(</span><span class="id">theKeyName</span><span class="pn">)</span>
 </code></pre>
-<h3><a name="Two-kinds-of-step" class="anchor" href="#Two-kinds-of-step">Two kinds of step</a></h3>
+<h3 data-fsdocs-heading="11"><a name="Two-kinds-of-step" class="anchor" href="#Two-kinds-of-step">Two kinds of step</a></h3>
 <p>Once Fantomas has to break a chain, it sorts the steps into two weights.</p>
 <p><strong>Navigation</strong> is a step that just gets you somewhere:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">.</span><span class="id">Name</span>           <span class="c">// a plain member</span>
@@ -492,7 +492,7 @@ Type arguments make no difference to this: what makes <code>.Cast&lt;T&gt;()</co
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">.</span><span class="id">Cast</span><span class="pn">&lt;</span><span class="id">T</span><span class="pn">&gt;</span>        <span class="c">// navigation, this only names something</span>
 <span class="pn">.</span><span class="id">Cast</span><span class="pn">&lt;</span><span class="id">T</span><span class="pn">&gt;</span><span class="pn">(</span><span class="pn">)</span>      <span class="c">// action, this calls something</span>
 </code></pre>
-<h3><a name="Working-through-a-chain" class="anchor" href="#Working-through-a-chain">Working through a chain</a></h3>
+<h3 data-fsdocs-heading="12"><a name="Working-through-a-chain" class="anchor" href="#Working-through-a-chain">Working through a chain</a></h3>
 <p>Before the rules are stated one by one, here is the whole process applied to a single chain, at a max line length of 60.
 Everything after this section is the detail behind one of these five steps.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// ⛔ the chain as written: 95 characters against a margin of 60</span>
@@ -530,7 +530,7 @@ Only a chain with exactly one action, as its last step, after a plain starting v
 <span class="c">// --- max_line_length ------------------------------------|</span>
 </code></pre>
 <p>Those five steps are the whole algorithm. To apply it to a chain of your own: check the width, label the parts, count the actions, let the navigation ride, then wrap any line that is still too long.</p>
-<h3><a name="Steps-1-to-3-the-rule-for-line-breaks" class="anchor" href="#Steps-1-to-3-the-rule-for-line-breaks">Steps 1 to 3: the rule for line breaks</a></h3>
+<h3 data-fsdocs-heading="13"><a name="Steps-1-to-3-the-rule-for-line-breaks" class="anchor" href="#Steps-1-to-3-the-rule-for-line-breaks">Steps 1 to 3: the rule for line breaks</a></h3>
 <p>The rule behind the first three steps:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="mermaid">graph TD
     A{"Does the whole chain fit on one line?"}
@@ -596,7 +596,7 @@ As soon as there are two or more calls, the chain is a pipeline and each call ge
 <span class="pn">)</span>
 </code></pre>
 <p>That second guard is also why step 5, wrapping a long run of navigation, never applies to this branch: a chain is only kept together when its navigation already fits on one line, and in the escape-hatch case the overflow is the method name, which wrapping the navigation would not fix either.</p>
-<h3><a name="Step-4-navigation-rides-along" class="anchor" href="#Step-4-navigation-rides-along">Step 4: navigation rides along</a></h3>
+<h3 data-fsdocs-heading="14"><a name="Step-4-navigation-rides-along" class="anchor" href="#Step-4-navigation-rides-along">Step 4: navigation rides along</a></h3>
 <p>Navigation is never worth a line of its own. It rides at the front of the line belonging to the action it introduces.</p>
 <p>At a max line length of 60:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// ⛔ 68 characters, so step 3 has already made this a pipeline</span>
@@ -623,7 +623,7 @@ As soon as there are two or more calls, the chain is a pipeline and each call ge
 <p>Riding along only works while the navigation itself stays on one line.
 If an index (or a set of type arguments) has to break across several lines, it can no longer be a passenger, and the question above then counts it as an action: it claims a line of its own, and the chain around it becomes a pipeline.
 It is still navigation in what it <em>does</em>; it has simply grown too big to ride along.</p>
-<h3><a name="Step-5-when-a-line-is-still-too-long" class="anchor" href="#Step-5-when-a-line-is-still-too-long">Step 5: when a line is still too long</a></h3>
+<h3 data-fsdocs-heading="15"><a name="Step-5-when-a-line-is-still-too-long" class="anchor" href="#Step-5-when-a-line-is-still-too-long">Step 5: when a line is still too long</a></h3>
 <p>Steps 3 and 4 decide which steps share a line. They leave one question open, because navigation accumulates: a line they hand you can itself be too long.
 So the fit question from step 1 comes round a second time, now asked of a line the rules have just produced rather than of the chain as a whole.</p>
 <p>Here is a chain that runs into it, at a max line length of 100:</p>
@@ -647,7 +647,7 @@ So the fit question from step 1 comes round a second time, now asked of a line t
 <p>The reason to prefer the second is that neither break point <em>means</em> anything.
 A run of navigation has no internal structure that makes one dot a better stopping place than another, unlike the boundary between two actions, which is a real seam in what the code does.
 When the choice is arbitrary the only thing left to weigh is how easy the result is to read, and two comparable lines are easier to scan than a full one followed by a remnant.</p>
-<h4><a name="The-starting-value-never-sits-alone" class="anchor" href="#The-starting-value-never-sits-alone">The starting value never sits alone</a></h4>
+<h4 data-fsdocs-heading="16"><a name="The-starting-value-never-sits-alone" class="anchor" href="#The-starting-value-never-sits-alone">The starting value never sits alone</a></h4>
 <p>A run of navigation often begins on the same line as the starting value, which is <code>defineCombinationValue</code> in the example below.
 That value is not a step, so a line holding it and nothing else has nothing on it to balance: it is a wasted line rather than a short one.
 Whenever there is room beside it for the first step, it keeps that step, and the rest of the run is balanced from there.</p>
@@ -661,7 +661,7 @@ Whenever there is room beside it for the first step, it keeps that step, and the
 </code></pre>
 <p>With only two steps to place, no split avoids a short line, and stranding the starting value costs more than a short last line does.
 This matters much less as a run grows: once there are several steps, the first line is full anyway and the rule never comes up.</p>
-<h4><a name="The-wrap-makes-room-for-the-arguments" class="anchor" href="#The-wrap-makes-room-for-the-arguments">The wrap makes room for the arguments</a></h4>
+<h4 data-fsdocs-heading="17"><a name="The-wrap-makes-room-for-the-arguments" class="anchor" href="#The-wrap-makes-room-for-the-arguments">The wrap makes room for the arguments</a></h4>
 <p>When a wrapped line ends in a call, there are two ways to find the width it needs: move some navigation down, or let the argument break.</p>
 <p>Balancing on width alone would take the second. The navigation stops just short of the margin, which leaves the arguments nowhere to go:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// ⛔ the navigation fills its line and pushes the argument below</span>
@@ -692,7 +692,7 @@ And a call that has left the starting value's line already has a line of its own
     <span class="pn">.</span><span class="id">GetUnionCases</span><span class="pn">(</span><span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="7" class="id">typeof</span><span class="pn">&lt;</span><span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="8" class="id">option</span><span class="pn">&lt;</span><span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="9" class="id">option</span><span class="pn">&lt;</span><span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="10" class="id">unit</span><span class="pn">&gt;</span><span class="pn">&gt;</span><span class="pn">&gt;</span><span class="pn">.</span><span class="id">GetGenericTypeDefinition</span><span class="pn">(</span><span class="pn">)</span><span class="pn">.</span><span class="id">MakeGenericType</span><span class="pn">(</span><span class="id">t</span><span class="pn">)</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">Assembly</span>
 </code></pre>
-<h4><a name="Balancing-never-crosses-an-action" class="anchor" href="#Balancing-never-crosses-an-action">Balancing never crosses an action</a></h4>
+<h4 data-fsdocs-heading="18"><a name="Balancing-never-crosses-an-action" class="anchor" href="#Balancing-never-crosses-an-action">Balancing never crosses an action</a></h4>
 <p>Only a run of consecutive navigation steps is balanced.
 Widths alone would suggest pulling the first call up onto the starting value's line, since that evens the lines out nicely:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// ⛔ balanced on width, but the seam between the two calls is gone</span>
@@ -706,36 +706,36 @@ Widths alone would suggest pulling the first call up onto the starting value's l
     <span class="pn">.</span><span class="id">AddOptions</span><span class="pn">&lt;</span><span class="id">MyOptions</span><span class="pn">&gt;</span><span class="pn">(</span><span class="id">configureOptions</span><span class="pn">)</span>
 </code></pre>
 <p>The boundary between two actions is a real seam in the code. The dots inside a run of navigation are not, which is exactly why balancing is free to move those and not these.</p>
-<h3><a name="Examples" class="anchor" href="#Examples">Examples</a></h3>
+<h3 data-fsdocs-heading="19"><a name="Examples" class="anchor" href="#Examples">Examples</a></h3>
 <p>The examples below assume a narrower <a href="./Configuration.html#max_line_length">max line length</a> than the default, so the breaks are visible on this page.</p>
-<h4><a name="One-call-at-the-end-the-arguments-break" class="anchor" href="#One-call-at-the-end-the-arguments-break">One call at the end: the arguments break</a></h4>
+<h4 data-fsdocs-heading="20"><a name="One-call-at-the-end-the-arguments-break" class="anchor" href="#One-call-at-the-end-the-arguments-break">One call at the end: the arguments break</a></h4>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">config</span><span class="pn">.</span><span class="id">GetConnectionString</span><span class="pn">(</span>
     <span class="s">&quot;primary-database-readonly-replica-connection-string&quot;</span>
 <span class="pn">)</span>
 </code></pre>
 <p>There is a single action and it is the last step, so <code>config.GetConnectionString(</code> stays together and only the argument moves.
 This is exactly how an ordinary call breaks. Having a starting value in front of it changes nothing.</p>
-<h4><a name="Navigation-in-front-of-a-single-call-still-just-the-arguments" class="anchor" href="#Navigation-in-front-of-a-single-call-still-just-the-arguments">Navigation in front of a single call: still just the arguments</a></h4>
+<h4 data-fsdocs-heading="21"><a name="Navigation-in-front-of-a-single-call-still-just-the-arguments" class="anchor" href="#Navigation-in-front-of-a-single-call-still-just-the-arguments">Navigation in front of a single call: still just the arguments</a></h4>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">response</span><span class="pn">.</span><span class="id">Content</span><span class="pn">.</span><span class="id">Headers</span><span class="pn">.</span><span class="id">GetValues</span><span class="pn">(</span>
     <span class="s">&quot;Content-Type-And-Transfer-Encoding-Header&quot;</span>
 <span class="pn">)</span>
 </code></pre>
 <p><code>.Content</code> and <code>.Headers</code> are navigation, so there is still only one action.
 The chain is not a pipeline and the navigation stays with the starting value.</p>
-<h4><a name="Two-or-more-calls-a-pipeline" class="anchor" href="#Two-or-more-calls-a-pipeline">Two or more calls: a pipeline</a></h4>
+<h4 data-fsdocs-heading="22"><a name="Two-or-more-calls-a-pipeline" class="anchor" href="#Two-or-more-calls-a-pipeline">Two or more calls: a pipeline</a></h4>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">serviceCollection</span>
     <span class="pn">.</span><span class="id">AddSingleton</span><span class="pn">&lt;</span><span class="id">IClock</span><span class="pn">&gt;</span><span class="pn">(</span><span class="id">systemClock</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">AddOptions</span><span class="pn">&lt;</span><span class="id">MyOptions</span><span class="pn">&gt;</span><span class="pn">(</span><span class="id">configureOptions</span><span class="pn">)</span>
 </code></pre>
 <p>Two actions, so each one gets its own line led by its dot.</p>
-<h4><a name="Navigation-between-calls-rides-along" class="anchor" href="#Navigation-between-calls-rides-along">Navigation between calls rides along</a></h4>
+<h4 data-fsdocs-heading="23"><a name="Navigation-between-calls-rides-along" class="anchor" href="#Navigation-between-calls-rides-along">Navigation between calls rides along</a></h4>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">document</span><span class="pn">.</span><span class="id">Body</span><span class="pn">.</span><span class="id">FirstChild</span>
     <span class="pn">.</span><span class="id">AppendChild</span><span class="pn">(</span><span class="id">newNode</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">ParentElement</span><span class="pn">.</span><span class="id">RemoveChild</span><span class="pn">(</span><span class="id">oldNode</span><span class="pn">)</span>
 </code></pre>
 <p><code>.Body</code> and <code>.FirstChild</code> lead the first line.
 <code>.ParentElement</code> is navigation introducing <code>.RemoveChild(oldNode)</code>, so it rides at the front of that line instead of claiming one of its own.</p>
-<h4><a name="An-index-too-big-to-ride-along" class="anchor" href="#An-index-too-big-to-ride-along">An index too big to ride along</a></h4>
+<h4 data-fsdocs-heading="24"><a name="An-index-too-big-to-ride-along" class="anchor" href="#An-index-too-big-to-ride-along">An index too big to ride along</a></h4>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">lookupTable</span><span class="pn">.</span><span class="pn">[</span><span class="n">0</span><span class="pn">]</span><span class="pn">.</span><span class="id">AppendEntry</span><span class="pn">(</span>
     <span class="id">newEntryForTheBucket</span>
 <span class="pn">)</span>
@@ -749,7 +749,7 @@ The chain is not a pipeline and the navigation stays with the starting value.</p
     <span class="pn">.</span><span class="id">AppendEntry</span><span class="pn">(</span><span class="id">newEntry</span><span class="pn">)</span>
 </code></pre>
 <p>Nothing about the index started executing. It just stopped fitting on someone else's line.</p>
-<h4><a name="A-chain-that-ends-in-navigation" class="anchor" href="#A-chain-that-ends-in-navigation">A chain that ends in navigation</a></h4>
+<h4 data-fsdocs-heading="25"><a name="A-chain-that-ends-in-navigation" class="anchor" href="#A-chain-that-ends-in-navigation">A chain that ends in navigation</a></h4>
 <p>There is only one call here, but it is <strong>not</strong> the last step. Breaking just its arguments would leave the navigation stranded after the closing <code>)</code>:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// ⛔ `.Entries.[indexWithinTheBucket]` is left dangling off the `)`</span>
 <span class="id">lookupTable</span><span class="pn">.</span><span class="id">GetBucketForHash</span><span class="pn">(</span>
@@ -762,12 +762,12 @@ The chain is not a pipeline and the navigation stays with the starting value.</p
     <span class="pn">.</span><span class="id">GetBucketForHash</span><span class="pn">(</span><span class="id">hashOfTheKeyValue</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">Entries</span><span class="pn">.</span><span class="pn">[</span><span class="id">indexWithinTheBucket</span><span class="pn">]</span>
 </code></pre>
-<h4><a name="A-chain-with-no-calls-at-all" class="anchor" href="#A-chain-with-no-calls-at-all">A chain with no calls at all</a></h4>
+<h4 data-fsdocs-heading="26"><a name="A-chain-with-no-calls-at-all" class="anchor" href="#A-chain-with-no-calls-at-all">A chain with no calls at all</a></h4>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">this</span><span class="pn">.</span><span class="id">Configuration</span><span class="pn">.</span><span class="id">Database</span><span class="pn">.</span><span class="id">PrimaryConnection</span>
     <span class="pn">.</span><span class="id">Settings</span><span class="pn">.</span><span class="id">IdleTimeoutInSeconds</span>
 </code></pre>
 <p>There are no actions to lead any lines, so the whole chain is one long line of navigation and it is wrapped by the rule in <a href="#Step-5-when-a-line-is-still-too-long">step 5</a>.</p>
-<h4><a name="A-starting-value-that-is-itself-a-call" class="anchor" href="#A-starting-value-that-is-itself-a-call">A starting value that is itself a call</a></h4>
+<h4 data-fsdocs-heading="27"><a name="A-starting-value-that-is-itself-a-call" class="anchor" href="#A-starting-value-that-is-itself-a-call">A starting value that is itself a call</a></h4>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">getConfiguredServiceBuilder</span><span class="pn">(</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">AddLogging</span><span class="pn">(</span><span class="id">loggingOptions</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
@@ -775,7 +775,7 @@ The chain is not a pipeline and the navigation stays with the starting value.</p
 <p>The opening call stays glued to its <code>()</code> and acts as the starting value.
 It has to stay glued: a space there would change what the code means.</p>
 <p>This one is a pipeline on the strength of its two calls alone, but a starting value of this shape leads a pipeline even with a single call, as noted in the rule above.</p>
-<h3><a name="Arguments-are-not-the-chain-s-business" class="anchor" href="#Arguments-are-not-the-chain-s-business">Arguments are not the chain's business</a></h3>
+<h3 data-fsdocs-heading="28"><a name="Arguments-are-not-the-chain-s-business" class="anchor" href="#Arguments-are-not-the-chain-s-business">Arguments are not the chain's business</a></h3>
 <p>It is worth stating the boundary explicitly, because it is what keeps the rules above so short:</p>
 <blockquote>
 <p>The chain rules decide where lines break <strong>between</strong> steps.
@@ -816,7 +816,7 @@ A long call does not drag the short ones open:</p>
     <span class="pn">.</span><span class="id">Select</span><span class="pn">(</span><span class="id">projector</span><span class="pn">)</span>
     <span class="pn">.</span><span class="id">ToList</span><span class="pn">(</span><span class="pn">)</span>
 </code></pre>
-<h4><a name="Any-part-of-a-chain-can-grow" class="anchor" href="#Any-part-of-a-chain-can-grow">Any part of a chain can grow</a></h4>
+<h4 data-fsdocs-heading="29"><a name="Any-part-of-a-chain-can-grow" class="anchor" href="#Any-part-of-a-chain-can-grow">Any part of a chain can grow</a></h4>
 <p>The rules above are stated with short steps, but any part of a chain can turn out to be an expression that needs several lines of its own. Where that happens is what decides the consequence, and each case is already covered above:</p>
 <ul>
 <li><strong>the starting value</strong>, when it is a call or a parenthesised expression, leads a pipeline rather than serving as a prefix, see <a href="#Steps-1-to-3-the-rule-for-line-breaks">Steps 1 to 3</a>;</li>
@@ -850,7 +850,7 @@ A long call does not drag the short ones open:</p>
     <span class="pn">)</span>
 </code></pre>
 <p>The difference is not the chain choosing between them. It is the same deference twice: a lambda opener wants to sit on one line with its arrow, and a tuple does not care, so the ordinary argument rules answer differently.</p>
-<h4><a name="Only-the-last-call-may-move-its-parenthesis" class="anchor" href="#Only-the-last-call-may-move-its-parenthesis">Only the last call may move its parenthesis</a></h4>
+<h4 data-fsdocs-heading="30"><a name="Only-the-last-call-may-move-its-parenthesis" class="anchor" href="#Only-the-last-call-may-move-its-parenthesis">Only the last call may move its parenthesis</a></h4>
 <p>Moving the argument down is the one answer the ordinary rules can give that the chain does get a say over, and the answer is that only the last call may take it, for the reason set out under <a href="#An-intermediate-call-is-welded-to-its-parenthesis">An intermediate call is welded to its parenthesis</a>. A line break is the same gap there as a space.</p>
 <p>Worth knowing what the two mistakes look like, because only one of them is loud. With a call behind it, <code>.Create()</code>, the compiler rejects the result with "This argument expression needs parentheses". With a plain member behind it, <code>.Value</code>, nothing warns at all: the code reparses quietly and the member becomes part of the argument.</p>
 <p>So an intermediate call keeps its <code>(</code> welded to the member name and breaks behind it instead. The closing <code>)</code> still answers to <code>fsharp_multi_line_lambda_closing_newline</code>, exactly as it does when the argument moves:</p>
@@ -872,7 +872,7 @@ A long call does not drag the short ones open:</p>
         <span class="id">list1</span>
 </code></pre>
 <p>What divides them is whether anything to the right consumes the call's result. Where nothing does, the call is an ordinary application and is laid out like one. Where something does, it is not an ordinary application, and the parser reads the gap as handing that step to the argument. So the same call really is laid out two ways, and adding a step behind it reshapes it, but the difference is one the compiler enforces rather than one chosen here.</p>
-<h4><a name="Match-lambdas-are-no-exception" class="anchor" href="#Match-lambdas-are-no-exception">Match lambdas are no exception</a></h4>
+<h4 data-fsdocs-heading="31"><a name="Match-lambdas-are-no-exception" class="anchor" href="#Match-lambdas-are-no-exception">Match lambdas are no exception</a></h4>
 <p>Match lambdas, written <code>(function</code>, are the argument shape most likely to look like an exception, so it is worth showing in full that they are not one.
 The F# style guide asks for them to be treated the same as <code>fun</code> lambdas ("Treat match lambda's in a similar fashion"), and they are: where the call sits in its chain makes no difference to either form.</p>
 <p>Here are both lambda forms, in both positions, under the default settings:</p>
@@ -945,7 +945,7 @@ The F# style guide asks for them to be treated the same as <code>fun</code> lamb
 <p>The setting is the only thing that moves it. Writing <code>function</code> on the line below the <code>(</code> yourself makes no difference: the same call written across more lines is still the same call, and Fantomas has to land on one answer for both.</p>
 <p>In none of these does the chain have a say. <code>.Configure</code> is an intermediate call in half of them, so its <code>(</code> is welded to it either way; where the lambda goes is the argument's business, and it answers the same way in both positions.</p>
 <p>That holds because every opener above fits beside its method name. Once one does not, position is the one thing that does decide, since moving the argument down is an answer only the last call can take; see <a href="#Only-the-last-call-may-move-its-parenthesis">Only the last call may move its parenthesis</a>.</p>
-<h4><a name="A-comment-beside-the-parentheses" class="anchor" href="#A-comment-beside-the-parentheses">A comment beside the parentheses</a></h4>
+<h4 data-fsdocs-heading="32"><a name="A-comment-beside-the-parentheses" class="anchor" href="#A-comment-beside-the-parentheses">A comment beside the parentheses</a></h4>
 <p>A comment can sit on either side of a call's opening parenthesis, and which side it is on decides what moves.</p>
 <p>In front of the argument, the comment is written after the <code>(</code>. The parenthesis has no reason to leave the method name, so it stays where it is and only the argument moves down:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// ✅ the comment is inside the parentheses, so only the argument moves</span>
@@ -1018,167 +1018,265 @@ from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Formatting-chain-expressions">
       Formatting chain expressions
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#Status-a-proposal-backed-by-an-implementation">
       Status: a proposal, backed by an implementation
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="3">
     <a href="#What-counts-as-a-chain">
       What counts as a chain
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="4">
     <a href="#Does-a-space-go-before-a-call-s-parenthesis">
       Does a space go before a call's parenthesis?
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="5">
     <a href="#An-intermediate-call-is-welded-to-its-parenthesis">
       An intermediate call is welded to its parenthesis
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="6">
     <a href="#The-final-call-is-free">
       The final call is free
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="7">
     <a href="#The-two-space-settings">
       The two space settings
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="8">
     <a href="#Neither-setting-applies-once-the-chain-is-more-than-a-name">
       Neither setting applies once the chain is more than a name
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="9">
     <a href="#Where-do-the-line-breaks-go">
       Where do the line breaks go?
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="10">
     <a href="#The-fit-question">
       The fit question
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="11">
     <a href="#Two-kinds-of-step">
       Two kinds of step
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="12">
     <a href="#Working-through-a-chain">
       Working through a chain
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="13">
     <a href="#Steps-1-to-3-the-rule-for-line-breaks">
       Steps 1 to 3: the rule for line breaks
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="14">
     <a href="#Step-4-navigation-rides-along">
       Step 4: navigation rides along
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="15">
     <a href="#Step-5-when-a-line-is-still-too-long">
       Step 5: when a line is still too long
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="16">
     <a href="#The-starting-value-never-sits-alone">
       The starting value never sits alone
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="17">
     <a href="#The-wrap-makes-room-for-the-arguments">
       The wrap makes room for the arguments
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="18">
     <a href="#Balancing-never-crosses-an-action">
       Balancing never crosses an action
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="19">
     <a href="#Examples">
       Examples
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="20">
     <a href="#One-call-at-the-end-the-arguments-break">
       One call at the end: the arguments break
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="21">
     <a href="#Navigation-in-front-of-a-single-call-still-just-the-arguments">
       Navigation in front of a single call: still just the arguments
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="22">
     <a href="#Two-or-more-calls-a-pipeline">
       Two or more calls: a pipeline
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="23">
     <a href="#Navigation-between-calls-rides-along">
       Navigation between calls rides along
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="24">
     <a href="#An-index-too-big-to-ride-along">
       An index too big to ride along
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="25">
     <a href="#A-chain-that-ends-in-navigation">
       A chain that ends in navigation
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="26">
     <a href="#A-chain-with-no-calls-at-all">
       A chain with no calls at all
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="27">
     <a href="#A-starting-value-that-is-itself-a-call">
       A starting value that is itself a call
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="28">
     <a href="#Arguments-are-not-the-chain-s-business">
       Arguments are not the chain's business
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="29">
     <a href="#Any-part-of-a-chain-can-grow">
       Any part of a chain can grow
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="30">
     <a href="#Only-the-last-call-may-move-its-parenthesis">
       Only the last call may move its parenthesis
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="31">
     <a href="#Match-lambdas-are-no-exception">
       Match lambdas are no exception
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="32">
     <a href="#A-comment-beside-the-parentheses">
       A comment beside the parentheses
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-heading-10, --fsdocs-heading-11, --fsdocs-heading-12, --fsdocs-heading-13, --fsdocs-heading-14, --fsdocs-heading-15, --fsdocs-heading-16, --fsdocs-heading-17, --fsdocs-heading-18, --fsdocs-heading-19, --fsdocs-heading-20, --fsdocs-heading-21, --fsdocs-heading-22, --fsdocs-heading-23, --fsdocs-heading-24, --fsdocs-heading-25, --fsdocs-heading-26, --fsdocs-heading-27, --fsdocs-heading-28, --fsdocs-heading-29, --fsdocs-heading-30, --fsdocs-heading-31, --fsdocs-heading-32, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-heading-8; }
+body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="8"] { view-timeline-name: --fsdocs-heading-8; }
+#fsdocs-page-menu [data-fsdocs-heading="8"] { animation-timeline: --fsdocs-heading-8, --fsdocs-heading-9; }
+body:has(#content [data-fsdocs-heading="8"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="8"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="9"] { view-timeline-name: --fsdocs-heading-9; }
+#fsdocs-page-menu [data-fsdocs-heading="9"] { animation-timeline: --fsdocs-heading-9, --fsdocs-heading-10; }
+body:has(#content [data-fsdocs-heading="9"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="9"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="10"] { view-timeline-name: --fsdocs-heading-10; }
+#fsdocs-page-menu [data-fsdocs-heading="10"] { animation-timeline: --fsdocs-heading-10, --fsdocs-heading-11; }
+body:has(#content [data-fsdocs-heading="10"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="10"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="11"] { view-timeline-name: --fsdocs-heading-11; }
+#fsdocs-page-menu [data-fsdocs-heading="11"] { animation-timeline: --fsdocs-heading-11, --fsdocs-heading-12; }
+body:has(#content [data-fsdocs-heading="11"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="11"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="12"] { view-timeline-name: --fsdocs-heading-12; }
+#fsdocs-page-menu [data-fsdocs-heading="12"] { animation-timeline: --fsdocs-heading-12, --fsdocs-heading-13; }
+body:has(#content [data-fsdocs-heading="12"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="12"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="13"] { view-timeline-name: --fsdocs-heading-13; }
+#fsdocs-page-menu [data-fsdocs-heading="13"] { animation-timeline: --fsdocs-heading-13, --fsdocs-heading-14; }
+body:has(#content [data-fsdocs-heading="13"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="13"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="14"] { view-timeline-name: --fsdocs-heading-14; }
+#fsdocs-page-menu [data-fsdocs-heading="14"] { animation-timeline: --fsdocs-heading-14, --fsdocs-heading-15; }
+body:has(#content [data-fsdocs-heading="14"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="14"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="15"] { view-timeline-name: --fsdocs-heading-15; }
+#fsdocs-page-menu [data-fsdocs-heading="15"] { animation-timeline: --fsdocs-heading-15, --fsdocs-heading-16; }
+body:has(#content [data-fsdocs-heading="15"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="15"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="16"] { view-timeline-name: --fsdocs-heading-16; }
+#fsdocs-page-menu [data-fsdocs-heading="16"] { animation-timeline: --fsdocs-heading-16, --fsdocs-heading-17; }
+body:has(#content [data-fsdocs-heading="16"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="16"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="17"] { view-timeline-name: --fsdocs-heading-17; }
+#fsdocs-page-menu [data-fsdocs-heading="17"] { animation-timeline: --fsdocs-heading-17, --fsdocs-heading-18; }
+body:has(#content [data-fsdocs-heading="17"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="17"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="18"] { view-timeline-name: --fsdocs-heading-18; }
+#fsdocs-page-menu [data-fsdocs-heading="18"] { animation-timeline: --fsdocs-heading-18, --fsdocs-heading-19; }
+body:has(#content [data-fsdocs-heading="18"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="18"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="19"] { view-timeline-name: --fsdocs-heading-19; }
+#fsdocs-page-menu [data-fsdocs-heading="19"] { animation-timeline: --fsdocs-heading-19, --fsdocs-heading-20; }
+body:has(#content [data-fsdocs-heading="19"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="19"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="20"] { view-timeline-name: --fsdocs-heading-20; }
+#fsdocs-page-menu [data-fsdocs-heading="20"] { animation-timeline: --fsdocs-heading-20, --fsdocs-heading-21; }
+body:has(#content [data-fsdocs-heading="20"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="20"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="21"] { view-timeline-name: --fsdocs-heading-21; }
+#fsdocs-page-menu [data-fsdocs-heading="21"] { animation-timeline: --fsdocs-heading-21, --fsdocs-heading-22; }
+body:has(#content [data-fsdocs-heading="21"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="21"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="22"] { view-timeline-name: --fsdocs-heading-22; }
+#fsdocs-page-menu [data-fsdocs-heading="22"] { animation-timeline: --fsdocs-heading-22, --fsdocs-heading-23; }
+body:has(#content [data-fsdocs-heading="22"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="22"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="23"] { view-timeline-name: --fsdocs-heading-23; }
+#fsdocs-page-menu [data-fsdocs-heading="23"] { animation-timeline: --fsdocs-heading-23, --fsdocs-heading-24; }
+body:has(#content [data-fsdocs-heading="23"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="23"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="24"] { view-timeline-name: --fsdocs-heading-24; }
+#fsdocs-page-menu [data-fsdocs-heading="24"] { animation-timeline: --fsdocs-heading-24, --fsdocs-heading-25; }
+body:has(#content [data-fsdocs-heading="24"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="24"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="25"] { view-timeline-name: --fsdocs-heading-25; }
+#fsdocs-page-menu [data-fsdocs-heading="25"] { animation-timeline: --fsdocs-heading-25, --fsdocs-heading-26; }
+body:has(#content [data-fsdocs-heading="25"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="25"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="26"] { view-timeline-name: --fsdocs-heading-26; }
+#fsdocs-page-menu [data-fsdocs-heading="26"] { animation-timeline: --fsdocs-heading-26, --fsdocs-heading-27; }
+body:has(#content [data-fsdocs-heading="26"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="26"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="27"] { view-timeline-name: --fsdocs-heading-27; }
+#fsdocs-page-menu [data-fsdocs-heading="27"] { animation-timeline: --fsdocs-heading-27, --fsdocs-heading-28; }
+body:has(#content [data-fsdocs-heading="27"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="27"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="28"] { view-timeline-name: --fsdocs-heading-28; }
+#fsdocs-page-menu [data-fsdocs-heading="28"] { animation-timeline: --fsdocs-heading-28, --fsdocs-heading-29; }
+body:has(#content [data-fsdocs-heading="28"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="28"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="29"] { view-timeline-name: --fsdocs-heading-29; }
+#fsdocs-page-menu [data-fsdocs-heading="29"] { animation-timeline: --fsdocs-heading-29, --fsdocs-heading-30; }
+body:has(#content [data-fsdocs-heading="29"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="29"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="30"] { view-timeline-name: --fsdocs-heading-30; }
+#fsdocs-page-menu [data-fsdocs-heading="30"] { animation-timeline: --fsdocs-heading-30, --fsdocs-heading-31; }
+body:has(#content [data-fsdocs-heading="30"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="30"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="31"] { view-timeline-name: --fsdocs-heading-31; }
+#fsdocs-page-menu [data-fsdocs-heading="31"] { animation-timeline: --fsdocs-heading-31, --fsdocs-heading-32, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="31"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="31"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="32"] { view-timeline-name: --fsdocs-heading-32; }
+#fsdocs-page-menu [data-fsdocs-heading="32"] { animation-timeline: --fsdocs-heading-32, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="32"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="32"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -1193,12 +1291,29 @@ from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

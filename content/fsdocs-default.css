@@ -31,6 +31,12 @@
     --heading-line-height: 1.25;
     --radius: 6px;
 
+    /* outline of the element the hotkeys (j / k / h / l) moved the focus to */
+    --hotkey-focus-color: var(--primary);
+    --hotkey-focus-width: 2px;
+    --hotkey-focus-offset: var(--spacing-50);
+    --hotkey-focus-radius: 2px;
+
     --container-sm: 768px;
     --container-md: 960px;
     --container-lg: 1024px;
@@ -85,6 +91,8 @@
     --blockquote-background-color: var(--panel-background);
     --blockquote-color: var(--text-color);
     --on-this-page-color: var(--menu-color);
+    --page-menu-active-border-color: var(--primary);
+    --page-menu-reading-line: calc(var(--spacing-300) + 2px);
     --page-menu-background-color: var(--panel-background);
     --page-menu-background-border-color: var(--panel-border);
     --page-menu-background-hover-border-color: var(--text-color);
@@ -317,6 +325,8 @@ main {
     height: calc(100dvh - var(--header-height));
     overflow-y: auto;
     scrollbar-gutter: stable;
+    /* Watched by the page menu scroll spy, see below. */
+    scroll-timeline-name: --fsdocs-main;
 }
 
 #content {
@@ -353,6 +363,40 @@ main {
         & li {
             border-left: 1px solid var(--panel-border);
             margin: 0;
+
+            /* Current section: see "Page menu scroll spy" below. */
+            @supports (animation-timeline: view()) {
+                --fsdocs-toc-focused: 0;
+                --fsdocs-toc-active: calc(var(--fsdocs-toc-reached) - var(--fsdocs-toc-next-reached));
+                animation-name: fsdocs-toc-reached, fsdocs-toc-next-reached;
+                animation-fill-mode: forwards;
+                animation-range: exit 0% exit 100%;
+                border-left-color: color-mix(in srgb, var(--panel-border), var(--page-menu-active-border-color) calc(var(--fsdocs-toc-active) * 100%));
+
+                /* The last heading may never cross the reading line (the page ends too soon), so the
+                 * last two items also watch the content scroller: the bottom of the page counts as
+                 * reaching the last heading. */
+                &:nth-last-child(2) {
+                    animation-name: fsdocs-toc-reached, fsdocs-toc-next-reached, fsdocs-toc-next-reached;
+                    animation-range: exit 0% exit 100%, exit 0% exit 100%, calc(100% - 2px) 100%;
+                }
+
+                &:last-child {
+                    animation-name: fsdocs-toc-reached, fsdocs-toc-reached;
+                    animation-range: exit 0% exit 100%, calc(100% - 2px) 100%;
+                }
+
+                /* The first item is current from the moment its heading is on screen, so the top
+                 * of the page marks an entry before any heading crosses the reading line. */
+                &:first-child {
+                    animation-range-start: cover 0%, exit 0%, calc(100% - 2px);
+                }
+
+                /* A heading focused by the j / k hotkeys takes over from the scroll position. */
+                body:has(#content :is(h1, h2, h3, h4, h5, h6):is(:focus, .fsdocs-hotkey-focus)) & {
+                    --fsdocs-toc-active: var(--fsdocs-toc-focused);
+                }
+            }
 
             &:hover, &:focus {
                 border-color: var(--page-menu-background-hover-border-color);
@@ -570,6 +614,47 @@ main {
     }
 }
 
+/* Page menu scroll spy
+ *
+ * Pure CSS, through scroll-driven animations. The build numbers every heading and its page menu
+ * item (data-fsdocs-heading) and emits a <style> next to the menu that gives every heading a named
+ * view timeline (view-timeline-name), every menu item the timelines of its own heading and the next
+ * one (animation-timeline), hoists the names and the scroller's --fsdocs-main to body
+ * (timeline-scope) and sets --fsdocs-toc-focused on the item of a focused heading. The two animations below flip a registered property to 1 once
+ * the heading's top passes the reading line and keep it there (fill forwards). An item is the
+ * current one when its own heading passed the line and the next one did not yet.
+ * Browsers without scroll-driven animations skip all of it (@supports).
+ */
+@property --fsdocs-toc-reached {
+    syntax: "<integer>";
+    inherits: false;
+    initial-value: 0;
+}
+
+@property --fsdocs-toc-next-reached {
+    syntax: "<integer>";
+    inherits: false;
+    initial-value: 0;
+}
+
+@keyframes fsdocs-toc-reached {
+    from, to {
+        --fsdocs-toc-reached: 1;
+    }
+}
+
+@keyframes fsdocs-toc-next-reached {
+    from, to {
+        --fsdocs-toc-next-reached: 1;
+    }
+}
+
+/* The reading line: a heading counts as reached once its top is this far down the scroller. It sits
+ * just below where anchor links and the j / k hotkeys scroll a heading to (its scroll margin). */
+#content h1, #content h2, #content h3, #content h4, #content h5, #content h6 {
+    view-timeline-inset: var(--page-menu-reading-line) 0;
+}
+
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--heading-font-family);
@@ -578,6 +663,18 @@ h1, h2, h3, h4, h5, h6 {
 h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
     color: var(--heading-color);
     text-decoration: none;
+}
+
+/* Headings are focused by the j / k hotkeys (fsdocs-hotkeys.js) and reached by anchor links. */
+#content h1, #content h2, #content h3, #content h4, #content h5, #content h6 {
+    scroll-margin-top: var(--spacing-300);
+}
+
+/* The element the hotkeys moved the focus to. */
+.fsdocs-hotkey-focus {
+    outline: var(--hotkey-focus-width) solid var(--hotkey-focus-color);
+    outline-offset: var(--hotkey-focus-offset);
+    border-radius: var(--hotkey-focus-radius);
 }
 
 h1 {
@@ -780,8 +877,8 @@ pre.fssnip.highlighted > code, table.pre .fssnip, table.pre .fssnip code {
 }
 
 /* Custom scrollbar styling */
-body, aside, #menu-toggle .menu, table.pre, code, 
-.fsdocs-entity-xmldoc > div > pre, div.fsdocs-summary > pre, 
+body, aside, #menu-toggle .menu, table.pre, code,
+.fsdocs-entity-xmldoc > div > pre, div.fsdocs-summary > pre,
 dialog ul, div.fsdocs-tip, .fsdocs-xmldoc > pre {
     overflow-x: auto;
     max-width: 100%;
@@ -801,8 +898,8 @@ dialog ul, div.fsdocs-tip, .fsdocs-xmldoc > pre {
     }
 }
 
-body, aside, #menu-toggle .menu, table.pre, code, 
-.fsdocs-entity-xmldoc > div > pre, div.fsdocs-summary > pre, 
+body, aside, #menu-toggle .menu, table.pre, code,
+.fsdocs-entity-xmldoc > div > pre, div.fsdocs-summary > pre,
 dialog ul, div.fsdocs-tip, .fsdocs-xmldoc > pre {
     @media screen and (min-width: 768px) {
         &::-webkit-scrollbar {
@@ -1016,6 +1113,8 @@ div.fsdocs-tip:popover-open {
     position: fixed;
     inset: unset;
     animation: fsdocs-tip-fade-in 120ms ease-out;
+    cursor: text;
+    user-select: text;
 }
 
 [data-fsdocs-tip] {

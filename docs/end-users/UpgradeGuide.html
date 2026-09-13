@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,12 +340,12 @@
 <main>
     <div id="content">
         
-<h1><a name="Upgrade-guide" class="anchor" href="#Upgrade-guide">Upgrade guide</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Upgrade-guide" class="anchor" href="#Upgrade-guide">Upgrade guide</a></h1>
 <p>We wish to capture all changes required to upgrade to a new version. Please note that the focus of this document is about how to upgrade.<br />
 New features are not covered in detail here, for those please refer to our <a href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">changelog</a>.<br />
 If you find something to be missing from this guide, please consider opening a PR to mend the gap instead of opening an issue.</p>
-<h2><a name="v5-0" class="anchor" href="#v5-0">v5.0</a></h2>
-<h3><a name="editorconfig" class="anchor" href="#editorconfig">.editorconfig</a></h3>
+<h2 data-fsdocs-heading="2"><a name="v5-0" class="anchor" href="#v5-0">v5.0</a></h2>
+<h3 data-fsdocs-heading="3"><a name="editorconfig" class="anchor" href="#editorconfig">.editorconfig</a></h3>
 <ul>
 <li><code>fsharp_max_elmish_width</code> was removed.</li>
 <li><code>fsharp_single_argument_web_mode</code> was removed.</li>
@@ -361,7 +361,7 @@ If you find something to be missing from this guide, please consider opening a P
 <ul>
 <li><code>fsharp_keep_indent_in_branch</code> was renamed to <code>fsharp_experimental_keep_indent_in_branch</code></li>
 </ul>
-<h3><a name="console-application" class="anchor" href="#console-application">console application</a></h3>
+<h3 data-fsdocs-heading="4"><a name="console-application" class="anchor" href="#console-application">console application</a></h3>
 <ul>
 <li>The dotnet tool is now targeting <code>net6.0</code>.</li>
 <li><code>--stdin</code> was removed.</li>
@@ -369,23 +369,23 @@ If you find something to be missing from this guide, please consider opening a P
 <li><code>--fsi</code> was removed.</li>
 <li><code>--force</code> now writes a formatted file to disk, regardless of its validity.</li>
 </ul>
-<h3><a name="Miscellaneous" class="anchor" href="#Miscellaneous">Miscellaneous</a></h3>
+<h3 data-fsdocs-heading="5"><a name="Miscellaneous" class="anchor" href="#Miscellaneous">Miscellaneous</a></h3>
 <ul>
 <li>NuGet package <code>Fantomas</code> was renamed to <code>Fantomas.Core</code>.</li>
 <li>NuGet package <code>fantomas-tool</code> was renamed to <code>fantomas</code>.</li>
 <li><code>Fantomas.Core</code> uses <a href="https://www.nuget.org/packages/Fantomas.FCS">Fantomas.FCS</a> instead of <a href="https://www.nuget.org/packages/FSharp.Compiler.Service">FSharp.Compiler.Service</a></li>
 <li>NuGet package <code>Fantomas.Extras</code> is deprecated.</li>
 </ul>
-<h2><a name="v5-1" class="anchor" href="#v5-1">v5.1</a></h2>
-<h3><a name="editorconfig-1" class="anchor" href="#editorconfig-1">.editorconfig</a></h3>
+<h2 data-fsdocs-heading="6"><a name="v5-1" class="anchor" href="#v5-1">v5.1</a></h2>
+<h3 data-fsdocs-heading="7"><a name="editorconfig-1" class="anchor" href="#editorconfig-1">.editorconfig</a></h3>
 <ul>
 <li>
 The space in patterns is no longer controlled by <code>fsharp_space_before_parameter</code>,<br />
 <code>fsharp_space_before_lowercase_invocation</code> and <code>fsharp_space_before_uppercase_invocation</code> are now used.
 </li>
 </ul>
-<h2><a name="v5-2" class="anchor" href="#v5-2">v5.2</a></h2>
-<h3><a name="editorconfig-2" class="anchor" href="#editorconfig-2">.editorconfig</a></h3>
+<h2 data-fsdocs-heading="8"><a name="v5-2" class="anchor" href="#v5-2">v5.2</a></h2>
+<h3 data-fsdocs-heading="9"><a name="editorconfig-2" class="anchor" href="#editorconfig-2">.editorconfig</a></h3>
 <ul>
 <li>
 <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>fsharp_experimental_stroustrup_style</code> are now merged into one setting <code>fsharp_multiline_bracket_style</code>.<br />
@@ -393,45 +393,45 @@ The accepted values for <code>fsharp_multiline_bracket_style</code> are <code>cr
 Note that <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>fsharp_experimental_stroustrup_style</code> will continue to work until the next major version.
 </li>
 </ul>
-<h2><a name="v6-0" class="anchor" href="#v6-0">v6.0</a></h2>
-<h3><a name="editorconfig-3" class="anchor" href="#editorconfig-3">.editorconfig</a></h3>
+<h2 data-fsdocs-heading="10"><a name="v6-0" class="anchor" href="#v6-0">v6.0</a></h2>
+<h3 data-fsdocs-heading="11"><a name="editorconfig-3" class="anchor" href="#editorconfig-3">.editorconfig</a></h3>
 <ul>
 <li><code>fsharp_multiline_block_brackets_on_same_column</code> and <code>fsharp_experimental_stroustrup_style</code> are replaced with <code>fsharp_multiline_bracket_style</code></li>
 <li><code>experimental_stroustrup</code> for <code>fsharp_multiline_bracket_style</code> is now <code>stroustrup</code></li>
 <li><code>fsharp_newline_before_multiline_computation_expression</code> was extracted from <code>fsharp_multiline_bracket_style = stroustrup</code> and now controls how computation expression behave.</li>
 <li><code>fsharp_strict_mode</code> was removed and can no longer be used.</li>
 </ul>
-<h3><a name="console-application-1" class="anchor" href="#console-application-1">console application</a></h3>
+<h3 data-fsdocs-heading="12"><a name="console-application-1" class="anchor" href="#console-application-1">console application</a></h3>
 <ul>
 <li><code>-v</code> is now short for <code>--verbosity</code> instead of <code>--version</code></li>
 <li>The console output was revamped.</li>
 <li><code>--recurse</code> was removed. Please use <a href="./IgnoreFiles.html">.fantomasignore</a> file if you wish to ignore certain files.</li>
 </ul>
-<h3><a name="Miscellaneous-1" class="anchor" href="#Miscellaneous-1">Miscellaneous</a></h3>
+<h3 data-fsdocs-heading="13"><a name="Miscellaneous-1" class="anchor" href="#Miscellaneous-1">Miscellaneous</a></h3>
 <ul>
 <li>The public API of CodeFormatter no longer uses <code>FSharpOption&lt;'T&gt;</code>, instead overloads are now used.</li>
 <li><code>StrictMode</code> was removed from <code>FormatConfig</code>, not passing the source text in the public API will have the same effect.</li>
 </ul>
-<h2><a name="v6-1" class="anchor" href="#v6-1">v6.1</a></h2>
-<h3><a name="Miscellaneous-2" class="anchor" href="#Miscellaneous-2">Miscellaneous</a></h3>
+<h2 data-fsdocs-heading="14"><a name="v6-1" class="anchor" href="#v6-1">v6.1</a></h2>
+<h3 data-fsdocs-heading="15"><a name="Miscellaneous-2" class="anchor" href="#Miscellaneous-2">Miscellaneous</a></h3>
 <ul>
 <li>The namespace in <a href="https://www.nuget.org/packages/Fantomas.FCS">Fantomas.FCS</a> changed from <code>FSharp.Compiler</code> to <code>Fantomas.FCS</code>.</li>
 </ul>
-<h2><a name="v7" class="anchor" href="#v7">v7</a></h2>
-<h3><a name="console-application-2" class="anchor" href="#console-application-2">console application</a></h3>
+<h2 data-fsdocs-heading="16"><a name="v7" class="anchor" href="#v7">v7</a></h2>
+<h3 data-fsdocs-heading="17"><a name="console-application-2" class="anchor" href="#console-application-2">console application</a></h3>
 <ul>
 <li>Target framework is now <code>net8.0</code>.</li>
 </ul>
-<h3><a name="editorconfig-4" class="anchor" href="#editorconfig-4">.editorconfig</a></h3>
+<h3 data-fsdocs-heading="18"><a name="editorconfig-4" class="anchor" href="#editorconfig-4">.editorconfig</a></h3>
 <ul>
 <li><code>fsharp_max_dot_get_expression_width</code> was removed.</li>
 </ul>
-<h2><a name="v8-beta" class="anchor" href="#v8-beta">v8 beta</a></h2>
-<h3><a name="editorconfig-5" class="anchor" href="#editorconfig-5">.editorconfig</a></h3>
+<h2 data-fsdocs-heading="19"><a name="v8-beta" class="anchor" href="#v8-beta">v8 beta</a></h2>
+<h3 data-fsdocs-heading="20"><a name="editorconfig-5" class="anchor" href="#editorconfig-5">.editorconfig</a></h3>
 <ul>
 <li>The default setting for <code>fsharp_multiline_bracket_style</code> is now <code>aligned</code>, to restore the previous behaviour use <code>fsharp_multiline_bracket_style = cramped</code>.</li>
 </ul>
-<h3><a name="console-application-3" class="anchor" href="#console-application-3">console application</a></h3>
+<h3 data-fsdocs-heading="21"><a name="console-application-3" class="anchor" href="#console-application-3">console application</a></h3>
 <ul>
 <li>Target framework is now <code>net10.0</code>.</li>
 <li>Warnings and errors are written to standard error instead of standard out. A script that captured standard out to detect failures needs to capture standard error as well. Informational output stays on standard out, including <code>--version</code> and the files <code>--check</code> reports as needing formatting.</li>
@@ -460,7 +460,7 @@ Note that <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>
 <li><code>--json</code> no longer names a file that <code>.fantomasignore</code> matched, and <code>ignored</code> is no longer a status a file can carry. See "What a run says about skipped files" below.</li>
 <li>A run writing to <code>--out</code> reports what was written rather than what changed, <code>32 files written to build, 2 reformatted.</code>, since under <code>--out</code> every input produces an output file whether or not its content changed. A single file named on the command line says where it went, <code>+ src/A.fs was formatted and written to build/A.fs.</code></li>
 </ul>
-<h4><a name="What-a-run-prints-now" class="anchor" href="#What-a-run-prints-now">What a run prints now</a></h4>
+<h4 data-fsdocs-heading="22"><a name="What-a-run-prints-now" class="anchor" href="#What-a-run-prints-now">What a run prints now</a></h4>
 <p>Each file that changed gets a sentence of its own, opening with a character that says what happened
 to it, and the run ends with a line of counts:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="text">$ dotnet fantomas src
@@ -510,7 +510,7 @@ would have skipped it.</p>
 <p>A folder that <code>.fantomasignore</code> names is no longer opened at all. Up to now every file inside it
 was found and then rejected one at a time. Nothing is formatted that was not formatted before, and
 a run over a repository that ignores a vendored checkout no longer reads it.</p>
-<h4><a name="What-a-run-says-about-skipped-files" class="anchor" href="#What-a-run-says-about-skipped-files">What a run says about skipped files</a></h4>
+<h4 data-fsdocs-heading="23"><a name="What-a-run-says-about-skipped-files" class="anchor" href="#What-a-run-says-about-skipped-files">What a run says about skipped files</a></h4>
 <p>It no longer says how many, and <code>--json</code> no longer names them at all: a file an ignore pattern
 matched used to be listed in <code>files</code> with a status of <code>ignored</code>, and is absent now.</p>
 <p>The number could not be honest. An ignore pattern that names a file can be counted, because the
@@ -566,7 +566,7 @@ dotnet fantomas ./input/array.fs --out ./output/array.fs
 </code></pre></td></tr></table>
 <p>If your build script creates the output folders before calling Fantomas, it can keep doing so.
 <code>mkdir -p</code> and its equivalents are unaffected by this change.</p>
-<h3><a name="Formatting" class="anchor" href="#Formatting">Formatting</a></h3>
+<h3 data-fsdocs-heading="24"><a name="Formatting" class="anchor" href="#Formatting">Formatting</a></h3>
 <p>Chains (dotted member access and calls) are laid out by a new set of rules, written up in full in
 <a href="./Chains.html">Formatting chain expressions</a>. They are a proposal for the F# style guide and may still
 change before <code>v8.0.0</code> is final.</p>
@@ -574,7 +574,7 @@ change before <code>v8.0.0</code> is final.</p>
 left alone. The spacing rule directly below is the exception: it applies whether or not the chain
 breaks, and it reaches a few things that are not chains at all. The changes here are the ones you
 are most likely to notice.</p>
-<h4><a name="A-call-keeps-its-space-only-when-the-whole-name-is-plain" class="anchor" href="#A-call-keeps-its-space-only-when-the-whole-name-is-plain">A call keeps its space only when the whole name is plain</a></h4>
+<h4 data-fsdocs-heading="25"><a name="A-call-keeps-its-space-only-when-the-whole-name-is-plain" class="anchor" href="#A-call-keeps-its-space-only-when-the-whole-name-is-plain">A call keeps its space only when the whole name is plain</a></h4>
 <p><code>fsharp_space_before_uppercase_invocation</code> and <code>fsharp_space_before_lowercase_invocation</code> ask for a
 space before the parenthesis of a call. They now get a say only when the whole thing being called
 is a plain dotted name. A call, an index, a receiver that is not a name, or a type application
@@ -605,7 +605,7 @@ it and <code>unbox&lt;int&gt; obj</code> is left as written.</p>
 <p>This is the rule agreed at
 <a href="https://github.com/fsharp/fslang-design/issues/648">fslang-design#648</a>, where the reasoning is
 laid out in full.</p>
-<h4><a name="A-run-of-property-access-wraps-instead-of-overflowing" class="anchor" href="#A-run-of-property-access-wraps-instead-of-overflowing">A run of property access wraps instead of overflowing</a></h4>
+<h4 data-fsdocs-heading="26"><a name="A-run-of-property-access-wraps-instead-of-overflowing" class="anchor" href="#A-run-of-property-access-wraps-instead-of-overflowing">A run of property access wraps instead of overflowing</a></h4>
 <p>Navigation that does not fit is spread over balanced lines, chosen so the longest resulting line is
 as short as possible. Previously it was left to overflow the margin. At <code>max_line_length = 80</code>:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
@@ -617,7 +617,7 @@ as short as possible. Previously it was left to overflow the margin. At <code>ma
     <span class="id">builder</span><span class="pn">.</span><span class="id">Services</span><span class="pn">.</span><span class="id">Configuration</span><span class="pn">.</span><span class="id">Providers</span>
         <span class="pn">.</span><span class="id">Defaults</span><span class="pn">.</span><span class="id">Primary</span><span class="pn">.</span><span class="id">Fallback</span><span class="pn">.</span><span class="id">Value</span><span class="pn">.</span><span class="id">Inner</span>
 </code></pre>
-<h4><a name="A-comment-no-longer-fans-the-chain-out-one-step-per-line" class="anchor" href="#A-comment-no-longer-fans-the-chain-out-one-step-per-line">A comment no longer fans the chain out one step per line</a></h4>
+<h4 data-fsdocs-heading="27"><a name="A-comment-no-longer-fans-the-chain-out-one-step-per-line" class="anchor" href="#A-comment-no-longer-fans-the-chain-out-one-step-per-line">A comment no longer fans the chain out one step per line</a></h4>
 <p>A comment between the steps forces the chain to break, whatever the line length allows. In <code>v7</code>
 that break was taken by every step. In <code>v8</code> only a call claims a line of its own, and plain
 property access rides along at the front of the line belonging to the call it introduces:</p>
@@ -665,7 +665,7 @@ A chain now follows what the receiverless call already did:</p>
             <span class="pn">|</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="13" class="id">Some</span> <span class="id">v</span> <span class="k">-&gt;</span> <span class="id">handleSome</span> <span class="id">v</span>
             <span class="pn">|</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="14" class="id">None</span> <span class="k">-&gt;</span> <span class="id">handleNone</span> <span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
 </code></pre>
-<h4><a name="A-lambda-whose-opening-line-does-not-fit-moves-to-its-own-line" class="anchor" href="#A-lambda-whose-opening-line-does-not-fit-moves-to-its-own-line">A lambda whose opening line does not fit moves to its own line</a></h4>
+<h4 data-fsdocs-heading="28"><a name="A-lambda-whose-opening-line-does-not-fit-moves-to-its-own-line" class="anchor" href="#A-lambda-whose-opening-line-does-not-fit-moves-to-its-own-line">A lambda whose opening line does not fit moves to its own line</a></h4>
 <p>This applies with <strong><code>fsharp_multi_line_lambda_closing_newline = true</code></strong>. With the setting left at
 its default of <code>false</code> nothing changes.</p>
 <p>In <code>v7</code> the parameters were hung underneath the opening parenthesis, which pushed them far to the
@@ -688,14 +688,14 @@ indents normally. This affects calls with and without a receiver alike. At <code
             <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="20" class="id">Some</span><span class="pn">(</span><span class="id">ty</span><span class="pn">,</span> <span class="id">withRange</span><span class="pn">)</span>
         <span class="pn">)</span>
 </code></pre>
-<h3><a name="Fantomas-Core-API" class="anchor" href="#Fantomas-Core-API">Fantomas.Core API</a></h3>
+<h3 data-fsdocs-heading="29"><a name="Fantomas-Core-API" class="anchor" href="#Fantomas-Core-API">Fantomas.Core API</a></h3>
 <p>These only affect you if you consume <code>Fantomas.Core</code> as a library. Formatting source text through
 <code>CodeFormatter.FormatDocumentAsync</code> is unaffected.</p>
 <h4><a name="No-longer-binary-compatible-with" class="anchor" href="#No-longer-binary-compatible-with">No longer binary compatible with <code>v7</code></a></h4>
 <p>Several discriminated unions are structs now. That changes nothing about how they are constructed,
 matched or compared, so no source of yours has to be edited, but an assembly compiled against <code>v7</code>
 has to be rebuilt against <code>v8</code>.</p>
-<h4><a name="Exceptions" class="anchor" href="#Exceptions">Exceptions</a></h4>
+<h4 data-fsdocs-heading="30"><a name="Exceptions" class="anchor" href="#Exceptions">Exceptions</a></h4>
 <ul>
 <li>
 <code>InvariantViolationException</code> was added. It derives from <code>FormatException</code> and is raised when Fantomas reaches a state its own model says is impossible, which always means a bug in Fantomas rather than a problem with your code.
@@ -704,7 +704,7 @@ If you catch <code>FormatException</code>, you already catch this.
 <li><code>DefineParseException</code> was added, raised when one or more conditional compilation define combinations produce invalid syntax trees.</li>
 <li><code>EndOfLineStyle.OfConfigString "cr"</code> now raises <code>FormatException</code> instead of calling <code>failwith</code>.</li>
 </ul>
-<h4><a name="CodeFormatter" class="anchor" href="#CodeFormatter">CodeFormatter</a></h4>
+<h4 data-fsdocs-heading="31"><a name="CodeFormatter" class="anchor" href="#CodeFormatter">CodeFormatter</a></h4>
 <ul>
 <li>
 <p><code>CodeFormatter.IsValidFSharpCodeAsync</code> was replaced by <code>CodeFormatter.ValidateFSharpCodeAsync</code>, which answers with a <code>ValidationResult</code> instead of a <code>bool</code>:</p>
@@ -720,7 +720,7 @@ If you catch <code>FormatException</code>, you already catch this.
 <li><p><code>CodeFormatter.FormatASTAsync(ast, config, source)</code> was added, next to the existing <code>FormatASTAsync(ast, source)</code>.</p></li>
 <li><p><code>CodeFormatter.GetWriterEventsAsync</code> was added for debugging. It returns the writer events produced while formatting.</p></li>
 </ul>
-<h4><a name="Oak-chains" class="anchor" href="#Oak-chains">Oak: chains</a></h4>
+<h4 data-fsdocs-heading="32"><a name="Oak-chains" class="anchor" href="#Oak-chains">Oak: chains</a></h4>
 <p><code>Expr.Chain</code> no longer holds a flat <code>ChainLink list</code>. A chain is now a head expression, a list of
 dot-prefixed segments, and a terminal call:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">ExprChain</span><span class="pn">(</span><span class="id">head</span><span class="pn">:</span> <span class="id">Expr</span><span class="pn">,</span> <span class="id">segments</span><span class="pn">:</span> <span class="id">ChainSegment</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="21" class="id">list</span><span class="pn">,</span> <span class="id">terminal</span><span class="pn">:</span> <span class="id">ChainTerminal</span><span class="pn">,</span> <span class="id">range</span><span class="pn">)</span>
@@ -799,7 +799,7 @@ those are chains now.</p>
 previously yielded <code>Expr.OptVar</code>. <code>Expr.OptVar</code> still exists, and is still produced for long
 identifiers without dots and for the optional-argument form <code>?a.b</code>. A single identifier is
 <code>Expr.Ident</code>, as before.</p>
-<h4><a name="Oak-other-node-changes" class="anchor" href="#Oak-other-node-changes">Oak: other node changes</a></h4>
+<h4 data-fsdocs-heading="33"><a name="Oak-other-node-changes" class="anchor" href="#Oak-other-node-changes">Oak: other node changes</a></h4>
 <ul>
 <li><code>Expr.DynamicChain</code> was added for chained <code>?</code> operator accesses such as <code>x?a("")?b(t)</code>.</li>
 <li>
@@ -848,172 +848,273 @@ from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Upgrade-guide">
       Upgrade guide
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#v5-0">
       v5.0
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="3">
     <a href="#editorconfig">
       .editorconfig
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="4">
     <a href="#console-application">
       console application
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="5">
     <a href="#Miscellaneous">
       Miscellaneous
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="6">
     <a href="#v5-1">
       v5.1
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="7">
     <a href="#editorconfig-1">
       .editorconfig
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="8">
     <a href="#v5-2">
       v5.2
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="9">
     <a href="#editorconfig-2">
       .editorconfig
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="10">
     <a href="#v6-0">
       v6.0
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="11">
     <a href="#editorconfig-3">
       .editorconfig
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="12">
     <a href="#console-application-1">
       console application
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="13">
     <a href="#Miscellaneous-1">
       Miscellaneous
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="14">
     <a href="#v6-1">
       v6.1
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="15">
     <a href="#Miscellaneous-2">
       Miscellaneous
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="16">
     <a href="#v7">
       v7
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="17">
     <a href="#console-application-2">
       console application
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="18">
     <a href="#editorconfig-4">
       .editorconfig
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="19">
     <a href="#v8-beta">
       v8 beta
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="20">
     <a href="#editorconfig-5">
       .editorconfig
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="21">
     <a href="#console-application-3">
       console application
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="22">
     <a href="#What-a-run-prints-now">
       What a run prints now
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="23">
     <a href="#What-a-run-says-about-skipped-files">
       What a run says about skipped files
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="24">
     <a href="#Formatting">
       Formatting
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="25">
     <a href="#A-call-keeps-its-space-only-when-the-whole-name-is-plain">
       A call keeps its space only when the whole name is plain
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="26">
     <a href="#A-run-of-property-access-wraps-instead-of-overflowing">
       A run of property access wraps instead of overflowing
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="27">
     <a href="#A-comment-no-longer-fans-the-chain-out-one-step-per-line">
       A comment no longer fans the chain out one step per line
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="28">
     <a href="#A-lambda-whose-opening-line-does-not-fit-moves-to-its-own-line">
       A lambda whose opening line does not fit moves to its own line
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="29">
     <a href="#Fantomas-Core-API">
       Fantomas.Core API
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="30">
     <a href="#Exceptions">
       Exceptions
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="31">
     <a href="#CodeFormatter">
       CodeFormatter
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="32">
     <a href="#Oak-chains">
       Oak: chains
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="33">
     <a href="#Oak-other-node-changes">
       Oak: other node changes
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-heading-10, --fsdocs-heading-11, --fsdocs-heading-12, --fsdocs-heading-13, --fsdocs-heading-14, --fsdocs-heading-15, --fsdocs-heading-16, --fsdocs-heading-17, --fsdocs-heading-18, --fsdocs-heading-19, --fsdocs-heading-20, --fsdocs-heading-21, --fsdocs-heading-22, --fsdocs-heading-23, --fsdocs-heading-24, --fsdocs-heading-25, --fsdocs-heading-26, --fsdocs-heading-27, --fsdocs-heading-28, --fsdocs-heading-29, --fsdocs-heading-30, --fsdocs-heading-31, --fsdocs-heading-32, --fsdocs-heading-33, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-heading-8; }
+body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="8"] { view-timeline-name: --fsdocs-heading-8; }
+#fsdocs-page-menu [data-fsdocs-heading="8"] { animation-timeline: --fsdocs-heading-8, --fsdocs-heading-9; }
+body:has(#content [data-fsdocs-heading="8"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="8"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="9"] { view-timeline-name: --fsdocs-heading-9; }
+#fsdocs-page-menu [data-fsdocs-heading="9"] { animation-timeline: --fsdocs-heading-9, --fsdocs-heading-10; }
+body:has(#content [data-fsdocs-heading="9"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="9"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="10"] { view-timeline-name: --fsdocs-heading-10; }
+#fsdocs-page-menu [data-fsdocs-heading="10"] { animation-timeline: --fsdocs-heading-10, --fsdocs-heading-11; }
+body:has(#content [data-fsdocs-heading="10"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="10"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="11"] { view-timeline-name: --fsdocs-heading-11; }
+#fsdocs-page-menu [data-fsdocs-heading="11"] { animation-timeline: --fsdocs-heading-11, --fsdocs-heading-12; }
+body:has(#content [data-fsdocs-heading="11"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="11"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="12"] { view-timeline-name: --fsdocs-heading-12; }
+#fsdocs-page-menu [data-fsdocs-heading="12"] { animation-timeline: --fsdocs-heading-12, --fsdocs-heading-13; }
+body:has(#content [data-fsdocs-heading="12"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="12"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="13"] { view-timeline-name: --fsdocs-heading-13; }
+#fsdocs-page-menu [data-fsdocs-heading="13"] { animation-timeline: --fsdocs-heading-13, --fsdocs-heading-14; }
+body:has(#content [data-fsdocs-heading="13"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="13"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="14"] { view-timeline-name: --fsdocs-heading-14; }
+#fsdocs-page-menu [data-fsdocs-heading="14"] { animation-timeline: --fsdocs-heading-14, --fsdocs-heading-15; }
+body:has(#content [data-fsdocs-heading="14"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="14"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="15"] { view-timeline-name: --fsdocs-heading-15; }
+#fsdocs-page-menu [data-fsdocs-heading="15"] { animation-timeline: --fsdocs-heading-15, --fsdocs-heading-16; }
+body:has(#content [data-fsdocs-heading="15"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="15"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="16"] { view-timeline-name: --fsdocs-heading-16; }
+#fsdocs-page-menu [data-fsdocs-heading="16"] { animation-timeline: --fsdocs-heading-16, --fsdocs-heading-17; }
+body:has(#content [data-fsdocs-heading="16"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="16"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="17"] { view-timeline-name: --fsdocs-heading-17; }
+#fsdocs-page-menu [data-fsdocs-heading="17"] { animation-timeline: --fsdocs-heading-17, --fsdocs-heading-18; }
+body:has(#content [data-fsdocs-heading="17"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="17"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="18"] { view-timeline-name: --fsdocs-heading-18; }
+#fsdocs-page-menu [data-fsdocs-heading="18"] { animation-timeline: --fsdocs-heading-18, --fsdocs-heading-19; }
+body:has(#content [data-fsdocs-heading="18"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="18"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="19"] { view-timeline-name: --fsdocs-heading-19; }
+#fsdocs-page-menu [data-fsdocs-heading="19"] { animation-timeline: --fsdocs-heading-19, --fsdocs-heading-20; }
+body:has(#content [data-fsdocs-heading="19"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="19"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="20"] { view-timeline-name: --fsdocs-heading-20; }
+#fsdocs-page-menu [data-fsdocs-heading="20"] { animation-timeline: --fsdocs-heading-20, --fsdocs-heading-21; }
+body:has(#content [data-fsdocs-heading="20"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="20"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="21"] { view-timeline-name: --fsdocs-heading-21; }
+#fsdocs-page-menu [data-fsdocs-heading="21"] { animation-timeline: --fsdocs-heading-21, --fsdocs-heading-22; }
+body:has(#content [data-fsdocs-heading="21"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="21"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="22"] { view-timeline-name: --fsdocs-heading-22; }
+#fsdocs-page-menu [data-fsdocs-heading="22"] { animation-timeline: --fsdocs-heading-22, --fsdocs-heading-23; }
+body:has(#content [data-fsdocs-heading="22"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="22"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="23"] { view-timeline-name: --fsdocs-heading-23; }
+#fsdocs-page-menu [data-fsdocs-heading="23"] { animation-timeline: --fsdocs-heading-23, --fsdocs-heading-24; }
+body:has(#content [data-fsdocs-heading="23"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="23"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="24"] { view-timeline-name: --fsdocs-heading-24; }
+#fsdocs-page-menu [data-fsdocs-heading="24"] { animation-timeline: --fsdocs-heading-24, --fsdocs-heading-25; }
+body:has(#content [data-fsdocs-heading="24"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="24"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="25"] { view-timeline-name: --fsdocs-heading-25; }
+#fsdocs-page-menu [data-fsdocs-heading="25"] { animation-timeline: --fsdocs-heading-25, --fsdocs-heading-26; }
+body:has(#content [data-fsdocs-heading="25"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="25"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="26"] { view-timeline-name: --fsdocs-heading-26; }
+#fsdocs-page-menu [data-fsdocs-heading="26"] { animation-timeline: --fsdocs-heading-26, --fsdocs-heading-27; }
+body:has(#content [data-fsdocs-heading="26"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="26"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="27"] { view-timeline-name: --fsdocs-heading-27; }
+#fsdocs-page-menu [data-fsdocs-heading="27"] { animation-timeline: --fsdocs-heading-27, --fsdocs-heading-28; }
+body:has(#content [data-fsdocs-heading="27"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="27"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="28"] { view-timeline-name: --fsdocs-heading-28; }
+#fsdocs-page-menu [data-fsdocs-heading="28"] { animation-timeline: --fsdocs-heading-28, --fsdocs-heading-29; }
+body:has(#content [data-fsdocs-heading="28"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="28"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="29"] { view-timeline-name: --fsdocs-heading-29; }
+#fsdocs-page-menu [data-fsdocs-heading="29"] { animation-timeline: --fsdocs-heading-29, --fsdocs-heading-30; }
+body:has(#content [data-fsdocs-heading="29"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="29"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="30"] { view-timeline-name: --fsdocs-heading-30; }
+#fsdocs-page-menu [data-fsdocs-heading="30"] { animation-timeline: --fsdocs-heading-30, --fsdocs-heading-31; }
+body:has(#content [data-fsdocs-heading="30"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="30"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="31"] { view-timeline-name: --fsdocs-heading-31; }
+#fsdocs-page-menu [data-fsdocs-heading="31"] { animation-timeline: --fsdocs-heading-31, --fsdocs-heading-32; }
+body:has(#content [data-fsdocs-heading="31"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="31"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="32"] { view-timeline-name: --fsdocs-heading-32; }
+#fsdocs-page-menu [data-fsdocs-heading="32"] { animation-timeline: --fsdocs-heading-32, --fsdocs-heading-33, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="32"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="32"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="33"] { view-timeline-name: --fsdocs-heading-33; }
+#fsdocs-page-menu [data-fsdocs-heading="33"] { animation-timeline: --fsdocs-heading-33, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="33"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="33"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -1028,12 +1129,29 @@ from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

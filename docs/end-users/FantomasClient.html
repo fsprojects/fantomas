@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,7 +340,7 @@
 <main>
     <div id="content">
         
-<h1><a name="Formatting-from-an-editor-with-Fantomas-Client" class="anchor" href="#Formatting-from-an-editor-with-Fantomas-Client">Formatting from an editor with Fantomas.Client</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Formatting-from-an-editor-with-Fantomas-Client" class="anchor" href="#Formatting-from-an-editor-with-Fantomas-Client">Formatting from an editor with Fantomas.Client</a></h1>
 <p>The <a href="https://www.nuget.org/packages/Fantomas.Client">Fantomas.Client</a> NuGet package is for tools that
 format someone else's code: editor extensions, language servers, custom build tooling.</p>
 <p>It exists because of a versioning problem. If your editor extension referenced
@@ -356,7 +356,7 @@ repository asked for.</p>
 <p>The code on this page is illustrative rather than runnable. It is meant to show the shape of the
 API, not to be pasted into a script.</p>
 </blockquote>
-<h2><a name="Formatting-a-document" class="anchor" href="#Formatting-a-document">Formatting a document</a></h2>
+<h2 data-fsdocs-heading="2"><a name="Formatting-a-document" class="anchor" href="#Formatting-a-document">Formatting a document</a></h2>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">open</span> <span class="id">Fantomas</span><span class="pn">.</span><span class="id">Client</span><span class="pn">.</span><span class="id">Contracts</span>
 <span class="k">open</span> <span class="id">Fantomas</span><span class="pn">.</span><span class="id">Client</span><span class="pn">.</span><span class="id">LSPFantomasService</span>
 
@@ -478,7 +478,7 @@ goes on the wire byte for byte:</p>
 <code>Problems</code> is empty. There is no <code>Version</code> on the wire: <code>Fantomas.Client</code> fills that in for the
 daemon it started, which is how it can name daemons released before the field existed, and driving
 the daemon yourself you already know which version you launched.</p>
-<h2><a name="Seeing-which-Fantomas-was-used" class="anchor" href="#Seeing-which-Fantomas-was-used">Seeing which Fantomas was used</a></h2>
+<h2 data-fsdocs-heading="3"><a name="Seeing-which-Fantomas-was-used" class="anchor" href="#Seeing-which-Fantomas-was-used">Seeing which Fantomas was used</a></h2>
 <p>The whole point of this package is that the <em>user's</em> Fantomas formats their code, so the question
 you will eventually be asked is which one that was. Nothing in a <code>FantomasResponse</code> answers it: a
 Fantomas found on the <code>PATH</code> formats exactly as successfully as the version the repository pins, and
@@ -513,7 +513,7 @@ comes, so a lost log line is the cheaper end of that trade.
 </li>
 <li>The parameterless constructor logs nothing, so nothing changes for a tool that does not want this.</li>
 </ul>
-<h2><a name="Formatting-a-selection" class="anchor" href="#Formatting-a-selection">Formatting a selection</a></h2>
+<h2 data-fsdocs-heading="4"><a name="Formatting-a-selection" class="anchor" href="#Formatting-a-selection">Formatting a selection</a></h2>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">selectionRequest</span> <span class="o">=</span>
     <span class="pn">{</span> <span class="id">SourceCode</span> <span class="o">=</span> <span class="id">sourceCode</span>
       <span class="id">FilePath</span> <span class="o">=</span> <span class="s">&quot;/home/me/MyProject/Library.fs&quot;</span>
@@ -526,7 +526,7 @@ comes, so a lost log line is the cheaper end of that trade.
 <p>The range that actually got formatted comes back in <code>SelectedRange</code>, which can differ from what you
 asked for when the selection had leading or trailing whitespace. Use the returned range when you
 splice the result back into the document, not the one you sent.</p>
-<h2><a name="Keeping-the-cursor-in-place" class="anchor" href="#Keeping-the-cursor-in-place">Keeping the cursor in place</a></h2>
+<h2 data-fsdocs-heading="5"><a name="Keeping-the-cursor-in-place" class="anchor" href="#Keeping-the-cursor-in-place">Keeping the cursor in place</a></h2>
 <p>Pass <code>Cursor</code> on a format request and the response tells you where that position ended up after
 formatting, so the caret does not jump when you format on save.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="32" class="id">request</span> <span class="o">=</span>
@@ -535,7 +535,7 @@ formatting, so the caret does not jump when you format on save.</p>
       <span class="id">Config</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="33" class="id">None</span>
       <span class="id">Cursor</span> <span class="o">=</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="34" class="id">Some</span><span class="pn">(</span><span class="id">FormatCursorPosition</span><span class="pn">(</span><span class="n">4</span><span class="pn">,</span> <span class="n">2</span><span class="pn">)</span><span class="pn">)</span> <span class="pn">}</span>
 </code></pre>
-<h2><a name="Discovering-settings" class="anchor" href="#Discovering-settings">Discovering settings</a></h2>
+<h2 data-fsdocs-heading="6"><a name="Discovering-settings" class="anchor" href="#Discovering-settings">Discovering settings</a></h2>
 <p><code>ConfigurationAsync</code> returns the settings schema of the Fantomas version resolved for a file: every
 setting name, its type, default, and description. Because it comes from the daemon rather than from
 whatever you compiled against, it is the authoritative list for that repository, and it is what you
@@ -543,7 +543,7 @@ want backing a settings UI or a <code>.editorconfig</code> completion list.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">schema</span> <span class="o">=</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="35" class="id">service</span><span class="pn">.</span><span class="id">ConfigurationAsync</span><span class="pn">(</span><span class="s">&quot;/home/me/MyProject/Library.fs&quot;</span><span class="pn">)</span><span class="pn">.</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="36" class="id">Result</span>
 <span class="c">// schema.Content holds JSON describing every setting.</span>
 </code></pre>
-<h2><a name="Lifetime" class="anchor" href="#Lifetime">Lifetime</a></h2>
+<h2 data-fsdocs-heading="7"><a name="Lifetime" class="anchor" href="#Lifetime">Lifetime</a></h2>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// Stop every daemon this service started. Call it when your tool shuts down.</span>
 <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="37" class="id">service</span><span class="pn">.</span><span class="id">Dispose</span><span class="pn">(</span><span class="pn">)</span>
 </code></pre>
@@ -583,42 +583,65 @@ from Microsoft.FSharp.Collections</div>
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Formatting-from-an-editor-with-Fantomas-Client">
       Formatting from an editor with Fantomas.Client
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#Formatting-a-document">
       Formatting a document
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="3">
     <a href="#Seeing-which-Fantomas-was-used">
       Seeing which Fantomas was used
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="4">
     <a href="#Formatting-a-selection">
       Formatting a selection
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="5">
     <a href="#Keeping-the-cursor-in-place">
       Keeping the cursor in place
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="6">
     <a href="#Discovering-settings">
       Discovering settings
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="7">
     <a href="#Lifetime">
       Lifetime
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -633,12 +656,29 @@ from Microsoft.FSharp.Collections</div>
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

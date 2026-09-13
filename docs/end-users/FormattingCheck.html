@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,10 +340,10 @@
 <main>
     <div id="content">
         
-<h1><a name="Formatting-Check" class="anchor" href="#Formatting-Check">Formatting Check</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Formatting-Check" class="anchor" href="#Formatting-Check">Formatting Check</a></h1>
 <p>Formatting source code is a habit, a step in your developer workflow.<br />
 The benefits of consistently formatting is that <strong>your delta</strong> (<em>typically the changes in the files of a pull request</em>) will be the <strong>smallest set possible</strong> if every previous change was formatted.</p>
-<h2><a name="The-tragedy-of-the-ancient-Greek-developers" class="anchor" href="#The-tragedy-of-the-ancient-Greek-developers">The tragedy of the ancient Greek developers</a></h2>
+<h2 data-fsdocs-heading="2"><a name="The-tragedy-of-the-ancient-Greek-developers" class="anchor" href="#The-tragedy-of-the-ancient-Greek-developers">The tragedy of the ancient Greek developers</a></h2>
 <p>When working with multiple people on the same code base, it is important (to some degrees) that you cannot distinguish who wrote the code.
 If you agree as a team that you need to write unit tests to guarantee the code quality, you expect every developer to cover any new code with a test.<br />
 Formatting is no different, every developer should do it and it is an acceptance criteria for new code.</p>
@@ -357,12 +357,12 @@ Perseus was tasked with getting to the bottom of this mystery and eventually he 
 <p>Odysseus credentials showed up, but it was the function Achilles originally wrote. Unable to escape Hektor's wrath, Odysseus was fired immediately.
 Achilles felt bad but couldn't come clean as he was about to get surgery for his heel. Odysseus took the fall like a true hero.
 But it lead him to a downwards spiral and would take him ten years before he could land another job in the software industry.</p>
-<h3><a name="Aftermath" class="anchor" href="#Aftermath">Aftermath</a></h3>
+<h3 data-fsdocs-heading="3"><a name="Aftermath" class="anchor" href="#Aftermath">Aftermath</a></h3>
 <p>The team was shocked by what had transpired. Besides Hektor overreacting, another painful meeting was planned to have a retrospective on the past events.<br />
 After asking five why's, the team had to brainstorm on how to avoid these things.</p>
 <p>Ultimately, that meeting was mostly about the contents of the function Achilles wrote, but to end on a high note, the team discussed formatting source code afterwards.</p>
 <p>The moral of this story is that there are two things that could have saved Odysseus: <strong>a formatting check during continuous integration</strong> and a <code>.git-blame-ignore-revs</code> file.</p>
-<h2><a name="check" class="anchor" href="#check">--check</a></h2>
+<h2 data-fsdocs-heading="4"><a name="check" class="anchor" href="#check">--check</a></h2>
 <p><em>starting version 3.3</em></p>
 <p>Verify that a single file or folder was formatted correctly.</p>
 <blockquote>
@@ -373,7 +373,7 @@ If it does, the process will return exit code <strong>99</strong>.
 In the case that the file does not require any formatting, exit code 0 is returned.
 Unexpected errors will return exit code 1.</p>
 <p>This scenario is meant to be executed in a continuous integration environment, to enforce that the newly added code was formatted correctly.</p>
-<h3><a name="FAKE" class="anchor" href="#FAKE">FAKE</a></h3>
+<h3 data-fsdocs-heading="5"><a name="FAKE" class="anchor" href="#FAKE">FAKE</a></h3>
 <p>If you are using <code>FAKE</code> by any chance, a good step is to have <code>CheckFormat</code> target early on in the pipeline.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Target</span><span class="pn">.</span><span class="id">create</span> <span class="s">&quot;CheckFormat&quot;</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">_</span> <span class="k">-&gt;</span>
     <span class="k">let</span> <span class="id">result</span> <span class="o">=</span>
@@ -401,11 +401,11 @@ Unexpected errors will return exit code 1.</p>
 </code></pre>
 <p>The recommendation is to install <code>fantomas</code> as a local tool and run it using the generic <code>DotNet.exec</code> api.
 This translates to running <code>dotnet fantomas ourSourceFolder --check</code>.</p>
-<h3><a name="Any-other-continuous-integration-environment" class="anchor" href="#Any-other-continuous-integration-environment">Any other continuous integration environment</a></h3>
+<h3 data-fsdocs-heading="6"><a name="Any-other-continuous-integration-environment" class="anchor" href="#Any-other-continuous-integration-environment">Any other continuous integration environment</a></h3>
 <p>You want to restore your local <code>fantomas</code> tool using <code>dotnet tool restore</code>.
 Next, you want to run <code>dotnet fantomas &lt;input&gt; --check</code> and make sure your continuous integration environment <strong>fails</strong> your job when <strong>a non-zero exit code</strong> is returned.</p>
 <p><strong>Pro-tip</strong>: print the command users need to run to fix the formatting in the output log when the check failed. This is useful for open-source projects where new contributors might never have been exposed to formatting.</p>
-<h3><a name="Reading-the-result-from-a-script" class="anchor" href="#Reading-the-result-from-a-script">Reading the result from a script</a></h3>
+<h3 data-fsdocs-heading="7"><a name="Reading-the-result-from-a-script" class="anchor" href="#Reading-the-result-from-a-script">Reading the result from a script</a></h3>
 <p><em>starting version 8.0</em></p>
 <p>If your pipeline needs to do something with the files rather than only fail, add <code>--json</code> and the
 run reports what it found as a document on standard out:</p>
@@ -427,14 +427,14 @@ run reports what it found as a document on standard out:</p>
 with status <code>unchanged</code>. Paths are relative to <code>workingDirectory</code>. The exit codes are unchanged,
 so the branch above still works. See <a href="GettingStarted.html">Getting Started</a> for what the document
 contains.</p>
-<h2><a name="A-git-blame-ignore-revs-file" class="anchor" href="#A-git-blame-ignore-revs-file">A git-blame-ignore-revs file</a></h2>
+<h2 data-fsdocs-heading="8"><a name="A-git-blame-ignore-revs-file" class="anchor" href="#A-git-blame-ignore-revs-file">A git-blame-ignore-revs file</a></h2>
 <p>By default, Fantomas adheres to the Microsoft <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting">F# code formatting guidelines</a>.
 If these change, Fantomas will follow accordingly. Due to this reason, the output cannot be guaranteed to remain the same when upgrading to a new minor version.</p>
 <p>If you are using Git for your source control, it is recommended to ignore commits where <code>fantomas</code> was updated using a <a href="https://git-scm.com/docs/git-blame#Documentation/git-blame.txt---ignore-revltrevgt">.git-blame-ignore-revs file</a>.
 Check out this <a href="https://www.moxio.com/blog/43/ignoring-bulk-change-commits-with-git-blame">blogpost</a> for more details.</p>
 <p>Adding a formatting commit to a configured <code>.git-blame-ignore-revs</code> file will prevent you from drawing the wrong conclusions when running a <code>git blame</code> command.
 One thing to note is that if you add a commit SHA to a <code>.git-blame-ignore-revs</code> file, you cannot squash the commit when merging in the pull request.</p>
-<h2><a name="Checking-is-good-for-regressions" class="anchor" href="#Checking-is-good-for-regressions">Checking is good for regressions</a></h2>
+<h2 data-fsdocs-heading="9"><a name="Checking-is-good-for-regressions" class="anchor" href="#Checking-is-good-for-regressions">Checking is good for regressions</a></h2>
 <p>Normally, the rule of thumb is that the code style will not change between revisions.<br />
 If you are using <code>4.7.2</code>, then it should be safe for you upgrade to the latest <code>4.7.X</code> without seeing any changes.</p>
 <blockquote>
@@ -454,52 +454,81 @@ It really helps us spotting problems early on and we can more easily pinpoint th
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Formatting-Check">
       Formatting Check
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#The-tragedy-of-the-ancient-Greek-developers">
       The tragedy of the ancient Greek developers
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="3">
     <a href="#Aftermath">
       Aftermath
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="4">
     <a href="#check">
       --check
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="5">
     <a href="#FAKE">
       FAKE
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="6">
     <a href="#Any-other-continuous-integration-environment">
       Any other continuous integration environment
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="7">
     <a href="#Reading-the-result-from-a-script">
       Reading the result from a script
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="8">
     <a href="#A-git-blame-ignore-revs-file">
       A git-blame-ignore-revs file
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="9">
     <a href="#Checking-is-good-for-regressions">
       Checking is good for regressions
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-heading-8; }
+body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="8"] { view-timeline-name: --fsdocs-heading-8; }
+#fsdocs-page-menu [data-fsdocs-heading="8"] { animation-timeline: --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="8"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="8"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="9"] { view-timeline-name: --fsdocs-heading-9; }
+#fsdocs-page-menu [data-fsdocs-heading="9"] { animation-timeline: --fsdocs-heading-9, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="9"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="9"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -514,12 +543,29 @@ It really helps us spotting problems early on and we can more easily pinpoint th
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

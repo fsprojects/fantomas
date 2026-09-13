@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,27 +340,27 @@
 <main>
     <div id="content">
         
-<h1><a name="Style-guide" class="anchor" href="#Style-guide">Style guide</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Style-guide" class="anchor" href="#Style-guide">Style guide</a></h1>
 <p>Fantomas tries to adhere to two F# style guides:
 - <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting">Microsoft</a>
 - <a href="https://github.com/G-Research/fsharp-formatting-conventions">G-Research</a></p>
 <p>By default Fantomas  will format the code according to the Microsoft guide.<br />
 The benefit of these guides is that this allows us, as the F# community, to write code in the same manner.</p>
-<h2><a name="How-Fantomas-formats-code" class="anchor" href="#How-Fantomas-formats-code">How Fantomas formats code</a></h2>
+<h2 data-fsdocs-heading="2"><a name="How-Fantomas-formats-code" class="anchor" href="#How-Fantomas-formats-code">How Fantomas formats code</a></h2>
 <p>Fantomas rewrites the entire source text after formatting rather than adjusting it in place, which
 means the output has to mean what the input meant. That constraint is behind a handful of behaviors
 that can be surprising at first but are deliberate. See <a href="./DesignDecisions.html">Design decisions</a>.</p>
-<h2><a name="Let-it-go" class="anchor" href="#Let-it-go">Let it go</a></h2>
+<h2 data-fsdocs-heading="3"><a name="Let-it-go" class="anchor" href="#Let-it-go">Let it go</a></h2>
 <p>If you are not used to having a code formatter, you might struggle a bit at first. A part of using a code formatter is about letting go how you wrote things and accept a common consistent style instead.<br />
 When embraced, this can truly be <strong>a liberation feeling</strong>. You can play <em>jazz</em> while typing the code, focus on the task at hand and have the same output as if anyone in your team would have written it.</p>
-<h2><a name="A-cautionary-tale" class="anchor" href="#A-cautionary-tale">A cautionary tale</a></h2>
+<h2 data-fsdocs-heading="4"><a name="A-cautionary-tale" class="anchor" href="#A-cautionary-tale">A cautionary tale</a></h2>
 <p>The responsibility of the coding style is also a shared one. The maintainers of Fantomas do not dictate how things should look like.<br />
 Instead, conversations are held over at <a href="https://github.com/fsharp/fslang-design#style-guide">fsharp/fslang-design</a>.</p>
 <p>Over the years, a lot of consumers of Fantomas have requested numerous features. These often go against the philosophy of being consistent amongst the community.
 If there were a <em>gazillion of settings</em> to please everybody it would be a <em>missed opportunity</em> to see all F# code bases in the same style.</p>
 <p>And more importantly the maintenance cost of each setting is always carried by only a handful of people. <strong>The hardship of having a setting is so high that in almost all cases it is not worth having it</strong>.<br />
 Even when someone proposes to contribute the setting, it always leads to lament and sorrow for the maintainers to carry.</p>
-<h2><a name="Default-style-guide" class="anchor" href="#Default-style-guide">Default style guide</a></h2>
+<h2 data-fsdocs-heading="5"><a name="Default-style-guide" class="anchor" href="#Default-style-guide">Default style guide</a></h2>
 <p>As mentioned, the default style guide is not to be discussed on the Fantomas repository. The majority of the maintainers is burnt out talking about style at this point.<br />
 If you want to discuss the style, you are more than welcome on <a href="https://github.com/fsharp/fslang-design#style-guide">fsharp/fslang-design</a>.</p>
 <p>However, we greatly encourage that you take some time to <strong>understand the Fantomas code base</strong>.  Having an opinion on code style is easy, everybody writes code so we all have our thoughts and feelings about it.
@@ -373,10 +373,10 @@ Being able to <strong>translate your thoughts/opinions</strong> and <strong>prot
 <blockquote>
 <p>There’s no such thing as a free lunch, so please consider all aspects of debating code style.</p>
 </blockquote>
-<h2><a name="G-Research-Style" class="anchor" href="#G-Research-Style">G-Research Style</a></h2>
+<h2 data-fsdocs-heading="6"><a name="G-Research-Style" class="anchor" href="#G-Research-Style">G-Research Style</a></h2>
 <p><a href="https://www.gresearch.co.uk/">G-Research</a> has been our <em>single enterprise sponsor</em> for the last five years. <strong>Fantomas would not exist</strong> in it's current form if it were <strong>not for their support</strong>.<br />
 Their interest was to have a tool that automatically format code according to their <em>internal guidelines</em>. These have been made available publicly and can be turned on via <a href="https://github.com/G-Research/fsharp-formatting-conventions/blob/master/.editorconfig">various settings</a>.</p>
-<h2><a name="Recommendations" class="anchor" href="#Recommendations">Recommendations</a></h2>
+<h2 data-fsdocs-heading="7"><a name="Recommendations" class="anchor" href="#Recommendations">Recommendations</a></h2>
 <p>To strengthen the message of unity we advise that you do not change the default settings.
 The <strong>out-of-the-box experience</strong> should be a result of what the <strong>brightest minds of the community</strong> came up with.
 If you are <em>new</em> to the F# language, this is what you want.</p>
@@ -388,42 +388,65 @@ If you are <em>new</em> to the F# language, this is what you want.</p>
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Style-guide">
       Style guide
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#How-Fantomas-formats-code">
       How Fantomas formats code
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="3">
     <a href="#Let-it-go">
       Let it go
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="4">
     <a href="#A-cautionary-tale">
       A cautionary tale
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="5">
     <a href="#Default-style-guide">
       Default style guide
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="6">
     <a href="#G-Research-Style">
       G-Research Style
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="7">
     <a href="#Recommendations">
       Recommendations
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -438,12 +461,29 @@ If you are <em>new</em> to the F# language, this is what you want.</p>
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

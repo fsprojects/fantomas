@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,7 +340,7 @@
 <main>
     <div id="content">
         
-<h1><a name="Fantomas-Core-overview-2" class="anchor" href="#Fantomas-Core-overview-2">Fantomas.Core overview (2)</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Fantomas-Core-overview-2" class="anchor" href="#Fantomas-Core-overview-2">Fantomas.Core overview (2)</a></h1>
 <p>Once the <code>Oak</code> is populated with all the found trivia, we can traverse the <code>Oak</code> to capture all the <code>WriterEvent</code>s.</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="mermaid">graph TD
     A[Transform source code to tree] --&gt; B
@@ -348,19 +348,19 @@
     style B stroke:#338CBB,stroke-width:2px
 </code></pre></td></tr></table>
 <p>We enter the module of <code>CodePrinter</code> and try and reconstruct the code based on the given configuration.</p>
-<h2><a name="WriterEvents-and-WriterModel" class="anchor" href="#WriterEvents-and-WriterModel">WriterEvents and WriterModel</a></h2>
+<h2 data-fsdocs-heading="2"><a name="WriterEvents-and-WriterModel" class="anchor" href="#WriterEvents-and-WriterModel">WriterEvents and WriterModel</a></h2>
 <p>In previous versions of Fantomas, <code>Context</code> had a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.io.textwriter?view=net-6.0">TextWriter</a> that was used to write the output.
 This is a more advanced version of a <code>StringBuilder</code> and we wrote the formatted code directly to the buffer.</p>
 <p>The key problem with this approach was that we couldn't easily revert code that was written to the buffer.<br />
 For example, if the formatted code was crossing the <code>max_line_length</code>, we couldn't easily revert the code and try an alternative.</p>
 <p>That is why we first capture a collection of <code>WriterEvent</code>s in a mutable doubly-linked list (<code>EventList</code>) and then reconstruct the formatted code.<br />
 If the code is too long, we roll back to a saved backup point and try an alternative. See <a href="./EventList%20Architecture.html">EventList Architecture</a> for details.</p>
-<h3><a name="WriterModel" class="anchor" href="#WriterModel">WriterModel</a></h3>
+<h3 data-fsdocs-heading="3"><a name="WriterModel" class="anchor" href="#WriterModel">WriterModel</a></h3>
 <p>When we capture new events we also want to track the current state of the formatting.<br />
 This happens in the <code>WriterModel</code> record. It tracks lightweight metadata — line count, column position, indentation level — without building strings.<br />
 By doing this, we can check whether the output exceeds the page width or is multiline, and decide on layout.</p>
 <p>When solving a bug, you typically need to change the collected series of events by using a different helper function inside <code>CodePrinter</code>.</p>
-<h3><a name="CodePrinter" class="anchor" href="#CodePrinter">CodePrinter</a></h3>
+<h3 data-fsdocs-heading="4"><a name="CodePrinter" class="anchor" href="#CodePrinter">CodePrinter</a></h3>
 <p>In <code>CodePrinter</code> the syntax tree is being traversed with the help of various (partial) active patterns.<br />
 These active patterns are defined in <code>SourceParser</code> and typically are used to present the information we are interested in, in a different shape.</p>
 <p><code>CodePrinter</code> exposes one function <code>genParsedInput</code>.</p>
@@ -372,13 +372,13 @@ In this function, all events are captured and stored in the <code>WriterEvents</
 <p>While we are traversing the syntax tree, we will compose the <code>Context -&gt; Context</code> function based on the content.
 <code>Context.dump</code> then eventually takes the <code>Context</code> and returns a <code>string</code> of formatted code.</p>
 <p>This may seem a bit complicated, but you typically can see this as an implementation detail and can abstract this when working in <code>CodePrinter</code>.</p>
-<h3><a name="Creating-WriterEvents" class="anchor" href="#Creating-WriterEvents">Creating WriterEvents</a></h3>
+<h3 data-fsdocs-heading="5"><a name="Creating-WriterEvents" class="anchor" href="#Creating-WriterEvents">Creating WriterEvents</a></h3>
 <p>There are various helper functions in <code>CodePrinter</code> that create <code>WriterEvent</code>s.<br />
 In <code>CodePrinter</code> we will typically never construct a <code>WriterEvent</code> directly.</p>
 <p>Instead we can use various helper functions that take the <code>Context</code> as parameter and return an updated <code>Context</code> with additional events.<br />
 Please take a moment to debug the unit tests in <a href="https://github.com/fsprojects/fantomas/blob/main/src/Fantomas.Core.Tests/CodePrinterHelperFunctionsTests.fs">CodePrinterHelperFunctionsTests.fs</a>.<br />
 This will give you a better understanding of how we capture events in <code>CodePrinter</code>.</p>
-<h3><a name="Debugging-CodePrinter" class="anchor" href="#Debugging-CodePrinter">Debugging CodePrinter</a></h3>
+<h3 data-fsdocs-heading="6"><a name="Debugging-CodePrinter" class="anchor" href="#Debugging-CodePrinter">Debugging CodePrinter</a></h3>
 <p>One thing that is a bit harder to grasp initially, is what is happening when you put a breakpoint in <code>CodePrinter.fs</code>.<br />
 In <code>CodePrinter.fs</code> we compose a format function that takes a <code>Context</code> and returns a <code>Context</code>.
 We do this by traversing the syntax tree, and when you put a breakpoint in <code>genTypeDefn</code> for example:</p>
@@ -398,37 +398,57 @@ The Oak script shows the tree with trivia markers: <code>dotnet fsi scripts/oak.
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Fantomas-Core-overview-2">
       Fantomas.Core overview (2)
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#WriterEvents-and-WriterModel">
       WriterEvents and WriterModel
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="3">
     <a href="#WriterModel">
       WriterModel
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="4">
     <a href="#CodePrinter">
       CodePrinter
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="5">
     <a href="#Creating-WriterEvents">
       Creating WriterEvents
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="6">
     <a href="#Debugging-CodePrinter">
       Debugging CodePrinter
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -443,12 +463,29 @@ The Oak script shows the tree with trivia markers: <code>dotnet fsi scripts/oak.
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

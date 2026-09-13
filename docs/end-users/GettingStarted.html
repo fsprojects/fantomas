@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item active"><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item active"><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,10 +340,10 @@
 <main>
     <div id="content">
         
-<h1><a name="Getting-Started" class="anchor" href="#Getting-Started">Getting Started</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Getting-Started" class="anchor" href="#Getting-Started">Getting Started</a></h1>
 <p>Fantomas should be installed as a <a href="https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools">.NET tool</a>.
 It is recommended to install it as a local tool and stick to a certain version per repository.</p>
-<h2><a name="Installation" class="anchor" href="#Installation">Installation</a></h2>
+<h2 data-fsdocs-heading="2"><a name="Installation" class="anchor" href="#Installation">Installation</a></h2>
 <p>Create a <a href="https://docs.microsoft.com/en-us/dotnet/core/tools/local-tools-how-to-use">.NET tool manifest</a> to install tools locally.
 You can skip this step if you wish to install Fantomas globally.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="k">new</span> <span class="id">tool</span><span class="o">-</span><span class="id">manifest</span>
@@ -354,11 +354,11 @@ You can skip this step if you wish to install Fantomas globally.</p>
 <p>or install the tool globally with</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">tool</span> <span class="id">install</span> <span class="o">-</span><span class="id">g</span> <span class="id">fantomas</span>
 </code></pre>
-<h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
+<h2 data-fsdocs-heading="3"><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>For the overview how to use the tool, you can type the command</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="o">--</span><span class="id">help</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code>Fantomas is an opinionated source code formatter for F#. (8.0.0-beta-003+9c697007e)
+<table class="pre"><tr><td><pre><code>Fantomas is an opinionated source code formatter for F#. (8.0.0-beta-003+52de1b290)
 
 Usage: dotnet fantomas [command] [...flags] [...paths]
 
@@ -428,7 +428,7 @@ The output path is prompted by <code>--out</code> e.g.</p>
 If they are folders, the structure of input folder will be reflected in the output one.
 The tool will explore the input folder recursively.
 If you omit the output path, Fantomas will overwrite the input files unless the content did not change.</p>
-<h3><a name="JSON-output" class="anchor" href="#JSON-output">JSON output</a></h3>
+<h3 data-fsdocs-heading="4"><a name="JSON-output" class="anchor" href="#JSON-output">JSON output</a></h3>
 <p><em>starting version 8.0</em></p>
 <p><code>--json</code> writes one JSON document to standard out describing what the run did, instead of the
 usual messages. It is meant for a script or an agent that has to act on the result rather than
@@ -497,7 +497,7 @@ reading a run can see what happened, which is a job that tolerates the shape mov
 here may change in any release. The exit code is the part that is promised.</p>
 <p><code>--json</code> cannot be combined with <code>--daemon</code>, where standard out already carries the JSON-RPC
 protocol.</p>
-<h3><a name="Diagnosing-one-file" class="anchor" href="#Diagnosing-one-file">Diagnosing one file</a></h3>
+<h3 data-fsdocs-heading="5"><a name="Diagnosing-one-file" class="anchor" href="#Diagnosing-one-file">Diagnosing one file</a></h3>
 <p><em>starting version 8.0</em></p>
 <p><code>doctor</code> walks one file through everything Fantomas does to it and reports what happened at each
 step. It writes nothing, so it is safe against a working tree you have not committed, and it is
@@ -574,7 +574,7 @@ not a failure; <code>fantomas check</code> is what fails over that.</p>
 <p><code>--json</code> writes the same walk as one document, with a key per step and <code>null</code> where the walk
 stopped before reaching it. The <code>configuration</code> key carries every setting, with <code>setBy</code> naming the
 file for each one an <code>.editorconfig</code> set and <code>null</code> for the rest.</p>
-<h3><a name="Multiple-paths" class="anchor" href="#Multiple-paths">Multiple paths</a></h3>
+<h3 data-fsdocs-heading="6"><a name="Multiple-paths" class="anchor" href="#Multiple-paths">Multiple paths</a></h3>
 <p><em>starting version 4.5</em></p>
 <p>Multiple paths can be passed as last argument, these can be both files and folders.
 This cannot be combined with the <code>--out</code> flag.</p>
@@ -660,37 +660,57 @@ function Format-Changed(){
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Getting-Started">
       Getting Started
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#Installation">
       Installation
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="3">
     <a href="#Usage">
       Usage
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="4">
     <a href="#JSON-output">
       JSON output
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="5">
     <a href="#Diagnosing-one-file">
       Diagnosing one file
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="6">
     <a href="#Multiple-paths">
       Multiple paths
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -705,12 +725,29 @@ function Format-Changed(){
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

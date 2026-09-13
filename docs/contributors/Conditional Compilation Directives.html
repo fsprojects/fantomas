@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,10 +340,10 @@
 <main>
     <div id="content">
         
-<h1><a name="Formatting-Conditional-Compilation-Directives" class="anchor" href="#Formatting-Conditional-Compilation-Directives">Formatting Conditional Compilation Directives</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Formatting-Conditional-Compilation-Directives" class="anchor" href="#Formatting-Conditional-Compilation-Directives">Formatting Conditional Compilation Directives</a></h1>
 <p>Fantomas is able to format code that contains <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/compiler-directives#conditional-compilation-directives">conditional compiler directives</a>.<br />
 In order to achieve this, Fantomas will actually format the code multiple times and merge all results afterwards.</p>
-<h2><a name="Compilation-directives-and-the-syntax-tree" class="anchor" href="#Compilation-directives-and-the-syntax-tree">Compilation directives and the syntax tree</a></h2>
+<h2 data-fsdocs-heading="2"><a name="Compilation-directives-and-the-syntax-tree" class="anchor" href="#Compilation-directives-and-the-syntax-tree">Compilation directives and the syntax tree</a></h2>
 <p>The F# parser will construct a different syntax tree based on the provided compilation directives.<br />
 Consider the following piece of code:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">a</span> <span class="o">=</span>
@@ -410,7 +410,7 @@ Leading to</p>
         <span class="id">CodeComments</span> <span class="o">=</span> <span class="pn">[</span><span class="pn">]</span> <span class="pn">}</span><span class="pn">)</span><span class="pn">)</span>
 </code></pre>
 <p>This tree is almost identical but the constant value is now <code>Const (Int32 0, ...)</code>.</p>
-<h2><a name="Multiple-trees" class="anchor" href="#Multiple-trees">Multiple trees</a></h2>
+<h2 data-fsdocs-heading="3"><a name="Multiple-trees" class="anchor" href="#Multiple-trees">Multiple trees</a></h2>
 <p>As the combination of directives has an influence on the tree, Fantomas first parses the tree without any directives.
 This base tree is then being inspected for <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-conditionaldirectivetrivia.html">ConditionalDirectiveTrivia</a>.
 We determine the different combinations in the <code>Defines</code> module.</p>
@@ -439,7 +439,7 @@ We determine the different combinations in the <code>Defines</code> module.</p>
     <span class="pp">#else</span>
     <span class="pp">#endif</span>
 </code></pre>
-<h2><a name="Merging-the-trees" class="anchor" href="#Merging-the-trees">Merging the trees</a></h2>
+<h2 data-fsdocs-heading="4"><a name="Merging-the-trees" class="anchor" href="#Merging-the-trees">Merging the trees</a></h2>
 <p>Once every tree is formatted, we chop each file into fragments.
 A fragment is everything between a conditional directive <code>#if | #else | #endif</code> or an actual directive.<br />
 This means fragments can also be empty strings.
@@ -470,27 +470,41 @@ We always take the longest fragment and thus picking the active code.</p>
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Formatting-Conditional-Compilation-Directives">
       Formatting Conditional Compilation Directives
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#Compilation-directives-and-the-syntax-tree">
       Compilation directives and the syntax tree
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="3">
     <a href="#Multiple-trees">
       Multiple trees
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="4">
     <a href="#Merging-the-trees">
       Merging the trees
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -505,12 +519,29 @@ We always take the longest fragment and thus picking the active code.</p>
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

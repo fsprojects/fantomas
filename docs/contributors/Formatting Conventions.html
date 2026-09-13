@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,7 +340,7 @@
 <main>
     <div id="content">
         
-<h1><a name="Formatting-Conventions" class="anchor" href="#Formatting-Conventions">Formatting Conventions</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Formatting-Conventions" class="anchor" href="#Formatting-Conventions">Formatting Conventions</a></h1>
 <blockquote>
 <p>This document is a historical reference. It was the precursor to the <a href="https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting">Microsoft F# formatting style guide</a>, which is now the authoritative source for F# formatting conventions. We preserve it here for its legacy value to the project.</p>
 </blockquote>
@@ -391,8 +391,8 @@ Another purpose of the article is to recognize requirements for an F# source cod
 <li><a href="#conclusions">Conclusions</a></li>
 <li><a href="#references">References</a></li>
 </ul>
-<h2><a name="General-rules-for-indentation" class="anchor" href="#General-rules-for-indentation">General rules for indentation</a></h2>
-<h3><a name="Using-spaces" class="anchor" href="#Using-spaces">Using spaces</a></h3>
+<h2 data-fsdocs-heading="2"><a name="General-rules-for-indentation" class="anchor" href="#General-rules-for-indentation">General rules for indentation</a></h2>
+<h3 data-fsdocs-heading="3"><a name="Using-spaces" class="anchor" href="#Using-spaces">Using spaces</a></h3>
 <p>When indentation is required, you must use spaces, not tabs.
 At least one space is required.
 Your organization can create coding standards to specify the number of spaces to use for indentation; two, three or four spaces of indentation at each level where indentation occurs is typical.
@@ -407,7 +407,7 @@ In the <strong>Text Editor</strong> node, expand <strong>F#</strong> and then cl
 When code is indented, a new level of nesting is created, or pushed onto this internal stack.
 When a construct ends, the level is popped.
 Indentation is one way to signal the end of a level and pop the internal stack, but certain tokens also cause the level to be popped, such as the <code>end</code> keyword, or a closing brace or parenthesis.</p>
-<h3><a name="Offside-rule" class="anchor" href="#Offside-rule">Offside rule</a></h3>
+<h3 data-fsdocs-heading="4"><a name="Offside-rule" class="anchor" href="#Offside-rule">Offside rule</a></h3>
 <p>A page is often 80 columns wide.
 Code in a multiline construct, such as a type definition, function definition, <code>try...with</code> construct, and looping constructs, must be indented relative to the opening line of the construct.
 The first indented line establishes a column position for subsequent code in the same construct.
@@ -425,7 +425,7 @@ Offside lines are determined as follows.
 - The first token after <code>with</code> in a type extension introduces an offside line.
 - The first token after an opening brace or parenthesis, or after the <code>begin</code> keyword, introduces an offside line.
 - The first character in the keywords <code>let</code>, <code>if</code>, and <code>module</code> introduce offside lines.</p>
-<h2><a name="Formatting-rules-for-syntactic-constructs" class="anchor" href="#Formatting-rules-for-syntactic-constructs">Formatting rules for syntactic constructs</a></h2>
+<h2 data-fsdocs-heading="5"><a name="Formatting-rules-for-syntactic-constructs" class="anchor" href="#Formatting-rules-for-syntactic-constructs">Formatting rules for syntactic constructs</a></h2>
 <p>Keep in mind that <em>code is read much more often than it is written</em>.
 This section introduces a set of recommendations to improve the readability of code.
 Consistency with the recommendations is important.
@@ -434,7 +434,7 @@ It is a good reason to break a particular rule, if applying it would make the co
 <p>In this section, code fragments without comments are of good styles.
 Bad coding styles will be explicitly specified by corresponding comments.
 Although I also use 4 spaces as the indentation standard, all the rules are equally applied for 2, 3 spaces, etc.</p>
-<h3><a name="Type-definitions" class="anchor" href="#Type-definitions">Type definitions</a></h3>
+<h3 data-fsdocs-heading="6"><a name="Type-definitions" class="anchor" href="#Type-definitions">Type definitions</a></h3>
 <p>Indent <code>|</code> in type definition by 4 spaces:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// OK</span>
 <span class="k">type</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="rt">Volume</span> <span class="o">=</span>
@@ -448,8 +448,8 @@ Although I also use 4 spaces as the indentation standard, all the rules are equa
 <span class="pn">|</span> <span class="id">USPint</span> <span class="k">of</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="7" class="id">float</span>
 <span class="pn">|</span> <span class="id">ImperialPint</span> <span class="k">of</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="8" class="id">float</span>
 </code></pre>
-<h3><a name="Value-declarations" class="anchor" href="#Value-declarations">Value declarations</a></h3>
-<h4><a name="Tuples" class="anchor" href="#Tuples">Tuples</a></h4>
+<h3 data-fsdocs-heading="7"><a name="Value-declarations" class="anchor" href="#Value-declarations">Value declarations</a></h3>
+<h4 data-fsdocs-heading="8"><a name="Tuples" class="anchor" href="#Tuples">Tuples</a></h4>
 <p>A tuple is parenthesized and the commas therein (delimiters) are each followed by a space e.g. <code>(1, 2)</code>, <code>(x, y, z)</code>.</p>
 <p>A <em>commonly accepted exception</em> is to omit parentheses in pattern matching of tuples.
 The justification is to match multiple values, not construct new tuples.</p>
@@ -460,7 +460,7 @@ The justification is to match multiple values, not construct new tuples.</p>
 <span class="pn">|</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="13" class="fn">x</span><span class="pn">,</span> <span class="n">1</span> <span class="k">-&gt;</span> <span class="n">0</span>
 <span class="pn">|</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="14" class="fn">x</span><span class="pn">,</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="15" class="fn">y</span> <span class="k">-&gt;</span> <span class="n">1</span>
 </code></pre>
-<h4><a name="Records" class="anchor" href="#Records">Records</a></h4>
+<h4 data-fsdocs-heading="9"><a name="Records" class="anchor" href="#Records">Records</a></h4>
 <p>Short records can be written in one line:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="16" class="id">point</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">X</span> <span class="o">=</span> <span class="n">1.0</span><span class="pn">;</span> <span class="id">Y</span> <span class="o">=</span> <span class="n">0.0</span> <span class="pn">}</span>
 </code></pre>
@@ -486,7 +486,7 @@ For large constructs (&gt; 6 lines) the closing token can be on a fresh line:</p
 <p>Assume that all fields are aligned at the same column, the trailing <code>;</code> right before each line break is optional.
 You can also optionally include a trailing <code>;</code> for the last entry.
 The same rule applies for list and array elements.</p>
-<h4><a name="Lists-and-arrays" class="anchor" href="#Lists-and-arrays">Lists and arrays</a></h4>
+<h4 data-fsdocs-heading="10"><a name="Lists-and-arrays" class="anchor" href="#Lists-and-arrays">Lists and arrays</a></h4>
 <p>Write <code>x :: l</code> with spaces around the <code>::</code> operator (<code>::</code> is an infix operator, hence surrounded by spaces) and <code>[1; 2; 3]</code> (<code>;</code> is a delimiter, hence followed by a space).</p>
 <p>Always use at least one space between two distinct parenthetical operators (e.g. leave a space between a <code>[</code> and a <code>{</code>).</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// OK</span>
@@ -516,7 +516,7 @@ The same rule applies for list and array elements.</p>
        <span class="pn">[|</span><span class="n">1</span><span class="pn">;</span> <span class="n">8</span><span class="pn">;</span> <span class="n">28</span><span class="pn">;</span> <span class="n">56</span><span class="pn">;</span> <span class="n">70</span><span class="pn">;</span> <span class="n">56</span><span class="pn">;</span> <span class="n">28</span><span class="pn">;</span> <span class="n">8</span><span class="pn">;</span> <span class="n">1</span><span class="pn">|]</span>
     <span class="pn">|]</span>
 </code></pre>
-<h4><a name="Discriminated-unions" class="anchor" href="#Discriminated-unions">Discriminated unions</a></h4>
+<h4 data-fsdocs-heading="11"><a name="Discriminated-unions" class="anchor" href="#Discriminated-unions">Discriminated unions</a></h4>
 <p>DUs that split across multiple lines follow a similar rule:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="20" class="id">tree1</span> <span class="o">=</span>
     <span class="id">BinaryNode</span>
@@ -530,15 +530,15 @@ The same rule applies for list and array elements.</p>
         <span class="id">BinaryNode</span><span class="pn">(</span><span class="id">BinaryValue</span> <span class="n">3</span><span class="pn">,</span> <span class="id">BinaryValue</span> <span class="n">4</span><span class="pn">)</span>
     <span class="pn">)</span>
 </code></pre>
-<h3><a name="Conditional-expressions" class="anchor" href="#Conditional-expressions">Conditional expressions</a></h3>
-<h4><a name="Multiple-branches" class="anchor" href="#Multiple-branches">Multiple branches</a></h4>
+<h3 data-fsdocs-heading="12"><a name="Conditional-expressions" class="anchor" href="#Conditional-expressions">Conditional expressions</a></h3>
+<h4 data-fsdocs-heading="13"><a name="Multiple-branches" class="anchor" href="#Multiple-branches">Multiple branches</a></h4>
 <p>Multiple conditionals open each line counting from the second one by the keyword <code>else</code> or <code>elif</code>:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">if</span> <span class="id">cond1</span> <span class="k">then</span> <span class="id">e1</span>
 <span class="k">elif</span> <span class="id">cond2</span> <span class="k">then</span> <span class="id">e2</span>
 <span class="k">elif</span> <span class="id">cond3</span> <span class="k">then</span> <span class="id">e3</span>
 <span class="k">else</span> <span class="id">e4</span>
 </code></pre>
-<h4><a name="Single-branches" class="anchor" href="#Single-branches">Single branches</a></h4>
+<h4 data-fsdocs-heading="14"><a name="Single-branches" class="anchor" href="#Single-branches">Single branches</a></h4>
 <p>Indentation of conditionals depends on the sizes of the expressions which make them up.
 If <code>cond</code>, <code>e1</code> and <code>e2</code> are small, simply write them on one line:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">if</span> <span class="id">cond</span> <span class="k">then</span> <span class="id">e1</span> <span class="k">else</span> <span class="id">e2</span>
@@ -559,7 +559,7 @@ If <code>cond</code>, <code>e1</code> and <code>e2</code> are small, simply writ
 <span class="k">else</span>
     <span class="id">e2</span>
 </code></pre>
-<h3><a name="Pattern-matching-constructs" class="anchor" href="#Pattern-matching-constructs">Pattern matching constructs</a></h3>
+<h3 data-fsdocs-heading="15"><a name="Pattern-matching-constructs" class="anchor" href="#Pattern-matching-constructs">Pattern matching constructs</a></h3>
 <p>Rules of a <code>with</code> in a <code>try/with</code> can be <em>optionally</em> 4-space indented e.g.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">try</span>
     <span class="k">if</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="22" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="23" class="vt">DateTime</span><span class="pn">.</span><span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="24" class="id">Now</span><span class="pn">.</span><span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="25" class="id">Second</span> <span class="o">%</span> <span class="n">3</span> <span class="o">=</span> <span class="n">0</span> <span class="k">then</span>
@@ -640,7 +640,7 @@ This does not add any good to readability hence <strong>is not recommended</stro
 </code></pre>
 <p>The justification is that it is harder to maintain the program.
 Adding a new case may screw up indentation and we often give up alignment at that time.</p>
-<h3><a name="Function-applications" class="anchor" href="#Function-applications">Function applications</a></h3>
+<h3 data-fsdocs-heading="16"><a name="Function-applications" class="anchor" href="#Function-applications">Function applications</a></h3>
 <p>Arguments are always indented from functions:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// OK</span>
 <span data-fsdocs-tip="fs35" data-fsdocs-tip-unique="104" class="m">Printf</span><span class="pn">.</span><span data-fsdocs-tip="fs36" data-fsdocs-tip-unique="105" class="id">sprintf</span> <span class="s">&quot;\t</span><span class="pf">%s</span><span class="s"> - </span><span class="pf">%i</span><span class="s">\n\r&quot;</span>
@@ -681,7 +681,7 @@ Adding a new case may screw up indentation and we often give up alignment at tha
         <span class="k">fun</span> <span data-fsdocs-tip="fs45" data-fsdocs-tip-unique="145" class="fn">elem</span> <span class="k">-&gt;</span>
             <span data-fsdocs-tip="fs16" data-fsdocs-tip-unique="146" class="fn">printfn</span> <span class="s">&quot;</span><span class="pf">%d</span><span class="s">&quot;</span> <span class="pn">(</span><span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="147" class="fn">a</span> <span class="o">+</span> <span data-fsdocs-tip="fs45" data-fsdocs-tip-unique="148" class="fn">elem</span><span class="pn">)</span><span class="pn">)</span> <span data-fsdocs-tip="fs43" data-fsdocs-tip-unique="149" class="fn">list1</span>
 </code></pre>
-<h3><a name="Infix-operators" class="anchor" href="#Infix-operators">Infix operators</a></h3>
+<h3 data-fsdocs-heading="17"><a name="Infix-operators" class="anchor" href="#Infix-operators">Infix operators</a></h3>
 <p>Be careful to <em>keep operator symbols well separated by spaces</em>; not only will your formulas be more readable, but you will avoid confusion with multi-character operators.
 Obvious exceptions to this rule are the <code>!</code> and <code>.</code> symbols.
 They are not separated from their arguments.
@@ -694,7 +694,7 @@ Moreover, infix expressions are OK to lineup on same column:</p>
     <span data-fsdocs-tip="fs47" data-fsdocs-tip-unique="159" class="fn">arg1</span> <span class="o">+</span> <span data-fsdocs-tip="fs48" data-fsdocs-tip-unique="160" class="fn">arg2</span>
   <span class="o">+</span> <span data-fsdocs-tip="fs49" data-fsdocs-tip-unique="161" class="fn">arg3</span> <span class="o">+</span> <span data-fsdocs-tip="fs50" data-fsdocs-tip-unique="162" class="fn">arg4</span>
 </code></pre>
-<h3><a name="Pipeline-operators" class="anchor" href="#Pipeline-operators">Pipeline operators</a></h3>
+<h3 data-fsdocs-heading="18"><a name="Pipeline-operators" class="anchor" href="#Pipeline-operators">Pipeline operators</a></h3>
 <p>Pipeline <code>|&gt;</code> should go at the start of a line immediately under the expression being operated on:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// OK</span>
 <span class="k">let</span> <span data-fsdocs-tip="fs51" data-fsdocs-tip-unique="163" class="id">methods2</span> <span class="o">=</span>
@@ -724,7 +724,7 @@ Moreover, infix expressions are OK to lineup on same column:</p>
             <span class="o">|&gt;</span> <span data-fsdocs-tip="fs26" data-fsdocs-tip-unique="225" class="m">List</span><span class="pn">.</span><span data-fsdocs-tip="fs27" data-fsdocs-tip-unique="226" class="id">map</span> <span class="pn">(</span><span class="k">fun</span> <span data-fsdocs-tip="fs60" data-fsdocs-tip-unique="227" class="fn">t</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs60" data-fsdocs-tip-unique="228" class="fn">t</span><span class="pn">.</span><span data-fsdocs-tip="fs61" data-fsdocs-tip-unique="229" class="id">GetMethods</span><span class="pn">(</span><span class="pn">)</span><span class="pn">)</span>
             <span class="o">|&gt;</span> <span data-fsdocs-tip="fs58" data-fsdocs-tip-unique="230" class="m">Array</span><span class="pn">.</span><span data-fsdocs-tip="fs59" data-fsdocs-tip-unique="231" class="id">concat</span>
 </code></pre>
-<h3><a name="Modules" class="anchor" href="#Modules">Modules</a></h3>
+<h3 data-fsdocs-heading="19"><a name="Modules" class="anchor" href="#Modules">Modules</a></h3>
 <p>Code in a local module must be indented relative to the module, but code in a top-level module does not have to be indented.
 Namespace elements do not have to be indented.
 The following code examples illustrate this.</p>
@@ -740,7 +740,7 @@ The following code examples illustrate this.</p>
 <span class="k">module</span> <span class="m">A2</span> <span class="o">=</span>
     <span class="k">let</span> <span data-fsdocs-tip="fs65" data-fsdocs-tip-unique="246" class="fn">function2</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="247" class="fn">a</span> <span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="248" class="fn">b</span> <span class="o">=</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="249" class="fn">a</span><span class="o">*</span><span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="250" class="fn">a</span> <span class="o">-</span> <span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="251" class="fn">b</span><span class="o">*</span><span data-fsdocs-tip="fs64" data-fsdocs-tip-unique="252" class="fn">b</span>
 </code></pre>
-<h3><a name="Object-expressions-and-interfaces" class="anchor" href="#Object-expressions-and-interfaces">Object expressions and interfaces</a></h3>
+<h3 data-fsdocs-heading="20"><a name="Object-expressions-and-interfaces" class="anchor" href="#Object-expressions-and-interfaces">Object expressions and interfaces</a></h3>
 <p>Object expressions and interfaces are aligned in the same way with <code>member</code> being indented after 4 spaces.
 For example, this is recommended:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs66" data-fsdocs-tip-unique="253" class="id">comparer</span> <span class="o">=</span>
@@ -767,7 +767,7 @@ This allows for a style in which the opening keyword of a type definition can be
     <span class="k">abstract</span> <span class="fn">Function1</span> <span class="pn">:</span> <span data-fsdocs-tip="fs71" data-fsdocs-tip-unique="268" class="vt">int</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs71" data-fsdocs-tip-unique="269" class="vt">int</span>
 <span class="k">end</span>
 </code></pre>
-<h3><a name="Whitespaces" class="anchor" href="#Whitespaces">Whitespaces</a></h3>
+<h3 data-fsdocs-heading="21"><a name="Whitespaces" class="anchor" href="#Whitespaces">Whitespaces</a></h3>
 <p>Avoid extraneous whitespace in the following situations:</p>
 <ul>
 <li>
@@ -789,14 +789,14 @@ let makeStreamReader x = new System.IO.StreamReader(path=x)
 let makeStreamReader x = new System.IO.StreamReader(path = x)</code>
 </li>
 </ul>
-<h3><a name="Blank-lines" class="anchor" href="#Blank-lines">Blank lines</a></h3>
+<h3 data-fsdocs-heading="22"><a name="Blank-lines" class="anchor" href="#Blank-lines">Blank lines</a></h3>
 <ul>
 <li>Separate top-level function and class definitions with two blank lines.</li>
 <li>Method definitions inside a class are separated by a single blank line.</li>
 <li>Extra blank lines may be used (sparingly) to separate groups of related functions. Blank lines may be omitted between a bunch of related one-liners (e.g. a set of dummy implementations).</li>
 <li>Use blank lines in functions, sparingly, to indicate logical sections.</li>
 </ul>
-<h4><a name="2020-Revision" class="anchor" href="#2020-Revision">2020 Revision</a></h4>
+<h4 data-fsdocs-heading="23"><a name="2020-Revision" class="anchor" href="#2020-Revision">2020 Revision</a></h4>
 <p>Blank lines are introduces around any multiline code constructs:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs42" data-fsdocs-tip-unique="270" class="id">a</span> <span class="o">=</span> <span class="n">9</span>
 
@@ -809,7 +809,7 @@ let makeStreamReader x = new System.IO.StreamReader(path = x)</code>
 </code></pre>
 <p>The <code>SynExpr.IfThenElse</code> expression is multiline so a blank line between <code>let a</code> and <code>if someCondition</code> and between <code>if someCondition</code> and <code>let b</code> is fitting.
 Single line statements are combined without any additional blank lines, see <code>let b</code> and <code>let c</code>.</p>
-<h3><a name="Comments" class="anchor" href="#Comments">Comments</a></h3>
+<h3 data-fsdocs-heading="24"><a name="Comments" class="anchor" href="#Comments">Comments</a></h3>
 <p>Block comments generally apply to some (or all) code that follows them, and are indented to the same level as that code.
 Each line of a block comment starts with a <code>(*</code> or <code>//</code> and a single space (unless it is indented text inside the comment).
 Paragraphs inside a block comment are separated by a line containing a single <code>*</code> or <code>//</code>.</p>
@@ -817,13 +817,13 @@ Paragraphs inside a block comment are separated by a line containing a single <c
 An inline comment is a comment on the same line as a statement.
 Inline comments should be separated by at least two spaces from the statement.
 They should start with a <code>//</code> and a single space.</p>
-<h2><a name="Conclusions" class="anchor" href="#Conclusions">Conclusions</a></h2>
+<h2 data-fsdocs-heading="25"><a name="Conclusions" class="anchor" href="#Conclusions">Conclusions</a></h2>
 <p>This guideline is still far from complete.
 Many syntactic constructs have not had any defined rule yet.
 In those cases, please keep in mind <em>consistency of indentation</em> rule and extrapolate from rules of similar constructs.
 Although I tried to keep a neutral position, there are mistakes and inconsistencies here and there.
 Feedbacks and suggestions for improving the article are always welcome.</p>
-<h2><a name="References" class="anchor" href="#References">References</a></h2>
+<h2 data-fsdocs-heading="26"><a name="References" class="anchor" href="#References">References</a></h2>
 <p>This document is structured upon <a href="https://web.archive.org/web/20070306131206/http://research.microsoft.com/fsharp/expert-fsharp-draft/FormattingConventions.doc">"F# Coding Guidelines"</a> (offline version).
 General rules for indentation are referenced at <a href="http://msdn.microsoft.com/en-us/library/dd233191.aspx">"Code Formatting Guidelines (F#)"</a>.
 A few conventions for syntactic constructs are adapted from <a href="http://caml.inria.fr/resources/doc/guides/guidelines.en.html">"Caml Programming Guidelines"</a>.
@@ -976,137 +976,217 @@ from Microsoft.FSharp.Core</div>
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Formatting-Conventions">
       Formatting Conventions
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#General-rules-for-indentation">
       General rules for indentation
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="3">
     <a href="#Using-spaces">
       Using spaces
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="4">
     <a href="#Offside-rule">
       Offside rule
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="5">
     <a href="#Formatting-rules-for-syntactic-constructs">
       Formatting rules for syntactic constructs
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="6">
     <a href="#Type-definitions">
       Type definitions
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="7">
     <a href="#Value-declarations">
       Value declarations
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="8">
     <a href="#Tuples">
       Tuples
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="9">
     <a href="#Records">
       Records
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="10">
     <a href="#Lists-and-arrays">
       Lists and arrays
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="11">
     <a href="#Discriminated-unions">
       Discriminated unions
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="12">
     <a href="#Conditional-expressions">
       Conditional expressions
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="13">
     <a href="#Multiple-branches">
       Multiple branches
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="14">
     <a href="#Single-branches">
       Single branches
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="15">
     <a href="#Pattern-matching-constructs">
       Pattern matching constructs
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="16">
     <a href="#Function-applications">
       Function applications
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="17">
     <a href="#Infix-operators">
       Infix operators
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="18">
     <a href="#Pipeline-operators">
       Pipeline operators
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="19">
     <a href="#Modules">
       Modules
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="20">
     <a href="#Object-expressions-and-interfaces">
       Object expressions and interfaces
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="21">
     <a href="#Whitespaces">
       Whitespaces
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="22">
     <a href="#Blank-lines">
       Blank lines
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="23">
     <a href="#2020-Revision">
       2020 Revision
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="24">
     <a href="#Comments">
       Comments
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="25">
     <a href="#Conclusions">
       Conclusions
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="26">
     <a href="#References">
       References
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-heading-10, --fsdocs-heading-11, --fsdocs-heading-12, --fsdocs-heading-13, --fsdocs-heading-14, --fsdocs-heading-15, --fsdocs-heading-16, --fsdocs-heading-17, --fsdocs-heading-18, --fsdocs-heading-19, --fsdocs-heading-20, --fsdocs-heading-21, --fsdocs-heading-22, --fsdocs-heading-23, --fsdocs-heading-24, --fsdocs-heading-25, --fsdocs-heading-26, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-heading-8; }
+body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="8"] { view-timeline-name: --fsdocs-heading-8; }
+#fsdocs-page-menu [data-fsdocs-heading="8"] { animation-timeline: --fsdocs-heading-8, --fsdocs-heading-9; }
+body:has(#content [data-fsdocs-heading="8"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="8"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="9"] { view-timeline-name: --fsdocs-heading-9; }
+#fsdocs-page-menu [data-fsdocs-heading="9"] { animation-timeline: --fsdocs-heading-9, --fsdocs-heading-10; }
+body:has(#content [data-fsdocs-heading="9"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="9"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="10"] { view-timeline-name: --fsdocs-heading-10; }
+#fsdocs-page-menu [data-fsdocs-heading="10"] { animation-timeline: --fsdocs-heading-10, --fsdocs-heading-11; }
+body:has(#content [data-fsdocs-heading="10"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="10"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="11"] { view-timeline-name: --fsdocs-heading-11; }
+#fsdocs-page-menu [data-fsdocs-heading="11"] { animation-timeline: --fsdocs-heading-11, --fsdocs-heading-12; }
+body:has(#content [data-fsdocs-heading="11"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="11"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="12"] { view-timeline-name: --fsdocs-heading-12; }
+#fsdocs-page-menu [data-fsdocs-heading="12"] { animation-timeline: --fsdocs-heading-12, --fsdocs-heading-13; }
+body:has(#content [data-fsdocs-heading="12"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="12"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="13"] { view-timeline-name: --fsdocs-heading-13; }
+#fsdocs-page-menu [data-fsdocs-heading="13"] { animation-timeline: --fsdocs-heading-13, --fsdocs-heading-14; }
+body:has(#content [data-fsdocs-heading="13"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="13"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="14"] { view-timeline-name: --fsdocs-heading-14; }
+#fsdocs-page-menu [data-fsdocs-heading="14"] { animation-timeline: --fsdocs-heading-14, --fsdocs-heading-15; }
+body:has(#content [data-fsdocs-heading="14"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="14"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="15"] { view-timeline-name: --fsdocs-heading-15; }
+#fsdocs-page-menu [data-fsdocs-heading="15"] { animation-timeline: --fsdocs-heading-15, --fsdocs-heading-16; }
+body:has(#content [data-fsdocs-heading="15"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="15"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="16"] { view-timeline-name: --fsdocs-heading-16; }
+#fsdocs-page-menu [data-fsdocs-heading="16"] { animation-timeline: --fsdocs-heading-16, --fsdocs-heading-17; }
+body:has(#content [data-fsdocs-heading="16"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="16"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="17"] { view-timeline-name: --fsdocs-heading-17; }
+#fsdocs-page-menu [data-fsdocs-heading="17"] { animation-timeline: --fsdocs-heading-17, --fsdocs-heading-18; }
+body:has(#content [data-fsdocs-heading="17"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="17"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="18"] { view-timeline-name: --fsdocs-heading-18; }
+#fsdocs-page-menu [data-fsdocs-heading="18"] { animation-timeline: --fsdocs-heading-18, --fsdocs-heading-19; }
+body:has(#content [data-fsdocs-heading="18"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="18"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="19"] { view-timeline-name: --fsdocs-heading-19; }
+#fsdocs-page-menu [data-fsdocs-heading="19"] { animation-timeline: --fsdocs-heading-19, --fsdocs-heading-20; }
+body:has(#content [data-fsdocs-heading="19"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="19"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="20"] { view-timeline-name: --fsdocs-heading-20; }
+#fsdocs-page-menu [data-fsdocs-heading="20"] { animation-timeline: --fsdocs-heading-20, --fsdocs-heading-21; }
+body:has(#content [data-fsdocs-heading="20"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="20"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="21"] { view-timeline-name: --fsdocs-heading-21; }
+#fsdocs-page-menu [data-fsdocs-heading="21"] { animation-timeline: --fsdocs-heading-21, --fsdocs-heading-22; }
+body:has(#content [data-fsdocs-heading="21"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="21"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="22"] { view-timeline-name: --fsdocs-heading-22; }
+#fsdocs-page-menu [data-fsdocs-heading="22"] { animation-timeline: --fsdocs-heading-22, --fsdocs-heading-23; }
+body:has(#content [data-fsdocs-heading="22"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="22"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="23"] { view-timeline-name: --fsdocs-heading-23; }
+#fsdocs-page-menu [data-fsdocs-heading="23"] { animation-timeline: --fsdocs-heading-23, --fsdocs-heading-24; }
+body:has(#content [data-fsdocs-heading="23"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="23"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="24"] { view-timeline-name: --fsdocs-heading-24; }
+#fsdocs-page-menu [data-fsdocs-heading="24"] { animation-timeline: --fsdocs-heading-24, --fsdocs-heading-25; }
+body:has(#content [data-fsdocs-heading="24"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="24"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="25"] { view-timeline-name: --fsdocs-heading-25; }
+#fsdocs-page-menu [data-fsdocs-heading="25"] { animation-timeline: --fsdocs-heading-25, --fsdocs-heading-26, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="25"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="25"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="26"] { view-timeline-name: --fsdocs-heading-26; }
+#fsdocs-page-menu [data-fsdocs-heading="26"] { animation-timeline: --fsdocs-heading-26, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="26"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="26"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -1121,12 +1201,29 @@ from Microsoft.FSharp.Core</div>
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

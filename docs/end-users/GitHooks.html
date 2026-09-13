@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,16 +340,16 @@
 <main>
     <div id="content">
         
-<h1><a name="Git-hooks" class="anchor" href="#Git-hooks">Git hooks</a></h1>
-<h2><a name="A-git-pre-commit-hook-sample" class="anchor" href="#A-git-pre-commit-hook-sample">A git pre-commit hook sample</a></h2>
+<h1 data-fsdocs-heading="1"><a name="Git-hooks" class="anchor" href="#Git-hooks">Git hooks</a></h1>
+<h2 data-fsdocs-heading="2"><a name="A-git-pre-commit-hook-sample" class="anchor" href="#A-git-pre-commit-hook-sample">A git pre-commit hook sample</a></h2>
 <p>A very elegant and transparent way to use Fantomas is including it in a pre-commit git hook, by creating a <code>.git/hooks/pre-commit</code> file with:</p>
-<h5><a name="Using-fantomas-globally" class="anchor" href="#Using-fantomas-globally">Using fantomas globally</a></h5>
+<h5 data-fsdocs-heading="3"><a name="Using-fantomas-globally" class="anchor" href="#Using-fantomas-globally">Using fantomas globally</a></h5>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">#!/bin/sh</span>
 <span class="id">git</span> <span class="id">diff</span> <span class="pn">--</span><span class="id">cached</span> <span class="pn">--</span><span class="id">name</span><span class="o">-</span><span class="id">only</span> <span class="pn">--</span><span class="id">diff</span><span class="o">-</span><span class="id">filter</span><span class="o">=</span><span class="id">ACM</span> <span class="o">-</span><span class="id">z</span> <span class="pn">|</span> <span class="id">xargs</span> <span class="o">-</span><span class="n">0</span> <span class="o">$</span><span class="id">HOME</span><span class="o">/.</span><span class="id">dotnet</span><span class="o">/</span><span class="id">tools</span><span class="o">/</span><span class="id">fantomas</span>
 <span class="id">git</span> <span class="id">diff</span> <span class="o">--</span><span class="id">cached</span> <span class="o">--</span><span class="id">name</span><span class="o">-</span><span class="id">only</span> <span class="o">--</span><span class="id">diff</span><span class="o">-</span><span class="id">filter</span><span class="o">=</span><span class="id">ACM</span> <span class="o">-</span><span class="id">z</span> <span class="pn">|</span> <span class="id">xargs</span> <span class="o">-</span><span class="n">0</span> <span class="id">git</span> <span class="id">add</span>
 </code></pre>
 <p>This script assumes you have installed Fantomas globally as a <a href="https://www.nuget.org/packages/fantomas/">dotnet tool</a></p>
-<h5><a name="Using-fantomas-locally" class="anchor" href="#Using-fantomas-locally">Using fantomas locally</a></h5>
+<h5 data-fsdocs-heading="4"><a name="Using-fantomas-locally" class="anchor" href="#Using-fantomas-locally">Using fantomas locally</a></h5>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="c">#!/bin/sh</span>
 <span class="id">git</span> <span class="id">diff</span> <span class="o">--</span><span class="id">cached</span> <span class="o">--</span><span class="id">name</span><span class="o">-</span><span class="id">only</span> <span class="o">--</span><span class="id">diff</span><span class="o">-</span><span class="id">filter</span><span class="o">=</span><span class="id">ACM</span> <span class="o">-</span><span class="id">z</span> <span class="pn">|</span> <span class="id">xargs</span> <span class="o">-</span><span class="n">0</span> <span class="id">dotnet</span> <span class="id">fantomas</span> 
 <span class="id">git</span> <span class="id">diff</span> <span class="o">--</span><span class="id">cached</span> <span class="o">--</span><span class="id">name</span><span class="o">-</span><span class="id">only</span> <span class="o">--</span><span class="id">diff</span><span class="o">-</span><span class="id">filter</span><span class="o">=</span><span class="id">ACM</span> <span class="o">-</span><span class="id">z</span> <span class="pn">|</span> <span class="id">xargs</span> <span class="o">-</span><span class="n">0</span> <span class="id">git</span> <span class="id">add</span>
@@ -363,27 +363,41 @@
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Git-hooks">
       Git hooks
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#A-git-pre-commit-hook-sample">
       A git pre-commit hook sample
     </a>
   </li>
-  <li class="level-5">
+  <li class="level-5" data-fsdocs-heading="3">
     <a href="#Using-fantomas-globally">
       Using fantomas globally
     </a>
   </li>
-  <li class="level-5">
+  <li class="level-5" data-fsdocs-heading="4">
     <a href="#Using-fantomas-locally">
       Using fantomas locally
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -398,12 +412,29 @@
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

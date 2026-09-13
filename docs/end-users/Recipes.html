@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,17 +340,17 @@
 <main>
     <div id="content">
         
-<h1><a name="Recipes" class="anchor" href="#Recipes">Recipes</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Recipes" class="anchor" href="#Recipes">Recipes</a></h1>
 <p>Fantomas has a limited set of settings and adheres to style guides.
 These style guides are meant to be agnostic to any specific framework.</p>
 <p>That being said, there are certain combinations that provide a more ideal result when working with certain scenarios.</p>
 <p><strong>These snippets aren’t to spark requests for new settings suited to framework of the day!</strong></p>
 <p>Remember that a <code>.editorconfig</code> file can apply certain settings only to certain files.
 Sometimes, it makes sense to tweak a few setting for a subset of your codebase.</p>
-<h2><a name="HTML-DSL" class="anchor" href="#HTML-DSL">HTML DSL</a></h2>
+<h2 data-fsdocs-heading="2"><a name="HTML-DSL" class="anchor" href="#HTML-DSL">HTML DSL</a></h2>
 <p>When working with a HTML inspired DSL (typically a function call with one or two lists), you can use <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_experimental_elmish">fsharp_experimental_elmish</a></p>
-<h3><a name="Fable-React" class="anchor" href="#Fable-React">Fable.React</a></h3>
-<h3><a name="Elmish" class="anchor" href="#Elmish">Elmish</a></h3>
+<h3 data-fsdocs-heading="3"><a name="Fable-React" class="anchor" href="#Fable-React">Fable.React</a></h3>
+<h3 data-fsdocs-heading="4"><a name="Elmish" class="anchor" href="#Elmish">Elmish</a></h3>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="47" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">div</span>
@@ -378,7 +378,7 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
     ]
     hr []
 ]</code></pre></td></tr></table>
-<h3><a name="Feliz" class="anchor" href="#Feliz">Feliz</a></h3>
+<h3 data-fsdocs-heading="5"><a name="Feliz" class="anchor" href="#Feliz">Feliz</a></h3>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="48" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">Html.div</span>
@@ -402,7 +402,7 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
             Html.li [ str $"%i{p.X}, %i{p.Y}" ]
     ]
 ]</code></pre></td></tr></table>
-<h3><a name="Giraffe" class="anchor" href="#Giraffe">Giraffe</a></h3>
+<h3 data-fsdocs-heading="6"><a name="Giraffe" class="anchor" href="#Giraffe">Giraffe</a></h3>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="49" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">let indexView =</span>
@@ -426,7 +426,7 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
             p [ _class "some-css-class"; _id "someId" ] [ str "Hello World" ]
         ]
     ]</code></pre></td></tr></table>
-<h3><a name="Falco" class="anchor" href="#Falco">Falco</a></h3>
+<h3 data-fsdocs-heading="7"><a name="Falco" class="anchor" href="#Falco">Falco</a></h3>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="50" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">let markup =</span>
@@ -448,7 +448,7 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
         Elem.p [] [ Text.rawf "Hello %s" "Jim" ]
         Elem.code [] [ Text.enc "&lt;div&gt;Hello&lt;/div&gt;" ]
     ] // HTML encodes text before rendering</code></pre></td></tr></table>
-<h2><a name="Expecto" class="anchor" href="#Expecto">Expecto</a></h2>
+<h2 data-fsdocs-heading="8"><a name="Expecto" class="anchor" href="#Expecto">Expecto</a></h2>
 <p>The <a href="https://github.com/haf/expecto">Expect</a> test framework can benefit from <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_multiline_bracket_style">Stroustrup</a> style when defining test lists.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="51" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot;</span>
@@ -491,7 +491,7 @@ Sometimes, it makes sense to tweak a few setting for a subset of your codebase.<
         }
     ]
     |&gt; testLabel "samples"</code></pre></td></tr></table>
-<h2><a name="FAKE" class="anchor" href="#FAKE">FAKE</a></h2>
+<h2 data-fsdocs-heading="9"><a name="FAKE" class="anchor" href="#FAKE">FAKE</a></h2>
 <p>At the end of a <a href="https://fake.build/">FAKE</a> script, the target dependencies are typically listed using custom operators.<br />
 Using <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_max_infix_operator_expression">fsharp_max_infix_operator_expression</a>
 you can tweak when they should go to the next line.</p>
@@ -521,7 +521,7 @@ you can tweak when they should go to the next line.</p>
 ==&gt; "LocalRelease"
 ==&gt; "ReleaseArchive"
 ==&gt; "Release"</code></pre></td></tr></table>
-<h2><a name="Paragraphs" class="anchor" href="#Paragraphs">Paragraphs</a></h2>
+<h2 data-fsdocs-heading="10"><a name="Paragraphs" class="anchor" href="#Paragraphs">Paragraphs</a></h2>
 <p>When expressions are multiline Fantomas will put a blank line before and after them.
 This helps for code to stay consistent in teams.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="53" class="fn">formatCode</span>
@@ -577,7 +577,7 @@ Within teams, this can lead to debates, which is precisely what using Fantomas a
     let mutable a = 8 // This line belongs // Start paragraph 2
     for i in [ 1..10 ] do
         a &lt;- a + i // Start paragraph 2</code></pre></td></tr></table>
-<h2><a name="Early-returns" class="anchor" href="#Early-returns">Early returns</a></h2>
+<h2 data-fsdocs-heading="11"><a name="Early-returns" class="anchor" href="#Early-returns">Early returns</a></h2>
 <p>In F# there is no such concept as early returns. However, sometimes we do want to return an empty or error result when a certain condition is not met.
 To avoid extreme indentation in our happy path, you can use <a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html#fsharp_experimental_keep_indent_in_branch">fsharp_experimental_keep_indent_in_branch = true</a>.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="55" class="fn">formatCode</span>
@@ -690,8 +690,11 @@ from Fantomas</div>
 <div popover class="fsdocs-tip" id="fs12">String.Split(separator: ReadOnlySpan&lt;char&gt;) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split( separator: char array) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string array, options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string, ?options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: char array, options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: char array, count: int) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: char, ?options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string array, count: int, options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string, count: int, ?options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: char array, count: int, options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em></div>
 <div popover class="fsdocs-tip" id="fs13">
 type StringSplitOptions =
+  Literal&gt;]
   | None = 0
+  Literal&gt;]
   | RemoveEmptyEntries = 1
+  Literal&gt;]
   | TrimEntries = 2<br /><em>&lt;summary&gt;Specifies options for applicable &lt;see cref=&quot;Overload:System.String.Split&quot; /&gt; method overloads, such as whether to omit empty substrings from the returned array or trim whitespace from substrings.&lt;/summary&gt;</em></div>
 <div popover class="fsdocs-tip" id="fs14">field StringSplitOptions.RemoveEmptyEntries: StringSplitOptions = 1</div>
 <div popover class="fsdocs-tip" id="fs15">type Array =
@@ -772,62 +775,97 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Recipes">
       Recipes
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#HTML-DSL">
       HTML DSL
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="3">
     <a href="#Fable-React">
       Fable.React
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="4">
     <a href="#Elmish">
       Elmish
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="5">
     <a href="#Feliz">
       Feliz
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="6">
     <a href="#Giraffe">
       Giraffe
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="7">
     <a href="#Falco">
       Falco
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="8">
     <a href="#Expecto">
       Expecto
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="9">
     <a href="#FAKE">
       FAKE
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="10">
     <a href="#Paragraphs">
       Paragraphs
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="11">
     <a href="#Early-returns">
       Early returns
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-heading-10, --fsdocs-heading-11, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-heading-8; }
+body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="8"] { view-timeline-name: --fsdocs-heading-8; }
+#fsdocs-page-menu [data-fsdocs-heading="8"] { animation-timeline: --fsdocs-heading-8, --fsdocs-heading-9; }
+body:has(#content [data-fsdocs-heading="8"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="8"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="9"] { view-timeline-name: --fsdocs-heading-9; }
+#fsdocs-page-menu [data-fsdocs-heading="9"] { animation-timeline: --fsdocs-heading-9, --fsdocs-heading-10; }
+body:has(#content [data-fsdocs-heading="9"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="9"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="10"] { view-timeline-name: --fsdocs-heading-10; }
+#fsdocs-page-menu [data-fsdocs-heading="10"] { animation-timeline: --fsdocs-heading-10, --fsdocs-heading-11, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="10"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="10"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="11"] { view-timeline-name: --fsdocs-heading-11; }
+#fsdocs-page-menu [data-fsdocs-heading="11"] { animation-timeline: --fsdocs-heading-11, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="11"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="11"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -842,12 +880,29 @@ from Fantomas.Core<br /><br />--------------------<br />type Async =
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

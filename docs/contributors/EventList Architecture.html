@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,14 +340,14 @@
 <main>
     <div id="content">
         
-<h1><a name="Writer-Events-and-the-EventList" class="anchor" href="#Writer-Events-and-the-EventList">Writer Events and the EventList</a></h1>
-<h2><a name="Overview" class="anchor" href="#Overview">Overview</a></h2>
+<h1 data-fsdocs-heading="1"><a name="Writer-Events-and-the-EventList" class="anchor" href="#Writer-Events-and-the-EventList">Writer Events and the EventList</a></h1>
+<h2 data-fsdocs-heading="2"><a name="Overview" class="anchor" href="#Overview">Overview</a></h2>
 <p>Fantomas formats code in two phases:</p>
 <ol>
 <li><strong>Event generation</strong>: The code printer traverses the Oak tree and appends <code>WriterEvent</code> values to an <code>EventList</code> — a mutable doubly-linked list. During this phase, only lightweight metadata is tracked (line count, column, indent level). No strings are built.</li>
 <li><strong>String materialization</strong>: The <code>dump</code> function walks the EventList head-to-tail with a <code>StringBuilder</code>, producing the final formatted string.</li>
 </ol>
-<h2><a name="EventList" class="anchor" href="#EventList">EventList</a></h2>
+<h2 data-fsdocs-heading="3"><a name="EventList" class="anchor" href="#EventList">EventList</a></h2>
 <p><code>EventList</code> (<code>EventList.fs</code>) is a mutable doubly-linked list of <code>EventNode</code> values. Each node holds a <code>WriterEvent</code> and pointers to <code>Prev</code>/<code>Next</code>.</p>
 <p>Key operations:</p>
 <table>
@@ -398,7 +398,7 @@
 </table>
 
 <p><code>EventNode</code> uses <code>[&lt;AllowNullLiteral&gt;]</code> instead of <code>option</code> for <code>Prev</code>/<code>Next</code> links because this is a hot path — every formatting operation appends nodes.</p>
-<h2><a name="WriterEvent-cases" class="anchor" href="#WriterEvent-cases">WriterEvent cases</a></h2>
+<h2 data-fsdocs-heading="4"><a name="WriterEvent-cases" class="anchor" href="#WriterEvent-cases">WriterEvent cases</a></h2>
 <table>
 <thead>
 <tr class="header">
@@ -454,7 +454,7 @@
 </tbody>
 </table>
 
-<h2><a name="Speculative-formatting" class="anchor" href="#Speculative-formatting">Speculative formatting</a></h2>
+<h2 data-fsdocs-heading="5"><a name="Speculative-formatting" class="anchor" href="#Speculative-formatting">Speculative formatting</a></h2>
 <p>Several functions try a short layout and fall back to a long one:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">CreateBackupPoint</span>  
                                             
@@ -466,7 +466,7 @@
 <li><code>colWithNlnWhenItemIsMultiline</code>: Optimistic blank-line separator, rolls back if both items are single-line</li>
 <li><code>WithDummy</code>: Encapsulates probe functions — creates backup, runs probe, reads metadata, rolls back automatically</li>
 </ul>
-<h2><a name="Trivia-aware-indentation" class="anchor" href="#Trivia-aware-indentation">Trivia-aware indentation</a></h2>
+<h2 data-fsdocs-heading="6"><a name="Trivia-aware-indentation" class="anchor" href="#Trivia-aware-indentation">Trivia-aware indentation</a></h2>
 <p><code>indentSepNlnUnindent</code> is the most common formatting pattern (66+ call sites). It indents, adds a newline, runs the content, then unindents:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">indent</span> <span class="o">+&gt;</span> <span class="id">sepNln</span> <span class="o">+&gt;</span> <span class="id">content</span> <span class="o">+&gt;</span> <span class="id">unindent</span>
 </code></pre>
@@ -476,7 +476,7 @@
 <li>*<em><code>unindentWithTriviaAwareness</code>*</em>: If trailing trivia exists after the content, splices <code>UnIndentBy</code> before the trailing trivia newline so the newline uses the reduced indent level.</li>
 </ul>
 <p>Both use <code>findTrailingTriviaNewline</code> which walks backward from the DLL tail, skipping <code>RestoreIndent</code>/<code>RestoreAtColumn</code>/<code>UnIndentBy</code>/<code>IndentBy</code>/<code>WriteLine</code> events, then verifies a <code>WriteLineBecauseOfTrivia</code> preceded by <code>WriteTrivia</code>.</p>
-<h2><a name="LongExpressionLayout" class="anchor" href="#LongExpressionLayout">LongExpressionLayout</a></h2>
+<h2 data-fsdocs-heading="7"><a name="LongExpressionLayout" class="anchor" href="#LongExpressionLayout">LongExpressionLayout</a></h2>
 <p>The <code>LongExpressionLayout</code> DU describes how to lay out an expression that doesn't fit on one line:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">LongExpressionLayout</span> <span class="o">=</span>
     <span class="pn">|</span> <span class="id">IndentAndUnindent</span>          <span class="c">// indent +&gt; sepNln +&gt; expr +&gt; unindent</span>
@@ -485,7 +485,7 @@
 </code></pre>
 <p><code>expressionExceedsPageWidthWithLayout</code> translates the DU to before/after functions, with <code>unindentWithTriviaAwareness</code> on the trailing side for indent layouts.</p>
 <p>The wrapper functions <code>autoIndentAndNlnIfExpressionExceedsPageWidth</code>, <code>sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth</code>, etc. all delegate to this.</p>
-<h2><a name="WriterModel" class="anchor" href="#WriterModel">WriterModel</a></h2>
+<h2 data-fsdocs-heading="8"><a name="WriterModel" class="anchor" href="#WriterModel">WriterModel</a></h2>
 <p><code>WriterModel</code> tracks formatting metadata without building strings:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">{</span> <span class="id">LineCount</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">int</span>          <span class="c">// number of lines produced</span>
   <span class="id">Column</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="2" class="id">int</span>             <span class="c">// current position on the line</span>
@@ -506,47 +506,73 @@
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Writer-Events-and-the-EventList">
       Writer Events and the EventList
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#Overview">
       Overview
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="3">
     <a href="#EventList">
       EventList
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="4">
     <a href="#WriterEvent-cases">
       WriterEvent cases
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="5">
     <a href="#Speculative-formatting">
       Speculative formatting
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="6">
     <a href="#Trivia-aware-indentation">
       Trivia-aware indentation
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="7">
     <a href="#LongExpressionLayout">
       LongExpressionLayout
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="8">
     <a href="#WriterModel">
       WriterModel
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="8"] { view-timeline-name: --fsdocs-heading-8; }
+#fsdocs-page-menu [data-fsdocs-heading="8"] { animation-timeline: --fsdocs-heading-8, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="8"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="8"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -561,12 +587,29 @@
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

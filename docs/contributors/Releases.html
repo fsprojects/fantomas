@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,7 +340,7 @@
 <main>
     <div id="content">
         
-<h1><a name="Releases" class="anchor" href="#Releases">Releases</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Releases" class="anchor" href="#Releases">Releases</a></h1>
 <p>Releases in Fantomas are automated via GitHub Actions. When a new release entry is added to the <a href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">CHANGELOG.md</a> and pushed to the <code>main</code> branch, the release workflow will automatically:</p>
 <ol>
 <li>Build and test the project</li>
@@ -348,7 +348,7 @@
 <li>Publish packages to NuGet</li>
 <li>Create a GitHub release with release notes</li>
 </ol>
-<h2><a name="Preparation" class="anchor" href="#Preparation">Preparation</a></h2>
+<h2 data-fsdocs-heading="2"><a name="Preparation" class="anchor" href="#Preparation">Preparation</a></h2>
 <p>The <a href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">CHANGELOG.md</a> needs a new header with an official release tag:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="md">## [5.1.0] - 2022-11-04
 </code></pre></td></tr></table>
@@ -357,7 +357,7 @@
 </code></pre></td></tr></table>
 <p>Verify that all recent PRs and closed issues are listed in the changelog. Normally, this should be ok as we require a changelog entry before we merge a PR.</p>
 <p>Once the changelog entry is merged into <code>main</code>, the release workflow will automatically trigger and handle the release process.</p>
-<h2><a name="Testing-Releases-Locally" class="anchor" href="#Testing-Releases-Locally">Testing Releases Locally</a></h2>
+<h2 data-fsdocs-heading="3"><a name="Testing-Releases-Locally" class="anchor" href="#Testing-Releases-Locally">Testing Releases Locally</a></h2>
 <p>You can test the release process locally using the <code>--dry-run</code> flag. This will perform all validation and generate release notes without actually publishing to NuGet or creating a GitHub release:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fsi build.fsx -- -p Release --dry-run
 </code></pre></td></tr></table>
@@ -366,7 +366,7 @@
 - Checking that the changelog is parsed correctly
 - Testing author attribution
 - Ensuring the release pipeline works as expected</p>
-<h2><a name="Automated-Release-Process" class="anchor" href="#Automated-Release-Process">Automated Release Process</a></h2>
+<h2 data-fsdocs-heading="4"><a name="Automated-Release-Process" class="anchor" href="#Automated-Release-Process">Automated Release Process</a></h2>
 <p>The release pipeline (<code>build.fsx -p Release</code>) performs the following steps:</p>
 <ol>
 <li><strong>Parses the changelog</strong> to find the current and last release</li>
@@ -391,21 +391,21 @@
 </ul>
 </li>
 </ol>
-<h3><a name="Release-Types" class="anchor" href="#Release-Types">Release Types</a></h3>
+<h3 data-fsdocs-heading="5"><a name="Release-Types" class="anchor" href="#Release-Types">Release Types</a></h3>
 <ul>
 <li><strong>Stable minor/major</strong> (e.g., <code>7.0.0</code>, <code>8.0.0</code>): Created as draft releases, requiring manual publish</li>
 <li><strong>Stable revisions</strong> (e.g., <code>7.0.5</code>, <code>8.1.2</code>): Published immediately</li>
 <li><strong>Prereleases</strong> (e.g., <code>8.0.0-alpha-001</code>, <code>8.0.0-beta-001</code>): Always published immediately</li>
 </ul>
-<h3><a name="Author-Attribution" class="anchor" href="#Author-Attribution">Author Attribution</a></h3>
+<h3 data-fsdocs-heading="6"><a name="Author-Attribution" class="anchor" href="#Author-Attribution">Author Attribution</a></h3>
 <p>The release notes automatically include contributor attribution by:
 - Querying PRs merged since the last release
 - Extracting authors from all commits in those PRs
 - Filtering out bots (e.g., <code>dependabot[bot]</code>)
 - Generating a "Special thanks to..." message</p>
-<h2><a name="Manual-Steps" class="anchor" href="#Manual-Steps">Manual Steps</a></h2>
+<h2 data-fsdocs-heading="7"><a name="Manual-Steps" class="anchor" href="#Manual-Steps">Manual Steps</a></h2>
 <p>The only manual step required is for <strong>minor and major releases</strong>:</p>
-<h3><a name="Adding-Release-Nicknames" class="anchor" href="#Adding-Release-Nicknames">Adding Release Nicknames</a></h3>
+<h3 data-fsdocs-heading="8"><a name="Adding-Release-Nicknames" class="anchor" href="#Adding-Release-Nicknames">Adding Release Nicknames</a></h3>
 <p>Minor and major releases are created as <strong>draft releases</strong> on GitHub. This allows maintainers to add a cool nickname to the release title before publishing.</p>
 <p>The nickname is typically a song name from the band Ghost. For example:
 - <code># 5.1.0 &lt;sub&gt;Kaisarion&lt;/sub&gt; - 11/2022</code>
@@ -416,7 +416,7 @@
 3. Review the release notes (they're already generated automatically)
 4. Publish the release</p>
 <p><strong>Note</strong>: <code>Fantomas.Client</code> requires a separate pipeline (<code>build.fsx -p PushClient</code>) and is not included in the automated release.</p>
-<h2><a name="Spread-the-word" class="anchor" href="#Spread-the-word">Spread the word</a></h2>
+<h2 data-fsdocs-heading="9"><a name="Spread-the-word" class="anchor" href="#Spread-the-word">Spread the word</a></h2>
 <p>Share the newly created release in the <a href="https://discord.com/channels/196693847965696000/1493226271767924747">#fantomas channel on the F# Discord</a>.<br />
 Optionally share (minor or major) releases on other social media.</p>
 <fantomas-nav previous="Updating%20the%20compiler.html" next="Formatting%20Conventions.html"></fantomas-nav>
@@ -427,52 +427,81 @@ Optionally share (minor or major) releases on other social media.</p>
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Releases">
       Releases
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#Preparation">
       Preparation
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="3">
     <a href="#Testing-Releases-Locally">
       Testing Releases Locally
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="4">
     <a href="#Automated-Release-Process">
       Automated Release Process
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="5">
     <a href="#Release-Types">
       Release Types
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="6">
     <a href="#Author-Attribution">
       Author Attribution
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="7">
     <a href="#Manual-Steps">
       Manual Steps
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="8">
     <a href="#Adding-Release-Nicknames">
       Adding Release Nicknames
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="9">
     <a href="#Spread-the-word">
       Spread the word
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-heading-8; }
+body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="8"] { view-timeline-name: --fsdocs-heading-8; }
+#fsdocs-page-menu [data-fsdocs-heading="8"] { animation-timeline: --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="8"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="8"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="9"] { view-timeline-name: --fsdocs-heading-9; }
+#fsdocs-page-menu [data-fsdocs-heading="9"] { animation-timeline: --fsdocs-heading-9, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="9"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="9"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -487,12 +516,29 @@ Optionally share (minor or major) releases on other social media.</p>
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

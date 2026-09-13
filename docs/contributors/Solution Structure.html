@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header " id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header active" id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,7 +340,7 @@
 <main>
     <div id="content">
         
-<h1><a name="Solution-structure" class="anchor" href="#Solution-structure">Solution structure</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Solution-structure" class="anchor" href="#Solution-structure">Solution structure</a></h1>
 <p>Fantomas has a modular project structure.<br />
 The parser (<code>Fantomas.FCS</code>), the core library (<code>Fantomas.Core</code>) and the command line application (<code>fantomas</code>) are the main components of the solution.</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="mermaid">graph TD
@@ -351,31 +351,31 @@ The parser (<code>Fantomas.FCS</code>), the core library (<code>Fantomas.Core</c
     C --&gt; F[Fantomas.Tests]
     G[Fantomas.Client] --&gt; H[Fantomas.Client.Tests]
 </code></pre></td></tr></table>
-<h2><a name="Fantomas-FCS" class="anchor" href="#Fantomas-FCS">Fantomas.FCS</a></h2>
+<h2 data-fsdocs-heading="2"><a name="Fantomas-FCS" class="anchor" href="#Fantomas-FCS">Fantomas.FCS</a></h2>
 <p>This is a very custom fork of the F# compiler. We only expose a single parse function to construct the untyped syntax tree.
 We achieve this by taking the files necessary to compile the F# parser from source (via custom code in a <code>Fun.Build</code> pipeline).
 This limits the dependency footprint that our compiler has, compared to the official <a href="https://www.nuget.org/packages/FSharp.Compiler.Service">F# compiler NuGet package</a>.</p>
 <p>Note that the AST returned by <code>Fantomas.FCS</code> looks identical to what the official F# compiler returns.
 However, the AST is not binary compatible. It is most likely that Fantomas contains a newer version of the Syntax tree than the official F# compiler.</p>
-<h2><a name="Fantomas-Core" class="anchor" href="#Fantomas-Core">Fantomas.Core</a></h2>
+<h2 data-fsdocs-heading="3"><a name="Fantomas-Core" class="anchor" href="#Fantomas-Core">Fantomas.Core</a></h2>
 <p>The heart of Fantomas is the core library. It contains the core logic reconstructing source code from the AST.
 Fantomas can be used as a library, see <code>CodeFormatter.fsi</code> to learn what APIs are exposed.</p>
-<h2><a name="Fantomas" class="anchor" href="#Fantomas">Fantomas</a></h2>
+<h2 data-fsdocs-heading="4"><a name="Fantomas" class="anchor" href="#Fantomas">Fantomas</a></h2>
 <p>The command line application is the main entry point of the solution.<br />
 It exposes the core functionality and also takes care of <code>.editorconfig</code> and <code>.fantomasignore</code> files.</p>
-<h2><a name="Fantomas-Benchmarks" class="anchor" href="#Fantomas-Benchmarks">Fantomas.Benchmarks</a></h2>
+<h2 data-fsdocs-heading="5"><a name="Fantomas-Benchmarks" class="anchor" href="#Fantomas-Benchmarks">Fantomas.Benchmarks</a></h2>
 <p>A <a href="https://benchmarkdotnet.org/articles/overview.html">BenchmarkDotNet</a> project used to measure the performance of the core library.
 We format a fixed revision of <code>CodePrinter.fs</code> as part of our CI process, to detect potential regressions.</p>
-<h2><a name="Fantomas-Client" class="anchor" href="#Fantomas-Client">Fantomas.Client</a></h2>
+<h2 data-fsdocs-heading="6"><a name="Fantomas-Client" class="anchor" href="#Fantomas-Client">Fantomas.Client</a></h2>
 <p>A standalone library project that editors can use to interact with the <code>fantomas</code> commandline application.
 Editors do not use <code>Fantomas.Core</code>, instead they use the <code>Fantomas.Client</code> library to connect to a <code>fantomas</code> dotnet tool.
 This allows end-users to bring their "own version" of Fantomas.
 This selected version could then later be re-used to verify if all files were formatted in a CI scenario.</p>
-<h2><a name="Fantomas-Core-Tests" class="anchor" href="#Fantomas-Core-Tests">Fantomas.Core.Tests</a></h2>
+<h2 data-fsdocs-heading="7"><a name="Fantomas-Core-Tests" class="anchor" href="#Fantomas-Core-Tests">Fantomas.Core.Tests</a></h2>
 <p>A suite of unit tests that target the core formatting functionalities of <code>Fantomas.Core</code>.</p>
-<h2><a name="Fantomas-Tests" class="anchor" href="#Fantomas-Tests">Fantomas.Tests</a></h2>
+<h2 data-fsdocs-heading="8"><a name="Fantomas-Tests" class="anchor" href="#Fantomas-Tests">Fantomas.Tests</a></h2>
 <p>A suite of end-to-end tests that run the actual <code>fantomas</code> command line application.</p>
-<h2><a name="Fantomas-Client-Tests" class="anchor" href="#Fantomas-Client-Tests">Fantomas.Client.Tests</a></h2>
+<h2 data-fsdocs-heading="9"><a name="Fantomas-Client-Tests" class="anchor" href="#Fantomas-Client-Tests">Fantomas.Client.Tests</a></h2>
 <p>A suite of end-to-end tests that will verify the <code>Fantomas.Client</code> code against released versions of <code>fantomas</code>.</p>
 <fantomas-nav previous="Getting%20Started.html" next="Transforming.html"></fantomas-nav>
 
@@ -385,52 +385,81 @@ This selected version could then later be re-used to verify if all files were fo
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Solution-structure">
       Solution structure
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#Fantomas-FCS">
       Fantomas.FCS
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="3">
     <a href="#Fantomas-Core">
       Fantomas.Core
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="4">
     <a href="#Fantomas">
       Fantomas
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="5">
     <a href="#Fantomas-Benchmarks">
       Fantomas.Benchmarks
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="6">
     <a href="#Fantomas-Client">
       Fantomas.Client
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="7">
     <a href="#Fantomas-Core-Tests">
       Fantomas.Core.Tests
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="8">
     <a href="#Fantomas-Tests">
       Fantomas.Tests
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="9">
     <a href="#Fantomas-Client-Tests">
       Fantomas.Client.Tests
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-heading-8; }
+body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="8"] { view-timeline-name: --fsdocs-heading-8; }
+#fsdocs-page-menu [data-fsdocs-heading="8"] { animation-timeline: --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="8"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="8"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="9"] { view-timeline-name: --fsdocs-heading-9; }
+#fsdocs-page-menu [data-fsdocs-heading="9"] { animation-timeline: --fsdocs-heading-9, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="9"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="9"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -445,12 +474,29 @@ This selected version could then later be re-used to verify if all files were fo
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

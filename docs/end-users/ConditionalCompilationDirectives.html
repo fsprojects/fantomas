@@ -50,7 +50,7 @@
                     Repository</a></li>
                 <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -110,7 +110,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -173,10 +173,10 @@
 </div>
                 <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
             </ul>
@@ -206,7 +206,7 @@
             Repository</a></li>
         <li class="nav-header active" id="end-users">
     End-users
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" > Getting Started
@@ -266,7 +266,7 @@
 </div>
 <li class="nav-header " id="contributors">
     Contributors
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
     <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" > Contributors
@@ -329,10 +329,10 @@
 </div>
         <li class="nav-header " id="api_reference">
     API Reference
-    <iconify-icon icon="fluent:chevron-up-24-regular" width="32" height="32" rotate="180deg"></iconify-icon>
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item active"><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
+    <li class="nav-item "><a href="../../reference/index.html" class="nav-link" > All Namespaces</a></li>
 
 </div>
     </ul>
@@ -340,10 +340,10 @@
 <main>
     <div id="content">
         
-<h1><a name="Conditional-Compilation-Directives" class="anchor" href="#Conditional-Compilation-Directives">Conditional Compilation Directives</a></h1>
+<h1 data-fsdocs-heading="1"><a name="Conditional-Compilation-Directives" class="anchor" href="#Conditional-Compilation-Directives">Conditional Compilation Directives</a></h1>
 <p>Fantomas supports formatting F# code that contains conditional compilation directives (<code>#if</code>, <code>#else</code>, <code>#endif</code>).
 However, there is an important limitation to be aware of.</p>
-<h2><a name="How-Fantomas-handles-directives" class="anchor" href="#How-Fantomas-handles-directives">How Fantomas handles directives</a></h2>
+<h2 data-fsdocs-heading="2"><a name="How-Fantomas-handles-directives" class="anchor" href="#How-Fantomas-handles-directives">How Fantomas handles directives</a></h2>
 <p>Fantomas needs to parse your code into an abstract syntax tree (AST) before it can format it.
 The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</code> directives at parse time, meaning it picks one branch based on which defines are active and ignores the other.</p>
 <p>To handle this, Fantomas:</p>
@@ -353,8 +353,8 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
 <li>Parses and formats the code once for each combination.</li>
 <li>Merges the results back together.</li>
 </ol>
-<h2><a name="Limitations" class="anchor" href="#Limitations">Limitations</a></h2>
-<h3><a name="All-define-combinations-must-produce-valid-syntax" class="anchor" href="#All-define-combinations-must-produce-valid-syntax">All define combinations must produce valid syntax</a></h3>
+<h2 data-fsdocs-heading="3"><a name="Limitations" class="anchor" href="#Limitations">Limitations</a></h2>
+<h3 data-fsdocs-heading="4"><a name="All-define-combinations-must-produce-valid-syntax" class="anchor" href="#All-define-combinations-must-produce-valid-syntax">All define combinations must produce valid syntax</a></h3>
 <p>Because Fantomas parses your code under <strong>every</strong> define combination, <strong>each combination must result in a valid syntax tree</strong>.</p>
 <p>For example, the following code <strong>cannot</strong> be formatted:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="m">F</span> <span class="o">=</span>
@@ -375,7 +375,7 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
     <span class="k">let</span> <span class="id">baz</span><span class="pn">:</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="8" class="id">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
 <p>This is not valid F# — <code>let a</code> has no body — so the parser raises an error and Fantomas cannot proceed.</p>
-<h4><a name="How-to-fix-it" class="anchor" href="#How-to-fix-it">How to fix it</a></h4>
+<h4 data-fsdocs-heading="5"><a name="How-to-fix-it" class="anchor" href="#How-to-fix-it">How to fix it</a></h4>
 <p>Make sure that every combination of defines still produces valid F# code. The most common fix is to add an <code>#else</code> branch:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="9" class="id">F</span> <span class="o">=</span>
     <span class="k">let</span> <span class="id">a</span><span class="pn">:</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="10" class="id">string</span> <span class="o">=</span>
@@ -388,10 +388,10 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
     <span class="k">let</span> <span class="id">baz</span><span class="pn">:</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="11" class="id">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
 <p>Now, regardless of whether <code>FOO</code> is defined, the parser always sees a complete <code>let</code> binding.</p>
-<h3><a name="Interweaved-documentation" class="anchor" href="#Interweaved-documentation">Interweaved documentation</a></h3>
+<h3 data-fsdocs-heading="6"><a name="Interweaved-documentation" class="anchor" href="#Interweaved-documentation">Interweaved documentation</a></h3>
 <p>If you interweave conditional directives with xml documentation or other trivia you will encounter issues:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="rt">Foo</span> <span class="o">=</span>
-    <span class="id">/// Will give you an option.</span>
+    <span class="c">/// Will give you an option.</span>
     <span class="pp">#if</span> <span class="id">DEBUG</span>
 <span class="inactive">    </span><span class="inactive">///</span><span class="inactive"> </span><span class="inactive">Default</span><span class="inactive"> </span><span class="inactive">returns</span><span class="inactive"> </span><span class="inactive">Some</span>
     <span class="pp">#else</span>
@@ -406,7 +406,7 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
             <span class="pp">#endif</span>
         <span class="k">if</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="15" class="fn">giveSome</span> <span class="k">then</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="16" class="uc">Some</span><span class="pn">(</span><span class="pn">)</span> <span class="k">else</span> <span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="17" class="uc">None</span>
 </code></pre>
-<h4><a name="How-to-fix-it-1" class="anchor" href="#How-to-fix-it-1">How to fix it</a></h4>
+<h4 data-fsdocs-heading="7"><a name="How-to-fix-it-1" class="anchor" href="#How-to-fix-it-1">How to fix it</a></h4>
 <p>Wrap the documentation/trivia in its entirety.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="18" class="id">Foo</span> <span class="o">=</span>
     <span class="pp">#if</span> <span class="id">DEBUG</span>
@@ -450,42 +450,65 @@ from ConditionalCompilationDirectives</div>
 <aside id="fsdocs-page-menu">
     <p id="on-this-page">On this page</p>
     <ul>
-  <li class="level-1">
+  <li class="level-1" data-fsdocs-heading="1">
     <a href="#Conditional-Compilation-Directives">
       Conditional Compilation Directives
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="2">
     <a href="#How-Fantomas-handles-directives">
       How Fantomas handles directives
     </a>
   </li>
-  <li class="level-2">
+  <li class="level-2" data-fsdocs-heading="3">
     <a href="#Limitations">
       Limitations
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="4">
     <a href="#All-define-combinations-must-produce-valid-syntax">
       All define combinations must produce valid syntax
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="5">
     <a href="#How-to-fix-it">
       How to fix it
     </a>
   </li>
-  <li class="level-3">
+  <li class="level-3" data-fsdocs-heading="6">
     <a href="#Interweaved-documentation">
       Interweaved documentation
     </a>
   </li>
-  <li class="level-4">
+  <li class="level-4" data-fsdocs-heading="7">
     <a href="#How-to-fix-it-1">
       How to fix it
     </a>
   </li>
-</ul>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+</style>
 </aside>
 <dialog>
     <input type="search" placeholder="Search docs" />
@@ -500,12 +523,29 @@ from ConditionalCompilationDirectives</div>
 <script type="module" src="../../content/fsdocs-theme.js"></script>
 <script type="module" src="../../content/fsdocs-search.js"></script>
 <script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
 <script type="module">
     const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">
