@@ -3,7 +3,23 @@
     menuHeaders.forEach(nv => {
         nv.addEventListener("click", () => {
             nv.classList.toggle("active");
-        })
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
     })
 </script>
 <script type="module">

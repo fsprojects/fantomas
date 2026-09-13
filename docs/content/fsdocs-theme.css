@@ -20,6 +20,7 @@
   --aside-background: light-dark(var(--primary), var(--fantomas-700));
   --menu-color: var(--white);
   --link-hover: #2fbadc;
+  --main-menu-width: 288px;
   --page-menu-width: 400px;
   --configuration-icon-size: 24px;
   --mobile-menu-background: light-dark(var(--fantomas-400), var(--fantomas-700));
@@ -41,72 +42,149 @@ h6 {
 }
 
 #fsdocs-main-menu {
-  padding: 0;
+  padding: var(--spacing-100) 0 var(--spacing-500);
+  /* The hotkeys outline their target in the primary colour, which is the colour of this panel. */
+  --hotkey-focus-color: var(--white);
+  --hotkey-focus-offset: -2px;
 }
 
 #fsdocs-main-menu,
 header {
   .menu {
+    /* Lets height animate between 0 and auto when a section folds; other browsers snap. */
+    interpolate-size: allow-keywords;
+    --menu-inset: var(--spacing-200);
+    --menu-text: rgba(255, 255, 255, 0.88);
+    --menu-hover: rgba(255, 255, 255, 0.1);
+    --menu-highlight: rgba(255, 255, 255, 0.18);
+    --menu-rail: rgba(255, 255, 255, 0.28);
+
     .nav-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      cursor: pointer;
+      gap: var(--spacing-100);
+      margin: var(--spacing-400) var(--menu-inset) var(--spacing-50);
       padding: var(--spacing-50) var(--spacing-100);
-      margin-top: var(--spacing-400);
+      font-size: var(--font-100);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--menu-text);
+      border-radius: var(--radius);
+      user-select: none;
+      transition:
+        background-color 150ms,
+        color 150ms;
+
+      &:first-child {
+        margin-top: var(--spacing-100);
+      }
 
       & iconify-icon {
-        margin-right: var(--spacing-50);
+        /* Sized here rather than in the template: the icon takes 1em when it has no attributes. */
+        font-size: var(--font-300);
+        margin: 0;
+        opacity: 0.7;
+        transition:
+          transform 200ms ease,
+          opacity 150ms;
+      }
+
+      /* Only the section headers fold; the Links header has no id and no chevron. */
+      &[id] {
+        cursor: pointer;
+
+        &:hover {
+          background-color: var(--menu-hover);
+          color: var(--white);
+
+          & iconify-icon {
+            opacity: 1;
+          }
+        }
       }
 
       &.active {
-        background-color: var(--fantomas-700);
-        transition: all 200ms;
+        color: var(--white);
 
         & iconify-icon {
           transform: rotate(-180deg);
+          opacity: 1;
         }
       }
     }
 
+    /* A folded section keeps its links focusable (no visibility: hidden), so Tab and the j / k
+       hotkeys of fsdocs can reach them; _body.html unfolds the section when one gets the focus. */
     .nav-header + .menu-items {
-      visibility: hidden;
       height: 0;
-      overflow-y: hidden;
+      overflow: hidden;
       opacity: 0;
-      transition: all 200ms;
-      padding-left: var(--spacing-50);
-    }
-
-    .nav-header.active {
-      background-color: var(--fantomas-700);
+      margin: 0 var(--menu-inset) 0 calc(var(--menu-inset) + var(--spacing-100));
+      padding-left: var(--spacing-100);
+      border-left: 1px solid var(--menu-rail);
+      transition:
+        height 200ms ease,
+        opacity 200ms ease;
     }
 
     .nav-header.active + .menu-items {
-      visibility: visible;
-      height: initial;
+      height: auto;
       opacity: 1;
-      overflow-y: initial;
+    }
+
+    /* The Links items sit directly in the menu, outside any section. */
+    > .nav-item {
+      margin: 0 var(--menu-inset);
     }
 
     .nav-item {
+      position: relative;
       border: none;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.4);
 
       .nav-link {
+        display: block;
+        margin: 1px 0;
+        padding: var(--spacing-100) var(--spacing-200);
+        font-size: var(--font-200);
         font-weight: 400;
+        line-height: 1.4;
+        color: var(--menu-text);
+        border-radius: var(--radius);
+        transition:
+          background-color 150ms,
+          color 150ms;
+
         &:hover {
-          background-color: var(--fantomas-300);
+          background-color: var(--menu-hover);
+          color: var(--white);
         }
 
-        &:focus {
-          background-color: var(--fantomas-600);
+        &:focus-visible {
+          outline: 2px solid var(--white);
+          outline-offset: -2px;
         }
       }
 
       &.active {
-        border-left: var(--spacing-100) solid var(--fantomas-300);
-        background-color: var(--fantomas-600);
+        .nav-link {
+          background-color: var(--menu-highlight);
+          color: var(--white);
+          font-weight: 500;
+        }
+
+        /* Marks the current page on the section rail. */
+        &::before {
+          content: "";
+          position: absolute;
+          left: calc(-1 * var(--spacing-100) - 1px);
+          top: var(--spacing-100);
+          bottom: var(--spacing-100);
+          width: 2px;
+          border-radius: 2px;
+          background-color: var(--white);
+        }
       }
     }
   }
