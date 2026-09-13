@@ -10,14 +10,14 @@
       "rollForward": false
     },
     "fantomas": {
-      "version": "8.0.0-beta-001",
+      "version": "8.0.0-beta-003",
       "commands": [
         "fantomas"
       ],
       "rollForward": false
     },
     "fsdocs-tool": {
-      "version": "23.0.0-alpha.1",
+      "version": "23.0.0-alpha.4",
       "commands": [
         "fsdocs"
       ],
