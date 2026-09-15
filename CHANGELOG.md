@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.0] - 2026-09-15
+
+### Changed
+
+- Stable release.
+
 ## [8.0.0-beta-003] - 2026-09-12
 
 ### Changed
@@ -324,6 +330,10 @@
 - Hash directives around access modifier in module declaration no longer lose indentation. [#3188](https://github.com/fsprojects/fantomas/issues/3188)
 
 ## [8.0.0-alpha-002] - 2025-12-15
+
+### Added
+
+- `CodeFormatter.FormatASTAsync(ast, config, source)`, beside the existing `FormatASTAsync(ast, source)`, so a syntax tree can be formatted with both a configuration and the source its trivia comes from. [#3207](https://github.com/fsprojects/fantomas/pull/3207)
 
 ### Changed
 
