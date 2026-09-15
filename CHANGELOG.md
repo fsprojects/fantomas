@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.0] - 2026-09-15
+
+### Changed
+
+- Stable release.
+
 ## [8.0.0-beta-003] - 2026-09-12
 
 ### Changed
