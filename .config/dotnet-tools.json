@@ -2,13 +2,6 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "dotnet-fsharplint": {
-      "version": "0.26.10",
-      "commands": [
-        "dotnet-fsharplint"
-      ],
-      "rollForward": false
-    },
     "fantomas": {
       "version": "8.0.0",
       "commands": [
@@ -24,7 +17,7 @@
       "rollForward": false
     },
     "fsharp-analyzers": {
-      "version": "0.39.1",
+      "version": "0.39.2",
       "commands": [
         "fsharp-analyzers"
       ],
