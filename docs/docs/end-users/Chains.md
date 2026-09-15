@@ -26,25 +26,15 @@ Every code block on this page is Fantomas output, except where marked ⛔.
 A ⛔ block is the alternative that was considered and turned down, shown so that the reasoning is visible rather than implied, and ✅ marks what Fantomas does instead.
 The two markers appear wherever there was a real choice to make; elsewhere the output speaks for itself and goes unmarked.
 
-## Status: a proposal, backed by an implementation
+## Status: part of the F# style guide
 
-The [F# style guide](https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting) currently says very little about how to lay out a long chain.
-The rules described here are meant to fill that gap and to eventually become part of that guide.
-Until they are officially adopted there, they remain a proposal being tested against real code, even though it is the layout Fantomas applies by default today.
+The rules described here were proposed to the [F# style guide](https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting) and are now part of it.
+Where the line breaks go is set out under [Formatting chained expressions](https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-chained-expressions), and the space before a call's parenthesis, reported in 2021 and agreed at [fslang-design#648](https://github.com/fsharp/fslang-design/issues/648), under [Formatting application expressions](https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-application-expressions).
+This page is the longer account: what the rules are, the cases that shaped them, and why each one landed where it did.
 
 As noted in the [Fantomas style guide page](./StyleGuide.html), the style itself is not decided in the Fantomas repository.
-Those conversations happen at [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide), and they go much better when there is something concrete to react to.
-A written proposal invites arguments about hypothetical snippets.
-A proposal that is already implemented lets everyone run it over a real code base and see what it does to code they care about.
-
-That is the order of work here: implement the rules in Fantomas first, use the implementation to find the awkward cases and settle them, then pitch the result upstream.
-So treat this page as the current best answer rather than a settled one.
-If you disagree with a rule, the discussion belongs at [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide), and having the implementation in hand is exactly what makes that discussion productive.
-
-**One rule on this page has been through that loop already.** The space before a call's parenthesis was reported in 2021 and agreed at [fslang-design#648](https://github.com/fsharp/fslang-design/issues/648): a call keeps that space only when the whole thing being called is a plain dotted name.
-Fantomas implements what was agreed, and it is set out under [The two space settings](#The-two-space-settings) below.
-The style guide has yet to be amended to carry it, so that rule is agreed upstream without being written down there yet.
-Everything else on this page, which is to say every rule about where the line breaks go, has not been through the loop at all and remains a proposal.
+The rules were implemented in Fantomas first and run over real code to find the awkward cases before being pitched upstream, which is what made that discussion productive.
+If you want a rule changed, the discussion belongs at [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide).
 
 ## What counts as a chain
 

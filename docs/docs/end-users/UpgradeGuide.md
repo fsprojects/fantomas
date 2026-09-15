@@ -90,10 +90,12 @@ fsharp_experimental_stroustrup_style = true
 ### .editorconfig
 - `fsharp_max_dot_get_expression_width` was removed.
 
-## v8 beta
+## v8
 
 ### .editorconfig
 - The default setting for `fsharp_multiline_bracket_style` is now `aligned`, to restore the previous behaviour use `fsharp_multiline_bracket_style = cramped`.
+- A setting that carries the `fsharp_` prefix but is not one Fantomas has, such as the misspelling `fsharp_multiline_brackets_style`, is reported as a warning instead of being silently ignored, and where the intent is obvious the warning names the spelling that works. The same goes for a value a setting does not accept, a negative number among them. Formatting still runs, using the default for that setting. `fsharp_max_line_length` is reported too: `max_line_length` is the setting that applies.
+- Keys and values are matched without regard to case, as the editorconfig specification says. `FSHARP_MAX_RECORD_WIDTH` and `fsharp_experimental_elmish = True` used to be ignored and now apply.
 
 ### console application
 - Target framework is now `net10.0`.
@@ -109,6 +111,7 @@ fsharp_experimental_stroustrup_style = true
 - A single file matched by `.fantomasignore` is reported on standard out, as `- A.fs was ignored by .fantomasignore.` Up to `v7` it printed nothing unless `--verbosity d` was given, even though a folder run whose only file was that same one reported it at normal verbosity. The two now agree.
 - Everything a format or check run prints was rewritten. A run over a folder printed a bordered table of headings and counts; it now prints one sentence per file that changed and one line of counts. A script reading this output needs updating, and `--json` is there for a caller that has to act on the result rather than read it. The shapes are set out under "What a run prints now" below.
 - `--profile` was removed. Use `fantomas profile <paths>`, which formats one file at a time so the timings can be compared and writes nothing. The flag wrote formatted files to disk as a side effect of measuring them, and the command does not, so it could not be kept working without silently changing what it did. Typing `--profile` reports that it is a command and prints the line to run instead.
+- `--daemon` refuses the arguments that mean nothing to a daemon. `--check`, `--out`, `--force`, `--json` and input paths were accepted and silently ignored, so `fantomas --daemon ./src` looked like it would format a folder and did not. Any of them now exits 1 without starting the daemon. `--verbosity` is still accepted, and `--version` wins outright. `Fantomas.Client` launches the daemon with no other arguments, so no editor integration is affected.
 - `--check` and `--daemon` can also be spelled `fantomas check` and `fantomas daemon`. Both flags keep working and are not deprecated, so nothing has to change. On a terminal the older spelling prints a one line note saying how it is spelled now; a redirected stream never sees it, so build logs and editor integrations are unaffected.
 - A run with no input path formats the folder you are in, where it used to refuse with `No input path provided.` A script that relied on the refusal to catch a missing argument no longer gets one, and will format the working directory instead.
 - A malformed command line exits 1 rather than 2. The documented exit codes have only ever been 0, 99 and 1; 2 came from the argument parser and was never one Fantomas chose.
@@ -273,8 +276,8 @@ If your build script creates the output folders before calling Fantomas, it can 
 ### Formatting
 
 Chains (dotted member access and calls) are laid out by a new set of rules, written up in full in
-[Formatting chain expressions](./Chains.html). They are a proposal for the F# style guide and may still
-change before `v8.0.0` is final.
+[Formatting chain expressions](./Chains.html). They were proposed to the F# style guide and are now
+part of it, under [Formatting chained expressions](https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-chained-expressions).
 
 The layout rules only apply once a chain has to break, so a chain that already fits on one line is
 left alone. The spacing rule directly below is the exception: it applies whether or not the chain
@@ -320,7 +323,8 @@ it and `unbox<int> obj` is left as written.
 
 This is the rule agreed at
 [fslang-design#648](https://github.com/fsharp/fslang-design/issues/648), where the reasoning is
-laid out in full.
+laid out in full, and the style guide now carries it under
+[Formatting application expressions](https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-application-expressions).
 
 #### A run of property access wraps instead of overflowing
 
@@ -424,6 +428,104 @@ let dotted ifaces =
         )
 ```
 
+#### `=`, `<`, `>`, `%` and `%%` no longer hang their right-hand side
+
+These operators cannot start a line at the column of their left-hand side, where the parser reads
+them as the `=` of a binding or as a quotation splice. `v7` kept them off that column by leaving the
+operator on the first line and hanging the right-hand side under it, which needed a column count to
+predict and moved when an unrelated part of the line changed length. `v8` follows the rule agreed
+at [fsharp/fslang-design#836](https://github.com/fsharp/fslang-design/issues/836): the expression
+fits on one line, or the operator stays with the left-hand side and the right-hand side moves one
+level in, or the left-hand side itself spans several lines and the operator takes a line of its own.
+
+```fsharp
+// v7
+let a =
+    someFunctionWithALongName argumentNumberOne argumentNumberTwo = anotherFunction
+        argumentNumberThree
+        argumentNumberFour
+
+// v8
+let a =
+    someFunctionWithALongName argumentNumberOne argumentNumberTwo =
+        anotherFunction argumentNumberThree argumentNumberFour
+```
+
+```fsharp
+// v7
+let b =
+    someFunctionWithALongName
+        argumentNumberOne
+        argumentNumberTwo
+        argumentNumberThree
+        argumentNumberFour
+        argumentNumberFive = anotherFunctionWithALongName argumentNumberOne argumentNumberTwo
+
+// v8
+let b =
+    someFunctionWithALongName
+        argumentNumberOne
+        argumentNumberTwo
+        argumentNumberThree
+        argumentNumberFour
+        argumentNumberFive
+        =
+        anotherFunctionWithALongName argumentNumberOne argumentNumberTwo
+```
+
+`fsharp_multiline_bracket_style = stroustrup` still overrides this for a right-hand side that opens
+a bracket, which keeps hugging the operator.
+
+#### `let!` and `use!` answer to `fsharp_max_value_binding_width`
+
+`let` and `use` always did. `let!` and `use!` were printed by a branch of their own that consulted
+the page width and nothing else, so a binding whose right-hand side was wider than the setting held
+one line up to `max_line_length`. On default settings the two widths are 80 and 120, so a line of
+110 characters carrying a body of 86 moves where it used to stay put:
+
+```fsharp
+// v7
+let c =
+    async {
+        let! result = someFunctionWithALongName argumentNumberOne argumentNumberTwo argumentThree
+        return result
+    }
+
+// v8
+let c =
+    async {
+        let! result =
+            someFunctionWithALongName argumentNumberOne argumentNumberTwo argumentThree
+
+        return result
+    }
+```
+
+#### Stroustrup reaches object expressions
+
+This applies with **`fsharp_multiline_bracket_style = stroustrup`**. `aligned` and `cramped` are
+untouched.
+
+An object expression was printed by the `aligned` branch whatever the setting said, which made
+stroustrup the only bracket style that did not reach every bracket it names. It now lands where a
+record already did, and the same applies to a binding whose signature broke across lines and to a
+match clause under `fsharp_experimental_keep_indent_in_branch`, both of which used to fall back to
+`aligned`:
+
+```fsharp
+// v7
+let disposable =
+    { new System.IDisposable with
+        member _.Dispose() = printfn "disposed"
+    }
+
+// v8
+let disposable = {
+    new System.IDisposable with
+        member _.Dispose() = printfn "disposed"
+}
+```
+
 ### Fantomas.Core API
 
 These only affect you if you consume `Fantomas.Core` as a library. Formatting source text through
@@ -437,6 +539,17 @@ has to be rebuilt against `v8`.
 
 #### Exceptions
 
+- `ParseException` is a class deriving from `FormatException` rather than an F# `exception`, so `:? FormatException` now catches every way formatting can fail. Its diagnostics are reachable as a property rather than only through the exception pattern; raising and constructing it are unchanged:
+
+  ```fsharp
+  // v7
+  | ParseException diagnostics -> ...
+
+  // v8
+  | :? ParseException as e -> e.Diagnostics
+  ```
+
+  `Message` names the first error by position instead of dumping every diagnostic through `%A`.
 - `InvariantViolationException` was added. It derives from `FormatException` and is raised when Fantomas reaches a state its own model says is impossible, which always means a bug in Fantomas rather than a problem with your code.
   If you catch `FormatException`, you already catch this.
 - `DefineParseException` was added, raised when one or more conditional compilation define combinations produce invalid syntax trees.

@@ -331,6 +331,10 @@
 
 ## [8.0.0-alpha-002] - 2025-12-15
 
+### Added
+
+- `CodeFormatter.FormatASTAsync(ast, config, source)`, beside the existing `FormatASTAsync(ast, source)`, so a syntax tree can be formatted with both a configuration and the source its trivia comes from. [#3207](https://github.com/fsprojects/fantomas/pull/3207)
+
 ### Changed
 
 - Breaking: change default of MultilineBracketStyle from Cramped to Aligned. [#3200](https://github.com/fsprojects/fantomas/issues/3200)
