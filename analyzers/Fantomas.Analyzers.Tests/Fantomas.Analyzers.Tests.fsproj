@@ -1,11 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!--
-    net10.0, like the rest of the solution. Nothing here is loaded by the tool, so this follows
-    global.json, which is also the framework the test harness builds its throwaway project for.
+    net10.0, like the rest of the solution. Nothing here is loaded by the tool. The test harness
+    builds its throwaway project for the framework global.json pins instead, and RollForward lets
+    these tests run where only that SDK's runtime is installed, such as the dev container.
     -->
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <RollForward>Major</RollForward>
     <!-- See the analyzer project: FSharp.Analyzers.SDK cannot restore under the repository's
          central package management, so these versions live here. -->
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
