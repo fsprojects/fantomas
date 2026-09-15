@@ -426,10 +426,12 @@ Note that <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>
 <ul>
 <li><code>fsharp_max_dot_get_expression_width</code> was removed.</li>
 </ul>
-<h2 data-fsdocs-heading="19"><a name="v8-beta" class="anchor" href="#v8-beta">v8 beta</a></h2>
+<h2 data-fsdocs-heading="19"><a name="v8" class="anchor" href="#v8">v8</a></h2>
 <h3 data-fsdocs-heading="20"><a name="editorconfig-5" class="anchor" href="#editorconfig-5">.editorconfig</a></h3>
 <ul>
 <li>The default setting for <code>fsharp_multiline_bracket_style</code> is now <code>aligned</code>, to restore the previous behaviour use <code>fsharp_multiline_bracket_style = cramped</code>.</li>
+<li>A setting that carries the <code>fsharp_</code> prefix but is not one Fantomas has, such as the misspelling <code>fsharp_multiline_brackets_style</code>, is reported as a warning instead of being silently ignored, and where the intent is obvious the warning names the spelling that works. The same goes for a value a setting does not accept, a negative number among them. Formatting still runs, using the default for that setting. <code>fsharp_max_line_length</code> is reported too: <code>max_line_length</code> is the setting that applies.</li>
+<li>Keys and values are matched without regard to case, as the editorconfig specification says. <code>FSHARP_MAX_RECORD_WIDTH</code> and <code>fsharp_experimental_elmish = True</code> used to be ignored and now apply.</li>
 </ul>
 <h3 data-fsdocs-heading="21"><a name="console-application-3" class="anchor" href="#console-application-3">console application</a></h3>
 <ul>
@@ -446,6 +448,7 @@ Note that <code>fsharp_multiline_block_brackets_on_same_column</code> and <code>
 <li>A single file matched by <code>.fantomasignore</code> is reported on standard out, as <code>- A.fs was ignored by .fantomasignore.</code> Up to <code>v7</code> it printed nothing unless <code>--verbosity d</code> was given, even though a folder run whose only file was that same one reported it at normal verbosity. The two now agree.</li>
 <li>Everything a format or check run prints was rewritten. A run over a folder printed a bordered table of headings and counts; it now prints one sentence per file that changed and one line of counts. A script reading this output needs updating, and <code>--json</code> is there for a caller that has to act on the result rather than read it. The shapes are set out under "What a run prints now" below.</li>
 <li><code>--profile</code> was removed. Use <code>fantomas profile &lt;paths&gt;</code>, which formats one file at a time so the timings can be compared and writes nothing. The flag wrote formatted files to disk as a side effect of measuring them, and the command does not, so it could not be kept working without silently changing what it did. Typing <code>--profile</code> reports that it is a command and prints the line to run instead.</li>
+<li><code>--daemon</code> refuses the arguments that mean nothing to a daemon. <code>--check</code>, <code>--out</code>, <code>--force</code>, <code>--json</code> and input paths were accepted and silently ignored, so <code>fantomas --daemon ./src</code> looked like it would format a folder and did not. Any of them now exits 1 without starting the daemon. <code>--verbosity</code> is still accepted, and <code>--version</code> wins outright. <code>Fantomas.Client</code> launches the daemon with no other arguments, so no editor integration is affected.</li>
 <li><code>--check</code> and <code>--daemon</code> can also be spelled <code>fantomas check</code> and <code>fantomas daemon</code>. Both flags keep working and are not deprecated, so nothing has to change. On a terminal the older spelling prints a one line note saying how it is spelled now; a redirected stream never sees it, so build logs and editor integrations are unaffected.</li>
 <li>A run with no input path formats the folder you are in, where it used to refuse with <code>No input path provided.</code> A script that relied on the refusal to catch a missing argument no longer gets one, and will format the working directory instead.</li>
 <li>A malformed command line exits 1 rather than 2. The documented exit codes have only ever been 0, 99 and 1; 2 came from the argument parser and was never one Fantomas chose.</li>
@@ -568,8 +571,8 @@ dotnet fantomas ./input/array.fs --out ./output/array.fs
 <code>mkdir -p</code> and its equivalents are unaffected by this change.</p>
 <h3 data-fsdocs-heading="24"><a name="Formatting" class="anchor" href="#Formatting">Formatting</a></h3>
 <p>Chains (dotted member access and calls) are laid out by a new set of rules, written up in full in
-<a href="./Chains.html">Formatting chain expressions</a>. They are a proposal for the F# style guide and may still
-change before <code>v8.0.0</code> is final.</p>
+<a href="./Chains.html">Formatting chain expressions</a>. They were proposed to the F# style guide and are now
+part of it, under <a href="https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-chained-expressions">Formatting chained expressions</a>.</p>
 <p>The layout rules only apply once a chain has to break, so a chain that already fits on one line is
 left alone. The spacing rule directly below is the exception: it applies whether or not the chain
 breaks, and it reaches a few things that are not chains at all. The changes here are the ones you
@@ -604,7 +607,8 @@ they had:</p>
 it and <code>unbox&lt;int&gt; obj</code> is left as written.</p>
 <p>This is the rule agreed at
 <a href="https://github.com/fsharp/fslang-design/issues/648">fslang-design#648</a>, where the reasoning is
-laid out in full.</p>
+laid out in full, and the style guide now carries it under
+<a href="https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-application-expressions">Formatting application expressions</a>.</p>
 <h4 data-fsdocs-heading="26"><a name="A-run-of-property-access-wraps-instead-of-overflowing" class="anchor" href="#A-run-of-property-access-wraps-instead-of-overflowing">A run of property access wraps instead of overflowing</a></h4>
 <p>Navigation that does not fit is spread over balanced lines, chosen so the longest resulting line is
 as short as possible. Previously it was left to overflow the margin. At <code>max_line_length = 80</code>:</p>
@@ -688,23 +692,115 @@ indents normally. This affects calls with and without a receiver alike. At <code
             <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="20" class="id">Some</span><span class="pn">(</span><span class="id">ty</span><span class="pn">,</span> <span class="id">withRange</span><span class="pn">)</span>
         <span class="pn">)</span>
 </code></pre>
-<h3 data-fsdocs-heading="29"><a name="Fantomas-Core-API" class="anchor" href="#Fantomas-Core-API">Fantomas.Core API</a></h3>
+<h4><a name="and-no-longer-hang-their-right-hand-side" class="anchor" href="#and-no-longer-hang-their-right-hand-side"><code>=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>%</code> and <code>%%</code> no longer hang their right-hand side</a></h4>
+<p>These operators cannot start a line at the column of their left-hand side, where the parser reads
+them as the <code>=</code> of a binding or as a quotation splice. <code>v7</code> kept them off that column by leaving the
+operator on the first line and hanging the right-hand side under it, which needed a column count to
+predict and moved when an unrelated part of the line changed length. <code>v8</code> follows the rule agreed
+at <a href="https://github.com/fsharp/fslang-design/issues/836">fsharp/fslang-design#836</a>: the expression
+fits on one line, or the operator stays with the left-hand side and the right-hand side moves one
+level in, or the left-hand side itself spans several lines and the operator takes a line of its own.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
+<span class="k">let</span> <span class="id">a</span> <span class="o">=</span>
+    <span class="id">someFunctionWithALongName</span> <span class="id">argumentNumberOne</span> <span class="id">argumentNumberTwo</span> <span class="o">=</span> <span class="id">anotherFunction</span>
+        <span class="id">argumentNumberThree</span>
+        <span class="id">argumentNumberFour</span>
+
+<span class="c">// v8</span>
+<span class="k">let</span> <span class="id">a</span> <span class="o">=</span>
+    <span class="id">someFunctionWithALongName</span> <span class="id">argumentNumberOne</span> <span class="id">argumentNumberTwo</span> <span class="o">=</span>
+        <span class="id">anotherFunction</span> <span class="id">argumentNumberThree</span> <span class="id">argumentNumberFour</span>
+</code></pre>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
+<span class="k">let</span> <span class="id">b</span> <span class="o">=</span>
+    <span class="id">someFunctionWithALongName</span>
+        <span class="id">argumentNumberOne</span>
+        <span class="id">argumentNumberTwo</span>
+        <span class="id">argumentNumberThree</span>
+        <span class="id">argumentNumberFour</span>
+        <span class="id">argumentNumberFive</span> <span class="o">=</span> <span class="id">anotherFunctionWithALongName</span> <span class="id">argumentNumberOne</span> <span class="id">argumentNumberTwo</span>
+
+<span class="c">// v8</span>
+<span class="k">let</span> <span class="id">b</span> <span class="o">=</span>
+    <span class="id">someFunctionWithALongName</span>
+        <span class="id">argumentNumberOne</span>
+        <span class="id">argumentNumberTwo</span>
+        <span class="id">argumentNumberThree</span>
+        <span class="id">argumentNumberFour</span>
+        <span class="id">argumentNumberFive</span>
+        <span class="o">=</span>
+        <span class="id">anotherFunctionWithALongName</span> <span class="id">argumentNumberOne</span> <span class="id">argumentNumberTwo</span>
+</code></pre>
+<p><code>fsharp_multiline_bracket_style = stroustrup</code> still overrides this for a right-hand side that opens
+a bracket, which keeps hugging the operator.</p>
+<h4><a name="and-answer-to" class="anchor" href="#and-answer-to"><code>let!</code> and <code>use!</code> answer to <code>fsharp_max_value_binding_width</code></a></h4>
+<p><code>let</code> and <code>use</code> always did. <code>let!</code> and <code>use!</code> were printed by a branch of their own that consulted
+the page width and nothing else, so a binding whose right-hand side was wider than the setting held
+one line up to <code>max_line_length</code>. On default settings the two widths are 80 and 120, so a line of
+110 characters carrying a body of 86 moves where it used to stay put:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
+<span class="k">let</span> <span class="id">c</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="21" class="id">async</span> <span class="pn">{</span>
+        <span class="k">let!</span> <span class="id">result</span> <span class="o">=</span> <span class="id">someFunctionWithALongName</span> <span class="id">argumentNumberOne</span> <span class="id">argumentNumberTwo</span> <span class="id">argumentThree</span>
+        <span class="k">return</span> <span class="id">result</span>
+    <span class="pn">}</span>
+
+<span class="c">// v8</span>
+<span class="k">let</span> <span class="id">c</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="22" class="id">async</span> <span class="pn">{</span>
+        <span class="k">let!</span> <span class="id">result</span> <span class="o">=</span>
+            <span class="id">someFunctionWithALongName</span> <span class="id">argumentNumberOne</span> <span class="id">argumentNumberTwo</span> <span class="id">argumentThree</span>
+
+        <span class="k">return</span> <span class="id">result</span>
+    <span class="pn">}</span>
+</code></pre>
+<h4 data-fsdocs-heading="29"><a name="Stroustrup-reaches-object-expressions" class="anchor" href="#Stroustrup-reaches-object-expressions">Stroustrup reaches object expressions</a></h4>
+<p>This applies with <strong><code>fsharp_multiline_bracket_style = stroustrup</code></strong>. <code>aligned</code> and <code>cramped</code> are
+untouched.</p>
+<p>An object expression was printed by the <code>aligned</code> branch whatever the setting said, which made
+stroustrup the only bracket style that did not reach every bracket it names. It now lands where a
+record already did, and the same applies to a binding whose signature broke across lines and to a
+match clause under <code>fsharp_experimental_keep_indent_in_branch</code>, both of which used to fall back to
+<code>aligned</code>:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
+<span class="k">let</span> <span class="id">disposable</span> <span class="o">=</span>
+    <span class="pn">{</span> <span class="k">new</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="23" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="24" class="id">IDisposable</span> <span class="k">with</span>
+        <span class="k">member</span> <span class="id">_</span><span class="pn">.</span><span class="id">Dispose</span><span class="pn">(</span><span class="pn">)</span> <span class="o">=</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="25" class="id">printfn</span> <span class="s">&quot;disposed&quot;</span>
+    <span class="pn">}</span>
+
+<span class="c">// v8</span>
+<span class="k">let</span> <span class="id">disposable</span> <span class="o">=</span> <span class="pn">{</span>
+    <span class="k">new</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="26" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="27" class="id">IDisposable</span> <span class="k">with</span>
+        <span class="k">member</span> <span class="id">_</span><span class="pn">.</span><span class="id">Dispose</span><span class="pn">(</span><span class="pn">)</span> <span class="o">=</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="28" class="id">printfn</span> <span class="s">&quot;disposed&quot;</span>
+<span class="pn">}</span>
+</code></pre>
+<h3 data-fsdocs-heading="30"><a name="Fantomas-Core-API" class="anchor" href="#Fantomas-Core-API">Fantomas.Core API</a></h3>
 <p>These only affect you if you consume <code>Fantomas.Core</code> as a library. Formatting source text through
 <code>CodeFormatter.FormatDocumentAsync</code> is unaffected.</p>
 <h4><a name="No-longer-binary-compatible-with" class="anchor" href="#No-longer-binary-compatible-with">No longer binary compatible with <code>v7</code></a></h4>
 <p>Several discriminated unions are structs now. That changes nothing about how they are constructed,
 matched or compared, so no source of yours has to be edited, but an assembly compiled against <code>v7</code>
 has to be rebuilt against <code>v8</code>.</p>
-<h4 data-fsdocs-heading="30"><a name="Exceptions" class="anchor" href="#Exceptions">Exceptions</a></h4>
+<h4 data-fsdocs-heading="31"><a name="Exceptions" class="anchor" href="#Exceptions">Exceptions</a></h4>
 <ul>
 <li>
-<code>InvariantViolationException</code> was added. It derives from <code>FormatException</code> and is raised when Fantomas reaches a state its own model says is impossible, which always means a bug in Fantomas rather than a problem with your code.
-If you catch <code>FormatException</code>, you already catch this.
+<p><code>ParseException</code> is a class deriving from <code>FormatException</code> rather than an F# <code>exception</code>, so <code>:? FormatException</code> now catches every way formatting can fail. Its diagnostics are reachable as a property rather than only through the exception pattern; raising and constructing it are unchanged:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v7</span>
+<span class="pn">|</span> <span class="id">ParseException</span> <span class="id">diagnostics</span> <span class="k">-&gt;</span> <span class="o">..</span><span class="pn">.</span>
+
+<span class="c">// v8</span>
+<span class="pn">|</span> <span class="o">:?</span> <span class="id">ParseException</span> <span class="k">as</span> <span class="id">e</span> <span class="k">-&gt;</span> <span class="id">e</span><span class="pn">.</span><span class="id">Diagnostics</span>
+</code></pre>
+<p><code>Message</code> names the first error by position instead of dumping every diagnostic through <code>%A</code>.</p>
 </li>
-<li><code>DefineParseException</code> was added, raised when one or more conditional compilation define combinations produce invalid syntax trees.</li>
-<li><code>EndOfLineStyle.OfConfigString "cr"</code> now raises <code>FormatException</code> instead of calling <code>failwith</code>.</li>
+<li>
+<p><code>InvariantViolationException</code> was added. It derives from <code>FormatException</code> and is raised when Fantomas reaches a state its own model says is impossible, which always means a bug in Fantomas rather than a problem with your code.
+If you catch <code>FormatException</code>, you already catch this.</p>
+</li>
+<li><p><code>DefineParseException</code> was added, raised when one or more conditional compilation define combinations produce invalid syntax trees.</p></li>
+<li><p><code>EndOfLineStyle.OfConfigString "cr"</code> now raises <code>FormatException</code> instead of calling <code>failwith</code>.</p></li>
 </ul>
-<h4 data-fsdocs-heading="31"><a name="CodeFormatter" class="anchor" href="#CodeFormatter">CodeFormatter</a></h4>
+<h4 data-fsdocs-heading="32"><a name="CodeFormatter" class="anchor" href="#CodeFormatter">CodeFormatter</a></h4>
 <ul>
 <li>
 <p><code>CodeFormatter.IsValidFSharpCodeAsync</code> was replaced by <code>CodeFormatter.ValidateFSharpCodeAsync</code>, which answers with a <code>ValidationResult</code> instead of a <code>bool</code>:</p>
@@ -720,10 +816,10 @@ If you catch <code>FormatException</code>, you already catch this.
 <li><p><code>CodeFormatter.FormatASTAsync(ast, config, source)</code> was added, next to the existing <code>FormatASTAsync(ast, source)</code>.</p></li>
 <li><p><code>CodeFormatter.GetWriterEventsAsync</code> was added for debugging. It returns the writer events produced while formatting.</p></li>
 </ul>
-<h4 data-fsdocs-heading="32"><a name="Oak-chains" class="anchor" href="#Oak-chains">Oak: chains</a></h4>
+<h4 data-fsdocs-heading="33"><a name="Oak-chains" class="anchor" href="#Oak-chains">Oak: chains</a></h4>
 <p><code>Expr.Chain</code> no longer holds a flat <code>ChainLink list</code>. A chain is now a head expression, a list of
 dot-prefixed segments, and a terminal call:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">ExprChain</span><span class="pn">(</span><span class="id">head</span><span class="pn">:</span> <span class="id">Expr</span><span class="pn">,</span> <span class="id">segments</span><span class="pn">:</span> <span class="id">ChainSegment</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="21" class="id">list</span><span class="pn">,</span> <span class="id">terminal</span><span class="pn">:</span> <span class="id">ChainTerminal</span><span class="pn">,</span> <span class="id">range</span><span class="pn">)</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">ExprChain</span><span class="pn">(</span><span class="id">head</span><span class="pn">:</span> <span class="id">Expr</span><span class="pn">,</span> <span class="id">segments</span><span class="pn">:</span> <span class="id">ChainSegment</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="29" class="id">list</span><span class="pn">,</span> <span class="id">terminal</span><span class="pn">:</span> <span class="id">ChainTerminal</span><span class="pn">,</span> <span class="id">range</span><span class="pn">)</span>
 
 <span class="k">type</span> <span class="id">ChainCall</span> <span class="o">=</span>
     <span class="pn">|</span> <span class="id">Paren</span> <span class="k">of</span> <span class="id">ExprParenNode</span>
@@ -799,7 +895,7 @@ those are chains now.</p>
 previously yielded <code>Expr.OptVar</code>. <code>Expr.OptVar</code> still exists, and is still produced for long
 identifiers without dots and for the optional-argument form <code>?a.b</code>. A single identifier is
 <code>Expr.Ident</code>, as before.</p>
-<h4 data-fsdocs-heading="33"><a name="Oak-other-node-changes" class="anchor" href="#Oak-other-node-changes">Oak: other node changes</a></h4>
+<h4 data-fsdocs-heading="34"><a name="Oak-other-node-changes" class="anchor" href="#Oak-other-node-changes">Oak: other node changes</a></h4>
 <ul>
 <li><code>Expr.DynamicChain</code> was added for chained <code>?</code> operator accesses such as <code>x?a("")?b(t)</code>.</li>
 <li>
@@ -841,7 +937,12 @@ from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List
 <div popover class="fsdocs-tip" id="fs5">val map: mapping: (&#39;T -&gt; &#39;U) -&gt; list: &#39;T list -&gt; &#39;U list</div>
 <div popover class="fsdocs-tip" id="fs6">union case Option.None: Option&lt;&#39;T&gt;</div>
 <div popover class="fsdocs-tip" id="fs7">val tryPick: chooser: (&#39;T -&gt; &#39;U option) -&gt; list: &#39;T list -&gt; &#39;U option</div>
-<div popover class="fsdocs-tip" id="fs8">type &#39;T list = List&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs8">val async: AsyncBuilder</div>
+<div popover class="fsdocs-tip" id="fs9">namespace System</div>
+<div popover class="fsdocs-tip" id="fs10">type IDisposable =
+  override Dispose: unit -&gt; unit<br /><em>&lt;summary&gt;Provides a mechanism for releasing unmanaged resources.&lt;/summary&gt;</em></div>
+<div popover class="fsdocs-tip" id="fs11">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+<div popover class="fsdocs-tip" id="fs12">type &#39;T list = List&lt;&#39;T&gt;</div>
 
     </div>
 </main>
@@ -939,8 +1040,8 @@ from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List
     </a>
   </li>
   <li class="level-2" data-fsdocs-heading="19">
-    <a href="#v8-beta">
-      v8 beta
+    <a href="#v8">
+      v8
     </a>
   </li>
   <li class="level-3" data-fsdocs-heading="20">
@@ -988,33 +1089,38 @@ from Microsoft.FSharp.Collections<br /><br />--------------------<br />type List
       A lambda whose opening line does not fit moves to its own line
     </a>
   </li>
-  <li class="level-3" data-fsdocs-heading="29">
+  <li class="level-4" data-fsdocs-heading="29">
+    <a href="#Stroustrup-reaches-object-expressions">
+      Stroustrup reaches object expressions
+    </a>
+  </li>
+  <li class="level-3" data-fsdocs-heading="30">
     <a href="#Fantomas-Core-API">
       Fantomas.Core API
     </a>
   </li>
-  <li class="level-4" data-fsdocs-heading="30">
+  <li class="level-4" data-fsdocs-heading="31">
     <a href="#Exceptions">
       Exceptions
     </a>
   </li>
-  <li class="level-4" data-fsdocs-heading="31">
+  <li class="level-4" data-fsdocs-heading="32">
     <a href="#CodeFormatter">
       CodeFormatter
     </a>
   </li>
-  <li class="level-4" data-fsdocs-heading="32">
+  <li class="level-4" data-fsdocs-heading="33">
     <a href="#Oak-chains">
       Oak: chains
     </a>
   </li>
-  <li class="level-4" data-fsdocs-heading="33">
+  <li class="level-4" data-fsdocs-heading="34">
     <a href="#Oak-other-node-changes">
       Oak: other node changes
     </a>
   </li>
 </ul><style>
-body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-heading-10, --fsdocs-heading-11, --fsdocs-heading-12, --fsdocs-heading-13, --fsdocs-heading-14, --fsdocs-heading-15, --fsdocs-heading-16, --fsdocs-heading-17, --fsdocs-heading-18, --fsdocs-heading-19, --fsdocs-heading-20, --fsdocs-heading-21, --fsdocs-heading-22, --fsdocs-heading-23, --fsdocs-heading-24, --fsdocs-heading-25, --fsdocs-heading-26, --fsdocs-heading-27, --fsdocs-heading-28, --fsdocs-heading-29, --fsdocs-heading-30, --fsdocs-heading-31, --fsdocs-heading-32, --fsdocs-heading-33, --fsdocs-main; }
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-heading-10, --fsdocs-heading-11, --fsdocs-heading-12, --fsdocs-heading-13, --fsdocs-heading-14, --fsdocs-heading-15, --fsdocs-heading-16, --fsdocs-heading-17, --fsdocs-heading-18, --fsdocs-heading-19, --fsdocs-heading-20, --fsdocs-heading-21, --fsdocs-heading-22, --fsdocs-heading-23, --fsdocs-heading-24, --fsdocs-heading-25, --fsdocs-heading-26, --fsdocs-heading-27, --fsdocs-heading-28, --fsdocs-heading-29, --fsdocs-heading-30, --fsdocs-heading-31, --fsdocs-heading-32, --fsdocs-heading-33, --fsdocs-heading-34, --fsdocs-main; }
 #content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
 #fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
 body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
@@ -1109,11 +1215,14 @@ body:has(#content [data-fsdocs-heading="30"]:is(:focus, .fsdocs-hotkey-focus)) #
 #fsdocs-page-menu [data-fsdocs-heading="31"] { animation-timeline: --fsdocs-heading-31, --fsdocs-heading-32; }
 body:has(#content [data-fsdocs-heading="31"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="31"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="32"] { view-timeline-name: --fsdocs-heading-32; }
-#fsdocs-page-menu [data-fsdocs-heading="32"] { animation-timeline: --fsdocs-heading-32, --fsdocs-heading-33, --fsdocs-main; }
+#fsdocs-page-menu [data-fsdocs-heading="32"] { animation-timeline: --fsdocs-heading-32, --fsdocs-heading-33; }
 body:has(#content [data-fsdocs-heading="32"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="32"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="33"] { view-timeline-name: --fsdocs-heading-33; }
-#fsdocs-page-menu [data-fsdocs-heading="33"] { animation-timeline: --fsdocs-heading-33, --fsdocs-main; }
+#fsdocs-page-menu [data-fsdocs-heading="33"] { animation-timeline: --fsdocs-heading-33, --fsdocs-heading-34, --fsdocs-main; }
 body:has(#content [data-fsdocs-heading="33"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="33"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="34"] { view-timeline-name: --fsdocs-heading-34; }
+#fsdocs-page-menu [data-fsdocs-heading="34"] { animation-timeline: --fsdocs-heading-34, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="34"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="34"] { --fsdocs-toc-focused: 1; }
 </style>
 </aside>
 <dialog>
