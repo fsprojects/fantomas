@@ -83,7 +83,7 @@ pipeline "Build" {
                 "DOTNET_ROLL_FORWARD", "LatestMajor"
             |]
         run
-            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict --nonpublic"
+            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict"
     }
     runIfOnlySpecified false
 }
@@ -223,7 +223,7 @@ pipeline "Docs" {
                 |> String.concat " "
 
             ctx.RunCommand
-                $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --nonpublic %s{extraArgs}")
+                $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval %s{extraArgs}")
     }
     runIfOnlySpecified true
 }
