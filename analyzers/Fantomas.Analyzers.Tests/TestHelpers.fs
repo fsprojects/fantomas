@@ -10,10 +10,11 @@ open FSharp.Analyzers.SDK.Testing
 /// it, which takes long enough that doing it per test would dominate the run. Every test in this
 /// assembly analyzes a snippet against the same empty project, so one set is built for all of them.
 ///
-/// The framework has to be one the machine can build. net10.0 is what `global.json` pins, so it is
+/// The framework has to be one the machine can build. net11.0 is what `global.json` pins, so it is
 /// present wherever this repository builds at all. It was net8.0 first, which passed on a developer
-/// machine with an old SDK still installed and failed in the dev container, where only .NET 10
-/// lives.
+/// machine with an old SDK still installed and failed in the dev container, where only one SDK
+/// lives. The same happened again on net10.0 once the SDK moved to 11, so keep this in step with
+/// `global.json` rather than with the framework the projects target.
 let mutable private projectOptions: FSharpProjectOptions = FSharpProjectOptions.zero
 
 [<SetUpFixture>]
@@ -21,14 +22,15 @@ type ProjectOptionsFixture() =
     [<OneTimeSetUp>]
     member _.Setup() : Task =
         task {
-            let! fresh = mkOptionsFromProject "net10.0" []
+            let! fresh = mkOptionsFromProject "net11.0" []
 
             // The helper builds a bare class library, so its command line is a fresh project's
-            // defaults. Of everything this repository adds in Directory.Build.props, only
-            // `--strict-indentation+` reaches the parser, so a snippet is held to the same standard
-            // as the code the rules run over. `--realsig+` and the `--test:` switches are for later
-            // compiler phases and cannot change a tree, and LangVersion is never set here at all, as
-            // a design time build of Fantomas.Core confirms.
+            // defaults. Strict indentation is the only mode the compiler in SDK 11 has, but the
+            // FSharp.Compiler.Service the analyzers SDK brings along is older and still defaults to
+            // the lenient one, so ask for it and a snippet is held to the same standard as the code
+            // the rules run over. `--realsig+`, the one flag left in Directory.Build.props, is for a
+            // later compiler phase and cannot change a tree, and LangVersion is never set here at
+            // all, as a design time build of Fantomas.Core confirms.
             let options: FSharpProjectOptions =
                 { fresh with
                     OtherOptions = Array.append fresh.OtherOptions [| "--strict-indentation+" |]
