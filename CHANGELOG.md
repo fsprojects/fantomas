@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.1] - 2026-09-16
+
+### Fixed
+
+- Remove TailCall shim from Fantomas.FCS. [#3476](https://github.com/fsprojects/fantomas/pull/3476)
+
 ## [8.0.0] - 2026-09-15
 
 ### Changed
