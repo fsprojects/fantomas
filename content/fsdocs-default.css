@@ -359,8 +359,10 @@ main {
         list-style: none;
         padding: 0;
         margin: 0;
+    }
 
-        & li {
+    > ul {
+        > li {
             border-left: 1px solid var(--panel-border);
             margin: 0;
 
@@ -418,6 +420,14 @@ main {
             &.level-4 {
                 padding-left: var(--spacing-300);
             }
+
+            /* The types and modules a section lists on an API reference page. They are plain
+             * links: the scroll-driven highlight above tracks the sections only, because each
+             * tracked element costs three generated CSS rules. */
+            & .fsdocs-menu-entries > li > a {
+                padding-left: var(--spacing-300);
+                font-size: var(--font-100);
+            }
         }
     }
 }
@@ -437,6 +447,21 @@ main {
         font-size: var(--font-200);
         font-weight: 500;
         color: var(--menu-color);
+
+        /* The "API Reference" header of that menu links to the index of all namespaces.
+         * It keeps the look of a header rather than taking on the link styling. */
+        & a {
+            color: inherit;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        &.active {
+            font-weight: 700;
+        }
     }
 }
 
@@ -558,18 +583,6 @@ main {
 @media screen and (min-width: 1200px) {
     body {
         grid-template-columns: var(--body-grid-template-columns-xl);
-
-        &.api-docs {
-            grid-template-columns: var(--body-grid-template-columns);
-
-            #content {
-                max-width: calc(var(--container-xl) - var(--main-menu-width) - var(--spacing-300) - var(--spacing-300));
-            }
-
-            #fsdocs-page-menu {
-                display: none;
-            }
-        }
     }
 
     header {
@@ -588,7 +601,7 @@ main {
 
 @media screen and (min-width: 1400px) {
     body {
-        &.api-docs, &:has(#fsdocs-page-menu .empty) {
+        &:has(#fsdocs-page-menu .empty) {
             #content {
                 max-width: calc(var(--container-xxl) - var(--main-menu-width) - var(--spacing-300) - var(--spacing-300));
             }
@@ -602,7 +615,7 @@ main {
 
 @media screen and (min-width: 1800px) {
     body {
-        &.api-docs, &:has(#fsdocs-page-menu .empty) {
+        &:has(#fsdocs-page-menu .empty) {
             #content {
                 max-width: calc(var(--container-xxxl) - var(--main-menu-width) - var(--spacing-300) - var(--spacing-300));
             }
@@ -1120,7 +1133,6 @@ div.fsdocs-tip:popover-open {
 [data-fsdocs-tip] {
     cursor: pointer;
 }
-
 
 /* API docs */
 #content > div > h2:first-child {
