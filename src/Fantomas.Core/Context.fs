@@ -780,7 +780,7 @@ type LongExpressionLayout =
     | NewlineOnly
 
 /// Walk backward from a node, skipping events that don't represent user-visible content
-/// (restore/unindent/indent events that unwind surrounding contexts).
+/// (restore/unindent/indent events that unwind surrounding contexts, and the node markers of debug mode).
 /// Returns the node where trailing trivia ends, or null if no trivia is found.
 let findTrailingTriviaNewline (events: EventList) : EventNode =
     let mutable current = events.Tail
@@ -793,6 +793,8 @@ let findTrailingTriviaNewline (events: EventList) : EventNode =
               | RestoreAtColumn _
               | UnIndentBy _
               | IndentBy _
+              | NodeStart _
+              | NodeEnd _
               | WriteLine -> true
               | _ -> false
           ) do
@@ -856,13 +858,28 @@ let unindentWithTriviaAwareness (ctx: Context) =
         writerEvent (UnIndentBy unindentAmount) ctx
     else
 
-    // Splice the UnIndentBy into the DLL before the trailing trivia newline,
-    // and update the WriterModel using the same logic as WriterModel.update.
-    ctx.WriterEvents.InsertBefore(triviaNewline, UnIndentBy unindentAmount)
-    |> ignore
+    // The trivia newline was written inside whatever scopes the content opened, and the events after
+    // it are those scopes unwinding. An `atCurrentColumn` scope clamps the indent to its column and
+    // restores the old indent on exit, so an UnIndentBy spliced in front of the newline would be
+    // undone before the next line is written. See https://github.com/fsprojects/fantomas/issues/3481.
+    // Move the newline past the unwinding events instead, with the UnIndentBy right before it, so the
+    // line after the trivia starts at the unindented column.
+    ctx.WriterEvents.Remove(triviaNewline)
+    ctx.WriterEvents.Append(UnIndentBy unindentAmount) |> ignore
+    ctx.WriterEvents.Append(WriteLineBecauseOfTrivia) |> ignore
+
+    // The model already counted the newline at its old position; only the column it lands on changes.
+    let m: WriterModel =
+        WriterModel.update ctx.Config.MaxLineLength (UnIndentBy unindentAmount) ctx.WriterModel
+
+    let indentAfterNewline: int = max m.Indent m.AtColumn
 
     { ctx with
-        WriterModel = WriterModel.update ctx.Config.MaxLineLength (UnIndentBy unindentAmount) ctx.WriterModel
+        WriterModel =
+            { m with
+                Indent = indentAfterNewline
+                Column = indentAfterNewline
+            }
     }
 
 let indentSepNlnUnindent f =

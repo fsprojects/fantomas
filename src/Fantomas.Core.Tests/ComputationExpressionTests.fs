@@ -2626,3 +2626,150 @@ let getBlah _ =
     }
     |> Cmd.ofAsyncMsg
 """
+
+[<Test>]
+let ``comment after match bang as last expression in computation expression, 3481`` () =
+    formatSourceString
+        """
+let f () = task {
+    match! g () with
+    | Ok _ -> ()
+    | Error _ -> ()
+
+    // comment
+}
+
+let x = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f () =
+    task {
+        match! g () with
+        | Ok _ -> ()
+        | Error _ -> ()
+
+        // comment
+    }
+
+let x = 1
+"""
+
+[<Test>]
+let ``comment after match bang in test module, 3481`` () =
+    formatSourceString
+        """
+namespace X
+module TopologicalBuilderTests =
+
+    [<Fact>]
+    let ``Builder works with ANY backend (backend-agnostic principle)`` () = task {
+        let program = topological simulatorBackend {
+            return ()
+        }
+
+        match! TopologicalBuilder.execute simulatorBackend program with
+        | Ok _ -> Assert.True(true)
+        | Error err -> Assert.Fail($"Program failed: {err.Message}")
+
+        // Programs are COMPLETELY backend-agnostic!
+    }
+
+    [<Fact>]
+    let ``Builder with braiding sequence`` () =
+        task {
+            // Increased backend capacity to 20 anyons to support 6 logical qubits
+            let backend = TopologicalUnifiedBackendFactory.createUnified AnyonSpecies.AnyonType.Ising 20
+
+            ()
+        }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace X
+
+module TopologicalBuilderTests =
+
+    [<Fact>]
+    let ``Builder works with ANY backend (backend-agnostic principle)`` () =
+        task {
+            let program = topological simulatorBackend { return () }
+
+            match! TopologicalBuilder.execute simulatorBackend program with
+            | Ok _ -> Assert.True(true)
+            | Error err -> Assert.Fail($"Program failed: {err.Message}")
+
+            // Programs are COMPLETELY backend-agnostic!
+        }
+
+    [<Fact>]
+    let ``Builder with braiding sequence`` () =
+        task {
+            // Increased backend capacity to 20 anyons to support 6 logical qubits
+            let backend =
+                TopologicalUnifiedBackendFactory.createUnified AnyonSpecies.AnyonType.Ising 20
+
+            ()
+        }
+"""
+
+[<Test>]
+let ``comment after match as last expression in computation expression`` () =
+    formatSourceString
+        """
+let f () = task {
+    match g () with
+    | Ok _ -> ()
+    | Error _ -> ()
+    // comment
+}
+
+let x = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f () =
+    task {
+        match g () with
+        | Ok _ -> ()
+        | Error _ -> ()
+        // comment
+    }
+
+let x = 1
+"""
+
+[<Test>]
+let ``comment after match as last expression in let binding`` () =
+    formatSourceString
+        """
+let f () =
+    match g () with
+    | Ok _ -> ()
+    | Error _ -> ()
+    // comment
+
+let x = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f () =
+    match g () with
+    | Ok _ -> ()
+    | Error _ -> ()
+    // comment
+
+let x = 1
+"""
