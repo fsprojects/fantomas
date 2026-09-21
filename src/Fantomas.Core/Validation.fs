@@ -14,6 +14,7 @@ let safeToIgnoreWarnings =
             35 // Deprecated
             42 // LibraryUseOnly
             46 // ReservedKeyword
+            524 // parsUseBindingsIllegalInModules, a top-level `use` in a script
             1104 // lexhlpIdentifiersContainingAtSymbolReserved
             3535 // tcUsingInterfacesWithAbstractStaticMembers
         ]
