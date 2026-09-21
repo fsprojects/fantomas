@@ -1025,7 +1025,8 @@ let ``unindentWithTriviaAwareness splices before multiline block comment`` () =
 
 [<Test>]
 let ``unindentWithTriviaAwareness finds trivia past trailing restore events`` () =
-    // Simulates the try-with pattern where restore/unindent events follow the trivia
+    // Simulates an atCurrentColumn scope closing after the trivia. The newline has to move past the
+    // restore events, or the RestoreIndent would undo the unindent before the next line is written.
     let f =
         indent
         +> !-"content"
@@ -1044,10 +1045,10 @@ let ``unindentWithTriviaAwareness finds trivia past trailing restore events`` ()
         Write "content"
         WriteLineBecauseOfTrivia
         WriteTrivia "// trailing comment"
-        UnIndentBy 4
-        WriteLineBecauseOfTrivia
         RestoreAtColumn 0
-        RestoreIndent 0 ] -> Assert.Pass()
+        RestoreIndent 0
+        UnIndentBy 4
+        WriteLineBecauseOfTrivia ] -> Assert.Pass()
     | _ -> Assert.Fail $"Unexpected events: %A{events}"
 
 // =============================================================================
