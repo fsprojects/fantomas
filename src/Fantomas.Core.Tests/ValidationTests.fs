@@ -56,6 +56,18 @@ type IWSAMTest<'e> =
 """
     |> should equal true
 
+[<Test>]
+let ``use binding at the top level of a script is valid, 3478`` () =
+    // The parser warns that a top-level `use` is treated as `let`, which is a remark about the
+    // author's source and nothing Fantomas changed.
+    isValidFSharpCode
+        false
+        """
+use model = new System.IO.MemoryStream()
+printfn "%d" model.Length
+"""
+    |> should equal true
+
 // What the verdict is built from. `isValidFSharpCode` above reads `IsValid` off the same result, so
 // these are about the half of it a caller could not see before.
 

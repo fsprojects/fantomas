@@ -5,6 +5,7 @@
 ### Fixed
 
 - Remove TailCall shim from Fantomas.FCS. [#3476](https://github.com/fsprojects/fantomas/pull/3476)
+- Fantomas 8 with use bindings in fsx-file. A `use` at the top level of a script makes the parser warn that it is treated as `let`, and the check Fantomas runs over its own output refused the file on that warning. The warning is about the source as the author wrote it, not about anything the formatter changed, so it is now one of the warnings the check tolerates. [#3478](https://github.com/fsprojects/fantomas/issues/3478)
 
 ## [8.0.0] - 2026-09-15
 
