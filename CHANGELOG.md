@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.2] - 2026-09-22
+
+### Fixed
+
+- Code comment inside match-expression leads to additional blank line. A comment that ends the multi-line body of a `match` clause, and then any blank lines the author kept after it, came out with one blank line more than the source had. The same happened before `else`, `finally`, `end` and the next field of a record, whenever the indented body before them ended in a comment. Since `8.0.0` the unindent that closes such a body leaves the comment's newline at the very end of what was written, and the separator the enclosing construct writes next then opened a second line. Those separators now skip their newline when the comment already wrote one, as the closing brace of a record has done since `8.0.0`. Blank lines the author kept, and the ones Fantomas puts between multi-line members and bindings, are unchanged. [#3484](https://github.com/fsprojects/fantomas/issues/3484)
+
 ## [8.0.1] - 2026-09-21
 
 ### Fixed
