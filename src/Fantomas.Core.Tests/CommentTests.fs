@@ -2835,3 +2835,359 @@ type CustomCancelSource() =
                 ()
             // TODO: cleanup also subscribed handlers?
 """
+
+[<Test>]
+let ``comment inside match clause followed by blank lines, 3484`` () =
+    formatSourceString
+        """
+let inside = [||]
+match inside |> Array.length with
+| 1 -> ()
+    // comment
+
+
+
+
+
+| 2 -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inside = [||]
+
+match inside |> Array.length with
+| 1 -> ()
+// comment
+
+
+
+
+
+| 2 -> ()
+"""
+
+[<Test>]
+let ``comment after multiline match clause body followed by blank lines`` () =
+    formatSourceString
+        """
+let f x =
+    match x with
+    | 1 ->
+        foo ()
+        bar ()
+        // comment
+
+
+
+    | 2 -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f x =
+    match x with
+    | 1 ->
+        foo ()
+        bar ()
+        // comment
+
+
+
+    | 2 -> ()
+"""
+
+[<Test>]
+let ``comment after multiline match clause body does not add a blank line`` () =
+    formatSourceString
+        """
+let f x =
+    match x with
+    | 1 ->
+        foo ()
+        bar ()
+        // comment
+    | 2 -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f x =
+    match x with
+    | 1 ->
+        foo ()
+        bar ()
+        // comment
+    | 2 -> ()
+"""
+
+[<Test>]
+let ``comment after multiline function clause body does not add a blank line`` () =
+    formatSourceString
+        """
+let f x =
+    function
+    | 1 ->
+        foo ()
+        bar ()
+        // comment
+    | 2 -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f x =
+    function
+    | 1 ->
+        foo ()
+        bar ()
+        // comment
+    | 2 -> ()
+"""
+
+[<Test>]
+let ``comment after multiline try-with clause body does not add a blank line`` () =
+    formatSourceString
+        """
+let f x =
+    try
+        foo ()
+    with
+    | A ->
+        foo ()
+        bar ()
+        // comment
+    | B -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f x =
+    try
+        foo ()
+    with
+    | A ->
+        foo ()
+        bar ()
+        // comment
+    | B -> ()
+"""
+
+[<Test>]
+let ``comment after multiline then branch does not add a blank line before else`` () =
+    formatSourceString
+        """
+let f x =
+    if x then
+        foo ()
+        bar ()
+        // comment
+    elif y then
+        baz ()
+        // comment 2
+    else
+        qux ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f x =
+    if x then
+        foo ()
+        bar ()
+        // comment
+    elif y then
+        baz ()
+        // comment 2
+    else
+        qux ()
+"""
+
+[<Test>]
+let ``comment after multiline try body does not add a blank line before finally`` () =
+    formatSourceString
+        """
+let f x =
+    try
+        foo ()
+        bar ()
+        // comment
+    finally
+        baz ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f x =
+    try
+        foo ()
+        bar ()
+        // comment
+    finally
+        baz ()
+"""
+
+[<Test>]
+let ``comment after multiline begin body does not add a blank line before end`` () =
+    formatSourceString
+        """
+let f x =
+    begin
+        foo ()
+        bar ()
+        // comment
+    end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f x =
+    begin
+        foo ()
+        bar ()
+        // comment
+    end
+"""
+
+[<Test>]
+let ``comment after multiline record field value does not add a blank line before the next field`` () =
+    formatSourceString
+        """
+let v =
+    { A =
+        foo ()
+        bar ()
+        // comment
+      B = 1 }
+
+let w =
+    {| A =
+        foo ()
+        bar ()
+        // comment
+       B = 1 |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    {
+        A =
+            foo ()
+            bar ()
+            // comment
+        B = 1
+    }
+
+let w =
+    {|
+        A =
+            foo ()
+            bar ()
+            // comment
+        B = 1
+    |}
+"""
+
+[<Test>]
+let ``comment after multiline class member does not add a blank line before end`` () =
+    formatSourceString
+        """
+type T =
+    class
+        member x.A =
+            foo ()
+            bar ()
+            // comment
+    end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type T =
+    class
+        member x.A =
+            foo ()
+            bar ()
+            // comment
+    end
+"""
+
+[<Test>]
+let ``comment after multiline match clause body followed by infix operator`` () =
+    formatSourceString
+        """
+let f x =
+    match x with
+    | 1 ->
+        foo ()
+        bar ()
+        // comment
+    | _ -> ()
+    |> ignore
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f x =
+    match x with
+    | 1 ->
+        foo ()
+        bar ()
+        // comment
+    | _ -> ()
+    |> ignore
+"""
+
+[<Test>]
+let ``comment inside match clause followed by blank lines, keep max one blank line`` () =
+    formatSourceString
+        """
+let inside = [||]
+match inside |> Array.length with
+| 1 -> ()
+    // comment
+
+
+
+
+
+| 2 -> ()
+"""
+        { config with
+            KeepMaxNumberOfBlankLines = 1
+        }
+    |> prepend newline
+    |> should
+        equal
+        """
+let inside = [||]
+
+match inside |> Array.length with
+| 1 -> ()
+// comment
+
+| 2 -> ()
+"""

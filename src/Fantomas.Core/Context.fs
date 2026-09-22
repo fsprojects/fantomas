@@ -813,6 +813,15 @@ let findTrailingTriviaNewline (events: EventList) : EventNode =
             match check.Event with
             // Block comment internals — keep walking
             | WriteLineInsideTrivia -> check <- check.Prev
+            // An earlier unindentWithTriviaAwareness put its UnIndentBy between the trivia and this newline,
+            // and debug mode marks the nodes that closed in between. A second scope that closes at the same
+            // trivia still finds the newline.
+            | UnIndentBy _
+            | IndentBy _
+            | RestoreIndent _
+            | RestoreAtColumn _
+            | NodeStart _
+            | NodeEnd _ -> check <- check.Prev
             // Single-line comment, block comment, XML doc, or directive
             | WriteTrivia _ -> foundTrivia <- true
             // Hit something that isn't part of trivia — stop

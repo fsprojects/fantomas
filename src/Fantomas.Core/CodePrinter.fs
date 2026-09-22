@@ -1353,7 +1353,7 @@ let genExpr (e: Expr) =
             let genMultilineAlignBrackets =
                 genSingleTextNode node.OpeningBrace
                 +> indentSepNlnUnindent (genInheritInfo +> fieldsExpr genRecordFieldNameAligned)
-                +> sepNln
+                +> sepNlnUnlessLastEventIsNewline
                 +> genSingleTextNode node.ClosingBrace
 
             let genMultilineCramped (ctx: Context) =
@@ -2050,14 +2050,14 @@ let genExpr (e: Expr) =
             +> sepNlnUnlessLastEventIsNewline
             +> genSingleTextNode node.With
             +> sepNln
-            +> col sepNln node.Clauses (genClause false)
+            +> col sepNlnUnlessLastEventIsNewline node.Clauses (genClause false)
         )
         |> genNode node
     | Expr.TryFinally node ->
         atCurrentColumn (
             genSingleTextNode node.Try
             +> indentSepNlnUnindent (genExpr node.TryExpr)
-            +> sepNln
+            +> sepNlnUnlessLastEventIsNewline
             +> genSingleTextNode node.Finally
             +> indentSepNlnUnindent (genExpr node.FinallyExpr)
         )
@@ -2092,7 +2092,7 @@ let genExpr (e: Expr) =
             (fun ((lineCountBefore, columnBefore), (lineCountAfter, columnAfter)) ctx ->
                 let long =
                     indentSepNlnUnindent (genExpr node.ThenExpr)
-                    +> sepNln
+                    +> sepNlnUnlessLastEventIsNewline
                     +> genSingleTextNode node.Else
                     +> genKeepIdentIfThenElse node.If.Node node.Else node.ElseExpr
 
@@ -2190,7 +2190,7 @@ let genExpr (e: Expr) =
                         let branch = List.last node.Branches
                         genKeepIdentIfThenElse branch.If.Node elseNode elseExpr
 
-                    sepNln +> genSingleTextNode elseNode +> genKeepIdent
+                    sepNlnUnlessLastEventIsNewline +> genSingleTextNode elseNode +> genKeepIdent
                 )
                 node.Else
 
@@ -2389,7 +2389,7 @@ let genExpr (e: Expr) =
         let long =
             genSingleTextNode node.Begin
             +> indentSepNlnUnindent (genExpr node.Expr)
-            +> sepNln
+            +> sepNlnUnlessLastEventIsNewline
             +> genSingleTextNode node.End
 
         expressionFitsOnRestOfLine short long |> genNode node
@@ -2477,7 +2477,7 @@ let genMultilineRecordFieldsExpr
     (node: ExprRecordBaseNode)
     : Context -> Context
     =
-    col sepNln node.Fields (genExprRecordFieldOrSpread genRecordField)
+    col sepNlnUnlessLastEventIsNewline node.Fields (genExprRecordFieldOrSpread genRecordField)
 
 /// <summary>
 /// Print a (anonymous) record with additional information as a single line.
@@ -2881,7 +2881,7 @@ let genClauses (clauses: MatchClauseNode list) =
     let lastIndex = clauses.Length - 1
 
     coli
-        sepNln
+        sepNlnUnlessLastEventIsNewline
         clauses
         (fun idx clause ->
             let isLastItem = lastIndex = idx
@@ -2989,7 +2989,7 @@ let genControlExpressionStartCore
         genStart
         +> leaveStart
         +> indentSepNlnUnindent (genExpr innerExpr)
-        +> sepNln
+        +> sepNlnUnlessLastEventIsNewline
         +> enterNode endKeyword
         +> !-endKeyword.Text
 
@@ -3038,7 +3038,7 @@ let genMultilineInfixExpr (node: ExprInfixAppNode) =
 
     atCurrentColumn (
         genLhs
-        +> sepNln
+        +> sepNlnUnlessLastEventIsNewline
         +> genSingleTextNode node.Operator
         +> sepNlnWhenWriteBeforeNewlineNotEmpty
         +> sepSpace
@@ -3104,7 +3104,7 @@ let genExprInMultilineInfixExpr (e: Expr) =
                         parenNode
                         (genSingleTextNode parenNode.OpeningParen
                          +> indentSepNlnUnindent (genExpr mex)
-                         +> sepNln
+                         +> sepNlnUnlessLastEventIsNewline
                          +> genSingleTextNode parenNode.ClosingParen)
                         ctx
                 else
@@ -4615,7 +4615,7 @@ let genTypeDefn (td: TypeDefn) =
             +> indentSepNlnUnindent (
                 genSingleTextNode bodyNode.Kind
                 +> onlyIfNot bodyNode.Members.IsEmpty (indentSepNlnUnindent (genMemberDefnList bodyNode.Members))
-                +> sepNln
+                +> sepNlnUnlessLastEventIsNewline
                 +> genSingleTextNode bodyNode.End
                 |> genNode bodyNode
             )
