@@ -116,9 +116,48 @@ type Foo =
         if giveSome then Some() else None
 ```
 
+### Nesting that depends on a define
+
+Fantomas merges the formatted combinations back together line by line, so the code after an `#endif`
+gets one indentation, whichever branch was active. When a construct that opens a body appears in only
+one branch, the code after `#endif` is nested inside that construct in one combination and not in the
+other, and no single indentation is right for both:
+
+```fsharp
+let traverse entity =
+    seq {
+        #if !NO_TYPEPROVIDERS
+        if not entity.IsProvided then
+        #endif
+            yield! children entity
+    }
+```
+
+With `NO_TYPEPROVIDERS` defined, `yield!` is a statement of the `seq`; without it, it is the body of the
+`if`. Fantomas cannot format this.
+
+#### How to fix it
+
+Move the condition into a value, so that the code after it is nested the same way in every combination:
+
+```fsharp
+let traverse entity =
+    seq {
+        let isProvided =
+            #if !NO_TYPEPROVIDERS
+            entity.IsProvided
+            #else
+            false
+            #endif
+
+        if not isProvided then
+            yield! children entity
+    }
+```
+
 ## Using `.fantomasignore`
 
 If you cannot restructure the directives (e.g. because the code is generated or must match a particular pattern), you
 can exclude the file from formatting using a [`.fantomasignore`](https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html) file.
 
-<fantomas-nav previous="OpenEndedExpressions.md" next="FAQ.md"></fantomas-nav>
+<fantomas-nav previous="OpenEndedExpressions.md" next="ReportingBugs.md"></fantomas-nav>

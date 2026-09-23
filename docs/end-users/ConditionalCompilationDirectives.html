@@ -104,6 +104,9 @@
 <li class="nav-item active"><a href="../../docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" title="" > Conditional Compilation Directives
 </a></li>
 
+<li class="nav-item "><a href="../../docs/end-users/ReportingBugs.html" class="nav-link" title="" > Reporting a bug
+</a></li>
+
 <li class="nav-item "><a href="../../docs/end-users/FAQ.html" class="nav-link" title="" > FAQ
 </a></li>
 
@@ -264,6 +267,9 @@
 </a></li>
 
 <li class="nav-item active"><a href="../../docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" title="" > Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/ReportingBugs.html" class="nav-link" title="" > Reporting a bug
 </a></li>
 
 <li class="nav-item "><a href="../../docs/end-users/FAQ.html" class="nav-link" title="" > FAQ
@@ -437,10 +443,40 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
             <span class="pp">#endif</span>
         <span class="k">if</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="22" class="id">giveSome</span> <span class="k">then</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="23" class="id">Some</span><span class="pn">(</span><span class="pn">)</span> <span class="k">else</span> <span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="24" class="id">None</span>
 </code></pre>
+<h3 data-fsdocs-heading="8"><a name="Nesting-that-depends-on-a-define" class="anchor" href="#Nesting-that-depends-on-a-define">Nesting that depends on a define</a></h3>
+<p>Fantomas merges the formatted combinations back together line by line, so the code after an <code>#endif</code>
+gets one indentation, whichever branch was active. When a construct that opens a body appears in only
+one branch, the code after <code>#endif</code> is nested inside that construct in one combination and not in the
+other, and no single indentation is right for both:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="25" class="fn">traverse</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="26" class="fn">entity</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="27" class="fn">seq</span> <span class="pn">{</span>
+        <span class="pp">#if</span> <span class="id">!NO_TYPEPROVIDERS</span>
+        <span class="k">if</span> <span class="fn">not</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="28" class="fn">entity</span><span class="pn">.</span><span class="id">IsProvided</span> <span class="k">then</span>
+        <span class="pp">#endif</span>
+            <span class="k">yield!</span> <span class="id">children</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="29" class="id">entity</span>
+    <span class="pn">}</span>
+</code></pre>
+<p>With <code>NO_TYPEPROVIDERS</code> defined, <code>yield!</code> is a statement of the <code>seq</code>; without it, it is the body of the
+<code>if</code>. Fantomas cannot format this.</p>
+<h4 data-fsdocs-heading="9"><a name="How-to-fix-it-2" class="anchor" href="#How-to-fix-it-2">How to fix it</a></h4>
+<p>Move the condition into a value, so that the code after it is nested the same way in every combination:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="30" class="fn">traverse</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="31" class="fn">entity</span> <span class="o">=</span>
+    <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="32" class="fn">seq</span> <span class="pn">{</span>
+        <span class="k">let</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="33" class="fn">isProvided</span> <span class="o">=</span>
+            <span class="pp">#if</span> <span class="id">!NO_TYPEPROVIDERS</span>
+            <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="34" class="fn">entity</span><span class="pn">.</span><span class="id">IsProvided</span>
+            <span class="pp">#else</span>
+<span class="inactive">            </span><span class="inactive">false</span>
+            <span class="pp">#endif</span>
+
+        <span class="k">if</span> <span class="fn">not</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="35" class="fn">isProvided</span> <span class="k">then</span>
+            <span class="k">yield!</span> <span class="id">children</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="36" class="id">entity</span>
+    <span class="pn">}</span>
+</code></pre>
 <h2><a name="Using" class="anchor" href="#Using">Using <code>.fantomasignore</code></a></h2>
 <p>If you cannot restructure the directives (e.g. because the code is generated or must match a particular pattern), you
 can exclude the file from formatting using a <a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html"><code>.fantomasignore</code></a> file.</p>
-<fantomas-nav previous="OpenEndedExpressions.html" next="FAQ.html"></fantomas-nav>
+<fantomas-nav previous="OpenEndedExpressions.html" next="ReportingBugs.html"></fantomas-nav>
 
         <div popover class="fsdocs-tip" id="fs1">module F
 
@@ -456,6 +492,10 @@ from ConditionalCompilationDirectives</div>
 <div popover class="fsdocs-tip" id="fs10">union case Option.None: Option&lt;&#39;T&gt;</div>
 <div popover class="fsdocs-tip" id="fs11">type Foo =
   static member bar: ?giveSome: bool -&gt; unit option</div>
+<div popover class="fsdocs-tip" id="fs12">val traverse: entity: &#39;a -&gt; &#39;b seq</div>
+<div popover class="fsdocs-tip" id="fs13">val entity: &#39;a</div>
+<div popover class="fsdocs-tip" id="fs14">Multiple items<br />val seq: sequence: &#39;T seq -&gt; &#39;T seq<br /><br />--------------------<br />type &#39;T seq = System.Collections.Generic.IEnumerable&lt;&#39;T&gt;</div>
+<div popover class="fsdocs-tip" id="fs15">val isProvided: bool</div>
 
     </div>
 </main>
@@ -497,8 +537,18 @@ from ConditionalCompilationDirectives</div>
       How to fix it
     </a>
   </li>
+  <li class="level-3" data-fsdocs-heading="8">
+    <a href="#Nesting-that-depends-on-a-define">
+      Nesting that depends on a define
+    </a>
+  </li>
+  <li class="level-4" data-fsdocs-heading="9">
+    <a href="#How-to-fix-it-2">
+      How to fix it
+    </a>
+  </li>
 </ul><style>
-body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-main; }
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-main; }
 #content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
 #fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
 body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
@@ -515,11 +565,17 @@ body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #f
 #fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-heading-6; }
 body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="6"] { view-timeline-name: --fsdocs-heading-6; }
-#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-main; }
+#fsdocs-page-menu [data-fsdocs-heading="6"] { animation-timeline: --fsdocs-heading-6, --fsdocs-heading-7; }
 body:has(#content [data-fsdocs-heading="6"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="6"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="7"] { view-timeline-name: --fsdocs-heading-7; }
-#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-main; }
+#fsdocs-page-menu [data-fsdocs-heading="7"] { animation-timeline: --fsdocs-heading-7, --fsdocs-heading-8; }
 body:has(#content [data-fsdocs-heading="7"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="7"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="8"] { view-timeline-name: --fsdocs-heading-8; }
+#fsdocs-page-menu [data-fsdocs-heading="8"] { animation-timeline: --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="8"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="8"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="9"] { view-timeline-name: --fsdocs-heading-9; }
+#fsdocs-page-menu [data-fsdocs-heading="9"] { animation-timeline: --fsdocs-heading-9, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="9"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="9"] { --fsdocs-toc-focused: 1; }
 </style>
 </aside>
 <dialog>

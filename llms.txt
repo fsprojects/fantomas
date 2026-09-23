@@ -35,6 +35,7 @@
 - [Ignore Files](https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.md)
 - [Open-ended expressions](https://fsprojects.github.io/fantomas/docs/end-users/OpenEndedExpressions.md)
 - [Recipes](https://fsprojects.github.io/fantomas/docs/end-users/Recipes.md)
+- [Reporting a bug](https://fsprojects.github.io/fantomas/docs/end-users/ReportingBugs.md)
 - [JetBrains Rider](https://fsprojects.github.io/fantomas/docs/end-users/Rider.md)
 - [Style guide](https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.md)
 - [Upgrade guide](https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.md)
