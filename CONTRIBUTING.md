@@ -101,6 +101,9 @@ The tool generates a report with all the technical information that is necessary
 
 Please try and make the bug report as small as possible. Isolate the part of your code that is causing the bug.
 
+If you work with a coding agent, the `fantomas-report` skill does this for you: it shrinks the code to a minimal sample and opens the same report as the online tool, for you to review and submit.
+Install it with `npx skills add fsprojects/fantomas --skill fantomas-report -g`, and see [Reporting a bug](https://fsprojects.github.io/fantomas/docs/end-users/ReportingBugs.html).
+
 ## Related issues
 
 Be careful before claiming that a bug is related to another issue or is a duplicate.
