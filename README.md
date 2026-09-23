@@ -17,6 +17,16 @@ Documentation is available at https://fsprojects.github.io/fantomas/docs/index.h
 
 If you point a coding agent at Fantomas, give it [llms.txt](https://fsprojects.github.io/fantomas/llms.txt) for an index of the documentation, or [llms-full.txt](https://fsprojects.github.io/fantomas/llms-full.txt) for all of it in one file.
 
+## Reporting a bug
+
+Report bugs through the [online tool](https://fsprojects.github.io/fantomas-tools/#/fantomas/main), which opens an issue with everything needed to reproduce it.
+
+With a coding agent, the `fantomas-report` skill shrinks the file Fantomas failed on to a minimal sample and opens the same issue form for you to review:
+
+> npx skills add fsprojects/fantomas --skill fantomas-report -g
+
+See [Reporting a bug](https://fsprojects.github.io/fantomas/docs/end-users/ReportingBugs.html) for more.
+
 ## Contributing Guidelines
 
 See the [Contribution Guidelines](./CONTRIBUTING.md) and our [contributors documentation](https://fsprojects.github.io/fantomas/docs/contributors/Index.html)

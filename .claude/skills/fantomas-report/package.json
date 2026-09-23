@@ -1,0 +1,8 @@
+{
+  "name": "fantomas-report",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "lz-string": "1.5.0"
+  }
+}
