@@ -1,5 +1,14 @@
 # Changelog
 
+## [8.0.4] - 2026-09-23
+
+### Fixed
+
+- Infix operator with a computation expression on the right-hand side produces invalid code. `x := { ... }` was read as a computation expression named `(:=) x` and printed as `:= x { ... }`, which does not compile. It is now an infix application and printed as written. [#3494](https://github.com/fsprojects/fantomas/pull/3494)
+- Comment after a parameter of an extern binding with attributes is lost. The range of such a binding stopped at its name, so a comment after one of its parameters was not attached to anything. The binding now spans up to its closing parenthesis. [#3494](https://github.com/fsprojects/fantomas/pull/3494)
+- Comment after a parameter of a multiline extern binding gets two spaces in front of it. The comma at the end of the line kept its trailing space, and the comment added its own. [#3494](https://github.com/fsprojects/fantomas/pull/3494)
+- `in` keyword of `let!` moves to the last `and!` binding. The parser keeps one `in` for a `let!` and its `and!` bindings, and it always went to the last one. It now stays after the binding it followed. [#3494](https://github.com/fsprojects/fantomas/pull/3494)
+
 ## [8.0.3] - 2026-09-23
 
 ### Fixed
