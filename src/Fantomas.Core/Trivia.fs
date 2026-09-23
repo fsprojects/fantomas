@@ -282,7 +282,9 @@ let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia:
     )
 
 /// Find a node that ended before the trivia and whose start column matches the trivia's column.
-/// Searches depth-first to find the deepest (most specific) match.
+/// Searches top-down and returns the outermost match that is the first code on its line,
+/// as its column is the indentation the comment lines up with.
+/// Without such a node, the deepest node at the comment's column is returned.
 ///
 /// Used for indented single-line comments that sit between a parent's children.
 /// For example, in:
@@ -290,25 +292,56 @@ let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia:
 ///     // comment here
 /// The comment at column 4 should attach to the try-with (which also starts at column 4),
 /// not to the next top-level binding at column 0.
-let rec findNodeBeforeWithMatchingColumn (node: Node) (triviaRange: range) : Node option =
+///
+/// When a node and its last child both start at the comment's column, the node wins:
+///     c +
+///     d
+///     // comment
+/// The comment belongs to the infix expression `c + d`, not to `d`.
+/// Placing it after `d` would make the expression multiline and move the operator,
+/// which then no longer produces the same attachment on the next format.
+///
+/// A node that follows other code on its line is only picked when nothing else matches:
+///     |> run (fun changes ->
+///             printfn "%A" changes
+///             // comment
+/// The lambda starts at the comment's column, but after `|> run (`. The comment belongs to its body.
+let findNodeBeforeWithMatchingColumn (node: Node) (triviaRange: range) : Node option =
     let triviaColumn = triviaRange.StartColumn
     let triviaLine = triviaRange.StartLine
 
-    node.Children
-    |> Array.filter (fun child -> child.Range.EndLine < triviaLine)
-    |> Array.tryLast
-    |> Option.bind (fun child ->
-        let deeperMatch = findNodeBeforeWithMatchingColumn child triviaRange
+    // `endLineOfPrevious` is the line where the node before `node` ends.
+    // A child starts its line when the node before it ends on an earlier line.
+    // Both are found by range rather than by index, so the order of `Children` does not matter.
+    let rec visit (endLineOfPrevious: int) (node: Node) : Node option =
+        let before: Node array =
+            node.Children |> Array.filter (fun child -> child.Range.EndLine < triviaLine)
 
-        match deeperMatch with
-        | Some _ -> deeperMatch
-        | None ->
+        if Array.isEmpty before then
+            None
+        else
 
-        if child.Range.StartColumn = triviaColumn then
+        let child: Node =
+            before |> Array.maxBy (fun child -> child.Range.EndLine, child.Range.EndColumn)
+
+        let endLineBeforeChild: int =
+            node.Children
+            |> Array.filter (fun sibling ->
+                not (obj.ReferenceEquals(sibling, child))
+                && Position.posGeq child.Range.Start sibling.Range.End
+            )
+            |> Array.fold (fun endLine sibling -> max endLine sibling.Range.EndLine) endLineOfPrevious
+
+        let matchesColumn: bool = child.Range.StartColumn = triviaColumn
+
+        if matchesColumn && endLineBeforeChild < child.Range.StartLine then
             Some child
         else
-            None
-    )
+            visit endLineBeforeChild child
+            |> Option.orElse (if matchesColumn then Some child else None)
+
+    // What precedes the container is unknown, so its first child is taken to start its line.
+    visit 0 node
 
 /// Assigns a trivia node (comment, blank line, directive) to the appropriate child
 /// of containerNode as either ContentBefore or ContentAfter.
@@ -475,7 +508,7 @@ let promoteNewlinesBeforeComments (trivia: TriviaNode array) : TriviaNode array 
     flushPendingNewlines ()
     result.ToArray()
 
-let addToTree (tree: Oak) (trivia: TriviaNode array) =
+let addToTree (tree: Oak) (trivia: TriviaNode array) : unit =
     for trivia in trivia do
         let smallestNodeThatContainsTrivia = findNodeWhereRangeFitsIn tree trivia.Range
 

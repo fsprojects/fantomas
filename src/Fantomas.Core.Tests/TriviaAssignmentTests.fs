@@ -104,7 +104,7 @@ let y = 1
 """
 
     // The next sibling in the module, `y`, starts at column 0 and the comment at column 4.
-    // The comment therefore goes after the deepest earlier node that starts at column 4, the try-with.
+    // The comment therefore goes after the outermost earlier node that starts a line at column 4, the try-with.
     let x = declarations oak |> List.head |> binding
     let y = declarations oak |> List.item 1 |> binding
     assertTrivia List.empty<TriviaContent> (contentsBefore y)
@@ -113,6 +113,30 @@ let y = 1
     | Expr.TryWithSingleClause tryWith ->
         assertTrivia [ CommentOnSingleLine "// still about the try" ] (contentsAfter tryWith)
     | other -> Assert.Fail $"Expected a try-with, got %A{other}"
+
+[<Test>]
+let ``an indented comment goes after the outermost node at its column`` () =
+    let oak =
+        parseOak
+            """
+let x =
+    c +
+    d
+    // about c + d
+"""
+
+    // Both the infix expression and its last operand `d` start a line at column 4.
+    // The comment goes after the infix expression, so that printing `c + d` on one line keeps it there.
+    let x = declarations oak |> List.head |> binding
+
+    match x.Expr with
+    | Expr.InfixApp infixApp ->
+        assertTrivia [ CommentOnSingleLine "// about c + d" ] (contentsAfter infixApp)
+
+        match infixApp.RightHandSide with
+        | Expr.Ident d -> assertTrivia List.empty<TriviaContent> (contentsAfter d)
+        | other -> Assert.Fail $"Expected an identifier, got %A{other}"
+    | other -> Assert.Fail $"Expected an infix application, got %A{other}"
 
 [<Test>]
 let ``a blank line is a Newline trivia before the node that follows it`` () =
