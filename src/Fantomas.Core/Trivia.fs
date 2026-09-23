@@ -15,53 +15,70 @@ type CommentTrivia with
         | CommentTrivia.BlockComment m
         | CommentTrivia.LineComment m -> m
 
+/// Groups comments that follow each other on the same line with only whitespace between them.
+/// Every group holds at least one comment.
+let groupCommentsOnSameLine (source: ISourceText) (comments: CommentTrivia list) : CommentTrivia list list =
+    let followsOnSameLine (previous: CommentTrivia) (next: CommentTrivia) : bool =
+        previous.Range.EndLine = next.Range.StartLine
+        && source
+            .GetLineString(next.Range.StartLine - 1)
+            .Substring(previous.Range.EndColumn, next.Range.StartColumn - previous.Range.EndColumn)
+           |> String.IsNullOrWhiteSpace
+
+    let groups: ResizeArray<CommentTrivia list> = ResizeArray()
+    let currentGroup: ResizeArray<CommentTrivia> = ResizeArray()
+
+    for comment in comments do
+        if
+            currentGroup.Count > 0
+            && not (followsOnSameLine currentGroup.[currentGroup.Count - 1] comment)
+        then
+            groups.Add(List.ofSeq currentGroup)
+            currentGroup.Clear()
+
+        currentGroup.Add(comment)
+
+    if currentGroup.Count > 0 then
+        groups.Add(List.ofSeq currentGroup)
+
+    List.ofSeq groups
+
 let internal collectTriviaFromCodeComments
     (source: ISourceText)
     (codeComments: CommentTrivia list)
     (codeRange: range)
     : TriviaNode list
     =
-    codeComments
-    |> List.choose (fun ct ->
-        if not (RangeHelpers.rangeContainsRange codeRange ct.Range) then
-            None
+    let hasSourceTextBefore (r: range) : bool =
+        source.GetLineString(r.StartLine - 1).Substring(0, r.StartColumn).TrimStart(' ', ';').Length > 0
+
+    let hasSourceTextAfter (r: range) : bool =
+        source.GetLineString(r.EndLine - 1).Substring(r.EndColumn).TrimEnd(' ', ';').Length > 0
+
+    let groupToTrivia (group: CommentTrivia list) : TriviaNode list =
+        assert (not (List.isEmpty group))
+        let first: CommentTrivia = List.head group
+        let last: CommentTrivia = List.last group
+
+        if not (hasSourceTextBefore first.Range) && not (hasSourceTextAfter last.Range) then
+            // No code on the line, the comments are a single comment on that line: `(* a *) (* b *)`.
+            // See https://github.com/fsprojects/fantomas/issues/3487
+            let r: range = Range.unionRanges first.Range last.Range
+            [ TriviaNode(CommentOnSingleLine(source.GetSubTextFromRange r), r) ]
         else
+            group
+            |> List.map (fun ct ->
+                match ct with
+                | CommentTrivia.BlockComment r ->
+                    TriviaNode(BlockComment(source.GetSubTextFromRange r, false, false), r)
+                | CommentTrivia.LineComment r ->
+                    TriviaNode(LineCommentAfterSourceCode(source.GetSubTextFromRange r), r)
+            )
 
-        match ct with
-        | CommentTrivia.BlockComment r ->
-            let content = source.GetSubTextFromRange r
-            let startLine = source.GetLineString(r.StartLine - 1)
-            let endLine = source.GetLineString(r.EndLine - 1)
-
-            let contentBeforeComment =
-                startLine.Substring(0, r.StartColumn).TrimStart(' ', ';').Length
-
-            let contentAfterComment = endLine.Substring(r.EndColumn).TrimEnd(' ', ';').Length
-
-            let content =
-                if contentBeforeComment = 0 && contentAfterComment = 0 then
-                    CommentOnSingleLine content
-                else
-                    BlockComment(content, false, false)
-
-            Some(TriviaNode(content, r))
-        | CommentTrivia.LineComment r ->
-            let content = source.GetSubTextFromRange r
-            let index = r.StartLine - 1
-            let line = source.GetLineString index
-
-            let content =
-                let trimmedLine = line.TrimStart(' ', ';')
-
-                if index = 0 && String.startsWithOrdinal "#!" trimmedLine then // shebang
-                    CommentOnSingleLine content
-                else if String.startsWithOrdinal "//" trimmedLine then
-                    CommentOnSingleLine content
-                else
-                    LineCommentAfterSourceCode content
-
-            Some(TriviaNode(content, r))
-    )
+    codeComments
+    |> List.filter (fun ct -> RangeHelpers.rangeContainsRange codeRange ct.Range)
+    |> groupCommentsOnSameLine source
+    |> List.collect groupToTrivia
 
 let internal collectTriviaFromBlankLines
     (config: FormatConfig)

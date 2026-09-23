@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Second block comment on a line is lost and the next expression moves onto the comment line. A line that holds several comments and no code, such as `(* b *) (* c *)`, was read as one block comment next to code per comment, and there was no code on that line to attach them to. The first one ended up in front of the next expression, pulling it onto the comment line, and the others were dropped. Such a line is now one comment on a line of its own, printed as it was written. [#3487](https://github.com/fsprojects/fantomas/issues/3487)
+
 ## [8.0.2] - 2026-09-22
 
 ### Fixed

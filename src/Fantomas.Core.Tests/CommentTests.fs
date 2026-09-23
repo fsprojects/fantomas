@@ -3191,3 +3191,101 @@ match inside |> Array.length with
 
 | 2 -> ()
 """
+
+[<Test>]
+let ``several block comments on a line of their own, 3487`` () =
+    formatSourceString
+        """
+a
+(* b *) (* c *)
+match x with
+| _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a
+(* b *) (* c *)
+match x with
+| _ -> ()
+"""
+
+[<Test>]
+let ``block comments followed by a line comment on a line of their own`` () =
+    formatSourceString
+        """
+a
+(* b *)(* c *) // d
+b
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a
+(* b *)(* c *) // d
+b
+"""
+
+[<Test>]
+let ``several block comments on the last line of a module`` () =
+    formatSourceString
+        """
+a
+(* b *) (* c *)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a
+(* b *) (* c *)
+"""
+
+[<Test>]
+let ``several block comments on a line of their own inside a record`` () =
+    formatSourceString
+        """
+type X =
+    { A: int
+      (* b *) (* c *)
+      B: int }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    {
+        A: int
+        (* b *) (* c *)
+        B: int
+    }
+"""
+
+[<Test>]
+let ``several block comments on a line of their own in a signature file`` () =
+    formatSignatureString
+        """
+namespace N
+
+val a: int
+(* b *) (* c *)
+val b: int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace N
+
+val a: int
+(* b *) (* c *)
+val b: int
+"""
