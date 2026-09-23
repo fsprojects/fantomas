@@ -2246,7 +2246,7 @@ type HashDirectiveListNode(hashDirectives: ParsedHashDirectiveNode list) =
 type AttributeNode(typeName: IdentListNode, expr: Expr option, target: SingleTextNode option, range) =
     inherit NodeBase(range)
 
-    override val Children: Node array = [| yield typeName; yield! noa (Option.map Expr.Node expr); yield! noa target |]
+    override val Children: Node array = [| yield! noa target; yield typeName; yield! noa (Option.map Expr.Node expr) |]
 
     member val TypeName = typeName
     member val Expr = expr
@@ -2487,14 +2487,32 @@ type BindingNode
     override val Children: Node array =
         [|
             yield! noa xmlDoc
-            yield! noa attributes
-            yield leadingKeyword
+
+            // `[<Literal>] let x` or `let [<Literal>] x`
+            match attributes with
+            | Some attributes when Position.posGt attributes.Range.Start leadingKeyword.Range.Start ->
+                yield leadingKeyword
+                yield attributes
+            | _ ->
+                yield! noa attributes
+                yield leadingKeyword
+
             yield! noa inlineNode
-            yield! noa accessibility
-            yield
+
+            let functionName: Node =
                 match functionName with
-                | Choice1Of2 n -> (n :> Node)
+                | Choice1Of2 n -> n
                 | Choice2Of2 p -> Pattern.Node p
+
+            // `member private x.P` or `member x.P with private get`
+            match accessibility with
+            | Some accessibility when Position.posGt accessibility.Range.Start functionName.Range.Start ->
+                yield functionName
+                yield accessibility
+            | _ ->
+                yield! noa accessibility
+                yield functionName
+
             yield! noa (Option.map TyparDecls.Node genericTypeParameters)
             yield! nodes (List.map Pattern.Node parameters)
             yield! noa returnType
@@ -2579,8 +2597,8 @@ type UnionCaseNode
     override val Children: Node array =
         [|
             yield! noa xmlDoc
-            yield! noa attributes
             yield! noa bar
+            yield! noa attributes
             yield identifier
             yield! nodes fields
         |]
@@ -2614,11 +2632,28 @@ type TypeNameNode
     override val Children: Node array =
         [|
             yield! noa xmlDoc
-            yield! noa attributes
-            yield leadingKeyword
+
+            // `[<A>] type T` or `and [<A>] T`
+            match attributes with
+            | Some attributes when Position.posGt attributes.Range.Start leadingKeyword.Range.Start ->
+                yield leadingKeyword
+                yield attributes
+            | _ ->
+                yield! noa attributes
+                yield leadingKeyword
+
             yield! noa ao
-            yield Type.Node identifier
-            yield! noa (Option.map TyparDecls.Node typeParams)
+
+            // `type T<'a>` or `type 'a T`
+            match typeParams with
+            | Some(TyparDecls.PostfixList _ as typeParams) ->
+                yield Type.Node identifier
+                yield TyparDecls.Node typeParams
+            | Some typeParams ->
+                yield TyparDecls.Node typeParams
+                yield Type.Node identifier
+            | None -> yield Type.Node identifier
+
             yield! List.map TypeConstraint.Node constraints
             yield! noa implicitConstructor
             yield! noa equalsToken

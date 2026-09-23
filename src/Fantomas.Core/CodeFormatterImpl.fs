@@ -81,7 +81,8 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
                 )
         }
 
-let formatAST
+let formatASTWith
+    (inspectOak: SyntaxOak.Oak -> unit)
     (ast: ParsedInput)
     (sourceText: ISourceText option)
     (config: FormatConfig)
@@ -102,9 +103,20 @@ let formatAST
         | None -> oak
         | Some cursor -> Trivia.insertCursor oak cursor
 
+    inspectOak oak
     context |> CodePrinter.genFile oak |> Context.dump false
 
-let formatDocument
+let formatAST
+    (ast: ParsedInput)
+    (sourceText: ISourceText option)
+    (config: FormatConfig)
+    (cursor: pos option)
+    : FormatResult
+    =
+    formatASTWith ignore ast sourceText config cursor
+
+let formatDocumentWith
+    (inspectOak: SyntaxOak.Oak -> unit)
     (config: FormatConfig)
     (isSignature: bool)
     (source: ISourceText)
@@ -118,7 +130,9 @@ let formatDocument
             asts
             |> Array.map (fun (ast', defineCombination) ->
                 async {
-                    let formattedCode = formatAST ast' (Some source) config cursor
+                    let formattedCode: FormatResult =
+                        formatASTWith inspectOak ast' (Some source) config cursor
+
                     return (defineCombination, formattedCode)
                 }
             )
@@ -133,3 +147,12 @@ let formatDocument
 
         return merged
     }
+
+let formatDocument
+    (config: FormatConfig)
+    (isSignature: bool)
+    (source: ISourceText)
+    (cursor: pos option)
+    : Async<FormatResult>
+    =
+    formatDocumentWith ignore config isSignature source cursor

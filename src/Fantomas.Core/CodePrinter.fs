@@ -3164,7 +3164,9 @@ let colGenericTypeParameters typeParameters =
                 leadingSpace +> genType t
             )
 
-    let long = indentSepNlnUnindent (genParameters (sepComma +> sepNln)) +> sepNln
+    let long: Context -> Context =
+        indentSepNlnUnindent (genParameters (sepCommaFixed +> sepNln)) +> sepNln
+
     let short = genParameters sepComma
 
     // Multiline text type params should be unmodified
@@ -4006,8 +4008,9 @@ let genExternBinding (externNode: ExternBindingNode) =
 
         let long =
             indentSepNlnUnindent (
+                // No space after the comma: a comment after the parameter is written after it, before the newline.
                 col
-                    (sepComma +> sepNln)
+                    (sepCommaFixed +> sepNln)
                     externNode.Parameters
                     (fun externParameter ->
                         genOnelinerAttributes externParameter.Attributes

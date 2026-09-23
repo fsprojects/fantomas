@@ -437,3 +437,25 @@ extern [<MarshalAs(UnmanagedType.I1)>] bool ts_node_has_error(TSNode node)
 [<DllImport(core)>]
 extern [<MarshalAs(UnmanagedType.I1)>] bool ts_node_has_error(TSNode node)
 """
+
+[<Test>]
+let ``comment after a parameter of an extern binding with an attribute`` () =
+    formatSourceString
+        """
+[<DllImport("x")>]
+extern void f(
+    int a, // first
+    int b
+)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<DllImport("x")>]
+extern void f(
+    int a, // first
+    int b
+)
+"""
