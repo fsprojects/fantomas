@@ -13,6 +13,16 @@ val getSourceText: source: string -> ISourceText
 val formatAST:
     ast: ParsedInput -> sourceText: ISourceText option -> config: FormatConfig -> cursor: pos option -> FormatResult
 
+/// `formatAST`, with `inspectOak` called on the Oak right before it is printed.
+/// The tests use it to check the tree without building it a second time.
+val formatASTWith:
+    inspectOak: (SyntaxOak.Oak -> unit) ->
+    ast: ParsedInput ->
+    sourceText: ISourceText option ->
+    config: FormatConfig ->
+    cursor: pos option ->
+        FormatResult
+
 /// Parse the source once per define combination. A source without conditional directives yields
 /// a single tree with the empty combination. Raises `FormatException` when any parse has an
 /// invalidating diagnostic.
@@ -22,3 +32,12 @@ val parse: isSignature: bool -> source: ISourceText -> Async<(ParsedInput * Defi
 /// and cursor, and merge the results into one when there was more than one.
 val formatDocument:
     config: FormatConfig -> isSignature: bool -> source: ISourceText -> cursor: pos option -> Async<FormatResult>
+
+/// `formatDocument`, with `inspectOak` called on the Oak of every define combination right before it is printed.
+val formatDocumentWith:
+    inspectOak: (SyntaxOak.Oak -> unit) ->
+    config: FormatConfig ->
+    isSignature: bool ->
+    source: ISourceText ->
+    cursor: pos option ->
+        Async<FormatResult>

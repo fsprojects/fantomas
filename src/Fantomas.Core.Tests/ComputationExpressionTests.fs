@@ -2773,3 +2773,27 @@ let f () =
 
 let x = 1
 """
+
+[<Test>]
+let ``in keyword after the first of several and bang bindings`` () =
+    formatSourceString
+        """
+comp {
+    let! a = b in
+    and! c = d
+    and! e = f
+    ()
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+comp {
+    let! a = b in
+    and! c = d
+    and! e = f
+    ()
+}
+"""

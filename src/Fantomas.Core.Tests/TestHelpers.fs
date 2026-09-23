@@ -1,7 +1,9 @@
 module Fantomas.Core.Tests.TestHelpers
 
 open System
+open Fantomas.FCS.Text
 open Fantomas.Core
+open Fantomas.Core.SyntaxOak
 open NUnit.Framework
 open FsUnit
 
@@ -16,6 +18,26 @@ module String =
 let config = FormatConfig.Default
 let newline = "\n"
 
+/// Trivia assignment in `Trivia.fs` takes the order of `Node.Children` to be the order in the source.
+/// Every `Children` array is written by hand, so check it for each input the tests format.
+/// Children may overlap, as ranges from the parser can nest, but none may start before the one in front of it.
+/// Nodes that `ASTTransformer` makes up carry `range0` and have no place in the source.
+/// It is handed to `CodeFormatterImpl.formatDocumentWith`, which calls it on the Oak it is about to print.
+let assertChildrenInSourceOrder (oak: Oak) : unit =
+    let rec visit (node: Node) : unit =
+        node.Children
+        |> Array.filter (fun child -> not (Range.equals child.Range Range.range0))
+        |> Array.pairwise
+        |> Array.iter (fun (previous, next) ->
+            if Position.posLt next.Range.Start previous.Range.Start then
+                failwith
+                    $"The children of %s{node.GetType().Name} are not in source order: %s{next.GetType().Name} %O{next.Range} comes after %s{previous.GetType().Name} %O{previous.Range}"
+        )
+
+        Array.iter visit node.Children
+
+    visit oak
+
 let formatFSharpString isFsiFile (s: string) config =
     async {
         // Collect comments from input
@@ -23,7 +45,9 @@ let formatFSharpString isFsiFile (s: string) config =
         let inputAst, _ = Fantomas.FCS.Parse.parseFile isFsiFile inputSourceText []
         let inputComments = Trivia.collectCommentTextsFromAST inputSourceText inputAst
 
-        let! formatted = CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
+        let! formatted =
+            CodeFormatterImpl.formatDocumentWith assertChildrenInSourceOrder config isFsiFile inputSourceText None
+
         let formattedCode = formatted.Code.Replace("\r\n", "\n")
 
         // Validity check — inlined, reusing AST for comment check below
@@ -48,7 +72,12 @@ let formatFSharpString isFsiFile (s: string) config =
 
         // Idempotency check
         let! secondFormat =
-            CodeFormatter.FormatDocumentAsync(isFsiFile, formattedCode, config)
+            CodeFormatterImpl.formatDocumentWith
+                assertChildrenInSourceOrder
+                config
+                isFsiFile
+                (CodeFormatterImpl.getSourceText formattedCode)
+                None
 
         let secondFormattedCode = secondFormat.Code.Replace("\r\n", "\n")
 
@@ -67,7 +96,9 @@ let formatAST isFsiFile (source: string) config =
         let ast, _ =
             Fantomas.FCS.Parse.parseFile isFsiFile (Fantomas.FCS.Text.SourceText.ofString source) []
 
-        let! formattedCode = CodeFormatter.FormatASTAsync(ast, config = config)
+        let formattedCode: string =
+            (CodeFormatterImpl.formatASTWith assertChildrenInSourceOrder ast None config None).Code
+
         let! validation = CodeFormatter.ValidateFSharpCodeAsync(isFsiFile, formattedCode)
 
         if not validation.IsValid then
@@ -91,7 +122,7 @@ let formatSourceStringWithDefines defines (s: string) config =
                 |> Array.head
                 |> fst
 
-            return CodeFormatterImpl.formatAST ast (Some source) config None
+            return CodeFormatterImpl.formatASTWith assertChildrenInSourceOrder ast (Some source) config None
         }
         |> Async.RunSynchronously
 

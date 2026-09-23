@@ -167,6 +167,8 @@ val sepColon: ctx: Context -> Context
 val sepColonFixed: (Context -> Context)
 val sepColonWithSpacesFixed: (Context -> Context)
 val sepComma: ctx: Context -> Context
+/// A comma without the space `sepComma` writes after it, for a comma that ends the line.
+val sepCommaFixed: (Context -> Context)
 val sepSemi: ctx: Context -> Context
 
 // =============================================================================

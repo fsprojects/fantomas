@@ -366,7 +366,23 @@ let rec visitLetOrUses acc expr =
                            Body = body
                            Trivia = trivia
                        } ->
-        let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
+        // The parser keeps one `in` for all bindings. It goes to the binding it follows,
+        // which is the last one unless `let! a = b in and! c = d` put it earlier.
+        let bindingWithIn: SynBinding option =
+            trivia.InKeyword
+            |> Option.bind (fun mIn ->
+                xs
+                |> List.tryFindBack (fun b -> Position.posGeq mIn.Start b.RangeOfBindingWithRhs.End)
+            )
+
+        let xs': (SynBinding * range option) list =
+            xs
+            |> List.map (fun b ->
+                match bindingWithIn with
+                | Some bindingWithIn when obj.ReferenceEquals(b, bindingWithIn) -> b, trivia.InKeyword
+                | _ -> b, None
+            )
+
         visitLetOrUses (acc @ xs') body
     | _ -> acc, expr
 
@@ -1571,7 +1587,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.ForEach
     | SynExpr.App(ExprAtomicFlag.NonAtomic,
                   false,
-                  (SynExpr.App _ | SynExpr.TypeApp _ | SynExpr.Ident _ | SynExpr.LongIdent _ as nameExpr),
+                  // `x := { ... }` is an infix application, not a computation expression named `(:=) x`.
+                  (SynExpr.App(isInfix = false) | SynExpr.TypeApp _ | SynExpr.Ident _ | SynExpr.LongIdent _ as nameExpr),
                   SynExpr.ComputationExpr(_, expr, StartEndRange 1 (openingBrace, _range, closingBrace)),
                   _) ->
         ExprNamedComputationNode(
@@ -2347,14 +2364,12 @@ let mkExternBinding
         trivia = trivia))
     : ExternBindingNode
     =
+    // `range` runs from the attributes to the closing parenthesis. The head pattern covers the name alone.
     let m =
-        if not xmlDoc.IsEmpty then
-            unionRanges xmlDoc.Range pat.Range
+        if xmlDoc.IsEmpty then
+            range
         else
-
-        match attributes with
-        | [] -> range
-        | head :: _ -> unionRanges head.Range pat.Range
+            unionRanges xmlDoc.Range range
 
     let externNode =
         match trivia.LeadingKeyword with
@@ -2424,10 +2439,17 @@ let mkExternBinding
         | SynPat.Attrib(pat = SynPat.Typed(pat = SynPat.Null _ | SynPat.Wild _; targetType = t); attributes = attributes) ->
             ExternBindingPatternNode(mkAttributes creationAide attributes, Some(mkExternType t), None, pat.Range)
         | SynPat.Attrib(pat = SynPat.Typed(pat = innerPat; targetType = t); attributes = attributes) ->
+            let innerPat: Pattern =
+                match innerPat with
+                // The parser gives the name the range of the whole parameter, attributes and type included.
+                | SynPat.Named(ident = SynIdent(ident, None) as synIdent; accessibility = None) ->
+                    Pattern.Named(PatNamedNode(None, mkSynIdent creationAide synIdent, ident.idRange))
+                | _ -> mkPat creationAide innerPat
+
             ExternBindingPatternNode(
                 mkAttributes creationAide attributes,
                 Some(mkExternType t),
-                Some(mkPat creationAide innerPat),
+                Some innerPat,
                 pat.Range
             )
         | _ -> ExternBindingPatternNode(None, None, Some(mkPat creationAide pat), pat.Range)
@@ -2435,8 +2457,9 @@ let mkExternBinding
     let identifier, openNode, parameters, closeNode =
         match pat with
         | SynPat.LongIdent(
-            longDotId = longDotId
-            argPats = SynArgPats.Pats [ SynPat.Tuple(_, ps, _, StartEndRange 1 (mOpen, _, mClose)) ]) ->
+            longDotId = longDotId; argPats = SynArgPats.Pats [ SynPat.Tuple(_, ps, _, StartRange 1 (mOpen, _)) ]) ->
+            // The parser gives the tuple the range of `(` alone. The `)` is the last token of the declaration.
+            let (EndRange 1 (mClose, _)) = range
             mkSynLongIdent creationAide longDotId, stn "(" mOpen, List.map mkExternPat ps, stn ")" mClose
         | _ -> invariantViolation pat.Range "an extern binding has a head pattern that is not a long identifier"
 

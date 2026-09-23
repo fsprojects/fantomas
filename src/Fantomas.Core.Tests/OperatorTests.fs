@@ -1740,3 +1740,17 @@ type Foo =
     abstract member ( *. ): int * int -> int
     abstract member (.*): int * int -> int
 """
+
+[<Test>]
+let ``infix operator with a computation expression on the right-hand side`` () =
+    formatSourceString
+        """
+ie := {1 .. 2}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+ie := { 1..2 }
+"""

@@ -1045,6 +1045,8 @@ let sepColonFixed = !-":"
 
 let sepColonWithSpacesFixed = !-" : "
 
+let sepCommaFixed: Context -> Context = !-","
+
 let sepComma (ctx: Context) =
     if ctx.Config.SpaceAfterComma then
         !- ", " ctx
