@@ -1,6 +1,8 @@
 #r "nuget: FSharp.Data, 8.2.0"
 
+open System
 open System.IO
+open System.Net
 open System.Xml.Linq
 open System.Xml.XPath
 open FSharp.Data
@@ -34,6 +36,23 @@ let updateFileRaw (file: FileInfo) =
 
     File.WriteAllLines(file.FullName, updatedLines)
 
+/// GitHub now and then resets the connection during the TLS handshake, and a few seconds later the
+/// same request works. A `ProtocolError` is an HTTP error response, such as a 404, which asking again
+/// will not change.
+let rec private requestWithRetry
+    (attempt: int)
+    (url: string)
+    (headers: (string * string) array)
+    : Async<HttpResponseWithStream> =
+    async {
+        try
+            return! Http.AsyncRequestStream(url, headers = headers)
+        with :? WebException as ex when ex.Status <> WebExceptionStatus.ProtocolError && attempt < 5 ->
+            printfn $"Could not connect to %s{url}: %s{ex.Message} Trying again in 5 seconds."
+            do! Async.Sleep(TimeSpan.FromSeconds 5.0)
+            return! requestWithRetry (attempt + 1) url headers
+    }
+
 let downloadCompilerFile commitHash relativePath =
     async {
         let file = FileInfo(deps </> commitHash </> relativePath)
@@ -49,10 +68,7 @@ let downloadCompilerFile commitHash relativePath =
                 $"https://raw.githubusercontent.com/dotnet/fsharp/{commitHash}/{relativePath}"
 
             let! response =
-                Http.AsyncRequestStream(
-                    url,
-                    headers = [| "Content-Disposition", $"attachment; filename=\"{fileName}\"" |]
-                )
+                requestWithRetry 1 url [| "Content-Disposition", $"attachment; filename=\"{fileName}\"" |]
 
             if response.StatusCode <> 200 then
                 printfn $"Could not download %s{relativePath}"
