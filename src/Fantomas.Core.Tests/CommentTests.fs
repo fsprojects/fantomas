@@ -3289,3 +3289,81 @@ val a: int
 (* b *) (* c *)
 val b: int
 """
+
+[<Test>]
+let ``comment after a multiline infix expression in a let binding, 3488`` () =
+    formatSourceString
+        """
+let x =
+    c +
+    d
+    //c
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    c + d
+    //c
+"""
+
+[<Test>]
+let ``comment after a multiline pipe in a let binding`` () =
+    formatSourceString
+        """
+let x =
+    c |>
+    d
+    //c
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    c |> d
+    //c
+"""
+
+[<Test>]
+let ``block comment after a multiline infix expression in a let binding`` () =
+    formatSourceString
+        """
+let x =
+    c ^^
+    d
+    (* c *)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    c ^^ d
+    (* c *)
+"""
+
+[<Test>]
+let ``comment after a blank line after a multiline infix expression in a let binding`` () =
+    formatSourceString
+        """
+let x =
+    c +
+    d
+
+    //c
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    c + d
+
+    //c
+"""
