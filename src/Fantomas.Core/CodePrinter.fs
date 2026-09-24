@@ -4933,7 +4933,8 @@ let genMemberDefn (md: MemberDefn) =
 let genException (node: ExceptionDefnNode) =
     genXml node.XmlDoc
     +> genAttributes node.Attributes
-    +> !-"exception "
+    +> genSingleTextNode node.ExceptionKeyword
+    +> sepSpace
     +> genAccessOpt node.Accessibility
     +> genUnionCase false node.UnionCase
     +> onlyIf

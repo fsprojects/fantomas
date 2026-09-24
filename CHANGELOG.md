@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Comment between doc comment and exception keyword gets shifted. The syntax tree has no range for the `exception` keyword, so a comment between the XML doc or attributes and the keyword was placed in front of the exception name, after the keyword. The keyword is now looked up in the source text and the comment stays in front of it. [#3483](https://github.com/fsprojects/fantomas/issues/3483)
+
 ## [8.0.4] - 2026-09-23
 
 ### Fixed
