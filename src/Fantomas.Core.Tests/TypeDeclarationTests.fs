@@ -68,6 +68,82 @@ exception FooException with // comment
 """
 
 [<Test>]
+let ``comment between xml doc and exception keyword, 3483`` () =
+    formatSourceString
+        """
+/// Signal that there is still an unresolved overload in the constraint problem. The
+/// unresolved overload constraint remains in the constraint state, and we skip any
+/// further processing related to whichever overall adjustment to constraint solver state
+/// is being processed.
+///
+// NOTE: The addition of this abort+skip appears to be a mistake which has crept into F# type inference,
+// and its status is currently under review. See https://github.com/dotnet/fsharp/pull/8294 and others.
+//
+exception AbortForFailedMemberConstraintResolution
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// Signal that there is still an unresolved overload in the constraint problem. The
+/// unresolved overload constraint remains in the constraint state, and we skip any
+/// further processing related to whichever overall adjustment to constraint solver state
+/// is being processed.
+///
+// NOTE: The addition of this abort+skip appears to be a mistake which has crept into F# type inference,
+// and its status is currently under review. See https://github.com/dotnet/fsharp/pull/8294 and others.
+//
+exception AbortForFailedMemberConstraintResolution
+"""
+
+[<Test>]
+let ``comments between attributes and exception keyword`` () =
+    formatSourceString
+        """
+/// Doc
+[<Serializable>]
+// line comment
+(* block (* nested *)
+   comment *)
+exception private Foo of string
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// Doc
+[<Serializable>]
+// line comment
+(* block (* nested *)
+   comment *)
+exception private Foo of string
+"""
+
+[<Test>]
+let ``comment between xml doc and exception keyword in signature file`` () =
+    formatSignatureString
+        """
+namespace Moon
+
+/// Doc
+// comment
+exception FooException of int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Moon
+
+/// Doc
+// comment
+exception FooException of int
+"""
+
+[<Test>]
 let ``type annotations`` () =
     formatSourceString
         """

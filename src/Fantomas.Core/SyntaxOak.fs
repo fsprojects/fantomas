@@ -2283,6 +2283,7 @@ type ExceptionDefnNode
     (
         xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode option,
+        exceptionKeyword: SingleTextNode,
         accessibility: SingleTextNode option,
         unionCase: UnionCaseNode,
         withKeyword: SingleTextNode option,
@@ -2296,6 +2297,7 @@ type ExceptionDefnNode
         [|
             yield! noa xmlDoc
             yield! noa attributes
+            yield exceptionKeyword
             yield! noa accessibility
             yield unionCase
             yield! noa withKeyword
@@ -2304,6 +2306,7 @@ type ExceptionDefnNode
 
     member val XmlDoc = xmlDoc
     member val Attributes = attributes
+    member val ExceptionKeyword = exceptionKeyword
     member val Accessibility = accessibility
     member val UnionCase = unionCase
     member val WithKeyword = withKeyword
