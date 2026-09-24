@@ -32,7 +32,8 @@ let updateFileRaw (file: FileInfo) =
             elif line.Contains("[<TailCall>]") then
                 line.Replace("[<TailCall>]", "[<Microsoft.FSharp.Core.TailCall>]")
             else
-                line)
+                line
+        )
 
     File.WriteAllLines(file.FullName, updatedLines)
 
@@ -43,7 +44,8 @@ let rec private requestWithRetry
     (attempt: int)
     (url: string)
     (headers: (string * string) array)
-    : Async<HttpResponseWithStream> =
+    : Async<HttpResponseWithStream>
+    =
     async {
         try
             return! Http.AsyncRequestStream(url, headers = headers)
@@ -60,21 +62,22 @@ let downloadCompilerFile commitHash relativePath =
         if file.Exists && file.Length <> 0 then
             return ()
         else
-            file.Directory.Create()
-            let fs = file.Create()
-            let fileName = Path.GetFileName(relativePath)
 
-            let url =
-                $"https://raw.githubusercontent.com/dotnet/fsharp/{commitHash}/{relativePath}"
+        file.Directory.Create()
+        let fs: FileStream = file.Create()
+        let fileName: string = Path.GetFileName(relativePath)
 
-            let! response =
-                requestWithRetry 1 url [| "Content-Disposition", $"attachment; filename=\"{fileName}\"" |]
+        let url: string =
+            $"https://raw.githubusercontent.com/dotnet/fsharp/{commitHash}/{relativePath}"
 
-            if response.StatusCode <> 200 then
-                printfn $"Could not download %s{relativePath}"
+        let! response =
+            requestWithRetry 1 url [| "Content-Disposition", $"attachment; filename=\"{fileName}\"" |]
 
-            do! Async.AwaitTask(response.ResponseStream.CopyToAsync(fs))
-            fs.Close()
+        if response.StatusCode <> 200 then
+            printfn $"Could not download %s{relativePath}"
 
-            updateFileRaw file
+        do! Async.AwaitTask(response.ResponseStream.CopyToAsync(fs))
+        fs.Close()
+
+        updateFileRaw file
     }

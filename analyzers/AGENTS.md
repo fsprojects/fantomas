@@ -130,8 +130,8 @@ them would have cost twelve columns by the third.
 holds the body there, and it only holds a body that was already written that way: it will not
 de-indent for you, and it will re-indent one written that way where the setting is off. So the whole
 style depends on somebody writing it, which is what this rule is for. The `.editorconfig` covers
-`src` and `analyzers`, which together are everything the pipelines analyze, so a finding is never one
-the formatter will undo.
+`src`, `analyzers`, `build.fsx` and `scripts`, which together are everything the pipelines analyze,
+so a finding is never one the formatter will undo.
 
 The analyzer is narrower than the rule, because moving a body left can change what runs:
 
@@ -463,10 +463,11 @@ three bullets above can go.
 The packaged analyzers then have plenty to say about the scripts, `GRA-INTERPOLATED-001` alone
 accounts for 94 findings, so letting them in is a decision rather than a formality.
 
-The `.editorconfig` turns `fsharp_experimental_keep_indent_in_branch` on for `build.fsx` and
-`scripts/**/*.fsx` as well as for `src` and `analyzers`, so acting on a `FANTOMAS-KEEPINDENT-001`
-finding in a script is not something the formatter undoes. Turning it on changed no formatting: the
-setting holds a body already written that way and never de-indents one itself.
+`build.fsx` and `scripts/**/*.fsx` share the `.editorconfig` section of `src` and `analyzers`, so
+`fsharp_experimental_keep_indent_in_branch` is on for them too, and acting on a
+`FANTOMAS-KEEPINDENT-001` finding in a script is not something the formatter undoes. That setting
+alone changed no formatting: it holds a body already written that way and never de-indents one
+itself.
 
 ## Two ways a rule silently does nothing
 

@@ -11,9 +11,11 @@ let rec exprName (e: Expr) : string =
     | Expr.Ident n -> n.Text
     | Expr.OptVar n ->
         n.Identifier.Content
-        |> List.choose (function
+        |> List.choose (
+            function
             | IdentifierOrDot.Ident i -> Some i.Text
-            | _ -> None)
+            | _ -> None
+        )
         |> String.concat "."
     | Expr.TypeApp n -> $"{exprName n.Identifier}<...>"
     | _ -> e.GetType().Name
@@ -43,7 +45,8 @@ let printChain (chain: ExprChain) =
             printfn "    [%02d] action      .%s()" i (exprName expr)
         | ChainSegment.DotApplication(_, expr, ChainCall.Paren _) ->
             printfn "    [%02d] action      .%s(...)" i (exprName expr)
-        | ChainSegment.DotIndex(_, idx) -> printfn "    [%02d] navigation  .[%s]" i (exprName idx))
+        | ChainSegment.DotIndex(_, idx) -> printfn "    [%02d] navigation  .[%s]" i (exprName idx)
+    )
 
     let terminalStr =
         match chain.Terminal with
@@ -84,13 +87,15 @@ match Array.tryHead fsi.CommandLineArgs with
         if chains.IsEmpty then
             printfn "No chain expression found in input."
         else
-            printfn "Found %d chain(s):\n" chains.Length
 
-            chains
-            |> List.iteri (fun i chain ->
-                printfn "--- Chain #%d ---" (i + 1)
-                printChain chain
-                printfn "")
+        printfn "Found %d chain(s):\n" chains.Length
+
+        chains
+        |> List.iteri (fun i chain ->
+            printfn "--- Chain #%d ---" (i + 1)
+            printChain chain
+            printfn ""
+        )
 | _ ->
     printfn "Usage: dotnet fsi chain.fsx [--signature] [<input file>]"
     printfn "       source code is read from stdin when no input file is given"

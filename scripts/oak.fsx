@@ -13,8 +13,9 @@ let parseOak (input: string) (isSignature: bool) (defines: string list) =
                 if List.isEmpty defines then
                     Array.tryHead oaks
                 else
-                    let sortedDefines = List.sort defines
-                    oaks |> Array.tryFind (fun (_, d) -> List.sort d = sortedDefines)
+
+                let sortedDefines: string list = List.sort defines
+                oaks |> Array.tryFind (fun (_, d) -> List.sort d = sortedDefines)
 
             match result with
             | None -> return "No Oak found in input"

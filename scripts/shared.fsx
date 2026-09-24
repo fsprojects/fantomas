@@ -48,15 +48,15 @@ let parseArgs (args: string array) =
     let flagIndices =
         [|
             match editorConfigIdx with
+            | None -> ()
             | Some idx ->
                 yield idx
                 yield idx + 1
-            | None -> ()
             match defineIdx with
+            | None -> ()
             | Some idx ->
                 yield idx
                 yield idx + 1
-            | None -> ()
             yield!
                 args
                 |> Array.indexed
