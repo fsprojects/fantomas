@@ -109,14 +109,16 @@ let changedFiles (ctx: StageContext) : Async<string list> =
                 if line.Length < 4 || line[0] = 'D' || line[1] = 'D' then
                     None
                 else
-                    let path: string = line.Substring 3
 
-                    let path: string =
-                        match path.IndexOf(" -> ", StringComparison.Ordinal) with
-                        | -1 -> path
-                        | arrow -> path.Substring(arrow + 4)
+                let path: string = line.Substring 3
 
-                    Some(path.Trim('"').Replace('\\', '/')))
+                let path: string =
+                    match path.IndexOf(" -> ", StringComparison.Ordinal) with
+                    | -1 -> path
+                    | arrow -> path.Substring(arrow + 4)
+
+                Some(path.Trim('"').Replace('\\', '/'))
+            )
             |> List.ofArray
     }
 
@@ -161,29 +163,30 @@ let changedLines (ctx: StageContext) : Async<Map<string, ChangedLines>> =
             elif line.StartsWith("+++ ", StringComparison.Ordinal) then
                 current <- None
             else
-                let m: Text.RegularExpressions.Match = hunk.Match line
 
-                match current with
-                | None -> ()
-                | Some file when m.Success ->
-                    let start: int = int m.Groups["start"].Value
+            let m: Text.RegularExpressions.Match = hunk.Match line
 
-                    let count: int =
-                        if m.Groups["count"].Success then
-                            int m.Groups["count"].Value
-                        else
-                            1
+            match current with
+            | None -> ()
+            | Some file when m.Success ->
+                let start: int = int m.Groups["start"].Value
 
-                    // A pure deletion reports a count of zero. Nothing of it survives to report on.
-                    let added: Set<int> = set [ start .. start + count - 1 ]
+                let count: int =
+                    if m.Groups["count"].Success then
+                        int m.Groups["count"].Value
+                    else
+                        1
 
-                    let merged: ChangedLines =
-                        match Map.tryFind file scopes with
-                        | Some(Lines existing) -> Lines(Set.union existing added)
-                        | _ -> Lines added
+                // A pure deletion reports a count of zero. Nothing of it survives to report on.
+                let added: Set<int> = set [ start .. start + count - 1 ]
 
-                    scopes <- Map.add file merged scopes
-                | Some _ -> ()
+                let merged: ChangedLines =
+                    match Map.tryFind file scopes with
+                    | Some(Lines existing) -> Lines(Set.union existing added)
+                    | _ -> Lines added
+
+                scopes <- Map.add file merged scopes
+            | Some _ -> ()
 
         // Anything git named as changed but has no diff hunk is untracked, so all of it is new.
         for file in files do
@@ -206,4 +209,5 @@ let scopeFor (scopes: Map<string, ChangedLines>) (path: string) : ChangedLines o
         if normalized.EndsWith(file, StringComparison.Ordinal) then
             Some scope
         else
-            None)
+            None
+    )

@@ -56,7 +56,9 @@ let private runnableIn (scripts: string list) : string list =
                 if matched.Success then
                     Some(Path.GetFullPath(folder </> matched.Groups[1].Value))
                 else
-                    None))
+                    None
+            )
+        )
         |> Set.ofSeq
 
     scripts
@@ -106,8 +108,9 @@ let private check (ctx: StageContext) (scripts: string list) : Async<int> =
             if exitCode = 0 then
                 printfn "%s compiles." name
             else
-                printfn "%s does not compile:" name
-                printfn "%s" output
+
+            printfn "%s does not compile:" name
+            printfn "%s" output
 
         let failed: int =
             results |> Array.filter (fun (_, exitCode, _) -> exitCode <> 0) |> Array.length

@@ -97,9 +97,11 @@ let targetsFor (files: string list) : AnalysisTarget list =
             if List.exists owns projectFiles then
                 Some(Project(project, []))
             else
-                match List.filter owns sources with
-                | [] -> None
-                | owned -> Some(Project(project, List.map (fun (file: string) -> repositoryRoot </> file) owned)))
+
+            match List.filter owns sources with
+            | [] -> None
+            | owned -> Some(Project(project, List.map (fun (file: string) -> repositoryRoot </> file) owned))
+        )
 
     [
         yield! projects
@@ -176,7 +178,8 @@ let sarifResultCount (report: string) : int =
         |> Array.sumBy (fun run ->
             match run.TryGetProperty "results" with
             | Some results -> results.AsArray().Length
-            | None -> 0)
+            | None -> 0
+        )
 
 /// Folds the per-project reports into the one SARIF run that GitHub code scanning takes.
 ///
@@ -213,11 +216,13 @@ let withRules (rules: JsonValue array) (run: JsonValue) : JsonValue =
     match run.TryGetProperty "tool" with
     | None -> run
     | Some tool ->
-        match tool.TryGetProperty "driver" with
-        | None -> run
-        | Some driver ->
-            let driver: JsonValue = withProperty "rules" (JsonValue.Array rules) driver
-            withProperty "tool" (withProperty "driver" driver tool) run
+
+    match tool.TryGetProperty "driver" with
+    | None -> run
+    | Some driver ->
+
+    let driver: JsonValue = withProperty "rules" (JsonValue.Array rules) driver
+    withProperty "tool" (withProperty "driver" driver tool) run
 
 let mergeSarifReports (reports: string list) (target: string) : unit =
     let documents =
@@ -236,7 +241,8 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
             |> List.collect (fun run ->
                 match run.TryGetProperty name with
                 | Some array -> List.ofArray (array.AsArray())
-                | None -> [])
+                | None -> []
+            )
             |> Array.ofList
             |> JsonValue.Array
 
@@ -263,10 +269,11 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
                 match seen.TryGetValue key with
                 | true, index -> index
                 | false, _ ->
-                    let index: int = merged.Count
-                    merged.Add rule
-                    seen[key] <- index
-                    index
+
+                let index: int = merged.Count
+                merged.Add rule
+                seen[key] <- index
+                index
 
             let results: JsonValue list =
                 runs
@@ -279,16 +286,18 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
                         match result.TryGetProperty "ruleIndex" with
                         | None -> result
                         | Some index ->
-                            let original: int = index.AsInteger()
 
-                            if original >= 0 && original < placed.Length then
-                                withProperty "ruleIndex" (JsonValue.Number(decimal placed[original])) result
-                            else
-                                result
+                        let original: int = index.AsInteger()
+
+                        if original >= 0 && original < placed.Length then
+                            withProperty "ruleIndex" (JsonValue.Number(decimal placed[original])) result
+                        else
+                            result
 
                     match run.TryGetProperty "results" with
                     | None -> []
-                    | Some results -> results.AsArray() |> Array.map repoint |> List.ofArray)
+                    | Some results -> results.AsArray() |> Array.map repoint |> List.ofArray
+                )
 
             List.ofSeq merged, results
 
@@ -404,7 +413,8 @@ let narrowOutput (keep: FindingFilter) (output: string) : string =
         if not m.Success then
             true
         else
-            keep m.Groups["code"].Value m.Groups["path"].Value (int m.Groups["line"].Value))
+            keep m.Groups["code"].Value m.Groups["path"].Value (int m.Groups["line"].Value)
+    )
     |> String.concat "\n"
 
 /// The same narrowing, over the report a project just wrote, so that `analysis.sarif` and what was
@@ -417,14 +427,15 @@ let narrowReport (keep: FindingFilter) (report: string) : unit =
             match result.TryGetProperty "ruleId" with
             | None -> true
             | Some ruleId ->
-                let location: JsonValue =
-                    result.GetProperty("locations").AsArray().[0].GetProperty("physicalLocation")
 
-                let path: string =
-                    location.GetProperty("artifactLocation").GetProperty("uri").AsString()
+            let location: JsonValue =
+                result.GetProperty("locations").AsArray().[0].GetProperty("physicalLocation")
 
-                let line: int = location.GetProperty("region").GetProperty("startLine").AsInteger()
-                keep (ruleId.AsString()) path line
+            let path: string =
+                location.GetProperty("artifactLocation").GetProperty("uri").AsString()
+
+            let line: int = location.GetProperty("region").GetProperty("startLine").AsInteger()
+            keep (ruleId.AsString()) path line
 
         // The tool writes one `tool.driver.rules` entry per finding, whose `name` is that finding's
         // own message rather than the rule's. Filtering `results` and leaving the rules alone
@@ -436,36 +447,40 @@ let narrowReport (keep: FindingFilter) (report: string) : unit =
             match run.TryGetProperty "results" with
             | None -> run
             | Some results ->
-                let kept: JsonValue array = Array.filter keepResult (results.AsArray())
-                let rules: JsonValue array = rulesOf run
 
-                let referenced: int array =
-                    kept
-                    |> Array.choose (fun (result: JsonValue) ->
-                        result.TryGetProperty "ruleIndex"
-                        |> Option.map (fun (index: JsonValue) -> index.AsInteger()))
-                    |> Array.filter (fun (index: int) -> index >= 0 && index < rules.Length)
-                    |> Array.distinct
-                    |> Array.sort
+            let kept: JsonValue array = Array.filter keepResult (results.AsArray())
+            let rules: JsonValue array = rulesOf run
 
-                let renumbered: Map<int, int> =
-                    referenced
-                    |> Array.mapi (fun (position: int) (original: int) -> original, position)
-                    |> Map.ofArray
+            let referenced: int array =
+                kept
+                |> Array.choose (fun (result: JsonValue) ->
+                    result.TryGetProperty "ruleIndex"
+                    |> Option.map (fun (index: JsonValue) -> index.AsInteger())
+                )
+                |> Array.filter (fun (index: int) -> index >= 0 && index < rules.Length)
+                |> Array.distinct
+                |> Array.sort
 
-                let repointed: JsonValue array =
-                    kept
-                    |> Array.map (fun (result: JsonValue) ->
-                        match result.TryGetProperty "ruleIndex" with
-                        | None -> result
-                        | Some index ->
-                            match Map.tryFind (index.AsInteger()) renumbered with
-                            | None -> result
-                            | Some position -> withProperty "ruleIndex" (JsonValue.Number(decimal position)) result)
+            let renumbered: Map<int, int> =
+                referenced
+                |> Array.mapi (fun (position: int) (original: int) -> original, position)
+                |> Map.ofArray
 
-                run
-                |> withProperty "results" (JsonValue.Array repointed)
-                |> withRules (Array.map (fun (index: int) -> rules[index]) referenced)
+            let repointed: JsonValue array =
+                kept
+                |> Array.map (fun (result: JsonValue) ->
+                    match result.TryGetProperty "ruleIndex" with
+                    | None -> result
+                    | Some index ->
+
+                    match Map.tryFind (index.AsInteger()) renumbered with
+                    | None -> result
+                    | Some position -> withProperty "ruleIndex" (JsonValue.Number(decimal position)) result
+                )
+
+            run
+            |> withProperty "results" (JsonValue.Array repointed)
+            |> withRules (Array.map (fun (index: int) -> rules[index]) referenced)
 
         let runs: JsonValue array =
             document.GetProperty("runs").AsArray() |> Array.map narrowRun
@@ -499,7 +514,8 @@ let analyzeTargets
     (extraArguments: string list)
     (keep: FindingFilter)
     (targets: AnalysisTarget list)
-    : Async<int> =
+    : Async<int>
+    =
     async {
         let! analyzers = analyzerPaths ctx
 

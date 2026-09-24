@@ -128,7 +128,8 @@ pipeline "Coverage" {
                         File.Delete file
 
                 return 0
-            })
+            }
+        )
     }
 
     stage "Coverage" {
@@ -153,7 +154,8 @@ pipeline "Coverage" {
 
                 printfn $"Browse the full report at {index}"
                 return 0
-            })
+            }
+        )
     }
 
     runIfOnlySpecified true
@@ -177,7 +179,8 @@ pipeline "FormatChanged" {
 
                     let! result = ctx.RunCommandCaptureAll $"dotnet fantomas --json {arguments}"
                     return result.ExitCode
-            })
+            }
+        )
     }
     runIfOnlySpecified true
 }
@@ -198,7 +201,8 @@ pipeline "PushClient" {
                             return -1
                         }
                     )
-            })
+            }
+        )
     }
     runIfOnlySpecified true
 }
@@ -223,7 +227,8 @@ pipeline "Docs" {
                 |> String.concat " "
 
             ctx.RunCommand
-                $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval %s{extraArgs}")
+                $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval %s{extraArgs}"
+        )
     }
     runIfOnlySpecified true
 }
@@ -349,7 +354,8 @@ pipeline "Init" {
             |]
             |> Array.map (downloadCompilerFile fsharpCompilerHash)
             |> Async.Parallel
-            |> Async.Ignore)
+            |> Async.Ignore
+        )
     }
     runIfOnlySpecified true
 }
@@ -415,12 +421,13 @@ pipeline "Release" {
                     let mainVersion = versionParts.[0]
                     let patchVersion =
                         let parts = mainVersion.Split('.')
-                        if parts.Length >= 3 then
-                            match Int32.TryParse(parts.[2]) with
-                            | true, p -> p
-                            | _ -> 0
-                        else
+                        if parts.Length < 3 then
                             0
+                        else
+
+                        match Int32.TryParse(parts.[2]) with
+                        | true, p -> p
+                        | _ -> 0
 
                     let isRevision = patchVersion <> 0
                     // Draft only for stable minor/major releases (patch = 0 and not prerelease)
@@ -462,7 +469,8 @@ pipeline "Release" {
                         printfn $"Warning: GitHub release creation returned exit code: {draftExitCode}"
 
                     return Seq.max [| yield! nugetExitCodes; yield draftExitCode |]
-            })
+            }
+        )
     }
     runIfOnlySpecified true
 }
@@ -484,7 +492,8 @@ pipeline "PublishAlpha" {
                     nugetPackages |> Array.map (pushPackage ctx) |> Async.Sequential
 
                 return Seq.sum nugetExitCodes
-            })
+            }
+        )
     }
     runIfOnlySpecified true
 }
@@ -507,7 +516,8 @@ pipeline "Analyze" {
 
                 Scripts analyzableScripts
             ]
-            |> analyzeTargets ctx localAdvisoryAnalyzers [] everyFinding)
+            |> analyzeTargets ctx localAdvisoryAnalyzers [] everyFinding
+        )
     }
     runIfOnlySpecified true
 }
@@ -546,7 +556,8 @@ pipeline "AnalyzeChanged" {
                 | targets ->
                     let! scopes = changedLines ctx
                     return! analyzeTargets ctx [] demoteLocalErrors (keepFinding scopes) targets
-            })
+            }
+        )
     }
 
     runIfOnlySpecified true

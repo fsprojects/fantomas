@@ -104,7 +104,8 @@ let getPublishedDate (ctx: StageContext) (version: string) : Async<string option
 let mkGithubRelease
     (ctx: StageContext)
     (v: SemanticVersion, d: DateTime, cd: ChangelogData option)
-    : Async<GithubRelease> =
+    : Async<GithubRelease>
+    =
     match cd with
     | None -> failwith "Each Fantomas release is expected to have at least one section."
     | Some cd ->
@@ -143,7 +144,8 @@ let mkGithubRelease
                     if content = String.Empty then
                         None
                     else
-                        Some(sprintf "### %s\n%s" header content))
+                        Some(sprintf "### %s\n%s" header content)
+                )
                 |> String.concat "\n\n"
 
             let draft =
@@ -202,14 +204,16 @@ let getReleaseNotes
     (ctx: StageContext)
     (currentRelease: GithubRelease)
     (lastPublishedDate: string option)
-    : Async<string> =
+    : Async<string>
+    =
     async {
         let! date =
             match lastPublishedDate with
             | None -> mostRecentReleaseDate ctx
             | Some d ->
-                printfn $"Using last release published date for author attribution: {d}"
-                async.Return d
+
+            printfn $"Using last release published date for author attribution: {d}"
+            async.Return d
 
         printfn $"Querying PRs closed after {date} for author attribution..."
 
@@ -241,46 +245,49 @@ let getReleaseNotes
                     |> Array.collect (fun (pr: FSharp.Data.JsonValue) ->
                         let mergedAtOpt =
                             match pr.TryGetProperty("mergedAt") with
-                            | Some mergedAtJson ->
-                                let mergedAtStr = mergedAtJson.AsString()
-
-                                match
-                                    DateTime.TryParse(
-                                        mergedAtStr,
-                                        null,
-                                        System.Globalization.DateTimeStyles.RoundtripKind
-                                    )
-                                with
-                                | true, dt -> Some(dt.ToUniversalTime())
-                                | false, _ -> None
                             | None -> None
+                            | Some mergedAtJson ->
+
+                            let mergedAtStr: string = mergedAtJson.AsString()
+
+                            match
+                                DateTime.TryParse(mergedAtStr, null, System.Globalization.DateTimeStyles.RoundtripKind)
+                            with
+                            | true, dt -> Some(dt.ToUniversalTime())
+                            | false, _ -> None
 
                         match mergedAtOpt with
                         | Some mergedAt when mergedAt > cutoffTimestamp ->
                             match pr.TryGetProperty("commits") with
-                            | Some commitsJson ->
-                                let commits = commitsJson.AsArray()
-
-                                commits
-                                |> Array.collect (fun (commit: FSharp.Data.JsonValue) ->
-                                    match commit.TryGetProperty("authors") with
-                                    | Some authorsJson ->
-                                        let commitAuthors = authorsJson.AsArray()
-
-                                        commitAuthors
-                                        |> Array.choose (fun (author: FSharp.Data.JsonValue) ->
-                                            match author.TryGetProperty("login") with
-                                            | Some loginJson ->
-                                                let login = loginJson.AsString()
-                                                // Filter out bots
-                                                if login.EndsWith("[bot]", StringComparison.Ordinal) then
-                                                    None
-                                                else
-                                                    Some(login)
-                                            | None -> None)
-                                    | None -> [||])
                             | None -> [||]
-                        | _ -> [||])
+                            | Some commitsJson ->
+
+                            let commits: FSharp.Data.JsonValue array = commitsJson.AsArray()
+
+                            commits
+                            |> Array.collect (fun (commit: FSharp.Data.JsonValue) ->
+                                match commit.TryGetProperty("authors") with
+                                | None -> [||]
+                                | Some authorsJson ->
+
+                                let commitAuthors: FSharp.Data.JsonValue array = authorsJson.AsArray()
+
+                                commitAuthors
+                                |> Array.choose (fun (author: FSharp.Data.JsonValue) ->
+                                    match author.TryGetProperty("login") with
+                                    | None -> None
+                                    | Some loginJson ->
+
+                                    let login: string = loginJson.AsString()
+                                    // Filter out bots
+                                    if login.EndsWith("[bot]", StringComparison.Ordinal) then
+                                        None
+                                    else
+                                        Some(login)
+                                )
+                            )
+                        | _ -> [||]
+                    )
                     |> Array.distinct
                     |> Array.sort
 
@@ -291,18 +298,19 @@ let getReleaseNotes
                 elif authors.Length = 1 then
                     $"Special thanks to @%s{authors.[0]}!"
                 else
-                    let lastAuthor = Array.last authors
 
-                    let otherAuthors =
-                        if authors.Length = 2 then
-                            $"@{authors.[0]}"
-                        else
-                            authors
-                            |> Array.take (authors.Length - 1)
-                            |> Array.map (sprintf "@%s")
-                            |> String.concat ", "
+                let lastAuthor: string = Array.last authors
 
-                    $"Special thanks to %s{otherAuthors} and @%s{lastAuthor}!"
+                let otherAuthors: string =
+                    if authors.Length = 2 then
+                        $"@{authors.[0]}"
+                    else
+                        authors
+                        |> Array.take (authors.Length - 1)
+                        |> Array.map (sprintf "@%s")
+                        |> String.concat ", "
+
+                $"Special thanks to %s{otherAuthors} and @%s{lastAuthor}!"
 
         return
             $"""{currentRelease.Draft}
@@ -321,11 +329,12 @@ let rec private firstPublished (ctx: StageContext) (versions: string list) : Asy
         match versions with
         | [] -> return None
         | version :: rest ->
-            let! published = getPublishedDate ctx version
 
-            match published with
-            | Some date -> return Some(version, date)
-            | None -> return! firstPublished ctx rest
+        let! published = getPublishedDate ctx version
+
+        match published with
+        | Some date -> return Some(version, date)
+        | None -> return! firstPublished ctx rest
     }
 
 let getCurrentReleaseAndLastPublishedDate (ctx: StageContext) : Async<GithubRelease * string option> =
@@ -337,8 +346,9 @@ let getCurrentReleaseAndLastPublishedDate (ctx: StageContext) : Async<GithubRele
             match Parser.parseChangeLog changelog with
             | Error error -> failwithf "Failed to parse changelog: %A" error
             | Ok result ->
-                printfn $"Found {result.Releases.Length} releases in changelog"
-                result
+
+            printfn $"Found {result.Releases.Length} releases in changelog"
+            result
 
         let releases =
             changeLogResult.Releases
@@ -347,23 +357,24 @@ let getCurrentReleaseAndLastPublishedDate (ctx: StageContext) : Async<GithubRele
         match releases with
         | [] -> return failwith "Could not find any release in CHANGELOG.md"
         | current :: earlierReleases ->
-            let! currentRelease = mkGithubRelease ctx current
-            printfn $"Current release: {currentRelease.Version}"
 
-            // The release below the current one does not have to exist on GitHub: 7.0.6 went to
-            // NuGet by hand from the v7.0.6 branch and never got a GitHub release. Walk down the
-            // recent entries until GitHub knows one, its publish date is what the contributor
-            // query is based on. Anything older than that is out of date anyway, getReleaseNotes
-            // then falls back to the most recent release GitHub reports.
-            let! lastPublishedRelease =
-                earlierReleases
-                |> List.truncate 5
-                |> List.map (fun (v, _, _) -> formatVersion v)
-                |> firstPublished ctx
+        let! currentRelease = mkGithubRelease ctx current
+        printfn $"Current release: {currentRelease.Version}"
 
-            match lastPublishedRelease with
-            | None -> printfn "None of the recent changelog entries has a GitHub release"
-            | Some(version, date) -> printfn $"Last release on GitHub: {version}, published at {date}"
+        // The release below the current one does not have to exist on GitHub: 7.0.6 went to
+        // NuGet by hand from the v7.0.6 branch and never got a GitHub release. Walk down the
+        // recent entries until GitHub knows one, its publish date is what the contributor
+        // query is based on. Anything older than that is out of date anyway, getReleaseNotes
+        // then falls back to the most recent release GitHub reports.
+        let! lastPublishedRelease =
+            earlierReleases
+            |> List.truncate 5
+            |> List.map (fun (v, _, _) -> formatVersion v)
+            |> firstPublished ctx
 
-            return currentRelease, Option.map snd lastPublishedRelease
+        match lastPublishedRelease with
+        | None -> printfn "None of the recent changelog entries has a GitHub release"
+        | Some(version, date) -> printfn $"Last release on GitHub: {version}, published at {date}"
+
+        return currentRelease, Option.map snd lastPublishedRelease
     }
