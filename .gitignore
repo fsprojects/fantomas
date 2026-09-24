@@ -181,7 +181,6 @@ external-project-tests/
 .vscode/
 BenchmarkDotNet.Artifacts/
 FormatChanged.ps1
-src/Fantomas.FCS/generated/
 
 # FsDocs
 docs/content/fsdocs-custom.css
