@@ -364,25 +364,25 @@ comfortably fit on one. This page explains when that happens and why, because it
 rather than a missed opportunity.</p>
 <h2 data-fsdocs-heading="2"><a name="The-symptom" class="anchor" href="#The-symptom">The symptom</a></h2>
 <p>This record is well under the width Fantomas would collapse at, and it stays as it is:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">r</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">r</span> <span class="o">=</span>
     <span class="pn">{</span>
         <span class="id">A</span> <span class="o">=</span> <span class="n">1</span>
         <span class="id">B</span> <span class="o">=</span> <span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="id">x</span> <span class="o">+</span> <span class="n">1</span>
         <span class="id">C</span> <span class="o">=</span> <span class="n">3</span>
     <span class="pn">}</span>
-</code></pre>
+</code></pre></div>
 <p>Take the lambda out and the same record goes to one line:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="2" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="n">2</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span> <span class="pn">}</span>
-</code></pre>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="2" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="n">2</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span> <span class="pn">}</span>
+</code></pre></div>
 <h2 data-fsdocs-heading="3"><a name="Why" class="anchor" href="#Why">Why</a></h2>
 <p>In F#, <code>fun</code> extends as far to the right as it can. That is a rule of the language, not a
 formatting preference. Written on one line, the record above says something else entirely:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="3" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="id">x</span> <span class="o">+</span> <span class="n">1</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span> <span class="pn">}</span>
-</code></pre>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="3" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="id">x</span> <span class="o">+</span> <span class="n">1</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span> <span class="pn">}</span>
+</code></pre></div>
 <p>The compiler reads that as a record with <strong>two</strong> fields, not three, because everything after
 the arrow belongs to the lambda:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="4" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="pn">(</span><span class="id">x</span> <span class="o">+</span> <span class="n">1</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span><span class="pn">)</span> <span class="pn">}</span>
-</code></pre>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="4" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="pn">(</span><span class="id">x</span> <span class="o">+</span> <span class="n">1</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span><span class="pn">)</span> <span class="pn">}</span>
+</code></pre></div>
 <p>The <code>;</code> that Fantomas would write to separate the fields becomes a sequential expression inside
 the lambda body instead.</p>
 <p><a href="./DesignDecisions.html">Fantomas re-types your entire source</a> rather than
@@ -395,7 +395,7 @@ anything that wraps one of them, such as <code>lazy</code>, <code>yield</code> o
 <p>Fantomas keeps the layout multiline when an open-ended expression sits anywhere but <strong>last</strong> in
 a record, an anonymous record, a list, an array or a tuple, or on the <strong>left</strong> of an infix
 operator:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="5" class="id">xs</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="5" class="id">xs</span> <span class="o">=</span>
     <span class="pn">[</span>
         <span class="n">1</span><span class="pn">,</span> <span class="k">fun</span> <span class="pn">(</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="n">1</span>
         <span class="n">2</span><span class="pn">,</span> <span class="k">fun</span> <span class="pn">(</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="n">2</span>
@@ -404,28 +404,28 @@ operator:</p>
 <span class="k">let</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="6" class="id">a</span> <span class="o">=</span>
     <span class="k">fun</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="7" class="fn">x</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="8" class="fn">x</span> <span class="o">+</span> <span class="n">1</span>
     <span class="o">|&gt;</span> <span class="id">g</span>
-</code></pre>
+</code></pre></div>
 <p>The last position is fine as it is, because the closing bracket ends the expression and there is
 nothing left for it to swallow:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="9" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="id">x</span> <span class="o">+</span> <span class="n">1</span> <span class="pn">}</span>
-</code></pre>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="9" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="id">x</span> <span class="o">+</span> <span class="n">1</span> <span class="pn">}</span>
+</code></pre></div>
 <p>What counts is whether the expression really does run on. <code>lazy</code> around a lambda does, <code>lazy</code>
 around a plain value does not, so only the first of these stays multiline:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="10" class="id">xs</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="10" class="id">xs</span> <span class="o">=</span>
     <span class="pn">[</span>
         <span class="k">lazy</span> <span class="k">fun</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="11" class="fn">x</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="12" class="fn">x</span>
         <span class="n">2</span>
     <span class="pn">]</span>
 
 <span class="k">let</span> <span data-fsdocs-tip="fs7" data-fsdocs-tip-unique="13" class="id">ys</span> <span class="o">=</span> <span class="pn">[</span> <span class="k">lazy</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="14" class="id">a</span><span class="pn">;</span> <span class="n">2</span> <span class="pn">]</span>
-</code></pre>
+</code></pre></div>
 <h2 data-fsdocs-heading="5"><a name="Getting-the-single-line-back" class="anchor" href="#Getting-the-single-line-back">Getting the single line back</a></h2>
 <p>Put the parentheses in yourself. They close the expression, so nothing can run past them and
 Fantomas is free to collapse:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="15" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="id">x</span> <span class="o">+</span> <span class="n">1</span><span class="pn">)</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span> <span class="pn">}</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="15" class="id">r</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">A</span> <span class="o">=</span> <span class="n">1</span><span class="pn">;</span> <span class="id">B</span> <span class="o">=</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">x</span> <span class="k">-&gt;</span> <span class="id">x</span> <span class="o">+</span> <span class="n">1</span><span class="pn">)</span><span class="pn">;</span> <span class="id">C</span> <span class="o">=</span> <span class="n">3</span> <span class="pn">}</span>
 
 <span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="16" class="id">xs</span> <span class="o">=</span> <span class="pn">[</span> <span class="n">1</span><span class="pn">,</span> <span class="pn">(</span><span class="k">fun</span> <span class="pn">(</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="n">1</span><span class="pn">)</span><span class="pn">;</span> <span class="n">2</span><span class="pn">,</span> <span class="pn">(</span><span class="k">fun</span> <span class="pn">(</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="n">2</span><span class="pn">)</span> <span class="pn">]</span>
-</code></pre>
+</code></pre></div>
 <p>This is a change to your code rather than to your formatting, which is exactly why Fantomas
 leaves it to you.</p>
 <h2 data-fsdocs-heading="6"><a name="Why-not-add-the-parentheses-for-you" class="anchor" href="#Why-not-add-the-parentheses-for-you">Why not add the parentheses for you</a></h2>
@@ -439,13 +439,13 @@ the parenthesised record above stays on one line; written across several, it is 
 one. What decides the layout is the expression, never the way you happened to type it.</p>
 <fantomas-nav previous="Chains.html" next="ConditionalCompilationDirectives.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">val r: &#39;a</div>
-<div popover class="fsdocs-tip" id="fs2">val xs: (int * (unit -&gt; int)) list</div>
-<div popover class="fsdocs-tip" id="fs3">val a: obj</div>
-<div popover class="fsdocs-tip" id="fs4">val x: int</div>
-<div popover class="fsdocs-tip" id="fs5">val xs: Lazy&lt;(obj -&gt; obj)&gt; list</div>
-<div popover class="fsdocs-tip" id="fs6">val x: obj</div>
-<div popover class="fsdocs-tip" id="fs7">val ys: Lazy&lt;obj&gt; list</div>
+        <div popover class="fsdocs-tip" id="fs1"><span class="k">val</span> <span class="fn">r</span><span class="pn">:</span> <span class="ta">&#39;a</span></div>
+<div popover class="fsdocs-tip" id="fs2"><span class="k">val</span> <span class="fn">xs</span><span class="pn">:</span> <span class="pn">(</span><span class="vt">int</span> <span class="pn">*</span> <span class="pn">(</span><span class="rt">unit</span> <span class="pn">-&gt;</span> <span class="vt">int</span><span class="pn">)</span><span class="pn">)</span> <span class="rt">list</span></div>
+<div popover class="fsdocs-tip" id="fs3"><span class="k">val</span> <span class="fn">a</span><span class="pn">:</span> <span class="rt">obj</span></div>
+<div popover class="fsdocs-tip" id="fs4"><span class="k">val</span> <span class="id">x</span><span class="pn">:</span> <span class="vt">int</span></div>
+<div popover class="fsdocs-tip" id="fs5"><span class="k">val</span> <span class="fn">xs</span><span class="pn">:</span> <span class="rt">Lazy</span><span class="pn">&lt;</span><span class="pn">(</span><span class="rt">obj</span> <span class="pn">-&gt;</span> <span class="rt">obj</span><span class="pn">)</span><span class="pn">&gt;</span> <span class="rt">list</span></div>
+<div popover class="fsdocs-tip" id="fs6"><span class="k">val</span> <span class="id">x</span><span class="pn">:</span> <span class="rt">obj</span></div>
+<div popover class="fsdocs-tip" id="fs7"><span class="k">val</span> <span class="fn">ys</span><span class="pn">:</span> <span class="rt">Lazy</span><span class="pn">&lt;</span><span class="rt">obj</span><span class="pn">&gt;</span> <span class="rt">list</span></div>
 
     </div>
 </main>

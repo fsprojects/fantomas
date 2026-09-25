@@ -474,10 +474,10 @@
 
 <h2 data-fsdocs-heading="5"><a name="Speculative-formatting" class="anchor" href="#Speculative-formatting">Speculative formatting</a></h2>
 <p>Several functions try a short layout and fall back to a long one:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">CreateBackupPoint</span>  
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">CreateBackupPoint</span>  
                                             
                                         <span class="id">RollbackTo</span>  
-</code></pre>
+</code></pre></div>
 <ul>
 <li><code>expressionFitsOnRestOfLine</code> / <code>isShortExpression</code>: Uses <code>ShortExpression</code> mode to detect overflow</li>
 <li><code>expressionExceedsPageWidth</code>: Same, with <code>LongExpressionLayout</code> DU for the long path</li>
@@ -486,8 +486,8 @@
 </ul>
 <h2 data-fsdocs-heading="6"><a name="Trivia-aware-indentation" class="anchor" href="#Trivia-aware-indentation">Trivia-aware indentation</a></h2>
 <p><code>indentSepNlnUnindent</code> is the most common formatting pattern (66+ call sites). It indents, adds a newline, runs the content, then unindents:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">indent</span> <span class="o">+&gt;</span> <span class="id">sepNln</span> <span class="o">+&gt;</span> <span class="id">content</span> <span class="o">+&gt;</span> <span class="id">unindent</span>
-</code></pre>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">indent</span> <span class="o">+&gt;</span> <span class="id">sepNln</span> <span class="o">+&gt;</span> <span class="id">content</span> <span class="o">+&gt;</span> <span class="id">unindent</span>
+</code></pre></div>
 <p>Both sides are trivia-aware:</p>
 <ul>
 <li>*<em><code>indentSepNlnWithTriviaAwareness</code>*</em>: If trailing trivia exists before the indent point, splices <code>IndentBy</code> before the trivia block so the comment appears at the indented level. The trivia's own newline replaces <code>sepNln</code>.</li>
@@ -496,28 +496,27 @@
 <p>Both use <code>findTrailingTriviaNewline</code> which walks backward from the DLL tail, skipping <code>RestoreIndent</code>/<code>RestoreAtColumn</code>/<code>UnIndentBy</code>/<code>IndentBy</code>/<code>WriteLine</code> events, then verifies a <code>WriteLineBecauseOfTrivia</code> preceded by <code>WriteTrivia</code>.</p>
 <h2 data-fsdocs-heading="7"><a name="LongExpressionLayout" class="anchor" href="#LongExpressionLayout">LongExpressionLayout</a></h2>
 <p>The <code>LongExpressionLayout</code> DU describes how to lay out an expression that doesn't fit on one line:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">LongExpressionLayout</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">LongExpressionLayout</span> <span class="o">=</span>
     <span class="pn">|</span> <span class="id">IndentAndUnindent</span>          <span class="c">// indent +&gt; sepNln +&gt; expr +&gt; unindent</span>
     <span class="pn">|</span> <span class="id">DoubleIndentAndUnindent</span>    <span class="c">// indent +&gt; indent +&gt; sepNln +&gt; expr +&gt; unindent +&gt; unindent</span>
     <span class="pn">|</span> <span class="id">NewlineOnly</span>                <span class="c">// sepNln +&gt; expr</span>
-</code></pre>
+</code></pre></div>
 <p><code>expressionExceedsPageWidthWithLayout</code> translates the DU to before/after functions, with <code>unindentWithTriviaAwareness</code> on the trailing side for indent layouts.</p>
 <p>The wrapper functions <code>autoIndentAndNlnIfExpressionExceedsPageWidth</code>, <code>sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth</code>, etc. all delegate to this.</p>
 <h2 data-fsdocs-heading="8"><a name="WriterModel" class="anchor" href="#WriterModel">WriterModel</a></h2>
 <p><code>WriterModel</code> tracks formatting metadata without building strings:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">{</span> <span class="id">LineCount</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">int</span>          <span class="c">// number of lines produced</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">{</span> <span class="id">LineCount</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">int</span>          <span class="c">// number of lines produced</span>
   <span class="id">Column</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="2" class="id">int</span>             <span class="c">// current position on the line</span>
   <span class="id">Indent</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="3" class="id">int</span>             <span class="c">// current indentation level</span>
   <span class="id">AtColumn</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="4" class="id">int</span>           <span class="c">// indentation floor (from atCurrentColumn)</span>
   <span class="id">WriteBeforeNewline</span><span class="pn">:</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="5" class="id">string</span>
   <span class="id">Mode</span><span class="pn">:</span> <span class="id">WriteModelMode</span> <span class="pn">}</span>  <span class="c">// Standard, Dummy, or ShortExpression</span>
-</code></pre>
+</code></pre></div>
 <p><code>WriterModel.update</code> processes each event and updates these fields. The same function is used both during normal formatting and when splicing events (to keep the model in sync after an <code>InsertBefore</code>).</p>
 <fantomas-nav previous="History.html" next="Trivia%20Assignment.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">Multiple items<br />val int: value: &#39;T -&gt; int (requires member op_Explicit)<br /><br />--------------------<br />type int = int32<br /><br />--------------------<br />type int&lt;&#39;Measure&gt; =
-  int</div>
-<div popover class="fsdocs-tip" id="fs2">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
+        <div popover class="fsdocs-tip" id="fs1">Multiple items<br /><span class="k">val</span> <span class="fn">int</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="vt">int</span> <span class="pn">(</span><span class="k">requires</span> <span class="k">member</span> <span class="fn">op_Explicit</span><span class="pn">)</span><br /><br />--------------------<br /><span class="k">type</span> int <span class="o">=</span> <span class="vt">int32</span><br /><br />--------------------<br /><span class="k">type</span> int<span class="pn">&lt;</span><span class="ta">&#39;Measure</span><span class="pn">&gt;</span> <span class="o">=</span><br />&#160;&#160;<span class="vt">int</span></div>
+<div popover class="fsdocs-tip" id="fs2">Multiple items<br /><span class="k">val</span> <span class="fn">string</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="rt">string</span><br /><br />--------------------<br /><span class="k">type</span> <span class="rt">string</span> <span class="o">=</span> <span class="m">System.</span><span class="rt">String</span></div>
 
     </div>
 </main>

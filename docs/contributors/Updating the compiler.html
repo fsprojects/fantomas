@@ -363,21 +363,21 @@
 Reasons can be bugfixes or new features we want to use.
 Examples are range fixes or newly added information in the AST we want to make use of.</p>
 <p>To do this, first remove the old compiler sources by running:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git clean -xdf
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">git clean -xdf
+</code></pre></div>
 <p>Make sure, that this removes your <code>.deps</code> folder.<br />
 Next update the hash of the source version to use. Edit the <code>FCSCommitHash</code> value in the <code>Directory.Build.props</code> file.
 Run</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fsi .\build.fsx -p Init
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">dotnet fsi .\build.fsx -p Init
+</code></pre></div>
 <p>to download the new sources into the <code>.deps</code> folder. Make sure there's one directory in <code>.deps</code> named like the configured hash afterwards.</p>
 <p>You can now run a build to see if there is any obvious breakage:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet build
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">dotnet build
+</code></pre></div>
 <p>If not, you can run the <code>Fantomas.Core</code> tests next</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">cd ./src/Fantomas.Core.Tests
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">cd ./src/Fantomas.Core.Tests
 dotnet test
-</code></pre></td></tr></table>
+</code></pre></div>
 <p>Even if the tests are all green you should take a look at all the changes made to the <a href="https://github.com/dotnet/fsharp/commits/main/src/Compiler/SyntaxTree">SyntaxTree</a> and make sure these changes don't need further adjustments in Fantomas.</p>
 <p>Think about tests to catch any regressions caused by the update and it's effects on Fantomas.</p>
 <fantomas-nav previous="Pull%20request%20ground%20rules.html" next="Releases.html"></fantomas-nav>

@@ -379,7 +379,7 @@ In short, we use the <code>Untyped Abstract Syntax Tree</code> created by the F#
 </li>
 </ul>
 <p>For example <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synexpr.html#For">SynExpr.For</a>, the definition looks like:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="rt">SynExpr</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="rt">SynExpr</span> <span class="o">=</span>
     <span class="o">..</span><span class="pn">.</span>
     <span class="c">/// F# syntax: expr; expr</span>
     <span class="c">///</span>
@@ -390,10 +390,10 @@ In short, we use the <code>Untyped Abstract Syntax Tree</code> created by the F#
         <span class="id">expr1</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="3" class="id">SynExpr</span> <span class="pn">*</span>
         <span class="id">expr2</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="4" class="id">SynExpr</span> <span class="pn">*</span>
         <span class="id">range</span><span class="pn">:</span> <span class="id">range</span>
-</code></pre>
+</code></pre></div>
 <p>However, in Fantomas we have a partial active pattern that we use to easily grab the information we need from the AST.
 These partial actives are mostly used and defined in <code>ASTTransformer.fs</code>.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="pn">(</span><span class="pn">|</span><span class="id">Sequentials</span><span class="pn">|</span><span class="id">_</span><span class="pn">|</span><span class="pn">)</span> <span class="id">e</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="pn">(</span><span class="pn">|</span><span class="id">Sequentials</span><span class="pn">|</span><span class="id">_</span><span class="pn">|</span><span class="pn">)</span> <span class="id">e</span> <span class="o">=</span>
     <span class="k">let</span> <span class="k">rec</span> <span class="id">visit</span> <span class="pn">(</span><span class="id">e</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="5" class="id">SynExpr</span><span class="pn">)</span> <span class="pn">(</span><span class="id">finalContinuation</span><span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="6" class="id">SynExpr</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="7" class="id">list</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="8" class="id">SynExpr</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="9" class="id">list</span><span class="pn">)</span> <span class="pn">:</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="10" class="id">SynExpr</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="11" class="id">list</span> <span class="o">=</span>
         <span class="k">match</span> <span class="id">e</span> <span class="k">with</span>
         <span class="pn">|</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="12" class="id">SynExpr</span><span class="pn">.</span><span class="id">Sequential</span><span class="pn">(</span><span class="id">_</span><span class="pn">,</span> <span class="id">_</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">_</span><span class="pn">)</span> <span class="k">-&gt;</span> <span class="id">visit</span> <span class="id">e2</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">xs</span> <span class="k">-&gt;</span> <span class="id">e1</span> <span class="o">::</span> <span class="id">xs</span> <span class="o">|&gt;</span> <span class="id">finalContinuation</span><span class="pn">)</span>
@@ -404,7 +404,7 @@ These partial actives are mostly used and defined in <code>ASTTransformer.fs</co
         <span class="k">let</span> <span class="id">xs</span> <span class="o">=</span> <span class="id">visit</span> <span class="id">e2</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="14" class="id">id</span>
         <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="15" class="id">Some</span><span class="pn">(</span><span class="id">e1</span> <span class="o">::</span> <span class="id">xs</span><span class="pn">)</span>
     <span class="pn">|</span> <span class="id">_</span> <span class="k">-&gt;</span> <span data-fsdocs-tip="fs6" data-fsdocs-tip-unique="16" class="id">None</span>
-</code></pre>
+</code></pre></div>
 <p>Notice the underscores, we don't use the <code>DebugPointAtSequential</code> info and <code>range</code>, so we drop that information in the result of the partial active pattern.</p>
 <ul>
 <li><a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/operator-overloading#creating-new-operators">Custom operators</a>. In F# there are some special operators like <a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(|%3E)">|&gt;</a> and <a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(%3E%3E)">&gt;&gt;</a>.</li>
@@ -423,13 +423,13 @@ You can look at a signature file to get a glimpse of what the module really does
 <p>In contrast to partial active patterns, where we want to hide some AST information, it can occur that we need to extend the type of an AST node.
 We do this by adding a new type member to an existing Syntax tree type.
 Example in <code>Trivia.fs</code>:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">CommentTrivia</span> <span class="k">with</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">CommentTrivia</span> <span class="k">with</span>
 
     <span class="k">member</span> <span class="id">x</span><span class="pn">.</span><span class="id">Range</span> <span class="o">=</span>
         <span class="k">match</span> <span class="id">x</span> <span class="k">with</span>
         <span class="pn">|</span> <span class="id">CommentTrivia</span><span class="pn">.</span><span class="id">BlockComment</span> <span class="id">m</span>
         <span class="pn">|</span> <span class="id">CommentTrivia</span><span class="pn">.</span><span class="id">LineComment</span> <span class="id">m</span> <span class="k">-&gt;</span> <span class="id">m</span>
-</code></pre>
+</code></pre></div>
 <p>The type <code>SynMemberFlags</code> does not expose any range information, but we can extend it to do so.<br />
 The <code>.FullRange</code> naming convention is used to indicate that we are not satisfied by the original range or it is lacking all together.<br />
 Don't worry just yet about this implementation, so keep in mind that with this feature we can later use <code>memberFlags.FullRange</code> on a <code>SynMemberFlags</code> instance.</p>
@@ -453,12 +453,12 @@ We first rehearse what we want to say, then we write the letter. Not write evey 
 These events are used to achieve this.</p>
 <fantomas-nav previous="Index.html" next="Getting%20Started.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">type SynExpr</div>
-<div popover class="fsdocs-tip" id="fs2">type bool = System.Boolean</div>
-<div popover class="fsdocs-tip" id="fs3">type &#39;T list = List&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs4">val id: x: &#39;T -&gt; &#39;T</div>
-<div popover class="fsdocs-tip" id="fs5">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs6">union case Option.None: Option&lt;&#39;T&gt;</div>
+        <div popover class="fsdocs-tip" id="fs1"><span class="k">type</span> SynExpr</div>
+<div popover class="fsdocs-tip" id="fs2"><span class="k">type</span> bool <span class="o">=</span> <span class="m">System.</span><span class="vt">Boolean</span></div>
+<div popover class="fsdocs-tip" id="fs3"><span class="k">type</span> <span class="ta">&#39;T</span> list <span class="o">=</span> <span class="rt">List</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs4"><span class="k">val</span> <span class="fn">id</span><span class="pn">:</span> <span class="id">x</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
+<div popover class="fsdocs-tip" id="fs5">union case <span class="rt">Option</span><span class="pn">.</span><span class="uc">Some</span><span class="pn">:</span> <span class="prop">Value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="rt">Option</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs6">union case <span class="rt">Option</span><span class="pn">.</span><span class="uc">None</span><span class="pn">:</span> <span class="rt">Option</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
 
     </div>
 </main>

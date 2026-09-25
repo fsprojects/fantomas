@@ -368,33 +368,33 @@
 <li>Always keep your fork up to date</li>
 </ul>
 <p>Before updating your fork, run this command:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git remote add upstream https://github.com/fsprojects/fantomas.git
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">git remote add upstream https://github.com/fsprojects/fantomas.git
+</code></pre></div>
 <p>This will make management of multiple forks and your own work easier over time.</p>
 <h2 data-fsdocs-heading="3"><a name="Updating-your-fork" class="anchor" href="#Updating-your-fork">Updating your fork</a></h2>
 <p>We recommend the following commands to update your fork:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout main
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">git checkout main
 git clean -xdf
 git fetch upstream
 git rebase upstream/main
 git push
-</code></pre></td></tr></table>
+</code></pre></div>
 <p>Or more succinctly:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout main &amp;&amp; git clean -xdf &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/main &amp;&amp; git push
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">git checkout main &amp;&amp; git clean -xdf &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/main &amp;&amp; git push
+</code></pre></div>
 <p>This will update your fork with the latest from <code>fsprojects/fantomas</code> on your machine and push those updates to your remote fork.</p>
 <h2 data-fsdocs-heading="4"><a name="dotnet-SDK" class="anchor" href="#dotnet-SDK">dotnet SDK</a></h2>
 <p>Please download the correct <a href="https://dotnet.microsoft.com/download">dotnet SDK</a>, according to our <code>global.json</code> file.</p>
 <h2 data-fsdocs-heading="5"><a name="Initial-build" class="anchor" href="#Initial-build">Initial build</a></h2>
 <p>After cloning the repository, you should restore the local dotnet tools and the solution:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet tool restore
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">dotnet tool restore
 dotnet restore
-</code></pre></td></tr></table>
+</code></pre></div>
 <p>The restore of project <code>Fantomas.FCS</code> (via the solution restore) will download the F# compiler source code.</p>
 <p>Afterwards, you can run the default build script.
 This will build the solution, run all unit tests and do everything that the CI build does.</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fsi build.fsx
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">dotnet fsi build.fsx
+</code></pre></div>
 <p>Alternately, you can also run some other pipelines using <code>-p</code>.
 Examples:</p>
 <ul>

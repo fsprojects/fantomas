@@ -375,7 +375,7 @@ repository asked for.</p>
 API, not to be pasted into a script.</p>
 </blockquote>
 <h2 data-fsdocs-heading="2"><a name="Formatting-a-document" class="anchor" href="#Formatting-a-document">Formatting a document</a></h2>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">open</span> <span class="id">Fantomas</span><span class="pn">.</span><span class="id">Client</span><span class="pn">.</span><span class="id">Contracts</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">open</span> <span class="id">Fantomas</span><span class="pn">.</span><span class="id">Client</span><span class="pn">.</span><span class="id">Contracts</span>
 <span class="k">open</span> <span class="id">Fantomas</span><span class="pn">.</span><span class="id">Client</span><span class="pn">.</span><span class="id">LSPFantomasService</span>
 
 <span class="c">// One service for the lifetime of your tool. It caches a daemon per Fantomas version, mapping each</span>
@@ -404,7 +404,7 @@ API, not to be pasted into a script.</p>
     <span class="c">// Error, Ignored, ToolNotFound, FileNotFound, FilePathIsNotAbsolute, DaemonCreationFailed, ...</span>
     <span class="c">// Content carries a message explaining what went wrong.</span>
     <span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="17" class="fn">eprintfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span> <span class="pn">(</span><span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="18" class="m">Option</span><span class="pn">.</span><span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="19" class="id">defaultValue</span> <span class="s">&quot;&quot;</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="20" class="id">response</span><span class="pn">.</span><span class="id">Content</span><span class="pn">)</span>
-</code></pre>
+</code></pre></div>
 <p>Every call answers with the same <code>FantomasResponse</code>, and <code>Code</code> is what you branch on. It is an
 <code>int</code> rather than a union so the type survives the wire; compare it against <code>FantomasResponseCode</code>.
 Nothing throws for an unusable path or a missing tool, so there is exactly one place to handle
@@ -415,7 +415,7 @@ failure.</p>
 succeeds, using defaults for whatever could not be read, so without being told the user sees the
 setting quietly not apply.</p>
 <p>Subscribe to <code>ConfigurationWarnings</code> to surface it:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="21" class="id">service</span><span class="pn">.</span><span class="id">ConfigurationWarnings</span><span class="pn">.</span><span class="id">Add</span><span class="pn">(</span><span class="k">fun</span> <span class="id">warning</span> <span class="k">-&gt;</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="21" class="id">service</span><span class="pn">.</span><span class="id">ConfigurationWarnings</span><span class="pn">.</span><span class="id">Add</span><span class="pn">(</span><span class="k">fun</span> <span class="id">warning</span> <span class="k">-&gt;</span>
     <span class="k">if</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="22" class="id">Array</span><span class="pn">.</span><span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="23" class="id">isEmpty</span> <span class="id">warning</span><span class="pn">.</span><span class="id">Problems</span> <span class="k">then</span>
         <span class="c">// Nothing is wrong any more, so clear whatever you showed for this file earlier.</span>
         <span class="id">clearWarnings</span> <span class="id">warning</span><span class="pn">.</span><span class="id">FilePath</span>
@@ -427,7 +427,7 @@ setting quietly not apply.</p>
             <span class="k">else</span>
                 <span class="s">$&quot;%s{</span><span class="id">problem</span><span class="pn">.</span><span class="id">Setting</span><span class="s">} does not accept the value %s{</span><span class="id">problem</span><span class="pn">.</span><span class="id">Value</span><span class="s">}&quot;</span><span class="pn">)</span>
         <span class="o">|&gt;</span> <span class="id">showWarnings</span> <span class="id">warning</span><span class="pn">.</span><span class="id">FilePath</span> <span class="id">warning</span><span class="pn">.</span><span class="id">EditorConfigFiles</span><span class="pn">)</span>
-</code></pre>
+</code></pre></div>
 <p>Worth knowing:</p>
 <ul>
 <li>
@@ -481,7 +481,7 @@ arrives on <code>fantomas/configurationWarning</code> carrying one object. The s
 The framing around it is StreamJsonRpc's default, which is JSON-RPC with <code>Content-Length</code> headers,
 the same as the Language Server Protocol uses, so this is what the payload looks like and not what
 goes on the wire byte for byte:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="json">{
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="json">{
   "FilePath": "/home/me/MyProject/Library.fs",
   "EditorConfigFiles": ["/home/me/MyProject/.editorconfig"],
   "Problems": [
@@ -489,7 +489,7 @@ goes on the wire byte for byte:</p>
     { "Code": 2, "Source": 2, "Setting": "fsharp_experimental_elmish", "Value": "not_a_bool" }
   ]
 }
-</code></pre></td></tr></table>
+</code></pre></div>
 <p><code>Code</code> is <code>1</code> for a setting Fantomas does not have and <code>2</code> for a value it cannot parse; <code>Source</code> is
 <code>1</code> for a <code>.editorconfig</code> on disk and <code>2</code> for the <code>Config</code> dictionary sent with the request.
 <code>Value</code> is <code>null</code> for <code>Code</code> <code>1</code>, because no value was ever read. <code>EditorConfigFiles</code> is empty when
@@ -503,13 +503,13 @@ Fantomas found on the <code>PATH</code> formats exactly as successfully as the v
 if the two differ the only visible symptom is a diff nobody expected.</p>
 <p><a href="../../reference/fantomas-client-lspfantomasservice-lspfantomasservice.html"><code>LSPFantomasService</code></a>
 takes an optional log delegate for that:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="27" class="id">service</span><span class="pn">:</span> <span class="id">FantomasService</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="27" class="id">service</span><span class="pn">:</span> <span class="id">FantomasService</span> <span class="o">=</span>
     <span class="k">new</span> <span class="id">LSPFantomasService</span><span class="pn">(</span>
         <span class="id">Action</span><span class="pn">&lt;</span><span class="id">FantomasLogLevel</span><span class="pn">,</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="28" class="id">string</span><span class="pn">&gt;</span><span class="pn">(</span><span class="k">fun</span> <span class="id">level</span> <span class="id">message</span> <span class="k">-&gt;</span>
             <span class="c">// Route it into whatever your tool already logs with.</span>
             <span class="id">myLogger</span><span class="pn">.</span><span class="id">Write</span><span class="pn">(</span><span class="id">level</span><span class="pn">,</span> <span class="id">message</span><span class="pn">)</span><span class="pn">)</span>
     <span class="pn">)</span>
-</code></pre>
+</code></pre></div>
 <p>It reports which Fantomas a folder resolved to and where it was found, when none could be found at
 all, and when a daemon is started or fails to start. The levels are
 <a href="../../reference/fantomas-client-lspfantomasservicetypes-fantomasloglevel.html"><code>FantomasLogLevel</code></a>.</p>
@@ -532,7 +532,7 @@ comes, so a lost log line is the cheaper end of that trade.
 <li>The parameterless constructor logs nothing, so nothing changes for a tool that does not want this.</li>
 </ul>
 <h2 data-fsdocs-heading="4"><a name="Formatting-a-selection" class="anchor" href="#Formatting-a-selection">Formatting a selection</a></h2>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">selectionRequest</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">selectionRequest</span> <span class="o">=</span>
     <span class="pn">{</span> <span class="id">SourceCode</span> <span class="o">=</span> <span class="id">sourceCode</span>
       <span class="id">FilePath</span> <span class="o">=</span> <span class="s">&quot;/home/me/MyProject/Library.fs&quot;</span>
       <span class="id">Config</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="29" class="id">None</span>
@@ -540,61 +540,51 @@ comes, so a lost log line is the cheaper end of that trade.
       <span class="id">Range</span> <span class="o">=</span> <span class="id">FormatSelectionRange</span><span class="pn">(</span><span class="n">1</span><span class="pn">,</span> <span class="n">0</span><span class="pn">,</span> <span class="n">3</span><span class="pn">,</span> <span class="n">12</span><span class="pn">)</span> <span class="pn">}</span>
 
 <span class="k">let</span> <span class="id">selectionResponse</span> <span class="o">=</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="30" class="id">service</span><span class="pn">.</span><span class="id">FormatSelectionAsync</span><span class="pn">(</span><span class="id">selectionRequest</span><span class="pn">)</span><span class="pn">.</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="31" class="id">Result</span>
-</code></pre>
+</code></pre></div>
 <p>The range that actually got formatted comes back in <code>SelectedRange</code>, which can differ from what you
 asked for when the selection had leading or trailing whitespace. Use the returned range when you
 splice the result back into the document, not the one you sent.</p>
 <h2 data-fsdocs-heading="5"><a name="Keeping-the-cursor-in-place" class="anchor" href="#Keeping-the-cursor-in-place">Keeping the cursor in place</a></h2>
 <p>Pass <code>Cursor</code> on a format request and the response tells you where that position ended up after
 formatting, so the caret does not jump when you format on save.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="32" class="id">request</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="32" class="id">request</span> <span class="o">=</span>
     <span class="pn">{</span> <span class="id">SourceCode</span> <span class="o">=</span> <span class="id">sourceCode</span>
       <span class="id">FilePath</span> <span class="o">=</span> <span class="s">&quot;/home/me/MyProject/Library.fs&quot;</span>
       <span class="id">Config</span> <span class="o">=</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="33" class="id">None</span>
       <span class="id">Cursor</span> <span class="o">=</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="34" class="id">Some</span><span class="pn">(</span><span class="id">FormatCursorPosition</span><span class="pn">(</span><span class="n">4</span><span class="pn">,</span> <span class="n">2</span><span class="pn">)</span><span class="pn">)</span> <span class="pn">}</span>
-</code></pre>
+</code></pre></div>
 <h2 data-fsdocs-heading="6"><a name="Discovering-settings" class="anchor" href="#Discovering-settings">Discovering settings</a></h2>
 <p><code>ConfigurationAsync</code> returns the settings schema of the Fantomas version resolved for a file: every
 setting name, its type, default, and description. Because it comes from the daemon rather than from
 whatever you compiled against, it is the authoritative list for that repository, and it is what you
 want backing a settings UI or a <code>.editorconfig</code> completion list.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">schema</span> <span class="o">=</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="35" class="id">service</span><span class="pn">.</span><span class="id">ConfigurationAsync</span><span class="pn">(</span><span class="s">&quot;/home/me/MyProject/Library.fs&quot;</span><span class="pn">)</span><span class="pn">.</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="36" class="id">Result</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">schema</span> <span class="o">=</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="35" class="id">service</span><span class="pn">.</span><span class="id">ConfigurationAsync</span><span class="pn">(</span><span class="s">&quot;/home/me/MyProject/Library.fs&quot;</span><span class="pn">)</span><span class="pn">.</span><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="36" class="id">Result</span>
 <span class="c">// schema.Content holds JSON describing every setting.</span>
-</code></pre>
+</code></pre></div>
 <h2 data-fsdocs-heading="7"><a name="Lifetime" class="anchor" href="#Lifetime">Lifetime</a></h2>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// Stop every daemon this service started. Call it when your tool shuts down.</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// Stop every daemon this service started. Call it when your tool shuts down.</span>
 <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="37" class="id">service</span><span class="pn">.</span><span class="id">Dispose</span><span class="pn">(</span><span class="pn">)</span>
-</code></pre>
+</code></pre></div>
 <p><code>ClearCache</code> throws away the daemons without disposing the service, which is what you want after the
 user changes the Fantomas version in their <code>dotnet-tools.json</code>. Otherwise the old process keeps
 serving requests for the rest of the session.</p>
 <fantomas-nav previous="GeneratingCode.html" next="Recipes.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">val service: obj</div>
-<div popover class="fsdocs-tip" id="fs2">val request: &#39;a</div>
-<div popover class="fsdocs-tip" id="fs3">union case Option.None: Option&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs4">val response: obj</div>
-<div popover class="fsdocs-tip" id="fs5">Multiple items<br />module Result
-
-from Microsoft.FSharp.Core<br /><br />--------------------<br />
-type Result&lt;&#39;T,&#39;TError&gt; =
-  | Ok of ResultValue: &#39;T
-  | Error of ErrorValue: &#39;TError</div>
-<div popover class="fsdocs-tip" id="fs6">Multiple items<br />val int: value: &#39;T -&gt; int (requires member op_Explicit)<br /><br />--------------------<br />type int = int32<br /><br />--------------------<br />type int&lt;&#39;Measure&gt; =
-  int</div>
-<div popover class="fsdocs-tip" id="fs7">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
-<div popover class="fsdocs-tip" id="fs8">module Option
-
-from Microsoft.FSharp.Core</div>
-<div popover class="fsdocs-tip" id="fs9">val defaultValue: value: &#39;T -&gt; option: &#39;T option -&gt; &#39;T</div>
-<div popover class="fsdocs-tip" id="fs10">val eprintfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
-<div popover class="fsdocs-tip" id="fs11">module Array
-
-from Microsoft.FSharp.Collections</div>
-<div popover class="fsdocs-tip" id="fs12">val isEmpty: array: &#39;T array -&gt; bool</div>
-<div popover class="fsdocs-tip" id="fs13">val map: mapping: (&#39;T -&gt; &#39;U) -&gt; array: &#39;T array -&gt; &#39;U array</div>
-<div popover class="fsdocs-tip" id="fs14">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
-<div popover class="fsdocs-tip" id="fs15">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
+        <div popover class="fsdocs-tip" id="fs1"><span class="k">val</span> <span class="fn">service</span><span class="pn">:</span> <span class="rt">obj</span></div>
+<div popover class="fsdocs-tip" id="fs2"><span class="k">val</span> <span class="fn">request</span><span class="pn">:</span> <span class="ta">&#39;a</span></div>
+<div popover class="fsdocs-tip" id="fs3">union case <span class="rt">Option</span><span class="pn">.</span><span class="uc">None</span><span class="pn">:</span> <span class="rt">Option</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs4"><span class="k">val</span> <span class="fn">response</span><span class="pn">:</span> <span class="rt">obj</span></div>
+<div popover class="fsdocs-tip" id="fs5">Multiple items<br /><span class="k">module</span> <span class="m">Result</span><br />from Microsoft.FSharp.Core<br /><br />--------------------<br /><span class="k">type</span> <span class="vt">Result</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">,</span><span class="ta">&#39;TError</span><span class="pn">&gt;</span> <span class="o">=</span><br />&#160;&#160;<span class="pn">|</span> <span class="uc">Ok</span> <span class="k">of</span> <span class="prop">ResultValue</span><span class="pn">:</span> <span class="ta">&#39;T</span><br />&#160;&#160;<span class="pn">|</span> <span class="uc">Error</span> <span class="k">of</span> <span class="prop">ErrorValue</span><span class="pn">:</span> <span class="ta">&#39;TError</span></div>
+<div popover class="fsdocs-tip" id="fs6">Multiple items<br /><span class="k">val</span> <span class="fn">int</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="vt">int</span> <span class="pn">(</span><span class="k">requires</span> <span class="k">member</span> <span class="fn">op_Explicit</span><span class="pn">)</span><br /><br />--------------------<br /><span class="k">type</span> int <span class="o">=</span> <span class="vt">int32</span><br /><br />--------------------<br /><span class="k">type</span> int<span class="pn">&lt;</span><span class="ta">&#39;Measure</span><span class="pn">&gt;</span> <span class="o">=</span><br />&#160;&#160;<span class="vt">int</span></div>
+<div popover class="fsdocs-tip" id="fs7"><span class="k">val</span> <span class="fn">printfn</span><span class="pn">:</span> <span class="id">format</span><span class="pn">:</span> <span class="m">Printf.</span><span class="rt">TextWriterFormat</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
+<div popover class="fsdocs-tip" id="fs8"><span class="k">module</span> <span class="m">Option</span><br />from Microsoft.FSharp.Core</div>
+<div popover class="fsdocs-tip" id="fs9"><span class="k">val</span> <span class="fn">defaultValue</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="id">option</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="rt">option</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
+<div popover class="fsdocs-tip" id="fs10"><span class="k">val</span> <span class="fn">eprintfn</span><span class="pn">:</span> <span class="id">format</span><span class="pn">:</span> <span class="m">Printf.</span><span class="rt">TextWriterFormat</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
+<div popover class="fsdocs-tip" id="fs11"><span class="k">module</span> <span class="m">Array</span><br />from Microsoft.FSharp.Collections</div>
+<div popover class="fsdocs-tip" id="fs12"><span class="k">val</span> <span class="fn">isEmpty</span><span class="pn">:</span> <span class="id">array</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="rt">array</span> <span class="pn">-&gt;</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs13"><span class="k">val</span> <span class="fn">map</span><span class="pn">:</span> <span class="id">mapping</span><span class="pn">:</span> <span class="pn">(</span><span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="ta">&#39;U</span><span class="pn">)</span> <span class="pn">-&gt;</span> <span class="id">array</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="rt">array</span> <span class="pn">-&gt;</span> <span class="ta">&#39;U</span> <span class="rt">array</span></div>
+<div popover class="fsdocs-tip" id="fs14">Multiple items<br /><span class="k">val</span> <span class="fn">string</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="rt">string</span><br /><br />--------------------<br /><span class="k">type</span> <span class="rt">string</span> <span class="o">=</span> <span class="m">System.</span><span class="rt">String</span></div>
+<div popover class="fsdocs-tip" id="fs15">union case <span class="rt">Option</span><span class="pn">.</span><span class="uc">Some</span><span class="pn">:</span> <span class="prop">Value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="rt">Option</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
 
     </div>
 </main>

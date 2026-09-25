@@ -393,7 +393,7 @@ Unexpected errors will return exit code 1.</p>
 <p>This scenario is meant to be executed in a continuous integration environment, to enforce that the newly added code was formatted correctly.</p>
 <h3 data-fsdocs-heading="5"><a name="FAKE" class="anchor" href="#FAKE">FAKE</a></h3>
 <p>If you are using <code>FAKE</code> by any chance, a good step is to have <code>CheckFormat</code> target early on in the pipeline.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Target</span><span class="pn">.</span><span class="id">create</span> <span class="s">&quot;CheckFormat&quot;</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">_</span> <span class="k">-&gt;</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Target</span><span class="pn">.</span><span class="id">create</span> <span class="s">&quot;CheckFormat&quot;</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">_</span> <span class="k">-&gt;</span>
     <span class="k">let</span> <span class="id">result</span> <span class="o">=</span>
         <span class="id">DotNet</span><span class="pn">.</span><span class="id">exec</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">id</span> <span class="s">&quot;fantomas&quot;</span> <span class="s">&quot;ourSourceFolder --check&quot;</span>
 
@@ -416,7 +416,7 @@ Unexpected errors will return exit code 1.</p>
 <span class="pn">==&gt;</span> <span class="s">&quot;All&quot;</span>
 
 <span class="id">Target</span><span class="pn">.</span><span class="id">runOrDefault</span> <span class="s">&quot;All&quot;</span>
-</code></pre>
+</code></pre></div>
 <p>The recommendation is to install <code>fantomas</code> as a local tool and run it using the generic <code>DotNet.exec</code> api.
 This translates to running <code>dotnet fantomas ourSourceFolder --check</code>.</p>
 <h3 data-fsdocs-heading="6"><a name="Any-other-continuous-integration-environment" class="anchor" href="#Any-other-continuous-integration-environment">Any other continuous integration environment</a></h3>
@@ -427,9 +427,9 @@ Next, you want to run <code>dotnet fantomas &lt;input&gt; --check</code> and mak
 <p><em>starting version 8.0</em></p>
 <p>If your pipeline needs to do something with the files rather than only fail, add <code>--json</code> and the
 run reports what it found as a document on standard out:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fantomas --check --json ./src
-</code></pre></td></tr></table>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="json">{
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="bash">dotnet fantomas --check --json ./src
+</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="json">{
   "version": 1,
   "command": "check",
   "workingDirectory": "/home/you/my-project",
@@ -440,7 +440,7 @@ run reports what it found as a document on standard out:</p>
     { "path": "./src/Library.fs", "status": "unchanged" }
   ]
 }
-</code></pre></td></tr></table>
+</code></pre></div>
 <p>Every file the check looked at is listed, so the ones that are already formatted are there too,
 with status <code>unchanged</code>. Paths are relative to <code>workingDirectory</code>. The exit codes are unchanged,
 so the branch above still works. See <a href="GettingStarted.html">Getting Started</a> for what the document
@@ -464,8 +464,8 @@ Or, more likely, you have something slightly different in your code base that is
 It really helps us spotting problems early on and we can more easily pinpoint the problem due to lesser recent changes.</p>
 <fantomas-nav previous="IgnoreFiles.html" next="GitHooks.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">val id: x: &#39;T -&gt; &#39;T</div>
-<div popover class="fsdocs-tip" id="fs2">val failwith: message: string -&gt; &#39;T</div>
+        <div popover class="fsdocs-tip" id="fs1"><span class="k">val</span> <span class="fn">id</span><span class="pn">:</span> <span class="id">x</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
+<div popover class="fsdocs-tip" id="fs2"><span class="k">val</span> <span class="fn">failwith</span><span class="pn">:</span> <span class="id">message</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
 
     </div>
 </main>

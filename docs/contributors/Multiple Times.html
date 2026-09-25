@@ -363,15 +363,15 @@
 The amount of conditional directives should be exactly the same in each pass. This is a requirement in order for Fantomas to merge the results into one.<br />
 Unfortunately, this is not always the case and an exception will be thrown if the bookkeeping doesn't add up.</p>
 <p>As a case-study, we will look at issue <a href="https://github.com/fsprojects/fantomas/issues/2844">#2844</a> and see how we troubleshoot these types of issues.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">FormatException</span><span class="pn">:</span> <span class="id">Fantomas</span> <span class="id">is</span> <span class="id">trying</span> <span class="k">to</span> <span class="id">format</span> <span class="id">the</span> <span class="id">input</span> <span class="id">multiple</span> <span class="id">times</span> <span class="id">due</span> <span class="k">to</span> <span class="id">the</span> <span class="id">detection</span> <span class="k">of</span> <span class="id">multiple</span> <span class="id">defines</span><span class="pn">.</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">System</span><span class="pn">.</span><span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">FormatException</span><span class="pn">:</span> <span class="id">Fantomas</span> <span class="id">is</span> <span class="id">trying</span> <span class="k">to</span> <span class="id">format</span> <span class="id">the</span> <span class="id">input</span> <span class="id">multiple</span> <span class="id">times</span> <span class="id">due</span> <span class="k">to</span> <span class="id">the</span> <span class="id">detection</span> <span class="k">of</span> <span class="id">multiple</span> <span class="id">defines</span><span class="pn">.</span>
 <span class="id">There</span> <span class="id">is</span> <span class="id">a</span> <span class="id">problem</span> <span class="k">with</span> <span class="id">merging</span> <span class="id">all</span> <span class="id">the</span> <span class="id">code</span> <span class="id">back</span> <span class="id">together</span><span class="pn">.</span>
 <span class="pn">[</span><span class="pn">]</span> <span class="id">has</span> <span class="n">7</span> <span class="id">fragments</span>
 <span class="pn">[</span><span class="id">IOS</span><span class="pn">]</span> <span class="id">has</span> <span class="n">9</span> <span class="id">fragments</span>
-</code></pre>
+</code></pre></div>
 <h2 data-fsdocs-heading="2"><a name="Isolate-each-define-combination" class="anchor" href="#Isolate-each-define-combination">Isolate each define combination</a></h2>
 <p>The first step is to isolate each define combination in a unit test. Doing this will simplify the debugging process.<br />
 The <code>formatSourceStringWithDefines</code> can be used to only format the input with a specific set of defines.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
 <span class="k">let</span> <span class="id">``good unit test name, no defines``</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
     <span class="id">formatSourceStringWithDefines</span>
         <span class="pn">[</span><span class="pn">]</span>
@@ -398,11 +398,11 @@ The <code>formatSourceStringWithDefines</code> can be used to only format the in
 <span class="s">#endif</span>
 <span class="s">)</span>
 <span class="s">&quot;&quot;&quot;</span>
-</code></pre>
+</code></pre></div>
 <p>Notice that our result code should reflect only the active code branches.
 <code>IOS</code> is not present and so no code is expected between <code>#if IOS</code> and <code>#else</code>.</p>
 <p>If we do this for each combination, we can narrow the problem down to find the troublesome combination.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
 <span class="k">let</span> <span class="id">``good unit test name, IOS``</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
     <span class="id">formatSourceStringWithDefines</span>
         <span class="pn">[</span> <span class="s">&quot;IOS&quot;</span> <span class="pn">]</span>
@@ -434,12 +434,12 @@ The <code>formatSourceStringWithDefines</code> can be used to only format the in
 <span class="s">#endif</span>
 <span class="s">    )</span>
 <span class="s">&quot;&quot;&quot;</span>
-</code></pre>
+</code></pre></div>
 <p><img src="../../images/multiple-times-test-explorer.png" alt="Result in test explorer" /></p>
 <h2 data-fsdocs-heading="3"><a name="Bringing-it-all-together" class="anchor" href="#Bringing-it-all-together">Bringing it all together</a></h2>
 <p>If each combination is fixed, we can now try to format the input with all the defines.<br />
 Notice that we use <code>formatSourceString</code> instead of <code>formatSourceStringWithDefines</code> here.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
 <span class="k">let</span> <span class="id">``good unit test name, 2844``</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
     <span class="id">formatSourceString</span>
         <span class="k">false</span>
@@ -469,7 +469,7 @@ Notice that we use <code>formatSourceString</code> instead of <code>formatSource
 <span class="s">#endif</span>
 <span class="s">    )</span>
 <span class="s">&quot;&quot;&quot;</span>
-</code></pre>
+</code></pre></div>
 <h2 data-fsdocs-heading="4"><a name="Unit-test-naming-conventions" class="anchor" href="#Unit-test-naming-conventions">Unit test naming conventions</a></h2>
 <p>When dealing with multiple defines, it is important to name the unit tests in a way that makes it easy to understand what is going on.<br />
 Use the following naming convention suffix:</p>
@@ -480,11 +480,9 @@ Use the following naming convention suffix:</p>
 </ul>
 <fantomas-nav previous="The%20Missing%20Comment.html" next="Pull%20request%20ground%20rules.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">namespace System</div>
-<div popover class="fsdocs-tip" id="fs2">Multiple items<br />type FormatException =
-  inherit SystemException
-  new: unit -&gt; unit + 2 overloads<br /><em>&lt;summary&gt;The exception that is thrown when the format of an argument is invalid, or when a composite format string is not well formed.&lt;/summary&gt;</em><br /><br />--------------------<br />System.FormatException() : System.FormatException<br />System.FormatException(message: string) : System.FormatException<br />System.FormatException(message: string, innerException: exn) : System.FormatException</div>
-<div popover class="fsdocs-tip" id="fs3">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+        <div popover class="fsdocs-tip" id="fs1"><span class="k">namespace</span> <span class="m">System</span></div>
+<div popover class="fsdocs-tip" id="fs2">Multiple items<br /><em>The exception that is thrown when the format of an argument is invalid, or when a composite format string is not well formed.</em><br /><span class="k">type</span> <span class="rt">FormatException</span> <span class="o">=</span><br />&#160;&#160;<span class="k">inherit</span> <span class="rt">SystemException</span><br />&#160;&#160;<span class="k">new</span><span class="pn">:</span> <span class="vt">unit</span> <span class="pn">-&gt;</span> <span class="rt">unit</span> + 2 overloads<br /><br />--------------------<br /><span class="m">System.</span><span class="rt">FormatException</span><span class="pn">(</span><span class="pn">)</span> <span class="pn">:</span> <span class="m">System.</span><span class="rt">FormatException</span><br /><span class="m">System.</span><span class="rt">FormatException</span><span class="pn">(</span><span class="id">message</span><span class="pn">:</span> <span class="rt">string</span><span class="pn">)</span> <span class="pn">:</span> <span class="m">System.</span><span class="rt">FormatException</span><br /><span class="m">System.</span><span class="rt">FormatException</span><span class="pn">(</span><span class="id">message</span><span class="pn">:</span> <span class="rt">string</span><span class="pn">,</span> <span class="id">innerException</span><span class="pn">:</span> <span class="rt">exn</span><span class="pn">)</span> <span class="pn">:</span> <span class="m">System.</span><span class="rt">FormatException</span></div>
+<div popover class="fsdocs-tip" id="fs3"><span class="k">val</span> <span class="fn">printfn</span><span class="pn">:</span> <span class="id">format</span><span class="pn">:</span> <span class="m">Printf.</span><span class="rt">TextWriterFormat</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
 
     </div>
 </main>

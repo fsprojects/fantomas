@@ -375,7 +375,7 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
 <h3 data-fsdocs-heading="4"><a name="All-define-combinations-must-produce-valid-syntax" class="anchor" href="#All-define-combinations-must-produce-valid-syntax">All define combinations must produce valid syntax</a></h3>
 <p>Because Fantomas parses your code under <strong>every</strong> define combination, <strong>each combination must result in a valid syntax tree</strong>.</p>
 <p>For example, the following code <strong>cannot</strong> be formatted:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="m">F</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="m">F</span> <span class="o">=</span>
     <span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">a</span><span class="pn">:</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="3" class="rt">string</span> <span class="o">=</span>
         <span class="pp">#if</span> <span class="id">FOO</span>
 <span class="inactive">        </span><span class="inactive">&quot;&quot;</span>
@@ -385,17 +385,17 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
         <span class="pp">#endif</span>
 
     <span class="k">let</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="4" class="id">baz</span><span class="pn">:</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="5" class="rt">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
-</code></pre>
+</code></pre></div>
 <p>When neither <code>FOO</code> nor <code>BAR</code> is defined, the code becomes:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="6" class="id">F</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="6" class="id">F</span> <span class="o">=</span>
     <span class="k">let</span> <span class="id">a</span><span class="pn">:</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="7" class="id">string</span> <span class="o">=</span>
 
     <span class="k">let</span> <span class="id">baz</span><span class="pn">:</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="8" class="id">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
-</code></pre>
+</code></pre></div>
 <p>This is not valid F# — <code>let a</code> has no body — so the parser raises an error and Fantomas cannot proceed.</p>
 <h4 data-fsdocs-heading="5"><a name="How-to-fix-it" class="anchor" href="#How-to-fix-it">How to fix it</a></h4>
 <p>Make sure that every combination of defines still produces valid F# code. The most common fix is to add an <code>#else</code> branch:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="9" class="id">F</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="9" class="id">F</span> <span class="o">=</span>
     <span class="k">let</span> <span class="id">a</span><span class="pn">:</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="10" class="id">string</span> <span class="o">=</span>
         <span class="pp">#if</span> <span class="id">FOO</span>
 <span class="inactive">        </span><span class="inactive">&quot;&quot;</span>
@@ -404,11 +404,11 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
         <span class="pp">#endif</span>
 
     <span class="k">let</span> <span class="id">baz</span><span class="pn">:</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="11" class="id">unit</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
-</code></pre>
+</code></pre></div>
 <p>Now, regardless of whether <code>FOO</code> is defined, the parser always sees a complete <code>let</code> binding.</p>
 <h3 data-fsdocs-heading="6"><a name="Interweaved-documentation" class="anchor" href="#Interweaved-documentation">Interweaved documentation</a></h3>
 <p>If you interweave conditional directives with xml documentation or other trivia you will encounter issues:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="rt">Foo</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="rt">Foo</span> <span class="o">=</span>
     <span class="c">/// Will give you an option.</span>
     <span class="pp">#if</span> <span class="id">DEBUG</span>
 <span class="inactive">    </span><span class="inactive">///</span><span class="inactive"> </span><span class="inactive">Default</span><span class="inactive"> </span><span class="inactive">returns</span><span class="inactive"> </span><span class="inactive">Some</span>
@@ -423,10 +423,10 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
             <span class="k">false</span>
             <span class="pp">#endif</span>
         <span class="k">if</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="15" class="fn">giveSome</span> <span class="k">then</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="16" class="uc">Some</span><span class="pn">(</span><span class="pn">)</span> <span class="k">else</span> <span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="17" class="uc">None</span>
-</code></pre>
+</code></pre></div>
 <h4 data-fsdocs-heading="7"><a name="How-to-fix-it-1" class="anchor" href="#How-to-fix-it-1">How to fix it</a></h4>
 <p>Wrap the documentation/trivia in its entirety.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="18" class="id">Foo</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span data-fsdocs-tip="fs11" data-fsdocs-tip-unique="18" class="id">Foo</span> <span class="o">=</span>
     <span class="pp">#if</span> <span class="id">DEBUG</span>
 <span class="inactive">    </span><span class="inactive">///</span><span class="inactive"> </span><span class="inactive">Will</span><span class="inactive"> </span><span class="inactive">give</span><span class="inactive"> </span><span class="inactive">you</span><span class="inactive"> </span><span class="inactive">an</span><span class="inactive"> </span><span class="inactive">option.</span>
 <span class="inactive">    </span><span class="inactive">///</span><span class="inactive"> </span><span class="inactive">Default</span><span class="inactive"> </span><span class="inactive">returns</span><span class="inactive"> </span><span class="inactive">Some</span>
@@ -442,25 +442,25 @@ The F# parser processes <code>#if</code> / <code>#else</code> / <code>#endif</co
             <span class="k">false</span>
             <span class="pp">#endif</span>
         <span class="k">if</span> <span data-fsdocs-tip="fs8" data-fsdocs-tip-unique="22" class="id">giveSome</span> <span class="k">then</span> <span data-fsdocs-tip="fs9" data-fsdocs-tip-unique="23" class="id">Some</span><span class="pn">(</span><span class="pn">)</span> <span class="k">else</span> <span data-fsdocs-tip="fs10" data-fsdocs-tip-unique="24" class="id">None</span>
-</code></pre>
+</code></pre></div>
 <h3 data-fsdocs-heading="8"><a name="Nesting-that-depends-on-a-define" class="anchor" href="#Nesting-that-depends-on-a-define">Nesting that depends on a define</a></h3>
 <p>Fantomas merges the formatted combinations back together line by line, so the code after an <code>#endif</code>
 gets one indentation, whichever branch was active. When a construct that opens a body appears in only
 one branch, the code after <code>#endif</code> is nested inside that construct in one combination and not in the
 other, and no single indentation is right for both:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="25" class="fn">traverse</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="26" class="fn">entity</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="25" class="fn">traverse</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="26" class="fn">entity</span> <span class="o">=</span>
     <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="27" class="fn">seq</span> <span class="pn">{</span>
         <span class="pp">#if</span> <span class="id">!NO_TYPEPROVIDERS</span>
         <span class="k">if</span> <span class="fn">not</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="28" class="fn">entity</span><span class="pn">.</span><span class="id">IsProvided</span> <span class="k">then</span>
         <span class="pp">#endif</span>
             <span class="k">yield!</span> <span class="id">children</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="29" class="id">entity</span>
     <span class="pn">}</span>
-</code></pre>
+</code></pre></div>
 <p>With <code>NO_TYPEPROVIDERS</code> defined, <code>yield!</code> is a statement of the <code>seq</code>; without it, it is the body of the
 <code>if</code>. Fantomas cannot format this.</p>
 <h4 data-fsdocs-heading="9"><a name="How-to-fix-it-2" class="anchor" href="#How-to-fix-it-2">How to fix it</a></h4>
 <p>Move the condition into a value, so that the code after it is nested the same way in every combination:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="30" class="fn">traverse</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="31" class="fn">entity</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="30" class="fn">traverse</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="31" class="fn">entity</span> <span class="o">=</span>
     <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="32" class="fn">seq</span> <span class="pn">{</span>
         <span class="k">let</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="33" class="fn">isProvided</span> <span class="o">=</span>
             <span class="pp">#if</span> <span class="id">!NO_TYPEPROVIDERS</span>
@@ -472,30 +472,27 @@ other, and no single indentation is right for both:</p>
         <span class="k">if</span> <span class="fn">not</span> <span data-fsdocs-tip="fs15" data-fsdocs-tip-unique="35" class="fn">isProvided</span> <span class="k">then</span>
             <span class="k">yield!</span> <span class="id">children</span> <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="36" class="id">entity</span>
     <span class="pn">}</span>
-</code></pre>
+</code></pre></div>
 <h2><a name="Using" class="anchor" href="#Using">Using <code>.fantomasignore</code></a></h2>
 <p>If you cannot restructure the directives (e.g. because the code is generated or must match a particular pattern), you
 can exclude the file from formatting using a <a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html"><code>.fantomasignore</code></a> file.</p>
 <fantomas-nav previous="OpenEndedExpressions.html" next="ReportingBugs.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">module F
-
-from ConditionalCompilationDirectives</div>
-<div popover class="fsdocs-tip" id="fs2">val a: string</div>
-<div popover class="fsdocs-tip" id="fs3">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
-<div popover class="fsdocs-tip" id="fs4">val baz: unit</div>
-<div popover class="fsdocs-tip" id="fs5">type unit = Unit</div>
-<div popover class="fsdocs-tip" id="fs6">val giveSome: bool option</div>
-<div popover class="fsdocs-tip" id="fs7">type bool = System.Boolean</div>
-<div popover class="fsdocs-tip" id="fs8">val giveSome: bool</div>
-<div popover class="fsdocs-tip" id="fs9">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs10">union case Option.None: Option&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs11">type Foo =
-  static member bar: ?giveSome: bool -&gt; unit option</div>
-<div popover class="fsdocs-tip" id="fs12">val traverse: entity: &#39;a -&gt; &#39;b seq</div>
-<div popover class="fsdocs-tip" id="fs13">val entity: &#39;a</div>
-<div popover class="fsdocs-tip" id="fs14">Multiple items<br />val seq: sequence: &#39;T seq -&gt; &#39;T seq<br /><br />--------------------<br />type &#39;T seq = System.Collections.Generic.IEnumerable&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs15">val isProvided: bool</div>
+        <div popover class="fsdocs-tip" id="fs1"><span class="k">module</span> <span class="m">F</span><br />from ConditionalCompilationDirectives</div>
+<div popover class="fsdocs-tip" id="fs2"><span class="k">val</span> <span class="fn">a</span><span class="pn">:</span> <span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs3">Multiple items<br /><span class="k">val</span> <span class="fn">string</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="rt">string</span><br /><br />--------------------<br /><span class="k">type</span> <span class="rt">string</span> <span class="o">=</span> <span class="m">System.</span><span class="rt">String</span></div>
+<div popover class="fsdocs-tip" id="fs4"><span class="k">val</span> <span class="fn">baz</span><span class="pn">:</span> <span class="rt">unit</span></div>
+<div popover class="fsdocs-tip" id="fs5"><span class="k">type</span> unit <span class="o">=</span> <span class="rt">Unit</span></div>
+<div popover class="fsdocs-tip" id="fs6"><span class="k">val</span> <span class="id">giveSome</span><span class="pn">:</span> <span class="vt">bool</span> <span class="rt">option</span></div>
+<div popover class="fsdocs-tip" id="fs7"><span class="k">type</span> bool <span class="o">=</span> <span class="m">System.</span><span class="vt">Boolean</span></div>
+<div popover class="fsdocs-tip" id="fs8"><span class="k">val</span> <span class="id">giveSome</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs9">union case <span class="rt">Option</span><span class="pn">.</span><span class="uc">Some</span><span class="pn">:</span> <span class="prop">Value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="rt">Option</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs10">union case <span class="rt">Option</span><span class="pn">.</span><span class="uc">None</span><span class="pn">:</span> <span class="rt">Option</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs11"><span class="k">type</span> <span class="rt">Foo</span> <span class="o">=</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">bar</span><span class="pn">:</span> <span class="pn">?</span><span class="id">giveSome</span><span class="pn">:</span> <span class="vt">bool</span> <span class="pn">-&gt;</span> <span class="rt">unit</span> <span class="rt">option</span></div>
+<div popover class="fsdocs-tip" id="fs12"><span class="k">val</span> <span class="fn">traverse</span><span class="pn">:</span> <span class="id">entity</span><span class="pn">:</span> <span class="ta">&#39;a</span> <span class="pn">-&gt;</span> <span class="ta">&#39;b</span> <span class="rt">seq</span></div>
+<div popover class="fsdocs-tip" id="fs13"><span class="k">val</span> <span class="id">entity</span><span class="pn">:</span> <span class="ta">&#39;a</span></div>
+<div popover class="fsdocs-tip" id="fs14">Multiple items<br /><span class="k">val</span> <span class="fn">seq</span><span class="pn">:</span> <span class="id">sequence</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="rt">seq</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span> <span class="rt">seq</span><br /><br />--------------------<br /><span class="k">type</span> <span class="ta">&#39;T</span> <span class="if">seq</span> <span class="o">=</span> <span class="m">System.Collections.Generic.</span><span class="if">IEnumerable</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs15"><span class="k">val</span> <span class="id">isProvided</span><span class="pn">:</span> <span class="vt">bool</span></div>
 
     </div>
 </main>

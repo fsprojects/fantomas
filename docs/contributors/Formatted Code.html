@@ -361,11 +361,11 @@
 <h1 data-fsdocs-heading="1"><a name="Fantomas-Core-overview-3" class="anchor" href="#Fantomas-Core-overview-3">Fantomas.Core overview (3)</a></h1>
 <p>After the <code>Context</code> travelled through the composed <code>CodePrinter</code> function, all events are captured.<br />
 These can be converted to a string of formatted code.</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="mermaid">graph TD
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="mermaid">graph TD
     A[Transform source code to tree] --&gt; B
     B[Traverse Oak to get formatted code] --&gt; C[Formatted code]
     style C stroke:#338CBB,stroke-width:2px
-</code></pre></td></tr></table>
+</code></pre></div>
 <h2 data-fsdocs-heading="2"><a name="Post-processing" class="anchor" href="#Post-processing">Post processing</a></h2>
 <p>As a final step in the process, we validate the result of the code generation.<br />
 We do this by parsing the existing code and investigating the fsharp diagnostics.

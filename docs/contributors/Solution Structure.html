@@ -361,14 +361,14 @@
 <h1 data-fsdocs-heading="1"><a name="Solution-structure" class="anchor" href="#Solution-structure">Solution structure</a></h1>
 <p>Fantomas has a modular project structure.<br />
 The parser (<code>Fantomas.FCS</code>), the core library (<code>Fantomas.Core</code>) and the command line application (<code>fantomas</code>) are the main components of the solution.</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="mermaid">graph TD
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="mermaid">graph TD
     A[Fantomas.FCS] --&gt; B
     B[Fantomas.Core] --&gt; C[Fantomas]
     B --&gt; D[Fantomas.Benchmarks]
     B --&gt; E[Fantomas.Core.Tests]
     C --&gt; F[Fantomas.Tests]
     G[Fantomas.Client] --&gt; H[Fantomas.Client.Tests]
-</code></pre></td></tr></table>
+</code></pre></div>
 <h2 data-fsdocs-heading="2"><a name="Fantomas-FCS" class="anchor" href="#Fantomas-FCS">Fantomas.FCS</a></h2>
 <p>This is a very custom fork of the F# compiler. We only expose a single parse function to construct the untyped syntax tree.
 We achieve this by taking the files necessary to compile the F# parser from source (via custom code in a <code>Fun.Build</code> pipeline).

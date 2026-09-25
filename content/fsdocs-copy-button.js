@@ -42,26 +42,23 @@ function attachCopyHandler(button, getText) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    // table.pre blocks (F# highlighted code, sometimes with line numbers)
-    document.querySelectorAll('table.pre').forEach(function (table) {
-        const wrapper = document.createElement('div')
-        wrapper.className = 'code-block-wrapper'
-        table.parentNode.insertBefore(wrapper, table)
-        wrapper.appendChild(table)
+    // Snippets emitted by fsdocs: <div class="fsdocs-snippet"> holding an optional
+    // line number <pre> and the code <pre>. Copy only the code column.
+    document.querySelectorAll('.fsdocs-snippet').forEach(function (snippet) {
+        const code = snippet.querySelector('pre:not(.fsdocs-snippet-lines)')
+        if (!code) return
 
         const button = createCopyButton()
-        wrapper.appendChild(button)
+        snippet.appendChild(button)
 
-        const snippet = table.querySelector('.snippet pre')
         attachCopyHandler(button, function () {
-            return (snippet || table).innerText
+            return code.innerText
         })
     })
 
-    // Standard pre > code blocks (Markdown fenced code, standalone fssnip, etc.)
-    // Skip those already handled inside table.pre above.
+    // Any other pre > code block on the page, for example hand written HTML.
     document.querySelectorAll('pre > code').forEach(function (code) {
-        if (code.closest('table.pre')) return
+        if (code.closest('.fsdocs-snippet')) return
         const pre = code.parentElement
         pre.classList.add('has-copy-button')
 

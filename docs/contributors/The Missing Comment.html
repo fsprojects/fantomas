@@ -369,7 +369,7 @@ May these steps help towards fixing your problem!</p>
 <h2 data-fsdocs-heading="3"><a name="Isolate-the-problem" class="anchor" href="#Isolate-the-problem">Isolate the problem</a></h2>
 <p>Before we can commence our murder mystery, it is best to narrow down our problem space.</p>
 <p>Example (<a href="https://github.com/fsprojects/fantomas/issues/2490">#2490</a>):</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="c">(* this comment disappears after formatting *)</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">a</span> <span class="o">=</span> <span class="pn">[</span><span class="pn">]</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="c">(* this comment disappears after formatting *)</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">a</span> <span class="o">=</span> <span class="pn">[</span><span class="pn">]</span>
 
 <span class="k">type</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="rt">A</span> <span class="o">=</span> 
     <span class="pn">{</span>
@@ -378,19 +378,19 @@ May these steps help towards fixing your problem!</p>
     <span class="pn">}</span>
 
 <span class="k">while</span> <span class="k">true</span> <span class="k">do</span> <span class="pn">(</span><span class="pn">)</span>
-</code></pre>
+</code></pre></div>
 <p>Using the <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview">online tool</a>, we can remove any code that isn't relevant.
 The <code>type</code> and <code>while</code> code can be trimmed and the problem still exists.</p>
 <h2 data-fsdocs-heading="4"><a name="Check-the-syntax-tree" class="anchor" href="#Check-the-syntax-tree">Check the syntax tree</a></h2>
 <p>Every code comment should be present on the root level of the syntax tree.
 <a href="../../reference/fsharp-compiler-syntaxtrivia-parsedimplfileinputtrivia.html">ParsedImplFileInputTrivia</a> or <a href="../../reference/fsharp-compiler-syntaxtrivia-parsedsigfileinputtrivia.html">ParsedSigFileInputTrivia</a> should contain the comment.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">ImplFile</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">ImplFile</span>
   <span class="pn">(</span><span class="id">ParsedImplFileInput</span>
      <span class="pn">(</span><span class="s">&quot;tmp.fsx&quot;</span><span class="pn">,</span> <span class="k">true</span><span class="pn">,</span> <span class="id">QualifiedNameOfFile</span> <span class="id">Tmp</span><span class="o">$</span><span class="id">fsx</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span>
       <span class="pn">[</span> <span class="o">..</span><span class="pn">.</span> <span class="pn">]</span><span class="pn">,</span> <span class="pn">(</span><span class="k">false</span><span class="pn">,</span> <span class="k">false</span><span class="pn">)</span><span class="pn">,</span>
       <span class="pn">{</span> <span class="id">ConditionalDirectives</span> <span class="o">=</span> <span class="pn">[</span><span class="pn">]</span>
         <span class="id">CodeComments</span> <span class="o">=</span> <span class="pn">[</span><span class="id">BlockComment</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">4</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">50</span><span class="pn">)</span><span class="pn">]</span> <span class="pn">}</span><span class="pn">)</span><span class="pn">)</span>
-</code></pre>
+</code></pre></div>
 <p>If the comment is not there this means the F# lexer and parser didn't pick up the comment. In the unlikely event this happened, this should be fixed first over at <a href="https://github.com/dotnet/fsharp">dotnet/fsharp</a>.</p>
 <h2 data-fsdocs-heading="5"><a name="Was-the-comment-detected-as-TriviaNode" class="anchor" href="#Was-the-comment-detected-as-TriviaNode">Was the comment detected as TriviaNode?</a></h2>
 <p>Fantomas grabs the comments straight from the syntax tree, and transforms them as <a href="../../reference/fantomas-core-syntaxoak-trivianode.html">TriviaNode</a>.<br />
@@ -416,23 +416,21 @@ This was done in <a href="https://github.com/dotnet/fsharp/pull/14503">dotnet/fs
 <p>The last piece of the puzzle is printing the actual <code>TriviaNode</code> in <code>CodePrinter</code>.
 If everything up to this point went well, and the comment is still missing after formatting, it means it was not printed.</p>
 <p>Every <code>Node</code> potentially has <code>ContentBefore</code> and/or <code>ContentAfter</code>. We need to process this using the generic <code>genNode</code> function.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">genTrivia</span> <span class="pn">(</span><span class="id">trivia</span><span class="pn">:</span> <span class="id">TriviaNode</span><span class="pn">)</span> <span class="pn">(</span><span class="id">ctx</span><span class="pn">:</span> <span class="id">Context</span><span class="pn">)</span> <span class="o">=</span> <span class="c">// process the TriviaContent</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">genTrivia</span> <span class="pn">(</span><span class="id">trivia</span><span class="pn">:</span> <span class="id">TriviaNode</span><span class="pn">)</span> <span class="pn">(</span><span class="id">ctx</span><span class="pn">:</span> <span class="id">Context</span><span class="pn">)</span> <span class="o">=</span> <span class="c">// process the TriviaContent</span>
 <span class="k">let</span> <span class="id">enterNode</span><span class="pn">&lt;</span><span class="id">&#39;</span><span class="id">n</span> <span class="k">when</span> <span class="id">&#39;</span><span class="id">n</span> <span class="o">:&gt;</span> <span class="id">Node</span><span class="pn">&gt;</span> <span class="pn">(</span><span class="id">n</span><span class="pn">:</span> <span class="id">&#39;</span><span class="id">n</span><span class="pn">)</span> <span class="o">=</span> <span class="id">col</span> <span class="id">sepNone</span> <span class="id">n</span><span class="pn">.</span><span class="id">ContentBefore</span> <span class="id">genTrivia</span>
 <span class="k">let</span> <span class="id">leaveNode</span><span class="pn">&lt;</span><span class="id">&#39;</span><span class="id">n</span> <span class="k">when</span> <span class="id">&#39;</span><span class="id">n</span> <span class="o">:&gt;</span> <span class="id">Node</span><span class="pn">&gt;</span> <span class="pn">(</span><span class="id">n</span><span class="pn">:</span> <span class="id">&#39;</span><span class="id">n</span><span class="pn">)</span> <span class="o">=</span> <span class="id">col</span> <span class="id">sepNone</span> <span class="id">n</span><span class="pn">.</span><span class="id">ContentAfter</span> <span class="id">genTrivia</span>
 <span class="k">let</span> <span class="id">genNode</span><span class="pn">&lt;</span><span class="id">&#39;</span><span class="id">n</span> <span class="k">when</span> <span class="id">&#39;</span><span class="id">n</span> <span class="o">:&gt;</span> <span class="id">Node</span><span class="pn">&gt;</span> <span class="pn">(</span><span class="id">n</span><span class="pn">:</span> <span class="id">&#39;</span><span class="id">n</span><span class="pn">)</span> <span class="pn">(</span><span class="id">f</span><span class="pn">:</span> <span class="id">Context</span> <span class="k">-&gt;</span> <span class="id">Context</span><span class="pn">)</span> <span class="o">=</span> <span class="id">enterNode</span> <span class="id">n</span> <span class="o">+&gt;</span> <span class="id">f</span> <span class="o">+&gt;</span> <span class="id">leaveNode</span> <span class="id">n</span>
 
 <span class="c">// Pipe `!- node.Text` (`f`) into `genNode`</span>
 <span class="k">let</span> <span class="id">genSingleTextNode</span> <span class="pn">(</span><span class="id">node</span><span class="pn">:</span> <span class="id">SingleTextNode</span><span class="pn">)</span> <span class="o">=</span> <span class="o">!-</span><span class="id">node</span><span class="pn">.</span><span class="id">Text</span> <span class="o">|&gt;</span> <span class="id">genNode</span> <span class="id">node</span>
-</code></pre>
+</code></pre></div>
 <p><code>enterNode</code> and <code>leaveNode</code> will print the <code>TriviaNodes</code> using <code>genTrivia</code>.</p>
 <fantomas-nav previous="How%20Can%20I%20Contribute.html" next="Multiple%20Times.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">val a: &#39;a list</div>
-<div popover class="fsdocs-tip" id="fs2">type A =
-  { X: int }</div>
-<div popover class="fsdocs-tip" id="fs3">A.X: int</div>
-<div popover class="fsdocs-tip" id="fs4">Multiple items<br />val int: value: &#39;T -&gt; int (requires member op_Explicit)<br /><br />--------------------<br />type int = int32<br /><br />--------------------<br />type int&lt;&#39;Measure&gt; =
-  int</div>
+        <div popover class="fsdocs-tip" id="fs1"><span class="k">val</span> <span class="fn">a</span><span class="pn">:</span> <span class="ta">&#39;a</span> <span class="rt">list</span></div>
+<div popover class="fsdocs-tip" id="fs2"><span class="k">type</span> A <span class="o">=</span><br />&#160;&#160;<span class="pn">{</span> <span class="prop">X</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">}</span></div>
+<div popover class="fsdocs-tip" id="fs3"><span class="rt">A</span><span class="pn">.</span><span class="prop">X</span><span class="pn">:</span> <span class="vt">int</span></div>
+<div popover class="fsdocs-tip" id="fs4">Multiple items<br /><span class="k">val</span> <span class="fn">int</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="vt">int</span> <span class="pn">(</span><span class="k">requires</span> <span class="k">member</span> <span class="fn">op_Explicit</span><span class="pn">)</span><br /><br />--------------------<br /><span class="k">type</span> int <span class="o">=</span> <span class="vt">int32</span><br /><br />--------------------<br /><span class="k">type</span> int<span class="pn">&lt;</span><span class="ta">&#39;Measure</span><span class="pn">&gt;</span> <span class="o">=</span><br />&#160;&#160;<span class="vt">int</span></div>
 
     </div>
 </main>

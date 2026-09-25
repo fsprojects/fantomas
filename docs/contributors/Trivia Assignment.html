@@ -368,24 +368,24 @@ This page describes how the assignment works and how to debug it.</p>
 - <strong>nodeBefore</strong>: for indented single-line comments (column &gt; 0), the deepest preceding node at the same column via <code>findNodeBeforeWithMatchingColumn</code></p>
 <h3 data-fsdocs-heading="3"><a name="Decision-rules" class="anchor" href="#Decision-rules">Decision rules</a></h3>
 <p><strong>1. Successor at different column — predecessor wins</strong></p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">x</span> <span class="o">=</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">x</span> <span class="o">=</span>
     <span class="k">try</span> <span class="id">foo</span><span class="pn">(</span><span class="pn">)</span> <span class="k">with</span> <span class="id">_</span> <span class="k">-&gt;</span> <span class="pn">(</span><span class="pn">)</span>
     <span class="c">// comment here           (column 8)</span>
 <span class="k">let</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="id">y</span> <span class="o">=</span> <span class="n">1</span>                     <span class="pn">(</span><span class="id">column</span> <span class="n">4</span><span class="pn">,</span> <span class="id">different</span><span class="pn">)</span>
-</code></pre>
+</code></pre></div>
 <p>The comment matches the try-with at column 8. Since <code>let y</code> is at a different column, the comment becomes <code>ContentAfter</code> on the try-with.</p>
 <p><strong>2. Same column, successor is a closing delimiter — predecessor wins</strong></p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="3" class="id">list</span> <span class="o">=</span> <span class="pn">[</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="3" class="id">list</span> <span class="o">=</span> <span class="pn">[</span>
     <span class="id">someItem</span>
     <span class="c">// comment</span>
 <span class="pn">]</span>
-</code></pre>
+</code></pre></div>
 <p><code>]</code> is in the <code>closingDelimiters</code> set (<code>]</code>, <code>}</code>, <code>|}</code>, <code>)</code>, <code>|)</code>). The comment becomes <code>ContentAfter</code> on <code>someItem</code>.</p>
 <p><strong>3. Same column, both are content — successor wins</strong></p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="4" class="id">a</span> <span class="o">=</span> <span class="n">1</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="4" class="id">a</span> <span class="o">=</span> <span class="n">1</span>
 <span class="c">// comment</span>
 <span class="k">let</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="5" class="id">b</span> <span class="o">=</span> <span class="n">2</span>
-</code></pre>
+</code></pre></div>
 <p>Both bindings are at column 0. The comment becomes <code>ContentBefore</code> on <code>let b</code>.</p>
 <h2 data-fsdocs-heading="4"><a name="Blank-lines-before-comments" class="anchor" href="#Blank-lines-before-comments">Blank lines before comments</a></h2>
 <p>A blank line (<code>Newline</code> trivia at column 0) followed by an indented comment (<code>CommentOnSingleLine</code> at column &gt; 0) would normally be assigned to different nodes — the newline has no column info for matching.</p>
@@ -393,31 +393,31 @@ This page describes how the assignment works and how to debug it.</p>
 <p>The adjacency check ensures only consecutive newlines on adjacent lines are combined — distant blank lines (separated by code) are flushed independently.</p>
 <h2 data-fsdocs-heading="5"><a name="Debugging" class="anchor" href="#Debugging">Debugging</a></h2>
 <h3 data-fsdocs-heading="6"><a name="Oak-tree-with-trivia-markers" class="anchor" href="#Oak-tree-with-trivia-markers">Oak tree with trivia markers</a></h3>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fsi scripts/oak.fsx &lt;file&gt;
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="bash">dotnet fsi scripts/oak.fsx &lt;file&gt;
+</code></pre></div>
 <p>The output uses arrows to show trivia placement:
 - <code>▼</code> = <code>ContentBefore</code>
 - <code>▲</code> = <code>ContentAfter</code></p>
 <p>Example:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">ExprArrayOrListNode</span><span class="pn">(</span><span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">11</span><span class="o">--</span><span class="n">4</span><span class="pn">,</span><span class="n">1</span><span class="pn">)</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">ExprArrayOrListNode</span><span class="pn">(</span><span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">11</span><span class="o">--</span><span class="n">4</span><span class="pn">,</span><span class="n">1</span><span class="pn">)</span>
   <span class="id">SingleTextNode</span><span class="pn">(</span><span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">11</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">12</span><span class="pn">)</span><span class="pn">,</span> <span class="s">&quot;[&quot;</span><span class="pn">)</span>
   <span class="id">SingleTextNode</span><span class="pn">(</span><span class="pn">(</span><span class="n">2</span><span class="pn">,</span><span class="n">4</span><span class="o">--</span><span class="n">2</span><span class="pn">,</span><span class="n">12</span><span class="pn">)</span><span class="pn">,</span> <span class="s">&quot;someItem&quot;</span><span class="pn">)</span>
   
   <span class="id">SingleTextNode</span><span class="pn">(</span><span class="pn">(</span><span class="n">4</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">4</span><span class="pn">,</span><span class="n">1</span><span class="pn">)</span><span class="pn">,</span> <span class="s">&quot;]&quot;</span><span class="pn">)</span>
 <span class="pn">)</span>
-</code></pre>
+</code></pre></div>
 <h3 data-fsdocs-heading="7"><a name="Writer-events" class="anchor" href="#Writer-events">Writer events</a></h3>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fsi scripts/writer-events.fsx [--editorconfig &lt;settings&gt;] &lt;file&gt;
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="bash">dotnet fsi scripts/writer-events.fsx [--editorconfig &lt;settings&gt;] &lt;file&gt;
+</code></pre></div>
 <p>Shows the sequence of <code>WriterEvent</code> values produced during formatting. Use <code>--editorconfig</code> to pass settings like <code>fsharp_multiline_bracket_style=stroustrup</code>.</p>
 <h3 data-fsdocs-heading="8"><a name="Per-define-Oak" class="anchor" href="#Per-define-Oak">Per-define Oak</a></h3>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fsi scripts/oak.fsx --define SOMETHING &lt;file&gt;
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="bash">dotnet fsi scripts/oak.fsx --define SOMETHING &lt;file&gt;
+</code></pre></div>
 <p>Shows the Oak for a specific define combination, useful for debugging trivia assignment with <code>#if</code>/<code>#else</code>/<code>#endif</code> blocks.</p>
 <h2 data-fsdocs-heading="9"><a name="Known-limitations" class="anchor" href="#Known-limitations">Known limitations</a></h2>
 <h3 data-fsdocs-heading="10"><a name="Hash-directive-boundaries" class="anchor" href="#Hash-directive-boundaries">Hash directive boundaries</a></h3>
 <p><code>findNodeBeforeWithMatchingColumn</code> does not account for <code>#if</code>/<code>#else</code>/<code>#endif</code> directives between the candidate node and the comment. A comment after <code>#endif</code> at the same column as an item inside <code>#if</code> can be incorrectly assigned across the directive boundary.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// Input:</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// Input:</span>
 <span class="k">let</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="6" class="id">list</span> <span class="o">=</span> <span class="pn">[</span>
     <span class="id">someItem</span>
     <span class="pp">#if</span> <span class="id">something</span>
@@ -427,18 +427,18 @@ This page describes how the assignment works and how to debug it.</p>
     <span class="pp">#endif</span>
     <span class="c">// comment      &lt;-- column 4, matches item1/item2 across directive boundary</span>
 <span class="pn">]</span>
-</code></pre>
+</code></pre></div>
 <p>With <code>something</code> defined, the Oak shows:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">SingleTextNode</span> <span class="s">&quot;item1&quot;</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">SingleTextNode</span> <span class="s">&quot;item1&quot;</span>
 
 
 
 <span class="id">SingleTextNode</span> <span class="s">&quot;]&quot;</span>
-</code></pre>
+</code></pre></div>
 <p>The comment (line 8) is emitted before <code>#else</code> (line 5), reversing source order.</p>
 <h3 data-fsdocs-heading="11"><a name="Trailing-trivia-inflating-width" class="anchor" href="#Trailing-trivia-inflating-width">Trailing trivia inflating width</a></h3>
 <p>Comments assigned as <code>ContentAfter</code> make the owning expression appear wider or multiline in speculative formatting checks. This can cause expressions that fit on one line to be forced into multiline layout:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// Input:</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// Input:</span>
 <span class="id">Html</span><span class="pn">.</span><span class="id">a</span> <span class="pn">[</span> <span class="id">prop</span><span class="pn">.</span><span class="id">className</span> <span class="s">&quot;navbar-item&quot;</span> <span class="pn">]</span>
 <span class="c">(* block comment *)</span>
 
@@ -448,15 +448,15 @@ This page describes how the assignment works and how to debug it.</p>
     <span class="id">prop</span><span class="pn">.</span><span class="id">className</span> <span class="s">&quot;navbar-item&quot;</span>
 <span class="pn">]</span>
     <span class="c">(* block comment *)</span>
-</code></pre>
+</code></pre></div>
 <p>The formatted output is valid and idempotent but more verbose than necessary.</p>
 <fantomas-nav previous="EventList%20Architecture.html" next="Glossary.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">val x: unit</div>
-<div popover class="fsdocs-tip" id="fs2">val y: obj</div>
-<div popover class="fsdocs-tip" id="fs3">Multiple items<br />val list: obj list<br /><br />--------------------<br />type &#39;T list = List&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs4">val a: int</div>
-<div popover class="fsdocs-tip" id="fs5">val b: int</div>
+        <div popover class="fsdocs-tip" id="fs1"><span class="k">val</span> <span class="fn">x</span><span class="pn">:</span> <span class="rt">unit</span></div>
+<div popover class="fsdocs-tip" id="fs2"><span class="k">val</span> <span class="fn">y</span><span class="pn">:</span> <span class="rt">obj</span></div>
+<div popover class="fsdocs-tip" id="fs3">Multiple items<br /><span class="k">val</span> <span class="fn">list</span><span class="pn">:</span> <span class="rt">obj</span> <span class="rt">list</span><br /><br />--------------------<br /><span class="k">type</span> <span class="ta">&#39;T</span> list <span class="o">=</span> <span class="rt">List</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs4"><span class="k">val</span> <span class="fn">a</span><span class="pn">:</span> <span class="vt">int</span></div>
+<div popover class="fsdocs-tip" id="fs5"><span class="k">val</span> <span class="fn">b</span><span class="pn">:</span> <span class="vt">int</span></div>
 
     </div>
 </main>

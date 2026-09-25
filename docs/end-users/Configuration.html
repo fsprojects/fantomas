@@ -365,10 +365,10 @@ These can be stored in an <a href="https://editorconfig.org/">.editorconfig</a> 
 commandline.<br />
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.</p>
-<table class="pre"><tr><td><pre><code>version: 8.0.5+972f7d0133de540ab2c582decddb0313ae617b53</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre><code>version: 8.0.5+52cd4c3efab3b61e6ce407f832229c239c1b4d21</code></pre></div>
 <h2 data-fsdocs-heading="2"><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
 <span class="id">fsharp_space_before_uppercase_invocation</span> <span class="o">=</span> <span class="k">true</span>
 
 <span class="pn">#</span> <span class="id">Write</span> <span class="id">a</span> <span class="id">comment</span> <span class="id">by</span> <span class="id">starting</span> <span class="id">the</span> <span class="id">line</span> <span class="k">with</span> <span class="id">a</span> <span class="s">&#39;#&#39;</span>
@@ -378,7 +378,7 @@ UI might be available depending on the IDE.</p>
 <span class="pn">#</span> <span class="id">Apply</span> <span class="id">specific</span> <span class="id">settings</span> <span class="k">for</span> <span class="id">a</span> <span class="id">targeted</span> <span class="id">subfolder</span>
 <span class="pn">[</span><span class="id">src</span><span class="o">/</span><span class="id">Elmish</span><span class="o">/</span><span class="id">View</span><span class="pn">.</span><span class="id">fs</span><span class="pn">]</span>
 <span class="id">fsharp_multiline_bracket_style</span> <span class="o">=</span> <span class="id">stroustrup</span>
-</code></pre>
+</code></pre></div>
 <h2 data-fsdocs-heading="3"><a name="Trying-your-settings-via-the-online-tool" class="anchor" href="#Trying-your-settings-via-the-online-tool">Trying your settings via the online tool</a></h2>
 <p>You can quickly try your settings via the <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" target="_blank">online tool</a>.</p>
 <img src="../../online_tool_usage.gif" alt="drawing" width="100%"/>
@@ -398,9 +398,9 @@ However, there are settings that we do not recommend and generally should not be
 <p>This preference sets the indentation
 The common values are 2 and 4.<br />
 The same indentation is ensured to be consistent in a source file.</p>
-<table class="pre"><tr><td><pre><code># Default
-indent_size = 4</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="57" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+indent_size = 4</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="57" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let inline selectRandom (f: _ []) =</span>
 <span class="s">      let r = random 1.0</span>
@@ -416,8 +416,8 @@ indent_size = 4</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">indent_size = 2</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let inline selectRandom (f: _[]) =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let inline selectRandom (f: _[]) =
   let r = random 1.0
 
   let rec find =
@@ -426,15 +426,15 @@ indent_size = 4</code></pre></td></tr></table>
     | n when r &lt; snd f.[n] -&gt; fst f.[n]
     | n -&gt; find (n - 1)
 
-  find &lt;| f.Length - 1</code></pre></td></tr></table>
+  find &lt;| f.Length - 1</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="7"><a name="max_line_length" class="anchor" href="#max_line_length">max_line_length</a></h3>
 <copy-to-clipboard text="max_line_length = 100"></copy-to-clipboard>
 <p><code>max_line_length</code> has to be an integer greater or equal to 60.<br />
 This preference sets the column where we break F# constructs into new lines.</p>
-<table class="pre"><tr><td><pre><code># Default
-max_line_length = 120</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="67" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+max_line_length = 120</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="67" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    match myValue with</span>
 <span class="s">    | Some foo -&gt; someLongFunctionNameThatWillTakeFooAndReturnsUnit foo</span>
@@ -443,11 +443,11 @@ max_line_length = 120</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">max_line_length = 60</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>match myValue with
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>match myValue with
 | Some foo -&gt;
     someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
-| None -&gt; printfn "nothing"</code></pre></td></tr></table>
+| None -&gt; printfn "nothing"</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="8"><a name="end_of_line" class="anchor" href="#end_of_line">end_of_line</a></h3>
 <copy-to-clipboard text="end_of_line = lf"></copy-to-clipboard>
@@ -459,25 +459,25 @@ If not set by the user, the default value is determined by <code>System.Environm
 <copy-to-clipboard text="insert_final_newline = false"></copy-to-clipboard>
 <p>Adds a final newline character at the end of the file.<br />
 <a href="https://stackoverflow.com/questions/729692/why-should-text-files-end-with-a-newline" target="_blank">Why should text files end with a newline?</a></p>
-<table class="pre"><tr><td><pre><code># Default
-insert_final_newline = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="78" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+insert_final_newline = true</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="78" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let a = 42</span>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">insert_final_newline = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let a = 42</code></pre></td></tr></table>
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let a = 42</code></pre></div>
 <fantomas-setting orange></fantomas-setting>
 <h3 data-fsdocs-heading="10"><a name="fsharp_space_before_parameter" class="anchor" href="#fsharp_space_before_parameter">fsharp_space_before_parameter</a></h3>
 <copy-to-clipboard text="fsharp_space_before_parameter = false"></copy-to-clipboard>
 <p>Add a space after the name of a function and before the opening parenthesis of the first parameter.<br />
 This setting influences function definitions.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_space_before_parameter = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="89" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_space_before_parameter = true</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="89" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">   let value (a: int) = x</span>
 <span class="s">   let DumpTrace() = ()</span>
@@ -485,9 +485,9 @@ fsharp_space_before_parameter = true</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_space_before_parameter = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let value(a: int) = x
-let DumpTrace() = ()</code></pre></td></tr></table>
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let value(a: int) = x
+let DumpTrace() = ()</code></pre></div>
 <fantomas-setting orange></fantomas-setting>
 <h3 data-fsdocs-heading="11"><a name="fsharp_space_before_lowercase_invocation" class="anchor" href="#fsharp_space_before_lowercase_invocation">fsharp_space_before_lowercase_invocation</a></h3>
 <copy-to-clipboard text="fsharp_space_before_lowercase_invocation = false"></copy-to-clipboard>
@@ -496,9 +496,9 @@ This setting influences function invocation in expressions and patterns.
 Only the name immediately in front of the parenthesis decides whether this setting or <code>fsharp_space_before_uppercase_invocation</code> applies, so <code>a.B.foo (x)</code> follows this one and <code>a.b.Foo(x)</code> follows the other.
 Neither applies unless the whole thing being called is a plain dotted name: a call, an index, a receiver that is not a name, or a type application anywhere in it keeps the parenthesis tight, which leaves <code>xs.map(f).filter(g)</code> and <code>unbox&lt;int&gt;(obj)</code> untouched by either setting.
 See <a href="./Chains.html#The-two-space-settings">Formatting chain expressions</a>.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_space_before_lowercase_invocation = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="100" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_space_before_lowercase_invocation = true</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="100" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">value (a, b)</span>
 <span class="s">startTimer ()</span>
@@ -509,12 +509,12 @@ fsharp_space_before_lowercase_invocation = true</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_space_before_lowercase_invocation = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>value(a, b)
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>value(a, b)
 startTimer()
 
 match x with
-| value(a, b) -&gt; ()</code></pre></td></tr></table>
+| value(a, b) -&gt; ()</code></pre></div>
 <fantomas-setting green gr></fantomas-setting>
 <h3 data-fsdocs-heading="12"><a name="fsharp_space_before_uppercase_invocation" class="anchor" href="#fsharp_space_before_uppercase_invocation">fsharp_space_before_uppercase_invocation</a></h3>
 <copy-to-clipboard text="fsharp_space_before_uppercase_invocation = true"></copy-to-clipboard>
@@ -523,9 +523,9 @@ This setting influences function invocation in expressions and patterns.
 Only the name immediately in front of the parenthesis decides whether this setting or <code>fsharp_space_before_lowercase_invocation</code> applies, so <code>a.b.Foo (x)</code> follows this one and <code>a.B.foo(x)</code> follows the other.
 Neither applies unless the whole thing being called is a plain dotted name: a call, an index, a receiver that is not a name, or a type application anywhere in it keeps the parenthesis tight, which leaves <code>a.Foo(x).Bar(y)</code> and <code>X&lt;Y&gt;.Foo(x)</code> untouched by either setting.
 See <a href="./Chains.html#The-two-space-settings">Formatting chain expressions</a>.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_space_before_uppercase_invocation = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="111" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_space_before_uppercase_invocation = false</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="111" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">Value(a, b)</span>
 <span class="s">person.ToString()</span>
@@ -536,19 +536,19 @@ fsharp_space_before_uppercase_invocation = false</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_space_before_uppercase_invocation = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>Value (a, b)
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>Value (a, b)
 person.ToString ()
 
 match x with
-| Value (a, b) -&gt; ()</code></pre></td></tr></table>
+| Value (a, b) -&gt; ()</code></pre></div>
 <fantomas-setting orange></fantomas-setting>
 <h3 data-fsdocs-heading="13"><a name="fsharp_space_before_class_constructor" class="anchor" href="#fsharp_space_before_class_constructor">fsharp_space_before_class_constructor</a></h3>
 <copy-to-clipboard text="fsharp_space_before_class_constructor = true"></copy-to-clipboard>
 <p>Add a space after a type name and before the class constructor.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_space_before_class_constructor = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="122" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_space_before_class_constructor = false</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="122" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type Person() =</span>
 <span class="s">        class</span>
@@ -557,15 +557,15 @@ fsharp_space_before_class_constructor = false</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_space_before_class_constructor = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>type Person () = class end</code></pre></td></tr></table>
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>type Person () = class end</code></pre></div>
 <fantomas-setting green gr></fantomas-setting>
 <h3 data-fsdocs-heading="14"><a name="fsharp_space_before_member" class="anchor" href="#fsharp_space_before_member">fsharp_space_before_member</a></h3>
 <copy-to-clipboard text="fsharp_space_before_member = true"></copy-to-clipboard>
 <p>Add a space after a member name and before the opening parenthesis of the first parameter.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_space_before_member = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="133" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_space_before_member = false</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="133" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type Person() =</span>
 <span class="s">        member this.Walk(distance: int) = ()</span>
@@ -576,19 +576,19 @@ fsharp_space_before_member = false</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_space_before_member = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>type Person() =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>type Person() =
     member this.Walk (distance: int) = ()
     member this.Sleep () = ignore
     member __.singAlong () = ()
-    member __.swim (duration: TimeSpan) = ()</code></pre></td></tr></table>
+    member __.swim (duration: TimeSpan) = ()</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="15"><a name="fsharp_space_before_colon" class="anchor" href="#fsharp_space_before_colon">fsharp_space_before_colon</a></h3>
 <copy-to-clipboard text="fsharp_space_before_colon = true"></copy-to-clipboard>
 <p>Add a space before <code>:</code>. Please note that not every <code>:</code> is controlled by this setting.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_space_before_colon = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="144" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_space_before_colon = false</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="144" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">   type Point = { x: int; y: int }</span>
 <span class="s">   let myValue: int = 42</span>
@@ -597,17 +597,17 @@ fsharp_space_before_colon = false</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_space_before_colon = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>type Point = { x : int; y : int }
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>type Point = { x : int; y : int }
 let myValue : int = 42
-let update (msg : Msg) (model : Model) : Model = model</code></pre></td></tr></table>
+let update (msg : Msg) (model : Model) : Model = model</code></pre></div>
 <fantomas-setting orange></fantomas-setting>
 <h3 data-fsdocs-heading="16"><a name="fsharp_space_after_comma" class="anchor" href="#fsharp_space_after_comma">fsharp_space_after_comma</a></h3>
 <copy-to-clipboard text="fsharp_space_after_comma = false"></copy-to-clipboard>
 <p>Adds a space after <code>,</code> in tuples.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_space_after_comma = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="155" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_space_after_comma = true</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="155" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    myValue.SomeFunction(foo, bar, somethingElse)</span>
 <span class="s">    (a, b, c)</span>
@@ -615,16 +615,16 @@ fsharp_space_after_comma = true</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_space_after_comma = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>myValue.SomeFunction(foo,bar,somethingElse)
-(a,b,c)</code></pre></td></tr></table>
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>myValue.SomeFunction(foo,bar,somethingElse)
+(a,b,c)</code></pre></div>
 <fantomas-setting green gr></fantomas-setting>
 <h3 data-fsdocs-heading="17"><a name="fsharp_space_before_semicolon" class="anchor" href="#fsharp_space_before_semicolon">fsharp_space_before_semicolon</a></h3>
 <copy-to-clipboard text="fsharp_space_before_semicolon = true"></copy-to-clipboard>
 <p>Adds a space before <code>;</code> in records, arrays, lists, etc.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_space_before_semicolon = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="166" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_space_before_semicolon = false</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="166" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let a = [ 1 ; 2 ; 3 ]</span>
 <span class="s">    let b = [| foo ; bar |]</span>
@@ -633,17 +633,17 @@ fsharp_space_before_semicolon = false</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_space_before_semicolon = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let a = [ 1 ; 2 ; 3 ]
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let a = [ 1 ; 2 ; 3 ]
 let b = [| foo ; bar |]
-type C = { X: int ; Y: int }</code></pre></td></tr></table>
+type C = { X: int ; Y: int }</code></pre></div>
 <fantomas-setting orange></fantomas-setting>
 <h3 data-fsdocs-heading="18"><a name="fsharp_space_after_semicolon" class="anchor" href="#fsharp_space_after_semicolon">fsharp_space_after_semicolon</a></h3>
 <copy-to-clipboard text="fsharp_space_after_semicolon = false"></copy-to-clipboard>
 <p>Adds a space after <code>;</code> in records, arrays, lists, etc.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_space_after_semicolon = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="177" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_space_after_semicolon = true</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="177" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let a = [ 1; 2; 3 ]</span>
 <span class="s">    let b = [| foo; bar |]</span>
@@ -652,17 +652,17 @@ fsharp_space_after_semicolon = true</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_space_after_semicolon = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let a = [ 1;2;3 ]
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let a = [ 1;2;3 ]
 let b = [| foo;bar |]
-type C = { X: int;Y: int }</code></pre></td></tr></table>
+type C = { X: int;Y: int }</code></pre></div>
 <fantomas-setting orange></fantomas-setting>
 <h3 data-fsdocs-heading="19"><a name="fsharp_space_around_delimiter" class="anchor" href="#fsharp_space_around_delimiter">fsharp_space_around_delimiter</a></h3>
 <copy-to-clipboard text="fsharp_space_around_delimiter = false"></copy-to-clipboard>
 <p>Adds a space around delimiters like <code>[</code>,<code>[|</code>,{`.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_space_around_delimiter = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="188" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_space_around_delimiter = true</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="188" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let a = [ 1;2;3 ]</span>
 <span class="s">    let b = [| 4;5;6 |]</span>
@@ -670,9 +670,9 @@ fsharp_space_around_delimiter = true</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_space_around_delimiter = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let a = [1; 2; 3]
-let b = [|4; 5; 6|]</code></pre></td></tr></table>
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let a = [1; 2; 3]
+let b = [|4; 5; 6|]</code></pre></div>
 <h2 data-fsdocs-heading="20"><a name="Maximum-width-constraints" class="anchor" href="#Maximum-width-constraints">Maximum width constraints</a></h2>
 <p>Settings that control the max width of certain expressions.</p>
 <fantomas-setting orange></fantomas-setting>
@@ -683,9 +683,9 @@ The <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatti
 <blockquote>
 <p>If the else expression is absent, it is recommended to never to write the entire expression in one line.</p>
 </blockquote>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_max_if_then_short_width = 0</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="198" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_max_if_then_short_width = 0</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="198" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    if a then </span>
 <span class="s">        ()</span>
@@ -693,34 +693,34 @@ fsharp_max_if_then_short_width = 0</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_max_if_then_short_width = 15</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>if a then ()</code></pre></td></tr></table>
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>if a then ()</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="22"><a name="fsharp_max_if_then_else_short_width" class="anchor" href="#fsharp_max_if_then_else_short_width">fsharp_max_if_then_else_short_width</a></h3>
 <copy-to-clipboard text="fsharp_max_if_then_else_short_width = 80"></copy-to-clipboard>
 <p>Fantomas by default follows the if/then/else conventions listed in the <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions">Microsoft F# style guide</a>.<br />
 This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_max_if_then_else_short_width = 60</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="208" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_max_if_then_else_short_width = 60</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="208" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    if myCheck then truth else bogus</span>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_max_if_then_else_short_width = 10</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>if myCheck then
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>if myCheck then
     truth
 else
-    bogus</code></pre></td></tr></table>
+    bogus</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="23"><a name="fsharp_max_infix_operator_expression" class="anchor" href="#fsharp_max_infix_operator_expression">fsharp_max_infix_operator_expression</a></h3>
 <copy-to-clipboard text="fsharp_max_infix_operator_expression = 100"></copy-to-clipboard>
 <p>Control the maximum length for which infix expression can be on one line.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_max_infix_operator_expression = 80</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="218" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_max_infix_operator_expression = 80</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="218" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let WebApp =</span>
 <span class="s">        route &quot;/ping&quot; &gt;=&gt; authorized &gt;=&gt; text &quot;pong&quot;</span>
@@ -728,19 +728,19 @@ fsharp_max_infix_operator_expression = 80</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_max_infix_operator_expression = 20</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let WebApp =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let WebApp =
     route "/ping"
     &gt;=&gt; authorized
-    &gt;=&gt; text "pong"</code></pre></td></tr></table>
+    &gt;=&gt; text "pong"</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="24"><a name="fsharp_max_record_width" class="anchor" href="#fsharp_max_record_width">fsharp_max_record_width</a></h3>
 <copy-to-clipboard text="fsharp_max_record_width = 60"></copy-to-clipboard>
 <p>Control the maximum width for which records should be in one line.</p>
 <p>Requires <code>fsharp_record_multiline_formatter</code> to be <code>character_width</code> to take effect.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_max_record_width = 40</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="228" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_max_record_width = 40</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="228" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type MyRecord = { X: int; Y: int; Length: int }</span>
 <span class="s">    let myInstance = { X = 10; Y = 20; Length = 90 }</span>
@@ -748,8 +748,8 @@ fsharp_max_record_width = 40</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_max_record_width = 20</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>type MyRecord =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>type MyRecord =
     {
         X: int
         Y: int
@@ -761,16 +761,16 @@ let myInstance =
         X = 10
         Y = 20
         Length = 90
-    }</code></pre></td></tr></table>
+    }</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="25"><a name="fsharp_max_record_number_of_items" class="anchor" href="#fsharp_max_record_number_of_items">fsharp_max_record_number_of_items</a></h3>
 <copy-to-clipboard text="fsharp_max_record_number_of_items = 2"></copy-to-clipboard>
 <p>Control the maximum number of fields for which records should be in one line.</p>
 <p>Requires <code>fsharp_record_multiline_formatter</code> to be
 <code>number_of_items</code> to take effect.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_max_record_number_of_items = 1</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="238" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_max_record_number_of_items = 1</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="238" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type R = { x: int }</span>
 
@@ -790,8 +790,8 @@ fsharp_max_record_number_of_items = 1</code></pre></td></tr></table>
 <span class="s">fsharp_record_multiline_formatter = number_of_items</span>
 <span class="s">fsharp_max_record_number_of_items = 2</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>type R = { x: int }
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>type R = { x: int }
 
 type S = { x: int; y: string }
 
@@ -813,7 +813,7 @@ let myRecord''' =
         x = 3
         y = "hello"
         z = 0.0
-    }</code></pre></td></tr></table>
+    }</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="26"><a name="fsharp_record_multiline_formatter" class="anchor" href="#fsharp_record_multiline_formatter">fsharp_record_multiline_formatter</a></h3>
 <copy-to-clipboard text="fsharp_record_multiline_formatter = number_of_items"></copy-to-clipboard>
@@ -821,9 +821,9 @@ let myRecord''' =
 <code>character_width</code> uses character count of the expression, controlled by <code>fsharp_max_record_width</code>.<br />
 <code>number_of_items</code> uses the number of fields in the record, controlled by <code>fsharp_max_record_number_of_items</code>.</p>
 <p>Note that in either case, record expressions/statements are still governed by <code>max_line_length</code>.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_record_multiline_formatter = character_width</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="250" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_record_multiline_formatter = character_width</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="250" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type R = { x: int }</span>
 
@@ -838,8 +838,8 @@ fsharp_record_multiline_formatter = character_width</code></pre></td></tr></tabl
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_record_multiline_formatter = number_of_items</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>type R = { x: int }
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>type R = { x: int }
 
 type S =
     {
@@ -855,36 +855,36 @@ let myRecord'' =
     { r with
         x = 3
         y = "hello"
-    }</code></pre></td></tr></table>
+    }</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="27"><a name="fsharp_max_array_or_list_width" class="anchor" href="#fsharp_max_array_or_list_width">fsharp_max_array_or_list_width</a></h3>
 <copy-to-clipboard text="fsharp_max_array_or_list_width = 100"></copy-to-clipboard>
 <p>Control the maximum width for which lists and arrays can be in one line.</p>
 <p>Requires <code>fsharp_array_or_list_multiline_formatter</code> to be <code>character_width</code> to take effect</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_max_array_or_list_width = 80</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="260" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_max_array_or_list_width = 80</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="260" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myArray = [| one; two; three |]</span>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_max_array_or_list_width = 20</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let myArray =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let myArray =
     [|
         one
         two
         three
-    |]</code></pre></td></tr></table>
+    |]</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="28"><a name="fsharp_max_array_or_list_number_of_items" class="anchor" href="#fsharp_max_array_or_list_number_of_items">fsharp_max_array_or_list_number_of_items</a></h3>
 <copy-to-clipboard text="fsharp_max_array_or_list_number_of_items = 2"></copy-to-clipboard>
 <p>Control the maximum number of elements for which lists and arrays can be in one line.</p>
 <p>Requires <code>fsharp_array_or_list_multiline_formatter</code> to be <code>number_of_items</code> to take effect.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_max_array_or_list_number_of_items = 1</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="270" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_max_array_or_list_number_of_items = 1</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="270" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myList = [ one; two ]</span>
 <span class="s">    let myArray = [| one; two; three |]</span>
@@ -893,15 +893,15 @@ fsharp_max_array_or_list_number_of_items = 1</code></pre></td></tr></table>
 <span class="s">fsharp_array_or_list_multiline_formatter = number_of_items</span>
 <span class="s">fsharp_max_array_or_list_number_of_items = 2</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let myList = [ one; two ]
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let myList = [ one; two ]
 
 let myArray =
     [|
         one
         two
         three
-    |]</code></pre></td></tr></table>
+    |]</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="29"><a name="fsharp_array_or_list_multiline_formatter" class="anchor" href="#fsharp_array_or_list_multiline_formatter">fsharp_array_or_list_multiline_formatter</a></h3>
 <copy-to-clipboard text="fsharp_array_or_list_multiline_formatter = number_of_items"></copy-to-clipboard>
@@ -909,30 +909,30 @@ let myArray =
 <code>character_width</code> uses character count of the expression, controlled by <code>fsharp_max_array_or_list_width</code>.<br />
 <code>number_of_items</code> uses the number of elements in the array or list, controlled by <code>fsharp_max_array_or_list_number_of_items</code>.</p>
 <p>Note that in either case, list expressions are still governed by <code>max_line_length</code>.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_array_or_list_multiline_formatter = character_width</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="282" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_array_or_list_multiline_formatter = character_width</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="282" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myArray = [| one; two; three |]</span>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_array_or_list_multiline_formatter = number_of_items</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let myArray =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let myArray =
     [|
         one
         two
         three
-    |]</code></pre></td></tr></table>
+    |]</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="30"><a name="fsharp_max_value_binding_width" class="anchor" href="#fsharp_max_value_binding_width">fsharp_max_value_binding_width</a></h3>
 <copy-to-clipboard text="fsharp_max_value_binding_width = 100"></copy-to-clipboard>
 <p>Control the maximum expression width for which let and member value/property bindings should be in one line.<br />
 The width is that of the pattern for the binding plus the right-hand expression but not the keywords (e.g. "let").</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_max_value_binding_width = 80</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="292" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_max_value_binding_width = 80</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="292" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let title = &quot;Great title of project&quot;</span>
 <span class="s">    type MyType() =</span>
@@ -941,21 +941,21 @@ fsharp_max_value_binding_width = 80</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_max_value_binding_width = 10</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let title =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let title =
     "Great title of project"
 
 type MyType() =
     member this.HelpText =
-        "Some help text"</code></pre></td></tr></table>
+        "Some help text"</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="31"><a name="fsharp_max_function_binding_width" class="anchor" href="#fsharp_max_function_binding_width">fsharp_max_function_binding_width</a></h3>
 <copy-to-clipboard text="fsharp_max_function_binding_width = 40"></copy-to-clipboard>
 <p>Control the maximum width for which function and member bindings should be in one line.<br />
 In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand side expression of the binding is measured.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_max_function_binding_width = 40</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="302" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_max_function_binding_width = 40</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="302" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let printScore score total = printfn &quot;%i / %i&quot; score total</span>
 
@@ -965,22 +965,22 @@ fsharp_max_function_binding_width = 40</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_max_function_binding_width = 10</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let printScore score total =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let printScore score total =
     printfn "%i / %i" score total
 
 type Triangle() =
     member this.CalculateSurface(width: int, height: int) =
-        width * height / 2</code></pre></td></tr></table>
+        width * height / 2</code></pre></div>
 <fantomas-setting green gr></fantomas-setting>
 <h3 data-fsdocs-heading="32"><a name="fsharp_multiline_bracket_style" class="anchor" href="#fsharp_multiline_bracket_style">fsharp_multiline_bracket_style</a></h3>
 <copy-to-clipboard text="fsharp_multiline_bracket_style = stroustrup"></copy-to-clipboard>
 <p><code>Cramped</code> Alternative way in F# to format brackets.<br />
 <code>Aligned</code> The default way of formatting records, arrays and lists. This will align the braces at the same column level.<br />
 <code>Stroustrup</code> Allow for easier reordering of members and keeping the code succinct.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_multiline_bracket_style = aligned</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="314" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_multiline_bracket_style = aligned</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="314" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myRecord =</span>
 <span class="s">        { Level = 1</span>
@@ -1006,8 +1006,8 @@ fsharp_multiline_bracket_style = aligned</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_multiline_bracket_style = aligned</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let myRecord =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let myRecord =
     {
         Level = 1
         Progress = "foo"
@@ -1032,8 +1032,8 @@ let a =
         (13, 14, 15)
         (16, 17, 18)
         (19, 20, 21)
-    |]</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="315" class="fn">formatCode</span>
+    |]</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="315" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myRecord =</span>
 <span class="s">        { Level = 1</span>
@@ -1059,8 +1059,8 @@ let a =
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_multiline_bracket_style = stroustrup</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let myRecord = {
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let myRecord = {
     Level = 1
     Progress = "foo"
     Bar = "bar"
@@ -1082,14 +1082,14 @@ let a = [|
     (13, 14, 15)
     (16, 17, 18)
     (19, 20, 21)
-|]</code></pre></td></tr></table>
+|]</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="33"><a name="fsharp_newline_before_multiline_computation_expression" class="anchor" href="#fsharp_newline_before_multiline_computation_expression">fsharp_newline_before_multiline_computation_expression</a></h3>
 <copy-to-clipboard text="fsharp_newline_before_multiline_computation_expression = false"></copy-to-clipboard>
 <p>Insert a newline before a computation expression that spans multiple lines</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_newline_before_multiline_computation_expression = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="326" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_newline_before_multiline_computation_expression = true</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="326" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let something =</span>
 <span class="s">        task {</span>
@@ -1100,11 +1100,11 @@ fsharp_newline_before_multiline_computation_expression = true</code></pre></td><
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_newline_before_multiline_computation_expression = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let something = task {
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let something = task {
     let! thing = otherThing ()
     return 5
-}</code></pre></td></tr></table>
+}</code></pre></div>
 <h2 data-fsdocs-heading="34"><a name="G-Research-style" class="anchor" href="#G-Research-style">G-Research style</a></h2>
 <p>A series of settings requicolor="red" to conform with the <a href="https://github.com/G-Research/fsharp-formatting-conventions">G-Research style guide</a>.<br />
 From a consistency point of view, it is recommend to enable all these settings instead of cherry-picking a few.</p>
@@ -1112,9 +1112,9 @@ From a consistency point of view, it is recommend to enable all these settings i
 <h3 data-fsdocs-heading="35"><a name="fsharp_newline_between_type_definition_and_members" class="anchor" href="#fsharp_newline_between_type_definition_and_members">fsharp_newline_between_type_definition_and_members</a></h3>
 <copy-to-clipboard text="fsharp_newline_between_type_definition_and_members = false"></copy-to-clipboard>
 <p>Adds a new line between a type definition and its first member.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_newline_between_type_definition_and_members = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="337" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_newline_between_type_definition_and_members = true</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="337" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">type Range =</span>
 <span class="s">    { From: float</span>
@@ -1125,22 +1125,22 @@ fsharp_newline_between_type_definition_and_members = true</code></pre></td></tr>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_newline_between_type_definition_and_members = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>type Range =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>type Range =
     {
         From: float
         To: float
     }
 
-    member this.Length = this.To - this.From</code></pre></td></tr></table>
+    member this.Length = this.To - this.From</code></pre></div>
 <fantomas-setting green gr></fantomas-setting>
 <h3 data-fsdocs-heading="36"><a name="fsharp_align_function_signature_to_indentation" class="anchor" href="#fsharp_align_function_signature_to_indentation">fsharp_align_function_signature_to_indentation</a></h3>
 <copy-to-clipboard text="fsharp_align_function_signature_to_indentation = true"></copy-to-clipboard>
 <p>When a function signature exceeds the <code>max_line_length</code>, Fantomas will put all parameters on separate lines.<br />
 This setting also places the equals sign and return type on a new line.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_align_function_signature_to_indentation = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="348" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_align_function_signature_to_indentation = false</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="348" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">[&lt;FunctionName(&quot;FormatCode&quot;)&gt;]</span>
 <span class="s">let run </span>
@@ -1152,22 +1152,22 @@ fsharp_align_function_signature_to_indentation = false</code></pre></td></tr></t
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_align_function_signature_to_indentation = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>[&lt;FunctionName("FormatCode")&gt;]
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>[&lt;FunctionName("FormatCode")&gt;]
 let run
     ([&lt;HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")&gt;] req: HttpRequest)
     (log: ILogger)
     : HttpResponse
     =
-    Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req</code></pre></td></tr></table>
+    Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req</code></pre></div>
 <fantomas-setting green gr></fantomas-setting>
 <h3 data-fsdocs-heading="37"><a name="fsharp_alternative_long_member_definitions" class="anchor" href="#fsharp_alternative_long_member_definitions">fsharp_alternative_long_member_definitions</a></h3>
 <copy-to-clipboard text="fsharp_alternative_long_member_definitions = true"></copy-to-clipboard>
 <p>Provides an alternative way of formatting long member and constructor definitions,
 where the difference is mainly in the equal sign and returned type placement.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_alternative_long_member_definitions = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="359" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_alternative_long_member_definitions = false</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="359" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">type C</span>
 <span class="s">    (</span>
@@ -1198,8 +1198,8 @@ fsharp_alternative_long_member_definitions = false</code></pre></td></tr></table
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_alternative_long_member_definitions = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>type C
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>type C
     (
         aVeryLongType: AVeryLongTypeThatYouNeedToUse,
         aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
@@ -1226,14 +1226,14 @@ type E() =
             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
         )
         =
-        E()</code></pre></td></tr></table>
+        E()</code></pre></div>
 <fantomas-setting green gr></fantomas-setting>
 <h3 data-fsdocs-heading="38"><a name="fsharp_multi_line_lambda_closing_newline" class="anchor" href="#fsharp_multi_line_lambda_closing_newline">fsharp_multi_line_lambda_closing_newline</a></h3>
 <copy-to-clipboard text="fsharp_multi_line_lambda_closing_newline = true"></copy-to-clipboard>
 <p>Places the closing parenthesis of a multiline lambda argument on the next line.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_multi_line_lambda_closing_newline = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="370" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_multi_line_lambda_closing_newline = false</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="370" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let printListWithOffset a list1 =</span>
 <span class="s">    List.iter</span>
@@ -1252,8 +1252,8 @@ fsharp_multi_line_lambda_closing_newline = false</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_multi_line_lambda_closing_newline = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let printListWithOffset a list1 =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let printListWithOffset a list1 =
     List.iter
         (fun { ItemOne = a } -&gt;
             // print
@@ -1266,16 +1266,16 @@ let printListWithOffset a list1 =
     |&gt; List.iter (fun elem -&gt;
         // print stuff
         printfn "%d" (a + elem)
-    )</code></pre></td></tr></table>
+    )</code></pre></div>
 <fantomas-setting orange gr></fantomas-setting>
 <h3 data-fsdocs-heading="39"><a name="fsharp_experimental_keep_indent_in_branch" class="anchor" href="#fsharp_experimental_keep_indent_in_branch">fsharp_experimental_keep_indent_in_branch</a></h3>
 <copy-to-clipboard text="fsharp_experimental_keep_indent_in_branch = true"></copy-to-clipboard>
 <p>Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.<br />
 Only when the last pattern match or else branch was already at the same level of the entire match or if expression.</p>
 <p><em>This feature is experimental and is subject to change.</em></p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_experimental_keep_indent_in_branch = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="381" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_experimental_keep_indent_in_branch = false</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="381" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let main argv =</span>
 <span class="s">    let args = parse argv</span>
@@ -1295,8 +1295,8 @@ fsharp_experimental_keep_indent_in_branch = false</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_experimental_keep_indent_in_branch = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let main argv =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let main argv =
     let args = parse argv
 
     let instructions = Library.foo args
@@ -1309,23 +1309,23 @@ fsharp_experimental_keep_indent_in_branch = false</code></pre></td></tr></table>
     // proceed with main method
     let output = Library.execute instructions
     // do more stuff
-    0</code></pre></td></tr></table>
+    0</code></pre></div>
 <fantomas-setting green gr></fantomas-setting>
 <h3 data-fsdocs-heading="40"><a name="fsharp_bar_before_discriminated_union_declaration" class="anchor" href="#fsharp_bar_before_discriminated_union_declaration">fsharp_bar_before_discriminated_union_declaration</a></h3>
 <copy-to-clipboard text="fsharp_bar_before_discriminated_union_declaration = true"></copy-to-clipboard>
 <p>Always use a <code>|</code> before every case in the declaration of a discriminated union.<br />
 If <code>false</code>, a <code>|</code> character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_bar_before_discriminated_union_declaration = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="392" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_bar_before_discriminated_union_declaration = false</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="392" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type MyDU = Short of int</span>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_bar_before_discriminated_union_declaration = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>type MyDU = | Short of int</code></pre></td></tr></table>
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>type MyDU = | Short of int</code></pre></div>
 <h2 data-fsdocs-heading="41"><a name="Other" class="anchor" href="#Other">Other</a></h2>
 <p>Some additional settings that don't fit into any style guide.</p>
 <fantomas-setting green></fantomas-setting>
@@ -1334,9 +1334,9 @@ fsharp_bar_before_discriminated_union_declaration = false</code></pre></td></tr>
 <p>Surround <strong>nested</strong> multi-line expressions with blank lines.<br />
 Existing blank lines are always preserved (via trivia), with exception when <a href="#fsharp_keep_max_number_of_blank_lines">fsharp_keep_max_number_of_blank_lines</a> is used.<br />
 Top level expressions will always follow the <a href="https://github.com/fsprojects/fantomas/blob/main/docs-old/FormattingConventions.md#2020-revision">2020 blank lines revision</a> principle.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_blank_lines_around_nested_multiline_expressions = true</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="403" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_blank_lines_around_nested_multiline_expressions = true</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="403" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let topLevelFunction () =</span>
 <span class="s">        printfn &quot;Something to print&quot;</span>
@@ -1355,8 +1355,8 @@ fsharp_blank_lines_around_nested_multiline_expressions = true</code></pre></td><
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_blank_lines_around_nested_multiline_expressions = false</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let topLevelFunction () =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let topLevelFunction () =
     printfn "Something to print"
 
     try
@@ -1367,14 +1367,14 @@ fsharp_blank_lines_around_nested_multiline_expressions = true</code></pre></td><
 
 let secondTopLevelFunction () =
     // ...
-    ()</code></pre></td></tr></table>
+    ()</code></pre></div>
 <fantomas-setting green></fantomas-setting>
 <h3 data-fsdocs-heading="43"><a name="fsharp_keep_max_number_of_blank_lines" class="anchor" href="#fsharp_keep_max_number_of_blank_lines">fsharp_keep_max_number_of_blank_lines</a></h3>
 <copy-to-clipboard text="fsharp_keep_max_number_of_blank_lines = 1"></copy-to-clipboard>
 <p>Set maximal number of consecutive blank lines to keep from original source. It doesn't change number of new blank lines generated by Fantomas.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_keep_max_number_of_blank_lines = 100</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="413" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_keep_max_number_of_blank_lines = 100</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="413" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    open Foo</span>
 
@@ -1383,18 +1383,18 @@ fsharp_keep_max_number_of_blank_lines = 100</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_keep_max_number_of_blank_lines = 1</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>open Foo
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>open Foo
 
-let x = 42</code></pre></td></tr></table>
+let x = 42</code></pre></div>
 <fantomas-setting orange></fantomas-setting>
 <h3 data-fsdocs-heading="44"><a name="fsharp_experimental_elmish" class="anchor" href="#fsharp_experimental_elmish">fsharp_experimental_elmish</a></h3>
 <copy-to-clipboard text="fsharp_experimental_elmish = true"></copy-to-clipboard>
 <p>Applies the Stroustrup style to the final (two) array or list argument(s) in a function application.<br />
 Note that this behaviour is also active when <code>fsharp_multiline_bracket_style = stroustrup</code>.</p>
-<table class="pre"><tr><td><pre><code># Default
-fsharp_experimental_elmish = false</code></pre></td></tr></table>
-<pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="424" class="fn">formatCode</span>
+<div class="fsdocs-snippet"><pre><code># Default
+fsharp_experimental_elmish = false</code></pre></div>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="424" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">let dualList =</span>
 <span class="s">    div</span>
@@ -1424,8 +1424,8 @@ fsharp_experimental_elmish = false</code></pre></td></tr></table>
     <span class="s">&quot;&quot;&quot;</span>
 <span class="s">fsharp_experimental_elmish = true</span>
 <span class="s">    &quot;&quot;&quot;</span>
-</code></pre>
-<table class="pre"><tr><td><pre><code>let dualList =
+</code></pre></div>
+<div class="fsdocs-snippet"><pre><code>let dualList =
     div [] [
         h1 [] [ str "Some title" ]
         ul [] [
@@ -1442,160 +1442,88 @@ let singleList =
             for p in model.Points do
                 Html.li [ str $"%i{p.X}, %i{p.Y}" ]
         ]
-    ]</code></pre></td></tr></table>
+    ]</code></pre></div>
 <fantomas-nav previous="GettingStarted.html" next="UpgradeGuide.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">namespace System</div>
-<div popover class="fsdocs-tip" id="fs2">namespace Fantomas</div>
-<div popover class="fsdocs-tip" id="fs3">namespace Fantomas.Core</div>
-<div popover class="fsdocs-tip" id="fs4">module EditorConfig
-
-from Fantomas</div>
-<div popover class="fsdocs-tip" id="fs5">val formatCode: input: string -&gt; settings: string -&gt; unit</div>
-<div popover class="fsdocs-tip" id="fs6">val input: string</div>
-<div popover class="fsdocs-tip" id="fs7">val settings: string</div>
-<div popover class="fsdocs-tip" id="fs8">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = String</div>
-<div popover class="fsdocs-tip" id="fs9">val async: AsyncBuilder</div>
-<div popover class="fsdocs-tip" id="fs10">val config: FormatConfig</div>
-<div popover class="fsdocs-tip" id="fs11">val editorConfigProperties: Collections.Generic.IReadOnlyDictionary&lt;string,string&gt;</div>
-<div popover class="fsdocs-tip" id="fs12">String.Split(separator: ReadOnlySpan&lt;char&gt;) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split( separator: char array) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string array, options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string, ?options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: char array, options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: char array, count: int) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: Text.Rune, ?options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: char, ?options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string array, count: int, options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />String.Split(separator: string, count: int, ?options: StringSplitOptions) : string array<br />&#160;&#160;&#160;<em>(+0 other overloads)</em></div>
-<div popover class="fsdocs-tip" id="fs13">
-type StringSplitOptions =
-  Literal&gt;]
-  | None = 0
-  Literal&gt;]
-  | RemoveEmptyEntries = 1
-  Literal&gt;]
-  | TrimEntries = 2<br /><em>&lt;summary&gt;Specifies options for applicable &lt;see cref=&quot;Overload:System.String.Split&quot; /&gt; method overloads, such as whether to omit empty substrings from the returned array or trim whitespace from substrings.&lt;/summary&gt;</em></div>
-<div popover class="fsdocs-tip" id="fs14">field StringSplitOptions.RemoveEmptyEntries: StringSplitOptions = 1</div>
-<div popover class="fsdocs-tip" id="fs15">type Array =
-  interface ICollection
-  interface IEnumerable
-  interface IList
-  interface IStructuralComparable
-  interface IStructuralEquatable
-  interface ICloneable
-  member Clone: unit -&gt; obj
-  member CopyTo: array: Array * index: int -&gt; unit + 1 overload
-  member GetEnumerator: unit -&gt; IEnumerator
-  member GetLength: dimension: int -&gt; int
-  ...<br /><em>&lt;summary&gt;Provides methods for creating, manipulating, searching, and sorting arrays, thereby serving as the base class for all arrays in the common language runtime.&lt;/summary&gt;</em></div>
-<div popover class="fsdocs-tip" id="fs16">val choose: chooser: (&#39;T -&gt; &#39;U option) -&gt; array: &#39;T array -&gt; &#39;U array</div>
-<div popover class="fsdocs-tip" id="fs17">val line: string</div>
-<div popover class="fsdocs-tip" id="fs18">val parts: string array</div>
-<div popover class="fsdocs-tip" id="fs19">field StringSplitOptions.TrimEntries: StringSplitOptions = 2</div>
-<div popover class="fsdocs-tip" id="fs20">property Array.Length: int with get<br /><em>&lt;summary&gt;Gets the total number of elements in all the dimensions of the &lt;see cref=&quot;T:System.Array&quot; /&gt;.&lt;/summary&gt;<br />&lt;exception cref=&quot;T:System.OverflowException&quot;&gt;The array is multidimensional and contains more than &lt;see cref=&quot;F:System.Int32.MaxValue&quot;&gt;Int32.MaxValue&lt;/see&gt; elements.&lt;/exception&gt;<br />&lt;returns&gt;The total number of elements in all the dimensions of the &lt;see cref=&quot;T:System.Array&quot; /&gt;; zero if there are no elements in the array.&lt;/returns&gt;</em></div>
-<div popover class="fsdocs-tip" id="fs21">union case Option.None: Option&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs22">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs23">val readOnlyDict: keyValuePairs: (&#39;Key * &#39;Value) seq -&gt; Collections.Generic.IReadOnlyDictionary&lt;&#39;Key,&#39;Value&gt; (requires equality)</div>
-<div popover class="fsdocs-tip" id="fs24">val parseOptionsFromEditorConfig: fallbackConfig: FormatConfig -&gt; editorConfigProperties: Collections.Generic.IReadOnlyDictionary&lt;string,string&gt; -&gt; FormatConfig * EditorConfigProblem list</div>
-<div popover class="fsdocs-tip" id="fs25">type FormatConfig =
-  {
-    IndentSize: Num
-    MaxLineLength: Num
-    EndOfLine: EndOfLineStyle
-    InsertFinalNewline: bool
-    SpaceBeforeParameter: bool
-    SpaceBeforeLowercaseInvocation: bool
-    SpaceBeforeUppercaseInvocation: bool
-    SpaceBeforeClassConstructor: bool
-    SpaceBeforeMember: bool
-    SpaceBeforeColon: bool
-    ...
-  }
-  member IsStroustrupStyle: bool
-  static member Default: FormatConfig</div>
-<div popover class="fsdocs-tip" id="fs26">property FormatConfig.Default: FormatConfig with get</div>
-<div popover class="fsdocs-tip" id="fs27">val fst: tuple: (&#39;T1 * &#39;T2) -&gt; &#39;T1</div>
-<div popover class="fsdocs-tip" id="fs28">val result: FormatResult</div>
-<div popover class="fsdocs-tip" id="fs29">type CodeFormatter =
-  static member FormatASTAsync: ast: ParsedInput -&gt; Async&lt;string&gt; + 3 overloads
-  static member FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt; + 2 overloads
-  static member FormatOakAsync: oak: Oak -&gt; Async&lt;string&gt; + 1 overload
-  static member FormatSelectionAsync: isSignature: bool * source: string * selection: range -&gt; Async&lt;string * range&gt; + 1 overload
-  static member GetVersion: unit -&gt; string
-  static member GetWriterEventsAsync: isSignature: bool * source: string -&gt; Async&lt;WriterEvent array&gt; + 2 overloads
-  static member MakePosition: line: int * column: int -&gt; pos
-  static member MakeRange: fileName: string * startLine: int * startCol: int * endLine: int * endCol: int -&gt; range
-  static member ParseAsync: isSignature: bool * source: string -&gt; Async&lt;(ParsedInput * string list) array&gt;
-  static member ParseOakAsync: isSignature: bool * source: string -&gt; Async&lt;(Oak * string list) array&gt;
-  ...</div>
-<div popover class="fsdocs-tip" id="fs30">static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig * cursor: Fantomas.FCS.Text.pos -&gt; Async&lt;FormatResult&gt;</div>
-<div popover class="fsdocs-tip" id="fs31">val printf: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
-<div popover class="fsdocs-tip" id="fs32">FormatResult.Code: string<br /><em>&lt;summary&gt;
- Formatted code
-&lt;/summary&gt;</em></div>
-<div popover class="fsdocs-tip" id="fs33">Multiple items<br />module Async
-
-from Fantomas.Core<br /><br />--------------------<br />type Async =
-  static member AsBeginEnd: computation: (&#39;Arg -&gt; Async&lt;&#39;T&gt;) -&gt; (&#39;Arg * AsyncCallback * objnull -&gt; IAsyncResult) * (IAsyncResult -&gt; &#39;T) * (IAsyncResult -&gt; unit)
-  static member AwaitEvent: event: IEvent&lt;&#39;Del,&#39;T&gt; * ?cancelAction: (unit -&gt; unit) -&gt; Async&lt;&#39;T&gt; (requires delegate and &#39;Del :&gt; Delegate and &#39;Del: not null)
-  static member AwaitIAsyncResult: iar: IAsyncResult * ?millisecondsTimeout: int -&gt; Async&lt;bool&gt;
-  static member AwaitTask: task: Task&lt;&#39;T&gt; -&gt; Async&lt;&#39;T&gt; + 1 overload
-  static member AwaitWaitHandle: waitHandle: WaitHandle * ?millisecondsTimeout: int -&gt; Async&lt;bool&gt;
-  static member CancelDefaultToken: unit -&gt; unit
-  static member Catch: computation: Async&lt;&#39;T&gt; -&gt; Async&lt;Choice&lt;&#39;T,exn&gt;&gt;
-  static member Choice: computations: Async&lt;&#39;T option&gt; seq -&gt; Async&lt;&#39;T option&gt;
-  static member FromBeginEnd: beginAction: (AsyncCallback * objnull -&gt; IAsyncResult) * endAction: (IAsyncResult -&gt; &#39;T) * ?cancelAction: (unit -&gt; unit) -&gt; Async&lt;&#39;T&gt; + 3 overloads
-  static member FromContinuations: callback: ((&#39;T -&gt; unit) * (exn -&gt; unit) * (OperationCanceledException -&gt; unit) -&gt; unit) -&gt; Async&lt;&#39;T&gt;
-  ...<br /><br />--------------------<br />type Async&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs34">static member Async.RunSynchronously: computation: Async&lt;&#39;T&gt; * ?timeout: int * ?cancellationToken: Threading.CancellationToken -&gt; &#39;T</div>
-<div popover class="fsdocs-tip" id="fs35">static member CodeFormatter.GetVersion: unit -&gt; string</div>
-<div popover class="fsdocs-tip" id="fs36">val fsi: FSharp.Compiler.Interactive.InteractiveSession</div>
-<div popover class="fsdocs-tip" id="fs37">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
-<div popover class="fsdocs-tip" id="fs38">FormatConfig.IndentSize: Num</div>
-<div popover class="fsdocs-tip" id="fs39">val toEditorConfigName: value: char seq -&gt; string</div>
-<div popover class="fsdocs-tip" id="fs40">val nameof: &#39;T -&gt; string</div>
-<div popover class="fsdocs-tip" id="fs41">FormatConfig.MaxLineLength: Num</div>
-<div popover class="fsdocs-tip" id="fs42">FormatConfig.InsertFinalNewline: bool</div>
-<div popover class="fsdocs-tip" id="fs43">Boolean.ToString() : string<br />Boolean.ToString(provider: IFormatProvider) : string</div>
-<div popover class="fsdocs-tip" id="fs44">FormatConfig.SpaceBeforeParameter: bool</div>
-<div popover class="fsdocs-tip" id="fs45">FormatConfig.SpaceBeforeLowercaseInvocation: bool</div>
-<div popover class="fsdocs-tip" id="fs46">FormatConfig.SpaceBeforeUppercaseInvocation: bool</div>
-<div popover class="fsdocs-tip" id="fs47">FormatConfig.SpaceBeforeClassConstructor: bool</div>
-<div popover class="fsdocs-tip" id="fs48">FormatConfig.SpaceBeforeMember: bool</div>
-<div popover class="fsdocs-tip" id="fs49">FormatConfig.SpaceBeforeColon: bool</div>
-<div popover class="fsdocs-tip" id="fs50">FormatConfig.SpaceAfterComma: bool</div>
-<div popover class="fsdocs-tip" id="fs51">FormatConfig.SpaceBeforeSemicolon: bool</div>
-<div popover class="fsdocs-tip" id="fs52">FormatConfig.SpaceAfterSemicolon: bool</div>
-<div popover class="fsdocs-tip" id="fs53">FormatConfig.SpaceAroundDelimiter: bool</div>
-<div popover class="fsdocs-tip" id="fs54">FormatConfig.MaxIfThenShortWidth: Num</div>
-<div popover class="fsdocs-tip" id="fs55">FormatConfig.MaxIfThenElseShortWidth: Num</div>
-<div popover class="fsdocs-tip" id="fs56">FormatConfig.MaxInfixOperatorExpression: Num</div>
-<div popover class="fsdocs-tip" id="fs57">FormatConfig.MaxRecordWidth: Num</div>
-<div popover class="fsdocs-tip" id="fs58">FormatConfig.MaxRecordNumberOfItems: Num</div>
-<div popover class="fsdocs-tip" id="fs59">FormatConfig.RecordMultilineFormatter: MultilineFormatterType</div>
-<div popover class="fsdocs-tip" id="fs60">
-type MultilineFormatterType =
-  | CharacterWidth
-  | NumberOfItems
-  static member OfConfigString: cfgString: string -&gt; MultilineFormatterType option
-  static member ToConfigString: cfg: MultilineFormatterType -&gt; string</div>
-<div popover class="fsdocs-tip" id="fs61">static member MultilineFormatterType.ToConfigString: cfg: MultilineFormatterType -&gt; string</div>
-<div popover class="fsdocs-tip" id="fs62">FormatConfig.MaxArrayOrListWidth: Num</div>
-<div popover class="fsdocs-tip" id="fs63">FormatConfig.MaxArrayOrListNumberOfItems: Num</div>
-<div popover class="fsdocs-tip" id="fs64">FormatConfig.ArrayOrListMultilineFormatter: MultilineFormatterType</div>
-<div popover class="fsdocs-tip" id="fs65">FormatConfig.MaxValueBindingWidth: Num</div>
-<div popover class="fsdocs-tip" id="fs66">FormatConfig.MaxFunctionBindingWidth: Num</div>
-<div popover class="fsdocs-tip" id="fs67">FormatConfig.MultilineBracketStyle: MultilineBracketStyle</div>
-<div popover class="fsdocs-tip" id="fs68">
-type MultilineBracketStyle =
-  | Cramped
-  | Aligned
-  | Stroustrup
-  static member OfConfigString: cfgString: string -&gt; MultilineBracketStyle option
-  static member ToConfigString: cfg: MultilineBracketStyle -&gt; string</div>
-<div popover class="fsdocs-tip" id="fs69">static member MultilineBracketStyle.ToConfigString: cfg: MultilineBracketStyle -&gt; string</div>
-<div popover class="fsdocs-tip" id="fs70">FormatConfig.NewlineBeforeMultilineComputationExpression: bool</div>
-<div popover class="fsdocs-tip" id="fs71">FormatConfig.NewlineBetweenTypeDefinitionAndMembers: bool</div>
-<div popover class="fsdocs-tip" id="fs72">FormatConfig.AlignFunctionSignatureToIndentation: bool</div>
-<div popover class="fsdocs-tip" id="fs73">FormatConfig.AlternativeLongMemberDefinitions: bool</div>
-<div popover class="fsdocs-tip" id="fs74">FormatConfig.MultiLineLambdaClosingNewline: bool</div>
-<div popover class="fsdocs-tip" id="fs75">FormatConfig.ExperimentalKeepIndentInBranch: bool</div>
-<div popover class="fsdocs-tip" id="fs76">FormatConfig.BarBeforeDiscriminatedUnionDeclaration: bool</div>
-<div popover class="fsdocs-tip" id="fs77">FormatConfig.BlankLinesAroundNestedMultilineExpressions: bool</div>
-<div popover class="fsdocs-tip" id="fs78">FormatConfig.KeepMaxNumberOfBlankLines: Num</div>
-<div popover class="fsdocs-tip" id="fs79">FormatConfig.ExperimentalElmish: bool</div>
+        <div popover class="fsdocs-tip" id="fs1"><span class="k">namespace</span> <span class="m">System</span></div>
+<div popover class="fsdocs-tip" id="fs2"><span class="k">namespace</span> <span class="m">Fantomas</span></div>
+<div popover class="fsdocs-tip" id="fs3"><span class="k">namespace</span> <span class="m">Fantomas.Core</span></div>
+<div popover class="fsdocs-tip" id="fs4"><span class="k">module</span> <span class="m">EditorConfig</span><br />from Fantomas</div>
+<div popover class="fsdocs-tip" id="fs5"><span class="k">val</span> <span class="fn">formatCode</span><span class="pn">:</span> <span class="id">input</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span> <span class="id">settings</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span> <span class="rt">unit</span></div>
+<div popover class="fsdocs-tip" id="fs6"><span class="k">val</span> <span class="id">input</span><span class="pn">:</span> <span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs7"><span class="k">val</span> <span class="id">settings</span><span class="pn">:</span> <span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs8">Multiple items<br /><span class="k">val</span> <span class="fn">string</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="rt">string</span><br /><br />--------------------<br /><span class="k">type</span> <span class="rt">string</span> <span class="o">=</span> <span class="rt">String</span></div>
+<div popover class="fsdocs-tip" id="fs9"><span class="k">val</span> <span class="fn">async</span><span class="pn">:</span> <span class="rt">AsyncBuilder</span></div>
+<div popover class="fsdocs-tip" id="fs10"><span class="k">val</span> <span class="id">config</span><span class="pn">:</span> <span class="rt">FormatConfig</span></div>
+<div popover class="fsdocs-tip" id="fs11"><span class="k">val</span> <span class="id">editorConfigProperties</span><span class="pn">:</span> <span class="m">Collections.Generic.</span><span class="if">IReadOnlyDictionary</span><span class="pn">&lt;</span><span class="rt">string</span><span class="pn">,</span><span class="rt">string</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs12"><span class="rt">String</span><span class="pn">.</span><span class="fn">Split</span><span class="pn">(</span><span class="id">separator</span><span class="pn">:</span> <span class="vt">ReadOnlySpan</span><span class="pn">&lt;</span><span class="vt">char</span><span class="pn">&gt;</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br /><span class="rt">String</span><span class="pn">.</span><span class="fn">Split</span><span class="pn">(</span> <span class="id">separator</span><span class="pn">:</span> <span class="vt">char</span> <span class="rt">array</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br /><span class="rt">String</span><span class="pn">.</span><span class="fn">Split</span><span class="pn">(</span><span class="id">separator</span><span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><span class="pn">,</span> <span class="id">options</span><span class="pn">:</span> <span class="en">StringSplitOptions</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br /><span class="rt">String</span><span class="pn">.</span><span class="fn">Split</span><span class="pn">(</span><span class="id">separator</span><span class="pn">:</span> <span class="rt">string</span><span class="pn">,</span> <span class="pn">?</span><span class="id">options</span><span class="pn">:</span> <span class="en">StringSplitOptions</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br /><span class="rt">String</span><span class="pn">.</span><span class="fn">Split</span><span class="pn">(</span><span class="id">separator</span><span class="pn">:</span> <span class="vt">char</span> <span class="rt">array</span><span class="pn">,</span> <span class="id">options</span><span class="pn">:</span> <span class="en">StringSplitOptions</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br /><span class="rt">String</span><span class="pn">.</span><span class="fn">Split</span><span class="pn">(</span><span class="id">separator</span><span class="pn">:</span> <span class="vt">char</span> <span class="rt">array</span><span class="pn">,</span> <span class="id">count</span><span class="pn">:</span> <span class="vt">int</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br /><span class="rt">String</span><span class="pn">.</span><span class="fn">Split</span><span class="pn">(</span><span class="id">separator</span><span class="pn">:</span> <span class="m">Text.</span><span class="vt">Rune</span><span class="pn">,</span> <span class="pn">?</span><span class="id">options</span><span class="pn">:</span> <span class="en">StringSplitOptions</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br /><span class="rt">String</span><span class="pn">.</span><span class="fn">Split</span><span class="pn">(</span><span class="id">separator</span><span class="pn">:</span> <span class="vt">char</span><span class="pn">,</span> <span class="pn">?</span><span class="id">options</span><span class="pn">:</span> <span class="en">StringSplitOptions</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br /><span class="rt">String</span><span class="pn">.</span><span class="fn">Split</span><span class="pn">(</span><span class="id">separator</span><span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><span class="pn">,</span> <span class="id">count</span><span class="pn">:</span> <span class="vt">int</span><span class="pn">,</span> <span class="id">options</span><span class="pn">:</span> <span class="en">StringSplitOptions</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br /><span class="rt">String</span><span class="pn">.</span><span class="fn">Split</span><span class="pn">(</span><span class="id">separator</span><span class="pn">:</span> <span class="rt">string</span><span class="pn">,</span> <span class="id">count</span><span class="pn">:</span> <span class="vt">int</span><span class="pn">,</span> <span class="pn">?</span><span class="id">options</span><span class="pn">:</span> <span class="en">StringSplitOptions</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span><br />&#160;&#160;&#160;<em>(+0 other overloads)</em></div>
+<div popover class="fsdocs-tip" id="fs13"><em>Specifies options for applicable Split method overloads, such as whether to omit empty substrings from the returned array or trim whitespace from substrings.</em><br /><span class="k">type</span> <span class="vt">StringSplitOptions</span> <span class="o">=</span><br />&#160;&#160;<span class="rt">Literal</span><span class="pn">&gt;]</span><br />&#160;&#160;<span class="pn">|</span> <span class="en">None</span> <span class="o">=</span> <span class="n">0</span><br />&#160;&#160;<span class="rt">Literal</span><span class="pn">&gt;]</span><br />&#160;&#160;<span class="pn">|</span> <span class="en">RemoveEmptyEntries</span> <span class="o">=</span> <span class="n">1</span><br />&#160;&#160;<span class="rt">Literal</span><span class="pn">&gt;]</span><br />&#160;&#160;<span class="pn">|</span> <span class="en">TrimEntries</span> <span class="o">=</span> <span class="n">2</span></div>
+<div popover class="fsdocs-tip" id="fs14">field <span class="en">StringSplitOptions</span><span class="pn">.</span><span class="prop">RemoveEmptyEntries</span><span class="pn">:</span> <span class="en">StringSplitOptions</span> <span class="o">=</span> <span class="n">1</span></div>
+<div popover class="fsdocs-tip" id="fs15"><em>Provides methods for creating, manipulating, searching, and sorting arrays, thereby serving as the base class for all arrays in the common language runtime.</em><br /><span class="k">type</span> <span class="rt">Array</span> <span class="o">=</span><br />&#160;&#160;<span class="k">interface</span> <span class="if">ICollection</span><br />&#160;&#160;<span class="k">interface</span> <span class="if">IEnumerable</span><br />&#160;&#160;<span class="k">interface</span> <span class="if">IList</span><br />&#160;&#160;<span class="k">interface</span> <span class="if">IStructuralComparable</span><br />&#160;&#160;<span class="k">interface</span> <span class="if">IStructuralEquatable</span><br />&#160;&#160;<span class="k">interface</span> <span class="if">ICloneable</span><br />&#160;&#160;<span class="k">member</span> <span class="fn">Clone</span><span class="pn">:</span> <span class="vt">unit</span> <span class="pn">-&gt;</span> <span class="rt">obj</span><br />&#160;&#160;<span class="k">member</span> <span class="fn">CopyTo</span><span class="pn">:</span> <span class="id">array</span><span class="pn">:</span> <span class="rt">Array</span> <span class="o">*</span> <span class="id">index</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">-&gt;</span> <span class="rt">unit</span> + 1 overload<br />&#160;&#160;<span class="k">member</span> <span class="fn">GetEnumerator</span><span class="pn">:</span> <span class="vt">unit</span> <span class="pn">-&gt;</span> <span class="if">IEnumerator</span><br />&#160;&#160;<span class="k">member</span> <span class="fn">GetLength</span><span class="pn">:</span> <span class="id">dimension</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">-&gt;</span> <span class="vt">int</span><br />&#160;&#160;<span class="pn">...</span></div>
+<div popover class="fsdocs-tip" id="fs16"><span class="k">val</span> <span class="fn">choose</span><span class="pn">:</span> <span class="id">chooser</span><span class="pn">:</span> <span class="pn">(</span><span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="ta">&#39;U</span> <span class="rt">option</span><span class="pn">)</span> <span class="pn">-&gt;</span> <span class="id">array</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="rt">array</span> <span class="pn">-&gt;</span> <span class="ta">&#39;U</span> <span class="rt">array</span></div>
+<div popover class="fsdocs-tip" id="fs17"><span class="k">val</span> <span class="id">line</span><span class="pn">:</span> <span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs18"><span class="k">val</span> <span class="id">parts</span><span class="pn">:</span> <span class="rt">string</span> <span class="rt">array</span></div>
+<div popover class="fsdocs-tip" id="fs19">field <span class="en">StringSplitOptions</span><span class="pn">.</span><span class="prop">TrimEntries</span><span class="pn">:</span> <span class="en">StringSplitOptions</span> <span class="o">=</span> <span class="n">2</span></div>
+<div popover class="fsdocs-tip" id="fs20"><em>Gets the total number of elements in all the dimensions of the Array.<br /><br />returns: The total number of elements in all the dimensions of the Array; zero if there are no elements in the array.</em><br />property <span class="rt">Array</span><span class="pn">.</span><span class="prop">Length</span><span class="pn">:</span> <span class="vt">int</span> <span class="k">with</span> get</div>
+<div popover class="fsdocs-tip" id="fs21">union case <span class="rt">Option</span><span class="pn">.</span><span class="uc">None</span><span class="pn">:</span> <span class="rt">Option</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs22">union case <span class="rt">Option</span><span class="pn">.</span><span class="uc">Some</span><span class="pn">:</span> <span class="prop">Value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="rt">Option</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs23"><span class="k">val</span> <span class="fn">readOnlyDict</span><span class="pn">:</span> <span class="id">keyValuePairs</span><span class="pn">:</span> <span class="pn">(</span><span class="ta">&#39;Key</span> <span class="pn">*</span> <span class="ta">&#39;Value</span><span class="pn">)</span> <span class="rt">seq</span> <span class="pn">-&gt;</span> <span class="m">Collections.Generic.</span><span class="if">IReadOnlyDictionary</span><span class="pn">&lt;</span><span class="ta">&#39;Key</span><span class="pn">,</span><span class="ta">&#39;Value</span><span class="pn">&gt;</span> <span class="pn">(</span><span class="k">requires</span> <span class="k">equality</span><span class="pn">)</span></div>
+<div popover class="fsdocs-tip" id="fs24"><span class="k">val</span> <span class="fn">parseOptionsFromEditorConfig</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;<span class="id">fallbackConfig</span><span class="pn">:</span> <span class="rt">FormatConfig</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;<span class="id">editorConfigProperties</span><span class="pn">:</span> <span class="m">Collections.Generic.</span><span class="if">IReadOnlyDictionary</span><span class="pn">&lt;</span><span class="rt">string</span><span class="pn">,</span><span class="rt">string</span><span class="pn">&gt;</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="rt">FormatConfig</span> <span class="pn">*</span> <span class="rt">EditorConfigProblem</span> <span class="rt">list</span></div>
+<div popover class="fsdocs-tip" id="fs25"><span class="k">type</span> FormatConfig <span class="o">=</span><br />&#160;&#160;<span class="pn">{</span><br />&#160;&#160;&#160;&#160;<span class="prop">IndentSize</span><span class="pn">:</span> <span class="vt">Num</span><br />&#160;&#160;&#160;&#160;<span class="prop">MaxLineLength</span><span class="pn">:</span> <span class="vt">Num</span><br />&#160;&#160;&#160;&#160;<span class="prop">EndOfLine</span><span class="pn">:</span> <span class="vt">EndOfLineStyle</span><br />&#160;&#160;&#160;&#160;<span class="prop">InsertFinalNewline</span><span class="pn">:</span> <span class="vt">bool</span><br />&#160;&#160;&#160;&#160;<span class="prop">SpaceBeforeParameter</span><span class="pn">:</span> <span class="vt">bool</span><br />&#160;&#160;&#160;&#160;<span class="prop">SpaceBeforeLowercaseInvocation</span><span class="pn">:</span> <span class="vt">bool</span><br />&#160;&#160;&#160;&#160;<span class="prop">SpaceBeforeUppercaseInvocation</span><span class="pn">:</span> <span class="vt">bool</span><br />&#160;&#160;&#160;&#160;<span class="prop">SpaceBeforeClassConstructor</span><span class="pn">:</span> <span class="vt">bool</span><br />&#160;&#160;&#160;&#160;<span class="prop">SpaceBeforeMember</span><span class="pn">:</span> <span class="vt">bool</span><br />&#160;&#160;&#160;&#160;<span class="prop">SpaceBeforeColon</span><span class="pn">:</span> <span class="vt">bool</span><br />&#160;&#160;&#160;&#160;<span class="pn">...</span><br />&#160;&#160;<span class="pn">}</span><br />&#160;&#160;<span class="k">member</span> <span class="prop">IsStroustrupStyle</span><span class="pn">:</span> <span class="vt">bool</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="prop">Default</span><span class="pn">:</span> <span class="rt">FormatConfig</span></div>
+<div popover class="fsdocs-tip" id="fs26">property <span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">Default</span><span class="pn">:</span> <span class="rt">FormatConfig</span> <span class="k">with</span> get</div>
+<div popover class="fsdocs-tip" id="fs27"><span class="k">val</span> <span class="fn">fst</span><span class="pn">:</span> <span class="id">tuple</span><span class="pn">:</span> <span class="pn">(</span><span class="ta">&#39;T1</span> <span class="pn">*</span> <span class="ta">&#39;T2</span><span class="pn">)</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T1</span></div>
+<div popover class="fsdocs-tip" id="fs28"><span class="k">val</span> <span class="id">result</span><span class="pn">:</span> <span class="rt">FormatResult</span></div>
+<div popover class="fsdocs-tip" id="fs29"><span class="k">type</span> CodeFormatter <span class="o">=</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">FormatASTAsync</span><span class="pn">:</span> <span class="id">ast</span><span class="pn">:</span> <span class="rt">ParsedInput</span> <span class="pn">-&gt;</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="rt">string</span><span class="pn">&gt;</span> + 3 overloads<br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">FormatDocumentAsync</span><span class="pn">:</span> <span class="id">isSignature</span><span class="pn">:</span> <span class="vt">bool</span> <span class="pn">*</span> <span class="id">source</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="rt">FormatResult</span><span class="pn">&gt;</span> + 2 overloads<br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">FormatOakAsync</span><span class="pn">:</span> <span class="id">oak</span><span class="pn">:</span> <span class="rt">Oak</span> <span class="pn">-&gt;</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="rt">string</span><span class="pn">&gt;</span> + 1 overload<br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">FormatSelectionAsync</span><span class="pn">:</span> <span class="id">isSignature</span><span class="pn">:</span> <span class="vt">bool</span> <span class="pn">*</span> <span class="id">source</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">*</span> <span class="id">selection</span><span class="pn">:</span> <span class="vt">range</span> <span class="pn">-&gt;</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="rt">string</span> <span class="pn">*</span> <span class="vt">range</span><span class="pn">&gt;</span> + 1 overload<br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">GetVersion</span><span class="pn">:</span> <span class="rt">unit</span> <span class="pn">-&gt;</span> <span class="rt">string</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">GetWriterEventsAsync</span><span class="pn">:</span> <span class="id">isSignature</span><span class="pn">:</span> <span class="vt">bool</span> <span class="pn">*</span> <span class="id">source</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="vt">WriterEvent</span> <span class="rt">array</span><span class="pn">&gt;</span> + 2 overloads<br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">MakePosition</span><span class="pn">:</span> <span class="id">line</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">*</span> <span class="id">column</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">-&gt;</span> <span class="vt">pos</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">MakeRange</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">fileName</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">startLine</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">startCol</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">endLine</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">endCol</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="vt">range</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">ParseAsync</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">isSignature</span><span class="pn">:</span> <span class="vt">bool</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">source</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="rt">Async</span><span class="pn">&lt;</span><span class="pn">(</span><span class="rt">ParsedInput</span> <span class="pn">*</span> <span class="rt">string</span> <span class="rt">list</span><span class="pn">)</span> <span class="rt">array</span><span class="pn">&gt;</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">ParseOakAsync</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">isSignature</span><span class="pn">:</span> <span class="vt">bool</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">source</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="rt">Async</span><span class="pn">&lt;</span><span class="pn">(</span><span class="rt">Oak</span> <span class="pn">*</span> <span class="rt">string</span> <span class="rt">list</span><span class="pn">)</span> <span class="rt">array</span><span class="pn">&gt;</span><br />&#160;&#160;<span class="pn">...</span></div>
+<div popover class="fsdocs-tip" id="fs30"><span class="k">static</span> <span class="k">member</span> <span class="rt">CodeFormatter</span><span class="pn">.</span><span class="fn">FormatDocumentAsync</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;<span class="id">isSignature</span><span class="pn">:</span> <span class="vt">bool</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;<span class="id">source</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="rt">Async</span><span class="pn">&lt;</span><span class="rt">FormatResult</span><span class="pn">&gt;</span><br /><span class="k">static</span> <span class="k">member</span> <span class="rt">CodeFormatter</span><span class="pn">.</span><span class="fn">FormatDocumentAsync</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;<span class="id">isSignature</span><span class="pn">:</span> <span class="vt">bool</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;<span class="id">source</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;<span class="id">config</span><span class="pn">:</span> <span class="rt">FormatConfig</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="rt">Async</span><span class="pn">&lt;</span><span class="rt">FormatResult</span><span class="pn">&gt;</span><br /><span class="k">static</span> <span class="k">member</span> <span class="rt">CodeFormatter</span><span class="pn">.</span><span class="fn">FormatDocumentAsync</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;<span class="id">isSignature</span><span class="pn">:</span> <span class="vt">bool</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;<span class="id">source</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;<span class="id">config</span><span class="pn">:</span> <span class="rt">FormatConfig</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;<span class="id">cursor</span><span class="pn">:</span> <span class="m">Fantomas.FCS.Text.</span><span class="vt">pos</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="rt">Async</span><span class="pn">&lt;</span><span class="rt">FormatResult</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs31"><span class="k">val</span> <span class="fn">printf</span><span class="pn">:</span> <span class="id">format</span><span class="pn">:</span> <span class="m">Printf.</span><span class="rt">TextWriterFormat</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
+<div popover class="fsdocs-tip" id="fs32"><em>Formatted code</em><br /><span class="rt">FormatResult</span><span class="pn">.</span><span class="prop">Code</span><span class="pn">:</span> <span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs33">Multiple items<br /><span class="k">module</span> <span class="m">Async</span><br />from Fantomas.Core<br /><br />--------------------<br /><span class="k">type</span> Async <span class="o">=</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">AsBeginEnd</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">computation</span><span class="pn">:</span> <span class="pn">(</span><span class="ta">&#39;Arg</span> <span class="pn">-&gt;</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span><span class="pn">)</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="pn">(</span><span class="ta">&#39;Arg</span> <span class="pn">*</span> <span class="rt">AsyncCallback</span> <span class="pn">*</span> <span class="rt">objnull</span> <span class="pn">-&gt;</span> <span class="if">IAsyncResult</span><span class="pn">)</span> <span class="pn">*</span> <span class="pn">(</span><span class="if">IAsyncResult</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span><span class="pn">)</span> <span class="pn">*</span> <span class="pn">(</span><span class="if">IAsyncResult</span> <span class="pn">-&gt;</span> <span class="rt">unit</span><span class="pn">)</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">AwaitEvent</span><span class="pn">:</span> <span class="id">event</span><span class="pn">:</span> <span class="if">IEvent</span><span class="pn">&lt;</span><span class="ta">&#39;Del</span><span class="pn">,</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">*</span> <span class="pn">?</span><span class="id">cancelAction</span><span class="pn">:</span> <span class="pn">(</span><span class="rt">unit</span> <span class="pn">-&gt;</span> <span class="rt">unit</span><span class="pn">)</span> <span class="pn">-&gt;</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">(</span><span class="k">requires</span> <span class="k">delegate</span> <span class="k">and</span> <span class="ta">&#39;Del</span> <span class="o">:&gt;</span> <span class="rt">Delegate</span> <span class="k">and</span> <span class="ta">&#39;Del</span><span class="pn">:</span> <span class="k">not null</span><span class="pn">)</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">AwaitIAsyncResult</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">iar</span><span class="pn">:</span> <span class="if">IAsyncResult</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="pn">?</span><span class="id">millisecondsTimeout</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="rt">Async</span><span class="pn">&lt;</span><span class="vt">bool</span><span class="pn">&gt;</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">AwaitTask</span><span class="pn">:</span> <span class="id">task</span><span class="pn">:</span> <span class="rt">Task</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">-&gt;</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> + 1 overload<br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">AwaitWaitHandle</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">waitHandle</span><span class="pn">:</span> <span class="rt">WaitHandle</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="pn">?</span><span class="id">millisecondsTimeout</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="rt">Async</span><span class="pn">&lt;</span><span class="vt">bool</span><span class="pn">&gt;</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">CancelDefaultToken</span><span class="pn">:</span> <span class="rt">unit</span> <span class="pn">-&gt;</span> <span class="rt">unit</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">Catch</span><span class="pn">:</span> <span class="id">computation</span><span class="pn">:</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">-&gt;</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="rt">Choice</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">,</span><span class="rt">exn</span><span class="pn">&gt;</span><span class="pn">&gt;</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">Choice</span><span class="pn">:</span> <span class="id">computations</span><span class="pn">:</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="ta">&#39;T</span> <span class="rt">option</span><span class="pn">&gt;</span> <span class="rt">seq</span> <span class="pn">-&gt;</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="ta">&#39;T</span> <span class="rt">option</span><span class="pn">&gt;</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">FromBeginEnd</span><span class="pn">:</span> <span class="id">beginAction</span><span class="pn">:</span> <span class="pn">(</span><span class="rt">AsyncCallback</span> <span class="pn">*</span> <span class="rt">objnull</span> <span class="pn">-&gt;</span> <span class="if">IAsyncResult</span><span class="pn">)</span> <span class="pn">*</span> <span class="id">endAction</span><span class="pn">:</span> <span class="pn">(</span><span class="if">IAsyncResult</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span><span class="pn">)</span> <span class="pn">*</span> <span class="pn">?</span><span class="id">cancelAction</span><span class="pn">:</span> <span class="pn">(</span><span class="rt">unit</span> <span class="pn">-&gt;</span> <span class="rt">unit</span><span class="pn">)</span> <span class="pn">-&gt;</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> + 3 overloads<br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">FromContinuations</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">callback</span><span class="pn">:</span> <span class="pn">(</span><span class="pn">(</span><span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="rt">unit</span><span class="pn">)</span> <span class="pn">*</span> <span class="pn">(</span><span class="rt">exn</span> <span class="pn">-&gt;</span> <span class="rt">unit</span><span class="pn">)</span> <span class="pn">*</span> <span class="pn">(</span><span class="rt">OperationCanceledException</span> <span class="pn">-&gt;</span> <span class="rt">unit</span><span class="pn">)</span> <span class="pn">-&gt;</span> <span class="rt">unit</span><span class="pn">)</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="rt">Async</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span><br />&#160;&#160;<span class="pn">...</span><br /><br />--------------------<br /><span class="k">type</span> Async<span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs34"><span class="k">static</span> <span class="k">member</span> <span class="rt">Async</span><span class="pn">.</span><span class="fn">RunSynchronously</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;<span class="id">computation</span><span class="pn">:</span> <span class="rt">Async</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;<span class="pn">?</span><span class="id">timeout</span><span class="pn">:</span> <span class="vt">int</span> <span class="pn">*</span><br />&#160;&#160;&#160;&#160;<span class="pn">?</span><span class="id">cancellationToken</span><span class="pn">:</span> <span class="m">Threading.</span><span class="vt">CancellationToken</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="ta">&#39;T</span></div>
+<div popover class="fsdocs-tip" id="fs35"><span class="k">static</span> <span class="k">member</span> <span class="rt">CodeFormatter</span><span class="pn">.</span><span class="fn">GetVersion</span><span class="pn">:</span> <span class="rt">unit</span> <span class="pn">-&gt;</span> <span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs36"><span class="k">val</span> <span class="fn">fsi</span><span class="pn">:</span> <span class="m">FSharp.Compiler.Interactive.</span><span class="rt">InteractiveSession</span></div>
+<div popover class="fsdocs-tip" id="fs37"><span class="k">val</span> <span class="fn">printfn</span><span class="pn">:</span> <span class="id">format</span><span class="pn">:</span> <span class="m">Printf.</span><span class="rt">TextWriterFormat</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
+<div popover class="fsdocs-tip" id="fs38"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">IndentSize</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs39"><span class="k">val</span> <span class="fn">toEditorConfigName</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="vt">char</span> <span class="rt">seq</span> <span class="pn">-&gt;</span> <span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs40"><span class="k">val</span> <span class="fn">nameof</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs41"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MaxLineLength</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs42"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">InsertFinalNewline</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs43"><span class="vt">Boolean</span><span class="pn">.</span><span class="fn">ToString</span><span class="pn">(</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span><br /><span class="vt">Boolean</span><span class="pn">.</span><span class="fn">ToString</span><span class="pn">(</span><span class="id">provider</span><span class="pn">:</span> <span class="if">IFormatProvider</span><span class="pn">)</span> <span class="pn">:</span> <span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs44"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">SpaceBeforeParameter</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs45"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">SpaceBeforeLowercaseInvocation</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs46"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">SpaceBeforeUppercaseInvocation</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs47"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">SpaceBeforeClassConstructor</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs48"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">SpaceBeforeMember</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs49"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">SpaceBeforeColon</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs50"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">SpaceAfterComma</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs51"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">SpaceBeforeSemicolon</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs52"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">SpaceAfterSemicolon</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs53"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">SpaceAroundDelimiter</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs54"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MaxIfThenShortWidth</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs55"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MaxIfThenElseShortWidth</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs56"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MaxInfixOperatorExpression</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs57"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MaxRecordWidth</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs58"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MaxRecordNumberOfItems</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs59"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">RecordMultilineFormatter</span><span class="pn">:</span> <span class="vt">MultilineFormatterType</span></div>
+<div popover class="fsdocs-tip" id="fs60"><span class="k">type</span> <span class="vt">MultilineFormatterType</span> <span class="o">=</span><br />&#160;&#160;<span class="pn">|</span> <span class="uc">CharacterWidth</span><br />&#160;&#160;<span class="pn">|</span> <span class="uc">NumberOfItems</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">OfConfigString</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">cfgString</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="vt">MultilineFormatterType</span> <span class="rt">option</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">ToConfigString</span><span class="pn">:</span> <span class="id">cfg</span><span class="pn">:</span> <span class="vt">MultilineFormatterType</span> <span class="pn">-&gt;</span> <span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs61"><span class="k">static</span> <span class="k">member</span> <span class="vt">MultilineFormatterType</span><span class="pn">.</span><span class="fn">ToConfigString</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;<span class="id">cfg</span><span class="pn">:</span> <span class="vt">MultilineFormatterType</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs62"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MaxArrayOrListWidth</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs63"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MaxArrayOrListNumberOfItems</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs64"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">ArrayOrListMultilineFormatter</span><span class="pn">:</span> <span class="vt">MultilineFormatterType</span></div>
+<div popover class="fsdocs-tip" id="fs65"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MaxValueBindingWidth</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs66"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MaxFunctionBindingWidth</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs67"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MultilineBracketStyle</span><span class="pn">:</span> <span class="vt">MultilineBracketStyle</span></div>
+<div popover class="fsdocs-tip" id="fs68"><span class="k">type</span> <span class="vt">MultilineBracketStyle</span> <span class="o">=</span><br />&#160;&#160;<span class="pn">|</span> <span class="uc">Cramped</span><br />&#160;&#160;<span class="pn">|</span> <span class="uc">Aligned</span><br />&#160;&#160;<span class="pn">|</span> <span class="uc">Stroustrup</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">OfConfigString</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;&#160;&#160;<span class="id">cfgString</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="vt">MultilineBracketStyle</span> <span class="rt">option</span><br />&#160;&#160;<span class="k">static</span> <span class="k">member</span> <span class="fn">ToConfigString</span><span class="pn">:</span> <span class="id">cfg</span><span class="pn">:</span> <span class="vt">MultilineBracketStyle</span> <span class="pn">-&gt;</span> <span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs69"><span class="k">static</span> <span class="k">member</span> <span class="vt">MultilineBracketStyle</span><span class="pn">.</span><span class="fn">ToConfigString</span><span class="pn">:</span><br />&#160;&#160;&#160;&#160;<span class="id">cfg</span><span class="pn">:</span> <span class="vt">MultilineBracketStyle</span> <span class="pn">-&gt;</span><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span class="rt">string</span></div>
+<div popover class="fsdocs-tip" id="fs70"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">NewlineBeforeMultilineComputationExpression</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs71"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">NewlineBetweenTypeDefinitionAndMembers</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs72"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">AlignFunctionSignatureToIndentation</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs73"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">AlternativeLongMemberDefinitions</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs74"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">MultiLineLambdaClosingNewline</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs75"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">ExperimentalKeepIndentInBranch</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs76"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">BarBeforeDiscriminatedUnionDeclaration</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs77"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">BlankLinesAroundNestedMultilineExpressions</span><span class="pn">:</span> <span class="vt">bool</span></div>
+<div popover class="fsdocs-tip" id="fs78"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">KeepMaxNumberOfBlankLines</span><span class="pn">:</span> <span class="vt">Num</span></div>
+<div popover class="fsdocs-tip" id="fs79"><span class="rt">FormatConfig</span><span class="pn">.</span><span class="prop">ExperimentalElmish</span><span class="pn">:</span> <span class="vt">bool</span></div>
 
     </div>
 </main>

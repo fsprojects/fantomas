@@ -441,10 +441,10 @@ If this information was available in <a href="../../reference/fsharp-compiler-sy
 <p>Sometimes the existing shape of the syntax tree doesn't quite cover the syntax perfectly.</p>
 <p>For example, in issue <a href="https://github.com/fsprojects/fantomas/issues/2264">#2264</a>, the measure was represented as</p>
 <p>Code:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="rt">Measure</span><span class="pn">&gt;]</span> <span class="k">type</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="rt">herth</span> <span class="o">=</span> <span class="o">/</span> <span class="id">second</span>
-</code></pre>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="rt">Measure</span><span class="pn">&gt;]</span> <span class="k">type</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="rt">herth</span> <span class="o">=</span> <span class="o">/</span> <span class="id">second</span>
+</code></pre></div>
 <p>Old AST:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Types</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Types</span>
    <span class="pn">(</span><span class="pn">[</span><span class="id">SynTypeDefn</span>
        <span class="pn">(</span><span class="id">SynComponentInfo</span>
           <span class="pn">(</span><span class="pn">[</span><span class="pn">{</span> <span class="id">Attributes</span> <span class="o">=</span> <span class="pn">[</span> <span class="o">..</span><span class="pn">.</span> <span class="pn">]</span><span class="pn">,</span> <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="3" class="id">None</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="4" class="id">herth</span><span class="pn">]</span><span class="pn">,</span>
@@ -459,11 +459,11 @@ If this information was available in <a href="../../reference/fsharp-compiler-sy
                    <span class="id">StaticConstant</span> <span class="pn">(</span><span class="id">Int32</span> <span class="n">1</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">25</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">33</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span><span class="pn">;</span>
                   <span class="pn">(</span><span class="k">false</span><span class="pn">,</span>
                    <span class="id">LongIdent</span> <span class="pn">(</span><span class="id">SynLongIdent</span> <span class="pn">(</span><span class="pn">[</span><span class="id">second</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="9" class="id">None</span><span class="pn">]</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="o">..</span><span class="pn">.</span><span class="pn">]</span>
-</code></pre>
+</code></pre></div>
 <p>Notice <code>StaticConstant (Int32 1, ...)</code>, the source code doesn't contain any <code>1</code> at all.</p>
 <p>After <a href="https://github.com/dotnet/fsharp/pull/13440">dotnet/fsharp#13440</a>,</p>
 <p>New AST:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Types</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Types</span>
              <span class="pn">(</span><span class="pn">[</span><span class="id">SynTypeDefn</span>
                  <span class="pn">(</span><span class="id">SynComponentInfo</span>
                     <span class="pn">(</span><span class="pn">[</span><span class="pn">{</span> <span class="id">Attributes</span> <span class="o">=</span>
@@ -484,20 +484,17 @@ If this information was available in <a href="../../reference/fsharp-compiler-sy
                             <span class="id">Type</span>
                               <span class="pn">(</span><span class="id">LongIdent</span> <span class="pn">(</span><span class="id">SynLongIdent</span> <span class="pn">(</span><span class="pn">[</span><span class="id">second</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="19" class="id">None</span><span class="pn">]</span><span class="pn">)</span><span class="pn">)</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span>
                            <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">25</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">33</span><span class="pn">)</span><span class="pn">)</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">25</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">33</span><span class="pn">)</span><span class="pn">)</span><span class="pn">,</span> <span class="o">..</span><span class="pn">.</span> <span class="pn">]</span>
-</code></pre>
+</code></pre></div>
 <p>This update to the tree made it very straightforward to fix the original bug in Fantomas.</p>
 <p>Another example of code that could benefit from a better representation is <a href="https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+extern">extern</a>.</p>
 <fantomas-nav previous="Conditional%20Compilation%20Directives.html" next="The%20Missing%20Comment.html"></fantomas-nav>
 
-        <div popover class="fsdocs-tip" id="fs1">Multiple items<br />type MeasureAttribute =
-  inherit Attribute
-  new: unit -&gt; MeasureAttribute<br /><br />--------------------<br />new: unit -&gt; MeasureAttribute</div>
-<div popover class="fsdocs-tip" id="fs2">
-type herth = 1</div>
-<div popover class="fsdocs-tip" id="fs3">union case Option.None: Option&lt;&#39;T&gt;</div>
-<div popover class="fsdocs-tip" id="fs4">Multiple items<br />namespace FSharp<br /><br />--------------------<br />namespace Microsoft.FSharp</div>
-<div popover class="fsdocs-tip" id="fs5">namespace FSharp.Compiler</div>
-<div popover class="fsdocs-tip" id="fs6">union case Result.Ok: ResultValue: &#39;T -&gt; Result&lt;&#39;T,&#39;TError&gt;</div>
+        <div popover class="fsdocs-tip" id="fs1">Multiple items<br /><span class="k">type</span> <span class="rt">MeasureAttribute</span> <span class="o">=</span><br />&#160;&#160;<span class="k">inherit</span> <span class="rt">Attribute</span><br />&#160;&#160;<span class="k">new</span><span class="pn">:</span> <span class="rt">unit</span> <span class="pn">-&gt;</span> <span class="rt">MeasureAttribute</span><br /><br />--------------------<br /><span class="k">new</span><span class="pn">:</span> <span class="rt">unit</span> <span class="pn">-&gt;</span> <span class="rt">MeasureAttribute</span></div>
+<div popover class="fsdocs-tip" id="fs2"><span class="k">type</span> <span class="rt">herth</span> <span class="o">=</span> <span class="n">1</span></div>
+<div popover class="fsdocs-tip" id="fs3">union case <span class="rt">Option</span><span class="pn">.</span><span class="uc">None</span><span class="pn">:</span> <span class="rt">Option</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs4">Multiple items<br /><span class="k">namespace</span> <span class="m">FSharp</span><br /><br />--------------------<br /><span class="k">namespace</span> <span class="m">Microsoft.FSharp</span></div>
+<div popover class="fsdocs-tip" id="fs5"><span class="k">namespace</span> <span class="m">FSharp.Compiler</span></div>
+<div popover class="fsdocs-tip" id="fs6">union case <span class="vt">Result</span><span class="pn">.</span><span class="uc">Ok</span><span class="pn">:</span> <span class="prop">ResultValue</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="vt">Result</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">,</span><span class="ta">&#39;TError</span><span class="pn">&gt;</span></div>
 
     </div>
 </main>

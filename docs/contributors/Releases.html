@@ -368,17 +368,17 @@
 </ol>
 <h2 data-fsdocs-heading="2"><a name="Preparation" class="anchor" href="#Preparation">Preparation</a></h2>
 <p>The <a href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">CHANGELOG.md</a> needs a new header with an official release tag:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="md">## [5.1.0] - 2022-11-04
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="md">## [5.1.0] - 2022-11-04
+</code></pre></div>
 <p>For prerelease versions, include the prerelease suffix:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="md">## [8.0.0-alpha-001] - 2024-12-12
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="md">## [8.0.0-alpha-001] - 2024-12-12
+</code></pre></div>
 <p>Verify that all recent PRs and closed issues are listed in the changelog. Normally, this should be ok as we require a changelog entry before we merge a PR.</p>
 <p>Once the changelog entry is merged into <code>main</code>, the release workflow will automatically trigger and handle the release process.</p>
 <h2 data-fsdocs-heading="3"><a name="Testing-Releases-Locally" class="anchor" href="#Testing-Releases-Locally">Testing Releases Locally</a></h2>
 <p>You can test the release process locally using the <code>--dry-run</code> flag. This will perform all validation and generate release notes without actually publishing to NuGet or creating a GitHub release:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fsi build.fsx -- -p Release --dry-run
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="bash">dotnet fsi build.fsx -- -p Release --dry-run
+</code></pre></div>
 <p>This is useful for:
 - Verifying the release notes before publishing
 - Checking that the changelog is parsed correctly

@@ -364,17 +364,17 @@
 <code>.fantomasignore</code> uses <a href="https://git-scm.com/docs/gitignore">gitignore</a> syntax (processed via <a href="https://github.com/goelhardik/ignore">Ignore</a>).<br />
 Ignored files will be picked up by the <a href="https://www.nuget.org/packages/fantomas/">Fantomas command line tool</a>.</p>
 <p>Exclusion applies both to formatting and the format checking.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">#</span><span class="id">Ignore</span> <span class="id">Fable</span> <span class="id">files</span>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">#</span><span class="id">Ignore</span> <span class="id">Fable</span> <span class="id">files</span>
 <span class="pn">.</span><span class="id">fable</span><span class="o">/</span>
 
 <span class="pn">#</span><span class="id">Ignore</span> <span class="id">script</span> <span class="id">files</span>
 <span class="o">*.</span><span class="id">fsx</span>
-</code></pre>
+</code></pre></div>
 <p>Note that the <code>.fantomasignore</code> that governs a file is the nearest one at or above that file, and only that one. Unlike Git, Fantomas does not merge in the ignore files above it, so a pattern in a parent repository's ignore file has no effect on a file that has one of its own beside it.</p>
 <p><em>starting version 8.0</em>, the command line resolves this per file, which is what the daemon has always done. Before that it resolved a single ignore file for the whole run from the directory it was started in, so an ignore file in a subfolder was honoured by an editor and invisible to a pipeline.</p>
 <p>If you are not sure which ignore file governs a given source file, or which line of it decided, ask:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="bash">dotnet fantomas doctor src/App.fs
-</code></pre></td></tr></table>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="bash">dotnet fantomas doctor src/App.fs
+</code></pre></div>
 <p>It names the ignore file, quotes the line that matched with its line number, and writes nothing. Where a pattern in an ignore file further up would have skipped the file, it names that file too and quotes the pattern, which is the answer when something you wrote at the root of a repository turns out to have had no effect. See <a href="./GettingStarted.html">Getting Started</a> for the rest of what it reports.</p>
 <p>Also note that if you are less familiar with <code>.gitignore</code>, <code>.gitgnore</code> processes everything using Unix slashes <code>/</code>.<br />
 Windows slashes <code>\</code> will not work correctly. See <a href="https://git-scm.com/docs/gitignore#_pattern_format">official Git documentation</a> for more info.</p>

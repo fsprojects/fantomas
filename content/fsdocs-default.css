@@ -64,8 +64,8 @@
     --text-color: light-dark(#020202, #F7F7F7);
     --text-hover: light-dark(#282828, #FFF);
     --heading-color: light-dark(#2e293a, rgb(229, 231, 235));
-    --code-background: light-dark(#ffffff, #28282D);
-    --code-color: light-dark(#1a4b0b, #f5f5f6);
+    --code-background: light-dark(#f6f8fa, #161b22);
+    --code-color: light-dark(#1f2328, #e6edf3);
     --header-background: light-dark(#f9fbfc, #0c1318);
     --header-border: light-dark(#e8ecf1, #3a3a42);
     --header-link-color: var(--text-color);
@@ -104,38 +104,60 @@
     --dialog-link-color: var(--link-color);
     --dialog-link-hover-color: var(--header-background);
     --dialog-link-hover-background-color: var(--link-hover);
-    --code-fence-border-color: transparent;
+    --code-fence-border-color: light-dark(#d1d9e0, #30363d);
+    --code-divider-color: light-dark(#d1d9e0, #30363d);
 
     --header-brand-text-transform: none;
 
-    --code-strings-color: light-dark(#0093A1, #86b4b9);
-    --code-printf-color: #6B2FBA;
-    --code-escaped-color: #EA8675;
-    --code-identifiers-color: light-dark(#6B2FBA, #d1b3f5);
-    --code-module-color: light-dark(#009999, #15e1e1);
-    --code-reference-color: light-dark(#4974D1, #40fddd);
-    --code-value-color: light-dark(#1B6600, #ffb4e9);
-    --code-interface-color: #43AEC6;
-    --code-typearg-color: #43AEC6;
-    --code-disposable-color: light-dark(#43AEC6, #6dd6f1);
-    --code-property-color: light-dark(#43AEC6, #6acfe7);
-    --code-punctuation-color: #43AEC6;
-    --code-punctuation2-color: var(--text-color);
-    --code-function-color: #6B2FBA;
-    --code-function2-color: light-dark(#6B2FBA, #cbda9d);
-    --code-activepattern-color: #4ec9b0;
-    --code-unioncase-color: #4ec9b0;
-    --code-enumeration-color: #8C6C41;
-    --code-keywords-color: light-dark(#0F54D6, #a7c2f8);
-    --code-comment-color: light-dark(#707070, #84d16e);
-    --code-operators-color: light-dark(#0F54D6, #b4c6ee);
-    --code-numbers-color: #009999;
-    --code-linenumbers-color: #80b0b0;
-    --code-mutable-color: #1b6600;
-    --code-inactive-color: #808080;
-    --code-preprocessor-color: #af75c1;
-    --code-fsioutput-color: #808080;
-    --code-tooltip-color: #d1d1d1;
+    /* Syntax colors, built from GitHub's Primer syntax hues.
+       Roles rather than one hue per token kind: keywords, types, the modules
+       and namespaces that hold them, callables, values, strings, and one mute
+       for anything the reader is not meant to focus on. Operators and
+       punctuation are left as plain text, the way GitHub renders them. */
+
+    /* keywords and preprocessor directives */
+    --code-keywords-color: light-dark(#cf222e, #ff7b72);
+    --code-preprocessor-color: light-dark(#cf222e, #ff7b72);
+
+    /* modules and namespaces, the containers rather than the types themselves */
+    --code-module-color: light-dark(#116329, #7ee787);
+
+    /* types */
+    --code-reference-color: light-dark(#953800, #ffa657);
+    --code-value-color: light-dark(#953800, #ffa657);
+    --code-interface-color: light-dark(#953800, #ffa657);
+    --code-typearg-color: light-dark(#953800, #ffa657);
+    --code-disposable-color: light-dark(#953800, #ffa657);
+
+    /* things you call: functions and active patterns */
+    --code-function-color: light-dark(#8250df, #d2a8ff);
+    --code-activepattern-color: light-dark(#8250df, #d2a8ff);
+
+    /* values: union cases, enum cases, properties, numbers, mutable bindings */
+    --code-unioncase-color: light-dark(#0550ae, #79c0ff);
+    --code-enumeration-color: light-dark(#0550ae, #79c0ff);
+    --code-property-color: light-dark(#0550ae, #79c0ff);
+    --code-numbers-color: light-dark(#0550ae, #79c0ff);
+    --code-mutable-color: light-dark(#0550ae, #79c0ff);
+
+    /* strings, and the escapes and format specifiers inside them */
+    --code-strings-color: light-dark(#0a3069, #a5d6ff);
+    --code-printf-color: light-dark(#953800, #ffa657);
+    --code-escaped-color: light-dark(#953800, #ffa657);
+
+    /* identifiers, operators and punctuation read as plain text */
+    --code-identifiers-color: var(--code-color);
+    --code-operators-color: var(--code-color);
+    --code-punctuation-color: var(--code-color);
+
+    /* muted: comments, fsi output, inactive code, line numbers */
+    --code-comment-color: light-dark(#59636e, #9198a1);
+    --code-fsioutput-color: light-dark(#59636e, #9198a1);
+    --code-inactive-color: light-dark(#818b98, #656c76);
+    --code-linenumbers-color: light-dark(#818b98, #656c76);
+
+    /* compiler errors */
+    --code-error-color: light-dark(#cf222e, #ff7b72);
 }
 
 /* Explicit color-scheme overrides for the manual theme toggle.
@@ -803,7 +825,7 @@ pre {
     padding: 0;
 }
 
-code, table.pre, pre {
+code, pre {
     background-color: var(--code-background);
     color: var(--code-color);
     font-family: var(--monospace-font);
@@ -816,30 +838,64 @@ h1 code, h2 code, h3 code, h4 code, h5 code, h6 code {
     font-size: inherit;
 }
 
-table.pre, #content > pre.fssnip, .code-block-wrapper > table.pre {
-    border: 1px solid var(--code-fence-border-color);
+p > code, li > code {
+    padding: 2px var(--spacing-50);
+    border-radius: var(--radius);
 }
 
-table.pre, pre.fssnip.highlighted {
+/* A code snippet. FSharp.Formatting emits
+
+     <div class="fsdocs-snippet">
+       <pre class="fsdocs-snippet-lines" aria-hidden="true">…</pre>
+       <pre class="fssnip highlighted"><code lang="fsharp">…</code></pre>
+     </div>
+
+   where the line number column is optional. Two <pre> elements rather than one
+   keep the numbers out of anything the reader selects and copies. */
+.fsdocs-snippet {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: stretch;
     margin: var(--spacing-300) 0;
-    padding: var(--spacing-200);
+    padding: var(--spacing-200) 0;
+    border: 1px solid var(--code-fence-border-color);
+    border-radius: var(--radius);
+    background-color: var(--code-background);
+}
+
+/* without line numbers the code takes the whole width */
+.fsdocs-snippet > pre:only-child {
+    grid-column: 1 / -1;
+}
+
+.fsdocs-snippet-lines {
+    padding: 0 var(--spacing-200);
+    border-right: 1px solid var(--code-divider-color);
+    color: var(--code-linenumbers-color);
+    text-align: right;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* the code column scrolls on its own, so the line numbers stay in view */
+.fsdocs-snippet > pre:not(.fsdocs-snippet-lines) {
+    padding: 0 var(--spacing-200);
+    overflow-x: auto;
+}
+
+.fsdocs-snippet pre,
+.fsdocs-snippet code {
+    background-color: transparent;
+}
+
+.fsdocs-snippet code {
+    display: block;
+    max-width: initial;
+    margin-bottom: initial;
 }
 
 /* Copy code button */
-.code-block-wrapper {
-    position: relative;
-    display: block;
-    margin: var(--spacing-300) 0;
-}
-
-.code-block-wrapper > table.pre {
-    margin: 0;
-}
-
-pre.has-copy-button {
-    position: relative;
-}
-
 .copy-code-button {
     position: absolute;
     top: var(--spacing-100);
@@ -861,36 +917,19 @@ pre.has-copy-button {
     }
 }
 
+pre.has-copy-button {
+    position: relative;
+}
+
+.fsdocs-snippet:hover .copy-code-button,
+.fsdocs-snippet:focus-within .copy-code-button,
 pre.has-copy-button:hover .copy-code-button,
-.code-block-wrapper:hover .copy-code-button {
+pre.has-copy-button:focus-within .copy-code-button {
     opacity: 1;
 }
 
-table.pre .snippet pre.fssnip {
-    padding: 0;
-    margin: 0;
-}
-
-p > code, li > code {
-    padding: 2px var(--spacing-50);
-}
-
-table.pre, pre > code {
-    display: block;
-}
-
-pre.fssnip > code {
-    max-width: initial;
-    margin-bottom: initial;
-}
-
-/* avoid problems with transparent background colors */
-pre.fssnip.highlighted > code, table.pre .fssnip, table.pre .fssnip code {
-    background-color: transparent;
-}
-
 /* Custom scrollbar styling */
-body, aside, #menu-toggle .menu, table.pre, code,
+body, aside, #menu-toggle .menu, code, .fsdocs-snippet > pre,
 .fsdocs-entity-xmldoc > div > pre, div.fsdocs-summary > pre,
 dialog ul, div.fsdocs-tip, .fsdocs-xmldoc > pre {
     overflow-x: auto;
@@ -911,7 +950,7 @@ dialog ul, div.fsdocs-tip, .fsdocs-xmldoc > pre {
     }
 }
 
-body, aside, #menu-toggle .menu, table.pre, code,
+body, aside, #menu-toggle .menu, code, .fsdocs-snippet > pre,
 .fsdocs-entity-xmldoc > div > pre, div.fsdocs-summary > pre,
 dialog ul, div.fsdocs-tip, .fsdocs-xmldoc > pre {
     @media screen and (min-width: 768px) {
@@ -922,7 +961,7 @@ dialog ul, div.fsdocs-tip, .fsdocs-xmldoc > pre {
     }
 }
 
-table.pre, code, pre.fssnip {
+code {
     border-radius: var(--radius);
 }
 
@@ -936,8 +975,14 @@ table.pre, code, pre.fssnip {
     font-variant-ligatures: none;
 }
 
-.fssnip {
-    /* strings --- and stlyes for other string related formats */
+/* Syntax highlighting.
+   Class names are produced by FSharp.Formatting.CodeFormat.Constants.CSS for F#
+   snippets and by FSharp.Formatting.CSharpFormat for every other language.
+   Keep this list in sync with those two, a rule that matches nothing is invisible.
+   Tool tips carry the same classes, the compiler tags the text it hands us. */
+.fssnip,
+div.fsdocs-tip {
+    /* strings */
 
     & span.s {
         color: var(--code-strings-color);
@@ -951,14 +996,15 @@ table.pre, code, pre.fssnip {
 
     /* escaped chars */
 
-    & span.e {
+    & span.esc {
         color: var(--code-escaped-color);
     }
 
-    /* identifiers --- and styles for more specific identifier types */
+    /* identifiers: 'id' comes from the F# path, 'i' from the non-F# path */
 
-    & span.id {
-        color: var(--code-identifiers-color);;
+    & span.id,
+    & span.i {
+        color: var(--code-identifiers-color);
     }
 
     /* module */
@@ -1005,22 +1051,14 @@ table.pre, code, pre.fssnip {
 
     /* punctuation */
 
-    & span.p {
-        color: var(--code-punctuation-color);
-    }
-
     & span.pn {
-        color: var(--code-punctuation2-color);
+        color: var(--code-punctuation-color);
     }
 
     /* function */
 
-    & span.f {
-        color: var(--code-function-color);
-    }
-
     & span.fn {
-        color: var(--code-function2-color);
+        color: var(--code-function-color);
     }
 
     /* active pattern */
@@ -1031,13 +1069,13 @@ table.pre, code, pre.fssnip {
 
     /* union case */
 
-    & span.u {
+    & span.uc {
         color: var(--code-unioncase-color);
     }
 
     /* enumeration */
 
-    & span.e {
+    & span.en {
         color: var(--code-enumeration-color);
     }
 
@@ -1067,27 +1105,22 @@ table.pre, code, pre.fssnip {
         color: var(--code-numbers-color);
     }
 
-    /* line number */
-
-    & span.l {
-        color: var(--code-linenumbers-color);
-    }
-
     /* mutable var or ref cell */
 
-    & span.v {
+    & span.mv {
         color: var(--code-mutable-color);
         font-weight: bold;
     }
 
-    /* inactive code */
+    /* inactive code, excluded by a conditional define */
 
     & span.inactive {
         color: var(--code-inactive-color);
     }
 
-    /* preprocessor */
+    /* preprocessor: 'pp' comes from the F# path, 'prep' from the non-F# path */
 
+    & span.pp,
     & span.prep {
         color: var(--code-preprocessor-color);
     }
@@ -1096,6 +1129,21 @@ table.pre, code, pre.fssnip {
 
     & span.fsi {
         color: var(--code-fsioutput-color);
+    }
+
+    /* compiler error, the message is in the tooltip */
+
+    & span.cerr {
+        text-decoration: underline wavy var(--code-error-color);
+        text-underline-offset: 0.2em;
+    }
+
+    /* omitted code, the hidden lines are in the tooltip */
+
+    & span.omitted {
+        color: var(--code-inactive-color);
+        border-bottom: 1px dotted var(--code-inactive-color);
+        cursor: help;
     }
 }
 
@@ -1113,6 +1161,13 @@ div.fsdocs-tip {
 
     & code {
         color: var(--code-color);
+    }
+
+    /* the doc comment under a signature, in the color a comment has in a snippet */
+
+    & em {
+        color: var(--code-comment-color);
+        font-style: italic;
     }
 }
 

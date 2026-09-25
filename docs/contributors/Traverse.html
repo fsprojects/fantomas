@@ -360,11 +360,11 @@
         
 <h1 data-fsdocs-heading="1"><a name="Fantomas-Core-overview-2" class="anchor" href="#Fantomas-Core-overview-2">Fantomas.Core overview (2)</a></h1>
 <p>Once the <code>Oak</code> is populated with all the found trivia, we can traverse the <code>Oak</code> to capture all the <code>WriterEvent</code>s.</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="mermaid">graph TD
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="mermaid">graph TD
     A[Transform source code to tree] --&gt; B
     B[Traverse Oak to get formatted code] --&gt; C[Formatted code]
     style B stroke:#338CBB,stroke-width:2px
-</code></pre></td></tr></table>
+</code></pre></div>
 <p>We enter the module of <code>CodePrinter</code> and try and reconstruct the code based on the given configuration.</p>
 <h2 data-fsdocs-heading="2"><a name="WriterEvents-and-WriterModel" class="anchor" href="#WriterEvents-and-WriterModel">WriterEvents and WriterModel</a></h2>
 <p>In previous versions of Fantomas, <code>Context</code> had a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.io.textwriter?view=net-6.0">TextWriter</a> that was used to write the output.
@@ -382,8 +382,8 @@ By doing this, we can check whether the output exceeds the page width or is mult
 <p>In <code>CodePrinter</code> the syntax tree is being traversed with the help of various (partial) active patterns.<br />
 These active patterns are defined in <code>SourceParser</code> and typically are used to present the information we are interested in, in a different shape.</p>
 <p><code>CodePrinter</code> exposes one function <code>genParsedInput</code>.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">val</span> <span class="id">genFile</span><span class="pn">:</span> <span class="id">oak</span><span class="pn">:</span> <span class="id">Oak</span> <span class="k">-&gt;</span> <span class="pn">(</span><span class="id">Context</span> <span class="k">-&gt;</span> <span class="id">Context</span><span class="pn">)</span>
-</code></pre>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">val</span> <span class="id">genFile</span><span class="pn">:</span> <span class="id">oak</span><span class="pn">:</span> <span class="id">Oak</span> <span class="k">-&gt;</span> <span class="pn">(</span><span class="id">Context</span> <span class="k">-&gt;</span> <span class="id">Context</span><span class="pn">)</span>
+</code></pre></div>
 <p>This takes an <code>Oak</code> and it returns a function that takes a <code>Context</code> and returns a new <code>Context</code>.</p>
 <p>We will eventually call this function with an initial <code>Context</code>. This initial <code>Context</code> will have our default config.
 In this function, all events are captured and stored in the <code>WriterEvents</code> and <code>WriterModel</code>.</p>
