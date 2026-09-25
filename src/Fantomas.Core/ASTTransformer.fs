@@ -2989,6 +2989,7 @@ let mkSynUnionCase
         mkAttributes creationAide attributes,
         Option.map (stn "|") trivia.BarRange,
         mkSynIdent creationAide ident,
+        Option.map (stn "of") trivia.OfKeyword,
         fields,
         fullRange
     )

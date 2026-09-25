@@ -2391,7 +2391,7 @@ module M
 
 module A =
     type ProviderGeneratedType =
-        | ProviderGeneratedType (*ilOrigTyRef*) of ILTypeRef (*ilRenamedTyRef*) * ILTypeRef * ProviderGeneratedType list
+        | ProviderGeneratedType of (*ilOrigTyRef*) ILTypeRef (*ilRenamedTyRef*) * ILTypeRef * ProviderGeneratedType list
 """
 
 [<Test>]

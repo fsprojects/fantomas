@@ -4762,9 +4762,9 @@ let genField (node: FieldNode) =
     |> genNode node
 
 let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
-    let shortExpr = col sepStar node.Fields genField
+    let shortExpr: Context -> Context = sepSpace +> col sepStar node.Fields genField
 
-    let longExpr =
+    let longExpr: Context -> Context =
         indentSepNlnUnindent (atCurrentColumn (col (sepStar +> sepNln) node.Fields genField))
 
     let genBar =
@@ -4779,7 +4779,7 @@ let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
         sepNlnWhenWriteBeforeNewlineNotEmpty
         +> genOnelinerAttributes node.Attributes
         +> genSingleTextNode node.Identifier
-        +> onlyIf (List.isNotEmpty node.Fields) wordOf
+        +> optSingle (fun ofNode -> sepSpace +> genSingleTextNode ofNode) node.OfKeyword
     )
     +> onlyIf (List.isNotEmpty node.Fields) (expressionFitsOnRestOfLine shortExpr longExpr)
     |> genNode node

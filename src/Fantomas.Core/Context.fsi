@@ -163,7 +163,6 @@ val sepOpenT: (Context -> Context)
 val sepCloseT: (Context -> Context)
 val wordAnd: (Context -> Context)
 val wordAndFixed: (Context -> Context)
-val wordOf: (Context -> Context)
 val sepSpaceBeforeClassConstructor: ctx: Context -> Context
 val sepColon: ctx: Context -> Context
 val sepColonFixed: (Context -> Context)

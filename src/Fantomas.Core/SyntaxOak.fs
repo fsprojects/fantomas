@@ -2605,6 +2605,7 @@ type UnionCaseNode
         attributes: MultipleAttributeListNode option,
         bar: SingleTextNode option,
         identifier: SingleTextNode,
+        ofKeyword: SingleTextNode option,
         fields: FieldNode list,
         range
     )
@@ -2617,6 +2618,7 @@ type UnionCaseNode
             yield! noa bar
             yield! noa attributes
             yield identifier
+            yield! noa ofKeyword
             yield! nodes fields
         |]
 
@@ -2624,6 +2626,7 @@ type UnionCaseNode
     member val Attributes = attributes
     member val Bar = bar
     member val Identifier = identifier
+    member val OfKeyword = ofKeyword
     member val Fields = fields
 
 /// The shared header of a type definition: `type` / `and` keyword, optional doc, attributes, name, type parameters,

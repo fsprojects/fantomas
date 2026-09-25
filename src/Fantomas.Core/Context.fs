@@ -618,7 +618,6 @@ let sepCloseT = !-")"
 
 let wordAnd = sepSpace +> !-"and "
 let wordAndFixed = !-"and"
-let wordOf = sepSpace +> !-"of "
 
 let shortExpressionWithFallback
     (shortExpression: Context -> Context)

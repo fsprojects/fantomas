@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Update FCS to 'Record the range of the `of` keyword in SynUnionCaseTrivia', commit 5e9647f158fe282462aba57ed83ada910a91b90e [#3502](https://github.com/fsprojects/fantomas/pull/3502)
+
+### Fixed
+
+- Wrong change of comment's position. The syntax tree had no range for the `of` keyword of a union case or exception, so a block comment after it, as in `exception E of (*name*) string`, was attached to the case name and printed in front of `of`. The parser now records that range, and the comment stays after the keyword. [#1959](https://github.com/fsprojects/fantomas/issues/1959)
+
 ## [8.0.5] - 2026-09-25
 
 ### Changed
