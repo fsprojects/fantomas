@@ -81,7 +81,7 @@ type Node =
 /// the queue's struct enumerator is walked directly, because going through <c>Seq</c> boxes it
 /// (measured: 40 bytes and roughly 2x the time per call).
 let private hasLayoutAffectingTrivia (nodes: Queue<TriviaNode>) =
-    if nodes.Count = 0 then
+    if isNull nodes || nodes.Count = 0 then
         false
     else
 
@@ -102,23 +102,37 @@ let private hasLayoutAffectingTrivia (nodes: Queue<TriviaNode>) =
 [<AbstractClass>]
 type NodeBase(range: range) =
     let mutable potentialCursor = None
-    let nodesBefore = Queue<TriviaNode>(0)
-    let nodesAfter = Queue<TriviaNode>(0)
+    // Created on the first trivia added: nearly every node has none, and there are a lot of nodes.
+    let mutable nodesBefore: Queue<TriviaNode> = null
+    let mutable nodesAfter: Queue<TriviaNode> = null
 
-    member _.ContentBefore: TriviaNode seq = nodesBefore
+    member _.ContentBefore: TriviaNode seq =
+        if isNull nodesBefore then Seq.empty else nodesBefore
 
     member _.HasContentBefore = hasLayoutAffectingTrivia nodesBefore
 
-    member _.ContentAfter: TriviaNode seq = nodesAfter
+    member _.ContentAfter: TriviaNode seq =
+        if isNull nodesAfter then Seq.empty else nodesAfter
 
     member _.HasContentAfter = hasLayoutAffectingTrivia nodesAfter
 
-    member _.HasAnyContentBefore = nodesBefore.Count > 0
-    member _.HasAnyContentAfter = nodesAfter.Count > 0
+    member _.HasAnyContentBefore = not (isNull nodesBefore) && nodesBefore.Count > 0
+    member _.HasAnyContentAfter = not (isNull nodesAfter) && nodesAfter.Count > 0
 
     member _.Range = range
-    member _.AddBefore triviaNode = nodesBefore.Enqueue triviaNode
-    member _.AddAfter triviaNode = nodesAfter.Enqueue triviaNode
+
+    member _.AddBefore triviaNode =
+        if isNull nodesBefore then
+            nodesBefore <- Queue<TriviaNode>()
+
+        nodesBefore.Enqueue triviaNode
+
+    member _.AddAfter triviaNode =
+        if isNull nodesAfter then
+            nodesAfter <- Queue<TriviaNode>()
+
+        nodesAfter.Enqueue triviaNode
+
     abstract member Children: Node array
     member _.AddCursor cursor = potentialCursor <- Some cursor
     member _.TryGetCursor = potentialCursor

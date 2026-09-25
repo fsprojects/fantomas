@@ -64,7 +64,12 @@ let validateFSharpCode (isSignature: bool) (source: string) : Async<ValidationRe
             let offending: FSharpParserDiagnostic list option =
                 defineCombinations
                 |> List.tryPick (fun defineCombination ->
-                    let _, diagnostics = parseFile isSignature sourceText defineCombination.Value
+                    // The combination without defines was parsed above, to find the directives.
+                    let diagnostics: FSharpParserDiagnostic list =
+                        if defineCombination.Value.IsEmpty then
+                            baseDiagnostics
+                        else
+                            snd (parseFile isSignature sourceText defineCombination.Value)
 
                     match invalidatingDiagnostics diagnostics with
                     | [] -> None
