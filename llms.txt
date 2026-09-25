@@ -507,6 +507,7 @@
 - [SynBindingReturnInfoTrivia](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-synbindingreturninfotrivia.html)
 - [SynBindingTrivia](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-synbindingtrivia.html)
 - [SynEnumCaseTrivia](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-synenumcasetrivia.html)
+- [SynExceptionDefnReprTrivia](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-synexceptiondefnreprtrivia.html)
 - [SynExprAnonRecdTrivia](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-synexpranonrecdtrivia.html)
 - [SynExprDoBangTrivia](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-synexprdobangtrivia.html)
 - [SynExprDotLambdaTrivia](https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-synexprdotlambdatrivia.html)
