@@ -5,7 +5,8 @@
     The task shipped in the .NET SDK is older than the compiler sources we vendor: since
     dotnet/fsharp#20097 the generated diagnostic accessors return RichText instead of string, and the
     SDK's task cannot generate those. Upstream solves this by bootstrapping its own FSharp.Build, we
-    solve it by vendoring the one file and compiling it here.
+    solve it by vendoring the task, and the files it depends on, and compiling them here.
+    FSharpEnvironment.fs stands in for the upstream module of that name, see the file.
 
     This is build tooling. It is never packed and never referenced at runtime.
   -->
@@ -27,6 +28,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\NullHelpers.fs">
+      <Link>NullHelpers.fs</Link>
+    </Compile>
+    <Compile Include="FSharpEnvironment.fs" />
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\FSharp.Build\TaskEnvironmentPaths.fs">
+      <Link>TaskEnvironmentPaths.fs</Link>
+    </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\FSharp.Build\FSharpEmbedResourceText.fs">
       <Link>FSharpEmbedResourceText.fs</Link>
     </Compile>

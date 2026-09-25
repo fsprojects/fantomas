@@ -37,10 +37,6 @@ let longIdentText (sli: SynLongIdent) : string =
 type CreationAide =
     {
         SourceText: ISourceText option
-        /// The ranges of the line and block comments in the source.
-        /// Only `mkExceptionKeyword` needs these, to find the `exception` keyword in the source text.
-        /// Remove this field once the syntax tree has a range for that keyword.
-        CodeComments: range list
     }
 
     member x.TextFromSource fallback range =
@@ -2502,99 +2498,22 @@ let mkModuleName (SynComponentInfo(synType = synType; range = m) as info) : Iden
     | Some(SynType.LongIdent(SynLongIdent(lid, _, _))) -> mkLongIdent lid
     | _ -> invariantViolationAbout m info "module name is not an identifier"
 
-/// The `exception` keyword of an exception definition.
-///
-/// The syntax tree has no range for it, and the range of the definition starts at its XML doc.
-/// It is looked up in the source text, starting after the XML doc and attributes and skipping over
-/// the comments the parser found in between, so that a comment there stays in front of the keyword.
-/// Without source text, or when anything else comes first, it is placed where the search started.
-let mkExceptionKeyword
-    (creationAide: CreationAide)
-    (declRange: range)
-    (xmlDoc: XmlDocNode option)
-    (attributes: MultipleAttributeListNode option)
-    (nextStart: pos)
-    : SingleTextNode
-    =
-    let keyword: string = "exception"
-
-    let searchStart: pos =
-        match attributes, xmlDoc with
-        | Some attributes, _ -> attributes.Range.End
-        | None, Some xmlDoc -> xmlDoc.Range.End
-        | None, None -> declRange.Start
-
-    let comments: range list =
-        creationAide.CodeComments
-        |> List.filter (fun m -> Position.posGeq m.Start searchStart && Position.posLt m.Start nextStart)
-
-    let isIdentChar (c: char) : bool =
-        System.Char.IsLetterOrDigit c || c = '_' || c = '\''
-
-    let isKeywordAt (text: string) (column: int) : bool =
-        let after: int = column + keyword.Length
-
-        System.String.CompareOrdinal(text, column, keyword, 0, keyword.Length) = 0
-        && (after = text.Length || not (isIdentChar text[after]))
-
-    let find (sourceText: ISourceText) : pos =
-        let rec scan (p: pos) : pos =
-            if p.Line > sourceText.GetLineCount() || Position.posGeq p nextStart then
-                // reached the accessibility or the name without finding the keyword
-                searchStart
-            else
-
-            let text: string = sourceText.GetLineString(p.Line - 1)
-
-            if p.Column >= text.Length then
-                // end of the line, continue on the next one
-                scan (Position.mkPos (p.Line + 1) 0)
-            elif System.Char.IsWhiteSpace text[p.Column] then
-                // skip whitespace
-                scan (Position.mkPos p.Line (p.Column + 1))
-            else
-
-            match List.tryFind (fun (m: range) -> Position.posEq m.Start p) comments with
-            // jump over the comment
-            | Some comment -> scan comment.End
-            // the first code after the attributes or XML doc has to be the keyword
-            | None -> if isKeywordAt text p.Column then p else searchStart
-
-        scan searchStart
-
-    let start: pos =
-        match creationAide.SourceText with
-        | None -> searchStart
-        | Some sourceText -> find sourceText
-
-    stn keyword (mkRange declRange.FileName start (Position.mkPos start.Line (start.Column + keyword.Length)))
-
 let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
     let declRange = decl.Range
 
     match decl with
     | SynModuleDecl.Expr(e, _) -> mkExpr creationAide e |> ModuleDecl.DeclExpr
-    | SynModuleDecl.Exception(SynExceptionDefn(SynExceptionDefnRepr(attrs, caseName, _, xmlDoc, vis, _),
+    | SynModuleDecl.Exception(SynExceptionDefn(SynExceptionDefnRepr(attrs, caseName, _, xmlDoc, vis, _, trivia),
                                                withKeyword,
                                                ms,
                                                _),
                               _) ->
-        let xmlDoc: XmlDocNode option = mkXmlDoc xmlDoc
-        let attributes: MultipleAttributeListNode option = mkAttributes creationAide attrs
-        let accessibility: SingleTextNode option = mkSynAccess vis
-        let unionCase: UnionCaseNode = mkSynUnionCase creationAide caseName
-
-        let nextStart: pos =
-            accessibility
-            |> Option.map (fun (n: SingleTextNode) -> n.Range.Start)
-            |> Option.defaultValue unionCase.Range.Start
-
         ExceptionDefnNode(
-            xmlDoc,
-            attributes,
-            mkExceptionKeyword creationAide declRange xmlDoc attributes nextStart,
-            accessibility,
-            unionCase,
+            mkXmlDoc xmlDoc,
+            mkAttributes creationAide attrs,
+            stn "exception" trivia.ExceptionKeyword,
+            mkSynAccess vis,
+            mkSynUnionCase creationAide caseName,
             Option.map (stn "with") withKeyword,
             List.map (mkMemberDefn creationAide) ms,
             declRange
@@ -3978,27 +3897,17 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
     let declRange = decl.Range
 
     match decl with
-    | SynModuleSigDecl.Exception(SynExceptionSig(SynExceptionDefnRepr(attrs, caseName, _, xmlDoc, vis, _),
+    | SynModuleSigDecl.Exception(SynExceptionSig(SynExceptionDefnRepr(attrs, caseName, _, xmlDoc, vis, _, trivia),
                                                  withKeyword,
                                                  ms,
                                                  _),
                                  _) ->
-        let xmlDoc: XmlDocNode option = mkXmlDoc xmlDoc
-        let attributes: MultipleAttributeListNode option = mkAttributes creationAide attrs
-        let accessibility: SingleTextNode option = mkSynAccess vis
-        let unionCase: UnionCaseNode = mkSynUnionCase creationAide caseName
-
-        let nextStart: pos =
-            accessibility
-            |> Option.map (fun (n: SingleTextNode) -> n.Range.Start)
-            |> Option.defaultValue unionCase.Range.Start
-
         ExceptionDefnNode(
-            xmlDoc,
-            attributes,
-            mkExceptionKeyword creationAide declRange xmlDoc attributes nextStart,
-            accessibility,
-            unionCase,
+            mkXmlDoc xmlDoc,
+            mkAttributes creationAide attrs,
+            stn "exception" trivia.ExceptionKeyword,
+            mkSynAccess vis,
+            mkSynUnionCase creationAide caseName,
             Option.map (stn "with") withKeyword,
             List.map (mkMemberSig creationAide) ms,
             declRange
@@ -4414,21 +4323,7 @@ let mkFullTreeRange ast =
         includeTrivia astRange trivia
 
 let mkOak (sourceText: ISourceText option) (ast: ParsedInput) =
-    let codeComments: range list =
-        match ast with
-        | ParsedInput.ImplFile(ParsedImplFileInput(trivia = { CodeComments = codeComments }))
-        | ParsedInput.SigFile(ParsedSigFileInput(trivia = { CodeComments = codeComments })) -> codeComments
-        |> List.map (
-            function
-            | CommentTrivia.LineComment m
-            | CommentTrivia.BlockComment m -> m
-        )
-
-    let creationAide: CreationAide =
-        {
-            SourceText = sourceText
-            CodeComments = codeComments
-        }
+    let creationAide: CreationAide = { SourceText = sourceText }
 
     let fullRange = mkFullTreeRange ast
 
