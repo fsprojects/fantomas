@@ -261,6 +261,8 @@ pipeline "Init" {
                 // Not a compiler source. This is the MSBuild task that turns FSComp.txt into the SR
                 // module. Since dotnet/fsharp#20097 the generated diagnostic accessors return RichText
                 // instead of string, and the task shipped in the .NET SDK cannot generate those yet.
+                // Since dotnet/fsharp#20506 it resolves its paths through TaskEnvironmentPaths.
+                "src/FSharp.Build/TaskEnvironmentPaths.fs"
                 "src/FSharp.Build/FSharpEmbedResourceText.fs"
                 "src/Compiler/FSComp.txt"
                 "src/Compiler/FSStrings.resx"
