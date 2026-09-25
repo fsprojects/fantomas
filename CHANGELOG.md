@@ -1,14 +1,15 @@
 # Changelog
 
-## [Unreleased]
+## [8.0.5] - 2026-09-25
 
 ### Changed
 
 - Improved formatting performance. Formatting the source files of dotnet/fsharp allocates around 40% less memory and is roughly 1.4 times faster than `8.0.4`, depending on hardware. The fields of `WriterEvent`, returned by `CodeFormatter.GetWriterEventsAsync`, are renamed so that cases share them: `text` for the strings, `amount` for `IndentBy` and `UnIndentBy`, `column` for the indent and column cases, and `nodeType` and `range` for `NodeEnd`. [#3499](https://github.com/fsprojects/fantomas/pull/3499)
+- Update FCS to 'Record the range of the `exception`in SynExceptionDefnRepr', commit 349d6aaf1e4685a72e43b7f4a0708205e4104b4c [#3500](https://github.com/fsprojects/fantomas/pull/3500)
 
 ### Fixed
 
-- Comment between doc comment and exception keyword gets shifted. The syntax tree has no range for the `exception` keyword, so a comment between the XML doc or attributes and the keyword was placed in front of the exception name, after the keyword. The keyword is now looked up in the source text and the comment stays in front of it. [#3483](https://github.com/fsprojects/fantomas/issues/3483)
+- Comment between doc comment and exception keyword gets shifted. The syntax tree had no range for the `exception` keyword, so a comment between the XML doc or attributes and the keyword was placed in front of the exception name, after the keyword. The parser now records that range, and the comment stays in front of the keyword. [#3483](https://github.com/fsprojects/fantomas/issues/3483)
 
 ## [8.0.4] - 2026-09-23
 
