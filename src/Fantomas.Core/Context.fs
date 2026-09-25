@@ -57,6 +57,15 @@ type WriterModel =
         | Dummy -> true
         | _ -> false
 
+/// A loop rather than `List.exists` with a lambda: this runs for every event of a short
+/// expression, and the lambda would be a closure allocated each time.
+let rec anyTooLong (maxPageWidth: int) (currentColumn: int) (infos: ShortExpressionInfo list) : bool =
+    match infos with
+    | [] -> false
+    | info :: rest ->
+        info.IsTooLong maxPageWidth currentColumn
+        || anyTooLong maxPageWidth currentColumn rest
+
 module WriterModel =
     /// A function rather than a value: a module-level value is a static field, and a thread
     /// reading it while the module is still initializing sees null. Every context starts from
@@ -142,6 +151,12 @@ module WriterModel =
                 | WriteTrivia _ when (String.isNotNullOrEmpty m.WriteBeforeNewline) -> true
                 | _ -> false
 
+            // Nearly every event confirms nothing, and then the infos are left as they are: only
+            // rebuild them once one of them is known to be multiline.
+            if not nextCmdCausesMultiline && not (anyTooLong maxPageWidth m.Column infos) then
+                updateCmd cmd
+            else
+
             let updatedInfos =
                 infos
                 |> List.map (fun info ->
@@ -151,10 +166,6 @@ module WriterModel =
                         ConfirmedMultiline = tooLong || nextCmdCausesMultiline
                     }
                 )
-
-            if not (List.exists (fun i -> i.ConfirmedMultiline) updatedInfos) then
-                updateCmd cmd
-            else
 
             { m with
                 Mode = ShortExpression(updatedInfos)
@@ -461,12 +472,14 @@ let atCurrentColumn (f: _ -> Context) (ctx: Context) = atIndentLevel false ctx.C
 
 let atCurrentColumnIndent (f: _ -> Context) (ctx: Context) = atIndentLevel true ctx.Column f ctx
 
+let isConfirmedMultiline (ctx: Context) : bool =
+    match ctx.WriterModel.Mode with
+    | ShortExpression infos -> infos |> List.exists (fun x -> x.ConfirmedMultiline)
+    | _ -> false
+
 let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
     let y = ctx x
-
-    match y.WriterModel.Mode with
-    | ShortExpression infos when infos |> List.exists (fun x -> x.ConfirmedMultiline) -> y
-    | _ -> f y
+    if isConfirmedMultiline y then y else f y
 
 let (!-) (str: string) = writerEvent (Write str)
 let writeTrivia (s: string) = writerEvent (WriteTrivia s)

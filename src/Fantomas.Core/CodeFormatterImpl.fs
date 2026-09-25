@@ -38,8 +38,12 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
                 defineCombinations
                 |> List.map (fun defineCombination ->
                     async {
+                        // The combination without defines was already parsed to find the directives.
                         let untypedTree, diagnostics =
-                            Fantomas.FCS.Parse.parseFile isSignature source defineCombination.Value
+                            if defineCombination.Value.IsEmpty then
+                                baseUntypedTree, baseDiagnostics
+                            else
+                                Fantomas.FCS.Parse.parseFile isSignature source defineCombination.Value
 
                         let errors =
                             diagnostics

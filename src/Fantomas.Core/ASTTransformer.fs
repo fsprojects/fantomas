@@ -194,26 +194,28 @@ let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(iden
     ParsedHashDirectiveNode(ident, args, range)
 
 let mkConstant (creationAide: CreationAide) c r : Constant =
-    let orElse fallback =
-        stn (creationAide.TextFromSource (fun () -> fallback) r) r |> Constant.FromText
+    // The fallback is a thunk because `%A` formats through reflection, and the source text is
+    // nearly always there to make it unnecessary.
+    let orElse (fallback: unit -> string) : Constant =
+        stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
 
     match c with
     | SynConst.Unit -> mkUnit r |> Constant.Unit
     | SynConst.Bool b -> stn (if b then "true" else "false") r |> Constant.FromText
-    | SynConst.Byte v -> orElse $"%A{v}"
-    | SynConst.SByte v -> orElse $"%A{v}"
-    | SynConst.Int16 v -> orElse $"%A{v}"
-    | SynConst.Int32 v -> orElse $"%A{v}"
-    | SynConst.Int64 v -> orElse $"%A{v}"
-    | SynConst.UInt16 v -> orElse $"%A{v}"
-    | SynConst.UInt16s v -> orElse $"%A{v}"
-    | SynConst.UInt32 v -> orElse $"%A{v}"
-    | SynConst.UInt64 v -> orElse $"%A{v}"
-    | SynConst.Double v -> orElse $"%A{v}"
-    | SynConst.Single v -> orElse $"%A{v}"
-    | SynConst.Decimal v -> orElse $"%A{v}"
-    | SynConst.IntPtr v -> orElse $"%A{v}"
-    | SynConst.UIntPtr v -> orElse $"%A{v}"
+    | SynConst.Byte v -> orElse (fun () -> $"%A{v}")
+    | SynConst.SByte v -> orElse (fun () -> $"%A{v}")
+    | SynConst.Int16 v -> orElse (fun () -> $"%A{v}")
+    | SynConst.Int32 v -> orElse (fun () -> $"%A{v}")
+    | SynConst.Int64 v -> orElse (fun () -> $"%A{v}")
+    | SynConst.UInt16 v -> orElse (fun () -> $"%A{v}")
+    | SynConst.UInt16s v -> orElse (fun () -> $"%A{v}")
+    | SynConst.UInt32 v -> orElse (fun () -> $"%A{v}")
+    | SynConst.UInt64 v -> orElse (fun () -> $"%A{v}")
+    | SynConst.Double v -> orElse (fun () -> $"%A{v}")
+    | SynConst.Single v -> orElse (fun () -> $"%A{v}")
+    | SynConst.Decimal v -> orElse (fun () -> $"%A{v}")
+    | SynConst.IntPtr v -> orElse (fun () -> $"%A{v}")
+    | SynConst.UIntPtr v -> orElse (fun () -> $"%A{v}")
     | SynConst.UserNum(v, s) ->
         let fallback () = $"%s{v}%s{s}"
         stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
@@ -229,7 +231,7 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
             | '\f' -> @"'\f'"
             | _ -> $"'%c{c}'"
 
-        orElse escapedChar
+        orElse (fun () -> escapedChar)
     | SynConst.Bytes(bytes, _, r) ->
         let fallback () =
             let content =
@@ -734,24 +736,33 @@ let (|ConstNumberExpr|_|) =
 
 [<return: Struct>]
 let (|App|_|) e =
-    let rec visit expr continuation =
-        match expr with
-        | IndexWithoutDot _ -> continuation (expr, Queue())
-        | SynExpr.App(funcExpr = funcExpr; argExpr = argExpr) ->
-            visit
-                funcExpr
-                (fun (head, xs: Queue<SynExpr>) ->
-                    xs.Enqueue(argExpr)
-                    continuation (head, xs)
-                )
-        | e -> continuation (e, Queue())
+    // Every expression is asked, and nearly all of them are not an application: answering those
+    // up front saves building a queue and a tuple only to find the queue empty.
+    match e with
+    | SynExpr.App _ ->
+        let rec visit
+            (expr: SynExpr)
+            (continuation: SynExpr * Queue<SynExpr> -> SynExpr * Queue<SynExpr>)
+            : SynExpr * Queue<SynExpr>
+            =
+            match expr with
+            | IndexWithoutDot _ -> continuation (expr, Queue())
+            | SynExpr.App(funcExpr = funcExpr; argExpr = argExpr) ->
+                visit
+                    funcExpr
+                    (fun (head, xs: Queue<SynExpr>) ->
+                        xs.Enqueue(argExpr)
+                        continuation (head, xs)
+                    )
+            | e -> continuation (e, Queue())
 
-    let head, xs = visit e id
+        let head, xs = visit e id
 
-    if xs.Count = 0 then
-        ValueNone
-    else
-        ValueSome(head, Seq.toList xs)
+        if xs.Count = 0 then
+            ValueNone
+        else
+            ValueSome(head, Seq.toList xs)
+    | _ -> ValueNone
 
 [<return: Struct>]
 let (|ParenLambda|_|) e =
@@ -782,26 +793,22 @@ type LinkExpr =
     | IndexExpr of indexExpr: SynExpr
 
 let mkLinksFromSynLongIdent (sli: SynLongIdent) : LinkExpr list =
-    let idents =
-        List.map (mkLongIdentExprFromSynIdent >> LinkExpr.Identifier) sli.IdentsWithTrivia
+    // The identifiers and the dots are each in source order already, so merging them puts the
+    // whole in source order without sorting. An identifier goes first when both start at the
+    // same position, as it did when this was a stable sort of the identifiers followed by the dots.
+    let rec merge (idents: SynIdent list) (dots: range list) : LinkExpr list =
+        match idents, dots with
+        | [], dots -> List.map LinkExpr.Dot dots
+        | idents, [] -> List.map (mkLongIdentExprFromSynIdent >> LinkExpr.Identifier) idents
+        | (SynIdent(ident, _) as synIdent) :: restIdents, dot :: restDots ->
 
-    let dots = List.map LinkExpr.Dot sli.Dots
+        if Position.posLt dot.Start ident.idRange.Start then
+            LinkExpr.Dot dot :: merge idents restDots
+        else
+            LinkExpr.Identifier(mkLongIdentExprFromSynIdent synIdent)
+            :: merge restIdents dots
 
-    [ yield! idents; yield! dots ]
-    |> List.sortBy (
-        function
-        | LinkExpr.Identifier identifierExpr -> identifierExpr.Range.StartLine, identifierExpr.Range.StartColumn
-        | LinkExpr.Dot m -> m.StartLine, m.StartColumn
-        | LinkExpr.Expr _
-        | LinkExpr.AppParen _
-        | LinkExpr.AppUnit _
-        // mkLinksFromSynLongIdent only ever builds Identifier and Dot links, so no other
-        // case can reach the sort key.
-        | LinkExpr.IndexExpr _ ->
-            invariantViolation
-                sli.Range
-                "mkLinksFromSynLongIdent produced a link that is neither an Identifier nor a Dot"
-    )
+    merge sli.IdentsWithTrivia sli.Dots
 
 [<return: Struct>]
 let (|UnitExpr|_|) e =

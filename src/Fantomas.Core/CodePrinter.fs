@@ -184,7 +184,16 @@ let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) =
     // The NodeStart/NodeEnd payloads are only ever observed via CodeFormatter.GetWriterEventsAsync.
     // Keep them out of the default path entirely: building them costs a reflection call and a sprintf per node.
     if not ctx.DebugMode then
-        (enterNode n +> recordCursorNode f n +> leaveNode n) ctx
+        // `enterNode n +> recordCursorNode f n +> leaveNode n`, without composing three closures
+        // for every node: each step is skipped once a short expression is known to be multiline.
+        let ctx: Context = enterNode n ctx
+
+        if isConfirmedMultiline ctx then
+            ctx
+        else
+
+        let ctx: Context = recordCursorNode f n ctx
+        if isConfirmedMultiline ctx then ctx else leaveNode n ctx
     else
         (writerEvent (NodeStart(n.GetType().Name, sprintf "%O" n.Range))
          +> enterNode n
@@ -193,7 +202,20 @@ let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) =
          +> writerEvent (NodeEnd(n.GetType().Name, sprintf "%O" n.Range)))
             ctx
 
-let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
+let genSingleTextNode (node: SingleTextNode) (ctx: Context) : Context =
+    // The most common node by far, and most carry no trivia or cursor: write the text directly.
+    if
+        not ctx.DebugMode
+        && not node.HasAnyContentBefore
+        && not node.HasAnyContentAfter
+        && node.TryGetCursor.IsNone
+    then
+        if isConfirmedMultiline ctx then
+            ctx
+        else
+            writerEvent (Write node.Text) ctx
+    else
+        genNode node (!-node.Text) ctx
 
 // Alternative for genSingleTextNode to avoid a double space when the node has line comment after it.
 let genSingleTextNodeWithSpaceSuffix (addSpace: Context -> Context) (node: SingleTextNode) =

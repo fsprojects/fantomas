@@ -101,22 +101,27 @@ let internal collectTriviaFromBlankLines
         else
             [ r.StartLine .. r.EndLine ]
 
+    // Every node of the tree is visited to find a handful of strings, so the walk keeps its own
+    // stack rather than building a continuation and a list for each node it passes.
     let multilineStringsLines =
-        let rec visit (node: Node) (finalContinuation: int list -> int list) =
-            let continuations: ((int list -> int list) -> int list) list =
-                Array.toList node.Children |> List.map visit
+        let lines: ResizeArray<int> = ResizeArray()
 
-            let currentLines =
-                match node with
-                | :? StringNode as node -> captureLinesIfMultiline node.Range
-                | _ -> []
+        let pending: System.Collections.Generic.Stack<Node> =
+            System.Collections.Generic.Stack()
 
-            let finalContinuation (lines: int list list) : int list =
-                List.collect id (currentLines :: lines) |> finalContinuation
+        pending.Push rootNode
 
-            Continuation.sequence continuations finalContinuation
+        while pending.Count > 0 do
+            let node: Node = pending.Pop()
 
-        visit rootNode id
+            match node with
+            | :? StringNode as node -> lines.AddRange(captureLinesIfMultiline node.Range)
+            | _ -> ()
+
+            for child in node.Children do
+                pending.Push child
+
+        lines
 
     let blockCommentLines =
         codeComments
@@ -269,11 +274,18 @@ let rec visitLastChildNode (node: Node) : Node =
 let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
     let lineNumber = trivia.Range.StartLine
 
+    // The child ending on the comment's line that starts furthest right, the first of them on a
+    // tie. A loop rather than filtering and sorting the children for every such comment.
     let result =
-        containerNode.Children
-        |> Array.filter (fun node -> node.Range.EndLine = lineNumber)
-        |> Array.sortByDescending (fun node -> node.Range.StartColumn)
-        |> Array.tryHead
+        let mutable best: Node option = None
+
+        for node in containerNode.Children do
+            if node.Range.EndLine = lineNumber then
+                match best with
+                | Some b when b.Range.StartColumn >= node.Range.StartColumn -> ()
+                | _ -> best <- Some node
+
+        best
 
     result
     |> Option.iter (fun node ->

@@ -84,6 +84,8 @@ val writerEvent: e: WriterEvent -> ctx: Context -> Context
 val dump: isSelection: bool -> ctx: Context -> FormatResult
 val dumpEvents: ctx: Context -> WriterEvent array
 
+/// True once a short expression is known not to fit, after which nothing more needs writing.
+val isConfirmedMultiline: ctx: Context -> bool
 /// Function composition operator
 val (+>): ctx: (Context -> Context) -> f: (Context -> Context) -> x: Context -> Context
 val (!-): str: string -> (Context -> Context)
