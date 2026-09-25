@@ -1114,3 +1114,39 @@ type A =
         {| A: int
            LongerThanLengthDeclaration: string |}
 """
+
+[<Test>]
+let ``block comments around of keyword in union case`` () =
+    formatSourceString
+        """
+type A =
+    | A (* c *) of int
+    | B of (* c *) string * int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+    | A (* c *) of int
+    | B of (* c *) string * int
+"""
+
+[<Test>]
+let ``line comment after of keyword in union case`` () =
+    formatSourceString
+        """
+type A =
+    | A of // comment
+        int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+    | A of // comment
+        int
+"""

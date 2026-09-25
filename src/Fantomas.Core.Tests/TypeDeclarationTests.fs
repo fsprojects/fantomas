@@ -144,6 +144,20 @@ exception FooException of int
 """
 
 [<Test>]
+let ``block comment after of keyword in exception, 1959`` () =
+    formatSourceString
+        """
+exception LoadedSourceNotFoundIgnoring of (*filename*) string * range
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+exception LoadedSourceNotFoundIgnoring of (*filename*) string * range
+"""
+
+[<Test>]
 let ``type annotations`` () =
     formatSourceString
         """
