@@ -3,7 +3,7 @@ Fantomas
 
 ![Fantomas logo](https://raw.githubusercontent.com/fsprojects/fantomas/main/fantomas_logo.png)
 
-![GitHub Workflow Status (event)](https://img.shields.io/github/actions/workflow/status/fsprojects/fantomas/main.yml?branch=main&label=Build%20main&style=flat-square)
+[![GitHub CI Status](https://img.shields.io/github/actions/workflow/status/fsprojects/fantomas/main.yml?branch=main&label=Build%20main&style=flat-square)](https://github.com/fsprojects/fantomas/actions?query=branch%3Amain)
 [![Discord](https://img.shields.io/discord/196693847965696000?label=F%23%20Discord&style=flat-square)](https://discord.com/channels/196693847965696000/1493226271767924747)
 [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/fantomas?style=flat-square)](https://www.nuget.org/packages/fantomas/absoluteLatest)
 [![llms.txt](https://img.shields.io/badge/llms.txt-338cbb?style=flat-square)](https://fsprojects.github.io/fantomas/llms.txt)
