@@ -1,0 +1,38 @@
+{
+  "sent": [
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "method": "fantomas/formatDocument",
+      "params": {
+        "SourceCode": "let foo =",
+        "FilePath": "<folder>/A.fs",
+        "IsSignatureFile": false
+      }
+    }
+  ],
+  "received": [
+    {
+      "jsonrpc": "2.0",
+      "method": "fantomas/configurationWarning",
+      "params": [
+        {
+          "FilePath": "<folder>/A.fs",
+          "EditorConfigFiles": [],
+          "Problems": []
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "result": {
+        "Case": "Error",
+        "Fields": [
+          "<folder>/A.fs",
+          "<folder>/A.fs could not be parsed by Fantomas:\n\n<folder>/A.fs(1,1): error FS0058: Unexpected syntax or possible incorrect indentation: this token is offside of context started at position (1:1). Try indenting this further.\n<folder>/A.fs(1,1): error FS0010: Incomplete structured construct at or before this point in binding\n\n1 | let foo =\n  | ^^^^^^^^^\n"
+        ]
+      }
+    }
+  ]
+}

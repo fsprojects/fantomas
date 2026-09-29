@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestHelpers.fs" />
+    <Compile Include="Snapshot.fs" />
     <Compile Include="PathsTests.fs" />
     <Compile Include="ArgumentsTests.fs" />
     <Compile Include="PlanTests.fs" />
@@ -38,6 +39,8 @@
     <Compile Include="Integration\StandardStreamTests.fs" />
     <Compile Include="Integration\JsonTests.fs" />
     <Compile Include="Integration\DaemonTests.fs" />
+    <Compile Include="Integration\DaemonConversation.fs" />
+    <Compile Include="Integration\DaemonWireTests.fs" />
     <Compile Include="Integration\HelpPageTests.fs" />
     <Compile Include="FantomasServiceTests.fs" />
   </ItemGroup>

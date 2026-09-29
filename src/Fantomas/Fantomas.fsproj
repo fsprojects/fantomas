@@ -14,8 +14,13 @@
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
+  <!-- Spike: `dotnet publish -r <rid> -p:FantomasAot=true -p:RestoreLockedMode=false` -->
+  <PropertyGroup Condition="'$(FantomasAot)' == 'true'">
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
+    <ProjectReference Include="..\Fantomas.Daemon.Contract\Fantomas.Daemon.Contract.csproj" />
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
     <ProjectReference Include="..\Fantomas.EditorConfig\Fantomas.EditorConfig.fsproj" />
   </ItemGroup>
@@ -36,6 +41,8 @@
     <Compile Include="EditorConfigFiles.fs" />
     <Compile Include="EditorConfigReport.fsi" />
     <Compile Include="EditorConfigReport.fs" />
+    <Compile Include="DaemonJson.fsi" />
+    <Compile Include="DaemonJson.fs" />
     <Compile Include="Daemon.fsi" />
     <Compile Include="Daemon.fs" />
     <Compile Include="Cli.fsi" />

@@ -413,6 +413,18 @@ pipeline "FormatAll" {
     runIfOnlySpecified true
 }
 
+// Rewrite every snapshot the tests compare against from what the current build produces: the
+// `.gold` file of each daemon conversation under src/Fantomas.Tests/Integration/DaemonWire. A
+// snapshot that changes is a change in what editors receive, so read the diff before keeping it.
+pipeline "UpdateSnapshots" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Update" {
+        envVars [| "FANTOMAS_UPDATE_SNAPSHOTS", "1" |]
+        run "dotnet test src/Fantomas.Tests --filter TestCategory=Snapshot --tl"
+    }
+    runIfOnlySpecified true
+}
+
 pipeline "EnsureRepoConfig" {
     workingDir __SOURCE_DIRECTORY__
     stage "Git" {
