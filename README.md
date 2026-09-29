@@ -13,7 +13,7 @@ An [**opinionated**](https://fsprojects.github.io/fantomas/docs/end-users/StyleG
 
 > dotnet tool install fantomas
 
-Documentation is available at https://fsprojects.github.io/fantomas/docs/index.html
+Documentation is available at https://fsprojects.github.io/fantomas/docs/
 
 If you point a coding agent at Fantomas, give it [llms.txt](https://fsprojects.github.io/fantomas/llms.txt) for an index of the documentation, or [llms-full.txt](https://fsprojects.github.io/fantomas/llms-full.txt) for all of it in one file.
 
