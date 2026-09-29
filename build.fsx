@@ -17,6 +17,7 @@
 open System
 open System.IO
 open Fun.Build
+open Fun.Build.Internal
 open BuildCommon
 open BuildScripts
 open BuildAnalyzers
@@ -443,15 +444,98 @@ let aotExecutable: string =
     </> aotRuntimeIdentifier
     </> fileName
 
+// What the AOT compiler produced for this runtime identifier. It is skipped when this is up to date,
+// and then logs no warnings at all, so `TestAot` clears it to check the warnings on every run.
+let aotNativeIntermediates: string =
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "obj"
+    </> "Fantomas"
+    </> $"release_{aotRuntimeIdentifier}"
+    </> "native"
+
+let aotWarningsLog: string =
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "publish"
+    </> "aot"
+    </> $"{aotRuntimeIdentifier}.warnings.log"
+
+/// The trim and Native AOT warnings a publish of the tool is known to give, each with the reason it
+/// can stay: the code, a piece of the message that places it, and why.
+///
+/// A warning is where the AOT compiler could not prove the code works, and whether it does is only
+/// learned at runtime, on the path that reaches it. Keeping this list short and every entry
+/// explained is what makes a new one stand out, so `TestAot` fails on anything not here.
+let knownAotWarnings: (string * string * string) list =
+    let fsharpCore: string =
+        "FSharp.Core's own printf and reflection. The tool does not call into them, which FANTOMAS-PRINTF-001 and PrintfTests hold it to."
+
+    let resourceString: string =
+        "Only reached through a DiagnosticMessage.ResourceString, which no vendored compiler source declares."
+
+    [
+        "IL3053", "Assembly 'FSharp.Core'", fsharpCore
+        "IL2104", "Assembly 'FSharp.Core'", fsharpCore
+        "IL2062", "Fantomas.FCS.DiagnosticMessage.mkFunctionValue", resourceString
+        "IL2072", "Fantomas.FCS.DiagnosticMessage.mkFunctionValue", resourceString
+    ]
+
+/// Fails on every warning of the last AOT publish that `knownAotWarnings` does not account for.
+let checkAotWarnings (_: StageContext) : Async<int> =
+    async {
+        let warning: Text.RegularExpressions.Regex =
+            Text.RegularExpressions.Regex(@"warning (?<code>IL\d{4}): (?<message>.*)")
+
+        let unknown: string list =
+            File.ReadAllLines aotWarningsLog
+            |> Array.choose (fun (line: string) ->
+                let found: Text.RegularExpressions.Match = warning.Match line
+
+                if not found.Success then
+                    None
+                else
+
+                let code: string = found.Groups.["code"].Value
+                let message: string = found.Groups.["message"].Value
+
+                let isKnown: bool =
+                    knownAotWarnings
+                    |> List.exists (fun (knownCode: string, place: string, _: string) ->
+                        knownCode = code && message.Contains(place, StringComparison.Ordinal)
+                    )
+
+                if isKnown then None else Some $"{code}: {message}"
+            )
+            |> Array.distinct
+            |> Array.toList
+
+        if List.isEmpty unknown then
+            return 0
+        else
+
+        printfn "The Native AOT publish gave warnings that are not in knownAotWarnings in build.fsx:"
+
+        for line in unknown do
+            printfn $"  {line}"
+
+        printfn
+            "Read each one: a warning is code the AOT compiler could not prove works. Fix it, or add it there with the reason it can stay."
+        return 1
+    }
+
 // Publish the tool with Native AOT and run the tool's tests against that build instead of the one
 // they normally start. Native AOT fails at runtime on code the JIT runs fine, printf and reflection
-// among it, and these tests are the ones that run the tool the way a user does.
+// among it, and these tests are the ones that run the tool the way a user does. The publish must
+// also give no warning beyond the known ones, since a test only catches what it happens to reach.
 pipeline "TestAot" {
     workingDir __SOURCE_DIRECTORY__
+    stage "Clean" { run (cleanFolders [| aotNativeIntermediates |]) }
     stage "Publish" {
         run
-            $"dotnet publish src/Fantomas/Fantomas.fsproj -c Release -r {aotRuntimeIdentifier} -p:FantomasAot=true -o \"{Path.GetDirectoryName aotExecutable}\" --tl"
+            $"dotnet publish src/Fantomas/Fantomas.fsproj -c Release -r {aotRuntimeIdentifier} -p:FantomasAot=true -o \"{Path.GetDirectoryName aotExecutable}\" -flp:WarningsOnly;LogFile=\"{aotWarningsLog}\" --tl"
     }
+    stage "Warnings" { run checkAotWarnings }
     stage "Test" {
         envVars [| "FANTOMAS_EXECUTABLE", aotExecutable |]
         run "dotnet test src/Fantomas.Tests -c Release --tl"
