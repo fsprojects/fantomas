@@ -1,12 +1,19 @@
 namespace Fantomas.Core
 
 open System
+open System.Diagnostics.CodeAnalysis
 open Microsoft.FSharp.Core.CompilerServices
 open Microsoft.FSharp.Reflection
 
 [<RequireQualifiedAccess>]
 module UnionCase =
 
+    // Why the reflection in `name` is fine under Native AOT, for the attribute below.
+    [<Literal>]
+    let ReflectionFallback: string =
+        "Only a case without fields of a union with four or more cases reaches F# reflection, inside a try that falls back to the union's name where the trimmer took what it needs."
+
+    [<UnconditionalSuppressMessage("Trimming", "IL2072", Justification = ReflectionFallback)>]
     let name (value: 'T) : string =
         match box value with
         | null -> typeof<'T>.Name
