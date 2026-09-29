@@ -1,0 +1,39 @@
+{
+  "sent": [
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "method": "fantomas/formatDocument",
+      "params": {
+        "SourceCode": "module   Foobar",
+        "FilePath": "<folder>/A.fs",
+        "IsSignatureFile": false
+      }
+    }
+  ],
+  "received": [
+    {
+      "jsonrpc": "2.0",
+      "method": "fantomas/configurationWarning",
+      "params": [
+        {
+          "FilePath": "<folder>/A.fs",
+          "EditorConfigFiles": [],
+          "Problems": []
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "result": {
+        "Case": "Formatted",
+        "Fields": [
+          "<folder>/A.fs",
+          "module Foobar\n",
+          null
+        ]
+      }
+    }
+  ]
+}

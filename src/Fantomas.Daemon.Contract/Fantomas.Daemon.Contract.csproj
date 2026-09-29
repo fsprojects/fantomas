@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    C#, in a repository that is otherwise F#, for one reason: PolyType's source generator. It
+    describes the daemon's methods at compile time, which is what lets StreamJsonRpc dispatch to
+    them under Native AOT without reflection. F# has no source generators.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="StreamJsonRpc" />
+    <!-- Not packed on its own, but shipped inside the tool, so it carries the tool's version. -->
+    <PackageReference Include="Ionide.KeepAChangelog.Tasks" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

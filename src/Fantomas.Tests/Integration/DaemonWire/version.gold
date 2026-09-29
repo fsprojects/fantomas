@@ -1,0 +1,17 @@
+{
+  "sent": [
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "method": "fantomas/version",
+      "params": []
+    }
+  ],
+  "received": [
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "result": "<version>"
+    }
+  ]
+}

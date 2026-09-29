@@ -1,0 +1,19 @@
+{
+  "description": "Settings the daemon cannot use, from the .editorconfig on disk and from the request, are reported in a configuration warning before the response.",
+  "files": {
+    ".editorconfig": "root = true\n\n[*.fs]\nfsharp_no_such_setting = true\nindent_size = many\n"
+  },
+  "requests": [
+    {
+      "method": "fantomas/formatDocument",
+      "params": {
+        "FilePath": "A.fs",
+        "SourceCode": "let   foo = 4",
+        "Config": {
+          "max_line_length": "80",
+          "fsharp_also_not_a_setting": "1"
+        }
+      }
+    }
+  ]
+}
