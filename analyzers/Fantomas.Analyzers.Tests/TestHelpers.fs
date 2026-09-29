@@ -54,6 +54,17 @@ let analyzeSource (analyzer: Analyzer<CliContext>) (source: string) : Message li
 /// Builds a context over a signature file and its implementation, analyzing whichever of the two
 /// `target` names. A signature file cannot be type checked on its own, so both are always compiled
 /// and only the file under analysis changes.
+/// Analyze a snippet as the file at `fileName`, for a rule that decides by where a file lives.
+let analyzeSourceAt (analyzer: Analyzer<CliContext>) (fileName: string) (source: string) : Message list =
+    let file: SourceFile = { FileName = fileName; Source = source }
+
+    let ctx: CliContext =
+        getContextFor (AnalyzerProjectOptions.BackgroundCompilerOptions projectOptions) [ file ] file
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+
+    analyzer ctx |> Async.RunSynchronously
+
 let private contextForPair
     (signature: string)
     (implementation: string)
