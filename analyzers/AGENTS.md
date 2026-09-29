@@ -139,8 +139,15 @@ The analyzer is narrower than the rule, because moving a body left can change wh
   following arm of the same match would be the first thing a de-indented body swallowed.
 - Only a body that is a **block**: another `match`, an `if`, or a sequence of bindings and
   statements. That is where the columns are saved again by everything inside. A single application
-  or pipeline has nothing under it to save them for and reads oddly under the blank line the setting
-  writes.
+  or pipeline has nothing under it to save them for.
+
+  Unless the expression is **all a binding is made of**, a function, a member or a local value
+  whose body is this `match` or `if` and nothing else. Then the last branch is the rest of the
+  binding, and the early return shape reads as one whatever that branch holds: the branches above
+  decline, and what carries on starts in the column the binding's own code does.
+  `defineCombinations` in `ProfileCommand.fs` is that shape: one line for the file without an
+  `#if`, and the pipeline that counts the define combinations carrying on under the `else`. A
+  lambda is not a binding, so a `fun` whose body is the expression still needs a block.
 - Only a body **already on a line of its own** and spanning more than one line. A body that fits
   beside its arrow gets pulled up next to it and never reaches the branch that would keep it.
 - Only where **every other arm is a one liner**. That is the early return shape, and it is what

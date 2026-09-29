@@ -244,13 +244,14 @@ let ``a folder is named the same way whether or not the pattern ends in a separa
         match plan with
         | Error problem -> failwith $"Expected a plan, got %A{problem}"
         | Ok items ->
-            items
-            |> List.map (fun item ->
-                match item with
-                | WorkItem.Ignored file -> $"ignored %s{System.IO.Path.GetFileName file}"
-                | WorkItem.Format(input, _) -> $"format %s{System.IO.Path.GetFileName input}"
-            )
-            |> List.sort
+
+        items
+        |> List.map (fun item ->
+            match item with
+            | WorkItem.Ignored file -> $"ignored %s{System.IO.Path.GetFileName file}"
+            | WorkItem.Format(input, _) -> $"format %s{System.IO.Path.GetFileName input}"
+        )
+        |> List.sort
 
     names (planWith "src/generated/") |> shouldEqual [ "format B.fs" ]
     names (planWith "src/generated") |> shouldEqual [ "format B.fs" ]

@@ -23,9 +23,10 @@ val HelpUri: string = "https://github.com/fsprojects/fantomas/blob/main/analyzer
 /// somebody writes it. This is the rule that asks, and the other half of what
 /// `FANTOMAS-ARMORDER-001` starts.
 ///
-/// It speaks only for the last arm, whose body is a block already on a line of its own, and only
-/// where nothing follows the match in the same block, since keeping the indentation past that would
-/// take the following code into the arm. It stays quiet on a `when` guard and on a conditional
+/// It speaks only for the last arm, whose body is already on a line of its own and is a block, or
+/// anything at all when the match is all its binding is made of. And only where nothing follows the
+/// match in the same block, since keeping the indentation past that would take the following code
+/// into the arm. It stays quiet on a `when` guard and on a conditional
 /// directive inside the match. No fix is offered: re-indenting a block means leaving the multiline
 /// strings inside it exactly where they are, which is not a thing to do blind.
 [<CliAnalyzer(Name, ShortDescription, HelpUri)>]

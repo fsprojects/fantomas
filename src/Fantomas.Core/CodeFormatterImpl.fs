@@ -99,8 +99,9 @@ let formatASTWith
         match sourceText with
         | None -> ASTTransformer.mkOak None ast
         | Some sourceText ->
-            ASTTransformer.mkOak (Some sourceText) ast
-            |> Trivia.enrichTree config sourceText ast
+
+        ASTTransformer.mkOak (Some sourceText) ast
+        |> Trivia.enrichTree config sourceText ast
 
     let oak =
         match cursor with

@@ -63,8 +63,9 @@ let rec anyTooLong (maxPageWidth: int) (currentColumn: int) (infos: ShortExpress
     match infos with
     | [] -> false
     | info :: rest ->
-        info.IsTooLong maxPageWidth currentColumn
-        || anyTooLong maxPageWidth currentColumn rest
+
+    info.IsTooLong maxPageWidth currentColumn
+    || anyTooLong maxPageWidth currentColumn rest
 
 module WriterModel =
     /// A function rather than a value: a module-level value is a static field, and a thread
