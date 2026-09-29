@@ -62,6 +62,13 @@ let isBlockBody (expr: SynExpr) : bool =
     | SynExpr.ObjExpr _ -> true
     | _ -> false
 
+// The expression a binding is made of, without the `SynExpr.Typed` the parser wraps it in when the
+// binding states its return type.
+let bindingBodyOf (binding: SynBinding) : SynExpr =
+    match binding with
+    | SynBinding(expr = SynExpr.Typed(expr = body))
+    | SynBinding(expr = body) -> body
+
 // Whether a range is a single line, which is how both halves of this rule measure a branch that
 // gets out of the way. `FANTOMAS-ARMORDER-001` measures a short arm the same way.
 let isOneLiner (range: range) : bool = range.EndLine = range.StartLine
@@ -190,9 +197,14 @@ let keepIndentCandidateOf (expr: SynExpr) : (range * int * SynExpr) option =
 // A `when` guard is already gone by here, filtered out with the rest of the match shape: a multiline
 // guard takes a path in `CodePrinter` that indents the body whatever its column, and whether a guard
 // prints multiline is a page width question rather than a tree one, so all of them are passed over.
+//
+// The body has to be a block, unless the expression is all a binding is made of. Then the branch is
+// the rest of the function, and the early return shape reads as one whatever the body is: the
+// branches above decline, and what carries on starts where the binding's own code does.
 let shouldKeepIndent
     (source: ISourceText)
     (directives: range list)
+    (isBindingBody: bool)
     (expressionRange: range)
     (column: int)
     (body: SynExpr)
@@ -202,7 +214,7 @@ let shouldKeepIndent
 
     not (isOneLiner bodyRange)
     && bodyRange.StartColumn > column
-    && isBlockBody body
+    && (isBindingBody || isBlockBody body)
     && not (List.exists (fun (directive: range) -> Range.rangeContainsRange expressionRange directive) directives)
     && not (followedByContentInColumn source expressionRange column)
 
@@ -213,8 +225,13 @@ let analyze (source: ISourceText) (parsedInput: ParsedInput) : Message list =
     let candidates: ResizeArray<range * int * SynExpr> =
         ResizeArray<range * int * SynExpr>()
 
+    let bindingBodies: ResizeArray<range> = ResizeArray<range>()
+
     let walker: SyntaxCollectorBase =
         { new SyntaxCollectorBase() with
+            override _.WalkBinding(_path: SyntaxVisitorPath, binding: SynBinding) : unit =
+                bindingBodies.Add (bindingBodyOf binding).Range
+
             override _.WalkExpr(_path: SyntaxVisitorPath, expr: SynExpr) : unit =
                 match keepIndentCandidateOf expr with
                 | None -> ()
@@ -225,7 +242,10 @@ let analyze (source: ISourceText) (parsedInput: ParsedInput) : Message list =
 
     candidates
     |> Seq.choose (fun (expressionRange: range, column: int, body: SynExpr) ->
-        if not (shouldKeepIndent source directives expressionRange column body) then
+        let isBindingBody: bool =
+            bindingBodies.Exists(fun (range: range) -> Range.equals range expressionRange)
+
+        if not (shouldKeepIndent source directives isBindingBody expressionRange column body) then
             None
         else
 
@@ -233,7 +253,7 @@ let analyze (source: ISourceText) (parsedInput: ParsedInput) : Message list =
             {
                 Type = Name
                 Message =
-                    "Keep the indentation of this expression in its last branch. Every branch above it is a one liner, its own body is a block, and nothing follows the expression in this block, so the body can start in the column of the `|` or the `else` rather than a level in. `fsharp_experimental_keep_indent_in_branch` keeps it there, but only once it is written that way."
+                    "Keep the indentation of this expression in its last branch. Every branch above it is a one liner, its own body is a block or the expression is all its binding is made of, and nothing follows the expression in this block, so the body can start in the column of the `|` or the `else` rather than a level in. `fsharp_experimental_keep_indent_in_branch` keeps it there, but only once it is written that way."
                 Code = Code
                 Severity = Severity.Warning
                 Range = body.Range

@@ -70,9 +70,10 @@ let defineCombinations (isSignatureFile: bool) (content: string) : int =
     if not (content.Contains "#if") then
         1
     else
-        CodeFormatter.ParseAsync(isSignatureFile, content)
-        |> Async.RunSynchronously
-        |> Array.length
+
+    CodeFormatter.ParseAsync(isSignatureFile, content)
+    |> Async.RunSynchronously
+    |> Array.length
 
 let timeOneFile (env: CliEnvironment) (file: string) : Result<FileTiming, string * exn> =
     try

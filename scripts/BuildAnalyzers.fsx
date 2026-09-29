@@ -174,12 +174,13 @@ let sarifResultCount (report: string) : int =
     if not (File.Exists report) then
         0
     else
-        JsonValue.Parse(File.ReadAllText report).GetProperty("runs").AsArray()
-        |> Array.sumBy (fun run ->
-            match run.TryGetProperty "results" with
-            | Some results -> results.AsArray().Length
-            | None -> 0
-        )
+
+    JsonValue.Parse(File.ReadAllText report).GetProperty("runs").AsArray()
+    |> Array.sumBy (fun run ->
+        match run.TryGetProperty "results" with
+        | Some results -> results.AsArray().Length
+        | None -> 0
+    )
 
 /// Folds the per-project reports into the one SARIF run that GitHub code scanning takes.
 ///
@@ -354,7 +355,8 @@ let localRulesPattern: string = "FANTOMAS-*"
 /// `FANTOMAS-KEEPINDENT-001` and `FANTOMAS-OPENS-001` are deliberately not here. Both arrived with
 /// debt of their own, and both times that debt was cleared in the change that added the rule, so
 /// the full run has nothing old to report and anything it does report is something the change in
-/// front of you introduced.
+/// front of you introduced. `FANTOMAS-KEEPINDENT-001` did it twice, the second time when it reached
+/// past blocks to any body of an expression that is all its binding is made of.
 let localAdvisoryAnalyzers: string list =
     [ "AnnotationAnalyzer"; "UnnecessaryParensAnalyzer" ]
 

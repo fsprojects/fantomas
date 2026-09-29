@@ -1845,8 +1845,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             match elifKw with
             | Choice1Of2 stn -> IfKeywordNode.SingleWord stn
             | Choice2Of2(mElse, mIf) ->
-                ElseIfNode(mElse, mIf, Expr.Node ifExprNode, unionRanges mElse mIf)
-                |> IfKeywordNode.ElseIf
+
+            ElseIfNode(mElse, mIf, Expr.Node ifExprNode, unionRanges mElse mIf)
+            |> IfKeywordNode.ElseIf
 
         ExprIfThenElseNode(
             ifKwNode,
@@ -1869,8 +1870,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                     match elifKw with
                     | Choice1Of2 stn -> IfKeywordNode.SingleWord stn
                     | Choice2Of2(mElse, mIf) ->
-                        ElseIfNode(mElse, mIf, Expr.Node ifExprNode, unionRanges mElse mIf)
-                        |> IfKeywordNode.ElseIf
+
+                    ElseIfNode(mElse, mIf, Expr.Node ifExprNode, unionRanges mElse mIf)
+                    |> IfKeywordNode.ElseIf
 
                 let m = unionRanges ifKwNode.Range thenExpr.Range
                 ExprIfThenNode(ifKwNode, ifExprNode, thenNode, mkExpr creationAide thenExpr, m)
@@ -2382,10 +2384,11 @@ let mkExternBinding
         match trivia.LeadingKeyword with
         | SynLeadingKeyword.Extern mExtern -> stn "extern" mExtern
         | _ ->
-            invariantViolationAbout
-                range
-                trivia.LeadingKeyword
-                $"an extern binding has %s{UnionCase.name trivia.LeadingKeyword} as its leading keyword rather than `extern`"
+
+        invariantViolationAbout
+            range
+            trivia.LeadingKeyword
+            $"an extern binding has %s{UnionCase.name trivia.LeadingKeyword} as its leading keyword rather than `extern`"
 
     let (|Ampersand|_|) (it: IdentTrivia) =
         match it with
@@ -2874,8 +2877,9 @@ let mkOpenNodeForImpl (creationAide: CreationAide) (target, range) : Open =
     match target with
     | SynOpenDeclTarget.Type(typeName, _) -> OpenTargetNode(mkType creationAide typeName, range) |> Open.Target
     | SynOpenDeclTarget.ModuleOrNamespace(longId, _) ->
-        OpenModuleOrNamespaceNode(mkSynLongIdent creationAide longId, range)
-        |> Open.ModuleOrNamespace
+
+    OpenModuleOrNamespaceNode(mkSynLongIdent creationAide longId, range)
+    |> Open.ModuleOrNamespace
 
 [<TailCall>]
 let rec visitHashDirectiveL acc decls =
@@ -3059,10 +3063,11 @@ let mkTypeDefn
             | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
             | SynTypeDefnLeadingKeyword.StaticType _
             | SynTypeDefnLeadingKeyword.Synthetic ->
-                invariantViolationAbout
-                    range
-                    trivia.LeadingKeyword
-                    $"unexpected leading keyword %s{UnionCase.name trivia.LeadingKeyword}"
+
+            invariantViolationAbout
+                range
+                trivia.LeadingKeyword
+                $"unexpected leading keyword %s{UnionCase.name trivia.LeadingKeyword}"
 
         let implicitConstructorNode =
             match implicitConstructor with
@@ -3954,10 +3959,11 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
             | SynTypeDefnLeadingKeyword.StaticType _
             | SynTypeDefnLeadingKeyword.Synthetic ->
-                invariantViolationAbout
-                    range
-                    trivia.LeadingKeyword
-                    $"unexpected leading keyword %s{UnionCase.name trivia.LeadingKeyword}"
+
+            invariantViolationAbout
+                range
+                trivia.LeadingKeyword
+                $"unexpected leading keyword %s{UnionCase.name trivia.LeadingKeyword}"
 
         let m =
             if not px.IsEmpty then

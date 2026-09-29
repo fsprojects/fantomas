@@ -130,7 +130,9 @@ let ``a body piping an application into a name is not reported`` () =
         """module M
 
 let f (x: bool) (g: int -> int -> int) : int option =
-    if x then
+    let y: bool = not x
+
+    if y then
         None
     else
         g
@@ -146,12 +148,114 @@ let ``a last arm holding a single expression is not reported`` () =
         """module M
 
 let f (x: int option) : string =
+    let y: int option = x
+
+    match y with
+    | None -> ""
+    | Some y ->
+        y
+        |> string
+        |> String.replicate 2"""
+
+    analyzeSource cliAnalyzer source |> assertLines []
+
+// Where the expression is all the binding is made of, its last branch is the rest of the function,
+// so the early return shape reads as one whatever that branch holds. `defineCombinations` in
+// ProfileCommand.fs is that shape.
+[<Test>]
+let ``an else branch holding a single expression is reported when the if is all of the binding`` () =
+    let source: string =
+        """module M
+
+let f (x: bool) : string =
+    if x then
+        ""
+    else
+        "a"
+        |> string
+        |> String.replicate 2"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 7 ]
+
+[<Test>]
+let ``a last arm holding a single expression is reported when the match is all of the binding`` () =
+    let source: string =
+        """module M
+
+let f (x: int option) : string =
     match x with
     | None -> ""
     | Some y ->
         y
         |> string
         |> String.replicate 2"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 7 ]
+
+[<Test>]
+let ``a single expression is reported when the if is all of a binding without a return type`` () =
+    let source: string =
+        """module M
+
+let f (x: bool) =
+    if x then
+        ""
+    else
+        "a"
+        |> string
+        |> String.replicate 2"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 7 ]
+
+[<Test>]
+let ``a single expression is reported when the if is all of a local binding`` () =
+    let source: string =
+        """module M
+
+let f (x: bool) : int =
+    let s: string =
+        if x then
+            ""
+        else
+            "a"
+            |> string
+            |> String.replicate 2
+
+    s.Length"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 8 ]
+
+[<Test>]
+let ``a single expression is reported when the if is all of a member`` () =
+    let source: string =
+        """module M
+
+type T() =
+    member _.F(x: bool) : string =
+        if x then
+            ""
+        else
+            "a"
+            |> string
+            |> String.replicate 2"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 8 ]
+
+[<Test>]
+let ``a single expression in a lambda is not reported`` () =
+    let source: string =
+        """module M
+
+let f (xs: bool list) : string list =
+    xs
+    |> List.map (fun x ->
+        if x then
+            ""
+        else
+            "a"
+            |> string
+            |> String.replicate 2
+    )"""
 
     analyzeSource cliAnalyzer source |> assertLines []
 
@@ -415,7 +519,9 @@ let ``an else branch holding a single expression is not reported`` () =
         """module M
 
 let f (x: bool) : string =
-    if x then
+    let y: bool = x
+
+    if y then
         ""
     else
         "a"

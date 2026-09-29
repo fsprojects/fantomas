@@ -65,16 +65,17 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
             if count = 20_000 then
                 childExpr
             else
-                mkArray
-                    (count + 1)
-                    (SynExpr.Sequential(
-                        DebugPointAtSequential.SuppressNeither,
-                        true,
-                        mkStringExpr (),
-                        childExpr,
-                        Range.range0,
-                        SynExprSequentialTrivia.Zero
-                    ))
+
+            mkArray
+                (count + 1)
+                (SynExpr.Sequential(
+                    DebugPointAtSequential.SuppressNeither,
+                    true,
+                    mkStringExpr (),
+                    childExpr,
+                    Range.range0,
+                    SynExprSequentialTrivia.Zero
+                ))
 
         SynExpr.ArrayOrListComputed(true, mkArray 0 (mkStringExpr ()), Range.range0)
 

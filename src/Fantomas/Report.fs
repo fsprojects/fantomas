@@ -530,15 +530,16 @@ let reportCheckResults
         if looked <= 1 || (needing = 0 && errored = 0) then
             None
         else
-            Some(
-                summaryLine
-                    theme
-                    [
-                        needing, plural needing "needs formatting" "need formatting"
-                        List.length checkResult.Unchanged, "already formatted"
-                        errored, "errored"
-                    ]
-            )
+
+        Some(
+            summaryLine
+                theme
+                [
+                    needing, plural needing "needs formatting" "need formatting"
+                    List.length checkResult.Unchanged, "already formatted"
+                    errored, "errored"
+                ]
+        )
 
     match List.choose id [ summary; fix ] with
     | [] -> ()

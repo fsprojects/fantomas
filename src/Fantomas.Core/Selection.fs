@@ -28,10 +28,11 @@ let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: rang
             if startLineNumber <> selection.StartLine then
                 Seq.takeWhile System.Char.IsWhiteSpace startLine |> Seq.length
             else
-                // The selection is on the same line as the code but appears to be inside whitespace
-                Seq.takeWhile System.Char.IsWhiteSpace startLine
-                |> Seq.length
-                |> fun firstCharOnLine -> System.Math.Max(firstCharOnLine, selection.StartColumn)
+
+            // The selection is on the same line as the code but appears to be inside whitespace
+            Seq.takeWhile System.Char.IsWhiteSpace startLine
+            |> Seq.length
+            |> fun firstCharOnLine -> System.Math.Max(firstCharOnLine, selection.StartColumn)
 
         let endColumn =
             // The selection is on the same line as the code but appears to be inside whitespace

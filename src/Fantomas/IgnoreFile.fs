@@ -113,11 +113,12 @@ module IgnoreFile =
                 if not potentialFile.Exists then
                     found
                 else
-                    {
-                        Location = potentialFile
-                        IsIgnored = loadIgnoreList potentialFile.FullName
-                    }
-                    :: found
+
+                {
+                    Location = potentialFile
+                    IsIgnored = loadIgnoreList potentialFile.FullName
+                }
+                :: found
 
             walkUp currentDirectory.Parent found
 

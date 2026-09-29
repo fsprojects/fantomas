@@ -69,11 +69,12 @@ let startDaemon
     match operations.Create version startInfo with
     | Error error -> Error(GetDaemonError.FantomasProcessStart error), forgetVersion version state
     | Ok daemon ->
-        Ok daemon,
-        {
-            Daemons = Map.add version daemon state.Daemons
-            FolderToVersion = Map.add folder version state.FolderToVersion
-        }
+
+    Ok daemon,
+    {
+        Daemons = Map.add version daemon state.Daemons
+        FolderToVersion = Map.add folder version state.FolderToVersion
+    }
 
 let rec resolveDaemon
     (operations: DaemonOperations<'daemon>)

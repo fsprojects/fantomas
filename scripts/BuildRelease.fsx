@@ -110,58 +110,58 @@ let mkGithubRelease
     | None -> failwith "Each Fantomas release is expected to have at least one section."
     | Some cd ->
 
-        async {
-            let version = formatVersion v
+    async {
+        let version = formatVersion v
 
-            printfn $"Parsing release version: {version} (prerelease: {not (String.IsNullOrEmpty v.Prerelease)})"
+        printfn $"Parsing release version: {version} (prerelease: {not (String.IsNullOrEmpty v.Prerelease)})"
 
-            let title =
-                let month = d.ToString("MMMM")
-                let day = d.Day.Ordinalize()
-                $"{month} {day} Release"
+        let title =
+            let month = d.ToString("MMMM")
+            let day = d.Day.Ordinalize()
+            $"{month} {day} Release"
 
-            let! publishDate = getPublishedDate ctx version
+        let! publishDate = getPublishedDate ctx version
 
-            let sections =
-                [
-                    "Added", cd.Added
-                    "Changed", cd.Changed
-                    "Fixed", cd.Fixed
-                    "Deprecated", cd.Deprecated
-                    "Removed", cd.Removed
-                    "Security", cd.Security
-                    yield! (Map.toList cd.Custom)
-                ]
-                // Since Ionide.KeepAChangelog 0.2.0 a section arrives as one string rather than as its
-                // lines, so what used to be a trim per line is a trim of each line of that string.
-                |> List.choose (fun (header: string, body: string) ->
-                    let content: string =
-                        body.Split('\n')
-                        |> Array.map (fun (line: string) -> line.TrimStart())
-                        |> String.concat "\n"
-                        |> (fun (text: string) -> text.Trim '\n')
+        let sections =
+            [
+                "Added", cd.Added
+                "Changed", cd.Changed
+                "Fixed", cd.Fixed
+                "Deprecated", cd.Deprecated
+                "Removed", cd.Removed
+                "Security", cd.Security
+                yield! (Map.toList cd.Custom)
+            ]
+            // Since Ionide.KeepAChangelog 0.2.0 a section arrives as one string rather than as its
+            // lines, so what used to be a trim per line is a trim of each line of that string.
+            |> List.choose (fun (header: string, body: string) ->
+                let content: string =
+                    body.Split('\n')
+                    |> Array.map (fun (line: string) -> line.TrimStart())
+                    |> String.concat "\n"
+                    |> (fun (text: string) -> text.Trim '\n')
 
-                    if content = String.Empty then
-                        None
-                    else
-                        Some(sprintf "### %s\n%s" header content)
-                )
-                |> String.concat "\n\n"
+                if content = String.Empty then
+                    None
+                else
+                    Some(sprintf "### %s\n%s" header content)
+            )
+            |> String.concat "\n\n"
 
-            let draft =
-                $"""# {version}
+        let draft =
+            $"""# {version}
 
 {sections}"""
 
-            return
-                {
-                    Version = version
-                    Title = title
-                    Date = d
-                    PublishedDate = publishDate
-                    Draft = draft
-                }
-        }
+        return
+            {
+                Version = version
+                Title = title
+                Date = d
+                PublishedDate = publishDate
+                Draft = draft
+            }
+    }
 
 /// The date of the most recent release GitHub knows about, for the contributor query to start from.
 ///
@@ -305,10 +305,11 @@ let getReleaseNotes
                     if authors.Length = 2 then
                         $"@{authors.[0]}"
                     else
-                        authors
-                        |> Array.take (authors.Length - 1)
-                        |> Array.map (sprintf "@%s")
-                        |> String.concat ", "
+
+                    authors
+                    |> Array.take (authors.Length - 1)
+                    |> Array.map (sprintf "@%s")
+                    |> String.concat ", "
 
                 $"Special thanks to %s{otherAuthors} and @%s{lastAuthor}!"
 

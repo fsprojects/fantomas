@@ -295,11 +295,12 @@ let genConstant (c: Constant) =
     | Constant.FromText n -> genSingleTextNode n
     | Constant.Unit n -> genUnit n
     | Constant.Measure n ->
-        (genConstant n.Constant |> genNode (Constant.Node n.Constant))
-        +> genSingleTextNode n.Measure.LessThan
-        +> genMeasure n.Measure.Measure
-        +> genSingleTextNode n.Measure.GreaterThan
-        |> genNode n
+
+    (genConstant n.Constant |> genNode (Constant.Node n.Constant))
+    +> genSingleTextNode n.Measure.LessThan
+    +> genMeasure n.Measure.Measure
+    +> genSingleTextNode n.Measure.GreaterThan
+    |> genNode n
 
 let genMeasure (measure: Measure) =
     match measure with
@@ -334,12 +335,13 @@ let genRational (rat: RationalConstNode) =
     | RationalConstNode.Integer i -> genSingleTextNode i
     | RationalConstNode.Negate negate -> genSingleTextNode negate.Minus +> genRational negate.Rational
     | RationalConstNode.Rational rationalNode ->
-        genSingleTextNode rationalNode.OpeningParen
-        +> genSingleTextNode rationalNode.Numerator
-        +> genSingleTextNode rationalNode.DivOp
-        +> genSingleTextNode rationalNode.Denominator
-        +> genSingleTextNode rationalNode.ClosingParen
-        |> genNode rationalNode
+
+    genSingleTextNode rationalNode.OpeningParen
+    +> genSingleTextNode rationalNode.Numerator
+    +> genSingleTextNode rationalNode.DivOp
+    +> genSingleTextNode rationalNode.Denominator
+    +> genSingleTextNode rationalNode.ClosingParen
+    |> genNode rationalNode
 
 let genAttributesCore (ats: AttributeNode list) =
     let genAttributeExpr (attr: AttributeNode) =
@@ -386,18 +388,19 @@ let genAttributes (node: MultipleAttributeListNode option) =
     match node with
     | None -> sepNone
     | Some node ->
-        colPost
-            sepNlnUnlessLastEventIsNewline
-            sepNln
-            node.AttributeLists
-            (fun a ->
-                genSingleTextNode a.Opening
-                +> (genAttributesCore a.Attributes)
-                +> genSingleTextNode a.Closing
-                +> sepNlnWhenWriteBeforeNewlineNotEmpty
-                |> genNode a
-            )
-        |> genNode node
+
+    colPost
+        sepNlnUnlessLastEventIsNewline
+        sepNln
+        node.AttributeLists
+        (fun a ->
+            genSingleTextNode a.Opening
+            +> (genAttributesCore a.Attributes)
+            +> genSingleTextNode a.Closing
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty
+            |> genNode a
+        )
+    |> genNode node
 
 // The inherit keyword should already be printed by the caller
 let genInheritConstructor (ic: InheritConstructor) =
@@ -813,10 +816,11 @@ let genTerminalOpener (node: ExprChain) : Context -> Context =
     | ChainTerminal.NoTerminal -> sepNone
     | ChainTerminal.SpaceAllowed call
     | ChainTerminal.NoSpaceAllowed call ->
-        genTerminalSpace node call
-        +> match call with
-           | ChainCall.Unit u -> genUnit u
-           | ChainCall.Paren parenNode -> genSingleTextNode parenNode.OpeningParen
+
+    genTerminalSpace node call
+    +> match call with
+       | ChainCall.Unit u -> genUnit u
+       | ChainCall.Paren parenNode -> genSingleTextNode parenNode.OpeningParen
 
 /// A whole step on one line: navigation, or a call with its arguments. Used to ask whether a
 /// wrap exists that would leave the call intact, so its arguments never have to break. This
@@ -839,10 +843,11 @@ let genTerminalOnOneLine (node: ExprChain) : Context -> Context =
     | ChainTerminal.NoTerminal -> sepNone
     | ChainTerminal.SpaceAllowed call
     | ChainTerminal.NoSpaceAllowed call ->
-        genTerminalSpace node call
-        +> match call with
-           | ChainCall.Unit u -> genUnit u
-           | ChainCall.Paren parenNode -> genExpr (Expr.Paren parenNode)
+
+    genTerminalSpace node call
+    +> match call with
+       | ChainCall.Unit u -> genUnit u
+       | ChainCall.Paren parenNode -> genExpr (Expr.Paren parenNode)
 
 let genTerminal (node: ExprChain) : Context -> Context =
     match node.Terminal with
@@ -2164,10 +2169,11 @@ let genExpr (e: Expr) =
                 match node.Else with
                 | None -> List.map checkIfLine node.Branches
                 | Some(elseNode, elseExpr) ->
-                    // This may appear a bit odd that we are adding the `else elseExpr` before the `if expr then expr` lines but purely for this check this doesn't matter.
-                    // Each lines needs to fit on one line in order for us to format the short way
-                    (genSingleTextNode elseNode +> sepSpace +> genExpr elseExpr)
-                    :: (List.map checkIfLine node.Branches)
+
+                // This may appear a bit odd that we are adding the `else elseExpr` before the `if expr then expr` lines but purely for this check this doesn't matter.
+                // Each lines needs to fit on one line in order for us to format the short way
+                (genSingleTextNode elseNode +> sepSpace +> genExpr elseExpr)
+                :: (List.map checkIfLine node.Branches)
 
             let lineCheck () =
                 linesToCheck
@@ -3588,8 +3594,9 @@ let genPat (p: Pattern) =
             match node.Patterns with
             | [] -> sepNone
             | head :: rest ->
-                genPat head
-                +> indentSepNlnUnindent (col sepNln rest (fun p -> !-"& " +> genPat p))
+
+            genPat head
+            +> indentSepNlnUnindent (col sepNln rest (fun p -> !-"& " +> genPat p))
 
         expressionFitsOnRestOfLine short long |> genNode node
     | Pattern.Null node
@@ -3749,10 +3756,11 @@ let genReturnTypeBinding (node: BindingReturnInfoNode option) =
     match node with
     | None -> sepNone
     | Some node ->
-        onlyIfCtx (fun ctx -> ctx.Config.SpaceBeforeColon) sepSpace
-        +> genSingleTextNode node.Colon
-        +> sepSpace
-        +> genType node.Type
+
+    onlyIfCtx (fun ctx -> ctx.Config.SpaceBeforeColon) sepSpace
+    +> genSingleTextNode node.Colon
+    +> sepSpace
+    +> genType node.Type
 
 let genBinding (b: BindingNode) (ctx: Context) : Context =
     let spaceBefore, alternativeSyntax =
@@ -3783,9 +3791,10 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 if not isRecursiveLetOrUseFunction then
                     genMultipleTextsNode b.LeadingKeyword +> sepSpace
                 else
-                    genMultipleTextsNode b.LeadingKeyword
-                    +> sepSpace
-                    +> genOnelinerAttributes b.Attributes
+
+                genMultipleTextsNode b.LeadingKeyword
+                +> sepSpace
+                +> genOnelinerAttributes b.Attributes
 
             let afterLetKeyword =
                 ifElse b.IsMutable (!-"mutable ") sepNone
@@ -3799,11 +3808,12 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 match b.ReturnType with
                 | None -> sepNone
                 | Some returnTypeNode ->
-                    onlyIfNot isFixed sepSpace
-                    +> (genSingleTextNode returnTypeNode.Colon
-                        +> sepSpace
-                        +> atCurrentColumnIndent (genType returnTypeNode.Type)
-                        |> genNode returnTypeNode)
+
+                onlyIfNot isFixed sepSpace
+                +> (genSingleTextNode returnTypeNode.Colon
+                    +> sepSpace
+                    +> atCurrentColumnIndent (genType returnTypeNode.Type)
+                    |> genNode returnTypeNode)
 
             let genSignature =
                 let spaceBeforeParameters =
@@ -3963,9 +3973,10 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 if not isRecursiveLetOrUseFunction then
                     genMultipleTextsNode b.LeadingKeyword +> sepSpace
                 else
-                    (genMultipleTextsNode b.LeadingKeyword
-                     +> sepSpace
-                     +> genOnelinerAttributes b.Attributes)
+
+                (genMultipleTextsNode b.LeadingKeyword
+                 +> sepSpace
+                 +> genOnelinerAttributes b.Attributes)
 
             let afterLetKeyword =
                 ifElse b.IsMutable (!-"mutable ") sepNone
@@ -4148,13 +4159,14 @@ let genType (t: Type) =
             match node.Parameters with
             | [] -> genType node.ReturnType
             | (ht, ha) :: rest ->
-                genType ht
-                +> indentSepNlnUnindent (
-                    genSingleTextNode ha
-                    +> sepSpace
-                    +> col sepNone rest (fun (t, arrow) -> genType t +> sepNln +> genSingleTextNode arrow +> sepSpace)
-                    +> genType node.ReturnType
-                )
+
+            genType ht
+            +> indentSepNlnUnindent (
+                genSingleTextNode ha
+                +> sepSpace
+                +> col sepNone rest (fun (t, arrow) -> genType t +> sepNln +> genSingleTextNode arrow +> sepSpace)
+                +> genType node.ReturnType
+            )
 
         expressionFitsOnRestOfLine short long |> genNode node
     | Type.Tuple node -> genSynTupleTypeSegments node.Path |> genNode node
@@ -4624,8 +4636,9 @@ let genTypeDefn (td: TypeDefn) =
             match members with
             | [] -> sepNone
             | h :: _ ->
-                sepNlnUnlessContentBefore (MemberDefn.Node h)
-                +> indentSepNlnUnindent (genMemberDefnList members)
+
+            sepNlnUnlessContentBefore (MemberDefn.Node h)
+            +> indentSepNlnUnindent (genMemberDefnList members)
 
         match bodyNode.Members, members with
         | [], [] ->
