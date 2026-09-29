@@ -112,31 +112,41 @@ let private messagesIn (recording: byte array) : string list =
 
     read 0 []
 
+/// `node` with `replacements` applied to every string in it, however deep.
+///
+/// Applied to the values rather than to the JSON text, because a JSON writer escapes the backslashes
+/// of a Windows path, and the text of a message then no longer contains the folder it names.
+let rec private replaceInStrings (replacements: (string * string) list) (node: JsonNode) : JsonNode =
+    match node with
+    | null -> null
+    | :? JsonObject as object ->
+        let replaced: JsonObject = JsonObject()
+
+        for property in object do
+            replaced.Add(property.Key, replaceInStrings replacements property.Value)
+
+        replaced
+    | :? JsonArray as array -> JsonArray(array |> Seq.map (replaceInStrings replacements) |> Array.ofSeq)
+    | :? JsonValue as value when value.GetValueKind() = JsonValueKind.String ->
+        replacements
+        |> List.fold
+            (fun (text: string) (original: string, placeholder: string) -> text.Replace(original, placeholder))
+            (value.GetValue<string>())
+        |> JsonValue.Create
+        :> JsonNode
+    | _ -> node.DeepClone()
+
 /// A message as it is compared: the envelope's properties in a fixed order, because no client reads
 /// them in any particular one, and everything below the envelope in the order it was sent, because
-/// Newtonsoft needs a union's `Case` before its `Fields`. Escaping and whitespace are normalised, as
-/// they mean nothing to a JSON reader.
+/// Newtonsoft needs a union's `Case` before its `Fields`.
 let private canonical (replacements: (string * string) list) (message: string) : JsonNode =
     let envelope: JsonObject = JsonNode.Parse(message).AsObject()
     let sorted: JsonObject = JsonObject()
 
     for property in envelope |> Seq.sortBy (fun property -> property.Key) do
-        let value: JsonNode =
-            if isNull property.Value then
-                null
-            else
-                property.Value.DeepClone()
+        sorted.Add(property.Key, replaceInStrings replacements property.Value)
 
-        sorted.Add(property.Key, value)
-
-    let text: string =
-        sorted.ToJsonString(JsonSerializerOptions(Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping))
-
-    let text: string =
-        replacements
-        |> List.fold (fun (text: string) (value, placeholder) -> text.Replace(value, placeholder)) text
-
-    JsonNode.Parse text
+    sorted
 
 /// Run one conversation against a fresh daemon process in a folder of its own, and return every
 /// message that went over the wire as one JSON document: `sent` is what the client wrote, `received`
@@ -149,11 +159,23 @@ let record (files: (string * string) list) (conversation: JsonRpc -> string -> T
     Directory.CreateDirectory folder |> ignore
 
     try
+        // Every case formats with `\n` line endings, whatever the platform. `end_of_line` otherwise
+        // follows the platform, and that decides more than the newlines in a response: formatting
+        // `module Foobar\n` on Windows gives `\r\n` and so a changed file where Linux has an
+        // unchanged one. A case that brings its own `.editorconfig` gets this appended to it.
+        let lineEndings: string = "\n[*]\nend_of_line = lf\n"
+
         // `root = true` so that no `.editorconfig` above the temp folder on this machine leaks in. A
         // case that brings its own has to say it too.
-        File.WriteAllText(Path.Join(folder, ".editorconfig"), "root = true\n")
+        File.WriteAllText(Path.Join(folder, ".editorconfig"), "root = true\n" + lineEndings)
 
         for fileName, content in files do
+            let content: string =
+                if fileName = ".editorconfig" then
+                    content + lineEndings
+                else
+                    content
+
             File.WriteAllText(Path.Join(folder, fileName), content)
 
         let startInfo: ProcessStartInfo =
@@ -186,8 +208,15 @@ let record (files: (string * string) list) (conversation: JsonRpc -> string -> T
             if not (daemon.WaitForExit(TimeSpan.FromSeconds 10.)) then
                 daemon.Kill()
 
+        // A path below the folder is written with `/` whatever the platform, so that a snapshot
+        // recorded on one is the snapshot of every other.
         let replacements: (string * string) list =
-            [ folder, "<folder>"; CodeFormatter.GetVersion(), "<version>" ]
+            [
+                folder + string<char> Path.DirectorySeparatorChar, "<folder>/"
+                folder + string<char> Path.AltDirectorySeparatorChar, "<folder>/"
+                folder, "<folder>"
+                CodeFormatter.GetVersion(), "<version>"
+            ]
 
         let messages (recording: RecordingStream) : JsonNode =
             JsonArray(
