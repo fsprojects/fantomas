@@ -1,3 +1,4 @@
+#r "nuget: Fun.Build, 1.2.0"
 #r "nuget: FSharp.Data, 8.2.0"
 
 open System
@@ -5,6 +6,8 @@ open System.IO
 open System.Net
 open System.Xml.Linq
 open System.Xml.XPath
+open Fun.Build
+open Fun.Build.Internal
 open FSharp.Data
 // Loaded by `build.fsx`, after `BuildCommon.fsx`. An error here saying BuildCommon is not defined
 // means this file was run on its own; it is a library, so run a pipeline from build.fsx instead.
@@ -18,6 +21,28 @@ let deps = repositoryRoot </> ".deps"
 let fsharpCompilerHash =
     let xDoc = XElement.Load(repositoryRoot </> "Directory.Build.props")
     xDoc.XPathSelectElements("//FCSCommitHash") |> Seq.head |> (fun xe -> xe.Value)
+
+/// The GitHub repository `fsharpCompilerHash` is downloaded from: `FCSRepository` in
+/// `Directory.Build.props`, or `dotnet/fsharp` when it names none. MSBuild is asked rather than the
+/// file read, so this is the value a build of Fantomas.FCS sees. With a single property MSBuild prints
+/// the bare value rather than JSON.
+let fsharpCompilerRepository (ctx: StageContext) : Async<string> =
+    async {
+        let! result =
+            ctx.RunCommandCaptureAll(
+                "dotnet msbuild src/Fantomas.FCS/Fantomas.FCS.fsproj -getProperty:FCSRepository",
+                workingDir = repositoryRoot,
+                disablePrintCommand = true,
+                disablePrintOutput = true
+            )
+
+        if result.ExitCode <> 0 then
+            failwith $"Could not read FCSRepository from MSBuild.\n{result.StandardError}"
+
+        match result.StandardOutput.Trim() with
+        | "" -> return "dotnet/fsharp"
+        | repository -> return repository
+    }
 
 let updateFileRaw (file: FileInfo) =
     let lines = File.ReadAllLines file.FullName
@@ -55,7 +80,7 @@ let rec private requestWithRetry
             return! requestWithRetry (attempt + 1) url headers
     }
 
-let downloadCompilerFile commitHash relativePath =
+let downloadCompilerFile (repository: string) (commitHash: string) (relativePath: string) : Async<unit> =
     async {
         let file = FileInfo(deps </> commitHash </> relativePath)
 
@@ -68,7 +93,7 @@ let downloadCompilerFile commitHash relativePath =
         let fileName: string = Path.GetFileName(relativePath)
 
         let url: string =
-            $"https://raw.githubusercontent.com/dotnet/fsharp/{commitHash}/{relativePath}"
+            $"https://raw.githubusercontent.com/{repository}/{commitHash}/{relativePath}"
 
         let! response =
             requestWithRetry 1 url [| "Content-Disposition", $"attachment; filename=\"{fileName}\"" |]

@@ -37,6 +37,27 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./output
 
+  # Publishes the tool with Native AOT and runs its tests against that build. AOT compiles for the
+  # machine it runs on, which is why every operating system gets a run of its own.
+  aot:
+    name: Native AOT
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v6
+        with:
+          cache: true
+          cache-dependency-path: Directory.Packages.props
+      - name: Init
+        run: dotnet fsi build.fsx -p Init
+      - name: Test against Native AOT
+        run: dotnet fsi build.fsx -p TestAot
+
   analyze:
     name: Analyze solution
     runs-on: ubuntu-latest

@@ -170,9 +170,9 @@ let mkConstString (creationAide: CreationAide) (stringKind: SynStringKind) (valu
 
     let fallback () =
         match stringKind with
-        | SynStringKind.Regular -> sprintf "\"%s\"" escaped
-        | SynStringKind.Verbatim -> sprintf "@\"%s\"" escaped
-        | SynStringKind.TripleQuote -> sprintf "\"\"\"%s\"\"\"" escaped
+        | SynStringKind.Regular -> "\"" + escaped + "\""
+        | SynStringKind.Verbatim -> "@\"" + escaped + "\""
+        | SynStringKind.TripleQuote -> "\"\"\"" + escaped + "\"\"\""
 
     stn (creationAide.TextFromSource fallback range) range
 
@@ -185,7 +185,7 @@ let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(iden
                 mkConstString creationAide stringKind value range |> Choice1Of2
             | ParsedHashDirectiveArgument.SourceIdentifier(identifier, _, range) -> stn identifier range |> Choice1Of2
             | ParsedHashDirectiveArgument.Int32(value, range) ->
-                let text = creationAide.TextFromSource (fun () -> $"%A{value}") range
+                let text: string = creationAide.TextFromSource (fun () -> string<int> value) range
                 stn text range |> Choice1Of2
             | ParsedHashDirectiveArgument.Ident(value = ident) -> mkIdent ident |> Choice1Of2
             | ParsedHashDirectiveArgument.LongIdent(value = lid) -> mkSynLongIdent creationAide lid |> Choice2Of2
@@ -202,6 +202,9 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
     match c with
     | SynConst.Unit -> mkUnit r |> Constant.Unit
     | SynConst.Bool b -> stn (if b then "true" else "false") r |> Constant.FromText
+    // `%A` writes each constant with its suffix, `1uy` or `2.0f`. The tool always has the source text,
+    // so it never gets here, and a Native AOT build never needs printf for these.
+    // fsharpanalyzer: ignore-region-start FANTOMAS-PRINTF-001
     | SynConst.Byte v -> orElse (fun () -> $"%A{v}")
     | SynConst.SByte v -> orElse (fun () -> $"%A{v}")
     | SynConst.Int16 v -> orElse (fun () -> $"%A{v}")
@@ -216,6 +219,7 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
     | SynConst.Decimal v -> orElse (fun () -> $"%A{v}")
     | SynConst.IntPtr v -> orElse (fun () -> $"%A{v}")
     | SynConst.UIntPtr v -> orElse (fun () -> $"%A{v}")
+    // fsharpanalyzer: ignore-region-end
     | SynConst.UserNum(v, s) ->
         let fallback () = $"%s{v}%s{s}"
         stn (creationAide.TextFromSource fallback r) r |> Constant.FromText

@@ -205,12 +205,15 @@ let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) =
         let ctx: Context = recordCursorIfSingleTextNode n f ctx
         if isConfirmedMultiline ctx then ctx else leaveNode n ctx
     else
+        // Debug mode only, which only CodeFormatter.GetWriterEventsAsync turns on. The tool never does.
+        // fsharpanalyzer: ignore-region-start FANTOMAS-PRINTF-001
         (writerEvent (NodeStart(n.GetType().Name, sprintf "%O" n.Range))
          +> enterNode n
          +> recordCursorIfSingleTextNode n f
          +> leaveNode n
          +> writerEvent (NodeEnd(n.GetType().Name, sprintf "%O" n.Range)))
             ctx
+        // fsharpanalyzer: ignore-region-end
 
 let genSingleTextNode (node: SingleTextNode) (ctx: Context) : Context =
     // The most common node by far, and most carry no trivia or cursor: write the text directly.
