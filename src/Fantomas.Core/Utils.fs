@@ -8,14 +8,36 @@ open Microsoft.FSharp.Reflection
 module UnionCase =
 
     let name (value: 'T) : string =
-        let unionType: Type = typeof<'T>
+        match box value with
+        | null -> typeof<'T>.Name
+        | boxed ->
 
-        if isNull (box value) || not (FSharpType.IsUnion unionType) then
-            unionType.Name
-        else
+        let runtimeType: Type = boxed.GetType()
 
-        let case, _ = FSharpValue.GetUnionFields(value, unionType)
-        $"%s{unionType.Name}.%s{case.Name}"
+        // A case with fields is a class of its own, nested in the union and named after the case,
+        // so naming it needs nothing a Native AOT build may have trimmed away. So is a case without
+        // fields of a union with fewer than four cases, which the compiler tells apart by type
+        // rather than by tag, named with a leading underscore. A case name has to start with an
+        // uppercase letter, so an underscore there is always that one.
+        match runtimeType.DeclaringType with
+        | declaringType when not (isNull declaringType) && runtimeType.BaseType = declaringType ->
+            let caseName: string = runtimeType.Name.TrimStart '_'
+            $"%s{declaringType.Name}.%s{caseName}"
+        | _ ->
+
+        // A case without fields is an instance of the union itself, and only F# reflection can tell
+        // which one. Under Native AOT that works or not depending on what the trimmer kept, and
+        // where it does not the union is named without the case. The name goes into the message of
+        // an exception that is already being raised, which a failure here must not replace.
+        try
+            if not (FSharpType.IsUnion(runtimeType, true)) then
+                runtimeType.Name
+            else
+
+            let case, _ = FSharpValue.GetUnionFields(boxed, runtimeType, true)
+            $"%s{runtimeType.Name}.%s{case.Name}"
+        with _ ->
+            runtimeType.Name
 
 [<RequireQualifiedAccess>]
 module Triage =
