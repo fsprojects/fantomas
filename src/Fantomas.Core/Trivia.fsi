@@ -29,8 +29,10 @@ val collectCommentTextsFromAST: sourceText: ISourceText -> ast: ParsedInput -> S
 val enrichTree: config: FormatConfig -> sourceText: ISourceText -> ast: ParsedInput -> tree: Oak -> Oak
 
 /// Record the editor's cursor in the Oak so that CodePrinter can report where it ends up.
-/// When the cursor sits inside a `SingleTextNode`, the node remembers it and the printer reports
-/// the same offset into the printed text. Otherwise a `Cursor` trivia is attached to the smallest
-/// node around it, and the printer reports the position after that node. Mutates `tree` in place.
+/// When the cursor sits inside a `SingleTextNode` or `ElseIfKeywordNode`, the node remembers it
+/// directly. Printing paths are responsible for recording its formatted position. Otherwise a
+/// `Cursor` trivia is attached to the smallest node around it and uses the existing end-relative
+/// fallback, which is approximate when source whitespace changes.
+/// Mutates `tree` in place.
 /// The end-to-end behaviour is in src/Fantomas.Core.Tests/CursorTests.fs.
 val insertCursor: tree: Oak -> cursor: pos -> Oak

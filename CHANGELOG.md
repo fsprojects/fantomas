@@ -9,6 +9,7 @@
 ### Fixed
 
 - Wrong change of comment's position. The syntax tree had no range for the `of` keyword of a union case or exception, so a block comment after it, as in `exception E of (*name*) string`, was attached to the case name and printed in front of `of`. The parser now records that range, and the comment stays after the keyword. [#1959](https://github.com/fsprojects/fantomas/issues/1959)
+- Cursor is lost when placed on `if`, `then` or `else if` keywords. Cursors now keep their position within control-expression keywords, including `elif`, `match`, `match!` and `with`, and each token of `else if` keeps its own offset when source spacing or line breaks change. [#3387](https://github.com/fsprojects/fantomas/issues/3387)
 
 ## [8.0.5] - 2026-09-25
 

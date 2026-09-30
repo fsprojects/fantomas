@@ -2990,19 +2990,26 @@ let genControlExpressionStartCore
         | Choice1Of2 n -> enterNode n
         | Choice2Of2 n -> enterNode n.Node
 
-    let genStart =
+    let genStart: Context -> Context =
         match startKeyword with
-        | Choice1Of2 node -> !-node.Text
+        | Choice1Of2 node -> recordCursorNode (!-node.Text) node
         | Choice2Of2 ifKw ->
 
         match ifKw with
-        | IfKeywordNode.SingleWord node -> !-node.Text
-        | IfKeywordNode.ElseIf _ -> !-"else if"
+        | IfKeywordNode.SingleWord node -> recordCursorNode (!-node.Text) node
+        | IfKeywordNode.ElseIf node ->
+            // Source keywords may be separated by comments or newlines, so each keeps its own cursor.
+            recordCursorNode (!-"else") node.Else
+            +> sepSpace
+            +> recordCursorNode (!-"if") node.If
 
     let leaveStart =
         match startKeyword with
         | Choice1Of2 n -> leaveNode n
         | Choice2Of2 n -> leaveNode n.Node
+
+    let genEnd: Context -> Context =
+        enterNode endKeyword +> recordCursorNode (!-endKeyword.Text) endKeyword
 
     let shortIfExpr =
         genStart
@@ -3010,20 +3017,19 @@ let genControlExpressionStartCore
         +> sepNlnWhenWriteBeforeNewlineNotEmptyOr sepSpace
         +> genExpr innerExpr
         +> sepSpace
-        +> enterNode endKeyword
-        +> !-endKeyword.Text
+        +> genEnd
 
     let longIfExpr =
         genStart
         +> leaveStart
         +> indentSepNlnUnindent (genExpr innerExpr)
         +> sepNlnUnlessLastEventIsNewline
-        +> enterNode endKeyword
-        +> !-endKeyword.Text
+        +> genEnd
 
     // A code comment before the start keyword should not make the expression long.
     enterStart
     +> expressionFitsOnRestOfLine shortIfExpr longIfExpr
+    // Keep trailing trivia outside the header-fit measurement so it does not change the chosen layout.
     +> leaveNode endKeyword
 
 // Caller of this function is responsible for genNode!

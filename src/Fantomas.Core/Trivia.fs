@@ -597,7 +597,7 @@ let insertCursor (tree: Oak) (cursor: pos) =
     let nodeWithCursor = findNodeWhereRangeFitsIn tree cursorRange
 
     match nodeWithCursor with
-    | Some((:? SingleTextNode) as node) -> node.AddCursor cursor
+    | Some(:? SingleTextNode | :? ElseIfKeywordNode as node) -> node.AddCursor cursor
     | _ -> addToTree tree [| TriviaNode(TriviaContent.Cursor, cursorRange) |]
 
     tree
