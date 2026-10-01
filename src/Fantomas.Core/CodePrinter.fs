@@ -2997,11 +2997,7 @@ let genControlExpressionStartCore
 
         match ifKw with
         | IfKeywordNode.SingleWord node -> recordCursorNode (!-node.Text) node
-        | IfKeywordNode.ElseIf node ->
-            // Source keywords may be separated by comments or newlines, so each keeps its own cursor.
-            recordCursorNode (!-"else") node.Else
-            +> sepSpace
-            +> recordCursorNode (!-"if") node.If
+        | IfKeywordNode.ElseIf _ -> !-"else if"
 
     let leaveStart =
         match startKeyword with
@@ -3029,7 +3025,6 @@ let genControlExpressionStartCore
     // A code comment before the start keyword should not make the expression long.
     enterStart
     +> expressionFitsOnRestOfLine shortIfExpr longIfExpr
-    // Keep trailing trivia outside the header-fit measurement so it does not change the chosen layout.
     +> leaveNode endKeyword
 
 // Caller of this function is responsible for genNode!

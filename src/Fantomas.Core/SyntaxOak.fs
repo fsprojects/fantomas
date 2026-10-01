@@ -73,9 +73,6 @@ type Node =
     abstract Children: Node array
     abstract AddBefore: triviaNode: TriviaNode -> unit
     abstract AddAfter: triviaNode: TriviaNode -> unit
-    /// Direct cursor storage is used only for the token node types selected by `Trivia.insertCursor`.
-    /// Printing paths are responsible for recording its formatted position;
-    /// other nodes use cursor trivia instead.
     abstract AddCursor: pos -> unit
     abstract TryGetCursor: pos option
 
@@ -266,7 +263,6 @@ type IdentListNode(content: IdentifierOrDot list, range) =
 /// Examples: `let`, `=`, `->`, `(`, `myVar`.
 type SingleTextNode(idText: string, range: range) =
     inherit NodeBase(range)
-
     member val Text = idText
     override val Children = Array.empty
 
@@ -1713,47 +1709,58 @@ type ExprTryFinallyNode(tryNode: SingleTextNode, tryExpr: Expr, finallyNode: Sin
     member val Finally = finallyNode
     member val FinallyExpr = finallyExpr
 
-/// A keyword in an `else if` pair, keeping its own cursor while forwarding trivia to the pair or condition.
-type ElseIfKeywordNode(range: range, addBefore: TriviaNode -> unit, addAfter: TriviaNode -> unit) =
-    let mutable cursor: pos option = None
-
-    interface Node with
-        member _.ContentBefore: TriviaNode seq = Seq.empty
-        member _.HasContentBefore = false
-        member _.ContentAfter: TriviaNode seq = Seq.empty
-        member _.HasContentAfter = false
-        member _.HasAnyContentBefore = false
-        member _.HasAnyContentAfter = false
-        member _.Range = range
-        member _.Children = Array.empty
-        member _.AddBefore triviaNode = addBefore triviaNode
-        member _.AddAfter triviaNode = addAfter triviaNode
-        member _.AddCursor position = cursor <- Some position
-        member _.TryGetCursor = cursor
-
 /// An `else if` pair — the `else` and `if` keywords are stored as separate ranges so trivia can be attached correctly.
 type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode =
+    let mutable elseCursor = None
+    let mutable ifCursor = None
     let nodesBefore = Queue<TriviaNode>(0)
     let nodesAfter = Queue<TriviaNode>(0)
     let mutable lastNodeAfterIsLineCommentAfterSource = false
 
-    let elseNode: ElseIfKeywordNode =
-        ElseIfKeywordNode(mElse, (elseIfNode :> Node).AddBefore, (elseIfNode :> Node).AddAfter)
+    let elseNode =
+        { new Node with
+            member _.ContentBefore: TriviaNode seq = Seq.empty
+            member _.HasContentBefore: bool = false
+            member _.ContentAfter: TriviaNode seq = Seq.empty
+            member _.HasContentAfter: bool = false
+            member _.HasAnyContentBefore: bool = false
+            member _.HasAnyContentAfter: bool = false
+            member _.Range = mElse
 
-    let ifNode: ElseIfKeywordNode =
-        ElseIfKeywordNode(
-            mIf,
-            (fun triviaNode ->
+            member _.AddBefore(triviaNode: TriviaNode) =
+                (elseIfNode :> Node).AddBefore triviaNode
+
+            member _.AddAfter(triviaNode: TriviaNode) =
+                (elseIfNode :> Node).AddAfter triviaNode
+
+            member _.Children = Array.empty
+            member _.AddCursor cursor = elseCursor <- Some cursor
+            member _.TryGetCursor = elseCursor
+        }
+
+    let ifNode =
+        { new Node with
+            member _.ContentBefore: TriviaNode seq = Seq.empty
+            member _.HasContentBefore: bool = false
+            member _.ContentAfter: TriviaNode seq = Seq.empty
+            member _.HasContentAfter: bool = false
+            member _.HasAnyContentBefore: bool = false
+            member _.HasAnyContentAfter: bool = false
+            member _.Range = mIf
+
+            member _.AddBefore(triviaNode: TriviaNode) =
                 match triviaNode.Content with
                 | CommentOnSingleLine _
                 | Newline -> condition.AddBefore triviaNode
                 | _ -> (elseIfNode :> Node).AddAfter triviaNode
-            ),
-            (elseIfNode :> Node).AddAfter
-        )
 
-    member val Else = elseNode
-    member val If = ifNode
+            member _.AddAfter(triviaNode: TriviaNode) =
+                (elseIfNode :> Node).AddAfter triviaNode
+
+            member _.Children = Array.empty
+            member _.AddCursor cursor = ifCursor <- Some cursor
+            member _.TryGetCursor = ifCursor
+        }
 
     interface Node with
         member _.ContentBefore: TriviaNode seq = nodesBefore
@@ -1782,7 +1789,7 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
 
                 nodesAfter.Enqueue triviaNode
 
-        member val Children: Node array = [| elseNode; ifNode |]
+        member val Children = [| elseNode; ifNode |]
         member _.AddCursor _ = ()
         member _.TryGetCursor = None
 
