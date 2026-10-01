@@ -618,4 +618,4 @@ General rules for indentation are referenced at ["Code Formatting Guidelines (F#
 A few conventions for syntactic constructs are adapted from ["Caml Programming Guidelines"](http://caml.inria.fr/resources/doc/guides/guidelines.en.html).
 Other whitespace-significant rules are taken from ["PEP 8 -- Style Guide for Python Code"](http://www.python.org/dev/peps/pep-0008/).
 
-<fantomas-nav previous="Releases.md" next="History.md"></fantomas-nav>
+<fantomas-nav source="docs/contributors/Formatting Conventions.md" previous="Releases.md" next="History.md"></fantomas-nav>

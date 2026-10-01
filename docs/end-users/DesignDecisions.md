@@ -36,4 +36,4 @@ Fantomas formats code under every combination of `#if` / `#else` / `#endif` defi
 results, which means every combination has to produce valid F# on its own.
 See [Conditional Compilation Directives](./ConditionalCompilationDirectives.html).
 
-<fantomas-nav previous="StyleGuide.md" next="Chains.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/DesignDecisions.md" previous="StyleGuide.md" next="Chains.md"></fantomas-nav>

@@ -25,4 +25,4 @@ We would like to gratefully thank the following persons for their [contributions
 The library and tool are available under Apache 2.0 license.
 For more information see the [License file](https://github.com/fsprojects/fantomas/blob/main/LICENSE.md).
 
-<fantomas-nav next="end-users/GettingStarted.md"></fantomas-nav>
+<fantomas-nav source="docs/index.md" next="end-users/GettingStarted.md"></fantomas-nav>

@@ -120,4 +120,4 @@ Note that neither option is about preserving what you wrote. Written on one line
 the parenthesised record above stays on one line; written across several, it is collapsed onto
 one. What decides the layout is the expression, never the way you happened to type it.
 
-<fantomas-nav previous="Chains.md" next="ConditionalCompilationDirectives.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/OpenEndedExpressions.md" previous="Chains.md" next="ConditionalCompilationDirectives.md"></fantomas-nav>

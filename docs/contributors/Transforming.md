@@ -170,4 +170,4 @@ graph TD
     B[Insert trivia into nodes]
 ```
 
-<fantomas-nav previous="Solution%20Structure.md" next="Traverse.md"></fantomas-nav>
+<fantomas-nav source="docs/contributors/Transforming.md" previous="Solution%20Structure.md" next="Traverse.md"></fantomas-nav>

@@ -14,7 +14,7 @@ Your IDE should respect your settings, however the implementation of that is edi
 UI might be available depending on the IDE.
 
 ```
-version: 8.0.6+578727b5429794534cc333df065efa43cef8130c
+version: 8.0.6+6e286d12a12f023face10866c9b205cb92f4ed01
 ```
 
 ## Usage
@@ -1474,4 +1474,4 @@ let singleList =
     ]
 ```
 
-<fantomas-nav previous="GettingStarted.md" next="UpgradeGuide.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/Configuration.fsx" previous="GettingStarted.md" next="UpgradeGuide.md"></fantomas-nav>

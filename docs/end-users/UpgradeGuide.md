@@ -661,4 +661,4 @@ and `ExprLetOrUseNode`, `ExprLetOrUseBangNode` and `ExprAndBang` were removed.
 a `NamePatPairNode list`, and the old `Prefix` and `FieldName` fields are together in
 `fieldName`.
 
-<fantomas-nav previous="Configuration.md" next="IgnoreFiles.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/UpgradeGuide.md" previous="Configuration.md" next="IgnoreFiles.md"></fantomas-nav>

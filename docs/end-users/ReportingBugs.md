@@ -49,4 +49,4 @@ It never submits the issue: you read it and decide. It needs the .NET 10 SDK, an
 [Bun](https://bun.sh) or Node.js 22.18 or later. It asks before it clones the Fantomas repository,
 which makes shrinking a sample much faster.
 
-<fantomas-nav previous="ConditionalCompilationDirectives.md" next="FAQ.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/ReportingBugs.md" previous="ConditionalCompilationDirectives.md" next="FAQ.md"></fantomas-nav>

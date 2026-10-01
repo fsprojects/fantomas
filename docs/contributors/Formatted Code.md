@@ -24,4 +24,4 @@ When there are any warnings or errors, we will throw an exception.
 Some warnings are are allowed as they indicate problems that were most likely already present in the input code.
 See `Validation.fs` for more details.
 
-<fantomas-nav previous="Traverse.md" next="Conditional%20Compilation%20Directives.md"></fantomas-nav>
+<fantomas-nav source="docs/contributors/Formatted Code.md" previous="Traverse.md" next="Conditional%20Compilation%20Directives.md"></fantomas-nav>

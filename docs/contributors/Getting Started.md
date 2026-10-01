@@ -74,4 +74,4 @@ Examples:
 * `dotnet fsi build.fsx -p EnsureRepoConfig` sets up some git repo-level configuration to ensure
 that formatting of new code is consistent before it is pushed up to a remote repository.
 
-<fantomas-nav previous="FSharp.md" next="Solution%20Structure.md"></fantomas-nav>
+<fantomas-nav source="docs/contributors/Getting Started.md" previous="FSharp.md" next="Solution%20Structure.md"></fantomas-nav>

@@ -22,4 +22,4 @@ The best is yet to come!
 PS: Don't hesitate to open [an issue](https://github.com/fsprojects/fantomas/issues/new/choose) if you have any questions.
 Or if something isn't all that clear. Our goal is to make this documentation as complete as possible🎉!
 
-<fantomas-nav next="FSharp.md"></fantomas-nav>
+<fantomas-nav source="docs/contributors/Index.md" next="FSharp.md"></fantomas-nav>

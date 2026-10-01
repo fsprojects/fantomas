@@ -61,4 +61,4 @@ To strengthen the message of unity we advise that you do not change the default 
 The **out-of-the-box experience** should be a result of what the **brightest minds of the community** came up with.
 If you are *new* to the F# language, this is what you want.
 
-<fantomas-nav previous="Recipes.md" next="DesignDecisions.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/StyleGuide.md" previous="Recipes.md" next="DesignDecisions.md"></fantomas-nav>

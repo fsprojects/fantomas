@@ -42,4 +42,4 @@ Even if the tests are all green you should take a look at all the changes made t
 
 Think about tests to catch any regressions caused by the update and it's effects on Fantomas.
 
-<fantomas-nav previous="Pull%20request%20ground%20rules.md" next="Releases.md"></fantomas-nav>
+<fantomas-nav source="docs/contributors/Updating the compiler.md" previous="Pull%20request%20ground%20rules.md" next="Releases.md"></fantomas-nav>

@@ -153,4 +153,4 @@ After merging:
 [ "let a ="; "#if DEBUG"; "0"; "#else"; "1"; "#endif" ]
 ```
 
-<fantomas-nav previous="Formatted%20Code.md" next="How%20Can%20I%20Contribute.md"></fantomas-nav>
+<fantomas-nav source="docs/contributors/Conditional Compilation Directives.md" previous="Formatted%20Code.md" next="How%20Can%20I%20Contribute.md"></fantomas-nav>

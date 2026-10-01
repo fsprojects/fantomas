@@ -217,3 +217,10 @@ header {
     font-style: initial;
   }
 }
+
+/* Inline code. The default background is near black in dark mode, which is harsh against the blue
+   page, and in light mode it is the colour of the page itself. Code blocks keep it, because their
+   syntax colours are chosen for it. */
+:not(pre) > code {
+  background-color: light-dark(var(--fantomas-100), var(--fantomas-800));
+}

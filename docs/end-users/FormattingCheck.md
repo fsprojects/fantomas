@@ -146,4 +146,4 @@ Or, more likely, you have something slightly different in your code base that is
 No matter the case, when you have a `--check` command somewhere in your continuous integration environment, please consider running a build with the latest compatible version from time to time.  
 It really helps us spotting problems early on and we can more easily pinpoint the problem due to lesser recent changes.
 
-<fantomas-nav previous="IgnoreFiles.md" next="GitHooks.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/FormattingCheck.md" previous="IgnoreFiles.md" next="GitHooks.md"></fantomas-nav>

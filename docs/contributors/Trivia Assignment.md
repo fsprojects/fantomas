@@ -148,4 +148,4 @@ Html.a [
 
 The formatted output is valid and idempotent but more verbose than necessary.
 
-<fantomas-nav previous="EventList%20Architecture.md" next="Glossary.md"></fantomas-nav>
+<fantomas-nav source="docs/contributors/Trivia Assignment.md" previous="EventList%20Architecture.md" next="Glossary.md"></fantomas-nav>

@@ -896,4 +896,4 @@ The first of these happens wherever the call sits in the chain. The second can o
 
 Which side the comment is on is the whole of it. How the call was spread over lines in the source has no say, and in both layouts the argument is laid out by the ordinary rules, exactly as the rest of this section promises.
 
-<fantomas-nav previous="DesignDecisions.md" next="OpenEndedExpressions.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/Chains.md" previous="DesignDecisions.md" next="OpenEndedExpressions.md"></fantomas-nav>

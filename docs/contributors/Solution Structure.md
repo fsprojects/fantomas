@@ -62,4 +62,4 @@ A suite of end-to-end tests that run the actual `fantomas` command line applicat
 
 A suite of end-to-end tests that will verify the `Fantomas.Client` code against released versions of `fantomas`.
 
-<fantomas-nav previous="Getting%20Started.md" next="Transforming.md"></fantomas-nav>
+<fantomas-nav source="docs/contributors/Solution Structure.md" previous="Getting%20Started.md" next="Transforming.md"></fantomas-nav>

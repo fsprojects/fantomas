@@ -85,4 +85,4 @@ If we want to debug when the `Context` is traveling through the format function,
 You can use the writer events script to inspect the event stream: `dotnet fsi scripts/writer-events.fsx <file>`.  
 The Oak script shows the tree with trivia markers: `dotnet fsi scripts/oak.fsx <file>`.
 
-<fantomas-nav previous="Transforming.md" next="Formatted%20Code.md"></fantomas-nav>
+<fantomas-nav source="docs/contributors/Traverse.md" previous="Transforming.md" next="Formatted%20Code.md"></fantomas-nav>

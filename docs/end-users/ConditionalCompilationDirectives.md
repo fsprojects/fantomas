@@ -160,4 +160,4 @@ let traverse entity =
 If you cannot restructure the directives (e.g. because the code is generated or must match a particular pattern), you
 can exclude the file from formatting using a [`.fantomasignore`](https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html) file.
 
-<fantomas-nav previous="OpenEndedExpressions.md" next="ReportingBugs.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/ConditionalCompilationDirectives.md" previous="OpenEndedExpressions.md" next="ReportingBugs.md"></fantomas-nav>

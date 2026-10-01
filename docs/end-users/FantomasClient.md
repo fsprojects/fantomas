@@ -230,4 +230,4 @@ service.Dispose()
 user changes the Fantomas version in their `dotnet-tools.json`. Otherwise the old process keeps
 serving requests for the rest of the session.
 
-<fantomas-nav previous="GeneratingCode.md" next="Recipes.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/FantomasClient.md" previous="GeneratingCode.md" next="Recipes.md"></fantomas-nav>

@@ -49,4 +49,4 @@ Fantomas is not perfect, there are open issues and depending on what shenanigans
 Before you've decided that Fantomas is not for you, you might want to use a `.fantomasignore` file to overcome that one problem.
 In the past people have been quick to judge that the tool cannot be used, however, through a different looking glass Fantomas maybe did format *99%* of your code correctly.
 
-<fantomas-nav previous="UpgradeGuide.md" next="FormattingCheck.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/IgnoreFiles.md" previous="UpgradeGuide.md" next="FormattingCheck.md"></fantomas-nav>

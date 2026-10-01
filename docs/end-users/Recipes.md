@@ -404,4 +404,4 @@ let fix (getParseResultsForFile: GetParseResultsForFile) : CodeFix =
 The problem with this approach is that the author of the original code decides whether this style is used.
 Discuss this with your team! ⚠️
 
-<fantomas-nav previous="FantomasClient.md" next="StyleGuide.md"></fantomas-nav>
+<fantomas-nav source="docs/end-users/Recipes.fsx" previous="FantomasClient.md" next="StyleGuide.md"></fantomas-nav>

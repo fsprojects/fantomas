@@ -103,4 +103,4 @@ let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 
 `enterNode` and `leaveNode` will print the `TriviaNodes` using `genTrivia`.
 
-<fantomas-nav previous="How%20Can%20I%20Contribute.md" next="Multiple%20Times.md"></fantomas-nav>
+<fantomas-nav source="docs/contributors/The Missing Comment.md" previous="How%20Can%20I%20Contribute.md" next="Multiple%20Times.md"></fantomas-nav>
