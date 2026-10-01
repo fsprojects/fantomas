@@ -73,8 +73,6 @@ type Node =
     abstract Children: Node array
     abstract AddBefore: triviaNode: TriviaNode -> unit
     abstract AddAfter: triviaNode: TriviaNode -> unit
-    abstract AddCursor: pos -> unit
-    abstract TryGetCursor: pos option
 
 /// True when the queue holds trivia that should influence layout, i.e. anything other than a
 /// <c>Cursor</c>. Most nodes carry no trivia at all, so the O(1) count is tested first; beyond that
@@ -96,12 +94,10 @@ let private hasLayoutAffectingTrivia (nodes: Queue<TriviaNode>) =
     found
 
 /// Base implementation of <see cref="Node"/> shared by all concrete Oak node types.
-/// Manages the mutable trivia queues (<c>ContentBefore</c> / <c>ContentAfter</c>) and
-/// the optional in-editor cursor position.  Concrete node types inherit from this class
-/// and supply their <c>Children</c> override.
+/// Manages the mutable trivia queues (<c>ContentBefore</c> / <c>ContentAfter</c>).
+/// Concrete node types inherit from this class and supply their <c>Children</c> override.
 [<AbstractClass>]
 type NodeBase(range: range) =
-    let mutable potentialCursor = None
     // Created on the first trivia added: nearly every node has none, and there are a lot of nodes.
     let mutable nodesBefore: Queue<TriviaNode> = null
     let mutable nodesAfter: Queue<TriviaNode> = null
@@ -134,8 +130,6 @@ type NodeBase(range: range) =
         nodesAfter.Enqueue triviaNode
 
     abstract member Children: Node array
-    member _.AddCursor cursor = potentialCursor <- Some cursor
-    member _.TryGetCursor = potentialCursor
 
     member private x.AppendToStringWithIndent(sb: StringBuilder, depth: int) =
         let indent = String.replicate depth "  "
@@ -202,8 +196,6 @@ type NodeBase(range: range) =
         member x.AddBefore triviaNode = x.AddBefore triviaNode
         member x.AddAfter triviaNode = x.AddAfter triviaNode
         member x.Children = x.Children
-        member x.AddCursor cursor = x.AddCursor cursor
-        member x.TryGetCursor = x.TryGetCursor
 
 /// A leaf node holding a plain string value with no sub-nodes (e.g. a verbatim string token or source text fragment).
 type StringNode(content: string, range: range) =
@@ -263,8 +255,14 @@ type IdentListNode(content: IdentifierOrDot list, range) =
 /// Examples: `let`, `=`, `->`, `(`, `myVar`.
 type SingleTextNode(idText: string, range: range) =
     inherit NodeBase(range)
+    let mutable cursor: pos option = None
     member val Text = idText
     override val Children = Array.empty
+
+    /// Of all nodes, only a `SingleTextNode` holds the editor's cursor, see `Trivia.insertCursor`.
+    member _.AddCursor(position: pos) = cursor <- Some position
+
+    member _.TryGetCursor: pos option = cursor
 
     override x.ToString() =
         $"SingleTextNode(%A{x.Range}, \"%s{x.Text}\")"
@@ -1709,102 +1707,22 @@ type ExprTryFinallyNode(tryNode: SingleTextNode, tryExpr: Expr, finallyNode: Sin
     member val Finally = finallyNode
     member val FinallyExpr = finallyExpr
 
-/// An `else if` pair — the `else` and `if` keywords are stored as separate ranges so trivia can be attached correctly.
-type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode =
-    let mutable elseCursor = None
-    let mutable ifCursor = None
-    let nodesBefore = Queue<TriviaNode>(0)
-    let nodesAfter = Queue<TriviaNode>(0)
-    let mutable lastNodeAfterIsLineCommentAfterSource = false
-
-    let elseNode =
-        { new Node with
-            member _.ContentBefore: TriviaNode seq = Seq.empty
-            member _.HasContentBefore: bool = false
-            member _.ContentAfter: TriviaNode seq = Seq.empty
-            member _.HasContentAfter: bool = false
-            member _.HasAnyContentBefore: bool = false
-            member _.HasAnyContentAfter: bool = false
-            member _.Range = mElse
-
-            member _.AddBefore(triviaNode: TriviaNode) =
-                (elseIfNode :> Node).AddBefore triviaNode
-
-            member _.AddAfter(triviaNode: TriviaNode) =
-                (elseIfNode :> Node).AddAfter triviaNode
-
-            member _.Children = Array.empty
-            member _.AddCursor cursor = elseCursor <- Some cursor
-            member _.TryGetCursor = elseCursor
-        }
-
-    let ifNode =
-        { new Node with
-            member _.ContentBefore: TriviaNode seq = Seq.empty
-            member _.HasContentBefore: bool = false
-            member _.ContentAfter: TriviaNode seq = Seq.empty
-            member _.HasContentAfter: bool = false
-            member _.HasAnyContentBefore: bool = false
-            member _.HasAnyContentAfter: bool = false
-            member _.Range = mIf
-
-            member _.AddBefore(triviaNode: TriviaNode) =
-                match triviaNode.Content with
-                | CommentOnSingleLine _
-                | Newline -> condition.AddBefore triviaNode
-                | _ -> (elseIfNode :> Node).AddAfter triviaNode
-
-            member _.AddAfter(triviaNode: TriviaNode) =
-                (elseIfNode :> Node).AddAfter triviaNode
-
-            member _.Children = Array.empty
-            member _.AddCursor cursor = ifCursor <- Some cursor
-            member _.TryGetCursor = ifCursor
-        }
-
-    interface Node with
-        member _.ContentBefore: TriviaNode seq = nodesBefore
-        member _.HasContentBefore: bool = not (Seq.isEmpty nodesBefore)
-        member _.ContentAfter: TriviaNode seq = nodesAfter
-        member _.HasContentAfter: bool = not (Seq.isEmpty nodesAfter)
-        member _.HasAnyContentBefore: bool = nodesBefore.Count > 0
-        member _.HasAnyContentAfter: bool = nodesAfter.Count > 0
-        member _.Range = range
-        member _.AddBefore(triviaNode: TriviaNode) = nodesBefore.Enqueue triviaNode
-
-        member _.AddAfter(triviaNode: TriviaNode) =
-            match triviaNode.Content with
-            | TriviaContent.LineCommentAfterSourceCode comment when lastNodeAfterIsLineCommentAfterSource ->
-                // If we already have a line comment after the `else if`, we cannot add another one.
-                // The next best thing would be to add it on the next line as content before of the condition.
-                let triviaNode =
-                    TriviaNode(TriviaContent.CommentOnSingleLine comment, triviaNode.Range)
-
-                condition.AddBefore triviaNode
-            | _ ->
-                lastNodeAfterIsLineCommentAfterSource <-
-                    match triviaNode.Content with
-                    | LineCommentAfterSourceCode _ -> true
-                    | _ -> false
-
-                nodesAfter.Enqueue triviaNode
-
-        member val Children = [| elseNode; ifNode |]
-        member _.AddCursor _ = ()
-        member _.TryGetCursor = None
-
-/// The leading keyword of an `if` expression: either a simple `if` token or an `else if` pair (see <see cref="ElseIfNode"/>).
+/// The leading keyword of an `if` expression: a single `if` or `elif` token, or the two tokens of `else if`.
+/// CodePrinter writes `else if` as one piece and moves the trivia that sat between the two keywords.
 [<RequireQualifiedAccess; NoComparison>]
 type IfKeywordNode =
     | SingleWord of SingleTextNode
-    | ElseIf of ElseIfNode
+    | ElseIf of elseNode: SingleTextNode * ifNode: SingleTextNode
 
-    member x.Node =
+    member x.Nodes: Node array =
         match x with
-        | SingleWord n -> n :> Node
-        | ElseIf n -> n :> Node
+        | SingleWord n -> [| n |]
+        | ElseIf(elseNode, ifNode) -> [| elseNode; ifNode |]
 
-    member x.Range = x.Node.Range
+    member x.Range: range =
+        match x with
+        | SingleWord n -> n.Range
+        | ElseIf(elseNode, ifNode) -> Range.unionRanges elseNode.Range ifNode.Range
 
 /// Example: `if condition then result`
 type ExprIfThenNode(ifNode: IfKeywordNode, ifExpr: Expr, thenNode: SingleTextNode, thenExpr: Expr, range) =
@@ -1812,7 +1730,7 @@ type ExprIfThenNode(ifNode: IfKeywordNode, ifExpr: Expr, thenNode: SingleTextNod
 
     override val Children: Node array =
         [|
-            yield ifNode.Node
+            yield! ifNode.Nodes
             yield Expr.Node ifExpr
             yield thenNode
             yield Expr.Node thenExpr
@@ -1839,7 +1757,7 @@ type ExprIfThenElseNode
 
     override val Children: Node array =
         [|
-            yield ifNode.Node
+            yield! ifNode.Nodes
             yield Expr.Node ifExpr
             yield thenNode
             yield Expr.Node thenExpr

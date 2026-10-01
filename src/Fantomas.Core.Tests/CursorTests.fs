@@ -140,3 +140,49 @@ let f x = async { match! x with | _ -> return 1 }
 """
         (2, 23)
     |> assertCursor (3, 13)
+
+[<Test>]
+let ``cursor on else keyword of else if`` () =
+    formatWithCursor
+        """
+let f x = if x = 1 then 1 else if x = 2 then 2 else 3
+"""
+        (2, 28)
+    |> assertCursor (3, 6)
+
+[<Test>]
+let ``cursor on if keyword of else if`` () =
+    formatWithCursor
+        """
+let f x = if x = 1 then 1 else if x = 2 then 2 else 3
+"""
+        (2, 32)
+    |> assertCursor (3, 10)
+
+[<Test>]
+let ``cursor on if keyword of else if on its own line`` () =
+    formatWithCursor
+        """
+let f x =
+    if x = 1 then 1
+    else
+        if x = 2 then 2
+        else 3
+"""
+        (5, 9)
+    |> assertCursor (3, 10)
+
+[<Test>]
+let ``cursor on closing bracket of a cramped list`` () =
+    CodeFormatter.FormatDocumentAsync(
+        false,
+        """
+let xs = [ aaaaaaaaaaaaaaaaaaaaaa; bbbbbbbbbbbbbbbbbbbbbbbbbbb; cccccccccccccccccccccccccccc; dddddddddddddddddddddd ]
+""",
+        { FormatConfig.Default with
+            MultilineBracketStyle = Cramped
+        },
+        CodeFormatter.MakePosition(2, 117)
+    )
+    |> Async.RunSynchronously
+    |> assertCursor (5, 29)

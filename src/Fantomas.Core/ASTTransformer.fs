@@ -1839,19 +1839,14 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.IfThen
 
     | ElIf([ elifKw, ifExpr, thenKw, thenExpr ], Some(elseKw, elseExpr)) ->
-        let ifExprNode = mkExpr creationAide ifExpr
-
         let ifKwNode: IfKeywordNode =
             match elifKw with
             | Choice1Of2 stn -> IfKeywordNode.SingleWord stn
-            | Choice2Of2(mElse, mIf) ->
-
-            ElseIfNode(mElse, mIf, Expr.Node ifExprNode, unionRanges mElse mIf)
-            |> IfKeywordNode.ElseIf
+            | Choice2Of2(mElse, mIf) -> IfKeywordNode.ElseIf(stn "else" mElse, stn "if" mIf)
 
         ExprIfThenElseNode(
             ifKwNode,
-            ifExprNode,
+            mkExpr creationAide ifExpr,
             thenKw,
             mkExpr creationAide thenExpr,
             elseKw,
@@ -1864,18 +1859,13 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let elifs =
             elifs
             |> List.map (fun (elifKw, ifExpr, thenNode, thenExpr) ->
-                let ifExprNode = mkExpr creationAide ifExpr
-
                 let ifKwNode: IfKeywordNode =
                     match elifKw with
                     | Choice1Of2 stn -> IfKeywordNode.SingleWord stn
-                    | Choice2Of2(mElse, mIf) ->
-
-                    ElseIfNode(mElse, mIf, Expr.Node ifExprNode, unionRanges mElse mIf)
-                    |> IfKeywordNode.ElseIf
+                    | Choice2Of2(mElse, mIf) -> IfKeywordNode.ElseIf(stn "else" mElse, stn "if" mIf)
 
                 let m = unionRanges ifKwNode.Range thenExpr.Range
-                ExprIfThenNode(ifKwNode, ifExprNode, thenNode, mkExpr creationAide thenExpr, m)
+                ExprIfThenNode(ifKwNode, mkExpr creationAide ifExpr, thenNode, mkExpr creationAide thenExpr, m)
             )
 
         let optElse =
