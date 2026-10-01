@@ -52,4 +52,4 @@ At some point, the F# compiler may contain all the Fantomas-related improvements
 
 Another possibility is that Fantomas could eventually be absorbed into the FCS itself, becoming part of the exposed API in the F# ecosystem. In practice, Fantomas will likely continue moving forward with the latest compiler changes, while the official FCS moves at its own release cadence.
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

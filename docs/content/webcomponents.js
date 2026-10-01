@@ -16,43 +16,85 @@ function Navigation_Old({next, previous}) {
 class Navigation extends LitElement {
     static properties = {
         next: {type: String, reflect: true},
-        previous: {type: String, reflect: true}
+        previous: {type: String, reflect: true},
+        // The page's path below the docs folder, from {{fsdocs-source-filename}}, to link to its edit page.
+        // Not {{fsdocs-page-source}}: `fsdocs watch` makes that one an absolute path on this machine.
+        source: {type: String, reflect: true}
     }
 
     constructor(props) {
         super(props);
     }
-    
+
     static styles = css`
       :host {
+        display: block;
+      }
+
+      .contribute {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-200);
+        margin-top: var(--spacing-600);
+        padding: var(--spacing-300) var(--spacing-400);
+        border-radius: var(--radius);
+        background-color: light-dark(var(--fantomas-100), var(--fantomas-800));
+        font-size: 0.875rem;
+      }
+
+      .contribute iconify-icon {
+        flex-shrink: 0;
+        color: light-dark(var(--fantomas-500), var(--fantomas-300));
+      }
+
+      .contribute a {
+        color: light-dark(var(--fantomas-600), var(--fantomas-200));
+      }
+
+      .contribute a:hover {
+        color: var(--link-hover);
+      }
+
+      .pager {
         display: flex;
         justify-content: space-between;
+        margin-top: var(--spacing-500);
+        margin-bottom: var(--spacing-500);
       }
-      
-      a {
-        margin-top: var(--spacing-200);
+
+      .pager a {
         color: var(--fantomas-800);
         display: inline-block;
         text-decoration: none;
         background-color: var(--fantomas-200);
         padding: var(--spacing-50) var(--spacing-100);
+        border-radius: var(--radius);
       }
-        
-        a:hover {
+
+        .pager a:hover {
             background-color: var(--fantomas-400);
             color: var(--fantomas-50);
         }
-      
-      a:only-child {
+
+      .pager a:only-child {
         text-align: center;
         margin-inline: auto;
       }
     `;
-    
+
     render() {
+        const editLink = `https://github.com/fsprojects/fantomas/edit/main/docs/${encodeURI(this.source ?? "")}`;
         return html`
-            ${this.previous ? html`<a href="${this.previous}">Previous</a>` : null}
-            ${this.next ? html`<a href="${this.next}">Next</a>` : null}
+            ${this.source ? html`
+                <div class="contribute">
+                    <iconify-icon icon="ph:pencil-simple" width="18" height="18"></iconify-icon>
+                    <span>Found something wrong or unclear on this page?
+                        <a href="${editLink}" target="_blank" rel="noopener">Edit this page on GitHub</a></span>
+                </div>` : null}
+            <div class="pager">
+                ${this.previous ? html`<a href="${this.previous}">Previous</a>` : null}
+                ${this.next ? html`<a href="${this.next}">Next</a>` : null}
+            </div>
         `;
     }
 }

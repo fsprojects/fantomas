@@ -19,4 +19,4 @@ Do note that the extension might not be up to date with the latest version of Fa
   
 <img src="{{root}}images/vsmac-external-tool.png" alt="drawing" width="70%"/>
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

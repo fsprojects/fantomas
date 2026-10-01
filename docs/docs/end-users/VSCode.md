@@ -24,4 +24,4 @@ Fantomas version detection will try and find a compatible version in the followi
 2. Your global Fantomas version. If fantomas was installed with `dotnet tool install fantomas -g`. You can see your global installations with `dotnet tool list -g`.  
 3. Executable named `fantomas` found in your PATH.
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

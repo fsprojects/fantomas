@@ -37,4 +37,4 @@ Even if the tests are all green you should take a look at all the changes made t
 
 Think about tests to catch any regressions caused by the update and it's effects on Fantomas.
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

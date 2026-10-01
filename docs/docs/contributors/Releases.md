@@ -101,4 +101,4 @@ To add a nickname:
 Share the newly created release in the [#fantomas channel on the F# Discord](https://discord.com/channels/196693847965696000/1493226271767924747).  
 Optionally share (minor or major) releases on other social media. 
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

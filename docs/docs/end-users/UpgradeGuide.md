@@ -643,4 +643,4 @@ identifiers without dots and for the optional-argument form `?a.b`. A single ide
   a `NamePatPairNode list`, and the old `Prefix` and `FieldName` fields are together in
   `fieldName`.
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

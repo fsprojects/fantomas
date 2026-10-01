@@ -304,6 +304,6 @@ fsharp_experimental_keep_indent_in_branch = true
 The problem with this approach is that the author of the original code decides whether this style is used.
 Discuss this with your team! ⚠️
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
 
 *)

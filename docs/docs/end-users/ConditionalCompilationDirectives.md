@@ -159,4 +159,4 @@ let traverse entity =
 If you cannot restructure the directives (e.g. because the code is generated or must match a particular pattern), you 
 can exclude the file from formatting using a [`.fantomasignore`](https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html) file.
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

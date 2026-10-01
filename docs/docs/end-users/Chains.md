@@ -896,4 +896,4 @@ The first of these happens wherever the call sits in the chain. The second can o
 
 Which side the comment is on is the whole of it. How the call was spread over lines in the source has no say, and in both layouts the argument is laid out by the ordinary rules, exactly as the rest of this section promises.
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

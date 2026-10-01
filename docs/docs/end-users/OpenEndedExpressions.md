@@ -119,4 +119,4 @@ Note that neither option is about preserving what you wrote. Written on one line
 the parenthesised record above stays on one line; written across several, it is collapsed onto
 one. What decides the layout is the expression, never the way you happened to type it.
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

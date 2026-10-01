@@ -580,4 +580,4 @@ Other whitespace-significant rules are taken from ["PEP 8 -- Style Guide for Pyt
   [3]: http://caml.inria.fr/resources/doc/guides/guidelines.en.html
   [4]: http://www.python.org/dev/peps/pep-0008/
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

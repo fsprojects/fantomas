@@ -195,4 +195,4 @@ A user should only need to deal with style changes when they have explicitly [ch
 In case no major or minor branch was created yet, please reach out to the maintainers.
 The maintainers will frequently rebase this branch on top of the main branch and release alpha/beta packages accordingly.
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

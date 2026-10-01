@@ -252,5 +252,5 @@ Or usage with `find` on Unix:
 find my-project/ -type f -name "*.fs" -not -path "*obj*" | xargs dotnet fantomas --check
 ```
 
-<fantomas-nav previous="../index.html" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="../index.html" next="{{fsdocs-next-page-link}}"></fantomas-nav>
 *)
