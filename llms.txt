@@ -104,7 +104,6 @@
 - [ComputationExpressionStatement](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-computationexpressionstatement.html)
 - [Constant](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-constant.html)
 - [ConstantMeasureNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-constantmeasurenode.html)
-- [ElseIfNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-elseifnode.html)
 - [EnumCaseNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-enumcasenode.html)
 - [ExceptionDefnNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exceptiondefnnode.html)
 - [Expr](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html)

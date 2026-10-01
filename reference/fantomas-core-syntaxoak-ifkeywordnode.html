@@ -389,7 +389,8 @@
     <div>
       <div class="fsdocs-summary-contents">
         <p class="fsdocs-summary">
-           The leading keyword of an `if` expression: either a simple `if` token or an `else if` pair (see <see cref="ElseIfNode"/>).
+           The leading keyword of an `if` expression: a single `if` or `elif` token, or the two tokens of `else if`.
+ CodePrinter writes `else if` as one piece and moves the trivia that sat between the two keywords.
         </p>
       </div>
     </div>
@@ -417,29 +418,37 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1580" data-fsdocs-tip-unique="1580">
+              <code data-fsdocs-tip="1429" data-fsdocs-tip-unique="1429">
                 <p>
                   <a id="ElseIf">
                     <a href="#ElseIf">
-                      <code><span>ElseIf&#32;<a href="../reference/fantomas-core-syntaxoak-elseifnode.html">ElseIfNode</a></span></code>
+                      <code><span>ElseIf(<span>elseNode,&#32;ifNode</span>)</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1580">
+              <div popover="" class="fsdocs-tip" id="1429">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>ElseIf&#32;<a href="../reference/fantomas-core-syntaxoak-elseifnode.html">ElseIfNode</a></span></code>
+                  <code><span>ElseIf(<span>elseNode,&#32;ifNode</span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        Item
+                        elseNode
                       </b>
                       :
-                      <code><a href="../reference/fantomas-core-syntaxoak-elseifnode.html">ElseIfNode</a></code>
+                      <code><a href="../reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        ifNode
+                      </b>
+                      :
+                      <code><a href="../reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
                     </span>
                     <br/>
                   </ul>
@@ -458,10 +467,18 @@
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
-                    Item
+                    elseNode
                   </span>
                   :
-                  <code><a href="../reference/fantomas-core-syntaxoak-elseifnode.html">ElseIfNode</a></code>
+                  <code><a href="../reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    ifNode
+                  </span>
+                  :
+                  <code><a href="../reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
                 </dt>
                 <dd class="fsdocs-param-docs"></dd>
               </dl>
@@ -471,7 +488,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1581" data-fsdocs-tip-unique="1581">
+              <code data-fsdocs-tip="1430" data-fsdocs-tip-unique="1430">
                 <p>
                   <a id="SingleWord">
                     <a href="#SingleWord">
@@ -480,7 +497,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1581">
+              <div popover="" class="fsdocs-tip" id="1430">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>SingleWord&#32;<a href="../reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
@@ -548,24 +565,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1582" data-fsdocs-tip-unique="1582">
+              <code data-fsdocs-tip="1431" data-fsdocs-tip-unique="1431">
                 <p>
-                  <a id="Node">
-                    <a href="#Node">
-                      <code><span>this.Node</span></code>
+                  <a id="Nodes">
+                    <a href="#Nodes">
+                      <code><span>this.Nodes</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1582">
+              <div popover="" class="fsdocs-tip" id="1431">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.Node</span></code>
+                  <code><span>this.Nodes</span></code>
                   <br/>
                   <br/>
                   <span>
                     Returns: 
-                    <code><a href="../reference/fantomas-core-syntaxoak-node.html">Node</a></code>
+                    <code><span><a href="../reference/fantomas-core-syntaxoak-node.html">Node</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-array-1">array</a></span></code>
                   </span>
                   <br/>
                 </div>
@@ -584,7 +601,7 @@
                   <span class="fsdocs-return-name">
                     Returns: 
                   </span>
-                  <code><a href="../reference/fantomas-core-syntaxoak-node.html">Node</a></code>
+                  <code><span><a href="../reference/fantomas-core-syntaxoak-node.html">Node</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-array-1">array</a></span></code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
@@ -594,7 +611,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="1583" data-fsdocs-tip-unique="1583">
+              <code data-fsdocs-tip="1432" data-fsdocs-tip-unique="1432">
                 <p>
                   <a id="Range">
                     <a href="#Range">
@@ -603,7 +620,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="1583">
+              <div popover="" class="fsdocs-tip" id="1432">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.Range</span></code>
