@@ -192,4 +192,4 @@ This update to the tree made it very straightforward to fix the original bug in 
 
 Another example of code that could benefit from a better representation is [extern](https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+extern).
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

@@ -151,4 +151,4 @@ After merging:
 [ "let a ="; "#if DEBUG"; "0"; "#else"; "1"; "#endif" ]
 ```
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

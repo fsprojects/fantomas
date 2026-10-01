@@ -59,4 +59,4 @@ The AST from the FCS used by Fantomas.
 It represents the source code as it was processed by the F# compiler. The _Untyped Syntax Tree_ doesn't carry any information regarding the validity of the source code or semantics.
 In a later compilation stage, the _Untyped Syntax Tree_ is transformed into the _Typed Syntax Tree_.
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}"></fantomas-nav>

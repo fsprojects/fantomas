@@ -35,4 +35,4 @@ Fantomas formats code under every combination of `#if` / `#else` / `#endif` defi
 results, which means every combination has to produce valid F# on its own.
 See [Conditional Compilation Directives](./ConditionalCompilationDirectives.html).
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

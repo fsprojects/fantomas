@@ -86,4 +86,4 @@ You can use the writer events script to inspect the event stream: `dotnet fsi sc
 The Oak script shows the tree with trivia markers: `dotnet fsi scripts/oak.fsx <file>`.
 
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

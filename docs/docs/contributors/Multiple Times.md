@@ -143,4 +143,4 @@ Use the following naming convention suffix:
 - `, defineA defineB` for the `[ "defineA"; "defineB" ]` case
 - `, issue-number` for the full test.
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

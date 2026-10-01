@@ -21,4 +21,4 @@ The best is yet to come!
 PS: Don't hesitate to open [an issue](https://github.com/fsprojects/fantomas/issues/new/choose) if you have any questions. 
 Or if something isn't all that clear. Our goal is to make this documentation as complete as possible🎉!
 
-<fantomas-nav next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

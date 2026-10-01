@@ -102,4 +102,4 @@ let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 
 `enterNode` and `leaveNode` will print the `TriviaNodes` using `genTrivia`. 
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

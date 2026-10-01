@@ -48,4 +48,4 @@ It never submits the issue: you read it and decide. It needs the .NET 10 SDK, an
 [Bun](https://bun.sh) or Node.js 22.18 or later. It asks before it clones the Fantomas repository,
 which makes shrinking a sample much faster.
 
-<fantomas-nav previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
+<fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
