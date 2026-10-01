@@ -146,7 +146,7 @@ let genTrivia (node: Node) (trivia: TriviaNode) (ctx: Context) =
 
     gen ctx
 
-let recordCursorNode f (node: Node) (ctx: Context) =
+let recordCursorNode (f: Context -> Context) (node: SingleTextNode) (ctx: Context) : Context =
     match node.TryGetCursor with
     | None -> f ctx
     | Some cursor ->
@@ -166,6 +166,10 @@ let recordCursorNode f (node: Node) (ctx: Context) =
         FormattedCursor = Some formattedCursor
     }
 
+/// Writes the text of the node and records the editor's cursor in it. The trivia of the node is left to the
+/// caller, for code that places it apart from the text, as `genSingleTextNode` would write it right around it.
+let genSingleTextNodeText (node: SingleTextNode) : Context -> Context = recordCursorNode (!-node.Text) node
+
 // Most nodes carry no trivia at all. `col` over an empty sequence returns the context unchanged,
 // so skipping it is equivalent to `sepNone` and saves allocating an enumerator per node.
 let enterNode<'n when 'n :> Node> (n: 'n) =
@@ -180,11 +184,17 @@ let leaveNode<'n when 'n :> Node> (n: 'n) =
     else
         sepNone
 
+/// Only a `SingleTextNode` holds the editor's cursor, see `Trivia.insertCursor`.
+let recordCursorIfSingleTextNode (n: Node) (f: Context -> Context) (ctx: Context) : Context =
+    match n with
+    | :? SingleTextNode as node -> recordCursorNode f node ctx
+    | _ -> f ctx
+
 let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) =
     // The NodeStart/NodeEnd payloads are only ever observed via CodeFormatter.GetWriterEventsAsync.
     // Keep them out of the default path entirely: building them costs a reflection call and a sprintf per node.
     if not ctx.DebugMode then
-        // `enterNode n +> recordCursorNode f n +> leaveNode n`, without composing three closures
+        // `enterNode n +> recordCursorIfSingleTextNode n f +> leaveNode n`, without composing three closures
         // for every node: each step is skipped once a short expression is known to be multiline.
         let ctx: Context = enterNode n ctx
 
@@ -192,12 +202,12 @@ let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) =
             ctx
         else
 
-        let ctx: Context = recordCursorNode f n ctx
+        let ctx: Context = recordCursorIfSingleTextNode n f ctx
         if isConfirmedMultiline ctx then ctx else leaveNode n ctx
     else
         (writerEvent (NodeStart(n.GetType().Name, sprintf "%O" n.Range))
          +> enterNode n
-         +> recordCursorNode f n
+         +> recordCursorIfSingleTextNode n f
          +> leaveNode n
          +> writerEvent (NodeEnd(n.GetType().Name, sprintf "%O" n.Range)))
             ctx
@@ -1615,7 +1625,11 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.Match node ->
         atCurrentColumn (
-            genControlExpressionStartCore (Choice1Of2 node.Match) node.MatchExpr node.With
+            genControlExpressionStart
+                (enterNode node.Match)
+                (genSingleTextNodeText node.Match +> leaveNode node.Match)
+                (genExpr node.MatchExpr)
+                node.With
             +> sepNln
             +> genClauses node.Clauses
         )
@@ -2091,7 +2105,7 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.IfThen node ->
         leadingExpressionResult
-            (genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then)
+            (genIfStart node.If node.IfExpr node.Then)
             (fun ((lineCountBefore, columnBefore), (lineCountAfter, columnAfter)) ctx ->
                 // Check if the `if expr then` is already multiline or cross the max_line_length.
                 let isMultiline =
@@ -2115,13 +2129,13 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.IfThenElse node ->
         leadingExpressionResult
-            (genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then)
+            (genIfStart node.If node.IfExpr node.Then)
             (fun ((lineCountBefore, columnBefore), (lineCountAfter, columnAfter)) ctx ->
                 let long =
                     indentSepNlnUnindent (genExpr node.ThenExpr)
                     +> sepNlnUnlessLastEventIsNewline
                     +> genSingleTextNode node.Else
-                    +> genKeepIdentIfThenElse node.If.Node node.Else node.ElseExpr
+                    +> genKeepIdentIfThenElse node.If node.Else node.ElseExpr
 
                 // Check if the `if expr then` is already multiline or cross the max_line_length.
                 let isMultiline =
@@ -2161,9 +2175,7 @@ let genExpr (e: Expr) =
                 node.Branches |> List.exists (fun node -> isIfThenElse node.ThenExpr)
 
             let checkIfLine (node: ExprIfThenNode) =
-                genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then
-                +> sepSpace
-                +> genExpr node.ThenExpr
+                genIfStart node.If node.IfExpr node.Then +> sepSpace +> genExpr node.ThenExpr
 
             let linesToCheck =
                 match node.Else with
@@ -2194,9 +2206,7 @@ let genExpr (e: Expr) =
                 sepNln
                 node.Branches
                 (fun (node: ExprIfThenNode) ->
-                    genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then
-                    +> sepSpace
-                    +> genExpr node.ThenExpr
+                    genIfStart node.If node.IfExpr node.Then +> sepSpace +> genExpr node.ThenExpr
                     |> genNode node
                 )
             +> optSingle
@@ -2208,7 +2218,7 @@ let genExpr (e: Expr) =
                 sepNlnUnlessLastEventIsNewline
                 node.Branches
                 (fun (node: ExprIfThenNode) ->
-                    genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then
+                    genIfStart node.If node.IfExpr node.Then
                     +> indentSepNlnUnindent (genExpr node.ThenExpr)
                     |> genNode node
                 )
@@ -2216,7 +2226,7 @@ let genExpr (e: Expr) =
                 (fun (elseNode, elseExpr) ->
                     let genKeepIdent =
                         let branch = List.last node.Branches
-                        genKeepIdentIfThenElse branch.If.Node elseNode elseExpr
+                        genKeepIdentIfThenElse branch.If elseNode elseExpr
 
                     sepNlnUnlessLastEventIsNewline +> genSingleTextNode elseNode +> genKeepIdent
                 )
@@ -2714,7 +2724,11 @@ let genArrayOrList (preferMultilineCramped: bool) (node: ExprArrayOrListNode) =
                     +> (enterNode node.Closing
                         +> (fun ctx ->
                             let isFixed = lastWriteEventIsNewline ctx
-                            (onlyIfNot isFixed sepSpace +> !-node.Closing.Text +> leaveNode node.Closing) ctx
+
+                            (onlyIfNot isFixed sepSpace
+                             +> genSingleTextNodeText node.Closing
+                             +> leaveNode node.Closing)
+                                ctx
                         ))
                 )
 
@@ -2980,51 +2994,96 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
 
     genBar +> genPatAndBody |> genNode node
 
-let genControlExpressionStartCore
-    (startKeyword: Choice<SingleTextNode, IfKeywordNode>)
-    (innerExpr: Expr)
+/// The layout shared by `match expr with` and `if expr then`: one line when it fits, otherwise the inner
+/// expression goes on its own indented lines. `genStart` writes the start keyword and whatever follows it.
+let genControlExpressionStart
+    (enterStart: Context -> Context)
+    (genStart: Context -> Context)
+    (genInnerExpr: Context -> Context)
     (endKeyword: SingleTextNode)
+    : Context -> Context
     =
-    let enterStart =
-        match startKeyword with
-        | Choice1Of2 n -> enterNode n
-        | Choice2Of2 n -> enterNode n.Node
+    let genEnd: Context -> Context =
+        enterNode endKeyword +> genSingleTextNodeText endKeyword
 
-    let genStart =
-        match startKeyword with
-        | Choice1Of2 node -> !-node.Text
-        | Choice2Of2 ifKw ->
-
-        match ifKw with
-        | IfKeywordNode.SingleWord node -> !-node.Text
-        | IfKeywordNode.ElseIf _ -> !-"else if"
-
-    let leaveStart =
-        match startKeyword with
-        | Choice1Of2 n -> leaveNode n
-        | Choice2Of2 n -> leaveNode n.Node
-
-    let shortIfExpr =
+    let shortIfExpr: Context -> Context =
         genStart
-        +> leaveStart
         +> sepNlnWhenWriteBeforeNewlineNotEmptyOr sepSpace
-        +> genExpr innerExpr
+        +> genInnerExpr
         +> sepSpace
-        +> enterNode endKeyword
-        +> !-endKeyword.Text
+        +> genEnd
 
-    let longIfExpr =
+    let longIfExpr: Context -> Context =
         genStart
-        +> leaveStart
-        +> indentSepNlnUnindent (genExpr innerExpr)
+        +> indentSepNlnUnindent genInnerExpr
         +> sepNlnUnlessLastEventIsNewline
-        +> enterNode endKeyword
-        +> !-endKeyword.Text
+        +> genEnd
 
     // A code comment before the start keyword should not make the expression long.
     enterStart
     +> expressionFitsOnRestOfLine shortIfExpr longIfExpr
     +> leaveNode endKeyword
+
+/// `else if` is written as one piece, so no trivia can stay between the two keywords. Split what the
+/// keywords carry into the trivia written after `else if` and the trivia written before the condition.
+let splitElseIfTrivia (elseNode: SingleTextNode) (ifNode: SingleTextNode) : TriviaNode list * TriviaNode list =
+    let isBeforeCondition (trivia: TriviaNode) : bool =
+        match trivia.Content with
+        | CommentOnSingleLine _
+        | Newline -> true
+        | _ -> false
+
+    let bySourcePosition (trivia: TriviaNode list) : TriviaNode list =
+        trivia
+        |> List.sortBy (fun triviaNode -> triviaNode.Range.StartLine, triviaNode.Range.StartColumn)
+
+    let beforeIf: TriviaNode list = List.ofSeq ifNode.ContentBefore
+
+    let afterKeywords: TriviaNode list =
+        bySourcePosition
+            [
+                yield! elseNode.ContentAfter
+                yield! List.filter (isBeforeCondition >> not) beforeIf
+                yield! ifNode.ContentAfter
+            ]
+
+    // Only one line comment fits after `else if`. A second one moves to its own line before the condition.
+    let _, kept, moved =
+        ((false, [], []), afterKeywords)
+        ||> List.fold (fun (afterLineComment, kept, moved) trivia ->
+            match trivia.Content with
+            | LineCommentAfterSourceCode comment when afterLineComment ->
+                afterLineComment, kept, TriviaNode(CommentOnSingleLine comment, trivia.Range) :: moved
+            | LineCommentAfterSourceCode _ -> true, trivia :: kept, moved
+            | _ -> false, trivia :: kept, moved
+        )
+
+    let beforeCondition: TriviaNode list =
+        bySourcePosition (List.filter isBeforeCondition beforeIf @ moved)
+
+    List.rev kept, beforeCondition
+
+let genIfStart (ifKeyword: IfKeywordNode) (condition: Expr) (thenKeyword: SingleTextNode) : Context -> Context =
+    match ifKeyword with
+    | IfKeywordNode.SingleWord ifNode ->
+        genControlExpressionStart
+            (enterNode ifNode)
+            (genSingleTextNodeText ifNode +> leaveNode ifNode)
+            (genExpr condition)
+            thenKeyword
+    | IfKeywordNode.ElseIf(elseNode, ifNode) ->
+
+    let afterKeywords, beforeCondition = splitElseIfTrivia elseNode ifNode
+
+    genControlExpressionStart
+        (enterNode elseNode)
+        (genSingleTextNodeText elseNode
+         +> sepSpace
+         +> genSingleTextNodeText ifNode
+         +> col sepNone afterKeywords (genTrivia ifNode))
+        (col sepNone beforeCondition (genTrivia (Expr.Node condition))
+         +> genExpr condition)
+        thenKeyword
 
 // Caller of this function is responsible for genNode!
 let genMultilineInfixExpr (node: ExprInfixAppNode) =
@@ -3155,7 +3214,7 @@ let genExprInMultilineInfixExpr (e: Expr) =
     | Expr.Record _ -> atCurrentColumnIndent (genExpr e)
     | _ -> genExpr e
 
-let genKeepIdentIfThenElse (ifKeyword: Node) (elseKeyword: Node) (e: Expr) ctx =
+let genKeepIdentIfThenElse (ifKeyword: IfKeywordNode) (elseKeyword: Node) (e: Expr) (ctx: Context) : Context =
     let exprNode = Expr.Node e
 
     if
