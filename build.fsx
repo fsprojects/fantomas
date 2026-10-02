@@ -498,7 +498,7 @@ let aotSmokeTestWarningsLog: string =
 /// explained is what makes a new one stand out, so `TestAot` fails on anything not here.
 let knownAotWarnings: (string * string * string) list =
     let fsharpCore: string =
-        "FSharp.Core's own printf and reflection. The tool does not call into them, which FANTOMAS-PRINTF-001 and PrintfTests hold it to. The library does in Triage.dump, which falls back to a type name, and for a constant transformed without its source text."
+        "FSharp.Core's own printf and reflection. The tool does not call into them, which FANTOMAS-PRINTF-001 and PrintfTests hold it to. The library does in Triage.dump, which falls back to a type name."
 
     let resourceString: string =
         "Only reached through a DiagnosticMessage.ResourceString, which no vendored compiler source declares."

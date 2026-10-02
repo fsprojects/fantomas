@@ -1,6 +1,8 @@
 ﻿module internal rec Fantomas.Core.ASTTransformer
 
+open System
 open System.Collections.Generic
+open System.Globalization
 open System.Text.RegularExpressions
 open Fantomas.FCS.Text
 open Fantomas.FCS.Text.Range
@@ -193,33 +195,68 @@ let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(iden
 
     ParsedHashDirectiveNode(ident, args, range)
 
+/// The F# literal of a float, from the text .NET gives it. F# reads a number as a float only with a
+/// dot or an exponent in it.
+let floatLiteral (text: string) : string =
+    let text: string = text.Replace('E', 'e')
+
+    if text.Contains "." || text.Contains "e" then
+        text
+    else
+        text + ".0"
+
+/// `R` is the shortest text that reads back as the same number.
+let doubleLiteral (value: double) : string =
+    if Double.IsNaN value then
+        "nan"
+    elif Double.IsPositiveInfinity value then
+        "infinity"
+    elif Double.IsNegativeInfinity value then
+        "-infinity"
+    else
+        floatLiteral (value.ToString("R", CultureInfo.InvariantCulture))
+
+let singleLiteral (value: single) : string =
+    if Single.IsNaN value then
+        "nanf"
+    elif Single.IsPositiveInfinity value then
+        "infinityf"
+    elif Single.IsNegativeInfinity value then
+        "-infinityf"
+    else
+        floatLiteral (value.ToString("R", CultureInfo.InvariantCulture)) + "f"
+
 let mkConstant (creationAide: CreationAide) c r : Constant =
-    // The fallback is a thunk because `%A` formats through reflection, and the source text is
-    // nearly always there to make it unnecessary.
     let orElse (fallback: unit -> string) : Constant =
         stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
 
     match c with
     | SynConst.Unit -> mkUnit r |> Constant.Unit
     | SynConst.Bool b -> stn (if b then "true" else "false") r |> Constant.FromText
-    // `%A` writes each constant with its suffix, `1uy` or `2.0f`. The tool always has the source text,
-    // so it never gets here, and a Native AOT build never needs printf for these.
-    // fsharpanalyzer: ignore-region-start FANTOMAS-PRINTF-001
-    | SynConst.Byte v -> orElse (fun () -> $"%A{v}")
-    | SynConst.SByte v -> orElse (fun () -> $"%A{v}")
-    | SynConst.Int16 v -> orElse (fun () -> $"%A{v}")
-    | SynConst.Int32 v -> orElse (fun () -> $"%A{v}")
-    | SynConst.Int64 v -> orElse (fun () -> $"%A{v}")
-    | SynConst.UInt16 v -> orElse (fun () -> $"%A{v}")
-    | SynConst.UInt16s v -> orElse (fun () -> $"%A{v}")
-    | SynConst.UInt32 v -> orElse (fun () -> $"%A{v}")
-    | SynConst.UInt64 v -> orElse (fun () -> $"%A{v}")
-    | SynConst.Double v -> orElse (fun () -> $"%A{v}")
-    | SynConst.Single v -> orElse (fun () -> $"%A{v}")
-    | SynConst.Decimal v -> orElse (fun () -> $"%A{v}")
-    | SynConst.IntPtr v -> orElse (fun () -> $"%A{v}")
-    | SynConst.UIntPtr v -> orElse (fun () -> $"%A{v}")
-    // fsharpanalyzer: ignore-region-end
+    // Without the source text, each number is written with the suffix that gives it its type again.
+    // `%A` would do the same, through printf, and round a float to ten digits.
+    | SynConst.Byte v -> orElse (fun () -> string<byte> v + "uy")
+    | SynConst.SByte v -> orElse (fun () -> string<sbyte> v + "y")
+    | SynConst.Int16 v -> orElse (fun () -> string<int16> v + "s")
+    | SynConst.Int32 v -> orElse (fun () -> string<int> v)
+    | SynConst.Int64 v -> orElse (fun () -> string<int64> v + "L")
+    | SynConst.UInt16 v -> orElse (fun () -> string<uint16> v + "us")
+    | SynConst.UInt16s v ->
+        orElse (fun () ->
+            let elements: string =
+                v
+                |> Array.map (fun (element: uint16) -> string<uint16> element + "us")
+                |> String.concat "; "
+
+            "[|" + elements + "|]"
+        )
+    | SynConst.UInt32 v -> orElse (fun () -> string<uint32> v + "u")
+    | SynConst.UInt64 v -> orElse (fun () -> string<uint64> v + "UL")
+    | SynConst.Double v -> orElse (fun () -> doubleLiteral v)
+    | SynConst.Single v -> orElse (fun () -> singleLiteral v)
+    | SynConst.Decimal v -> orElse (fun () -> string<decimal> v + "M")
+    | SynConst.IntPtr v -> orElse (fun () -> string<int64> v + "n")
+    | SynConst.UIntPtr v -> orElse (fun () -> string<uint64> v + "un")
     | SynConst.UserNum(v, s) ->
         let fallback () = $"%s{v}%s{s}"
         stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
