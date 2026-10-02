@@ -1,0 +1,4 @@
+type X =
+    private
+    | A of AParameters
+    | B

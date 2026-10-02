@@ -212,7 +212,7 @@ let ``an editorconfig that sets nothing reads as no configuration at all`` () =
 
     use fsharpFile = new FSharpFile(rootDir)
 
-    EditorConfig.tryReadConfiguration fsharpFile.FSharpFile == None
+    EditorConfigFiles.tryReadConfiguration fsharpFile.FSharpFile == None
 
 [<Test>]
 let ``non existing file should return defaults for readConfiguration`` () =
@@ -236,7 +236,7 @@ let ``non existing file should return None for tryReadConfiguration`` () =
     use configFixture = new ConfigurationFile(defaultConfig, rootDir)
 
     let config =
-        EditorConfig.tryReadConfiguration (Path.Join(Path.GetTempPath(), "bogus.fs"))
+        EditorConfigFiles.tryReadConfiguration (Path.Join(Path.GetTempPath(), "bogus.fs"))
 
     config == None
 
@@ -866,16 +866,20 @@ let ``problems are reported by kind, and by setting name within a kind`` () =
 
 // ---- where each setting came from ----
 
-let private settingOf (resolved: EditorConfig.ResolvedConfig) (setting: string) : EditorConfig.ResolvedSetting =
+let private settingOf
+    (resolved: EditorConfigFiles.ResolvedConfig)
+    (setting: string)
+    : EditorConfigFiles.ResolvedSetting
+    =
     resolved.Settings
-    |> List.find (fun (candidate: EditorConfig.ResolvedSetting) -> candidate.Setting = setting)
+    |> List.find (fun (candidate: EditorConfigFiles.ResolvedSetting) -> candidate.Setting = setting)
 
 [<Test>]
 let ``a setting nothing wrote comes from no .editorconfig`` () =
     let rootFolderName = tempName ()
     use fsharpFile = new FSharpFile(rootFolderName)
 
-    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+    let resolved = EditorConfigFiles.resolveConfiguration fsharpFile.FSharpFile
 
     (settingOf resolved "fsharp_max_record_width").SetBy == None
 
@@ -888,7 +892,7 @@ let ``a setting an .editorconfig wrote names that file`` () =
 
     use fsharpFile = new FSharpFile(rootFolderName)
 
-    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+    let resolved = EditorConfigFiles.resolveConfiguration fsharpFile.FSharpFile
 
     (settingOf resolved "max_line_length").Value == "100"
 
@@ -906,7 +910,7 @@ let ``a setting written the same as the default still comes from the file that w
 
     use fsharpFile = new FSharpFile(rootFolderName)
 
-    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+    let resolved = EditorConfigFiles.resolveConfiguration fsharpFile.FSharpFile
 
     (settingOf resolved "indent_size").Value == "4"
     (settingOf resolved "indent_size").SetBy.IsSome == true
@@ -933,7 +937,7 @@ let ``the nearer of two .editorconfig files is the one a setting is credited to`
 
     use fsharpFile = new FSharpFile(rootFolder, subFolder = subFolder)
 
-    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+    let resolved = EditorConfigFiles.resolveConfiguration fsharpFile.FSharpFile
 
     let parentPath =
         Path.GetFullPath(Path.Join(Path.GetTempPath(), rootFolder, ".editorconfig"))
@@ -963,7 +967,7 @@ let ``a setting whose value cannot be read is credited to nobody`` () =
 
     use fsharpFile = new FSharpFile(rootFolderName)
 
-    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+    let resolved = EditorConfigFiles.resolveConfiguration fsharpFile.FSharpFile
 
     (settingOf resolved "fsharp_max_record_width").SetBy == None
 
@@ -977,20 +981,20 @@ let ``every setting Fantomas has is resolved, whether or not anything set it`` (
     let rootFolderName = tempName ()
     use fsharpFile = new FSharpFile(rootFolderName)
 
-    let resolved = EditorConfig.resolveConfiguration fsharpFile.FSharpFile
+    let resolved = EditorConfigFiles.resolveConfiguration fsharpFile.FSharpFile
 
     resolved.Settings
-    |> List.map (fun (setting: EditorConfig.ResolvedSetting) -> setting.Setting)
+    |> List.map (fun (setting: EditorConfigFiles.ResolvedSetting) -> setting.Setting)
     == EditorConfig.supportedSettings
 
 [<Test>]
 let ``a configuration with nothing behind it credits nothing`` () =
-    let resolved = EditorConfig.withoutEditorConfig defaultConfig
+    let resolved = EditorConfigFiles.withoutEditorConfig defaultConfig
 
     resolved.Config == defaultConfig
     resolved.EditorConfigFiles == []
     resolved.Problems == []
 
     resolved.Settings
-    |> List.forall (fun (setting: EditorConfig.ResolvedSetting) -> setting.SetBy.IsNone)
+    |> List.forall (fun (setting: EditorConfigFiles.ResolvedSetting) -> setting.SetBy.IsNone)
     == true

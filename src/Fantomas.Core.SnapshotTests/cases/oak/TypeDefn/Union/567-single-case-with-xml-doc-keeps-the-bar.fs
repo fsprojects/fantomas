@@ -1,0 +1,3 @@
+type 'a MyGenericType =
+  ///
+  | Foo

@@ -7,7 +7,7 @@ open StreamJsonRpc
 open System.IO.Abstractions
 open Serilog
 open Fantomas.Core
-open Fantomas.EditorConfig
+open Fantomas.EditorConfigFiles
 open Fantomas.Client.Contracts
 
 /// How the daemon reaches the world outside itself. Narrower than the command line tool's

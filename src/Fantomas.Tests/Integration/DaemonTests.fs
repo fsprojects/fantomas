@@ -584,7 +584,7 @@ let ``settings read from disk are reported as coming from the editorconfig, with
 
     // The reading itself is `EditorConfigurationTests`' business. What matters here is that the
     // daemon passes on what it was given, tagged as having come from a file rather than a request.
-    let readConfiguration _ : EditorConfig.EditorConfigResult option =
+    let readConfiguration _ : EditorConfigFiles.EditorConfigResult option =
         Some
             {
                 Config = FormatConfig.Default
@@ -626,7 +626,7 @@ let ``settings read from disk are reported as coming from the editorconfig, with
 let ``the editorconfig on disk and the request are reported side by side`` () =
     use codeFile = new TemporaryFileCodeSample(sourceCode)
 
-    let readConfiguration _ : EditorConfig.EditorConfigResult option =
+    let readConfiguration _ : EditorConfigFiles.EditorConfigResult option =
         Some
             {
                 Config = FormatConfig.Default
@@ -698,7 +698,7 @@ let private countingOverlaps () =
     let inFlight = ref 0
     let peak = ref 0
 
-    let readConfiguration (_: string) : EditorConfig.EditorConfigResult option =
+    let readConfiguration (_: string) : EditorConfigFiles.EditorConfigResult option =
         let now = System.Threading.Interlocked.Increment inFlight
 
         let rec recordPeak () =

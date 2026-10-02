@@ -12,7 +12,7 @@ open Fantomas.Cli
 open Fantomas.CommandResult
 open Fantomas.ProfileCommand
 open Fantomas.DoctorCommand
-open Fantomas.EditorConfig
+open Fantomas.EditorConfigFiles
 open Fantomas.Logging
 open Fantomas.Theme
 

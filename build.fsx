@@ -161,6 +161,188 @@ pipeline "Coverage" {
     runIfOnlySpecified true
 }
 
+/// The snapshot tests of `Fantomas.Core`, and the files `CoverageOak` writes beside them.
+let snapshotsDir: string =
+    __SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core.SnapshotTests"
+
+let syntaxOakCoverageXml: string = snapshotsDir </> "coverage.xml"
+
+let syntaxOakCoverageSummary: string = snapshotsDir </> "syntaxoak-coverage.txt"
+
+/// Turn the OpenCover XML of a `CoverageOak` run into what a person acts on: every line of
+/// `SyntaxOak.fs` with a point or a branch no case reached, grouped by the class it belongs to.
+/// Methods listed in `coverage-exceptions.tsv` beside the project, a method name fragment and a reason
+/// separated by a tab, are reported apart as known exceptions.
+let summarizeSyntaxOakCoverage () : Async<int> =
+    async {
+        let source: string array =
+            File.ReadAllLines(__SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core" </> "SyntaxOak.fs")
+
+        let exceptionsFile: string = snapshotsDir </> "coverage-exceptions.tsv"
+
+        let exceptions: (string * string) list =
+            if not (File.Exists exceptionsFile) then
+                []
+            else
+
+            File.ReadAllLines exceptionsFile
+            |> Array.choose (fun (line: string) ->
+                if String.IsNullOrWhiteSpace line || line.StartsWith("#", StringComparison.Ordinal) then
+                    None
+                else
+
+                match line.Split '\t' with
+                | [| fragment; reason |] -> Some(fragment, reason)
+                | _ -> failwith $"`{line}` in coverage-exceptions.tsv is not a method and a reason separated by a tab."
+            )
+            |> Array.toList
+
+        let document: Xml.Linq.XDocument = Xml.Linq.XDocument.Load syntaxOakCoverageXml
+        let name (local: string) : Xml.Linq.XName = Xml.Linq.XName.Get local
+
+        let attribute (element: Xml.Linq.XElement) (local: string) : string = element.Attribute(name local).Value
+
+        // Every point and branch, with the method it is in.
+        let points: (string * string * int * bool) list =
+            [
+                for methodElement in document.Descendants(name "Method") do
+                    let methodName: string = methodElement.Element(name "Name").Value
+
+                    for kind in [ "SequencePoint"; "BranchPoint" ] do
+                        for point in methodElement.Descendants(name kind) do
+                            methodName, kind, int (attribute point "sl"), attribute point "vc" <> "0"
+            ]
+
+        let count (kind: string) : string =
+            let ofKind: (string * string * int * bool) list =
+                points |> List.filter (fun (_, pointKind: string, _, _) -> pointKind = kind)
+
+            let reached: int =
+                ofKind
+                |> List.filter (fun (_, _, _, isReached: bool) -> isReached)
+                |> List.length
+
+            $"{reached} of {ofKind.Length}"
+
+        let exceptionFor (methodName: string) : string option =
+            exceptions
+            |> List.tryFind (fun (fragment: string, _) -> methodName.Contains fragment)
+            |> Option.map snd
+
+        // `System.Void Fantomas.Core.SyntaxOak/ExprConstantNode::.ctor(...)` belongs to
+        // `ExprConstantNode`, and so does a closure compiled into `ExprConstantNode/-ctor@12-3`. The
+        // return type in front can name a SyntaxOak type too, so the type is read from right before `::`.
+        let owner (methodName: string) : string =
+            let declaringType: string =
+                let beforeMethod: string = methodName.Substring(0, methodName.IndexOf "::")
+                beforeMethod.Substring(beforeMethod.LastIndexOf ' ' + 1)
+
+            match declaringType.Split('/') |> Array.toList with
+            | _ :: className :: _ -> className
+            | _ -> "(module SyntaxOak)"
+
+        let missed: (string * string * int) list =
+            points
+            |> List.filter (fun (_, _, _, isReached: bool) -> not isReached)
+            |> List.map (fun (methodName: string, kind: string, line: int, _) -> methodName, kind, line)
+
+        let summary: Text.StringBuilder = Text.StringBuilder()
+
+        let pointCount: string = count "SequencePoint"
+        let branchCount: string = count "BranchPoint"
+
+        summary.AppendLine(
+            $"SyntaxOak.fs: {pointCount} points and {branchCount} branches reached by the snapshot cases."
+        )
+        |> ignore
+
+        let describe (entries: (string * string * int) list) : unit =
+            for className, inClass in
+                entries
+                |> List.groupBy (fun (methodName: string, _, _) -> owner methodName)
+                |> List.sortBy fst do
+                summary.AppendLine($"\n  {className}") |> ignore
+
+                for line, onLine in inClass |> List.groupBy (fun (_, _, line: int) -> line) |> List.sortBy fst do
+                    let kinds: string =
+                        onLine
+                        |> List.map (fun (_, kind: string, _) -> if kind = "SequencePoint" then "line" else "branch")
+                        |> List.distinct
+                        |> String.concat ", "
+
+                    summary.AppendLine($"    {line, 5}  {kinds, -12}  {source[line - 1].Trim()}")
+                    |> ignore
+
+        let excepted, unexcepted =
+            missed
+            |> List.partition (fun (methodName: string, _, _) -> (exceptionFor methodName).IsSome)
+
+        summary.AppendLine("\nNot reached:") |> ignore
+        describe unexcepted
+
+        if not excepted.IsEmpty then
+            summary.AppendLine("\nNot reached, and listed in coverage-exceptions.tsv:")
+            |> ignore
+            describe excepted
+
+        File.WriteAllText(syntaxOakCoverageSummary, summary.ToString())
+        printfn "%s" (summary.ToString())
+        printfn $"Written to {syntaxOakCoverageSummary}"
+        return 0
+    }
+
+// Coverage of `SyntaxOak.fs` alone, by the snapshot cases alone. A node class's constructor only
+// runs when some case produces that node, and every union's `Node` member has an arm per case, so
+// a line missed here is a node or a union case no case contains yet. Debug printing, which no
+// formatting path calls, is left out by the method filter: AltCover reads `|` as a separator
+// between filters, and every such method has `ToString` in its name.
+//
+// Produces:
+//   src/Fantomas.Core.SnapshotTests/coverage.xml            raw OpenCover XML
+//   src/Fantomas.Core.SnapshotTests/syntaxoak-coverage.txt  what was not reached, by class
+pipeline "CoverageOak" {
+    workingDir __SOURCE_DIRECTORY__
+
+    stage "Coverage" {
+        run (
+            $"dotnet test {snapshotsDir} -c Release /p:AltCover=true /p:AltCoverForce=true "
+            + "\"/p:AltCoverAssemblyFilter=^(?!Fantomas\\.Core$)\" "
+            + "\"/p:AltCoverFileFilter=^(?!.*SyntaxOak\\.fs$)\" "
+            + "/p:AltCoverMethodFilter=ToString "
+            + $"/p:AltCoverReport={syntaxOakCoverageXml}"
+        )
+    }
+
+    stage "Report" { run (fun _ -> summarizeSyntaxOakCoverage ()) }
+    runIfOnlySpecified true
+}
+
+// Rewrite every gold the snapshot tests compare against from what the current build produces. A
+// gold that changes is a change in formatting, so read the diff before keeping it.
+pipeline "UpdateSnapshots" {
+    workingDir __SOURCE_DIRECTORY__
+
+    stage "Update" {
+        envVars [| "FANTOMAS_UPDATE_SNAPSHOTS", "1" |]
+        run $"dotnet test {snapshotsDir} --tl"
+    }
+
+    runIfOnlySpecified true
+}
+
+// Two reports over every snapshot case, to read while porting a folder of old tests: which optional
+// parts and lists of parts of each node some case has, and where trivia lands on each node. They
+// are not golds: they change with every case, and parallel ports would fight over them.
+//
+// Produces:
+//   src/Fantomas.Core.SnapshotTests/reports/shapes.md
+//   src/Fantomas.Core.SnapshotTests/reports/trivia.md
+pipeline "SnapshotReports" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Reports" { run $"dotnet test {snapshotsDir} --filter Name=reports --tl" }
+    runIfOnlySpecified true
+}
+
 pipeline "FormatChanged" {
     workingDir __SOURCE_DIRECTORY__
     stage "Format" {

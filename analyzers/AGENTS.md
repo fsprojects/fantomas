@@ -444,9 +444,10 @@ Three things follow from that, and all three are handled in `BuildAnalyzers.fsx`
   references `Fantomas.FCS`, because resolving the members of `System.ReadOnlySpan` needs an
   assembly no script references.
 - **`--include-files` holds the report to scripts.** A script compilation includes whatever it
-  loads, and `shared.fsx` loads `EditorConfig.fs` and `Suggestion.fs` out of `src/Fantomas`. Those
-  are analyzed properly as part of their own project; reporting on them here would say something
-  else about them, because a script loads the `.fs` alone and the signature file that keeps
+  loads, and `shared.fsx` loads `EditorConfig.fs` and `Suggestion.fs` out of
+  `src/Fantomas.EditorConfig` and `EditorConfigFiles.fs` out of `src/Fantomas`. Those are analyzed
+  properly as part of their own project; reporting on them here would say something else about
+  them, because a script loads the `.fs` alone and the signature file that keeps
   `FANTOMAS-ANNOTATE-001` and `FANTOMAS-XMLDOC-001` quiet about them is no part of the compilation.
 
 So a clean `Scripts` run covers less ground than a clean project run, and a rule that says nothing

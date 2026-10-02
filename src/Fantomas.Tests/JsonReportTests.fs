@@ -378,7 +378,7 @@ let private healthy: Fantomas.DoctorCommand.DoctorReport =
                     UnreachableUnder = None
                 }
         Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, [], []))
-        Settings = Some(Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default)
+        Settings = Some(Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default)
         Format =
             Some(
                 Fantomas.DoctorCommand.FormatStep.Produced(
@@ -624,15 +624,15 @@ let ``a file with no ignore file above it says so, and names none`` () =
 
 [<Test>]
 let ``a setting an .editorconfig set names the file that set it`` () =
-    let resolved: Fantomas.EditorConfig.ResolvedConfig =
-        let plain: Fantomas.EditorConfig.ResolvedConfig =
-            Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default
+    let resolved: Fantomas.EditorConfigFiles.ResolvedConfig =
+        let plain: Fantomas.EditorConfigFiles.ResolvedConfig =
+            Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default
 
         { plain with
             EditorConfigFiles = [ "/repo/.editorconfig" ]
             Settings =
                 plain.Settings
-                |> List.map (fun (setting: Fantomas.EditorConfig.ResolvedSetting) ->
+                |> List.map (fun (setting: Fantomas.EditorConfigFiles.ResolvedSetting) ->
                     if setting.Setting <> "max_line_length" then
                         setting
                     else
@@ -665,7 +665,7 @@ let ``a setting Fantomas cannot use is carried with what is wrong with it`` () =
             { healthy with
                 Settings =
                     Some
-                        { Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default with
+                        { Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default with
                             Problems =
                                 [
                                     Fantomas.EditorConfig.EditorConfigProblem.UnknownSetting "fsharp_nope"

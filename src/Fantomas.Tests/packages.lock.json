@@ -247,6 +247,7 @@
           "FSharp.Core": "[10.1.203, )",
           "Fantomas.Client": "[1.0.0, )",
           "Fantomas.Core": "[1.0.0, )",
+          "Fantomas.EditorConfig": "[1.0.0, )",
           "Ignore": "[0.2.1, )",
           "Serilog": "[4.4.0, )",
           "Serilog.Sinks.Console": "[6.1.1, )",
@@ -269,6 +270,13 @@
         "dependencies": {
           "FSharp.Core": "[10.0.100, )",
           "Fantomas.FCS": "[1.0.0, )"
+        }
+      },
+      "fantomas.editorconfig": {
+        "type": "Project",
+        "dependencies": {
+          "FSharp.Core": "[10.1.203, )",
+          "Fantomas.Core": "[1.0.0, )"
         }
       },
       "fantomas.fcs": {

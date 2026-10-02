@@ -58,9 +58,10 @@ type AnalysisTarget =
     /// The scripts of this repository. Which scripts are compiled is not a choice, `runnableScripts`
     /// decides that; the file list says which of the files they reach a finding may be about, and is
     /// never empty. A script compilation includes whatever it `#load`s, and `shared.fsx` loads
-    /// `EditorConfig.fs` and `Suggestion.fs` out of `src/Fantomas`, which belong to that project's
-    /// run: a script loads the `.fs` alone, so the signature file that keeps several of the rules
-    /// quiet about them is no part of the compilation and they report as debt they are not.
+    /// `EditorConfig.fs` and `Suggestion.fs` out of `src/Fantomas.EditorConfig` and
+    /// `EditorConfigFiles.fs` out of `src/Fantomas`, which belong to those projects' runs: a script
+    /// loads the `.fs` alone, so the signature file that keeps several of the rules quiet about them
+    /// is no part of the compilation and they report as debt they are not.
     | Scripts of files: string list
 
 /// Every script a finding may be about: `build.fsx` and everything beside this file. The ones that
@@ -584,7 +585,7 @@ let analyzeTargets
                             // Every script that compiles on its own, which between them reach the
                             // ones that only ever get `#load`ed. `--include-files` is what keeps
                             // the report to scripts: a script compilation pulls in whatever it
-                            // loads, sources of `src/Fantomas` included.
+                            // loads, sources of `src/Fantomas` and `src/Fantomas.EditorConfig` included.
                             "--include-files"
                             yield! files
                             "--script"

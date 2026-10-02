@@ -22,3 +22,6 @@
 *.RTF	 diff=astextplain
 
 .github/workflows/*.lock.yml linguist-generated=true
+
+# Snapshot cases and their golds are compared byte for byte, line endings included
+src/Fantomas.Core.SnapshotTests/cases/** -text

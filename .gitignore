@@ -214,3 +214,9 @@ coverage.xml.*.acv
 
 # Analyzer reports (see the Analyze pipeline in build.fsx); analysis.sarif is covered by *.sarif
 analysisreports/
+
+# What a snapshot case or report produced when it differed from its gold
+src/Fantomas.Core.SnapshotTests/**/*.actual.*
+# What the CoverageOak and SnapshotReports pipelines write
+src/Fantomas.Core.SnapshotTests/syntaxoak-coverage.txt
+src/Fantomas.Core.SnapshotTests/reports/

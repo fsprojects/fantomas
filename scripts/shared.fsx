@@ -1,15 +1,16 @@
 #r "../artifacts/bin/Fantomas.FCS/debug/Fantomas.FCS.dll"
 #r "../artifacts/bin/Fantomas.Core/debug/Fantomas.Core.dll"
-// Must match the version `Directory.Packages.props` gives Fantomas: `EditorConfig.fs` is loaded as
-// source below and compiles against whatever this resolves.
+// Must match the version `Directory.Packages.props` gives Fantomas: `EditorConfigFiles.fs` is
+// loaded as source below and compiles against whatever this resolves.
 #r "nuget: editorconfig, 0.18.0"
 
-#load "../src/Fantomas/Suggestion.fs"
-#load "../src/Fantomas/EditorConfig.fs"
+#load "../src/Fantomas.EditorConfig/Suggestion.fs"
+#load "../src/Fantomas.EditorConfig/EditorConfig.fs"
+#load "../src/Fantomas/EditorConfigFiles.fs"
 
 open System.IO
 open Fantomas.Core
-open Fantomas.EditorConfig
+open Fantomas.EditorConfigFiles
 
 let parseEditorConfigContent (content: string) : FormatConfig =
     let tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName())
