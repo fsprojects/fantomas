@@ -153,6 +153,24 @@ let private propertyValue (case: Case.Case) (key: string) : string option =
 
 /// Check a case against the claim its path makes. `formatWith` formats the case with a given
 /// configuration; it is only called for a case under `settings/`.
+/// What a case's folders ask of its input alone, whatever formatting gives: that they claim
+/// something that makes sense, and that the setting they name is set, to its value folder when there
+/// is one.
+let inputProblems (case: Case.Case) : Problem list =
+    match claimOf case with
+    | Error reason -> [ Problem.UnknownFolder reason ]
+    | Ok claim ->
+
+    match claim.Setting with
+    | None -> []
+    | Some(key, folderValue) ->
+
+    match propertyValue case key, folderValue with
+    | None, _ -> [ Problem.SettingNotSet key ]
+    | Some written, Some folderValue when not (String.Equals(folderValue, written, StringComparison.OrdinalIgnoreCase)) ->
+        [ Problem.SettingValueDiffers(key, folderValue, written) ]
+    | Some _, _ -> []
+
 let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: FormatConfig -> string) : Problem list =
     match claimOf case with
     | Error reason -> [ Problem.UnknownFolder reason ]
@@ -165,17 +183,11 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
     let settingProblems: Problem list =
         match claim.Setting with
         | None -> []
-        | Some(key, folderValue) ->
+        | Some(key, _) ->
 
         match propertyValue case key with
-        | None -> [ Problem.SettingNotSet key ]
-        | Some written ->
-
-        let valueProblems: Problem list =
-            match folderValue with
-            | Some folderValue when not (String.Equals(folderValue, written, StringComparison.OrdinalIgnoreCase)) ->
-                [ Problem.SettingValueDiffers(key, folderValue, written) ]
-            | _ -> []
+        | None -> []
+        | Some _ ->
 
         // The setting has to matter. Reset it to the default and the result has to change.
         let withoutSetting: FormatConfig =
@@ -200,7 +212,7 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
             else
                 [ Problem.SettingHasNoEffect key ]
 
-        valueProblems @ effectProblems
+        effectProblems
 
     let nodeProblems: Problem list =
         match claim.Node with
@@ -230,11 +242,11 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
     // A negative case is its own gold, so its result must be its input. Any other case has to earn
     // its gold: a result that is the input unchanged says nothing a gold could add.
     // A result that only ends differently, with a final newline added say, earns no gold either,
-    // unless ending a file is the point of the case.
+    // unless ending a file is the point of the case: `insert_final_newline` at other than its default.
     let onlyEndChanged: bool =
         formatted.Merged <> case.Source
         && formatted.Merged.TrimEnd() = case.Source.TrimEnd()
-        && Option.isNone (propertyValue case "insert_final_newline")
+        && case.Config.InsertFinalNewline = Case.defaultConfig.InsertFinalNewline
 
     let keptProblems: Problem list =
         match claim.IsNegative, formatted.Merged = case.Source with
@@ -243,4 +255,4 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
         | false, false when onlyEndChanged -> [ Problem.OnlyEndChanged ]
         | _ -> []
 
-    keptProblems @ settingProblems @ nodeProblems
+    inputProblems case @ keptProblems @ settingProblems @ nodeProblems

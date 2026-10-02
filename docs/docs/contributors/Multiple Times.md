@@ -23,7 +23,7 @@ There is a problem with merging all the code back together.
 
 The first step is to look at each define combination on its own. Doing this will simplify the debugging process.
 Put the input in a snapshot case, in the folder of the node it is about, named after the issue:
-`src/Fantomas.Core.SnapshotTests/cases/oak/Expr/App/2844-directive-in-parenthesis-argument.fs`.
+`src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/2844-directive-in-parenthesis-argument.fs`.
 The [snapshot tests' README](https://github.com/fsprojects/fantomas/blob/main/src/Fantomas.Core.SnapshotTests/README.md) says where a case goes.
 
 ```fsharp
@@ -43,8 +43,8 @@ program.SyncAction
 
 ```shell
 dotnet build src/Fantomas.Core.SnapshotTests
-dotnet fsi scripts/format.fsx --define no-defines src/Fantomas.Core.SnapshotTests/cases/oak/Expr/App/2844-directive-in-parenthesis-argument.fs
-dotnet fsi scripts/format.fsx --define IOS src/Fantomas.Core.SnapshotTests/cases/oak/Expr/App/2844-directive-in-parenthesis-argument.fs
+dotnet fsi scripts/format.fsx --define no-defines src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/2844-directive-in-parenthesis-argument.fs
+dotnet fsi scripts/format.fsx --define IOS src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/2844-directive-in-parenthesis-argument.fs
 ```
 
 Each result should reflect only the active code branches.

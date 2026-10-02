@@ -22,10 +22,29 @@ let parseEditorConfigContent (content: string) : FormatConfig =
     File.WriteAllText(editorConfigPath, $"root = true\n\n[*.fs]\n%s{content}")
     File.WriteAllText(fsharpFile, "")
 
+    // What the tool reads, except that `end_of_line` is `lf` unless the content says otherwise, as
+    // it is for a snapshot case: `FormatConfig.Default` follows the machine.
+    let setsEndOfLine: bool =
+        System.Text.RegularExpressions.Regex.IsMatch(
+            content,
+            @"^\s*end_of_line\s*=",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            ||| System.Text.RegularExpressions.RegexOptions.Multiline
+        )
+
     try
-        match tryReadConfiguration fsharpFile with
-        | Some result -> result.Config
-        | None -> FormatConfig.Default
+        let config: FormatConfig =
+            match tryReadConfiguration fsharpFile with
+            | Some result -> result.Config
+            | None -> FormatConfig.Default
+
+        if setsEndOfLine then
+            config
+        else
+
+        { config with
+            EndOfLine = EndOfLineStyle.LF
+        }
     finally
         Directory.Delete(tempDir, true)
 
@@ -90,5 +109,6 @@ let parseArgs (args: string array) =
         let isSignature = hasSignatureFlag || path.EndsWith(".fsi")
         sample, isSignature, config, defines
     | _ ->
-        let sample = stdin.ReadToEnd()
+        // With `\n` line endings, as a case file is read, whatever the terminal sends.
+        let sample: string = stdin.ReadToEnd().Replace("\r\n", "\n")
         sample, hasSignatureFlag, config, defines

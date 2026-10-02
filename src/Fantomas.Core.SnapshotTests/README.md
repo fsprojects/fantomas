@@ -114,8 +114,9 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
 - **Fixed.** Once it gives its golds and passes every check, it fails with "rename it to
   `name.fs`". So an ignored case cannot stay ignored after its bug is gone.
 - **Folder.** What its folder asks of the input still holds: the node the folder names, and the
-  setting it names, set to its value. The result is what is known to be wrong, so the checks of
-  the result wait until the case passes.
+  setting it names, set to its value. So does what is true of its golds whatever the result: none
+  beside a case under `negative/`, and none for a define combination the input does not have. The
+  result is what is known to be wrong, so the checks of the result wait until the case passes.
 - **Both.** `name.fs` and `name.ignore.fs` cannot sit side by side.
 
 ## What every case checks
@@ -179,7 +180,8 @@ The path is checked:
   holds as well does not count: `(fun x -> x)` is no `Expr.Lambda`, it is an `Expr.ParenLambda`;
 - a case under `negative/` must come back unchanged, and any other case must not, nor may its
   result differ from the input only at its end, a final newline added say. Such a case belongs in
-  `negative/` with that ending, unless its front matter sets `insert_final_newline`.
+  `negative/` with that ending, unless its front matter sets `insert_final_newline` to other than
+  its default.
 
 ## Signature files
 

@@ -28,7 +28,7 @@ Beside it, `name.gold.fs` holds what formatting gives:
 let myInput : int = 42
 ```
 
-Put the case in the folder of the node it is about, or of the setting it shows, and start its name with the issue number when there is one: `cases/oak/Expr/App/2844-directive-in-parenthesis-argument.fs`.
+Put the case in the folder of the node it is about, or of the setting it shows, and start its name with the issue number when there is one: `cases/oak/Expr/Chain/2844-directive-in-parenthesis-argument.fs`.
 Let the test write its gold, and read it: it is what your change pins down.
 
 ```shell

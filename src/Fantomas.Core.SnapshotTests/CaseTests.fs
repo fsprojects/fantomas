@@ -55,12 +55,14 @@ let private ignored (case: Case.Case) : unit =
         Assert.Fail
             $"An ignored case needs the gold it should produce: %s{Case.relativeToProject (Case.goldPath case)}."
 
-    // A folder that claims nothing sensible is wrong whatever the result.
-    match Placement.claimOf case with
-    | Error reason -> Assert.Fail reason
-    | Ok _ -> ()
+    // What the folders ask of the input alone holds whatever formatting gives, even when it throws.
+    failWith (Placement.inputProblems case)
 
-    let passes, folderProblems =
+    // An ignored case under `negative/` is its own gold as much as any other.
+    if isNegative case && File.Exists(Case.goldPath case) then
+        failWith [ Problem.GoldNotExpected(Case.relativeToProject (Case.goldPath case)) ]
+
+    let passes, standing =
         try
             let formatted, resultProblems =
                 Formatting.formatAndCheck case.Config case.IsSignature case.Source
@@ -82,24 +84,31 @@ let private ignored (case: Case.Case) : unit =
                 else
                     File.Delete(Gold.actualPath path)
 
-            // What the folder asks of the input holds whatever the result is: the result is what is
-            // known to be wrong, so only these are reported while the case is ignored.
-            let folderProblems: Problem list =
+            // The result is what is known to be wrong, so only what holds whatever it is gets reported
+            // while the case is ignored: the node the folder names, which the input's Oak has or not,
+            // and a gold for a define combination the input does not have.
+            let missingNodes: Problem list =
                 placementProblems
                 |> List.filter (fun (problem: Problem) ->
                     match problem with
-                    | Problem.UnknownFolder _
-                    | Problem.SettingNotSet _
-                    | Problem.SettingValueDiffers _
                     | Problem.NodeMissing _ -> true
                     | _ -> false
                 )
 
-            resultProblems.IsEmpty && placementProblems.IsEmpty && mismatched.IsEmpty, folderProblems
+            let staleGolds: Problem list =
+                Case.existingGolds case
+                |> List.choose (fun (path: string) ->
+                    if List.exists (fun (gold: string, _) -> gold = path) (goldsOf case formatted) then
+                        None
+                    else
+                        Some(Problem.StaleGold(Case.relativeToProject path))
+                )
+
+            resultProblems.IsEmpty && placementProblems.IsEmpty && mismatched.IsEmpty, missingNodes @ staleGolds
         with _ ->
             false, []
 
-    failWith folderProblems
+    failWith standing
 
     if passes then
         Assert.Fail $"%s{case.RelativePath} gives its golds now: rename it to %s{case.Stem}%s{case.Extension}."
