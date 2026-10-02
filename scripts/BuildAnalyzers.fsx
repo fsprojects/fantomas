@@ -23,6 +23,11 @@ open BuildScripts
 // `analyzeTargets` and the two filters. Everything between those and the SARIF on disk is detail,
 // and detail that grew every time the reporting was made more honest.
 
+/// Whether a file is a snapshot case or one of its golds: F#, and test data rather than a source of
+/// the project around it.
+let isSnapshotCase (file: string) : bool =
+    file.Replace('\\', '/').Contains("/Fantomas.Core.SnapshotTests/cases/", StringComparison.Ordinal)
+
 /// The projects the analyzers run over: every project in the solution, minus the ones whose source
 /// is not ours to change. Fantomas.FCS is generated from the vendored compiler sources, and
 /// Fantomas.FCS.BuildTasks compiles a single vendored compiler file, so a finding in either is
@@ -39,6 +44,7 @@ let projectsToAnalyze: string list =
     // long the whole run takes. Starting with it means it is never the one left waiting for a slot.
     let sourceSize (project: string) =
         Directory.EnumerateFiles(Path.GetDirectoryName(repositoryRoot </> project), "*.fs", SearchOption.AllDirectories)
+        |> Seq.filter (isSnapshotCase >> not)
         |> Seq.sumBy (fun file -> FileInfo(file).Length)
 
     XDocument.Load(repositoryRoot </> "fantomas.slnx").XPathSelectElements("//Project")
@@ -77,12 +83,18 @@ let analyzableScripts: string list =
 /// the projects in, with the scripts last because they are the quickest to answer.
 ///
 /// Only compiled sources, project files and scripts count. A document or a test data file is not
-/// part of any compilation, so changing one leaves the analyzers with nothing new to say.
+/// part of any compilation, so changing one leaves the analyzers with nothing new to say. The
+/// snapshot cases are F# files but test data: a run that updates their golds changes hundreds of
+/// them, which would load the project for nothing and run past the length of a command line.
 ///
 /// A changed project file asks for the whole project: what it compiles is no longer what it
 /// compiled before, and there is no single source file that stands for that.
 let targetsFor (files: string list) : AnalysisTarget list =
-    let sources: string list = List.filter (hasExtension [ ".fs"; ".fsi" ]) files
+    let sources: string list =
+        files
+        |> List.filter (hasExtension [ ".fs"; ".fsi" ])
+        |> List.filter (isSnapshotCase >> not)
+
     let projectFiles: string list = List.filter (hasExtension [ ".fsproj" ]) files
     let scripts: string list = List.filter (hasExtension [ ".fsx" ]) files
 

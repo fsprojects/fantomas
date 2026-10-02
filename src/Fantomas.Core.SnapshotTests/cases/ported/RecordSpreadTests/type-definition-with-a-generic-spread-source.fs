@@ -1,1 +1,0 @@
-type T = { ...Src<int, string>; A: int }

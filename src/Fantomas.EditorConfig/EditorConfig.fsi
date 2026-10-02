@@ -34,6 +34,11 @@ val supportedSettings: string list
 /// Matched without regard to case, as editorconfig matches keys.
 val isFantomasSetting: setting: string -> bool
 
+/// Whether a value is one the editorconfig spec gives a meaning that is not a value: `unset`,
+/// `indent_size = tab`, `max_line_length = off`. Fantomas keeps its default for them without
+/// reporting a problem.
+val isSpecDefinedNonValue: setting: string -> value: string -> bool
+
 /// The supported setting closest to `setting`, when one is within `limit` edits of it. Two
 /// candidates the same distance away are separated by the order of `supportedSettings`.
 val nearestSetting: limit: int -> setting: string -> string option

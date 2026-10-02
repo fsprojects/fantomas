@@ -1,1 +1,0 @@
-let x = y?z.d?c.[2]?d.xpto()

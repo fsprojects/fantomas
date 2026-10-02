@@ -1,1 +1,0 @@
-let result = lazy (x + 10)

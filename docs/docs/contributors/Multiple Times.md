@@ -52,8 +52,8 @@ Each result should reflect only the active code branches.
 
 ```fsharp
 program.SyncAction(
-#if IOS
-#else
+    #if IOS
+    #else
     fn
 #endif
 )
@@ -62,22 +62,23 @@ program.SyncAction(
 With `IOS` defined, the code between `#else` and `#endif` is gone instead:
 
 ```fsharp
-program.SyncAction
-    (
-#if IOS
+program.SyncAction(
+    #if IOS
     // iOS animates by default layout changes, we don't want that
     fun () -> v
 #else
 #endif
-    )
+)
 ```
 
+A directive is printed where the code around it puts it, which is why some are indented here; the merge moves every one of them to the start of its line.
+What the merge needs is that every combination has its directives on lines of their own, as many of them, in the same order.
+It splits each result at its directives and stitches the pieces back together, so a combination that puts code on the line of a directive, or moves code across one, is the one to fix.
 If we do this for each combination, we can narrow the problem down to find the troublesome combination.
-The merge splits each result at its directives, so a combination that puts code on the line of a directive, or moves it across one, is the one to fix.
 
 ## Bringing it all together
 
-Once every combination prints its directives on lines of their own, the merge succeeds and the case can get its golds:
+Once every combination gives its directives that way, the merge succeeds and the case can get its golds:
 
 ```shell
 FANTOMAS_UPDATE_SNAPSHOTS=1 dotnet test src/Fantomas.Core.SnapshotTests --filter "Name~2844"
@@ -86,15 +87,14 @@ FANTOMAS_UPDATE_SNAPSHOTS=1 dotnet test src/Fantomas.Core.SnapshotTests --filter
 That writes a gold per combination, `2844-directive-in-parenthesis-argument.no-defines.gold.fs` and `2844-directive-in-parenthesis-argument.IOS.gold.fs`, which hold the results above, and `2844-directive-in-parenthesis-argument.gold.fs`, the merged result users get:
 
 ```fsharp
-program.SyncAction
-    (
+program.SyncAction(
 #if IOS
     // iOS animates by default layout changes, we don't want that
     fun () -> v
 #else
     fn
 #endif
-    )
+)
 ```
 
 Read all of them: they are what the fix pins down.

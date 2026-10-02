@@ -1,1 +1,0 @@
-let r = struct {| ...source; B = 2 |}

@@ -1,1 +1,0 @@
-type T = { ...Some.Nested.Module.Src; A: int }

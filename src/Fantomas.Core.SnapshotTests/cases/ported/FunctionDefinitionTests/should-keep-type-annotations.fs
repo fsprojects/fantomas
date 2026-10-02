@@ -1,1 +1,0 @@
-let empty<'T> : LazyList<'T> = EmptyValue<'T>.Value

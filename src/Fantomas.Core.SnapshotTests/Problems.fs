@@ -18,10 +18,13 @@ type Problem =
     // The result itself is wrong.
     | ProductionDiffers of production: string * harness: string
     | Invalid of output: Output * diagnostics: FSharpParserDiagnostic list
-    | CommentsLost of missing: Set<TriviaContent> * extra: Set<TriviaContent>
-    | CommentCountChanged of before: int * after: int
-    | DirectiveCountChanged of kind: string * before: int * after: int
+    // `defines` is the combination the source and the result were both read under, when the source
+    // has `#if`: what is in an inactive branch is only trivia under the defines that make it active.
+    | CommentsLost of defines: string list option * missing: Set<TriviaContent> * extra: Set<TriviaContent>
+    | CommentCountChanged of defines: string list option * before: int * after: int
+    | DirectivesChanged of defines: string list option * missing: string list * extra: string list
     | NotIdempotent of output: Output * again: string
+    | CrlfDiffers of crlf: string
     | TrailingWhitespace of output: Output * lines: int list
     // The case is in the wrong place.
     | UnknownFolder of reason: string
@@ -30,6 +33,7 @@ type Problem =
     | SettingHasNoEffect of key: string
     | InputNotKept of formatted: string
     | AlreadyFormatted
+    | OnlyEndChanged
     | SettingApplies of key: string * withDefault: string
     | NodeMissing of nodeClass: string
     // The gold disagrees. Paths are relative to the project.
@@ -46,8 +50,9 @@ let breaksResult (problem: Problem) : bool =
     | Problem.Invalid _
     | Problem.CommentsLost _
     | Problem.CommentCountChanged _
-    | Problem.DirectiveCountChanged _
+    | Problem.DirectivesChanged _
     | Problem.NotIdempotent _
+    | Problem.CrlfDiffers _
     | Problem.TrailingWhitespace _ -> true
     | Problem.UnknownFolder _
     | Problem.SettingNotSet _
@@ -55,6 +60,7 @@ let breaksResult (problem: Problem) : bool =
     | Problem.SettingHasNoEffect _
     | Problem.InputNotKept _
     | Problem.AlreadyFormatted
+    | Problem.OnlyEndChanged
     | Problem.SettingApplies _
     | Problem.NodeMissing _
     | Problem.NoGold _
@@ -79,18 +85,38 @@ let private diagnosticLines (diagnostics: FSharpParserDiagnostic list) : string 
     )
     |> String.concat "\n"
 
+let private under (defines: string list option) : string =
+    match defines with
+    | None -> ""
+    | Some defines -> $" (read under %s{Case.combinationName defines})"
+
+let private listed (directives: string list) : string =
+    match directives with
+    | [] -> "none"
+    | directives ->
+
+    directives
+    |> List.map (fun (directive: string) -> $"`%s{directive}`")
+    |> String.concat ", "
+
 /// A problem as the failing test words it.
 let describe (problem: Problem) : string =
     match problem with
     | Problem.ProductionDiffers(production, harness) ->
         $"The harness and `formatDocumentWith` disagree. Production gave:\n%s{production}\nThe harness gave:\n%s{harness}"
     | Problem.Invalid(output, diagnostics) -> $"%s{outputName output} is not valid F#:\n%s{diagnosticLines diagnostics}"
-    | Problem.CommentsLost(missing, extra) -> $"Comments were not preserved.\nMissing: %A{missing}\nExtra: %A{extra}"
-    | Problem.CommentCountChanged(before, after) -> $"The source has %d{before} comments and the result %d{after}."
-    | Problem.DirectiveCountChanged(kind, before, after) ->
-        $"The source has %d{before} %s{kind} and the result %d{after}."
+    | Problem.CommentsLost(defines, missing, extra) ->
+        $"Comments were not preserved%s{under defines}.\nMissing: %A{missing}\nExtra: %A{extra}"
+    | Problem.CommentCountChanged(defines, before, after) ->
+        $"The source has %d{before} comments and the result %d{after}%s{under defines}."
+    | Problem.DirectivesChanged(defines, missing, extra) ->
+        $"Conditional and warn directives were not preserved%s{under defines}.\nMissing: %s{listed missing}\nExtra: %s{listed extra}"
     | Problem.NotIdempotent(output, again) ->
         $"%s{outputName output} is not idempotent. Formatting it again gave:\n%s{again}"
+    | Problem.CrlfDiffers crlf ->
+        let shown: string = crlf.Replace("\r", "\\r")
+
+        $"With `\\r\\n` line endings in and `end_of_line = crlf`, the result is not this one with `\\r\\n` line endings. It gave, line endings shown:\n%s{shown}"
     | Problem.TrailingWhitespace(output, lines) ->
         let numbers: string =
             lines |> List.map (fun (line: int) -> $"%d{line}") |> String.concat ", "
@@ -106,6 +132,8 @@ let describe (problem: Problem) : string =
         $"The case is under `negative/`, so it is its own gold and formatting must leave it as it is. It gave:\n%s{formatted}"
     | Problem.AlreadyFormatted ->
         "The result is the input unchanged, so a gold would only repeat it. Change the input so the result earns its gold, or move the case to a `negative/` folder, where a case is its own gold."
+    | Problem.OnlyEndChanged ->
+        "The result is the input with only its end changed, a final newline added say, so a gold would show nothing else. End the input the way the result does and move the case to a `negative/` folder, where a case is its own gold."
     | Problem.SettingApplies(key, withDefault) ->
         $"The case is under `negative/`, and `%s{key}` does change it: with the setting at its default the result is:\n%s{withDefault}"
     | Problem.NodeMissing nodeClass -> $"The case is in a folder for `%s{nodeClass}` and its Oak has none."

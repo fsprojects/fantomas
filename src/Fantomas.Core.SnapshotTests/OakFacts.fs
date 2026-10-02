@@ -5,6 +5,7 @@ module Fantomas.Core.SnapshotTests.OakFacts
 open System
 open System.Collections
 open System.Reflection
+open Microsoft.FSharp.Reflection
 open Fantomas.Core.SyntaxOak
 
 /// A node and the node whose `Children` it was found in. The root has no parent.
@@ -97,6 +98,49 @@ let declaredProperties (nodeClass: System.Type) : PropertyInfo list =
     |> Array.filter (fun (property: PropertyInfo) -> property.GetIndexParameters().Length = 0)
     |> Array.distinctBy (fun (property: PropertyInfo) -> property.Name)
     |> Array.toList
+
+/// Every union case the Oak holds, as the union and the case's name: `Expr.Lambda` is there when
+/// some node holds that value, directly or in an option, a list, a tuple or a `Choice`. A node class
+/// can sit inside another node as well, as `ExprParenLambdaNode` holds an `ExprLambdaNode`, so only
+/// the union value says which case is there.
+let unionCases (oak: Oak) : (System.Type * string) list =
+    let rec casesIn (declared: System.Type) (value: obj) : (System.Type * string) list =
+        if isNull value then
+            []
+        elif isList declared then
+            let element: System.Type = declared.GetGenericArguments()[0]
+
+            value :?> System.Collections.IEnumerable
+            |> Seq.cast<obj>
+            |> Seq.toList
+            |> List.collect (casesIn element)
+        elif FSharpType.IsTuple declared then
+            Array.zip (FSharpType.GetTupleElements declared) (FSharpValue.GetTupleFields value)
+            |> Array.toList
+            |> List.collect (fun (element: System.Type, item: obj) -> casesIn element item)
+        elif FSharpType.IsUnion(declared, true) then
+            // What its case holds as well: `ModuleDecl.TypeDefn` holds a `TypeDefn`, an option or a
+            // `Choice` the value inside.
+            let case, fields = FSharpValue.GetUnionFields(value, declared, true)
+
+            let inside: (System.Type * string) list =
+                Array.zip (case.GetFields()) fields
+                |> Array.toList
+                |> List.collect (fun (field: PropertyInfo, item: obj) -> casesIn field.PropertyType item)
+
+            if declared.DeclaringType = syntaxOakModule then
+                (declared, case.Name) :: inside
+            else
+                inside
+        else
+            []
+
+    visits oak
+    |> List.collect (fun (visit: Visit) ->
+        declaredProperties (visit.Node.GetType())
+        |> List.collect (fun (property: PropertyInfo) -> casesIn property.PropertyType (property.GetValue visit.Node))
+    )
+    |> List.distinct
 
 /// The properties whose shape the report follows: optional parts and lists of parts.
 let shapeProperties (nodeClass: System.Type) : PropertyInfo list =

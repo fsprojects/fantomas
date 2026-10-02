@@ -1,3 +1,0 @@
-base.Initializer()
-global.Test()
-    

@@ -70,7 +70,9 @@ type A = A of int
 
 - **Front matter.** Optional. A block comment that starts on line 1 with `(*---` and ends with
   `---*)`, holding editorconfig properties. It is read by the code the tool uses, and anything
-  that is no setting, or a value Fantomas cannot act on, fails the case. It is stripped before
+  that is no setting, or a value Fantomas cannot act on, fails the case. So do the values the
+  editorconfig spec reserves, `unset`, `indent_size = tab` and `max_line_length = off`: the tool
+  keeps its default for them, which in a case would test something other than it says. It is stripped before
   formatting. F# lexes strings and nested comments inside a block comment, so keep any `"` in a
   description balanced, and do not write `(*` in one.
 - **Kind of file.** `name.fs` is an implementation file, `name.fsi` a signature file. A signature
@@ -111,18 +113,25 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
   `UpdateSnapshots`. What it gives today is written to the `.actual` beside a gold it misses.
 - **Fixed.** Once it gives its golds and passes every check, it fails with "rename it to
   `name.fs`". So an ignored case cannot stay ignored after its bug is gone.
+- **Folder.** What its folder asks of the input still holds: the node the folder names, and the
+  setting it names, set to its value. The result is what is known to be wrong, so the checks of
+  the result wait until the case passes.
 - **Both.** `name.fs` and `name.ignore.fs` cannot sit side by side.
 
 ## What every case checks
 
 - the result is valid F#, under every define combination;
 - every comment of the input is in the result, and as many of them;
-- the result has as many conditional directives (`#if`, `#else`, `#endif`) and warn directives
-  (`#nowarn`, `#warnon`) as the input. Both are trivia, like comments. Blank lines are left out:
-  formatting adds and removes them on purpose;
+- every conditional directive (`#if`, `#else`, `#endif`) and warn directive (`#nowarn`, `#warnon`)
+  of the input is in the result, with the same text. Both are trivia, like comments. Blank lines
+  are left out: formatting adds and removes them on purpose. Comments and directives are compared
+  under each define combination the input has, since what sits in a branch is only there under the
+  defines that keep it;
 - the result is idempotent, merged and per define combination;
 - `Node.Children` lists every node in source order;
 - no line ends in whitespace;
+- with `\r\n` line endings in and `end_of_line = crlf`, the result is the same with `\r\n` line
+  endings, for a case at the default `lf`. That is what Windows users get;
 - the harness, which formats each define combination itself, agrees with `formatDocumentWith`,
   which is what users run.
 
@@ -165,11 +174,12 @@ The path is checked:
 - a case under `settings/<key>/` must set `<key>`, to its value folder when there is one;
 - resetting `<key>` to its default must change the result, except under `negative/`, where
   neither the setting nor its default may change the input;
-- a case must contain the node its folder names;
-- a case under `negative/` must come back unchanged, and any other case must not.
-
-A union case whose node class other cases carry too, such as a bare `SingleTextNode`, cannot be
-told apart in the Oak, so its folder's node check is skipped.
+- a case must contain the node its folder names: the node class for `oak/<Node>/`, and the union
+  case itself for `oak/<Union>/<Case>/`, held by some node of the Oak. A node class some other node
+  holds as well does not count: `(fun x -> x)` is no `Expr.Lambda`, it is an `Expr.ParenLambda`;
+- a case under `negative/` must come back unchanged, and any other case must not, nor may its
+  result differ from the input only at its end, a final newline added say. Such a case belongs in
+  `negative/` with that ending, unless its front matter sets `insert_final_newline`.
 
 ## Signature files
 

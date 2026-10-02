@@ -107,6 +107,21 @@ let configOf (properties: (string * string) list) : FormatConfig =
     if not unknown.IsEmpty then
         failwith $"""The front matter sets what is not a setting: %s{String.concat ", " unknown}."""
 
+    // The tool passes over these without a word and keeps the default, which in a case can only
+    // be a mistake: the case would not test what its front matter says.
+    let nonValues: string list =
+        properties
+        |> List.choose (fun (key: string, value: string) ->
+            if isSpecDefinedNonValue (key.ToLowerInvariant()) value then
+                Some $"%s{key} = %s{value}"
+            else
+                None
+        )
+
+    if not nonValues.IsEmpty then
+        failwith
+            $"""The front matter sets what Fantomas does not act on, so the default stays: %s{String.concat ", " nonValues}."""
+
     let config, problems =
         parseOptionsFromEditorConfig defaultConfig (readOnlyDict properties)
 

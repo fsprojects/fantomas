@@ -39,10 +39,12 @@ let parseArgs (args: string array) =
     let hasSignatureFlag = args |> Array.exists (fun a -> a = "--signature")
     let defineIdx = args |> Array.tryFindIndex (fun a -> a = "--define")
 
+    // Without settings, the ones a snapshot case formats with: `end_of_line` is `lf` there, where
+    // `FormatConfig.Default` follows the machine.
     let config =
         match editorConfigIdx with
         | Some idx -> parseEditorConfigContent args.[idx + 1]
-        | None -> FormatConfig.Default
+        | None -> Fantomas.Core.SnapshotTests.Case.defaultConfig
 
     let defines =
         match defineIdx with

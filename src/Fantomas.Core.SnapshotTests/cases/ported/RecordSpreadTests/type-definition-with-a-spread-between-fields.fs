@@ -1,1 +1,0 @@
-type T = { A: int; ...Src; B: string }

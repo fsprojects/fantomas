@@ -16,27 +16,13 @@ open Fantomas.Core.SnapshotTests.Problems
 type NodeFolder =
     /// A node class every case in the folder has to contain.
     | NodeClass of System.Type
-    /// A union case whose node class other union cases carry too, such as every case holding a
-    /// bare `SingleTextNode`. Nothing in the Oak tells them apart, so only SyntaxOak coverage can
-    /// say whether a case has one.
+    /// A union case every case in the folder has to contain: `Expr.Lambda` for `Expr/Lambda/`.
+    | UnionCase of union: System.Type * caseName: string
+    /// A folder that names no node, such as `ported/<old test file>/`.
     | Unchecked of reason: string
 
 let private nestedTypes: System.Type array =
     OakFacts.syntaxOakModule.GetNestedTypes(BindingFlags.Public ||| BindingFlags.NonPublic)
-
-/// How many union cases, over every union in the Oak, carry a field of each type, by its full name.
-let private unionCaseFieldUse: Map<string, int> =
-    nestedTypes
-    |> Array.filter FSharpType.IsUnion
-    |> Array.collect (fun (union: System.Type) ->
-        FSharpType.GetUnionCases(union, true)
-        |> Array.collect (fun (case: UnionCaseInfo) ->
-            case.GetFields()
-            |> Array.map (fun (field: PropertyInfo) -> field.PropertyType.FullName)
-        )
-    )
-    |> Array.countBy id
-    |> Map.ofArray
 
 /// Resolve the folders that name a node: `[ "TypeDefn"; "Union" ]` for a union case, or
 /// `[ "UnionCase" ]` for a node class, which is the folder name with `Node` after it.
@@ -66,19 +52,7 @@ let resolveNodeFolder (folders: string list) : Result<NodeFolder, string> =
         | None -> Error $"`%s{unionName}` has no case `%s{caseName}`."
         | Some case ->
 
-        match case.GetFields() with
-        | [| field |] when
-            typeof<Node>.IsAssignableFrom field.PropertyType
-            && Map.tryFind field.PropertyType.FullName unionCaseFieldUse = Some 1
-            ->
-            Ok(NodeClass field.PropertyType)
-        | fields ->
-            let carried: string =
-                fields
-                |> Array.map (fun (field: PropertyInfo) -> field.PropertyType.Name)
-                |> String.concat ", "
-
-            Ok(Unchecked $"`%s{unionName}.%s{caseName}` carries %s{carried}, which other union cases carry as well.")
+        Ok(UnionCase(union, case.Name))
     | folders -> Error $"""`%s{String.concat "/" folders}` is too deep to name a node."""
 
 /// The `FormatConfig` field behind every setting, by the name it is written under.
@@ -231,6 +205,15 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
     let nodeProblems: Problem list =
         match claim.Node with
         | Unchecked _ -> []
+        | UnionCase(union, caseName) ->
+            let holds: bool =
+                oaks
+                |> List.exists (fun (oak: Oak) -> OakFacts.unionCases oak |> List.contains (union, caseName))
+
+            if holds then
+                []
+            else
+                [ Problem.NodeMissing $"%s{union.Name}.%s{caseName}" ]
         | NodeClass nodeClass ->
 
         let visits: OakFacts.Visit list = oaks |> List.collect OakFacts.visits
@@ -246,10 +229,18 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
 
     // A negative case is its own gold, so its result must be its input. Any other case has to earn
     // its gold: a result that is the input unchanged says nothing a gold could add.
+    // A result that only ends differently, with a final newline added say, earns no gold either,
+    // unless ending a file is the point of the case.
+    let onlyEndChanged: bool =
+        formatted.Merged <> case.Source
+        && formatted.Merged.TrimEnd() = case.Source.TrimEnd()
+        && Option.isNone (propertyValue case "insert_final_newline")
+
     let keptProblems: Problem list =
         match claim.IsNegative, formatted.Merged = case.Source with
         | true, false -> [ Problem.InputNotKept formatted.Merged ]
         | false, true -> [ Problem.AlreadyFormatted ]
+        | false, false when onlyEndChanged -> [ Problem.OnlyEndChanged ]
         | _ -> []
 
     keptProblems @ settingProblems @ nodeProblems

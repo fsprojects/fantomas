@@ -27,7 +27,8 @@ All of these accept a file path or stdin, with optional `--signature` and `--edi
 
 A snapshot case (`src/Fantomas.Core.SnapshotTests/cases/`) can be passed as it is: its front matter
 is read as its settings. `scripts/format.fsx` formats the way a case is formatted and reports every
-problem the snapshot tests would fail the case on.
+problem the snapshot tests find in the result; whether the case sits in the right folder and
+matches its golds, only running the case says.
 
 Scripts require a debug build first (`dotnet build src/Fantomas.Core.SnapshotTests`): they reference
 the snapshot test assembly, and building it builds Fantomas.Core and Fantomas.FCS too.

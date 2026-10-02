@@ -55,7 +55,12 @@ let private ignored (case: Case.Case) : unit =
         Assert.Fail
             $"An ignored case needs the gold it should produce: %s{Case.relativeToProject (Case.goldPath case)}."
 
-    let passes: bool =
+    // A folder that claims nothing sensible is wrong whatever the result.
+    match Placement.claimOf case with
+    | Error reason -> Assert.Fail reason
+    | Ok _ -> ()
+
+    let passes, folderProblems =
         try
             let formatted, resultProblems =
                 Formatting.formatAndCheck case.Config case.IsSignature case.Source
@@ -77,9 +82,24 @@ let private ignored (case: Case.Case) : unit =
                 else
                     File.Delete(Gold.actualPath path)
 
-            resultProblems.IsEmpty && placementProblems.IsEmpty && mismatched.IsEmpty
+            // What the folder asks of the input holds whatever the result is: the result is what is
+            // known to be wrong, so only these are reported while the case is ignored.
+            let folderProblems: Problem list =
+                placementProblems
+                |> List.filter (fun (problem: Problem) ->
+                    match problem with
+                    | Problem.UnknownFolder _
+                    | Problem.SettingNotSet _
+                    | Problem.SettingValueDiffers _
+                    | Problem.NodeMissing _ -> true
+                    | _ -> false
+                )
+
+            resultProblems.IsEmpty && placementProblems.IsEmpty && mismatched.IsEmpty, folderProblems
         with _ ->
-            false
+            false, []
+
+    failWith folderProblems
 
     if passes then
         Assert.Fail $"%s{case.RelativePath} gives its golds now: rename it to %s{case.Stem}%s{case.Extension}."
@@ -146,9 +166,16 @@ let ``every file under cases belongs to a case`` () =
         else
 
         Directory.GetFiles(Case.casesDirectory, "*", SearchOption.AllDirectories)
+        // A hidden file, such as the `.DS_Store` macOS leaves in a folder, is no one's to place.
+        |> Array.filter (fun (path: string) -> not (Path.GetFileName(path).StartsWith('.')))
         |> Array.choose (fun (path: string) ->
             let name: string = Path.GetFileName path
-            let stem: string = name.Substring(0, name.IndexOf '.')
+
+            let stem: string =
+                match name.IndexOf '.' with
+                | -1 -> name
+                | dot -> name.Substring(0, dot)
+
             let extension: string = Path.GetExtension path
 
             let isGoldOrActual: bool =
