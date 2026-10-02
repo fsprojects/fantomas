@@ -106,10 +106,13 @@ let case (relativePath: string) =
     let isNegative: bool = isNegative case
     let golds: (string * string) list = goldsOf case formatted
 
-    // A result that is itself wrong is not written as a gold, not even when updating: it would be
-    // compared against from then on.
+    // Updating leaves the golds alone while the result is itself wrong, which would be compared
+    // against from then on, or while the case is not where it belongs, which is what to fix first.
     let goldProblems: Problem list =
-        if Case.isUpdating && List.exists breaksResult resultProblems then
+        if
+            Case.isUpdating
+            && (List.exists breaksResult resultProblems || not placementProblems.IsEmpty)
+        then
             []
         else
 
