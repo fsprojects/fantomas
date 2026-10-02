@@ -5031,6 +5031,7 @@ let genException (node: ExceptionDefnNode) =
     +> sepSpace
     +> genAccessOpt node.Accessibility
     +> genUnionCase false node.UnionCase
+    +> optSingle (fun alias -> sepSpace +> sepEqFixed +> sepSpace +> genIdentListNode alias) node.Abbreviation
     +> onlyIf
         (not node.Members.IsEmpty)
         (sepSpace

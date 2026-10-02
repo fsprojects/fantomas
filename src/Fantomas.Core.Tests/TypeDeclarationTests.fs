@@ -68,6 +68,54 @@ exception FooException with // comment
 """
 
 [<Test>]
+let ``exception abbreviation keeps its right-hand side, 3511`` () =
+    formatSourceString
+        """
+exception MyError = System.Exception
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+exception MyError = System.Exception
+"""
+
+[<Test>]
+let ``exception abbreviation in signature file`` () =
+    formatSignatureString
+        """
+namespace Moon
+
+exception MyError = System.Exception
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Moon
+
+exception MyError = System.Exception
+"""
+
+[<Test>]
+let ``exception abbreviation with members`` () =
+    formatSourceString
+        """
+exception MyError = System.Exception with
+    member x.Foo = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+exception MyError = System.Exception with
+    member x.Foo = 1
+"""
+
+[<Test>]
 let ``comment between xml doc and exception keyword, 3483`` () =
     formatSourceString
         """

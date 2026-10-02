@@ -21,6 +21,15 @@ All of these accept a file path or stdin, with optional `--signature` and `--edi
 
 Scripts require a debug build first (`dotnet build src/Fantomas/Fantomas.fsproj`).
 
+## Breaking changes to the Oak
+
+The node types in `SyntaxOak.fs` are public, but a breaking change to them is fine in any release,
+a patch release included. Change a node's constructor or members however a fix needs, without a
+compatibility overload, and without calling it out as a breaking change. Leave Oak changes out of
+`docs/docs/end-users/UpgradeGuide.md`: its "The Oak" section tells readers to diff `SyntaxOak.fs`
+between tags instead. Code generation on top of the Oak is told to expect
+this (`docs/docs/end-users/GeneratingCode.fsx`, "Updates").
+
 ## Code Style
 
 The style rules for this repository are analyzers rather than prose, so the feedback arrives while

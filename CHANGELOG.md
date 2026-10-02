@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Exception abbreviation loses its right-hand side. [#3511](https://github.com/fsprojects/fantomas/issues/3511)
+
 ## [8.0.6] - 2026-10-01
 
 ### Changed

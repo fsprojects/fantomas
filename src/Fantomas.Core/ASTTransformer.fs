@@ -2496,7 +2496,13 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
 
     match decl with
     | SynModuleDecl.Expr(e, _) -> mkExpr creationAide e |> ModuleDecl.DeclExpr
-    | SynModuleDecl.Exception(SynExceptionDefn(SynExceptionDefnRepr(attrs, caseName, _, xmlDoc, vis, _, trivia),
+    | SynModuleDecl.Exception(SynExceptionDefn(SynExceptionDefnRepr(attrs,
+                                                                    caseName,
+                                                                    abbreviation,
+                                                                    xmlDoc,
+                                                                    vis,
+                                                                    _,
+                                                                    trivia),
                                                withKeyword,
                                                ms,
                                                _),
@@ -2507,6 +2513,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             stn "exception" trivia.ExceptionKeyword,
             mkSynAccess vis,
             mkSynUnionCase creationAide caseName,
+            Option.map mkLongIdent abbreviation,
             Option.map (stn "with") withKeyword,
             List.map (mkMemberDefn creationAide) ms,
             declRange
@@ -3893,7 +3900,13 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
     let declRange = decl.Range
 
     match decl with
-    | SynModuleSigDecl.Exception(SynExceptionSig(SynExceptionDefnRepr(attrs, caseName, _, xmlDoc, vis, _, trivia),
+    | SynModuleSigDecl.Exception(SynExceptionSig(SynExceptionDefnRepr(attrs,
+                                                                      caseName,
+                                                                      abbreviation,
+                                                                      xmlDoc,
+                                                                      vis,
+                                                                      _,
+                                                                      trivia),
                                                  withKeyword,
                                                  ms,
                                                  _),
@@ -3904,6 +3917,7 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
             stn "exception" trivia.ExceptionKeyword,
             mkSynAccess vis,
             mkSynUnionCase creationAide caseName,
+            Option.map mkLongIdent abbreviation,
             Option.map (stn "with") withKeyword,
             List.map (mkMemberSig creationAide) ms,
             declRange
