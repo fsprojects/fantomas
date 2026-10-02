@@ -14,6 +14,7 @@ graph TD
     B[Fantomas.Core] --> C[Fantomas]
     B --> D[Fantomas.Benchmarks]
     B --> E[Fantomas.Core.Tests]
+    B --> I[Fantomas.Core.SnapshotTests]
     C --> F[Fantomas.Tests]
     G[Fantomas.Client] --> H[Fantomas.Client.Tests]
 ```
@@ -49,9 +50,15 @@ Editors do not use `Fantomas.Core`, instead they use the `Fantomas.Client` libra
 This allows end-users to bring their "own version" of Fantomas.
 This selected version could then later be re-used to verify if all files were formatted in a CI scenario.
 
+## Fantomas.Core.SnapshotTests
+
+The formatting tests of `Fantomas.Core`, as files: every input under `cases/` sits beside the result
+formatting gives for it. Its README says how to write a case.
+
 ## Fantomas.Core.Tests
 
-A suite of unit tests that target the core formatting functionalities of `Fantomas.Core`.
+Unit tests of the internals of `Fantomas.Core`, and of what a snapshot case cannot show, such as
+formatting a syntax tree without its source.
 
 ## Fantomas.Tests
 

@@ -47,9 +47,9 @@ type Formatted =
         Combinations: ForDefines list
     }
 
-/// Format the way `CodeFormatterImpl.formatDocumentWith` does, one step at a time, so that the
-/// result of every define combination and the Oak it came from are in hand.
-let formatEach (config: FormatConfig) (isSignature: bool) (source: string) : Formatted =
+/// The result of every define combination on its own, before they are merged, and the Oak each
+/// came from.
+let formatCombinations (config: FormatConfig) (isSignature: bool) (source: string) : ForDefines list =
     let sourceText: ISourceText = CodeFormatterImpl.getSourceText source
 
     let trees: (ParsedInput * DefineCombination) array =
@@ -82,6 +82,13 @@ let formatEach (config: FormatConfig) (isSignature: bool) (source: string) : For
                 Oak = oak
             }
         )
+
+    combinations
+
+/// Format the way `CodeFormatterImpl.formatDocumentWith` does, one step at a time, so that the
+/// result of every define combination and the Oak it came from are in hand.
+let formatEach (config: FormatConfig) (isSignature: bool) (source: string) : Formatted =
+    let combinations: ForDefines list = formatCombinations config isSignature source
 
     let merged: string =
         match combinations with

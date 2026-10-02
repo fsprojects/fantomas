@@ -10,39 +10,33 @@ In general, changes should be made as consistent to the current code base as pos
 Don't introduce unnecessary new concepts and try and change as little code as possible to achieve your goal.
 
 Always start with the mindset that you are going to introduce a change that might have an impact on how the tool behaves.
-Capture this change first in a unit test. Set your expectations in the assert part of the test before touching anything.
+Capture this change first in a test. Set your expectations before touching anything.
 This project is very well suited for [Test-driven development](https://en.wikipedia.org/wiki/Test-driven_development) and that should be the goal.
 
-Typical unit test template:
+A formatting test is a snapshot case: a file in `src/Fantomas.Core.SnapshotTests/cases/` with the input, and its settings, if any, in a comment on top:
 
 ```fsharp
-[<Test>]
-let ``my new test`` () =
-    formatSourceString false """
-let myInput =     42
-"""  config
-    |> prepend newline
-    |> should equal """
-let myInput = 42
-"""
+(*---
+fsharp_space_before_colon = true
+---*)
+let myInput:int =     42
 ```
 
-The vast majority of the tests use the template listed above. Only deviate from this when necessary.
-Try and find a suitable file in `Fantomas.Core.Tests`, or introduce a new file.
-
-A new test file should look like:
+Beside it, `name.gold.fs` holds what formatting gives:
 
 ```fsharp
-module Fantomas.Core.Tests.MyNewConceptTests
-
-open NUnit.Framework
-open FsUnit
-open Fantomas.Core.Tests.TestHelpers
-
-// add tests here...
+let myInput : int = 42
 ```
 
-Filename: `MyNewConceptTests.fs`.
+Put the case in the folder of the node it is about, or of the setting it shows, and start its name with the issue number when there is one: `cases/oak/Expr/App/2844-directive-in-parenthesis-argument.fs`.
+Let the test write its gold, and read it: it is what your change pins down.
+
+```shell
+FANTOMAS_UPDATE_SNAPSHOTS=1 dotnet test src/Fantomas.Core.SnapshotTests --filter "Name~2844"
+```
+
+The [snapshot tests' README](https://github.com/fsprojects/fantomas/blob/main/src/Fantomas.Core.SnapshotTests/README.md) has the rest: where a case goes, what every case checks, how to keep an input formatting must leave alone, and how to write the case for a bug that is not fixed yet.
+`Fantomas.Core.Tests` is for what a case cannot show: unit tests of internals.
 
 When developing a new feature, add new tests to cover all code paths.
 

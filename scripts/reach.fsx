@@ -1,42 +1,32 @@
-// What each test reaches in Fantomas.Core, one test at a time: every old test in Fantomas.Core.Tests
-// and every snapshot case. And from that, coverage parity: what the old tests reach that the snapshot
-// cases do not.
+// What each test reaches in Fantomas.Core, one test at a time: every unit test in
+// Fantomas.Core.Tests and every snapshot case.
 //
 //   dotnet fsi build.fsx -- -p CoverageReach      instrument, build, and run this
 //
 // AltCover's own tracking of which test reached what loses the test at the first async hop, which
 // formatting is full of. So this script calls the tests itself, one after the other, and between two
-// tests reads and clears the table of visits AltCover's recorder keeps. Both test assemblies run
-// against the one instrumented Fantomas.Core, so a point is the same point for both.
+// tests reads and clears what AltCover's recorder keeps. Both test assemblies run against the one
+// instrumented Fantomas.Core, so a point is the same point for both.
 //
 // Produces, in artifacts/coverage/:
-//   reach.tsv     every test, its suite, and the points it reached
-//   parity.md     what the old tests reach and the snapshot cases do not, by source line
+//   reach.tsv     every test and case, its suite, whether it passed, and the points it reached
 
 open System
 open System.Collections
 open System.IO
 open System.Reflection
 open System.Runtime.Loader
-open System.Xml.Linq
 
 let repository: string = Path.GetFullPath(Path.Combine(__SOURCE_DIRECTORY__, ".."))
 let artifacts: string = Path.Combine(repository, "artifacts")
 let coverageDirectory: string = Path.Combine(artifacts, "coverage")
 
-/// Where `CoverageReach` leaves the instrumented Fantomas.Core, beside the old tests it ran with.
+/// Where `CoverageReach` leaves the instrumented Fantomas.Core, beside the unit tests it ran with.
 let instrumented: string =
     Path.Combine(artifacts, "bin", "Fantomas.Core.Tests", "release", "__Instrumented_Fantomas.Core.Tests")
 
 let snapshotBinaries: string =
     Path.Combine(artifacts, "bin", "Fantomas.Core.SnapshotTests", "release")
-
-/// The OpenCover report AltCover writes when it instruments: what each point is, in the source.
-let instrumentationReport: string =
-    Path.Combine(coverageDirectory, "fantomas-core.xml")
-
-let ledgerPath: string =
-    Path.Combine(repository, "src", "Fantomas.Core.SnapshotTests", "porting-ledger.tsv")
 
 // The instrumented assemblies first, so that the snapshot tests format with the instrumented
 // Fantomas.Core rather than the plain one beside them.
@@ -52,7 +42,7 @@ let load (folder: string) (name: string) : Assembly =
     AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.Combine(folder, name + ".dll"))
 
 let recorder: Assembly = load instrumented "AltCover.Recorder.g"
-let oldTests: Assembly = load instrumented "Fantomas.Core.Tests"
+let unitTests: Assembly = load instrumented "Fantomas.Core.Tests"
 let snapshotTests: Assembly = load snapshotBinaries "Fantomas.Core.SnapshotTests"
 
 let everyStatic: BindingFlags =
@@ -91,7 +81,7 @@ let take () : int list =
 type Reach =
     {
         Suite: string
-        /// `old` tests: the file and the test name, as the ledger has them. Snapshot cases: the path.
+        /// Unit tests: the file and the test name. Snapshot cases: the path.
         Name: string
         Passed: bool
         Points: Set<int>
@@ -165,10 +155,10 @@ let attributeNamed (name: string) (methodInfo: MethodInfo) : obj list =
     |> Array.filter (fun (attribute: obj) -> attribute.GetType().Name = name)
     |> Array.toList
 
-/// Every old test as NUnit runs it: `[<Test>]`, and `[<TestCase>]` once per case. Ignored tests do
+/// Every unit test as NUnit runs it: `[<Test>]`, and `[<TestCase>]` once per case. Ignored tests do
 /// not run, so they reach nothing.
-let oldReach: Reach list =
-    oldTests.GetTypes()
+let unitReach: Reach list =
+    unitTests.GetTypes()
     |> Array.toList
     |> List.collect (fun (testType: Type) ->
         testType.GetMethods(everyStatic ||| BindingFlags.DeclaredOnly)
@@ -193,15 +183,15 @@ let oldReach: Reach list =
         match attributeNamed "TestAttribute" methodInfo, cases with
         | [], [] -> []
         | _, [] when methodInfo.GetParameters().Length = 0 ->
-            [ measure "old" name (fun () -> methodInfo.Invoke(null, [||]) |> ignore) ]
+            [ measure "unit" name (fun () -> methodInfo.Invoke(null, [||]) |> ignore) ]
         | _, cases ->
             cases
             |> List.map (fun (arguments: obj array) ->
-                measure "old" name (fun () -> methodInfo.Invoke(null, arguments) |> ignore)
+                measure "unit" name (fun () -> methodInfo.Invoke(null, arguments) |> ignore)
             )
     )
 
-eprintfn $"%d{oldReach.Length} old tests measured"
+eprintfn $"%d{unitReach.Length} unit tests measured"
 
 let snapshotReach: Reach list =
     let all: MethodInfo =
@@ -222,55 +212,15 @@ Directory.CreateDirectory coverageDirectory |> ignore
 
 File.WriteAllLines(
     Path.Combine(coverageDirectory, "reach.tsv"),
-    oldReach @ snapshotReach
+    unitReach @ snapshotReach
     |> List.map (fun (reach: Reach) ->
         let points: string = reach.Points |> Seq.map string |> String.concat " "
         $"%s{reach.Suite}\t%s{reach.Name}\t%b{reach.Passed}\t%s{points}"
     )
 )
 
-// --- Parity ------------------------------------------------------------------------------------
-
-/// A branch point's visit has the top bit set; a method's visit is its metadata token, 0x06xxxxxx,
-/// and says nothing its sequence points do not.
-let branchFlag: int = Int32.MinValue
-
+/// A method's visit is its metadata token, 0x06xxxxxx, and says nothing its sequence points do not.
 let isMethodToken (point: int) : bool = point > 0 && point >= 0x06000000
-
-/// Where each point is: the file and line, and whether it is a branch.
-let locations: Map<int, string * int * bool> =
-    let report: XDocument = XDocument.Load instrumentationReport
-    let attribute (element: XElement) (name: string) : string = element.Attribute(XName.Get name).Value
-
-    let files: Map<string, string> =
-        report.Descendants(XName.Get "File")
-        |> Seq.map (fun (file: XElement) ->
-            attribute file "uid", Path.GetRelativePath(repository, attribute file "fullPath").Replace('\\', '/')
-        )
-        |> Map.ofSeq
-
-    let pointsOf (elementName: string) (isBranch: bool) : (int * (string * int * bool)) seq =
-        report.Descendants(XName.Get elementName)
-        |> Seq.map (fun (point: XElement) ->
-            let id: int = int (attribute point "uspid")
-
-            let location: string * int * bool =
-                files[attribute point "fileid"], int (attribute point "sl"), isBranch
-
-            (if isBranch then id ||| branchFlag else id), location
-        )
-
-    Seq.append (pointsOf "SequencePoint" false) (pointsOf "BranchPoint" true)
-    |> Map.ofSeq
-
-/// The old tests the converter made no case of, by file and name: they stay unless dropped.
-let notConverted: Set<string> =
-    File.ReadAllLines ledgerPath
-    |> Array.skip 1
-    |> Array.map (fun (line: string) -> line.Split '\t')
-    |> Array.filter (fun (fields: string array) -> fields[3] = "exception")
-    |> Array.map (fun (fields: string array) -> $"%s{fields[0]}\t%s{fields[2]}")
-    |> Set.ofArray
 
 let unionOf (reaches: Reach list) : Set<int> =
     reaches
@@ -278,83 +228,10 @@ let unionOf (reaches: Reach list) : Set<int> =
     |> Set.unionMany
     |> Set.filter (isMethodToken >> not)
 
-let oldPoints: Set<int> = unionOf oldReach + warmUp
+let unitPoints: Set<int> = unionOf unitReach + warmUp
 let snapshotPoints: Set<int> = unionOf snapshotReach + warmUp
 
-let keptReach: Reach list =
-    oldReach |> List.filter (fun (reach: Reach) -> notConverted.Contains reach.Name)
-
-let keptPoints: Set<int> = unionOf keptReach
-
-let onlyOld: Set<int> = oldPoints - snapshotPoints
-let missedWhenKept: Set<int> = onlyOld - keptPoints
-
-let describePoints (points: Set<int>) (reaches: Reach list) : string list =
-    points
-    |> Set.toList
-    |> List.choose (fun (point: int) -> Map.tryFind point locations |> Option.map (fun location -> point, location))
-    |> List.groupBy (fun (_, (file, line, _)) -> file, line)
-    |> List.sortBy fst
-    |> List.map (fun ((file, line), pointsHere) ->
-        let kinds: string =
-            pointsHere
-            |> List.map (fun (_, (_, _, isBranch)) -> if isBranch then "branch" else "line")
-            |> List.countBy id
-            |> List.map (fun (kind, n) ->
-                if n = 1 then
-                    kind
-                else
-                    $"%d{n} %s{kind}es".Replace("linees", "lines")
-            )
-            |> String.concat ", "
-
-        let reachedBy: string =
-            reaches
-            |> List.filter (fun (reach: Reach) ->
-                pointsHere |> List.exists (fun (point, _) -> reach.Points.Contains point)
-            )
-            |> List.truncate 3
-            |> List.map (fun (reach: Reach) -> $"`%s{reach.Name.Replace('\t', ' ')}`")
-            |> String.concat ", "
-
-        $"- `%s{file}:%d{line}` (%s{kinds}), by %s{reachedBy}"
-    )
-
-/// The tests the converter left out that reach a point nothing else does: what keeping them buys.
-let neededKept: (Reach * int) list =
-    keptReach
-    |> List.map (fun (reach: Reach) -> reach, Set.count (Set.intersect reach.Points onlyOld))
-    |> List.filter (fun (_, n) -> n > 0)
-    |> List.sortByDescending snd
-
-let parity: string =
-    [
-        "# Coverage parity"
-        ""
-        $"The old tests reach %d{oldPoints.Count} points of Fantomas.Core, the snapshot cases %d{snapshotPoints.Count}."
-        $"%d{onlyOld.Count} points are reached by old tests only, and %d{missedWhenKept.Count} of them by none of the old tests the converter left out."
-        ""
-        "## Reached by the old tests and no snapshot case, nor any old test that stays"
-        ""
-        yield! describePoints missedWhenKept oldReach
-        ""
-        "## Old tests that stay and reach what no snapshot case does"
-        ""
-        for reach, n in neededKept do
-            $"- `%s{reach.Name.Replace('\t', ' ')}`: %d{n} points"
-        ""
-        "## Reached by the old tests and no snapshot case"
-        ""
-        yield! describePoints onlyOld oldReach
-    ]
-    |> String.concat "\n"
-
-File.WriteAllText(Path.Combine(coverageDirectory, "parity.md"), parity)
-
-let failedOld: int =
-    oldReach |> List.filter (fun (reach: Reach) -> not reach.Passed) |> List.length
-
-printfn $"Old tests: %d{oldReach.Length}, %d{oldPoints.Count} points (%d{failedOld} did not pass outside NUnit)."
+printfn $"Unit tests: %d{unitReach.Length}, %d{unitPoints.Count} points."
 printfn $"Snapshot cases: %d{snapshotReach.Length}, %d{snapshotPoints.Count} points."
-printfn $"Reached by old tests only: %d{onlyOld.Count}; of those, by no old test that stays: %d{missedWhenKept.Count}."
+printfn $"Reached by unit tests and no snapshot case: %d{(unitPoints - snapshotPoints).Count}."
 printfn $"Written to %s{coverageDirectory}"

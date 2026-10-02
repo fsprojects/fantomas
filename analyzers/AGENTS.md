@@ -176,7 +176,7 @@ It stays quiet on a `when` guard, because a multiline guard takes a path in `Cod
 indents the body whatever column it is in, and whether a guard prints multiline is a page width
 question rather than a tree one. It stays quiet on a conditional directive inside the match. And it
 offers no fix, because re-indenting a block means leaving the multiline strings inside it exactly
-where they are, which is not a thing to do blind, least of all in `Fantomas.Core.Tests`.
+where they are, which is not a thing to do blind, least of all in tests.
 
 `match`, `match!` and `function` all reach the same clause printer, so all three are covered. So is
 the final `else` of an `if`, which reaches `genKeepIdentIfThenElse` rather than

@@ -6,8 +6,13 @@ F# source code formatter. Parses F# to an untyped AST (via vendored FCS), transf
 
 ```bash
 dotnet build fantomas.slnx
+dotnet test src/Fantomas.Core.SnapshotTests/
 dotnet test src/Fantomas.Core.Tests/
 ```
+
+Formatting is tested by snapshot cases, files under `src/Fantomas.Core.SnapshotTests/cases/`, each
+beside the result formatting gives for it; that project's README says how to write one.
+`Fantomas.Core.Tests` holds the unit tests of internals.
 
 ## Diagnostic Scripts
 
@@ -15,7 +20,7 @@ All of these accept a file path or stdin, with optional `--signature` and `--edi
 
 - `scripts/ast.fsx` — untyped AST
 - `scripts/oak.fsx` — Oak tree
-- `scripts/format.fsx` — format with local build
+- `scripts/format.fsx` - format with local build; `--define A,B` (or `no-defines`) prints that one define combination before the merge
 - `scripts/writer-events.fsx` — writer events produced during formatting
 - `scripts/chain.fsx` - ExprChain structure (head, segments, terminal); ignores `--editorconfig`
 - `scripts/trivia.fsx` - where each piece of trivia landed: node, token, side and kind
@@ -95,8 +100,8 @@ owns a changed `.fs` or `.fsi`, and is then analyzed for those files alone. A ch
 asks for the whole project, because what it compiles is no longer what it compiled before. A
 changed `.fsx` is reported on through the `Scripts` target.
 
-Scoping it to the changed files is what makes this quick: analyzing one file of
-`Fantomas.Core.Tests` takes seconds where the whole project takes minutes.
+Scoping it to the changed files is what makes this quick: a project is checked file by file, so a
+few files of it take a fraction of the whole.
 
 Everything it reports is about the code in front of you: findings in files you did not touch are
 dropped, and a few rules that report on pre-existing debt are narrowed to the lines `git diff` says
@@ -107,9 +112,9 @@ to act on a run. What comes out is the thing to fix.
 dotnet fsi build.fsx -- -p Analyze
 ```
 
-This analyzes every file of every project, and the scripts. The test projects are the largest of the
-solution and decide how long that takes: the smallest projects report within seconds, the scripts in
-about four, `Fantomas.Core.Tests` takes a couple of minutes. Run it before opening a pull request,
+This analyzes every file of every project, and the scripts. The projects are analyzed side by side,
+so the slowest decides how long that takes: the smallest report within seconds, the scripts in about
+fifteen, and `Fantomas.Core`, the slowest, in about a minute. Run it before opening a pull request,
 and while working use `AnalyzeChanged`, which cannot see a finding your change causes in a file you
 did not edit.
 

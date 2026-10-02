@@ -25,7 +25,12 @@ open BuildCompiler
 
 /// Every test project, by name. Each writes its raw coverage beside its own project file.
 let coverageProjects: string list =
-    [ "Fantomas.Core.Tests"; "Fantomas.Tests"; "Fantomas.Client.Tests" ]
+    [
+        "Fantomas.Core.Tests"
+        "Fantomas.Core.SnapshotTests"
+        "Fantomas.Tests"
+        "Fantomas.Client.Tests"
+    ]
 
 let coverageXmlFiles: string list =
     coverageProjects
@@ -99,8 +104,9 @@ pipeline "Benchmark" {
 // integration. Every test project is run under AltCover, each measuring the one assembly it is
 // there to exercise, and ReportGenerator merges the three results into a single report.
 //
-// So `Fantomas.Core`'s figure comes from `Fantomas.Core.Tests` alone, even though `Fantomas.Tests`
-// exercises Core heavily through real formatting. Core is understated here rather than wrong.
+// So `Fantomas.Core`'s figure comes from `Fantomas.Core.Tests` and `Fantomas.Core.SnapshotTests`, whose
+// two reports ReportGenerator merges, even though `Fantomas.Tests` exercises Core heavily through
+// real formatting. Core is understated here rather than wrong.
 //
 // The filter is a negative lookahead naming the three assemblies to instrument. Everything else
 // is left alone, which keeps the generated Fantomas.FCS parser and the test assemblies
@@ -134,6 +140,7 @@ pipeline "Coverage" {
 
     stage "Coverage" {
         run (coverageCommand "Fantomas.Core.Tests" @"Fantomas\.Core")
+        run (coverageCommand "Fantomas.Core.SnapshotTests" @"Fantomas\.Core")
         run (coverageCommand "Fantomas.Tests" "fantomas")
         run (coverageCommand "Fantomas.Client.Tests" @"Fantomas\.Client")
     }
@@ -165,7 +172,8 @@ pipeline "Coverage" {
 let snapshotsDir: string =
     __SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core.SnapshotTests"
 
-let syntaxOakCoverageXml: string = snapshotsDir </> "coverage.xml"
+// Not `coverage.xml`, which the `Coverage` pipeline writes for this project.
+let syntaxOakCoverageXml: string = snapshotsDir </> "syntaxoak-coverage.xml"
 
 let syntaxOakCoverageSummary: string = snapshotsDir </> "syntaxoak-coverage.txt"
 
@@ -309,7 +317,7 @@ let summarizeSyntaxOakCoverage () : Async<int> =
 // between filters, and every such method has `ToString` in its name.
 //
 // Produces:
-//   src/Fantomas.Core.SnapshotTests/coverage.xml            raw OpenCover XML
+//   src/Fantomas.Core.SnapshotTests/syntaxoak-coverage.xml  raw OpenCover XML
 //   src/Fantomas.Core.SnapshotTests/syntaxoak-coverage.txt  what was not reached, by class
 pipeline "CoverageOak" {
     workingDir __SOURCE_DIRECTORY__
@@ -328,23 +336,21 @@ pipeline "CoverageOak" {
     runIfOnlySpecified true
 }
 
-/// Where `CoverageReach` writes: the instrumentation report, what each test reached, and parity.
+/// Where `CoverageReach` writes: the instrumentation report, and what each test reached.
 let coverageReachDir: string = artifactsDir </> "coverage"
 
 let coverageReachXml: string = coverageReachDir </> "fantomas-core.xml"
 
 let coreTestsDir: string = __SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core.Tests"
 
-// What every old test and every snapshot case reaches in Fantomas.Core, each on its own, and what
-// the old tests reach that no snapshot case does. The old tests are run once under AltCover, which
-// leaves an instrumented Fantomas.Core beside them; `scripts/reach.fsx` then calls every test and
-// every case against it, one at a time. The filter only keeps that run short: what it ran is not
-// what is measured.
+// What every unit test and every snapshot case reaches in Fantomas.Core, each on its own. The unit
+// tests are run once under AltCover, which leaves an instrumented Fantomas.Core beside them;
+// `scripts/reach.fsx` then calls every test and every case against it, one at a time. The filter
+// only keeps that run short: what it ran is not what is measured.
 //
 // Produces:
 //   artifacts/coverage/fantomas-core.xml   what each point is, in the source
 //   artifacts/coverage/reach.tsv           every test and case, and the points it reached
-//   artifacts/coverage/parity.md           what the old tests reach and the snapshot cases do not
 pipeline "CoverageReach" {
     workingDir __SOURCE_DIRECTORY__
 

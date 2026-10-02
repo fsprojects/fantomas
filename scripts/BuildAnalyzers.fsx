@@ -331,8 +331,8 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
 /// findings arrive while the run is still going and no two projects can interleave their lines.
 ///
 /// A target that names files is analyzed for those files alone. The project is still loaded and
-/// type checked, but a whole project is checked file by file, so looking at one file of
-/// `Fantomas.Core.Tests` takes seconds where the whole project takes minutes.
+/// type checked, but a whole project is checked file by file, so looking at a few files of it takes a
+/// fraction of the whole.
 ///
 /// Whatever is analyzed here is what `analysis.sarif` holds afterwards, so a run over a couple of
 /// files replaces the report of an earlier run over the solution.

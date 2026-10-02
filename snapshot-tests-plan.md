@@ -4,31 +4,23 @@
 
 State on 2026-10-02, branch `gold`, draft pull request https://github.com/fsprojects/fantomas/pull/3512.
 
-The port is mechanical now. Porting by hand, folder by folder with an agent judging each test, was
-dropped: nobody can review 3,000 judgements, so nothing could vouch that no test was lost.
-`scripts/convert.fsx` converts the old tests instead, without judging any, and proves each one
-against its case. The project README ("The ported tests") is the reference for how.
+The switch is done in the working tree: the old formatting tests are converted and deleted.
 
-Where it stands:
-
-- `cases/ported/<old test file>/` holds 2,940 cases (640 negative, 6 ignored) made from 2,942 old
-  tests.
-  Every one of those tests' expected outputs was compared with the harness result before writing.
-- `convert.fsx -- --check` regenerates everything in memory and fails on any difference with
-  `ported/` or `porting-ledger.tsv`. It was shown to catch a changed gold and a stray file.
-- No ignored test passes today. 6 became ignored cases (`name.ignore.fs`, gold = what the test
-  expects, skipped with the reason, failing once it passes; README "Ignored cases").
-- 225 tests are not converted, each with its reason in the ledger: 199 in unit test files, and
-  26 more. 9 never run and go (5 without `[<Test>]`, 4 ignored define tests: the user agreed). 17
-  stay as unit tests: 9 `formatAST` and 1 hand-built tree (`FormatASTAsync`, no source), 6 stress
-  tests (1,000 declarations, a very long string; they only check for no stack overflow), 1 that
-  checks a parse error throws.
-- **One pull request.** The user wants the switch in this one PR, without a period where both
-  suites live side by side. So no `--check` in CI: the converter runs a last time before the old
-  tests go, and then goes itself.
-- The 36 hand-written cases under `oak/` and `settings/` that no old test is behind stay, as
-  extra cases. The 95 hand ports of old tests were deleted: `ported/` has those tests now.
-- `scripts/ledger.fsx` and `scripts/review.fsx` are gone; the converter writes the ledger.
+- `cases/ported/<old test file>/` holds 2,950 cases (644 negative, 6 ignored) made by a converter
+  that verified every old test's expected output against the harness. A last `--check` passed
+  before the deletion, and coverage parity held (0 points lost). The converter and its ledger are
+  deleted; their final versions (reading the test files from the fsproj, which caught
+  `BlankLinesAroundNestedMultilineExpressions.fs`) are also kept in `/tmp/final-converter/`.
+- `Fantomas.Core.Tests` keeps 216 tests: the 13 unit test files, plus the 10 syntax tree tests moved
+  into `FormatAstTests.fs`, the 6 stack overflow tests into a new `StackOverflowTests.fs`, and the
+  parse error test into `CodeFormatterTests.fs`. The 9 tests that never ran were dropped.
+- `CoverageReach` (`scripts/reach.fsx`) now measures the unit tests and the cases, without parity.
+  `Coverage` counts the snapshot tests for Fantomas.Core too; `CoverageOak` writes
+  `syntaxoak-coverage.xml`.
+- `scripts/format.fsx --define A,B` (or `no-defines`) prints one define combination before the merge,
+  which the contributor docs on multiple defines now use in place of `formatSourceStringWithDefines`.
+- Contributor docs, `AGENTS.md` and analyzer notes point at snapshot cases.
+- Left for the end of the PR: delete this plan file (it was committed in `5f9e292b1`).
 
 Decisions that stand:
 
@@ -52,28 +44,8 @@ Decisions that stand:
 
 ## Next
 
-1. **The 49 tests that are not unit tests and not converted.** Small converter extensions would
-   take some: a test calling a helper twice is two cases, a parameterised test one case per
-   `TestCase`. The rest stay listed. Decide per reason, not per test.
-2. **Coverage for new work.** Turn the per-test measurement into a script: for the cases named, or
-   the uncommitted ones, list every changed line of `src/Fantomas.Core` that no case reaches and
-   every changed branch where only one side is taken. Then the README and `AGENTS.md` say: when you
-   fix a bug or change printing, add a case under `oak/` or `settings/`, run it, and close what it
-   reports.
-3. **The leftovers are decided.** The converter learned file helpers, several steps per test,
-   parameterised tests, interpolated strings and formatting a result again, which took 17 more.
-   The 9 that never run go with the deletion; the 17 above and the unit tests stay.
-
-## Phase 3: removing the old tests, in this pull request
-
-Only when all of these hold:
-
-- [ ] `convert.fsx -- --check` passes.
-- [x] Coverage parity holds (`CoverageReach`, `artifacts/coverage/parity.md`); rerun before deleting.
-- [ ] Every test the ledger lists as not converted is either kept as a unit test or dropped for a
-      reason the user agreed to.
-
-Then, in this same PR: delete the converted tests from `Fantomas.Core.Tests`, keep the unit tests
-there, and delete `convert.fsx` and the ledger, which only mean something while the old tests exist.
-Rewrite the README's "The ported tests" to say what `ported/` is without them. `ported/` stays as
-it is; its folders can be split by node later, a rename at a time.
+1. **Coverage for new work.** A script on top of `reach.tsv`: for the cases named, or the uncommitted
+   ones, list every changed line of `src/Fantomas.Core` that no case reaches and every changed branch
+   where only one side is taken. Then the README and `AGENTS.md` say: when you fix a bug or change
+   printing, add a case under `oak/` or `settings/`, run it, and close what it reports.
+2. **Delete this file** in the last commit of the PR.

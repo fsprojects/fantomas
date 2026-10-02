@@ -220,4 +220,5 @@ analysisreports/
 src/Fantomas.Core.SnapshotTests/**/*.actual.*
 # What the CoverageOak and SnapshotReports pipelines write
 src/Fantomas.Core.SnapshotTests/syntaxoak-coverage.txt
+src/Fantomas.Core.SnapshotTests/syntaxoak-coverage.xml
 src/Fantomas.Core.SnapshotTests/reports/

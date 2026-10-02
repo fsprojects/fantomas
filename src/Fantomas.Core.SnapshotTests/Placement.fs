@@ -125,8 +125,8 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
             folders
 
     match folders with
-    // Converted from Fantomas.Core.Tests by `scripts/convert.fsx`, one folder per file the tests came
-    // from. Those files are not about one node or one setting, so the folders claim nothing more.
+    // The tests Fantomas.Core.Tests had, one folder per file they were in. Those files are not about
+    // one node or one setting, so the folders claim nothing more.
     | "ported" :: _ ->
         Ok
             {

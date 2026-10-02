@@ -20,6 +20,32 @@ let format (input: string) (isSignature: bool) (config: FormatConfig) : string =
     with ex ->
         $"Error while formatting: %A{ex}"
 
+/// The result for one define combination on its own, before the merge: what a case's per-define gold
+/// holds. `--define no-defines` is the combination without any. When the merge of all combinations
+/// fails, this shows each of them.
+let formatCombination (input: string) (isSignature: bool) (config: FormatConfig) (defines: string list) : string =
+    let wanted: string list =
+        defines
+        |> List.filter (fun (define: string) -> define <> "" && define <> "no-defines")
+        |> List.sort
+
+    let combinations: Formatting.ForDefines list =
+        Formatting.formatCombinations config isSignature input
+
+    match
+        combinations
+        |> List.tryFind (fun (each: Formatting.ForDefines) -> List.sort each.Defines = wanted)
+    with
+    | Some each -> each.Code
+    | None ->
+
+    let names: string =
+        combinations
+        |> List.map (fun (each: Formatting.ForDefines) -> Case.combinationName each.Defines)
+        |> String.concat ", "
+
+    $"The input has no combination %s{Case.combinationName wanted}. It has: %s{names}."
+
 match Array.tryHead fsi.CommandLineArgs with
 | Some scriptPath ->
     let scriptFile: FileInfo = FileInfo(scriptPath)
@@ -28,6 +54,9 @@ match Array.tryHead fsi.CommandLineArgs with
         FileInfo(Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__))
 
     if scriptFile.FullName = sourceFile.FullName then
-        let sample, isSignature, config, _ = parseArgs fsi.CommandLineArgs.[1..]
-        format sample isSignature config |> printfn "%s"
-| _ -> printfn "Usage: dotnet fsi format.fsx [--editorconfig <content>] <input file>"
+        let sample, isSignature, config, defines = parseArgs fsi.CommandLineArgs.[1..]
+
+        match defines with
+        | [] -> format sample isSignature config |> printfn "%s"
+        | defines -> formatCombination sample isSignature config defines |> printfn "%s"
+| _ -> printfn "Usage: dotnet fsi format.fsx [--editorconfig <content>] [--define A,B] <input file>"
