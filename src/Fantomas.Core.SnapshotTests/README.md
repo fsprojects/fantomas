@@ -100,6 +100,19 @@ type A = A of int
   comment, trailing whitespace, or disagreeing with production) is never written as a gold, not
   even by `UpdateSnapshots`.
 
+## Ignored cases
+
+A case for a bug that is not fixed yet is `name.ignore.fs`. Its golds hold what formatting should
+give, written by hand: `name.gold.fs`, the same name it will have once the `.ignore` goes.
+
+- **Reason.** The front matter's `#` description says why it is ignored, an issue link at best. A
+  run lists the case as skipped with that reason, and fails a case that gives none.
+- **Comparing.** Only the golds the case has are compared, and nothing writes them, not even
+  `UpdateSnapshots`. What it gives today is written to the `.actual` beside a gold it misses.
+- **Fixed.** Once it gives its golds and passes every check, it fails with "rename it to
+  `name.fs`". So an ignored case cannot stay ignored after its bug is gone.
+- **Both.** `name.fs` and `name.ignore.fs` cannot sit side by side.
+
 ## What every case checks
 
 - the result is valid F#, under every define combination;
@@ -203,9 +216,12 @@ file. Nothing in it was judged or rewritten:
   harness result: the merged gold, or, for `formatSourceStringWithDefines`, the result for its
   defines merged with itself, as that helper does. A test whose result is its input becomes a
   negative case. A case's name comes from its first test's name, its issue number first.
+- **Ignored tests.** An `[<Ignore>]` test is checked like any other and converted once it passes.
+  Until then it becomes an ignored case, its reason as the description and its expected output as
+  the gold. One that formats a single define combination cannot: no gold holds that output.
 - **The rest.** A test that does not fit stays where it is and is listed with the reason: the unit
-  test files, `formatAST` tests (which format a tree without its source, so without trivia),
-  ignored tests, tests without `[<Test>]`, and the few whose body does something else.
+  test files, `formatAST` tests (which format a tree without its source, so without trivia), tests
+  without `[<Test>]`, and the few whose body does something else.
 
 `porting-ledger.tsv` is written by the converter alongside: one row per old test, with the case it
 became or why there is none.

@@ -607,7 +607,7 @@ type Row =
         File: string
         Line: int
         Test: string
-        /// `case`, `negative` or `exception`.
+        /// `case`, `negative`, `ignored` or `exception`.
         Outcome: string
         /// The case, relative to `cases/`, or why there is none.
         Detail: string
@@ -630,130 +630,222 @@ let tests: (string * int * string * Result<Call * string, string>) array =
     )
     |> List.toArray
 
+/// What became of a test.
+[<NoComparison; NoEquality>]
+type Outcome =
+    /// Its expectation holds: a case, shared with the tests of its file that format the same.
+    | Converted of Call * Verified
+    /// It is ignored and its expectation does not hold: a case of its own, `name.ignore.fs`, whose
+    /// gold is what the test expects.
+    | Ignored of call: Call * properties: (string * string) list * source: string * expected: string
+    | NotConverted of reason: string
+
+/// An ignored test that does not pass. Its expected output becomes the gold of an ignored case, which
+/// only works for an output a gold can hold: the merged result, not one define combination's.
+let ignoredOutcome (call: Call) (expected: string) (why: string) : Outcome =
+    match call.Defines, propertiesOf call.Config with
+    | Some _, _ -> NotConverted $"is ignored, %s{why}, and formats one define combination, which no gold holds"
+    | None, Error reason -> NotConverted $"is ignored, and %s{reason}"
+    | None, Ok properties ->
+
+    let config: FormatConfig = Case.configOf properties
+    let input: string = normalise call.Input
+
+    let merged (source: string) : string option =
+        try
+            Some (Formatting.formatEach config call.IsSignature source).Merged
+        with _ ->
+            None
+
+    // The newline a triple quoted input starts with goes when formatting gives the same without it.
+    let source: string =
+        if
+            input.StartsWith "\n"
+            && Option.isSome (merged input)
+            && merged (input.Substring 1) = merged input
+        then
+            input.Substring 1
+        else
+            input
+
+    Ignored(call, properties, source, normalise expected)
+
 // Not in parallel: fsi runs a script inside the initialiser of the class it compiles it to, so a
 // second thread calling a function of the script waits for that initialiser to finish.
-let outcomes: (string * int * string * Result<Call * Verified, string>) array =
+let outcomes: (string * int * string * Outcome) array =
     tests
     |> Array.mapi (fun (index: int) (file, line, name, parsed) ->
         if index % 500 = 0 then
             eprintfn $"%d{index} of %d{tests.Length} tests"
 
-        let outcome: Result<Call * Verified, string> =
-            parsed
-            |> Result.bind (fun (call: Call, expected: string) ->
-                outcomeOf call expected
-                |> Result.map (fun verified -> call, verified)
-                |> Result.mapError (fun (why: string) ->
-                    match call.Ignored with
-                    | None -> why
-                    | Some _ -> $"is ignored, and %s{why}"
-                )
-            )
+        let outcome: Outcome =
+            match parsed with
+            | Error reason -> NotConverted reason
+            | Ok(call, expected) ->
+
+            match outcomeOf call expected, call.Ignored with
+            | Ok verified, _ -> Converted(call, verified)
+            | Error why, None -> NotConverted why
+            | Error why, Some _ -> ignoredOutcome call expected why
 
         file, line, name, outcome
     )
 
-/// The tests of one file that format the same source with the same settings become one case.
+/// A case to write, before it has a name of its own in its folder.
 [<NoComparison; NoEquality>]
-type Group =
+type Planned =
     {
+        /// `ported/` and the old test file, without `.fs`.
         Folder: string
         Name: string
-        IsSignature: bool
-        Verified: Verified
+        Extension: string
+        IsNegative: bool
+        /// The reason the old test gave, for an ignored case.
+        Ignored: string option
+        Properties: (string * string) list
+        Source: string
+        /// Each gold, by what comes between the case name and the extension: `gold`, `DEBUG.gold`.
+        Golds: (string * string) list
+        /// The tests it comes from: their line and name.
         Tests: (int * string) list
     }
 
-let groups: Group list =
+let folderOf (file: string) : string =
+    "ported/" + file.Substring(0, file.Length - ".fs".Length)
+
+let extensionOf (isSignature: bool) : string = if isSignature then ".fsi" else ".fs"
+
+/// The tests of one file that format the same source with the same settings become one case.
+let converted: Planned list =
     outcomes
     |> Array.choose (fun (file, line, name, outcome) ->
         match outcome with
-        | Ok(call, verified) -> Some(file, line, name, call, verified)
-        | Error _ -> None
+        | Converted(call, verified) -> Some(file, line, name, call, verified)
+        | Ignored _
+        | NotConverted _ -> None
     )
     |> Array.groupBy (fun (file, _, _, call, verified) -> file, call.IsSignature, verified.Source, verified.Properties)
     |> Array.toList
     |> List.map (fun ((file, isSignature, _, _), members) ->
         let _, _, firstName, _, verified = members[0]
+        let negative: bool = verified.Formatted.Merged = verified.Source
 
         {
-            Folder = "ported/" + file.Substring(0, file.Length - ".fs".Length)
+            Folder = folderOf file
             Name = caseNameOf firstName
-            IsSignature = isSignature
-            Verified = verified
+            Extension = extensionOf isSignature
+            IsNegative = negative
+            Ignored = None
+            Properties = verified.Properties
+            Source = verified.Source
+            Golds =
+                [
+                    if not negative then
+                        "gold", verified.Formatted.Merged
+
+                    match verified.Formatted.Combinations with
+                    | [ _ ] -> ()
+                    | combinations ->
+                        for each in combinations do
+                            $"%s{Case.combinationName each.Defines}.gold", each.Code
+                ]
             Tests = members |> Array.map (fun (_, line, name, _, _) -> line, name) |> Array.toList
         }
     )
 
-let isNegative (group: Group) : bool =
-    group.Verified.Formatted.Merged = group.Verified.Source
+let ignoredCases: Planned list =
+    outcomes
+    |> Array.toList
+    |> List.choose (fun (file, line, name, outcome) ->
+        match outcome with
+        | Ignored(call, properties, source, expected) ->
+            let negative: bool = expected = source
 
-/// Where each group's case goes, relative to `cases/`. Two names that come out the same in a folder
-/// are told apart by a number.
-let placed: (Group * string) list =
-    groups
-    |> List.groupBy (fun (group: Group) -> group.Folder, isNegative group)
+            Some
+                {
+                    Folder = folderOf file
+                    Name = caseNameOf name
+                    Extension = extensionOf call.IsSignature
+                    IsNegative = negative
+                    Ignored = call.Ignored
+                    Properties = properties
+                    Source = source
+                    Golds = if negative then [] else [ ("gold", expected) ]
+                    Tests = [ line, name ]
+                }
+        | Converted _
+        | NotConverted _ -> None
+    )
+
+/// Where each case goes, relative to `cases/`, and the path its golds are named after. Two names
+/// that come out the same in a folder are told apart by a number, an ignored case's among them.
+let placed: (Planned * string * string) list =
+    converted @ ignoredCases
+    |> List.groupBy (fun (planned: Planned) -> planned.Folder, planned.IsNegative)
     |> List.collect (fun ((folder, negative), inFolder) ->
         let folder: string = if negative then $"%s{folder}/negative" else folder
 
         inFolder
         |> List.mapFold
-            (fun (taken: Map<string, int>) (group: Group) ->
-                let extension: string = if group.IsSignature then ".fsi" else ".fs"
-                let key: string = group.Name + extension
+            (fun (taken: Map<string, int>) (planned: Planned) ->
+                let key: string = planned.Name + planned.Extension
                 let seen: int = Map.tryFind key taken |> Option.defaultValue 0
 
                 let name: string =
                     if seen = 0 then
-                        group.Name
+                        planned.Name
                     else
-                        $"%s{group.Name}-%d{seen + 1}"
+                        $"%s{planned.Name}-%d{seen + 1}"
 
-                (group, $"%s{folder}/%s{name}%s{extension}"), taken.Add(key, seen + 1)
+                let ignore: string = if planned.Ignored.IsSome then Case.ignoreSuffix else ""
+
+                (planned, $"%s{folder}/%s{name}%s{ignore}%s{planned.Extension}", $"%s{folder}/%s{name}"),
+                taken.Add(key, seen + 1)
             )
             Map.empty
         |> fst
     )
 
-/// The files a case is, relative to `cases/`, with what they hold: the case, its merged gold unless
-/// it is negative, and a gold per define combination when it has several.
-let filesOf (group: Group, relativePath: string) : (string * string) list =
+/// The files a case is, relative to `cases/`, with what they hold.
+let filesOf (planned: Planned, casePath: string, goldStem: string) : (string * string) list =
+    let lines: string list =
+        [
+            match planned.Ignored with
+            | None -> ()
+            | Some "" -> "# Ignored in Fantomas.Core.Tests, which gave no reason."
+            | Some reason -> $"# %s{reason}"
+
+            for key, value in planned.Properties do
+                $"%s{key} = %s{value}"
+        ]
+
     let frontMatter: string =
-        match group.Verified.Properties with
+        match lines with
         | [] -> ""
-        | properties ->
+        | lines ->
 
-        let lines: string =
-            properties
-            |> List.map (fun (key, value) -> $"%s{key} = %s{value}\n")
-            |> String.concat ""
+        let joined: string =
+            lines |> List.map (fun (line: string) -> line + "\n") |> String.concat ""
 
-        $"(*---\n%s{lines}---*)\n"
-
-    let directory: string = Path.GetDirectoryName(relativePath).Replace('\\', '/')
-    let stem: string = Path.GetFileNameWithoutExtension relativePath
-    let extension: string = Path.GetExtension relativePath
+        $"(*---\n%s{joined}---*)\n"
 
     [
-        relativePath, frontMatter + group.Verified.Source
-
-        if not (isNegative group) then
-            $"%s{directory}/%s{stem}.gold%s{extension}", group.Verified.Formatted.Merged
-
-        match group.Verified.Formatted.Combinations with
-        | [ _ ] -> ()
-        | combinations ->
-            for each in combinations do
-                $"%s{directory}/%s{stem}.%s{Case.combinationName each.Defines}.gold%s{extension}", each.Code
+        casePath, frontMatter + planned.Source
+        for suffix, content in planned.Golds do
+            $"%s{goldStem}.%s{suffix}%s{planned.Extension}", content
     ]
 
-let caseOf: Map<string * int, string * bool> =
+let caseOf: Map<string * int, string * string> =
     placed
-    |> List.collect (fun (group: Group, relativePath: string) ->
-        let file: string = group.Folder.Substring("ported/".Length) + ".fs"
+    |> List.collect (fun (planned: Planned, casePath: string, _) ->
+        let file: string = planned.Folder.Substring("ported/".Length) + ".fs"
 
-        group.Tests
-        |> List.map (fun (line, _) -> (file, line), (relativePath, isNegative group))
+        let outcome: string =
+            if planned.Ignored.IsSome then "ignored"
+            elif planned.IsNegative then "negative"
+            else "case"
+
+        planned.Tests |> List.map (fun (line, _) -> (file, line), (casePath, outcome))
     )
     |> Map.ofList
 
@@ -762,22 +854,22 @@ let rows: Row list =
     |> Array.toList
     |> List.map (fun (file, line, name, outcome) ->
         match outcome, caseOf.TryFind(file, line) with
-        | Ok _, Some(case, negative) ->
-            {
-                File = file
-                Line = line
-                Test = name
-                Outcome = if negative then "negative" else "case"
-                Detail = case
-            }
-        | Ok _, None -> failwith $"%s{file}:%d{line} was verified and placed nowhere."
-        | Error reason, _ ->
+        | NotConverted reason, _ ->
             {
                 File = file
                 Line = line
                 Test = name
                 Outcome = "exception"
                 Detail = reason
+            }
+        | _, None -> failwith $"%s{file}:%d{line} was converted and placed nowhere."
+        | _, Some(case, kind) ->
+            {
+                File = file
+                Line = line
+                Test = name
+                Outcome = kind
+                Detail = case
             }
     )
 
@@ -808,6 +900,8 @@ let differences () : string list =
         else
 
         Directory.GetFiles(portedDirectory, "*", SearchOption.AllDirectories)
+        // What a failing or ignored case gave last is no part of the port, and git ignores it.
+        |> Array.filter (fun (path: string) -> not (Path.GetFileName(path).Contains ".actual."))
         |> Array.map (fun (path: string) ->
             Path.GetRelativePath(Case.casesDirectory, path).Replace('\\', '/'), File.ReadAllText path
         )
@@ -848,15 +942,18 @@ match mode with
 let count (outcome: string) : int =
     rows |> List.filter (fun row -> row.Outcome = outcome) |> List.length
 
-let caseTests, negativeTests, exceptionTests =
-    count "case", count "negative", count "exception"
+let caseTests, negativeTests, ignoredTests, exceptionTests =
+    count "case", count "negative", count "ignored", count "exception"
 
-let negativeCases: int = placed |> List.filter (fst >> isNegative) |> List.length
+let negativeCases: int =
+    placed
+    |> List.filter (fun (planned: Planned, _, _) -> planned.IsNegative && planned.Ignored.IsNone)
+    |> List.length
 
 printfn
-    $"%d{rows.Length} tests: %d{caseTests} verified against a gold, %d{negativeTests} against their own input, %d{exceptionTests} not converted"
+    $"%d{rows.Length} tests: %d{caseTests} verified against a gold, %d{negativeTests} against their own input, %d{ignoredTests} ignored, %d{exceptionTests} not converted"
 
-printfn $"%d{placed.Length} cases, %d{negativeCases} of them negative"
+printfn $"%d{placed.Length} cases, %d{negativeCases} of them negative and %d{ignoredTests} ignored"
 
 rows
 |> List.filter (fun row -> row.Outcome = "exception")

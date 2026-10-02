@@ -522,7 +522,7 @@ CommentTests.fs	1324	comment after semicolon on next line	case	ported/CommentTes
 CommentTests.fs	1340	file end with newline followed by comment, 1649	case	ported/CommentTests/1649-file-end-with-newline-followed-by-comment.fs
 CommentTests.fs	1381	block comment above let binding	case	ported/CommentTests/block-comment-above-let-binding.fs
 CommentTests.fs	1396	comment right after first token	case	ported/CommentTests/comment-right-after-first-token.fs
-CommentTests.fs	1413	block comment followed by line comment	exception	is ignored, and the harness result differs from the expected one
+CommentTests.fs	1413	block comment followed by line comment	ignored	ported/CommentTests/block-comment-followed-by-line-comment.ignore.fs
 CommentTests.fs	1429	line comment after source code	negative	ported/CommentTests/negative/line-comment-after-source-code.fs
 CommentTests.fs	1443	line comment after hash define	negative	ported/CommentTests/negative/line-comment-after-hash-define.fs
 CommentTests.fs	1459	line comment after interpolated string	negative	ported/CommentTests/negative/line-comment-after-interpolated-string.fs
@@ -668,8 +668,8 @@ CompilerDirectivesTests.fs	2205	backslashes in strings prior to hash directives 
 CompilerDirectivesTests.fs	2253	directive above SynExpr.Do, 1333	case	ported/CompilerDirectivesTests/1333-directive-above-synexpr-do.fs
 CompilerDirectivesTests.fs	2313	simple hash directive consider as one trivia	case	ported/CompilerDirectivesTests/simple-hash-directive-consider-as-one-trivia.fs
 CompilerDirectivesTests.fs	2335	hash if and hash else should be one trivia	case	ported/CompilerDirectivesTests/hash-if-and-hash-else-should-be-one-trivia.fs
-CompilerDirectivesTests.fs	2358	hash nested in multiline string	exception	is ignored, and the harness result differs from the expected one
-CompilerDirectivesTests.fs	2385	hash nested in multiline block comment	exception	is ignored, and the harness result differs from the expected one
+CompilerDirectivesTests.fs	2358	hash nested in multiline string	exception	is ignored, the harness result differs from the expected one, and formats one define combination, which no gold holds
+CompilerDirectivesTests.fs	2385	hash nested in multiline block comment	exception	is ignored, the harness result differs from the expected one, and formats one define combination, which no gold holds
 CompilerDirectivesTests.fs	2416	empty hash directive block should not make expression multiline	case	ported/CompilerDirectivesTests/empty-hash-directive-block-should-not-make-expression.fs
 CompilerDirectivesTests.fs	2446	comment after compiler define	case	ported/CompilerDirectivesTests/comment-after-compiler-define.fs
 CompilerDirectivesTests.fs	2479	content after #else and #endif, 2293	negative	ported/CompilerDirectivesTests/negative/2293-content-after-else-and-endif.fs
@@ -1354,7 +1354,7 @@ IfThenElseTests.fs	1888	multiline pattern match inside if expression, match bang
 IfThenElseTests.fs	1967	multiline yield bang in then expression, 1185	case	ported/IfThenElseTests/1185-multiline-yield-bang-in-then-expression.fs
 IfThenElseTests.fs	2006	infix operation with long function call, 1564	case	ported/IfThenElseTests/1564-infix-operation-with-long-function-call.fs
 IfThenElseTests.fs	2035	multiline infix expression in if expression, 1584	case	ported/IfThenElseTests/1584-multiline-infix-expression-in-if-expression.fs
-IfThenElseTests.fs	2074	line comment before multiline if expression, 1588	exception	is ignored, and the harness result differs from the expected one
+IfThenElseTests.fs	2074	line comment before multiline if expression, 1588	ignored	ported/IfThenElseTests/1588-line-comment-before-multiline-if-expression.ignore.fs
 IfThenElseTests.fs	2121	comment after then of else if, 1606	case	ported/IfThenElseTests/1606-comment-after-then-of-else-if.fs
 IfThenElseTests.fs	2176	multiline else if expression with nested if/then/else in body	case	ported/IfThenElseTests/multiline-else-if-expression-with-nested-if-then-else-in.fs
 IfThenElseTests.fs	2237	multiline elif expression with nested if/then/else in body	case	ported/IfThenElseTests/multiline-elif-expression-with-nested-if-then-else-in-body.fs
@@ -2718,10 +2718,10 @@ Stroustrup/SynBindingValueExpressionTests.fs	859	single line block comment befor
 Stroustrup/SynBindingValueExpressionTests.fs	879	multiline block comment before closing list bracket	negative	ported/Stroustrup/SynBindingValueExpressionTests/negative/multiline-block-comment-before-closing-list-bracket.fs
 Stroustrup/SynBindingValueExpressionTests.fs	906	hash define before closing list bracket	case	ported/Stroustrup/SynBindingValueExpressionTests/hash-define-before-closing-list-bracket.fs
 Stroustrup/SynBindingValueExpressionTests.fs	929	line comment after source after last item in list	negative	ported/Stroustrup/SynBindingValueExpressionTests/negative/line-comment-after-source-after-last-item-in-list.fs
-Stroustrup/SynBindingValueExpressionTests.fs	947	multiline block comment after source after last item in list	exception	is ignored, and the harness result differs from the expected one
-Stroustrup/SynBindingValueExpressionTests.fs	986	comment before closing list bracket with hash directive, something defined	exception	is ignored, and the harness result differs from the expected one
-Stroustrup/SynBindingValueExpressionTests.fs	1016	comment before closing list bracket with hash directive, nothing defined	exception	is ignored, and the harness result differs from the expected one
-Stroustrup/SynBindingValueExpressionTests.fs	1046	comment before closing list bracket with hash directive	exception	is ignored, and the harness result differs from the expected one
+Stroustrup/SynBindingValueExpressionTests.fs	947	multiline block comment after source after last item in list	ignored	ported/Stroustrup/SynBindingValueExpressionTests/negative/multiline-block-comment-after-source-after-last-item-in-list.ignore.fs
+Stroustrup/SynBindingValueExpressionTests.fs	986	comment before closing list bracket with hash directive, something defined	exception	is ignored, the harness result differs from the expected one, and formats one define combination, which no gold holds
+Stroustrup/SynBindingValueExpressionTests.fs	1016	comment before closing list bracket with hash directive, nothing defined	exception	is ignored, the harness result differs from the expected one, and formats one define combination, which no gold holds
+Stroustrup/SynBindingValueExpressionTests.fs	1046	comment before closing list bracket with hash directive	ignored	ported/Stroustrup/SynBindingValueExpressionTests/comment-before-closing-list-bracket-with-hash-directive.ignore.fs
 Stroustrup/SynBindingValueExpressionTests.fs	1076	empty array with blank line inside, 3098	case	ported/Stroustrup/SynBindingValueExpressionTests/3098-empty-array-with-blank-line-inside.fs
 Stroustrup/SynBindingValueExpressionTests.fs	1094	empty array with comment inside, 3098	case	ported/Stroustrup/SynBindingValueExpressionTests/3098-empty-array-with-comment-inside.fs
 Stroustrup/SynExprAndBangExpressionTests.fs	15	andBang with record instance	case	ported/Stroustrup/SynExprAndBangExpressionTests/andbang-with-record-instance.fs
@@ -2752,12 +2752,12 @@ Stroustrup/SynMatchClauseExpressionTests.fs	434	async indentation when inside of
 Stroustrup/SynMatchClauseExpressionTests.fs	472	clause indentation when combining clauses with OR and returning a short list, 2586	case	ported/Stroustrup/SynMatchClauseExpressionTests/2586-clause-indentation-when-combining-clauses-with-or-and.fs
 Stroustrup/SynMatchClauseExpressionTests.fs	494	don't apply stroustrup when the token has trivia after it, 2806	case	ported/Stroustrup/SynMatchClauseExpressionTests/2806-don-t-apply-stroustrup-when-the-token-has-trivia-after-it.fs
 Stroustrup/SynTypeDefnSigReprSimpleTests.fs	14	record type definition	case	ported/Stroustrup/SynTypeDefnSigReprSimpleTests/record-type-definition.fsi
-Stroustrup/SynTypeDefnSigReprSimpleTests.fs	40	record type definition with comment after equals	exception	is ignored, and the harness result differs from the expected one
+Stroustrup/SynTypeDefnSigReprSimpleTests.fs	40	record type definition with comment after equals	ignored	ported/Stroustrup/SynTypeDefnSigReprSimpleTests/record-type-definition-with-comment-after-equals.ignore.fsi
 Stroustrup/SynTypeDefnSigReprSimpleTests.fs	66	record type definition with members	case	ported/Stroustrup/SynTypeDefnSigReprSimpleTests/record-type-definition-with-members.fsi
 Stroustrup/SynTypeDefnSimpleReprRecordTests.fs	14	record type definition	case	ported/Stroustrup/SynTypeDefnSimpleReprRecordTests/record-type-definition.fs
 Stroustrup/SynTypeDefnSimpleReprRecordTests.fs	35	comment after last record field, 2482	negative	ported/Stroustrup/SynTypeDefnSimpleReprRecordTests/negative/2482-comment-after-last-record-field.fs
 Stroustrup/SynTypeDefnSimpleReprRecordTests.fs	65	anonymous record type alias	case	ported/Stroustrup/SynTypeDefnSimpleReprRecordTests/anonymous-record-type-alias.fs
-Stroustrup/SynTypeDefnSimpleReprRecordTests.fs	87	record type definition with comment after equals	exception	is ignored, and the harness result differs from the expected one
+Stroustrup/SynTypeDefnSimpleReprRecordTests.fs	87	record type definition with comment after equals	ignored	ported/Stroustrup/SynTypeDefnSimpleReprRecordTests/record-type-definition-with-comment-after-equals.ignore.fs
 Stroustrup/SynTypeDefnSimpleReprRecordTests.fs	109	record type definition with members	case	ported/Stroustrup/SynTypeDefnSimpleReprRecordTests/record-type-definition-with-members.fs
 Stroustrup/SynTypeDefnSimpleReprRecordTests.fs	134	record type definition with members and trivia	negative	ported/Stroustrup/SynTypeDefnSimpleReprRecordTests/negative/record-type-definition-with-members-and-trivia.fs
 Stroustrup/SynTypeDefnSimpleReprRecordTests.fs	156	record definition with private accessibility modifier, 2481	negative	ported/Stroustrup/SynTypeDefnSimpleReprRecordTests/negative/2481-record-definition-with-private-accessibility-modifier.fs

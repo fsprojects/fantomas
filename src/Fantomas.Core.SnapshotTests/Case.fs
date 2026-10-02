@@ -30,13 +30,22 @@ let relativeToProject (path: string) : string =
 /// No dots, so that `name.gold.fs` and `name.DEBUG.gold.fs` can only ever belong to `name.fs`.
 let private caseName: Regex = Regex("^[a-z0-9]+(-[a-z0-9]+)*$")
 
+/// What an ignored case adds to its name: `name.ignore.fs`.
+let ignoreSuffix: string = ".ignore"
+
 /// Whether a file is a case rather than a gold or an `.actual`: an F# file whose name, without its
-/// extension, has no dot in it.
+/// extension and an `.ignore`, has no dot in it.
 let isCaseFile (path: string) : bool =
     let extension: string = Path.GetExtension path
+    let stem: string = Path.GetFileNameWithoutExtension path
 
-    (extension = ".fs" || extension = ".fsi")
-    && not (Path.GetFileNameWithoutExtension(path).Contains '.')
+    let stem: string =
+        if stem.EndsWith(ignoreSuffix, StringComparison.Ordinal) then
+            stem.Substring(0, stem.Length - ignoreSuffix.Length)
+        else
+            stem
+
+    (extension = ".fs" || extension = ".fsi") && not (stem.Contains '.')
 
 /// Every case, as a path relative to `cases/`, in a stable order.
 let all () : string array =
@@ -55,11 +64,17 @@ type Case =
         FullPath: string
         /// The folders between `cases/` and the file.
         Folders: string list
-        /// The file name without its extension.
+        /// The file name without its extension and without `.ignore`: what its golds are named after.
         Stem: string
+        /// Whether the case is `name.ignore.fs`: one whose golds hold what formatting should give and
+        /// does not yet. Its test is ignored until it passes, and then fails so the `.ignore` goes.
+        IsIgnored: bool
         /// `.fs` or `.fsi`.
         Extension: string
         IsSignature: bool
+        /// The `#` lines of the front matter, without the `#`: what the case shows, or for an ignored
+        /// case why it is ignored.
+        Description: string list
         /// The front matter, as written, in the order written.
         Properties: (string * string) list
         Config: FormatConfig
@@ -154,6 +169,13 @@ let splitFrontMatter (text: string) : (string * string) list * string =
 let read (relativePath: string) : Case =
     let fullPath: string = Path.Combine(casesDirectory, relativePath)
     let stem: string = Path.GetFileNameWithoutExtension fullPath
+    let isIgnored: bool = stem.EndsWith(ignoreSuffix, StringComparison.Ordinal)
+
+    let stem: string =
+        if isIgnored then
+            stem.Substring(0, stem.Length - ignoreSuffix.Length)
+        else
+            stem
 
     if not (caseName.IsMatch stem) then
         failwith
@@ -161,8 +183,24 @@ let read (relativePath: string) : Case =
 
     let extension: string = Path.GetExtension fullPath
 
-    let properties, source =
-        splitFrontMatter ((File.ReadAllText fullPath).Replace("\r\n", "\n"))
+    let text: string = (File.ReadAllText fullPath).Replace("\r\n", "\n")
+    let properties, source = splitFrontMatter text
+
+    let description: string list =
+        if not (text.StartsWith(frontMatterStart, StringComparison.Ordinal)) then
+            []
+        else
+
+        text.Substring(0, text.IndexOf(frontMatterEnd, StringComparison.Ordinal)).Split('\n')
+        |> Array.choose (fun (line: string) ->
+            let line: string = line.Trim()
+
+            if line.StartsWith("#", StringComparison.Ordinal) then
+                Some(line.Substring(1).Trim())
+            else
+                None
+        )
+        |> Array.toList
 
     {
         RelativePath = relativePath
@@ -172,8 +210,10 @@ let read (relativePath: string) : Case =
             |> Array.toList
             |> List.take (relativePath.Split('/').Length - 1)
         Stem = stem
+        IsIgnored = isIgnored
         Extension = extension
         IsSignature = extension = ".fsi"
+        Description = description
         Properties = properties
         Config = configOf properties
         Source = source
