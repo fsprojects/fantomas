@@ -68,7 +68,7 @@ let private ignored (case: Case.Case) : unit =
 
             let mismatched: (string * string) list =
                 goldsOf case formatted
-                |> List.filter (fun (path: string, code: string) -> File.Exists path && File.ReadAllText path <> code)
+                |> List.filter (fun (path: string, code: string) -> File.Exists path && not (Gold.holds path code))
 
             // What it gives today, beside the gold it should give.
             for path, code in goldsOf case formatted do
