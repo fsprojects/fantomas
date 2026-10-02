@@ -105,7 +105,7 @@ let private frontMatterStart: string = "(*---"
 let private frontMatterEnd: string = "---*)"
 
 /// Split a case file into its front matter properties and the source after it.
-let private splitFrontMatter (text: string) : (string * string) list * string =
+let splitFrontMatter (text: string) : (string * string) list * string =
     if not (text.StartsWith(frontMatterStart, StringComparison.Ordinal)) then
         [], text
     else
@@ -164,15 +164,13 @@ let read (relativePath: string) : Case =
     let properties, source =
         splitFrontMatter ((File.ReadAllText fullPath).Replace("\r\n", "\n"))
 
-    let folders: string list =
-        relativePath.Split('/')
-        |> Array.toList
-        |> List.take (relativePath.Split('/').Length - 1)
-
     {
         RelativePath = relativePath
         FullPath = fullPath
-        Folders = folders
+        Folders =
+            relativePath.Split('/')
+            |> Array.toList
+            |> List.take (relativePath.Split('/').Length - 1)
         Stem = stem
         Extension = extension
         IsSignature = extension = ".fsi"

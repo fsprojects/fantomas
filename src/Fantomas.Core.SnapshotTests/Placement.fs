@@ -1,6 +1,6 @@
 /// Whether a case is where it says it is. The folders a case sits in are a claim about it: that
-/// it contains a node, that it sets a setting and that the setting matters, that it attaches trivia
-/// to a node. These checks hold every case to the claim its path makes.
+/// it contains a node, and that it sets a setting and the setting matters. These checks hold every
+/// case to the claim its path makes.
 module Fantomas.Core.SnapshotTests.Placement
 
 open System
@@ -94,8 +94,12 @@ type Claim =
         /// The setting the case is about, and the value its value folder names when it has one.
         Setting: (string * string option) option
         Node: NodeFolder
-        /// Whether the case sits in a `trivia/` folder.
+        /// Whether the case sits in a `trivia/` folder. Which node its trivia attaches to is not checked:
+        /// that is how `Trivia.fs` works today, and it may change without the formatting changing.
         IsTrivia: bool
+        /// Whether the case sits in a `negative/` folder below its setting: one the setting must
+        /// leave alone. Such a case is its own gold.
+        IsNegative: bool
     }
 
 /// Read what a case's folders claim, or why they claim nothing that makes sense.
@@ -118,6 +122,7 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
                 Setting = None
                 Node = node
                 IsTrivia = isTrivia
+                IsNegative = false
             }
         )
     | "settings" :: key :: rest ->
@@ -125,10 +130,15 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
         | None -> Error $"`settings/%s{key}` names no setting."
         | Some settingType ->
 
-        let value, nodePath =
+        let value, afterValue =
             match FSharpType.IsUnion settingType, rest with
-            | true, value :: nodePath -> Some value, nodePath
+            | true, value :: afterValue -> Some value, afterValue
             | _ -> None, rest
+
+        let isNegative, nodePath =
+            match afterValue with
+            | "negative" :: nodePath -> true, nodePath
+            | nodePath -> false, nodePath
 
         resolveNodeFolder (nodeFolders nodePath)
         |> Result.map (fun (node: NodeFolder) ->
@@ -136,6 +146,7 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
                 Setting = Some(key, value)
                 Node = node
                 IsTrivia = isTrivia
+                IsNegative = isNegative
             }
         )
     | top :: _ -> Error $"`%s{top}` is neither `oak` nor `settings`."
@@ -180,8 +191,19 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
             )
             |> Case.configOf
 
+        // A case under `negative/` is the opposite: its input is already formatted, and comes
+        // back unchanged with the setting and without it.
         let effectProblems: Problem list =
-            if formatWith withoutSetting <> formatted.Merged then
+            if claim.IsNegative then
+                let withDefault: string = formatWith withoutSetting
+
+                [
+                    if formatted.Merged <> case.Source then
+                        Problem.InputNotKept formatted.Merged
+                    elif withDefault <> case.Source then
+                        Problem.SettingApplies(key, withDefault)
+                ]
+            elif formatWith withoutSetting <> formatted.Merged then
                 []
             else
                 [ Problem.SettingHasNoEffect key ]
@@ -199,31 +221,9 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
             visits
             |> List.exists (fun (visit: OakFacts.Visit) -> visit.Node.GetType() = nodeClass)
 
-        let containsProblems: Problem list =
-            if containsNode then
-                []
-            else
-                [ Problem.NodeMissing nodeClass.Name ]
-
-        let triviaProblems: Problem list =
-            if not claim.IsTrivia then
-                []
-            else
-
-            let attachedHere: bool =
-                oaks
-                |> List.collect OakFacts.attachments
-                |> List.exists (fun (attachment: OakFacts.Attachment) ->
-                    attachment.Visit.Node.GetType() = nodeClass
-                    || attachment.Visit.Parent
-                       |> Option.exists (fun (parent: Node) -> parent.GetType() = nodeClass)
-                )
-
-            if attachedHere then
-                []
-            else
-                [ Problem.TriviaNotAttached nodeClass.Name ]
-
-        containsProblems @ triviaProblems
+        if containsNode then
+            []
+        else
+            [ Problem.NodeMissing nodeClass.Name ]
 
     settingProblems @ nodeProblems

@@ -18,6 +18,18 @@ dotnet test src/Fantomas.Core.SnapshotTests --list-tests                        
 A failing case prints a line diff against its gold and writes what came out to the `.actual` file
 beside it.
 
+To look at an input without making it a case, use the scripts in `scripts/`. They read a case's
+front matter as its settings, so they take a case file as it is:
+
+```
+dotnet fsi scripts/format.fsx <file>    the result, and every problem this project would fail the case on
+dotnet fsi scripts/trivia.fsx <file>    where each piece of trivia landed: node, token, side and kind
+dotnet fsi scripts/oak.fsx <file>       the whole Oak
+```
+
+They reference this project as built, so its checks are the ones they run: build it in debug first.
+What they do not check is the folder: write the case and run it filtered for that.
+
 ## Accepting a change
 
 ```
@@ -33,7 +45,8 @@ dotnet fsi build.fsx -- -p UpdateSnapshots
 ## Writing a case
 
 1. Put the input in the right folder (see below), named after what it shows:
-   `cases/oak/TypeDefn/Union/single-case-with-members.fs`.
+   `cases/oak/TypeDefn/Union/single-case-with-members.fs`. For an old test,
+   `dotnet fsi scripts/ledger.fsx -- --input UnionTests.fs:721` prints its input exactly.
 2. Run it with `FANTOMAS_UPDATE_SNAPSHOTS=1` and a filter on its name. That writes its golds, or
    fails without writing any when the result is broken or the case is in the wrong folder.
 3. Read the gold. It is the formatting the case now pins down, so check it is what you expected.
@@ -52,10 +65,14 @@ type A = A of int
 - **Front matter.** Optional. A block comment that starts on line 1 with `(*---` and ends with
   `---*)`, holding editorconfig properties. It is read by the code the tool uses, and anything
   that is no setting, or a value Fantomas cannot act on, fails the case. It is stripped before
-  formatting. F# lexes strings inside a block comment, so keep any `"` in a description balanced.
-- **Kind of file.** `name.fs` is an implementation file, `name.fsi` a signature file.
+  formatting. F# lexes strings and nested comments inside a block comment, so keep any `"` in a
+  description balanced, and do not write `(*` in one.
+- **Kind of file.** `name.fs` is an implementation file, `name.fsi` a signature file. A signature
+  case needs no module or namespace header unless the parser asks for one. See "Signature files"
+  for when a `.fsi` case is worth having.
 - **Name.** Lower case words joined by dashes, with the issue number first when the case comes
-  from an issue: `1483-case-behind-a-define.fs`.
+  from an issue: `1483-case-behind-a-define.fs`. Only use a number the old test or the issue names;
+  do not guess one.
 - **Line endings.** Every input is read with `\n` line endings, and `end_of_line` is `lf` unless
   the front matter sets it. `.gitattributes` keeps `cases/` byte for byte.
 
@@ -79,6 +96,9 @@ type A = A of int
 
 - the result is valid F#, under every define combination;
 - every comment of the input is in the result, and as many of them;
+- the result has as many conditional directives (`#if`, `#else`, `#endif`) and warn directives
+  (`#nowarn`, `#warnon`) as the input. Both are trivia, like comments. Blank lines are left out:
+  formatting adds and removes them on purpose;
 - the result is idempotent, merged and per define combination;
 - `Node.Children` lists every node in source order;
 - no line ends in whitespace;
@@ -91,44 +111,59 @@ type A = A of int
 cases/oak/<Union>/<Case>/[trivia/]                         oak/TypeDefn/Union/
 cases/oak/<Node>/[trivia/]                                 oak/UnionCase/
 cases/settings/<key>/[<value>/]<Union>/<Case>/[trivia/]    settings/fsharp_bar_before_discriminated_union_declaration/TypeDefn/Union/
+cases/settings/<key>/[<value>/]negative/<Union>/<Case>/    settings/fsharp_bar_before_discriminated_union_declaration/negative/ModuleDecl/Exception/
 ```
 
 1. **A setting.** If the point of a case is what a setting does, it goes under `settings/<key>/`,
    setting a value other than the default. The value folder is only there for settings with named
-   values, such as `stroustrup`.
+   values, such as `stroustrup`. A case a setting must leave alone goes in `negative/` below the
+   setting: an exception, say, which never gets the bar
+   `fsharp_bar_before_discriminated_union_declaration` puts before a single union case. Such a case
+   has no gold: its input is already formatted, and formatting it with the setting and with the
+   setting at its default must both give it back unchanged.
 2. **A node.** Otherwise the case goes in the folder of the node it is about, at the default
    settings. A smaller `max_line_length` that only keeps the input short does not make it a
    settings case.
-3. **Trivia.** Comments, blank lines and directives go in the `trivia/` folder of the node they are
-   attached to, which is the deepest node at that spot. A comment at the end of a union case line
-   attaches to the last token of the field's type, so it belongs with that type, not with the case.
-   `dotnet fsi scripts/oak.fsx <file>` shows where trivia lands.
+3. **Trivia.** A case about comments, blank lines or directives goes in the `trivia/` folder of the
+   node it is about. Which node `Trivia.fs` attaches them to is not checked: that is how it works
+   today, and it can change without the formatting changing. `dotnet fsi scripts/trivia.fsx <file>`
+   shows where they land, when that helps to understand a result.
 4. **Several nodes.** A relation between nodes belongs to the parent.
 
 The path is checked:
 - a case under `settings/<key>/` must set `<key>`, to its value folder when there is one;
-- resetting `<key>` to its default must change the result;
-- a case must contain the node its folder names;
-- a case in `trivia/` must attach trivia to that node or one of its direct children.
+- resetting `<key>` to its default must change the result, except under `negative/`, where
+  neither the setting nor its default may change the input;
+- a case must contain the node its folder names.
 
 A union case whose node class other cases carry too, such as a bare `SingleTextNode`, cannot be
 told apart in the Oak, so its folder's node check is skipped.
 
+## Signature files
+
+Signature files build their own declarations: module and namespace headers, nested modules,
+module abbreviations, `val`s, exceptions, type definitions, and every member, as a member
+signature. Expressions and patterns do not occur in them. So a `.fsi` case belongs in the folders
+of those declarations, where the signature path can print differently. Elsewhere it adds nothing.
+A `.fs` and a `.fsi` case beside each other are two cases: their inputs say what each kind of file
+would say, and need not match.
+
 ## Reports
 
-`dotnet fsi build.fsx -- -p SnapshotReports` writes two reports over all cases, into `reports/`,
+`dotnet fsi build.fsx -- -p SnapshotReports` writes two reports over all cases into `reports/`,
 which git ignores:
 - `reports/shapes.md`: for every node class, whether some case has each optional part and some
   case leaves it out, and whether some case has none, one and several of each list of parts;
 - `reports/trivia.md`: where trivia lands on every node class.
 
-They are there to read while porting a folder. They are no golds and no test runs them: they would
-change with every case, and folders ported in parallel would fight over them. A shape under Missing
+They are there to read while porting a folder. They are no golds and no test: they would change
+with every case, and folders ported in parallel would fight over them. The pipeline sets
+`FANTOMAS_SNAPSHOT_REPORTS=1`, and a test run with that set writes them once it finishes. A shape under Missing
 is either a case still to write or one the parser cannot produce, and the person porting the folder
 judges which.
 
-`dotnet fsi build.fsx -- -p CoverageOak` measures `SyntaxOak.fs` alone and writes what no case
-reaches to `syntaxoak-coverage.txt`. Every node class constructor and every arm of a union's
+`dotnet fsi build.fsx -- -p CoverageOak` measures `SyntaxOak.fs` alone. `syntaxoak-coverage.txt`
+names the classes some case reaches in full, then lists, by class, every line no case reaches. Every node class constructor and every arm of a union's
 `Node` member is a node or a union case that some case must contain.
 
 ## The porting ledger
@@ -139,7 +174,7 @@ config and the Oak node classes its input contains. `status` is:
 | Status | Meaning |
 |---|---|
 | `todo` | not ported yet; `targets` names the folder it belongs to once someone looked at it |
-| `ported` | became the cases in `targets` |
+| `ported` | became the cases in `targets`; a reason only when the case departs from the test |
 | `merged` | covered by the case in `targets`, for the reason given |
 | `dropped` | no case, for the reason given |
 | `unit` | stays an F# unit test |
@@ -148,4 +183,5 @@ config and the Oak node classes its input contains. `status` is:
 dotnet fsi scripts/ledger.fsx                      regenerate, keeping status, targets and reason
 dotnet fsi scripts/ledger.fsx -- --contains A,B    the old tests whose input has node A or B
 dotnet fsi scripts/ledger.fsx -- --resolved        what removing the old tests would delete
+dotnet fsi scripts/ledger.fsx -- --input F.fs:12   the input of the old test on line 12 of F.fs
 ```

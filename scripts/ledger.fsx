@@ -5,6 +5,7 @@
 //   dotnet fsi scripts/ledger.fsx                       regenerate the ledger
 //   dotnet fsi scripts/ledger.fsx -- --contains A,B     the tests whose input has node A or B
 //   dotnet fsi scripts/ledger.fsx -- --resolved         the tests that removing the old suite would delete
+//   dotnet fsi scripts/ledger.fsx -- --input F.fs:12    the input of the test on line 12 of F.fs, on stdout
 //
 // Needs a debug build of Fantomas.Core (`dotnet build src/Fantomas.Core`).
 
@@ -68,6 +69,9 @@ type Row =
         Helper: string
         Config: string
         Nodes: string
+        /// The input the test formats, when it hands its helper a string literal. Not written to
+        /// the ledger: `--input` prints it.
+        Input: string option
     }
 
 let columns: string list =
@@ -290,6 +294,7 @@ let rowsOf (relativeFile: string) : Row list =
                         | Some fileConfig when config = "config" -> $"config, which this file sets to %s{fileConfig}"
                         | _ -> config
                     Nodes = input |> Option.map (nodesOf isSignature) |> Option.defaultValue ""
+                    Input = input
                 }
         | _ -> None
     )
@@ -362,7 +367,27 @@ let resolved () : unit =
     let total: int = rows |> Array.filter isResolved |> Array.length
     printfn $"%d{total} of %d{rows.Length} tests would go."
 
+/// The input an old test formats, exactly as it hands it to its helper, ready to save as a case.
+/// The test is named by its file and the line of its name, as the ledger and `--contains` print it.
+let input (fileAndLine: string) : unit =
+    let file, line =
+        match fileAndLine.Split ':' with
+        | [| file; line |] -> file, int line
+        | _ -> failwith $"`%s{fileAndLine}` is not File.fs:line."
+
+    match rowsOf file |> List.tryFind (fun (row: Row) -> row.Line = line) with
+    | None -> failwith $"No test starts on line %d{line} of %s{file}."
+    | Some row ->
+
+    match row.Input with
+    | None -> failwith $"%s{row.Test} does not hand its helper a string literal; read it in %s{file}."
+    | Some input ->
+
+    eprintfn $"// %s{row.Test}, %s{row.Helper}, config: %s{row.Config}"
+    printf $"%s{input}"
+
 match fsi.CommandLineArgs |> Array.toList |> List.tail with
+| [ "--input"; fileAndLine ] -> input fileAndLine
 | [ "--contains"; nodeClasses ] -> contains (nodeClasses.Split ',' |> Array.toList)
 | [ "--resolved" ] -> resolved ()
 | [] -> generate ()

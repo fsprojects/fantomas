@@ -1,11 +1,13 @@
 #r "../artifacts/bin/Fantomas.FCS/debug/Fantomas.FCS.dll"
 #r "../artifacts/bin/Fantomas.Core/debug/Fantomas.Core.dll"
+#r "../artifacts/bin/Fantomas.EditorConfig/debug/Fantomas.EditorConfig.dll"
+// The snapshot tests, for reading a case and for formatting and checking it the way a case is:
+// referenced as built, because their checks use internals of Fantomas.Core a script cannot see.
+#r "../artifacts/bin/Fantomas.Core.SnapshotTests/debug/Fantomas.Core.SnapshotTests.dll"
 // Must match the version `Directory.Packages.props` gives Fantomas: `EditorConfigFiles.fs` is
 // loaded as source below and compiles against whatever this resolves.
 #r "nuget: editorconfig, 0.18.0"
 
-#load "../src/Fantomas.EditorConfig/Suggestion.fs"
-#load "../src/Fantomas.EditorConfig/EditorConfig.fs"
 #load "../src/Fantomas/EditorConfigFiles.fs"
 
 open System.IO
@@ -27,9 +29,11 @@ let parseEditorConfigContent (content: string) : FormatConfig =
     finally
         Directory.Delete(tempDir, true)
 
-/// Parses args and returns (source, isSignature, config).
+/// Parses args and returns (source, isSignature, config, defines).
 /// Accepts either a file path as last arg, or source code via stdin.
-/// Optional flags: --editorconfig <content>, --signature
+/// Optional flags: --editorconfig <content>, --signature, --define FOO,BAR
+/// A snapshot case, a file that starts with `(*---` front matter, is read without its front matter,
+/// and the front matter gives the config unless `--editorconfig` does.
 let parseArgs (args: string array) =
     let editorConfigIdx = args |> Array.tryFindIndex (fun a -> a = "--editorconfig")
     let hasSignatureFlag = args |> Array.exists (fun a -> a = "--signature")
@@ -72,7 +76,15 @@ let parseArgs (args: string array) =
 
     match Array.tryLast positionalArgs with
     | Some path when File.Exists(path) ->
-        let sample = File.ReadAllText(path)
+        let properties, sample =
+            Fantomas.Core.SnapshotTests.Case.splitFrontMatter ((File.ReadAllText path).Replace("\r\n", "\n"))
+
+        let config: FormatConfig =
+            if properties.IsEmpty || editorConfigIdx.IsSome then
+                config
+            else
+                Fantomas.Core.SnapshotTests.Case.configOf properties
+
         let isSignature = hasSignatureFlag || path.EndsWith(".fsi")
         sample, isSignature, config, defines
     | _ ->

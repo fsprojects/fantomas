@@ -1,5 +1,4 @@
-/// The tests: one per case and one for the files around the cases, and the reports, which only run
-/// when asked for.
+/// The tests: one per case, and one for the files around the cases.
 module Fantomas.Core.SnapshotTests.CaseTests
 
 open System
@@ -30,7 +29,17 @@ let case (relativePath: string) =
             formatted
             (fun config -> (Formatting.formatEach config case.IsSignature case.Source).Merged)
 
+    // A case under `negative/` is its own gold.
+    let isNegative: bool =
+        match Placement.claimOf case with
+        | Error _ -> false
+        | Ok claim -> claim.IsNegative
+
     let golds: (string * string) list =
+        if isNegative then
+            []
+        else
+
         let perDefine: (string * string) list =
             match formatted.Combinations with
             | [ _ ] -> []
@@ -48,13 +57,16 @@ let case (relativePath: string) =
             []
         else
 
-        // A gold for a define combination the case no longer has.
+        // A gold for a define combination the case no longer has, or any gold of a case that is its own.
         let stale: Problem list =
             Case.existingGolds case
             |> List.filter (fun (path: string) -> not (List.exists (fun (gold: string, _) -> gold = path) golds))
             |> List.choose (fun (path: string) ->
                 if not Case.isUpdating then
-                    Some(Problem.StaleGold(Case.relativeToProject path))
+                    if isNegative then
+                        Some(Problem.GoldNotExpected(Case.relativeToProject path))
+                    else
+                        Some(Problem.StaleGold(Case.relativeToProject path))
                 else
 
                 File.Delete path
@@ -96,12 +108,3 @@ let ``every file under cases belongs to a case`` () =
 
     if not strays.IsEmpty then
         Assert.Fail($"""These files belong to no case:%s{"\n"}%s{String.concat "\n" strays}""")
-
-/// Write `reports/shapes.md` and `reports/trivia.md`. Explicit, so only a run that names it, as the
-/// `SnapshotReports` pipeline does, writes them. They are not golds, and nothing here can fail.
-[<Test; Explicit("Writes the reports. Run it with the SnapshotReports pipeline.")>]
-let reports () =
-    let shapes, trivia = Reports.render ()
-    Directory.CreateDirectory Case.reportsDirectory |> ignore
-    File.WriteAllText(Path.Combine(Case.reportsDirectory, "shapes.md"), shapes)
-    File.WriteAllText(Path.Combine(Case.reportsDirectory, "trivia.md"), trivia)

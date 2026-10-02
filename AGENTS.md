@@ -18,8 +18,14 @@ All of these accept a file path or stdin, with optional `--signature` and `--edi
 - `scripts/format.fsx` — format with local build
 - `scripts/writer-events.fsx` — writer events produced during formatting
 - `scripts/chain.fsx` - ExprChain structure (head, segments, terminal); ignores `--editorconfig`
+- `scripts/trivia.fsx` - where each piece of trivia landed: node, token, side and kind
 
-Scripts require a debug build first (`dotnet build src/Fantomas/Fantomas.fsproj`).
+A snapshot case (`src/Fantomas.Core.SnapshotTests/cases/`) can be passed as it is: its front matter
+is read as its settings. `scripts/format.fsx` formats the way a case is formatted and reports every
+problem the snapshot tests would fail the case on.
+
+Scripts require a debug build first (`dotnet build src/Fantomas.Core.SnapshotTests`): they reference
+the snapshot test assembly, and building it builds Fantomas.Core and Fantomas.FCS too.
 
 ## Breaking changes to the Oak
 

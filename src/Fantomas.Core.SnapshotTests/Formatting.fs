@@ -119,15 +119,66 @@ let private commentsOf (isSignature: bool) (source: string) : Set<TriviaContent>
 
     Trivia.collectCommentTextsFromAST sourceText tree, count
 
-let private trailingWhitespace (code: string) : int list =
+/// The lines of a result that end inside a token or a comment spanning several lines, a triple
+/// quoted string say. Whitespace at their end is content, not layout. Read from the result's own
+/// Oak, under each define combination it is parsed with.
+let private linesEndingInsideText
+    (isSignature: bool)
+    (config: FormatConfig)
+    (code: string)
+    (combinations: string list list)
+    : Set<int>
+    =
+    let sourceText: ISourceText = CodeFormatterImpl.getSourceText code
+
+    combinations
+    |> List.collect (fun (defines: string list) ->
+        let tree, _ = parseFile isSignature sourceText defines
+
+        let oak: Oak =
+            ASTTransformer.mkOak (Some sourceText) tree
+            |> Trivia.enrichTree config sourceText tree
+
+        let tokens: range list =
+            OakFacts.visits oak
+            |> List.choose (fun (visit: OakFacts.Visit) ->
+                match visit.Node with
+                | :? SingleTextNode as token -> Some token.Range
+                | _ -> None
+            )
+
+        let comments: range list =
+            OakFacts.attachments oak
+            |> List.map (fun (attachment: OakFacts.Attachment) -> attachment.Range)
+
+        tokens @ comments
+        |> List.filter (fun (range: range) -> range.StartLine < range.EndLine)
+        |> List.collect (fun (range: range) -> [ range.StartLine .. range.EndLine - 1 ])
+    )
+    |> Set.ofList
+
+/// How many conditional directives (`#if`, `#else`, `#endif`) and warn directives (`#nowarn`,
+/// `#warnon`) a source has. Both are trivia, not nodes of the syntax tree, so they can go missing
+/// the way a comment can. The parser lists every one whatever the defines.
+let private directiveTriviaOf (isSignature: bool) (source: string) : int * int =
+    match fst (parseFile isSignature (SourceText.ofString source) []) with
+    | ParsedInput.ImplFile(ParsedImplFileInput(trivia = trivia)) ->
+        trivia.ConditionalDirectives.Length, trivia.WarnDirectives.Length
+    | ParsedInput.SigFile(ParsedSigFileInput(trivia = trivia)) ->
+        trivia.ConditionalDirectives.Length, trivia.WarnDirectives.Length
+
+let private trailingWhitespace (insideText: Set<int>) (code: string) : int list =
     code.Replace("\r\n", "\n").Split('\n')
     |> Array.indexed
     |> Array.choose (fun (index: int, line: string) ->
+        let lineNumber: int = index + 1
+
         if
-            line.EndsWith(" ", StringComparison.Ordinal)
-            || line.EndsWith("\t", StringComparison.Ordinal)
+            (line.EndsWith(" ", StringComparison.Ordinal)
+             || line.EndsWith("\t", StringComparison.Ordinal))
+            && not (insideText.Contains lineNumber)
         then
-            Some(index + 1)
+            Some lineNumber
         else
             None
     )
@@ -170,6 +221,21 @@ let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) :
     elif countBefore <> countAfter then
         problems.Add(Problem.CommentCountChanged(countBefore, countAfter))
 
+    let conditionalBefore, warnBefore = directiveTriviaOf isSignature source
+    let conditionalAfter, warnAfter = directiveTriviaOf isSignature formatted.Merged
+
+    if conditionalBefore <> conditionalAfter then
+        problems.Add(
+            Problem.DirectiveCountChanged(
+                "conditional directives (#if, #else, #endif)",
+                conditionalBefore,
+                conditionalAfter
+            )
+        )
+
+    if warnBefore <> warnAfter then
+        problems.Add(Problem.DirectiveCountChanged("warn directives (#nowarn, #warnon)", warnBefore, warnAfter))
+
     let again: string = (formatEach config isSignature formatted.Merged).Merged
 
     if again <> formatted.Merged then
@@ -194,8 +260,16 @@ let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) :
         formatted.Combinations
         |> List.map (fun (each: ForDefines) -> Output.Combination each.Defines, each.Code)
 
+    let allDefines: string list list =
+        formatted.Combinations |> List.map (fun (each: ForDefines) -> each.Defines)
+
     for output, code in (Output.Merged, formatted.Merged) :: perDefine do
-        match trailingWhitespace code with
+        let combinations: string list list =
+            match output with
+            | Output.Merged -> allDefines
+            | Output.Combination defines -> [ defines ]
+
+        match trailingWhitespace (linesEndingInsideText isSignature config code combinations) code with
         | [] -> ()
         | lines -> problems.Add(Problem.TrailingWhitespace(output, lines))
 

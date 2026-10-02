@@ -20,6 +20,7 @@ type Problem =
     | Invalid of output: Output * diagnostics: FSharpParserDiagnostic list
     | CommentsLost of missing: Set<TriviaContent> * extra: Set<TriviaContent>
     | CommentCountChanged of before: int * after: int
+    | DirectiveCountChanged of kind: string * before: int * after: int
     | NotIdempotent of output: Output * again: string
     | TrailingWhitespace of output: Output * lines: int list
     // The case is in the wrong place.
@@ -27,12 +28,14 @@ type Problem =
     | SettingNotSet of key: string
     | SettingValueDiffers of key: string * folderValue: string * written: string
     | SettingHasNoEffect of key: string
+    | InputNotKept of formatted: string
+    | SettingApplies of key: string * withDefault: string
     | NodeMissing of nodeClass: string
-    | TriviaNotAttached of nodeClass: string
     // The gold disagrees. Paths are relative to the project.
     | NoGold of path: string
     | GoldDiffers of path: string * diff: string
     | StaleGold of path: string
+    | GoldNotExpected of path: string
 
 /// Whether a problem says the result itself is wrong. Such a result is never written as a gold,
 /// not even when updating them.
@@ -42,17 +45,20 @@ let breaksResult (problem: Problem) : bool =
     | Problem.Invalid _
     | Problem.CommentsLost _
     | Problem.CommentCountChanged _
+    | Problem.DirectiveCountChanged _
     | Problem.NotIdempotent _
     | Problem.TrailingWhitespace _ -> true
     | Problem.UnknownFolder _
     | Problem.SettingNotSet _
     | Problem.SettingValueDiffers _
     | Problem.SettingHasNoEffect _
+    | Problem.InputNotKept _
+    | Problem.SettingApplies _
     | Problem.NodeMissing _
-    | Problem.TriviaNotAttached _
     | Problem.NoGold _
     | Problem.GoldDiffers _
-    | Problem.StaleGold _ -> false
+    | Problem.StaleGold _
+    | Problem.GoldNotExpected _ -> false
 
 let private outputName (output: Output) : string =
     match output with
@@ -79,6 +85,8 @@ let describe (problem: Problem) : string =
     | Problem.Invalid(output, diagnostics) -> $"%s{outputName output} is not valid F#:\n%s{diagnosticLines diagnostics}"
     | Problem.CommentsLost(missing, extra) -> $"Comments were not preserved.\nMissing: %A{missing}\nExtra: %A{extra}"
     | Problem.CommentCountChanged(before, after) -> $"The source has %d{before} comments and the result %d{after}."
+    | Problem.DirectiveCountChanged(kind, before, after) ->
+        $"The source has %d{before} %s{kind} and the result %d{after}."
     | Problem.NotIdempotent(output, again) ->
         $"%s{outputName output} is not idempotent. Formatting it again gave:\n%s{again}"
     | Problem.TrailingWhitespace(output, lines) ->
@@ -92,10 +100,13 @@ let describe (problem: Problem) : string =
         $"The case is under `%s{folderValue}` and its front matter sets `%s{key} = %s{written}`."
     | Problem.SettingHasNoEffect key ->
         $"`%s{key}` changes nothing here: with it at its default the result is the same."
+    | Problem.InputNotKept formatted ->
+        $"The case is under `negative/`, so it is its own gold and formatting must leave it as it is. It gave:\n%s{formatted}"
+    | Problem.SettingApplies(key, withDefault) ->
+        $"The case is under `negative/`, and `%s{key}` does change it: with the setting at its default the result is:\n%s{withDefault}"
     | Problem.NodeMissing nodeClass -> $"The case is in a folder for `%s{nodeClass}` and its Oak has none."
-    | Problem.TriviaNotAttached nodeClass ->
-        $"The case is in the `trivia/` folder of `%s{nodeClass}` and no trivia is attached to one, or to one of its direct children."
     | Problem.NoGold path -> $"There is no gold at %s{path} yet. What came out is in its `.actual` file."
     | Problem.GoldDiffers(path, diff) ->
         $"The result differs from %s{path}. What came out is in its `.actual` file.\n\n%s{diff}"
     | Problem.StaleGold path -> $"%s{path} belongs to no define combination this case has."
+    | Problem.GoldNotExpected path -> $"%s{path} belongs to a case under `negative/`, which is its own gold."

@@ -38,6 +38,8 @@ type Attachment =
         Visit: Visit
         IsBefore: bool
         Kind: string
+        /// Where the trivia is in the source.
+        Range: Fantomas.FCS.Text.range
     }
 
 let attachments (oak: Oak) : Attachment list =
@@ -52,6 +54,7 @@ let attachments (oak: Oak) : Attachment list =
                         Visit = visit
                         IsBefore = isBefore
                         Kind = kind
+                        Range = trivia.Range
                     }
                 )
             )

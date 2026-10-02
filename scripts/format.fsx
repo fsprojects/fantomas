@@ -2,32 +2,32 @@
 
 open System.IO
 open Fantomas.Core
+open Fantomas.Core.SnapshotTests
+open Fantomas.Core.SnapshotTests.Problems
 open Shared
 
-let format (input: string) (isSignature: bool) (config: FormatConfig) =
-    async {
-        try
-            let! result = CodeFormatter.FormatDocumentAsync(isSignature, input, config)
-            let formattedCode = result.Code
+/// Format the way a snapshot case is formatted, and print to stderr every problem the snapshot
+/// tests would fail the case on: invalid, not idempotent, a lost comment, trailing whitespace, or
+/// a result that differs from what users get.
+let format (input: string) (isSignature: bool) (config: FormatConfig) : string =
+    try
+        let formatted, problems = Formatting.formatAndCheck config isSignature input
 
-            // Check for diagnostics in the formatted output
-            let sourceText = Fantomas.FCS.Text.SourceText.ofString formattedCode
-            let _, diagnostics = Fantomas.FCS.Parse.parseFile isSignature sourceText []
+        for problem in problems do
+            eprintfn $"%s{describe problem}\n"
 
-            for d in diagnostics do
-                eprintfn "Diagnostic: %A %A %s %A" d.Severity d.ErrorNumber d.Message d.Range
-
-            return formattedCode
-        with ex ->
-            return $"Error while formatting: %A{ex}"
-    }
+        formatted.Merged
+    with ex ->
+        $"Error while formatting: %A{ex}"
 
 match Array.tryHead fsi.CommandLineArgs with
 | Some scriptPath ->
-    let scriptFile = FileInfo(scriptPath)
-    let sourceFile = FileInfo(Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__))
+    let scriptFile: FileInfo = FileInfo(scriptPath)
+
+    let sourceFile: FileInfo =
+        FileInfo(Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__))
 
     if scriptFile.FullName = sourceFile.FullName then
         let sample, isSignature, config, _ = parseArgs fsi.CommandLineArgs.[1..]
-        format sample isSignature config |> Async.RunSynchronously |> printfn "%s"
+        format sample isSignature config |> printfn "%s"
 | _ -> printfn "Usage: dotnet fsi format.fsx [--editorconfig <content>] <input file>"

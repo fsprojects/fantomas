@@ -277,6 +277,17 @@ let summarizeSyntaxOakCoverage () : Async<int> =
             missed
             |> List.partition (fun (methodName: string, _, _) -> (exceptionFor methodName).IsSome)
 
+        // A class every point of which some case reaches does not show up below, so name those
+        // here: absent from the list then means covered, never "not measured".
+        let reachedInFull: string list =
+            points
+            |> List.groupBy (fun (methodName: string, _, _, _) -> owner methodName)
+            |> List.filter (fun (_, inClass) -> inClass |> List.forall (fun (_, _, _, isReached: bool) -> isReached))
+            |> List.map fst
+            |> List.sort
+
+        let reachedInFullText: string = String.concat ", " reachedInFull
+        summary.AppendLine($"\nReached in full: %s{reachedInFullText}") |> ignore
         summary.AppendLine("\nNot reached:") |> ignore
         describe unexcepted
 
@@ -339,7 +350,10 @@ pipeline "UpdateSnapshots" {
 //   src/Fantomas.Core.SnapshotTests/reports/trivia.md
 pipeline "SnapshotReports" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Reports" { run $"dotnet test {snapshotsDir} --filter Name=reports --tl" }
+    stage "Reports" {
+        envVars [| "FANTOMAS_SNAPSHOT_REPORTS", "1" |]
+        run $"dotnet test {snapshotsDir} --tl"
+    }
     runIfOnlySpecified true
 }
 
