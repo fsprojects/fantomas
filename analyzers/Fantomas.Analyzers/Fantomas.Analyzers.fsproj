@@ -47,6 +47,8 @@
     <Compile Include="UnnecessaryParensAnalyzer.fs" />
     <Compile Include="SnobMatchAnalyzer.fsi" />
     <Compile Include="SnobMatchAnalyzer.fs" />
+    <Compile Include="PrintfAnalyzer.fsi" />
+    <Compile Include="PrintfAnalyzer.fs" />
   </ItemGroup>
   <ItemGroup>
     <!-- Must track the fsharp-analyzers version pinned in .config/dotnet-tools.json. -->

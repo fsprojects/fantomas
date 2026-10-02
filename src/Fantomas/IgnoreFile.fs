@@ -168,7 +168,7 @@ module IgnoreFile =
 
             // The line above is the one to act on; this keeps the type and the stack trace for
             // whoever asks for detail.
-            log.Debug $"%A{ex}"
+            log.Debug(string<exn> ex)
             false
 
     let hasNegatedPattern (ignoreFile: IgnoreFile) : bool =

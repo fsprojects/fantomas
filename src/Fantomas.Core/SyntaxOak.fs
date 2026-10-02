@@ -31,6 +31,8 @@ type TriviaNode(content: TriviaContent, range: range) =
     member val Content = content
     member val Range = range
 
+    // What a debugger shows. Nothing the tool runs formats a trivia node.
+    // fsharpanalyzer: ignore-region-start FANTOMAS-PRINTF-001
     override x.ToString() =
         let rangeStr = $"range: %A{x.Range}"
 
@@ -44,6 +46,7 @@ type TriviaNode(content: TriviaContent, range: range) =
         | Newline -> $"Newline(%s{rangeStr})"
         | Directive s -> $"Directive(%s{rangeStr}, \"%s{s}\")"
         | Cursor -> $"Cursor(%s{rangeStr})"
+// fsharpanalyzer: ignore-region-end
 
 /// The core interface implemented by every node in the Oak intermediate representation.
 /// Each node carries trivia (comments, blank lines, directives) that were attached to
@@ -264,7 +267,9 @@ type SingleTextNode(idText: string, range: range) =
 
     member _.TryGetCursor: pos option = cursor
 
+    // What a debugger shows. Nothing the tool runs formats a node.
     override x.ToString() =
+        // fsharpanalyzer: ignore-line-next FANTOMAS-PRINTF-001
         $"SingleTextNode(%A{x.Range}, \"%s{x.Text}\")"
 
 /// A node holding two or more adjacent text tokens that logically form one keyword or modifier sequence.

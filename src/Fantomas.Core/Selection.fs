@@ -343,7 +343,7 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
         // node kind that selection does not support yet, and release builds degrade to `Unsupported`
         // rather than failing. The DEBUG-only throw exists to make the gap loud while developing.
 #if DEBUG
-        failwithf $"%s{node.GetType().Name} is currently unsupported"
+        failwith $"%s{node.GetType().Name} is currently unsupported"
 #endif
         TreeForSelection.Unsupported
 
@@ -367,8 +367,10 @@ let formatSelection
 
         let isValid = Validation.noWarningOrErrorDiagnostics baseDiagnostics
 
+        // The same exception formatting a whole document raises, so a caller can describe a
+        // selection that does not parse the way it describes a document that does not.
         if not isValid then
-            raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}")
+            raise (ParseException baseDiagnostics)
 
         let rootNode = ASTTransformer.mkOak (Some sourceText) baseUntypedTree
 

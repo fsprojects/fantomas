@@ -192,6 +192,13 @@
           "Fantomas.FCS": "[1.0.0, )"
         }
       },
+      "fantomas.daemon.contract": {
+        "type": "Project",
+        "dependencies": {
+          "Fantomas.Client": "[1.0.0, )",
+          "StreamJsonRpc": "[2.25.29, )"
+        }
+      },
       "fantomas.fcs": {
         "type": "Project",
         "dependencies": {
