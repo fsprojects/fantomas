@@ -292,6 +292,8 @@ let rowsOf (relativeFile: string) : Row list =
                     Config =
                         match fileConfig with
                         | Some fileConfig when config = "config" -> $"config, which this file sets to %s{fileConfig}"
+                        | Some fileConfig when config.Contains "config" ->
+                            $"%s{config}, where this file sets config to %s{fileConfig}"
                         | _ -> config
                     Nodes = input |> Option.map (nodesOf isSignature) |> Option.defaultValue ""
                     Input = input

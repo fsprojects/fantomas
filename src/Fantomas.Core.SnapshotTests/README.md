@@ -51,8 +51,9 @@ dotnet fsi build.fsx -- -p UpdateSnapshots
 2. Put the input in the right folder (see below), named after what it shows:
    `cases/oak/TypeDefn/Union/single-case-with-members.fs`. For an old test,
    `dotnet fsi scripts/ledger.fsx -- --input UnionTests.fs:721 > case.fs` writes its input exactly;
-   the line naming the test goes to stderr. Add a `#` description when the name does not say the
-   point on its own.
+   the line naming the test goes to stderr. The old tests' strings mostly start with a newline,
+   which formatting drops, so remove it from a negative case. Add a `#` description when the name
+   does not say the point on its own.
 3. Run it with `FANTOMAS_UPDATE_SNAPSHOTS=1` and a filter on its name. That writes its golds, or
    fails without writing any when the result is broken or the case is in the wrong folder.
 4. Read the gold. It is the formatting the case now pins down, so check it is what you expected.
