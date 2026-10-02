@@ -1,3 +1,6 @@
+/// The tree Fantomas formats from, built from the untyped syntax tree and printed by the code printer.
+/// Its types can change in any release, a patch release included: take an exact dependency on
+/// Fantomas.Core when building code with them.
 module rec Fantomas.Core.SyntaxOak
 
 open System.Collections.Generic
@@ -2211,6 +2214,7 @@ type ModuleDeclAttributesNode(attributes: MultipleAttributeListNode option, doEx
     member val Expr = doExpr
 
 /// Example: `exception MyError of string` — an exception type definition with an optional member block.
+/// `exception MyError = System.Exception` abbreviates an existing exception.
 type ExceptionDefnNode
     (
         xmlDoc: XmlDocNode option,
@@ -2218,6 +2222,7 @@ type ExceptionDefnNode
         exceptionKeyword: SingleTextNode,
         accessibility: SingleTextNode option,
         unionCase: UnionCaseNode,
+        abbreviation: IdentListNode option,
         withKeyword: SingleTextNode option,
         ms: MemberDefn list,
         range
@@ -2232,6 +2237,7 @@ type ExceptionDefnNode
             yield exceptionKeyword
             yield! noa accessibility
             yield unionCase
+            yield! noa abbreviation
             yield! noa withKeyword
             yield! nodes (List.map MemberDefn.Node ms)
         |]
@@ -2241,6 +2247,7 @@ type ExceptionDefnNode
     member val ExceptionKeyword = exceptionKeyword
     member val Accessibility = accessibility
     member val UnionCase = unionCase
+    member val Abbreviation = abbreviation
     member val WithKeyword = withKeyword
     member val Members = ms
 
