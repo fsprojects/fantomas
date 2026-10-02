@@ -418,10 +418,15 @@ To keep your fork up to date, run this command:</p>
 <li>Check if you need additional tests to cope with a different combination of settings.</li>
 <li>Check if you need additional tests to cope with a different combination of defines (<code>#if DEBUG</code>, ...).</li>
 </ul>
-<h3 data-fsdocs-heading="7"><a name="Documentation" class="anchor" href="#Documentation">Documentation</a></h3>
+<h3 data-fsdocs-heading="7"><a name="Changing-the-Oak" class="anchor" href="#Changing-the-Oak">Changing the Oak</a></h3>
+<p>The public types in <code>SyntaxOak.fs</code> may change in any release, a patch release included.
+Add, remove or reorder the constructor parameters and members of a node whenever a fix needs it, and do not keep an old overload around for compatibility.
+The Oak is versioned for formatting alone: code generation built on it is told to expect breaking changes, see <a href="../end-users/GeneratingCode.html#Updates">Updates</a> in Generating source code.
+Leave Oak changes out of the <a href="../end-users/UpgradeGuide.html#The-Oak">upgrade guide</a>: it shows how to compare <code>SyntaxOak.fs</code> between two releases instead.</p>
+<h3 data-fsdocs-heading="8"><a name="Documentation" class="anchor" href="#Documentation">Documentation</a></h3>
 <p>Write/update documentation when necessary.<br />
 You can find instructions on how to run the documentation locally in the <a href="https://github.com/fsprojects/fantomas/blob/main/docs/.README.md">docs/.README.md</a> file.</p>
-<h3 data-fsdocs-heading="8"><a name="Pull-request-title" class="anchor" href="#Pull-request-title">Pull request title</a></h3>
+<h3 data-fsdocs-heading="9"><a name="Pull-request-title" class="anchor" href="#Pull-request-title">Pull request title</a></h3>
 <ul>
 <li>
 <p>Give your PR a meaningful title. Make sure it covers the change you are introducing in Fantomas.</p>
@@ -440,7 +445,7 @@ You can find instructions on how to run the documentation locally in the <a href
 For example, <code>git checkout -b fix-1404</code>.</p>
 </li>
 </ul>
-<h3 data-fsdocs-heading="9"><a name="Format-your-changes" class="anchor" href="#Format-your-changes">Format your changes</a></h3>
+<h3 data-fsdocs-heading="10"><a name="Format-your-changes" class="anchor" href="#Format-your-changes">Format your changes</a></h3>
 <ul>
 <li>
 Code should be formatted to our standard style, using either <code>dotnet fsi build.fsx -p FormatAll</code> which works on all files, or
@@ -450,7 +455,7 @@ Code should be formatted to our standard style, using either <code>dotnet fsi bu
 </ul>
 </li>
 </ul>
-<h3 data-fsdocs-heading="10"><a name="Changelog" class="anchor" href="#Changelog">Changelog</a></h3>
+<h3 data-fsdocs-heading="11"><a name="Changelog" class="anchor" href="#Changelog">Changelog</a></h3>
 <ul>
 <li>
 Add an entry to the <code>CHANGELOG.md</code> in the <code>Unreleased</code> section based on what kind of change your change is. Follow the guidelines at <a href="https://keepachangelog.com/en/1.0.0/#how">KeepAChangelog</a> to make your message relevant to future readers.
@@ -480,17 +485,17 @@ Add an entry to the <code>CHANGELOG.md</code> in the <code>Unreleased</code> sec
   <span class="id">`</span><span class="id">Update</span> <span class="id">style</span> <span class="k">of</span> <span class="id">xyz</span><span class="pn">.</span> <span class="pn">[</span><span class="pn">#</span><span class="id">issue</span><span class="o">-</span><span class="id">number</span><span class="pn">]</span><span class="pn">(</span><span class="id">https</span><span class="pn">:</span><span class="c">//github.com/fsprojects/fantomas/issues/issue-number)`</span>
 <span class="o">-</span> <span class="id">For</span> <span class="id">example</span><span class="pn">,</span> <span class="id">`</span><span class="pn">*</span> <span class="id">Update</span> <span class="id">style</span> <span class="k">of</span> <span class="id">lambda</span> <span class="id">argument</span><span class="pn">.</span> <span class="pn">[</span><span class="pn">#</span><span class="n">1871</span><span class="pn">]</span><span class="pn">(</span><span class="id">https</span><span class="pn">:</span><span class="c">//github.com/fsprojects/fantomas/issues/1871)`.</span>
 </code></pre></div>
-<h3 data-fsdocs-heading="11"><a name="Run-a-local-build" class="anchor" href="#Run-a-local-build">Run a local build</a></h3>
+<h3 data-fsdocs-heading="12"><a name="Run-a-local-build" class="anchor" href="#Run-a-local-build">Run a local build</a></h3>
 <p>Finally, make sure to run <code>dotnet fsi build.fsx</code>. Among other things, this will check the format of the code and will tell you, if
 your changes caused any tests to fail.</p>
-<h3 data-fsdocs-heading="12"><a name="Small-steps" class="anchor" href="#Small-steps">Small steps</a></h3>
+<h3 data-fsdocs-heading="13"><a name="Small-steps" class="anchor" href="#Small-steps">Small steps</a></h3>
 <p>It is better to create a draft pull request with some initial small changes, and engage conversation, than to spend a lot of effort on a large pull request that was never discussed.
 Someone might be able to warn you in advance that your change will have wide implications for the rest of Fantomas, or might be able to point you in the right direction.
 However, this can only happen if you discuss your proposed changes early and often.
 It's often better to check <em>before</em> contributing that you're setting off on the right path.</p>
-<h2 data-fsdocs-heading="13"><a name="Coding-conventions" class="anchor" href="#Coding-conventions">Coding conventions</a></h2>
+<h2 data-fsdocs-heading="14"><a name="Coding-conventions" class="anchor" href="#Coding-conventions">Coding conventions</a></h2>
 <p>For consistency sake we have a few coding conventions. Please respect those to keep everything as streamlined as possible.</p>
-<h3 data-fsdocs-heading="14"><a name="Member-declaration" class="anchor" href="#Member-declaration">Member declaration</a></h3>
+<h3 data-fsdocs-heading="15"><a name="Member-declaration" class="anchor" href="#Member-declaration">Member declaration</a></h3>
 <ul>
 <li>Use <code>x</code> as the the <code>self-identifier</code> if you need it.</li>
 </ul>
@@ -514,13 +519,13 @@ It's often better to check <em>before</em> contributing that you're setting off 
         <span class="c">// ❌ Not preferred.</span>
     <span class="k">member</span> <span class="id">_</span><span class="pn">.</span><span class="id">WrongValue</span> <span class="o">=</span> <span class="id">v</span>
 </code></pre></div>
-<h2 data-fsdocs-heading="15"><a name="Fixing-style-guide-inconsistencies" class="anchor" href="#Fixing-style-guide-inconsistencies">Fixing style guide inconsistencies</a></h2>
+<h2 data-fsdocs-heading="16"><a name="Fixing-style-guide-inconsistencies" class="anchor" href="#Fixing-style-guide-inconsistencies">Fixing style guide inconsistencies</a></h2>
 <p>Fantomas tries to keep up with the style guides, but as these are living documents, it can occur that something is listed in the style that Fantomas is not respecting.
 In this case, please create an issue using our <a href="https://fsprojects.github.io/fantomas-tools/#/">online tool</a>.
 Copy the code snippet from the guide and add a link to the section of the guide that is not being respected.
 The maintainers will then add the <code>bug (stylistic)</code> to confirm the bug is fixable in Fantomas. In most cases, it may seem obvious that the case can be fixed.
 However, in the past there have been changes to the style guide that Fantomas could not implement for technical reasons: Fantomas can only implement rules based on information entirely contained within the untyped syntax tree.</p>
-<h3 data-fsdocs-heading="16"><a name="Target-the-next-minor-or-major-branch" class="anchor" href="#Target-the-next-minor-or-major-branch">Target the next minor or major branch</a></h3>
+<h3 data-fsdocs-heading="17"><a name="Target-the-next-minor-or-major-branch" class="anchor" href="#Target-the-next-minor-or-major-branch">Target the next minor or major branch</a></h3>
 <p>When fixing a stylistic issue, please ask the maintainers what branch should be targeted. The rule of thumb is that the <code>main</code> branch is used for fixing <code>bug (soundness)</code> and will be used for revision releases.
 Strive to ensure that end users can always update to the latest patch revision of their current minor or major without fear.</p>
 <p>A user should only need to deal with style changes when they have explicitly <a href="https://github.com/fsprojects/fantomas/blob/main/docs/Documentation.md#updating-to-a-new-fantomas-version">chosen to upgrade</a> to a new minor or major version.
@@ -565,57 +570,62 @@ The maintainers will frequently rebase this branch on top of the main branch and
     </a>
   </li>
   <li class="level-3" data-fsdocs-heading="7">
+    <a href="#Changing-the-Oak">
+      Changing the Oak
+    </a>
+  </li>
+  <li class="level-3" data-fsdocs-heading="8">
     <a href="#Documentation">
       Documentation
     </a>
   </li>
-  <li class="level-3" data-fsdocs-heading="8">
+  <li class="level-3" data-fsdocs-heading="9">
     <a href="#Pull-request-title">
       Pull request title
     </a>
   </li>
-  <li class="level-3" data-fsdocs-heading="9">
+  <li class="level-3" data-fsdocs-heading="10">
     <a href="#Format-your-changes">
       Format your changes
     </a>
   </li>
-  <li class="level-3" data-fsdocs-heading="10">
+  <li class="level-3" data-fsdocs-heading="11">
     <a href="#Changelog">
       Changelog
     </a>
   </li>
-  <li class="level-3" data-fsdocs-heading="11">
+  <li class="level-3" data-fsdocs-heading="12">
     <a href="#Run-a-local-build">
       Run a local build
     </a>
   </li>
-  <li class="level-3" data-fsdocs-heading="12">
+  <li class="level-3" data-fsdocs-heading="13">
     <a href="#Small-steps">
       Small steps
     </a>
   </li>
-  <li class="level-2" data-fsdocs-heading="13">
+  <li class="level-2" data-fsdocs-heading="14">
     <a href="#Coding-conventions">
       Coding conventions
     </a>
   </li>
-  <li class="level-3" data-fsdocs-heading="14">
+  <li class="level-3" data-fsdocs-heading="15">
     <a href="#Member-declaration">
       Member declaration
     </a>
   </li>
-  <li class="level-2" data-fsdocs-heading="15">
+  <li class="level-2" data-fsdocs-heading="16">
     <a href="#Fixing-style-guide-inconsistencies">
       Fixing style guide inconsistencies
     </a>
   </li>
-  <li class="level-3" data-fsdocs-heading="16">
+  <li class="level-3" data-fsdocs-heading="17">
     <a href="#Target-the-next-minor-or-major-branch">
       Target the next minor or major branch
     </a>
   </li>
 </ul><style>
-body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-heading-10, --fsdocs-heading-11, --fsdocs-heading-12, --fsdocs-heading-13, --fsdocs-heading-14, --fsdocs-heading-15, --fsdocs-heading-16, --fsdocs-main; }
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-heading-10, --fsdocs-heading-11, --fsdocs-heading-12, --fsdocs-heading-13, --fsdocs-heading-14, --fsdocs-heading-15, --fsdocs-heading-16, --fsdocs-heading-17, --fsdocs-main; }
 #content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
 #fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
 body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
@@ -659,11 +669,14 @@ body:has(#content [data-fsdocs-heading="13"]:is(:focus, .fsdocs-hotkey-focus)) #
 #fsdocs-page-menu [data-fsdocs-heading="14"] { animation-timeline: --fsdocs-heading-14, --fsdocs-heading-15; }
 body:has(#content [data-fsdocs-heading="14"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="14"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="15"] { view-timeline-name: --fsdocs-heading-15; }
-#fsdocs-page-menu [data-fsdocs-heading="15"] { animation-timeline: --fsdocs-heading-15, --fsdocs-heading-16, --fsdocs-main; }
+#fsdocs-page-menu [data-fsdocs-heading="15"] { animation-timeline: --fsdocs-heading-15, --fsdocs-heading-16; }
 body:has(#content [data-fsdocs-heading="15"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="15"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="16"] { view-timeline-name: --fsdocs-heading-16; }
-#fsdocs-page-menu [data-fsdocs-heading="16"] { animation-timeline: --fsdocs-heading-16, --fsdocs-main; }
+#fsdocs-page-menu [data-fsdocs-heading="16"] { animation-timeline: --fsdocs-heading-16, --fsdocs-heading-17, --fsdocs-main; }
 body:has(#content [data-fsdocs-heading="16"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="16"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="17"] { view-timeline-name: --fsdocs-heading-17; }
+#fsdocs-page-menu [data-fsdocs-heading="17"] { animation-timeline: --fsdocs-heading-17, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="17"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="17"] { --fsdocs-toc-focused: 1; }
 </style>
 </aside>
 <dialog>

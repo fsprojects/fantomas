@@ -10,6 +10,36 @@ We wish to capture all changes required to upgrade to a new version. Please note
 New features are not covered in detail here, for those please refer to our [changelog](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md).  
 If you find something to be missing from this guide, please consider opening a PR to mend the gap instead of opening an issue.
 
+## The Oak
+
+This only affects you if you build code with the nodes of `Fantomas.Core.SyntaxOak`, the tree Fantomas formats from, for example to [generate code](./GeneratingCode.html).
+
+Every release of `Fantomas.Core` can change the Oak, a patch release included. There is no compatibility between any two versions, and this guide does not list what changed in it.
+Take an exact dependency on `Fantomas.Core`, and keep tests for the code you build with it, so an upgrade tells you what broke.
+
+To see what changed, compare `src/Fantomas.Core/SyntaxOak.fs` between the tags of two releases, in a clone of this repository:
+
+```bash
+git diff v8.0.5 v8.0.6 -- src/Fantomas.Core/SyntaxOak.fs
+```
+
+To list every release that changed the Oak, and by how much, save this Bash script as `oak-changes.sh` in the clone and run `bash oak-changes.sh`:
+
+```bash
+#!/usr/bin/env bash
+# oak-changes.sh: every release that changed SyntaxOak.fs, compared with the release before it
+oak=src/Fantomas.Core/SyntaxOak.fs
+previous=
+for tag in $(git -c versionsort.suffix=- tag --list 'v*' --sort=v:refname); do
+  if [ -n "$previous" ] && ! git diff --quiet "$previous" "$tag" -- "$oak"; then
+    echo "$previous -> $tag:$(git diff --shortstat "$previous" "$tag" -- "$oak")"
+  fi
+  previous=$tag
+done
+```
+
+
+
 ## v5.0
 
 ### .editorconfig
@@ -589,76 +619,5 @@ If you catch `FormatException`, you already catch this.
 
 * `CodeFormatter.GetWriterEventsAsync` was added for debugging. It returns the writer events produced while formatting.
   
-
-#### Oak: chains
-
-`Expr.Chain` no longer holds a flat `ChainLink list`. A chain is now a head expression, a list of
-dot-prefixed segments, and a terminal call:
-
-```fsharp
-type ExprChain(head: Expr, segments: ChainSegment list, terminal: ChainTerminal, range)
-
-type ChainCall =
-    | Paren of ExprParenNode
-    | Unit of UnitNode
-
-type ChainSegment =
-    | DotMember of dot: SingleTextNode * expr: Expr
-    | DotApplication of dot: SingleTextNode * expr: Expr * call: ChainCall
-    | DotIndex of dot: SingleTextNode * indexExpr: Expr
-
-type ChainTerminal =
-    | SpaceAllowed of ChainCall
-    | NoSpaceAllowed of ChainCall
-    | NoTerminal
-```
-
-Mapping from the old model:
-
-Removed | Replacement
---- | ---
-`ChainLink.Identifier` | `ExprChain.Head`, when it is the first link
-`ChainLink.Dot` | the `dot` field of the segment that follows it
-`ChainLink.Expr` | `ChainSegment.DotMember`
-`ChainLink.AppParen` | `ChainSegment.DotApplication` with `ChainCall.Paren`, or `ExprChain.Terminal` when last
-`ChainLink.AppUnit` | `ChainSegment.DotApplication` with `ChainCall.Unit`, or `ExprChain.Terminal` when last
-`ChainLink.IndexExpr` | `ChainSegment.DotIndex`
-`LinkSingleAppParen`, `LinkSingleAppUnit` | `ChainCall`
-
-A dot now always belongs to the step that follows it, so two adjacent dots are unrepresentable and
-you no longer have to pair links up yourself. The final call is `Terminal` rather than the last
-element of the list, and `ChainTerminal.NoSpaceAllowed` records that no space may precede its
-parenthesis. That is a grammar constraint, not a style choice: a space there reparses
-`a.Foo (x).Bar()` as `a.Foo ((x).Bar())`.
-
-#### Oak: expressions absorbed into `Expr.Chain`
-
-These `Expr` cases were removed. Each was a chain in all but name, and all four now arrive as
-`Expr.Chain`:
-
-* `Expr.DotLambda` (`_.Property`), now a chain whose `Head` is the `_`
-* `Expr.DotIndexedGet` (`a.[i]`), now a `ChainSegment.DotIndex`
-* `Expr.AppLongIdentAndSingleParenArg` (`a.Foo(x)`), now a chain with a terminal call
-* `Expr.NestedIndexWithoutDot`, which was already dead: nothing ever constructed it
-
-`Expr.AppWithLambda` is unchanged, but no longer receives calls that have no prefix arguments;
-those are chains now.
-
-A dotted long identifier such as `a.b.c` yields `Expr.Chain` in expression position, where it
-previously yielded `Expr.OptVar`. `Expr.OptVar` still exists, and is still produced for long
-identifiers without dots and for the optional-argument form `?a.b`. A single identifier is
-`Expr.Ident`, as before.
-
-#### Oak: other node changes
-
-* `Expr.DynamicChain` was added for chained `?` operator accesses such as `x?a("")?b(t)`.
-* `ComputationExpressionStatement` collapsed from four cases to two. `LetOrUseStatement`,
-`LetOrUseBangStatement` and `AndBangStatement` are all `BindingStatement of BindingNode` now,
-and `ExprLetOrUseNode`, `ExprLetOrUseBangNode` and `ExprAndBang` were removed.
-* `NamePatPair` was renamed to `NamePatPairNode`, and its `ident: SingleTextNode` became
-`fieldName: IdentListNode`.
-* `PatRecordField` was removed and merged into `NamePatPairNode`. `PatRecordNode.Fields` is now
-a `NamePatPairNode list`, and the old `Prefix` and `FieldName` fields are together in
-`fieldName`.
 
 <fantomas-nav source="docs/end-users/UpgradeGuide.md" previous="Configuration.md" next="IgnoreFiles.md"></fantomas-nav>

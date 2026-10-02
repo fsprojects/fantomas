@@ -258,7 +258,8 @@ The Fantomas maintainers are not affiliated with any projects that expose AST co
 ### Updates
 
 Since code generation is considered to be a nice to have functionality, there is no compatibility between any `Fantomas.Core` version when it comes to the `SyntaxOak` module.  
-We do not apply any semantic versioning to `Fantomas.FCS` or `Fantomas.Core.SyntaxOak`. Breaking changes can be expected at any given point.  
+We do not apply any semantic versioning to `Fantomas.FCS` or `Fantomas.Core.SyntaxOak`. Breaking changes can be expected at any given point, a patch release included.  
+The [upgrade guide](./UpgradeGuide.html#The-Oak) shows how to find out what changed in the Oak between two versions.  
 Our recommendation is that you include a set of regression tests  to meet your own expectations when upgrading.  
 As none of our versions are compatible it is advised to take a very strict dependency on `Fantomas.Core`. Using constraints like `(>= 6.0.0)` will inevitably lead to unexpected problems.
 

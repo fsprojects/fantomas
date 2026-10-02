@@ -83,6 +83,13 @@ Verify if the change you are making should also apply to signature files (`*.fsi
 * Check if you need additional tests to cope with a different combination of settings.
 * Check if you need additional tests to cope with a different combination of defines (`#if DEBUG`, ...).
 
+### Changing the Oak
+
+The public types in `SyntaxOak.fs` may change in any release, a patch release included.
+Add, remove or reorder the constructor parameters and members of a node whenever a fix needs it, and do not keep an old overload around for compatibility.
+The Oak is versioned for formatting alone: code generation built on it is told to expect breaking changes, see [Updates](../end-users/GeneratingCode.html#Updates) in Generating source code.
+Leave Oak changes out of the [upgrade guide](../end-users/UpgradeGuide.html#The-Oak): it shows how to compare `SyntaxOak.fs` between two releases instead.
+
 ### Documentation
 
 Write/update documentation when necessary.  
