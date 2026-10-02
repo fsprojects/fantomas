@@ -93,7 +93,7 @@ let private buildsPrintfFormat (metadata: MetadataReader) (token: int) : bool =
     && (parentName metadata reference.Parent).StartsWith("PrintfFormat", StringComparison.Ordinal)
 
 /// The function a method was written as. A lambda is compiled to a closure class named after the
-/// function it sits in, `mkConstant@205`, so that is the name it goes by here.
+/// function it sits in, `genNode@205`, so that is the name it goes by here.
 let private functionOf (metadata: MetadataReader) (method: MethodDefinition) : string =
     let declaring: TypeDefinition =
         metadata.GetTypeDefinition(method.GetDeclaringType())
@@ -178,7 +178,6 @@ let private unreachable: Map<string, string> =
     Map.ofList
         [
             "Triage.dump", "Dumps a node for triage inside a try, and falls back to the type name where printf fails."
-            "ASTTransformer.mkConstant", "The `%A` fallback only runs without source text, which the tool always has."
             "CodePrinter.genNode", "The writer event payloads only exist for CodeFormatter.GetWriterEventsAsync."
             "TriviaNode.ToString", "Debugger display."
             "SingleTextNode.ToString", "Debugger display."
@@ -222,4 +221,3 @@ let ``the printf scan finds what it is looking for`` () =
         |> List.map (fun (printfUse: PrintfUse) -> printfUse.Function)
 
     Assert.That(functions, Does.Contain "Triage.dump")
-    Assert.That(functions, Does.Contain "ASTTransformer.mkConstant")
