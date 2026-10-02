@@ -1,0 +1,1 @@
+let f x : [<return: Attribute>] int = x

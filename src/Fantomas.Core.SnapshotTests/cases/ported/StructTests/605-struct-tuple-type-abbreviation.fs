@@ -1,0 +1,1 @@
+type TupleStruct = (struct (string * string))

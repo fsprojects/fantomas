@@ -1,0 +1,4 @@
+(*---
+fsharp_space_before_uppercase_invocation = true
+---*)
+let v2 = OtherFunction().Member

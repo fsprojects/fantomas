@@ -1,0 +1,3 @@
+type NameStruct() =
+    struct
+    end

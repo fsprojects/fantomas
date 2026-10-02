@@ -1,0 +1,2 @@
+[<Measure>]
+type herth = / second

@@ -125,6 +125,16 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
             folders
 
     match folders with
+    // Converted from Fantomas.Core.Tests by `scripts/convert.fsx`, one folder per file the tests came
+    // from. Those files are not about one node or one setting, so the folders claim nothing more.
+    | "ported" :: _ ->
+        Ok
+            {
+                Setting = None
+                Node = Unchecked "ported from Fantomas.Core.Tests, in the folder of the file it came from"
+                IsTrivia = false
+                IsNegative = List.tryLast folders = Some "negative"
+            }
     | "oak" :: rest ->
         resolveNodeFolder (nodeFolders rest)
         |> Result.map (fun (node: NodeFolder) ->
@@ -159,7 +169,7 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
                 IsNegative = isNegative
             }
         )
-    | top :: _ -> Error $"`%s{top}` is neither `oak` nor `settings`."
+    | top :: _ -> Error $"`%s{top}` is none of `oak`, `settings` and `ported`."
     | [] -> Error "The case is not in a folder."
 
 let private propertyValue (case: Case.Case) (key: string) : string option =

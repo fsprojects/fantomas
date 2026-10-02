@@ -1,0 +1,1 @@
+let makeStreamReader x y = new StreamReader(arg1=x, arg2=y)

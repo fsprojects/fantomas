@@ -1,0 +1,1 @@
+exception Error2 of string * int

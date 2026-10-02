@@ -1,0 +1,4 @@
+{| Foo =
+   someValue
+      //
+      a |}

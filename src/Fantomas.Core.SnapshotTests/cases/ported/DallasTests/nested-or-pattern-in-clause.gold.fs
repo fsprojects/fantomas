@@ -1,0 +1,4 @@
+function
+| X
+| Y
+| Z -> ()

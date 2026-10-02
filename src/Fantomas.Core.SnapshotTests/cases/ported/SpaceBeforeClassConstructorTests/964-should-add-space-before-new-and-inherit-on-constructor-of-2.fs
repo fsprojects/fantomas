@@ -1,0 +1,19 @@
+(*---
+fsharp_space_before_class_constructor = true
+fsharp_multiline_bracket_style = cramped
+---*)
+type BaseClass =
+    val string1: string
+    new(str) = { string1 = str }
+    new() = { string1 = "" }
+
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new(str1, str2) =
+        { inherit BaseClass(str1)
+          string2 = str2 }
+
+    new(str2) = { inherit BaseClass(); string2 = str2 }

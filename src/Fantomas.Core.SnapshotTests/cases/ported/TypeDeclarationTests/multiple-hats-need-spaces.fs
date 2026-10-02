@@ -1,0 +1,1 @@
+let inline tryAverage(map: Map< ^a,^b>): ^a option =  None

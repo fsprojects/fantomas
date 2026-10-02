@@ -1,0 +1,2 @@
+x ~~~FileAttributes.ReadOnly
+    

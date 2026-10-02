@@ -1,0 +1,4 @@
+Log
+    .Foo()
+    // Bar
+    .Poo()

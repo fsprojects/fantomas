@@ -1,0 +1,1 @@
+type 'a t when 'a :> IDisposable = T of 'a option

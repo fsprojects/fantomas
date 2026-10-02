@@ -49,10 +49,7 @@ dotnet fsi build.fsx -- -p UpdateSnapshots
    its own gold. A case outside `negative/` whose result is its input fails: change the input so the
    result earns its gold.
 2. Put the input in the right folder (see below), named after what it shows:
-   `cases/oak/TypeDefn/Union/single-case-with-members.fs`. For an old test,
-   `dotnet fsi scripts/ledger.fsx -- --input UnionTests.fs:721 > case.fs` writes its input exactly;
-   the line naming the test goes to stderr. The old tests' strings mostly start with a newline,
-   which formatting drops, so remove it from a negative case. Add a `#` description when the name
+   `cases/oak/TypeDefn/Union/single-case-with-members.fs`. Add a `#` description when the name
    does not say the point on its own.
 3. Run it with `FANTOMAS_UPDATE_SNAPSHOTS=1` and a filter on its name. That writes its golds, or
    fails without writing any when the result is broken or the case is in the wrong folder.
@@ -91,7 +88,9 @@ type A = A of int
 - **Defines.** A case with `#if` also gets one gold per define combination, `name.no-defines.gold.fs`,
   `name.DEBUG.gold.fs`, `name.DEBUG+TRACE.gold.fs`, and `name.gold.fs` holds the merged result
   users get. The per-define golds are what each combination printed before the merge, which is why
-  a directive can be indented in them.
+  a directive can be indented in them. An old test that formatted one combination merged its result
+  with itself first, which moved its directives to column 0, so a per-define gold need not match its
+  expected output there.
 - **Mismatch.** The test fails with a line diff and writes `name.actual.fs` beside the gold. Rename
   it over the gold to accept it, or run `dotnet fsi build.fsx -- -p UpdateSnapshots` to accept every
   change.
@@ -117,11 +116,15 @@ type A = A of int
 ## Where a case goes
 
 ```
+cases/ported/<old test file>/[negative/]                   ported/CommentTests/, made by scripts/convert.fsx
 cases/oak/<Union>/<Case>/[trivia/][negative/]              oak/TypeDefn/Union/trivia/negative/
 cases/oak/<Node>/[trivia/][negative/]                      oak/UnionCase/
 cases/settings/<key>/[<value>/]<Union>/<Case>/[trivia/]    settings/fsharp_bar_before_discriminated_union_declaration/TypeDefn/Union/
 cases/settings/<key>/[<value>/]negative/<Union>/<Case>/    settings/fsharp_bar_before_discriminated_union_declaration/negative/ModuleDecl/Exception/
 ```
+
+`ported/` holds the old tests, converted without judgement (see "The ported tests" below). A case
+written by hand goes under `oak/` or `settings/`:
 
 1. **A setting.** If the point of a case is what a setting does, it goes under `settings/<key>/`,
    setting a value other than the default. The value folder is only there for settings with named
@@ -145,6 +148,7 @@ cases/settings/<key>/[<value>/]negative/<Union>/<Case>/    settings/fsharp_bar_b
    much a test as any other: while fixing a bug it is often the one that says what must not change.
 
 The path is checked:
+- under `ported/`, only `negative/`: the folders name the file the tests came from, not a node;
 - a case under `settings/<key>/` must set `<key>`, to its value folder when there is one;
 - resetting `<key>` to its default must change the result, except under `negative/`, where
   neither the setting nor its default may change the input;
@@ -161,7 +165,9 @@ module abbreviations, `val`s, exceptions, type definitions, and every member, as
 signature. Expressions and patterns do not occur in them. So a `.fsi` case belongs in the folders
 of those declarations, where the signature path can print differently. Elsewhere it adds nothing.
 A `.fs` and a `.fsi` case beside each other are two cases: their inputs say what each kind of file
-would say, and need not match.
+would say, and need not match. Some syntax does not exist in a signature file at all, `module rec`
+and `extern` among it: `dotnet fsi scripts/format.fsx --signature <file>` says so before a case is
+written.
 
 ## Reports
 
@@ -171,40 +177,45 @@ which git ignores:
   case leaves it out, and whether some case has none, one and several of each list of parts;
 - `reports/trivia.md`: where trivia lands on every node class.
 
-They are there to read while porting a folder. They are no golds and no test: they would change
-with every case, and folders ported in parallel would fight over them. The pipeline sets
+They are there to read while writing cases for a folder. They are no golds and no test: they
+would change with every case. The pipeline sets
 `FANTOMAS_SNAPSHOT_REPORTS=1`, and a test run with that set writes them once it finishes. A shape
 under Missing is either a case still to write or one the parser cannot produce, and the person
-porting the folder judges which. One the parser cannot produce needs no record anywhere.
+writing the cases judges which. One the parser cannot produce needs no record anywhere.
 
 `dotnet fsi build.fsx -- -p CoverageOak` measures `SyntaxOak.fs` alone. `syntaxoak-coverage.txt`
 names the classes some case reaches in full, then lists, by class, every line no case reaches.
 Every node class constructor and every arm of a union's `Node` member is a node or a union case
 that some case must contain.
 
-## The porting ledger
+## The ported tests
 
-`porting-ledger.tsv` has one row per test in `Fantomas.Core.Tests`, with the old test's input
-config and the Oak node classes its input contains. `status` is:
+`cases/ported/` is `Fantomas.Core.Tests` converted by `scripts/convert.fsx`, one folder per test
+file. Nothing in it was judged or rewritten:
 
-| Status | Meaning |
-|---|---|
-| `todo` | not ported yet; `targets` names the folder it belongs to once someone looked at it |
-| `ported` | became the cases in `targets`; a reason only when the case departs from the test |
-| `merged` | covered by the case in `targets`, for the reason given |
-| `dropped` | no case, for the reason given |
-| `unit` | stays an F# unit test |
+- **What becomes a case.** A test that formats a string literal with a config and compares the
+  result with an expected string literal, through `formatSourceString`, `formatSignatureString`
+  or `formatSourceStringWithDefines`, optionally with `prepend newline` in between.
+- **The case.** Its input as written, its config as front matter, and the harness result as its
+  golds. The newline a triple quoted input starts with is dropped when the result stays the same
+  without it. The tests of one file that format the same input with the same settings are one case.
+- **The proof.** Before anything is written, every test's expected output is compared with the
+  harness result: the merged gold, or, for `formatSourceStringWithDefines`, the result for its
+  defines merged with itself, as that helper does. A test whose result is its input becomes a
+  negative case. A case's name comes from its first test's name, its issue number first.
+- **The rest.** A test that does not fit stays where it is and is listed with the reason: the unit
+  test files, `formatAST` tests (which format a tree without its source, so without trivia),
+  ignored tests, tests without `[<Test>]`, and the few whose body does something else.
 
-- **Several cases.** `targets` separates them with `;`.
-- **Several old tests, one case.** Each of them is `ported` to that case, with a reason saying which
-  part of it is theirs when that is not obvious.
-- **`formatAST` tests.** They format a syntax tree without its source, so comments and the original
-  spelling are gone. A case always formats from source: such a test is `unit` when its point only
-  holds without the source, and is ported otherwise.
+`porting-ledger.tsv` is written by the converter alongside: one row per old test, with the case it
+became or why there is none.
 
 ```
-dotnet fsi scripts/ledger.fsx                      regenerate, keeping status, targets and reason
-dotnet fsi scripts/ledger.fsx -- --contains A,B    the old tests whose input has node A or B
-dotnet fsi scripts/ledger.fsx -- --resolved        what removing the old tests would delete
-dotnet fsi scripts/ledger.fsx -- --input F.fs:12   the input of the old test on line 12 of F.fs
+dotnet fsi scripts/convert.fsx                 dry run: what each test would become, in counts
+dotnet fsi scripts/convert.fsx -- --write      write cases/ported/ and the ledger again
+dotnet fsi scripts/convert.fsx -- --check      fail when cases/ported/ or the ledger differ from the old tests
 ```
+
+While both suites exist, the old tests are the source of `ported/`: a change in formatting is made to
+the old test, and `--write` brings the case along. Do not edit `ported/` by hand, `--check` says
+when it no longer matches.

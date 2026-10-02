@@ -1,0 +1,1 @@
+type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >

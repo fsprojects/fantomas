@@ -1,0 +1,1 @@
+MyModule.Foo().Bar()
