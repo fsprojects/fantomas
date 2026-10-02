@@ -218,6 +218,19 @@ let libraryChecks: (string * (unit -> string)) list =
 
             result.Code
 
+        "CodeFormatter.FormatASTAsync without the source text, which prints each number from its value",
+        fun () ->
+            let ast, _ =
+                parse false "let a = 1uy\nlet b = 0.30000000000000004\nlet c = 1.40e10f\nlet d = 2.0m\n" []
+
+            let formatted: string = CodeFormatter.FormatASTAsync(ast) |> run
+
+            expectEqual
+                "let a = 1uy\nlet b = 0.30000000000000004\nlet c = 1.4e+10f\nlet d = 2.0M\n"
+                (formatted.Replace("\r\n", "\n"))
+
+            formatted
+
         "CodeFormatter.ValidateFSharpCodeAsync, valid code",
         fun () ->
             let result: ValidationResult =
