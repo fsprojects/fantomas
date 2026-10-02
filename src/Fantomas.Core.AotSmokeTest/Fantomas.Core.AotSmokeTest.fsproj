@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+  Calls the public API of Fantomas.Core and Fantomas.FCS the way fantomas-tools does, so that a Native
+  AOT build of it shows whether a library consumer can run on Native AOT. The tool only exercises the
+  paths the command line reaches. Run it with `dotnet run` for the JIT, or through the `TestAot`
+  pipeline of build.fsx, which publishes it with Native AOT and runs that.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(FantomasAot)' == 'true'">
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
+  </ItemGroup>
+</Project>
