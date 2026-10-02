@@ -196,6 +196,13 @@ would change with every case. The pipeline sets
 under Missing is either a case still to write or one the parser cannot produce, and the person
 writing the cases judges which. One the parser cannot produce needs no record anywhere.
 
+`dotnet fsi build.fsx -- -p CoverageReach` measures what each old test and each case reaches in all
+of Fantomas.Core, one at a time, and writes to `artifacts/coverage/`: `reach.tsv`, every test and
+case with the points it reached, and `parity.md`, what the old tests reach that no case does, by
+source line, and which of the old tests that stay reach it. A point is a line or a branch, as AltCover
+counts them. Module initialisers run before anything is measured, since whatever ran first would
+otherwise get them to itself.
+
 `dotnet fsi build.fsx -- -p CoverageOak` measures `SyntaxOak.fs` alone. `syntaxoak-coverage.txt`
 names the classes some case reaches in full, then lists, by class, every line no case reaches.
 Every node class constructor and every arm of a union's `Node` member is a node or a union case
@@ -206,9 +213,13 @@ that some case must contain.
 `cases/ported/` is `Fantomas.Core.Tests` converted by `scripts/convert.fsx`, one folder per test
 file. Nothing in it was judged or rewritten:
 
-- **What becomes a case.** A test that formats a string literal with a config and compares the
-  result with an expected string literal, through `formatSourceString`, `formatSignatureString`
-  or `formatSourceStringWithDefines`, optionally with `prepend newline` in between.
+- **What becomes a case.** A test that formats a string with a config and compares the result with
+  an expected string, through `formatSourceString`, `formatSignatureString`,
+  `formatSourceStringWithDefines` or `CodeFormatter.FormatDocumentAsync`, optionally with
+  `prepend newline` in between. The strings may be literals, `let`s, interpolated strings, or a
+  helper's result formatted again. A test of several such steps, or one that calls a function of its
+  file which is, becomes a case per step; a `[<TestCase>]` or `[<TestCaseSource>]` test, a case per
+  argument.
 - **The case.** Its input as written, its config as front matter, and the harness result as its
   golds. The newline a triple quoted input starts with is dropped when the result stays the same
   without it. The tests of one file that format the same input with the same settings are one case.
@@ -221,7 +232,8 @@ file. Nothing in it was judged or rewritten:
   the gold. One that formats a single define combination cannot: no gold holds that output.
 - **The rest.** A test that does not fit stays where it is and is listed with the reason: the unit
   test files, `formatAST` tests (which format a tree without its source, so without trivia), tests
-  without `[<Test>]`, and the few whose body does something else.
+  that format a generated input to check it does not overflow the stack, and one that checks an
+  exception.
 
 `porting-ledger.tsv` is written by the converter alongside: one row per old test, with the case it
 became or why there is none.

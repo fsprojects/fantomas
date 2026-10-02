@@ -64,17 +64,6 @@ type Call =
         Ignored: string option
     }
 
-/// A test that compares a format result with an expected string.
-type Test =
-    {
-        File: string
-        Line: int
-        Name: string
-        Call: Call
-        /// What the helper returned, without the newline `prepend newline` put in front.
-        Expected: string
-    }
-
 // --- Reading a test -----------------------------------------------------------------------------
 
 let identText (expr: SynExpr) : string option =
@@ -102,64 +91,182 @@ let rec spine (expr: SynExpr) : SynExpr * SynExpr list =
     | SynExpr.Paren(expr = inner) -> spine inner
     | expr -> expr, []
 
-/// The names a test body can refer to: the `let`s of its file and of the body itself.
+/// What a name a test body uses stands for: the `let`s of its file and of the body itself, and the
+/// parameters of a parameterised test or of a function of its file.
 type Binding =
     {
         Expr: SynExpr
+        /// The names of its parameters, for a function: `let checkFormat config source expected = ...`.
+        Params: string list
         /// What the names in `Expr` refer to.
         Scope: Map<string, Binding>
     }
 
 type Scope = Map<string, Binding>
 
+let valueBinding (scope: Scope) (expr: SynExpr) : Binding =
+    {
+        Expr = expr
+        Params = []
+        Scope = scope
+    }
+
+/// The names of parameters, when every one is a plain name, typed or not.
+let rec paramNamesOf (pats: SynPat list) : string list option =
+    pats
+    |> List.map (fun (pat: SynPat) ->
+        match pat with
+        | SynPat.Named(ident = SynIdent(ident, _)) -> Some [ ident.idText ]
+        | SynPat.Const(SynConst.Unit, _) -> Some []
+        | SynPat.Paren(pat = inner)
+        | SynPat.Typed(pat = inner) -> paramNamesOf [ inner ]
+        | SynPat.Tuple(elementPats = elements) -> paramNamesOf elements
+        | _ -> None
+    )
+    |> List.fold (fun (names: string list option) (more: string list option) -> Option.map2 (@) names more) (Some [])
+
+/// A scope with one more `let`: a value, or a function whose parameters are plain names.
+let bind (scope: Scope) (SynBinding(headPat = pat; expr = bound): SynBinding) : Scope =
+    match pat with
+    | SynPat.Named(ident = SynIdent(ident, _)) -> scope.Add(ident.idText, valueBinding scope bound)
+    | SynPat.LongIdent(longDotId = SynLongIdent(id = [ ident ]); argPats = SynArgPats.Pats pats) ->
+        match paramNamesOf pats with
+        | None -> scope
+        | Some names ->
+            scope.Add(
+                ident.idText,
+                {
+                    Expr = bound
+                    Params = names
+                    Scope = scope
+                }
+            )
+    | _ -> scope
+
+/// A function of the file applied to its arguments: its body, and the scope its body sees, every
+/// parameter bound to its argument.
+let apply (callerScope: Scope) (binding: Binding) (args: SynExpr list) : Result<SynExpr * Scope, string> =
+    if args.Length <> binding.Params.Length then
+        Error "calls a function of its file with a number of arguments it does not take"
+    else
+
+    let scope: Scope =
+        List.fold2
+            (fun (scope: Scope) (name: string) (arg: SynExpr) -> scope.Add(name, valueBinding callerScope arg))
+            binding.Scope
+            binding.Params
+            args
+
+    Ok(binding.Expr, scope)
+
+let functionIn (scope: Scope) (head: SynExpr) : Binding option =
+    match head with
+    | SynExpr.Ident ident ->
+        scope.TryFind ident.idText
+        |> Option.filter (fun (binding: Binding) -> not binding.Params.IsEmpty)
+    | _ -> None
+
+let configFields: Reflection.PropertyInfo array =
+    FSharpType.GetRecordFields typeof<FormatConfig>
+
+/// Every result in order, or the first error.
+let sequence (results: Result<'a, string> list) : Result<'a list, string> =
+    List.foldBack
+        (fun (result: Result<'a, string>) (rest: Result<'a list, string>) ->
+            match result, rest with
+            | Error e, _ -> Error e
+            | Ok _, Error e -> Error e
+            | Ok x, Ok xs -> Ok(x :: xs)
+        )
+        results
+        (Ok [])
+
+let helpers: Set<string> =
+    set
+        [
+            "formatSourceString"
+            "formatSignatureString"
+            "formatSourceStringWithDefines"
+            "formatAST"
+            "CodeFormatter.FormatDocumentAsync"
+        ]
+
 let rec stringOf (scope: Scope) (expr: SynExpr) : Result<string, string> =
     match expr with
     | SynExpr.Const(SynConst.String(text = text), _) -> Ok text
     | SynExpr.Paren(expr = inner) -> stringOf scope inner
     | SynExpr.LongIdent(longDotId = SynLongIdent(id = [ s; e ])) when s.idText = "String" && e.idText = "Empty" -> Ok ""
-    | SynExpr.Ident ident when scope.ContainsKey ident.idText ->
+    | SynExpr.Ident ident when scope.ContainsKey ident.idText && scope[ident.idText].Params.IsEmpty ->
         let binding: Binding = scope[ident.idText]
         stringOf binding.Scope binding.Expr
-    | _ -> Error "a string that is not a literal"
+    | SynExpr.InterpolatedString(contents = parts) ->
+        // A fill is taken as it is, under `%s` or with no format; any other format is not followed.
+        let rec partsOf (parts: SynInterpolatedStringPart list) : Result<string list, string> =
+            match parts with
+            | [] -> Ok []
+            | SynInterpolatedStringPart.String(value = text) :: rest ->
+                partsOf rest |> Result.map (fun (more: string list) -> text :: more)
+            | SynInterpolatedStringPart.FillExpr(
+                fillExpr = fill; formatting = SynInterpolationFormatting.Printf(specifier = "%s")) :: rest
+            | SynInterpolatedStringPart.FillExpr(
+                fillExpr = fill; formatting = SynInterpolationFormatting.DotNet(alignment = None; format = None)) :: rest ->
+                stringOf scope fill
+                |> Result.bind (fun (filled: string) -> partsOf rest |> Result.map (fun more -> filled :: more))
+            | SynInterpolatedStringPart.FillExpr _ :: _ -> Error "a string with a formatted fill"
 
-let configFields: Reflection.PropertyInfo array =
-    FSharpType.GetRecordFields typeof<FormatConfig>
+        partsOf parts |> Result.map (String.concat "")
+    | expr ->
+
+    // A format helper's result, fed to another test step: formatted as the helper formats it.
+    match callOf scope expr with
+    | Error _ -> Error "a string that is not a literal"
+    | Ok call ->
+
+    match call.Defines with
+    | Some _ -> Error "a string formatted for one define combination"
+    | None ->
+
+    let config: FormatConfig =
+        { call.Config with
+            EndOfLine = EndOfLineStyle.LF
+        }
+
+    match Formatting.formatAndCheck config call.IsSignature call.Input with
+    | formatted, [] -> Ok formatted.Merged
+    | _, _ :: _ -> Error "a string formatted with a problem"
 
 /// The value of a field in `{ config with Field = value }`, read from its literal.
-let fieldValue (field: Reflection.PropertyInfo) (expr: SynExpr) : Result<obj, string> =
-    let rec literal (expr: SynExpr) : Result<obj, string> =
-        match expr with
-        | SynExpr.Paren(expr = inner) -> literal inner
-        | SynExpr.Const(SynConst.Int32 value, _) -> Ok(box value)
-        | SynExpr.Const(SynConst.Bool value, _) -> Ok(box value)
-        | SynExpr.Const(SynConst.String(text = value), _) -> Ok(box value)
-        | expr when FSharpType.IsUnion field.PropertyType ->
-            match identText expr with
-            | None -> Error $"the value of %s{field.Name} is not a literal"
-            | Some name ->
+and fieldValue (scope: Scope) (field: Reflection.PropertyInfo) (expr: SynExpr) : Result<obj, string> =
+    match expr with
+    | SynExpr.Paren(expr = inner) -> fieldValue scope field inner
+    | SynExpr.Ident ident when scope.ContainsKey ident.idText && scope[ident.idText].Params.IsEmpty ->
+        let binding: Binding = scope[ident.idText]
+        fieldValue binding.Scope field binding.Expr
+    | SynExpr.Const(SynConst.Int32 value, _) -> Ok(box value)
+    | SynExpr.Const(SynConst.Bool value, _) -> Ok(box value)
+    | SynExpr.Const(SynConst.String(text = value), _) -> Ok(box value)
+    | expr when FSharpType.IsUnion field.PropertyType ->
+        match identText expr with
+        | None -> Error $"the value of %s{field.Name} is not a literal"
+        | Some name ->
 
-            let caseName: string = name.Split('.') |> Array.last
+        let caseName: string = name.Split('.') |> Array.last
 
-            match
-                FSharpType.GetUnionCases field.PropertyType
-                |> Array.tryFind (fun case -> case.Name = caseName && case.GetFields().Length = 0)
-            with
-            | Some case -> Ok(FSharpValue.MakeUnion(case, [||]))
-            | None -> Error $"`%s{name}` is no case of %s{field.PropertyType.Name}"
-        | _ -> Error $"the value of %s{field.Name} is not a literal"
+        match
+            FSharpType.GetUnionCases field.PropertyType
+            |> Array.tryFind (fun case -> case.Name = caseName && case.GetFields().Length = 0)
+        with
+        | Some case -> Ok(FSharpValue.MakeUnion(case, [||]))
+        | None -> Error $"`%s{name}` is no case of %s{field.PropertyType.Name}"
+    | _ -> Error $"the value of %s{field.Name} is not a literal"
 
-    literal expr
-
-let rec configOf (scope: Scope) (expr: SynExpr) : Result<FormatConfig, string> =
+and configOf (scope: Scope) (expr: SynExpr) : Result<FormatConfig, string> =
     match expr with
     | SynExpr.Paren(expr = inner) -> configOf scope inner
-    | SynExpr.Ident ident when ident.idText = "config" ->
-        match scope.TryFind "config" with
-        | Some binding -> configOf (binding.Scope.Remove "config") binding.Expr
-        | None -> Ok FormatConfig.Default
+    | SynExpr.Ident ident when ident.idText = "config" && not (scope.ContainsKey "config") -> Ok FormatConfig.Default
     | SynExpr.LongIdent(longDotId = SynLongIdent(id = [ t; d ])) when t.idText = "FormatConfig" && d.idText = "Default" ->
         Ok FormatConfig.Default
-    | SynExpr.Ident ident when scope.ContainsKey ident.idText ->
+    | SynExpr.Ident ident when scope.ContainsKey ident.idText && scope[ident.idText].Params.IsEmpty ->
         let binding: Binding = scope[ident.idText]
         configOf binding.Scope binding.Expr
     | SynExpr.Record(copyInfo = Some(baseExpr, _); recordFields = fields) ->
@@ -186,7 +293,7 @@ let rec configOf (scope: Scope) (expr: SynExpr) : Result<FormatConfig, string> =
 
                         match index, value with
                         | Some index, Some value ->
-                            fieldValue configFields[index] value
+                            fieldValue scope configFields[index] value
                             |> Result.map (fun (v: obj) -> values[index] <- v)
                         | _ -> Error $"`%s{name}` is no setting"
                     )
@@ -194,169 +301,180 @@ let rec configOf (scope: Scope) (expr: SynExpr) : Result<FormatConfig, string> =
                 (Ok())
             |> Result.map (fun () -> FSharpValue.MakeRecord(typeof<FormatConfig>, values) :?> FormatConfig)
         )
+    | expr ->
+
+    // A function of the file that makes a config: `let config x = { config with ... }`.
+    match spine expr with
+    | head, (_ :: _ as args) when (functionIn scope head).IsSome ->
+        apply scope (functionIn scope head).Value args
+        |> Result.bind (fun (body: SynExpr, inner: Scope) -> configOf inner body)
     | _ -> Error "a config that is not `config` or a copy of it"
 
-let helpers: Set<string> =
-    set
-        [
-            "formatSourceString"
-            "formatSignatureString"
-            "formatSourceStringWithDefines"
-            "formatAST"
-        ]
+and callOf (scope: Scope) (expr: SynExpr) : Result<Call, string> =
+    let head, args = spine expr
 
-let rec helperCalls (expr: SynExpr) : int =
-    let here: int =
-        match spine expr with
-        | head, _ :: _ when identText head |> Option.exists helpers.Contains -> 1
-        | _ -> 0
-
-    let below: SynExpr list =
-        match expr with
-        | SynExpr.App(funcExpr = f; argExpr = a) -> [ f; a ]
-        | SynExpr.Paren(expr = e)
-        | SynExpr.Typed(expr = e)
-        | SynExpr.Do(expr = e)
-        | SynExpr.Lambda(body = e) -> [ e ]
-        | SynExpr.Sequential(expr1 = a; expr2 = b) -> [ a; b ]
-        | SynExpr.LetOrUse letOrUse ->
-            (letOrUse.Bindings |> List.map (fun (SynBinding(expr = bound)) -> bound))
-            @ [ letOrUse.Body ]
-        | SynExpr.Tuple(exprs = exprs)
-        | SynExpr.ArrayOrList(exprs = exprs) -> exprs
-        | _ -> []
-
-    // Counted once per call: a call's own function part is a partial application of it.
-    match spine expr with
-    | head, args when here = 1 -> 1 + (args |> List.sumBy helperCalls)
-    | _ -> below |> List.sumBy helperCalls
-
-let callOf (scope: Scope) (expr: SynExpr) : Result<Call, string> =
-    match spine expr with
-    | head, args ->
-
-    match identText head, args with
-    | Some("formatSourceString" | "formatSignatureString" as helper), [ input; config ] ->
+    let call
+        (helper: string)
+        (isSignature: bool)
+        (defines: string list option)
+        (input: SynExpr)
+        (config: SynExpr)
+        : Result<Call, string>
+        =
         stringOf scope input
-        |> Result.bind (fun input ->
+        |> Result.bind (fun (input: string) ->
             configOf scope config
-            |> Result.map (fun config ->
+            |> Result.map (fun (config: FormatConfig) ->
                 {
                     Helper = helper
                     Input = input
-                    IsSignature = helper = "formatSignatureString"
-                    Defines = None
+                    IsSignature = isSignature
+                    Defines = defines
                     Config = config
                     Ignored = None
                 }
             )
         )
+
+    match identText head, args with
+    | Some("formatSourceString" | "formatSignatureString" as helper), [ input; config ] ->
+        call helper (helper = "formatSignatureString") None input config
+    | Some "CodeFormatter.FormatDocumentAsync",
+      [ SynExpr.Paren(expr = SynExpr.Tuple(exprs = [ SynExpr.Const(SynConst.Bool isSignature, _); input; config ])) ] ->
+        call "CodeFormatter.FormatDocumentAsync" isSignature None input config
     | Some "formatSourceStringWithDefines", [ defines; input; config ] ->
         let definesResult: Result<string list, string> =
             match defines with
-            | SynExpr.ArrayOrListComputed(expr = SynExpr.Const(SynConst.String(text = d), _)) -> Ok [ d ]
             | SynExpr.ArrayOrList(exprs = []) -> Ok []
-            | SynExpr.ArrayOrList(exprs = exprs) ->
-                exprs
-                |> List.map (stringOf scope)
-                |> List.fold
-                    (fun acc r ->
-                        match acc, r with
-                        | Ok xs, Ok x -> Ok(xs @ [ x ])
-                        | Error e, _
-                        | _, Error e -> Error e
-                    )
-                    (Ok [])
-            | SynExpr.ArrayOrListComputed(
-                expr = SynExpr.Sequential(
-                    expr1 = SynExpr.Const(SynConst.String(text = a), _)
-                    expr2 = SynExpr.Const(SynConst.String(text = b), _))) -> Ok [ a; b ]
+            | SynExpr.ArrayOrList(exprs = exprs) -> exprs |> List.map (stringOf scope) |> sequence
+            | SynExpr.ArrayOrListComputed(expr = inner) ->
+                let rec elements (expr: SynExpr) : SynExpr list =
+                    match expr with
+                    | SynExpr.Sequential(expr1 = first; expr2 = rest) -> first :: elements rest
+                    | expr -> [ expr ]
+
+                elements inner |> List.map (stringOf scope) |> sequence
             | _ -> Error "defines that are not a list of literals"
 
         definesResult
-        |> Result.bind (fun defines ->
-            stringOf scope input
-            |> Result.bind (fun input ->
-                configOf scope config
-                |> Result.map (fun config ->
-                    {
-                        Helper = "formatSourceStringWithDefines"
-                        Input = input
-                        IsSignature = false
-                        Defines = Some defines
-                        Config = config
-                        Ignored = None
-                    }
-                )
-            )
+        |> Result.bind (fun (defines: string list) ->
+            call "formatSourceStringWithDefines" false (Some defines) input config
         )
     | Some "formatAST", _ -> Error "formats a syntax tree without its source, so without trivia"
     | Some helper, _ when helpers.Contains helper ->
         Error $"calls %s{helper} with arguments that are not input and config"
     | _ -> Error "does not call a format helper first"
 
-/// A test body as `helper input config |> prepend newline |> should equal expected`.
-let testOf (scope: Scope) (body: SynExpr) : Result<Call * string, string> =
-    let rec unwrap (scope: Scope) (expr: SynExpr) : Scope * SynExpr =
-        match expr with
-        | SynExpr.LetOrUse letOrUse when not letOrUse.IsRecursive ->
-            let scope: Scope =
-                letOrUse.Bindings
-                |> List.fold
-                    (fun (inner: Scope) (SynBinding(headPat = pat; expr = bound)) ->
-                        match pat with
-                        | SynPat.Named(ident = SynIdent(ident, _)) ->
-                            inner.Add(ident.idText, { Expr = bound; Scope = inner })
-                        | _ -> inner
-                    )
-                    scope
+/// One step of a test: `helper input config |> prepend newline |> should equal expected`. A lambda
+/// in between names the result so far and makes its body the result: `|> fun formatted ->
+/// formatSourceString formatted config` formats it again. After `CodeFormatter.FormatDocumentAsync`,
+/// running the result and taking its code leave it as it is.
+let stepOf (scope: Scope) (expr: SynExpr) : Result<Call * string, string> =
+    let isDirect (head: SynExpr) : bool =
+        identText (fst (spine head)) = Some "CodeFormatter.FormatDocumentAsync"
 
-            unwrap scope letOrUse.Body
-        | SynExpr.Paren(expr = inner) -> unwrap scope inner
-        | expr -> scope, expr
+    let rec stagesOf
+        (scope: Scope)
+        (head: SynExpr)
+        (prepended: bool)
+        (stages: SynExpr list)
+        : Result<Scope * SynExpr * bool * SynExpr, string>
+        =
+        match stages with
+        | [] -> Error "does not compare the result"
+        | [ last ] ->
+            match spine last with
+            | should, [ equal; expected ] when identText should = Some "should" && identText equal = Some "equal" ->
+                Ok(scope, head, prepended, expected)
+            | _ -> Error "does not end in `should equal`"
+        | stage :: rest ->
 
-    let scope, body = unwrap scope body
+        match stage, spine stage with
+        | SynExpr.Lambda _, _ when isDirect head -> stagesOf scope head prepended rest
+        | SynExpr.Lambda(parsedData = Some([ SynPat.Named(ident = SynIdent(name, _)) ], body)), _ when not prepended ->
+            stagesOf (scope.Add(name.idText, valueBinding scope head)) body prepended rest
+        | _, (prepend, [ newline ]) when identText prepend = Some "prepend" && identText newline = Some "newline" ->
+            stagesOf scope head true rest
+        | _, (run, []) when isDirect head && identText run = Some "Async.RunSynchronously" ->
+            stagesOf scope head prepended rest
+        | _ -> Error "pipes the result through something other than `prepend newline`"
 
-    match helperCalls body with
-    | 0 -> Error "does not call a format helper"
-    | 1 ->
+    match pipeline expr with
+    | [] -> Error "has no body"
+    | head :: stages ->
 
-        match pipeline body with
-        | [] -> Error "has no body"
-        | call :: stages ->
-
-        let rec stagesOf (prepended: bool) (stages: SynExpr list) : Result<bool * SynExpr, string> =
-            match stages with
-            | [ last ] ->
-                match spine last with
-                | should, [ equal; expected ] when identText should = Some "should" && identText equal = Some "equal" ->
-                    Ok(prepended, expected)
-                | _ -> Error "does not end in `should equal`"
-            | stage :: rest ->
-                match spine stage with
-                | prepend, [ newline ] when identText prepend = Some "prepend" && identText newline = Some "newline" ->
-                    stagesOf true rest
-                | _ -> Error "pipes the result through something other than `prepend newline`"
-            | [] -> Error "does not compare the result"
-
-        stagesOf false stages
-        |> Result.bind (fun (prepended, expected) ->
-            callOf scope call
-            |> Result.bind (fun call ->
-                stringOf scope expected
-                |> Result.bind (fun expected ->
-                    if not prepended then
-                        Ok(call, expected)
-                    elif expected.StartsWith "\n" then
-                        Ok(call, expected.Substring 1)
-                    else
-                        Error "prepends a newline the expected output does not start with"
-                )
+    stagesOf scope head false stages
+    |> Result.bind (fun (scope, head, prepended, expected) ->
+        callOf scope head
+        |> Result.bind (fun call ->
+            stringOf scope expected
+            |> Result.bind (fun expected ->
+                if not prepended then
+                    Ok(call, expected)
+                elif expected.StartsWith "\n" then
+                    Ok(call, expected.Substring 1)
+                else
+                    Error "prepends a newline the expected output does not start with"
             )
         )
-    | n -> Error $"calls a format helper %d{n} times"
+    )
 
-let testsOf (relativeFile: string) : (string * int * string * Result<Call * string, string>) list =
+/// Every step of a test body: its `let`s are names for the steps, a sequence is several steps, and
+/// a call to a function of its file is that function's steps.
+let rec stepsOf (scope: Scope) (body: SynExpr) : Result<(Call * string) list, string> =
+    match body with
+    | SynExpr.LetOrUse letOrUse when not letOrUse.IsRecursive ->
+        stepsOf (List.fold bind scope letOrUse.Bindings) letOrUse.Body
+    | SynExpr.Paren(expr = inner) -> stepsOf scope inner
+    | SynExpr.Sequential(expr1 = first; expr2 = rest) ->
+        stepsOf scope first
+        |> Result.bind (fun (steps: (Call * string) list) -> stepsOf scope rest |> Result.map ((@) steps))
+    | expr ->
+
+    match spine expr with
+    | head, (_ :: _ as args) when (functionIn scope head).IsSome ->
+        apply scope (functionIn scope head).Value args
+        |> Result.bind (fun (body: SynExpr, inner: Scope) -> stepsOf inner body)
+    | _ -> stepOf scope expr |> Result.map List.singleton
+
+/// The arguments of each case of a parameterised test: `[<TestCase "...">]`, or the list a
+/// `[<TestCaseSource "name">]` names.
+let casesOf (fileScope: Scope) (attributes: SynAttribute list) : Result<SynExpr list list, string> =
+    let rec elements (expr: SynExpr) : SynExpr list =
+        match expr with
+        | SynExpr.Sequential(expr1 = first; expr2 = rest) -> first :: elements rest
+        | expr -> [ expr ]
+
+    let argumentsOf (expr: SynExpr) : SynExpr list =
+        match expr with
+        | SynExpr.Paren(expr = SynExpr.Tuple(exprs = exprs))
+        | SynExpr.Tuple(exprs = exprs) -> exprs
+        | SynExpr.Paren(expr = inner) -> [ inner ]
+        | expr -> [ expr ]
+
+    attributes
+    |> List.map (fun (attribute: SynAttribute) ->
+        match (List.last attribute.TypeName.LongIdent).idText with
+        | "TestCase" -> Ok [ argumentsOf attribute.ArgExpr ]
+        | "TestCaseSource" ->
+            match stringOf Map.empty attribute.ArgExpr with
+            | Error reason -> Error reason
+            | Ok name ->
+
+            match fileScope.TryFind name with
+            | Some {
+                       Expr = SynExpr.ArrayOrListComputed(expr = inner)
+                   } -> Ok(elements inner |> List.map argumentsOf)
+            | Some {
+                       Expr = SynExpr.ArrayOrList(exprs = exprs)
+                   } -> Ok(exprs |> List.map argumentsOf)
+            | _ -> Error "takes its cases from something other than a list of literals"
+        | _ -> Ok []
+    )
+    |> sequence
+    |> Result.map List.concat
+
+let testsOf (relativeFile: string) : (string * int * string * Result<(Call * string) list, string>) list =
     let path: string = Path.Combine(testsDirectory, relativeFile)
     let text: string = File.ReadAllText path
     let tree, _ = Fantomas.FCS.Parse.parseFile false (SourceText.ofString text) []
@@ -378,27 +496,19 @@ let testsOf (relativeFile: string) : (string * int * string * Result<Call * stri
         modules
         |> List.collect (fun (SynModuleOrNamespace(decls = decls)) -> declarationsOf decls)
 
-    // The values a file defines for its tests, `config` among them, in the order it defines them.
-    let fileScope: Scope =
-        bindings
-        |> List.fold
-            (fun (scope: Scope) (SynBinding(headPat = pat; expr = bound)) ->
-                match pat with
-                | SynPat.Named(ident = SynIdent(ident, _)) -> scope.Add(ident.idText, { Expr = bound; Scope = scope })
-                | _ -> scope
-            )
-            Map.empty
+    // The values and functions a file defines for its tests, `config` among them, in order.
+    let fileScope: Scope = List.fold bind Map.empty bindings
 
     bindings
     |> List.choose (fun (SynBinding(attributes = attributes; headPat = headPat; expr = body)) ->
+        let attributes: SynAttribute list = attributes |> List.collect _.Attributes
+
         let attributeNames: string list =
             attributes
-            |> List.collect _.Attributes
             |> List.map (fun (attribute: SynAttribute) -> (List.last attribute.TypeName.LongIdent).idText)
 
         let ignoreReason: string option =
             attributes
-            |> List.collect _.Attributes
             |> List.tryPick (fun (attribute: SynAttribute) ->
                 if (List.last attribute.TypeName.LongIdent).idText <> "Ignore" then
                     None
@@ -410,25 +520,54 @@ let testsOf (relativeFile: string) : (string * int * string * Result<Call * stri
                 | _ -> Some ""
             )
 
+        let ignored (steps: (Call * string) list) : (Call * string) list =
+            steps
+            |> List.map (fun (call: Call, expected: string) -> { call with Ignored = ignoreReason }, expected)
+
+        let isParameterised: bool =
+            List.exists (fun name -> name = "TestCase" || name = "TestCaseSource") attributeNames
+
         match headPat with
         | SynPat.LongIdent(
             longDotId = SynLongIdent(id = [ ident ])
             argPats = SynArgPats.Pats [ SynPat.Paren(pat = SynPat.Const(SynConst.Unit, _)) ]) when
             List.contains "Test" attributeNames || ident.idText.Contains ' '
             ->
-            let result: Result<Call * string, string> =
+            let result: Result<(Call * string) list, string> =
                 if not (List.contains "Test" attributeNames) then
                     Error "has no [<Test>] attribute, so never runs"
                 else
-
-                testOf fileScope body
-                |> Result.map (fun (call: Call, expected: string) -> { call with Ignored = ignoreReason }, expected)
+                    stepsOf fileScope body |> Result.map ignored
 
             Some(relativeFile, ident.idRange.StartLine, ident.idText, result)
-        | SynPat.LongIdent(longDotId = SynLongIdent(id = [ ident ])) when
-            List.exists (fun name -> name = "TestCase" || name = "TestCaseSource") attributeNames
+        | SynPat.LongIdent(longDotId = SynLongIdent(id = [ ident ]); argPats = SynArgPats.Pats pats) when
+            isParameterised
             ->
-            Some(relativeFile, ident.idRange.StartLine, ident.idText, Error "is a parameterised test")
+            // Every case of a parameterised test is a test of its own, its parameters its arguments.
+            let result: Result<(Call * string) list, string> =
+                match paramNamesOf pats with
+                | None -> Error "is a parameterised test with parameters that are not plain names"
+                | Some names ->
+
+                casesOf fileScope attributes
+                |> Result.bind (fun (cases: SynExpr list list) ->
+                    cases
+                    |> List.map (fun (arguments: SynExpr list) ->
+                        apply
+                            fileScope
+                            {
+                                Expr = body
+                                Params = names
+                                Scope = fileScope
+                            }
+                            arguments
+                        |> Result.bind (fun (body: SynExpr, scope: Scope) -> stepsOf scope body)
+                    )
+                    |> sequence
+                    |> Result.map (List.concat >> ignored)
+                )
+
+            Some(relativeFile, ident.idRange.StartLine, ident.idText, result)
         | _ -> None
     )
 
@@ -607,9 +746,10 @@ type Row =
         File: string
         Line: int
         Test: string
-        /// `case`, `negative`, `ignored` or `exception`.
+        /// `case`, `negative`, `ignored` or `exception`; for a test of several cases, each kind
+        /// among them, separated by commas.
         Outcome: string
-        /// The case, relative to `cases/`, or why there is none.
+        /// The cases, relative to `cases/` and separated by `; `, or why there is none.
         Detail: string
     }
 
@@ -619,7 +759,7 @@ let testFiles: string list =
     |> Array.sort
     |> Array.toList
 
-let tests: (string * int * string * Result<Call * string, string>) array =
+let tests: (string * int * string * Result<(Call * string) list, string>) array =
     testFiles
     |> List.collect (fun (file: string) ->
         if not (unitTestFiles.Contains(Path.GetFileName file)) then
@@ -672,23 +812,49 @@ let ignoredOutcome (call: Call) (expected: string) (why: string) : Outcome =
 
 // Not in parallel: fsi runs a script inside the initialiser of the class it compiles it to, so a
 // second thread calling a function of the script waits for that initialiser to finish.
-let outcomes: (string * int * string * Outcome) array =
+/// What became of each test: a case for each of its steps, or why it has none. A test converts as a
+/// whole or not at all, so a step that does not convert keeps every step of its test where it is.
+let outcomes: (string * int * string * Result<Outcome list, string>) array =
     tests
     |> Array.mapi (fun (index: int) (file, line, name, parsed) ->
         if index % 500 = 0 then
             eprintfn $"%d{index} of %d{tests.Length} tests"
 
-        let outcome: Outcome =
-            match parsed with
-            | Error reason -> NotConverted reason
-            | Ok(call, expected) ->
-
+        let outcomeOfStep (call: Call, expected: string) : Outcome =
             match outcomeOf call expected, call.Ignored with
             | Ok verified, _ -> Converted(call, verified)
             | Error why, None -> NotConverted why
             | Error why, Some _ -> ignoredOutcome call expected why
 
+        let outcome: Result<Outcome list, string> =
+            parsed
+            |> Result.bind (fun (steps: (Call * string) list) ->
+                let outcomes: Outcome list = List.map outcomeOfStep steps
+
+                match
+                    outcomes
+                    |> List.tryPick (fun (outcome: Outcome) ->
+                        match outcome with
+                        | NotConverted reason -> Some reason
+                        | Converted _
+                        | Ignored _ -> None
+                    )
+                with
+                | Some reason -> Error reason
+                | None -> Ok outcomes
+            )
+
         file, line, name, outcome
+    )
+
+/// Every step that became a case, with the test it comes from.
+let steps: (string * int * string * Outcome) list =
+    outcomes
+    |> Array.toList
+    |> List.collect (fun (file, line, name, outcome) ->
+        match outcome with
+        | Ok steps -> steps |> List.map (fun (step: Outcome) -> file, line, name, step)
+        | Error _ -> []
     )
 
 /// A case to write, before it has a name of its own in its folder.
@@ -717,17 +883,16 @@ let extensionOf (isSignature: bool) : string = if isSignature then ".fsi" else "
 
 /// The tests of one file that format the same source with the same settings become one case.
 let converted: Planned list =
-    outcomes
-    |> Array.choose (fun (file, line, name, outcome) ->
+    steps
+    |> List.choose (fun (file, line, name, outcome) ->
         match outcome with
         | Converted(call, verified) -> Some(file, line, name, call, verified)
         | Ignored _
         | NotConverted _ -> None
     )
-    |> Array.groupBy (fun (file, _, _, call, verified) -> file, call.IsSignature, verified.Source, verified.Properties)
-    |> Array.toList
+    |> List.groupBy (fun (file, _, _, call, verified) -> file, call.IsSignature, verified.Source, verified.Properties)
     |> List.map (fun ((file, isSignature, _, _), members) ->
-        let _, _, firstName, _, verified = members[0]
+        let _, _, firstName, _, verified = members.Head
         let negative: bool = verified.Formatted.Merged = verified.Source
 
         {
@@ -749,13 +914,12 @@ let converted: Planned list =
                         for each in combinations do
                             $"%s{Case.combinationName each.Defines}.gold", each.Code
                 ]
-            Tests = members |> Array.map (fun (_, line, name, _, _) -> line, name) |> Array.toList
+            Tests = members |> List.map (fun (_, line, name, _, _) -> line, name) |> List.distinct
         }
     )
 
 let ignoredCases: Planned list =
-    outcomes
-    |> Array.toList
+    steps
     |> List.choose (fun (file, line, name, outcome) ->
         match outcome with
         | Ignored(call, properties, source, expected) ->
@@ -771,7 +935,7 @@ let ignoredCases: Planned list =
                     Properties = properties
                     Source = source
                     Golds = if negative then [] else [ ("gold", expected) ]
-                    Tests = [ line, name ]
+                    Tests = List.singleton (line, name)
                 }
         | Converted _
         | NotConverted _ -> None
@@ -835,18 +999,21 @@ let filesOf (planned: Planned, casePath: string, goldStem: string) : (string * s
             $"%s{goldStem}.%s{suffix}%s{planned.Extension}", content
     ]
 
-let caseOf: Map<string * int, string * string> =
+/// The cases each test became, with what kind of case each is.
+let caseOf: Map<string * int, (string * string) list> =
     placed
     |> List.collect (fun (planned: Planned, casePath: string, _) ->
         let file: string = planned.Folder.Substring("ported/".Length) + ".fs"
 
-        let outcome: string =
+        let kind: string =
             if planned.Ignored.IsSome then "ignored"
             elif planned.IsNegative then "negative"
             else "case"
 
-        planned.Tests |> List.map (fun (line, _) -> (file, line), (casePath, outcome))
+        planned.Tests |> List.map (fun (line, _) -> (file, line), (casePath, kind))
     )
+    |> List.groupBy fst
+    |> List.map (fun (test, cases) -> test, cases |> List.map snd |> List.sortBy fst)
     |> Map.ofList
 
 let rows: Row list =
@@ -854,7 +1021,7 @@ let rows: Row list =
     |> Array.toList
     |> List.map (fun (file, line, name, outcome) ->
         match outcome, caseOf.TryFind(file, line) with
-        | NotConverted reason, _ ->
+        | Error reason, _ ->
             {
                 File = file
                 Line = line
@@ -862,14 +1029,14 @@ let rows: Row list =
                 Outcome = "exception"
                 Detail = reason
             }
-        | _, None -> failwith $"%s{file}:%d{line} was converted and placed nowhere."
-        | _, Some(case, kind) ->
+        | Ok _, None -> failwith $"%s{file}:%d{line} was converted and placed nowhere."
+        | Ok _, Some cases ->
             {
                 File = file
                 Line = line
                 Test = name
-                Outcome = kind
-                Detail = case
+                Outcome = cases |> List.map snd |> List.distinct |> String.concat ","
+                Detail = cases |> List.map fst |> String.concat "; "
             }
     )
 

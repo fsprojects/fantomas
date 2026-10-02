@@ -507,7 +507,7 @@ CommentTests.fs	938	single block comment in namespace, 1951	negative	ported/Comm
 CommentTests.fs	958	line comment after "then"	case	ported/CommentTests/line-comment-after-then.fs
 CommentTests.fs	976	line comment after "if"	case	ported/CommentTests/line-comment-after-if.fs
 CommentTests.fs	996	line comment after "else"	case	ported/CommentTests/line-comment-after-else.fs
-CommentTests.fs	1014	comments for enum cases, 572	exception	calls a format helper 2 times
+CommentTests.fs	1014	comments for enum cases, 572	case	ported/CommentTests/572-comments-for-enum-cases-2.fs; ported/CommentTests/572-comments-for-enum-cases.fs
 CommentTests.fs	1056	comments in multi-pattern case matching should not be removed, 813	case	ported/CommentTests/813-comments-in-multi-pattern-case-matching-should-not-be.fs
 CommentTests.fs	1079	block comments in multi-pattern case matching should not be removed	case	ported/CommentTests/block-comments-in-multi-pattern-case-matching-should-not-be.fs
 CommentTests.fs	1104	multiple line comments form a single trivia	case	ported/CommentTests/multiple-line-comments-form-a-single-trivia.fs
@@ -795,7 +795,7 @@ ConstructorTests.fs	145	setting AlternativeLongMemberDefinitions should be respe
 ConstructorTests.fs	176	explicit constructor with then keyword, 3074	case	ported/ConstructorTests/3074-explicit-constructor-with-then-keyword.fs
 ConstructorTests.fs	215	invalid location of comma when using named parameters for a class, 2865	case	ported/ConstructorTests/2865-invalid-location-of-comma-when-using-named-parameters-for-a.fs
 ConstructorTests.fs	250	struct constructor with unparenthesized parameter should not be renamed, 3349	negative	ported/ConstructorTests/negative/3349-struct-constructor-with-unparenthesized-parameter-should-not.fs
-ConstructorTests.fs	274	struct constructor with unparenthesized parameter should be idempotent, 3349	exception	a string that is not a literal
+ConstructorTests.fs	274	struct constructor with unparenthesized parameter should be idempotent, 3349	negative	ported/ConstructorTests/negative/3349-struct-constructor-with-unparenthesized-parameter-should-not.fs
 ContextTests.fs	12	sepSpace should not add an additional space if the line ends with a space	exception	is in a file of unit tests
 ContextTests.fs	18	sepColon should not add a space when nothing proceeds it	exception	is in a file of unit tests
 ContextTests.fs	52	sepColon should not add a space when space proceeds it	exception	is in a file of unit tests
@@ -1202,7 +1202,7 @@ FunctionDefinitionTests.fs	62	should keep mutually recursive functions in nested
 FunctionDefinitionTests.fs	81	should keep identifiers with whitespace in double backticks	case	ported/FunctionDefinitionTests/should-keep-identifiers-with-whitespace-in-double-backticks.fs
 FunctionDefinitionTests.fs	92	should not remove backticks from shouldn't identifier	case	ported/FunctionDefinitionTests/should-not-remove-backticks-from-shouldn-t-identifier.fs
 FunctionDefinitionTests.fs	103	should keep identifiers with + in double backticks	case	ported/FunctionDefinitionTests/should-keep-identifiers-with-in-double-backticks.fs
-FunctionDefinitionTests.fs	128	double backticks with non-alphanum character, 776	exception	is a parameterised test
+FunctionDefinitionTests.fs	128	double backticks with non-alphanum character, 776	case	ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-10.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-11.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-12.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-13.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-14.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-2.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-3.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-4.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-5.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-6.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-7.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-8.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character-9.fs; ported/FunctionDefinitionTests/776-double-backticks-with-non-alphanum-character.fs
 FunctionDefinitionTests.fs	142	let bindings with return types	case	ported/FunctionDefinitionTests/let-bindings-with-return-types.fs
 FunctionDefinitionTests.fs	174	simple subtype constraint	case	ported/FunctionDefinitionTests/simple-subtype-constraint.fs
 FunctionDefinitionTests.fs	187	type constraints and inline	case	ported/FunctionDefinitionTests/type-constraints-and-inline.fs
@@ -1324,9 +1324,9 @@ IfThenElseTests.fs	934	simple if/else with long identifiers	case	ported/IfThenEl
 IfThenElseTests.fs	953	longer if branch, nothing multiline	case	ported/IfThenElseTests/longer-if-branch-nothing-multiline.fs
 IfThenElseTests.fs	970	almost longer if branch where the whole if/else is indented by letbinding	case	ported/IfThenElseTests/almost-longer-if-branch-where-the-whole-if-else-is-indented.fs
 IfThenElseTests.fs	991	longer elif condition	case	ported/IfThenElseTests/longer-elif-condition.fs
-IfThenElseTests.fs	1008	impact of MaxIfThenElseShortWidth setting, longer bool expression	exception	calls a format helper 2 times
-IfThenElseTests.fs	1035	impact of MaxIfThenElseShortWidth setting, longer if branch	exception	calls a format helper 2 times
-IfThenElseTests.fs	1062	impact of MaxIfThenElseShortWidth setting, longer else branch	exception	calls a format helper 2 times
+IfThenElseTests.fs	1008	impact of MaxIfThenElseShortWidth setting, longer bool expression	case	ported/IfThenElseTests/impact-of-maxifthenelseshortwidth-setting-longer-bool-2.fs; ported/IfThenElseTests/impact-of-maxifthenelseshortwidth-setting-longer-bool.fs
+IfThenElseTests.fs	1035	impact of MaxIfThenElseShortWidth setting, longer if branch	case	ported/IfThenElseTests/impact-of-maxifthenelseshortwidth-setting-longer-if-branch-2.fs; ported/IfThenElseTests/impact-of-maxifthenelseshortwidth-setting-longer-if-branch.fs
+IfThenElseTests.fs	1062	impact of MaxIfThenElseShortWidth setting, longer else branch	case	ported/IfThenElseTests/impact-of-maxifthenelseshortwidth-setting-longer-else-branch-2.fs; ported/IfThenElseTests/impact-of-maxifthenelseshortwidth-setting-longer-else-branch.fs
 IfThenElseTests.fs	1089	else if with newline in between, 675	case	ported/IfThenElseTests/675-else-if-with-newline-in-between.fs
 IfThenElseTests.fs	1120	second else if where else and if are on separate lines, 713	case	ported/IfThenElseTests/713-second-else-if-where-else-and-if-are-on-separate-lines.fs
 IfThenElseTests.fs	1147	newline between else if,  prior by elif	case	ported/IfThenElseTests/newline-between-else-if-prior-by-elif.fs
@@ -1406,7 +1406,7 @@ InterfaceTests.fs	148	should not skip 'with get()' in indexers	case	ported/Inter
 InterfaceTests.fs	161	override keyword should be preserved	case	ported/InterfaceTests/override-keyword-should-be-preserved.fs
 InterfaceTests.fs	181	combination of override and member	case	ported/InterfaceTests/combination-of-override-and-member.fs
 InterfaceTests.fs	226	interface with comment after equal	case	ported/InterfaceTests/interface-with-comment-after-equal.fs
-InterfaceTests.fs	244	generic interface member should have space after name	exception	calls a format helper 2 times
+InterfaceTests.fs	244	generic interface member should have space after name	negative	ported/InterfaceTests/negative/generic-interface-member-should-have-space-after-name.fs
 InterfaceTests.fs	259	long abstract member definition, 435	case	ported/InterfaceTests/435-long-abstract-member-definition.fs
 InterfaceTests.fs	309	interface with get/set members	case	ported/InterfaceTests/interface-with-get-set-members.fs
 InterfaceTests.fs	327	default interface member consumption	negative	ported/InterfaceTests/negative/default-interface-member-consumption.fs
@@ -1492,11 +1492,11 @@ KeepIndentInBranchTests.fs	2134	nested match inside let bindings, 1825	case	port
 KeepIndentInBranchTests.fs	2177	if keyword and elseBranch align, 2973	case	ported/KeepIndentInBranchTests/2973-if-keyword-and-elsebranch-align.fs
 KeepIndentInBranchTests.fs	2202	elif keyword and elseBranch align	case	ported/KeepIndentInBranchTests/elif-keyword-and-elsebranch-align.fs
 KeepIndentInBranchTests.fs	2227	elseBranch aligns with if keyword in computation expression	case	ported/KeepIndentInBranchTests/elsebranch-aligns-with-if-keyword-in-computation-expression.fs
-KeepMaxEmptyLinesTests.fs	17	reduce 2 empty lines to 1	exception	does not call a format helper
-KeepMaxEmptyLinesTests.fs	33	reduce 3 empty lines to 2	exception	does not call a format helper
-KeepMaxEmptyLinesTests.fs	51	reduce 3 empty lines to 1	exception	does not call a format helper
-KeepMaxEmptyLinesTests.fs	68	only generated empty lines	exception	does not call a format helper
-KeepMaxEmptyLinesTests.fs	93	dont reduce empty lines in string	exception	does not call a format helper
+KeepMaxEmptyLinesTests.fs	17	reduce 2 empty lines to 1	case	ported/KeepMaxEmptyLinesTests/reduce-2-empty-lines-to-1.fs
+KeepMaxEmptyLinesTests.fs	33	reduce 3 empty lines to 2	case	ported/KeepMaxEmptyLinesTests/reduce-3-empty-lines-to-2.fs
+KeepMaxEmptyLinesTests.fs	51	reduce 3 empty lines to 1	case	ported/KeepMaxEmptyLinesTests/reduce-3-empty-lines-to-1.fs
+KeepMaxEmptyLinesTests.fs	68	only generated empty lines	case	ported/KeepMaxEmptyLinesTests/only-generated-empty-lines.fs
+KeepMaxEmptyLinesTests.fs	93	dont reduce empty lines in string	case	ported/KeepMaxEmptyLinesTests/dont-reduce-empty-lines-in-string.fs
 LambdaTests.fs	9	keep comment after arrow	case	ported/LambdaTests/keep-comment-after-arrow.fs
 LambdaTests.fs	26	indent multiline lambda in parenthesis, 523	exception	has no [<Test>] attribute, so never runs
 LambdaTests.fs	45	lambda inside tupled argument	case	ported/LambdaTests/lambda-inside-tupled-argument.fs
@@ -1571,7 +1571,7 @@ LetBindingTests.fs	179	newline before let inside let should not be duplicated	ca
 LetBindingTests.fs	255	newlines inside let binding should be not duplicated	case	ported/LetBindingTests/newlines-inside-let-binding-should-be-not-duplicated.fs
 LetBindingTests.fs	284	inner let binding should not add additional newline, #475	case	ported/LetBindingTests/475-inner-let-binding-should-not-add-additional-newline.fs
 LetBindingTests.fs	321	don't add significant spacing after let binding, #478	negative	ported/LetBindingTests/negative/478-don-t-add-significant-spacing-after-let-binding.fs
-LetBindingTests.fs	344	should keep space before :	exception	calls a format helper 2 times
+LetBindingTests.fs	344	should keep space before :	negative	ported/LetBindingTests/negative/should-keep-space-before.fs
 LetBindingTests.fs	353	newline trivia before simple sequence doesn't force remaining to get offset by last expression column index, 513	case	ported/LetBindingTests/513-newline-trivia-before-simple-sequence-doesn-t-force.fs
 LetBindingTests.fs	376	comment trivia before simple sequence doesn't force remaining to get offset by last expression column index, 513	case	ported/LetBindingTests/513-comment-trivia-before-simple-sequence-doesn-t-force.fs
 LetBindingTests.fs	399	line comment after let binding in sequence does not produce blank line	case	ported/LetBindingTests/line-comment-after-let-binding-in-sequence-does-not-produce.fs
@@ -1620,7 +1620,7 @@ LetBindingTests.fs	1822	multiline type parameters in argument, 1611	case	ported/
 LetBindingTests.fs	1858	short let in	negative	ported/LetBindingTests/negative/short-let-in.fs
 LetBindingTests.fs	1872	let binding as part of sequential inside parenthesis, 1805	case	ported/LetBindingTests/1805-let-binding-as-part-of-sequential-inside-parenthesis.fs
 LetBindingTests.fs	1910	sequential inside parenthesis, 1777	case	ported/LetBindingTests/1777-sequential-inside-parenthesis.fs
-LetBindingTests.fs	1965	a huge amount of inner let bindings	exception	does not call a format helper
+LetBindingTests.fs	1965	a huge amount of inner let bindings	exception	does not end in `should equal`
 LetBindingTests.fs	1981	in keyword in SynExpr.LetOrUse, 1182	case	ported/LetBindingTests/1182-in-keyword-in-synexpr-letoruse.fs
 LetBindingTests.fs	2022	long value with constraints, 2267	case	ported/LetBindingTests/2267-long-value-with-constraints.fs
 LetBindingTests.fs	2039	long function with constraints, 2267	case	ported/LetBindingTests/2267-long-function-with-constraints.fs
@@ -1719,7 +1719,7 @@ ModuleTests.fs	281	should escape keywords correctly	case	ported/ModuleTests/shou
 ModuleTests.fs	308	should escape base keyword correctly	case	ported/ModuleTests/should-escape-base-keyword-correctly.fs
 ModuleTests.fs	344	should retain rec in modules	case	ported/ModuleTests/should-retain-rec-in-modules.fs
 ModuleTests.fs	360	should retain order when access and rec present in module declaration	case	ported/ModuleTests/should-retain-order-when-access-and-rec-present-in-module.fs
-ModuleTests.fs	376	implicit module should not be added to code	exception	does not call a format helper
+ModuleTests.fs	376	implicit module should not be added to code	case	ported/ModuleTests/implicit-module-should-not-be-added-to-code.fs
 ModuleTests.fs	397	attribute on module after namespace	negative	ported/ModuleTests/negative/attribute-on-module-after-namespace.fs
 ModuleTests.fs	418	single line and multiline module decls	case	ported/ModuleTests/single-line-and-multiline-module-decls.fs
 ModuleTests.fs	469	single line and multiline module decls with newline trivia	case	ported/ModuleTests/single-line-and-multiline-module-decls-with-newline-trivia.fs
@@ -2038,7 +2038,7 @@ PatternMatchingTests.fs	389	should put brackets around array type tests	case	por
 PatternMatchingTests.fs	404	should support rational powers on units of measures	case	ported/PatternMatchingTests/should-support-rational-powers-on-units-of-measures.fs
 PatternMatchingTests.fs	417	should add each case on newline	exception	has no [<Test>] attribute, so never runs
 PatternMatchingTests.fs	443	each pattern should be on newline	case	ported/PatternMatchingTests/each-pattern-should-be-on-newline.fs
-PatternMatchingTests.fs	474	should split constructor and function call correctly, double formatting	exception	a string that is not a literal
+PatternMatchingTests.fs	474	should split constructor and function call correctly, double formatting	negative	ported/PatternMatchingTests/negative/should-split-constructor-and-function-call-correctly-double.fs
 PatternMatchingTests.fs	510	updated record with function call remains be on same line, because short enough	case	ported/PatternMatchingTests/updated-record-with-function-call-remains-be-on-same-line.fs
 PatternMatchingTests.fs	530	with clause drop-through, 465	case	ported/PatternMatchingTests/465-with-clause-drop-through.fs
 PatternMatchingTests.fs	556	pattern match 2 space indent	case	ported/PatternMatchingTests/pattern-match-2-space-indent.fs
@@ -2117,8 +2117,8 @@ PrefixTests.fs	56	should keep parens around !+ prefix operator definition	case	p
 PrefixTests.fs	67	adding space after prefix operator breaks code, 2796	negative	ported/PrefixTests/negative/2796-adding-space-after-prefix-operator-breaks-code.fs
 PrefixTests.fs	89	tilde unary operator with literal and variable, 3131	negative	ported/PrefixTests/negative/3131-tilde-unary-operator-with-literal-and-variable.fs
 PrefixTests.fs	105	prefix application with interpolated string, 1414	negative	ported/PrefixTests/negative/1414-prefix-application-with-interpolated-string.fs
-PrefixTests.fs	143	operators maintain spacing from literal values which start with + or -	exception	is a parameterised test
-PrefixTests.fs	171	no space added between prefix operators and literal values that do not start with a symbol	exception	is a parameterised test
+PrefixTests.fs	143	operators maintain spacing from literal values which start with + or -	negative	ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-10.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-11.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-12.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-13.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-14.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-15.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-16.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-17.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-18.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-19.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-2.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-20.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-3.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-4.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-5.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-6.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-7.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-8.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start-9.fs; ported/PrefixTests/negative/operators-maintain-spacing-from-literal-values-which-start.fs
+PrefixTests.fs	171	no space added between prefix operators and literal values that do not start with a symbol	case	ported/PrefixTests/no-space-added-between-prefix-operators-and-literal-values-10.fs; ported/PrefixTests/no-space-added-between-prefix-operators-and-literal-values-2.fs; ported/PrefixTests/no-space-added-between-prefix-operators-and-literal-values-3.fs; ported/PrefixTests/no-space-added-between-prefix-operators-and-literal-values-4.fs; ported/PrefixTests/no-space-added-between-prefix-operators-and-literal-values-5.fs; ported/PrefixTests/no-space-added-between-prefix-operators-and-literal-values-6.fs; ported/PrefixTests/no-space-added-between-prefix-operators-and-literal-values-7.fs; ported/PrefixTests/no-space-added-between-prefix-operators-and-literal-values-8.fs; ported/PrefixTests/no-space-added-between-prefix-operators-and-literal-values-9.fs; ported/PrefixTests/no-space-added-between-prefix-operators-and-literal-values.fs
 PrefixTests.fs	187	add space between prefix and quotation	negative	ported/PrefixTests/negative/add-space-between-prefix-and-quotation.fs
 PrefixTests.fs	201	add space between prefix and measure literal that starts with a symbol	negative	ported/PrefixTests/negative/add-space-between-prefix-and-measure-literal-that-starts.fs
 QueueTests.fs	14	Queue.append	exception	is in a file of unit tests
@@ -2859,7 +2859,7 @@ SynLongIdentTests.fs	262	infix expression inside DotGet, 921	case	ported/SynLong
 SynLongIdentTests.fs	281	preserve comment before SynExpr.LongIdent, 1080	negative	ported/SynLongIdentTests/negative/1080-preserve-comment-before-synexpr-longident.fs
 SynLongIdentTests.fs	303	comment in LongIdent application, 2062	case	ported/SynLongIdentTests/2062-comment-in-longident-application.fs
 SynLongIdentTests.fs	323	comment inside LongIdentWithDots preserved, 2027	case	ported/SynLongIdentTests/2027-comment-inside-longidentwithdots-preserved.fs
-SynLongIdentTests.fs	345	backticks can be added from AST only scenarios	exception	does not call a format helper
+SynLongIdentTests.fs	345	backticks can be added from AST only scenarios	exception	pipes the result through something other than `prepend newline`
 TriviaAssignmentTests.fs	35	a comment on its own line goes before the next sibling	exception	is in a file of unit tests
 TriviaAssignmentTests.fs	51	a comment after code on the same line goes after the last node on that line	exception	is in a file of unit tests
 TriviaAssignmentTests.fs	72	a comment before a closing bracket goes after the last element	exception	is in a file of unit tests
@@ -3048,10 +3048,10 @@ TypeDeclarationTests.fs	2834	short or long member depending on compiler define, 
 TypeDeclarationTests.fs	2878	multiline type function signature	case	ported/TypeDeclarationTests/multiline-type-function-signature.fs
 TypeDeclarationTests.fs	2906	generic type arguments in function invocation, 1637	case	ported/TypeDeclarationTests/1637-generic-type-arguments-in-function-invocation.fs
 TypeDeclarationTests.fs	3028	Trivia inside multiline generic type parameters	case	ported/TypeDeclarationTests/trivia-inside-multiline-generic-type-parameters.fs
-TypeDeclarationTests.fs	3050	a huge amount of type declarations	exception	does not call a format helper
-TypeDeclarationTests.fs	3067	a huge amount of type declarations, signature file	exception	does not call a format helper
-TypeDeclarationTests.fs	3082	a huge amount of member bindings	exception	does not call a format helper
-TypeDeclarationTests.fs	3099	a huge amount of member bindings, object expression	exception	does not call a format helper
+TypeDeclarationTests.fs	3050	a huge amount of type declarations	exception	does not end in `should equal`
+TypeDeclarationTests.fs	3067	a huge amount of type declarations, signature file	exception	does not end in `should equal`
+TypeDeclarationTests.fs	3082	a huge amount of member bindings	exception	does not end in `should equal`
+TypeDeclarationTests.fs	3099	a huge amount of member bindings, object expression	exception	does not end in `should equal`
 TypeDeclarationTests.fs	3116	trivia after parenthesis in syn type	case	ported/TypeDeclarationTests/trivia-after-parenthesis-in-syn-type.fs
 TypeDeclarationTests.fs	3130	type abbreviation with comparison constraint, 2075	case	ported/TypeDeclarationTests/2075-type-abbreviation-with-comparison-constraint.fs
 TypeDeclarationTests.fs	3144	type abbreviation with comparison constraint inside generic parameter scope	case	ported/TypeDeclarationTests/type-abbreviation-with-comparison-constraint-inside-generic.fs

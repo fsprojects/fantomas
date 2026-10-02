@@ -211,6 +211,7 @@ tests/.repositories/**
 coverage.xml
 coveragereport/
 coverage.xml.*.acv
+artifacts/coverage/
 
 # Analyzer reports (see the Analyze pipeline in build.fsx); analysis.sarif is covered by *.sarif
 analysisreports/

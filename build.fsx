@@ -328,6 +328,49 @@ pipeline "CoverageOak" {
     runIfOnlySpecified true
 }
 
+/// Where `CoverageReach` writes: the instrumentation report, what each test reached, and parity.
+let coverageReachDir: string = artifactsDir </> "coverage"
+
+let coverageReachXml: string = coverageReachDir </> "fantomas-core.xml"
+
+let coreTestsDir: string = __SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core.Tests"
+
+// What every old test and every snapshot case reaches in Fantomas.Core, each on its own, and what
+// the old tests reach that no snapshot case does. The old tests are run once under AltCover, which
+// leaves an instrumented Fantomas.Core beside them; `scripts/reach.fsx` then calls every test and
+// every case against it, one at a time. The filter only keeps that run short: what it ran is not
+// what is measured.
+//
+// Produces:
+//   artifacts/coverage/fantomas-core.xml   what each point is, in the source
+//   artifacts/coverage/reach.tsv           every test and case, and the points it reached
+//   artifacts/coverage/parity.md           what the old tests reach and the snapshot cases do not
+pipeline "CoverageReach" {
+    workingDir __SOURCE_DIRECTORY__
+
+    stage "Build" { run $"dotnet build {snapshotsDir} -c Release --tl" }
+
+    stage "Instrument" {
+        run (fun _ ->
+            async {
+                Directory.CreateDirectory coverageReachDir |> ignore
+                return 0
+            }
+        )
+
+        run (
+            $"dotnet test {coreTestsDir} -c Release "
+            + "/p:AltCover=true /p:AltCoverForce=true "
+            + "\"/p:AltCoverAssemblyFilter=^(?!Fantomas\\.Core$)\" "
+            + $"/p:AltCoverReport={coverageReachXml} "
+            + "--filter FullyQualifiedName~Fantomas.Core.Tests.UtilsTests"
+        )
+    }
+
+    stage "Measure" { run "dotnet fsi scripts/reach.fsx" }
+    runIfOnlySpecified true
+}
+
 // Rewrite every gold the snapshot tests compare against from what the current build produces. A
 // gold that changes is a change in formatting, so read the diff before keeping it.
 pipeline "UpdateSnapshots" {

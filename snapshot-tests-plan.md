@@ -11,16 +11,18 @@ against its case. The project README ("The ported tests") is the reference for h
 
 Where it stands:
 
-- `cases/ported/<old test file>/` holds 2,873 cases (617 negative) made from 2,919 old tests.
+- `cases/ported/<old test file>/` holds 2,940 cases (640 negative, 6 ignored) made from 2,942 old
+  tests.
   Every one of those tests' expected outputs was compared with the harness result before writing.
 - `convert.fsx -- --check` regenerates everything in memory and fails on any difference with
   `ported/` or `porting-ledger.tsv`. It was shown to catch a changed gold and a stray file.
 - No ignored test passes today. 6 became ignored cases (`name.ignore.fs`, gold = what the test
   expects, skipped with the reason, failing once it passes; README "Ignored cases").
-- 242 tests are not converted, each with its reason in the ledger: 199 in unit test files,
-  4 ignored ones that format one define combination, 9 `formatAST`, 5 without `[<Test>]`, 12 that
-  call no helper, 6 that call one twice, 3 parameterised, 3 with a non-literal string, 1 that
-  checks an exception.
+- 225 tests are not converted, each with its reason in the ledger: 199 in unit test files, and
+  26 more. 9 never run and go (5 without `[<Test>]`, 4 ignored define tests: the user agreed). 17
+  stay as unit tests: 9 `formatAST` and 1 hand-built tree (`FormatASTAsync`, no source), 6 stress
+  tests (1,000 declarations, a very long string; they only check for no stack overflow), 1 that
+  checks a parse error throws.
 - **One pull request.** The user wants the switch in this one PR, without a period where both
   suites live side by side. So no `--check` in CI: the converter runs a last time before the old
   tests go, and then goes itself.
@@ -30,12 +32,17 @@ Where it stands:
 
 Decisions that stand:
 
-- **Coverage per test.** AltCover's per-test tracking loses the test at the first async hop. What
-  works: instrument Fantomas.Core, call each test in turn, and read and clear the recorder's static
-  `Instance+I.visits` table in between. The whole old suite takes 18 seconds that way. Prototype in
-  `/tmp/cov-probe/pertest.fsx` (not in the repo). Result: 630 of the old tests reach all 14,119
-  points the suite reaches. Not used to drop tests: coverage says which code a test reaches, not
-  which output it pins, and 642 of the rest are regression tests named after an issue.
+- **Coverage per test.** `dotnet fsi build.fsx -- -p CoverageReach` (`scripts/reach.fsx`):
+  AltCover's own per-test tracking loses the test at the first async hop, so the script calls every
+  old test and every case itself against one instrumented Fantomas.Core, and reads and clears the
+  recorder's `visits` and `samples` between them. Takes about 40 seconds after the build. Two traps
+  it handles: the recorder runs in `Single` mode, so without clearing `samples` a point is only
+  recorded for the first test that reaches it (the earlier prototype fell into this, and its "630
+  tests reach everything" was wrong); and module initialisers run once per process, so a warm-up
+  runs every class constructor first.
+- **Parity holds** (2026-10-02): of the 10,810 points the old tests reach, the snapshot cases reach
+  all but 459, and every one of those 459 is reached by an old test that stays (selection
+  formatting, cursor, strict mode, unit tests). No converted test reached anything its case does not.
 - **Bugs.** A bug found while working on this is not reported upstream and not fixed: it is a bug
   once a user runs into it.
 - **No syntax tree comparison.** Fantomas changes the tree on purpose sometimes.
@@ -53,16 +60,16 @@ Decisions that stand:
    every changed branch where only one side is taken. Then the README and `AGENTS.md` say: when you
    fix a bug or change printing, add a case under `oak/` or `settings/`, run it, and close what it
    reports.
-3. **Coverage parity.** The snapshot cases plus the unit tests that stay must reach every point the
-   old suite reaches, measured the same way. That is the gate for removing the old tests, and it
-   replaces "100% of `SyntaxOak.fs`" as one.
+3. **The leftovers are decided.** The converter learned file helpers, several steps per test,
+   parameterised tests, interpolated strings and formatting a result again, which took 17 more.
+   The 9 that never run go with the deletion; the 17 above and the unit tests stay.
 
 ## Phase 3: removing the old tests, in this pull request
 
 Only when all of these hold:
 
 - [ ] `convert.fsx -- --check` passes.
-- [ ] Coverage parity holds.
+- [x] Coverage parity holds (`CoverageReach`, `artifacts/coverage/parity.md`); rerun before deleting.
 - [ ] Every test the ledger lists as not converted is either kept as a unit test or dropped for a
       reason the user agreed to.
 
