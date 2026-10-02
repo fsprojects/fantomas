@@ -461,15 +461,44 @@ let aotWarningsLog: string =
     </> "aot"
     </> $"{aotRuntimeIdentifier}.warnings.log"
 
-/// The trim and Native AOT warnings a publish of the tool is known to give, each with the reason it
-/// can stay: the code, a piece of the message that places it, and why.
+// The same three for Fantomas.Core.AotSmokeTest, which calls the library the way fantomas-tools does.
+let aotSmokeTestExecutable: string =
+    let fileName: string =
+        if OperatingSystem.IsWindows() then
+            "Fantomas.Core.AotSmokeTest.exe"
+        else
+            "Fantomas.Core.AotSmokeTest"
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "publish"
+    </> "aotsmoketest"
+    </> aotRuntimeIdentifier
+    </> fileName
+
+let aotSmokeTestNativeIntermediates: string =
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "obj"
+    </> "Fantomas.Core.AotSmokeTest"
+    </> $"release_{aotRuntimeIdentifier}"
+    </> "native"
+
+let aotSmokeTestWarningsLog: string =
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "publish"
+    </> "aotsmoketest"
+    </> $"{aotRuntimeIdentifier}.warnings.log"
+
+/// The trim and Native AOT warnings a publish of the tool or of Fantomas.Core.AotSmokeTest is known to give,
+/// each with the reason it can stay: the code, a piece of the message that places it, and why.
 ///
 /// A warning is where the AOT compiler could not prove the code works, and whether it does is only
 /// learned at runtime, on the path that reaches it. Keeping this list short and every entry
 /// explained is what makes a new one stand out, so `TestAot` fails on anything not here.
 let knownAotWarnings: (string * string * string) list =
     let fsharpCore: string =
-        "FSharp.Core's own printf and reflection. The tool does not call into them, which FANTOMAS-PRINTF-001 and PrintfTests hold it to."
+        "FSharp.Core's own printf and reflection. The tool does not call into them, which FANTOMAS-PRINTF-001 and PrintfTests hold it to. The library does in Triage.dump, which falls back to a type name, and for a constant transformed without its source text."
 
     let resourceString: string =
         "Only reached through a DiagnosticMessage.ResourceString, which no vendored compiler source declares."
@@ -481,14 +510,14 @@ let knownAotWarnings: (string * string * string) list =
         "IL2072", "Fantomas.FCS.DiagnosticMessage.mkFunctionValue", resourceString
     ]
 
-/// Fails on every warning of the last AOT publish that `knownAotWarnings` does not account for.
-let checkAotWarnings (_: StageContext) : Async<int> =
+/// Fails on every warning in the log of an AOT publish that `knownAotWarnings` does not account for.
+let checkAotWarnings (log: string) (_: StageContext) : Async<int> =
     async {
         let warning: Text.RegularExpressions.Regex =
             Text.RegularExpressions.Regex(@"warning (?<code>IL\d{4}): (?<message>.*)")
 
         let unknown: string list =
-            File.ReadAllLines aotWarningsLog
+            File.ReadAllLines log
             |> Array.choose (fun (line: string) ->
                 let found: Text.RegularExpressions.Match = warning.Match line
 
@@ -524,22 +553,41 @@ let checkAotWarnings (_: StageContext) : Async<int> =
         return 1
     }
 
+/// Runs a program by its path, which Fun.Build's command string cannot take quoted, with its output
+/// going straight to the console.
+let runExecutable (path: string) (_: StageContext) : Async<int> =
+    async {
+        use proc: Diagnostics.Process =
+            Diagnostics.Process.Start(Diagnostics.ProcessStartInfo(path))
+        do! proc.WaitForExitAsync() |> Async.AwaitTask
+        return proc.ExitCode
+    }
+
 // Publish the tool with Native AOT and run the tool's tests against that build instead of the one
 // they normally start. Native AOT fails at runtime on code the JIT runs fine, printf and reflection
 // among it, and these tests are the ones that run the tool the way a user does. The publish must
 // also give no warning beyond the known ones, since a test only catches what it happens to reach.
+//
+// Then the same for Fantomas.Core.AotSmokeTest, which reaches the library's public API the way
+// fantomas-tools does rather than the way the tool does, and fails on a check that does not hold.
 pipeline "TestAot" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Clean" { run (cleanFolders [| aotNativeIntermediates |]) }
+    stage "Clean" { run (cleanFolders [| aotNativeIntermediates; aotSmokeTestNativeIntermediates |]) }
     stage "Publish" {
         run
             $"dotnet publish src/Fantomas/Fantomas.fsproj -c Release -r {aotRuntimeIdentifier} -p:FantomasAot=true -o \"{Path.GetDirectoryName aotExecutable}\" -flp:WarningsOnly;LogFile=\"{aotWarningsLog}\" --tl"
     }
-    stage "Warnings" { run checkAotWarnings }
+    stage "Warnings" { run (checkAotWarnings aotWarningsLog) }
     stage "Test" {
         envVars [| "FANTOMAS_EXECUTABLE", aotExecutable |]
         run "dotnet test src/Fantomas.Tests -c Release --tl"
     }
+    stage "PublishSmokeTest" {
+        run
+            $"dotnet publish src/Fantomas.Core.AotSmokeTest/Fantomas.Core.AotSmokeTest.fsproj -c Release -r {aotRuntimeIdentifier} -p:FantomasAot=true -o \"{Path.GetDirectoryName aotSmokeTestExecutable}\" -flp:WarningsOnly;LogFile=\"{aotSmokeTestWarningsLog}\" --tl"
+    }
+    stage "SmokeTestWarnings" { run (checkAotWarnings aotSmokeTestWarningsLog) }
+    stage "SmokeTest" { run (runExecutable aotSmokeTestExecutable) }
     runIfOnlySpecified true
 }
 

@@ -30,6 +30,7 @@
   <Project Path="src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj" />
   <Project Path="src/Fantomas.Client.Tests/Fantomas.Client.Tests.fsproj" />
   <Project Path="src/Fantomas.Client/Fantomas.Client.fsproj" />
+  <Project Path="src/Fantomas.Core.AotSmokeTest/Fantomas.Core.AotSmokeTest.fsproj" />
   <Project Path="src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj">
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
