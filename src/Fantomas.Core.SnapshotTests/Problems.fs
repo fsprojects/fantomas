@@ -29,6 +29,7 @@ type Problem =
     | SettingValueDiffers of key: string * folderValue: string * written: string
     | SettingHasNoEffect of key: string
     | InputNotKept of formatted: string
+    | AlreadyFormatted
     | SettingApplies of key: string * withDefault: string
     | NodeMissing of nodeClass: string
     // The gold disagrees. Paths are relative to the project.
@@ -53,6 +54,7 @@ let breaksResult (problem: Problem) : bool =
     | Problem.SettingValueDiffers _
     | Problem.SettingHasNoEffect _
     | Problem.InputNotKept _
+    | Problem.AlreadyFormatted
     | Problem.SettingApplies _
     | Problem.NodeMissing _
     | Problem.NoGold _
@@ -102,6 +104,8 @@ let describe (problem: Problem) : string =
         $"`%s{key}` changes nothing here: with it at its default the result is the same."
     | Problem.InputNotKept formatted ->
         $"The case is under `negative/`, so it is its own gold and formatting must leave it as it is. It gave:\n%s{formatted}"
+    | Problem.AlreadyFormatted ->
+        "The result is the input unchanged, so a gold would only repeat it. Change the input so the result earns its gold, or move the case to a `negative/` folder, where a case is its own gold."
     | Problem.SettingApplies(key, withDefault) ->
         $"The case is under `negative/`, and `%s{key}` does change it: with the setting at its default the result is:\n%s{withDefault}"
     | Problem.NodeMissing nodeClass -> $"The case is in a folder for `%s{nodeClass}` and its Oak has none."

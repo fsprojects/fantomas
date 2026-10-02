@@ -97,14 +97,24 @@ type Claim =
         /// Whether the case sits in a `trivia/` folder. Which node its trivia attaches to is not checked:
         /// that is how `Trivia.fs` works today, and it may change without the formatting changing.
         IsTrivia: bool
-        /// Whether the case sits in a `negative/` folder below its setting: one the setting must
-        /// leave alone. Such a case is its own gold.
+        /// Whether the case sits in a `negative/` folder: one formatting must leave as it is, below a
+        /// node, or one a setting must leave alone, below a setting. Such a case is its own gold.
         IsNegative: bool
     }
 
 /// Read what a case's folders claim, or why they claim nothing that makes sense.
 let claimOf (case: Case.Case) : Result<Claim, string> =
     let folders: string list = case.Folders
+
+    // Below a node, `negative/` comes last: `oak/TypeDefn/Union/trivia/negative/`.
+    let isNegativeLast: bool =
+        List.tryHead folders = Some "oak" && List.tryLast folders = Some "negative"
+
+    let folders: string list =
+        if isNegativeLast then
+            List.take (folders.Length - 1) folders
+        else
+            folders
 
     let isTrivia: bool = List.tryLast folders = Some "trivia"
 
@@ -122,7 +132,7 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
                 Setting = None
                 Node = node
                 IsTrivia = isTrivia
-                IsNegative = false
+                IsNegative = isNegativeLast
             }
         )
     | "settings" :: key :: rest ->
@@ -191,18 +201,16 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
             )
             |> Case.configOf
 
-        // A case under `negative/` is the opposite: its input is already formatted, and comes
-        // back unchanged with the setting and without it.
+        // A case under `negative/` is the opposite: its input comes back unchanged without the setting
+        // too. That it comes back unchanged with the setting is checked for every negative case.
         let effectProblems: Problem list =
             if claim.IsNegative then
                 let withDefault: string = formatWith withoutSetting
 
-                [
-                    if formatted.Merged <> case.Source then
-                        Problem.InputNotKept formatted.Merged
-                    elif withDefault <> case.Source then
-                        Problem.SettingApplies(key, withDefault)
-                ]
+                if formatted.Merged = case.Source && withDefault <> case.Source then
+                    [ Problem.SettingApplies(key, withDefault) ]
+                else
+                    []
             elif formatWith withoutSetting <> formatted.Merged then
                 []
             else
@@ -226,4 +234,12 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
         else
             [ Problem.NodeMissing nodeClass.Name ]
 
-    settingProblems @ nodeProblems
+    // A negative case is its own gold, so its result must be its input. Any other case has to earn
+    // its gold: a result that is the input unchanged says nothing a gold could add.
+    let keptProblems: Problem list =
+        match claim.IsNegative, formatted.Merged = case.Source with
+        | true, false -> [ Problem.InputNotKept formatted.Merged ]
+        | false, true -> [ Problem.AlreadyFormatted ]
+        | _ -> []
+
+    keptProblems @ settingProblems @ nodeProblems

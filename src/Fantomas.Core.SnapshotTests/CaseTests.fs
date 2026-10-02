@@ -29,17 +29,14 @@ let case (relativePath: string) =
             formatted
             (fun config -> (Formatting.formatEach config case.IsSignature case.Source).Merged)
 
-    // A case under `negative/` is its own gold.
+    // A case under `negative/` is its own gold. Its per-define golds stay: what each combination
+    // printed is not its input.
     let isNegative: bool =
         match Placement.claimOf case with
         | Error _ -> false
         | Ok claim -> claim.IsNegative
 
     let golds: (string * string) list =
-        if isNegative then
-            []
-        else
-
         let perDefine: (string * string) list =
             match formatted.Combinations with
             | [ _ ] -> []
@@ -48,7 +45,10 @@ let case (relativePath: string) =
             combinations
             |> List.map (fun (each: Formatting.ForDefines) -> Case.defineGoldPath case each.Defines, each.Code)
 
-        (Case.goldPath case, formatted.Merged) :: perDefine
+        if isNegative then
+            perDefine
+        else
+            (Case.goldPath case, formatted.Merged) :: perDefine
 
     // A result that is itself wrong is not written as a gold, not even when updating: it would be
     // compared against from then on.
@@ -63,7 +63,7 @@ let case (relativePath: string) =
             |> List.filter (fun (path: string) -> not (List.exists (fun (gold: string, _) -> gold = path) golds))
             |> List.choose (fun (path: string) ->
                 if not Case.isUpdating then
-                    if isNegative then
+                    if isNegative && path = Case.goldPath case then
                         Some(Problem.GoldNotExpected(Case.relativeToProject path))
                     else
                         Some(Problem.StaleGold(Case.relativeToProject path))
