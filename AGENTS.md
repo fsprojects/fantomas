@@ -17,6 +17,7 @@ beside the result formatting gives for it; that project's README says how to wri
 ## Diagnostic Scripts
 
 All of these accept a file path or stdin, with optional `--signature` and `--editorconfig <content>` flags.
+A path that does not exist exits 1 rather than falling back to stdin.
 
 - `scripts/ast.fsx` - untyped AST
 - `scripts/oak.fsx` - Oak tree

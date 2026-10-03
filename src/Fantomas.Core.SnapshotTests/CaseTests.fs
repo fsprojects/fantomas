@@ -150,6 +150,16 @@ let case (relativePath: string) =
     let isNegative: bool = isNegative case
     let golds: (string * string) list = goldsOf case formatted
 
+    // A result that earns no gold is reported as that, and not as a gold that is missing or differs too.
+    let earnsNoGold: bool =
+        placementProblems
+        |> List.exists (fun (problem: Problem) ->
+            match problem with
+            | Problem.AlreadyFormatted
+            | Problem.OnlyEndChanged -> true
+            | _ -> false
+        )
+
     // Updating leaves the golds alone while the result is itself wrong, which would be compared
     // against from then on, or while the case is not where it belongs, which is what to fix first.
     // Every problem `formatAndCheck` finds is one with the result.
@@ -175,7 +185,13 @@ let case (relativePath: string) =
             )
 
         stale
-        @ (golds |> List.choose (fun (path: string, code: string) -> Gold.verify path code))
+        @ (golds
+           |> List.choose (fun (path: string, code: string) ->
+               if earnsNoGold && path = Case.goldPath case then
+                   None
+               else
+                   Gold.verify path code
+           ))
 
     failWith (resultProblems @ placementProblems @ goldProblems)
 

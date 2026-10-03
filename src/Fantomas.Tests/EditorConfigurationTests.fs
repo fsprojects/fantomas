@@ -683,6 +683,14 @@ let ``values the editorconfig spec defines are not reported as mistakes`` () =
     problems == []
 
 [<Test>]
+let ``spec values are recognised whatever the case of the setting`` () =
+    // The snapshot tests pass a case's front matter keys as they are written, so the key is not
+    // folded beforehand the way the library folds what it reads from a file.
+    EditorConfig.isSpecDefinedNonValue "INDENT_SIZE" "Tab" == true
+    EditorConfig.isSpecDefinedNonValue "Max_Line_Length" "OFF" == true
+    EditorConfig.isSpecDefinedNonValue "INDENT_SIZE" "banana" == false
+
+[<Test>]
 let ``keys are matched without regard to case`` () =
     // editorconfig keys are case insensitive. The library lowercases what it reads from a file,
     // so this is what a request from an editor relies on.
