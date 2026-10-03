@@ -49,6 +49,9 @@ not complete:
   numbers for that file are from before them.
 - `long array sequence` of `ListTests.fs` sat behind `#if RELEASE`, where the script did not look,
   and was converted by hand afterwards.
+- The 148 cases whose result only changed at the end are recorded with the outcome `case`, under
+  the path they had before they moved to `negative/`: look for the same name in the `negative/`
+  folder beside it.
 - The two tests that formatted twice, `should keep space before :` of `LetBindingTests.fs` and
   `should split constructor and function call correctly, double formatting` of
   `PatternMatchingTests.fs`, first became negative cases of their result, and were given their

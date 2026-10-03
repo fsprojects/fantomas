@@ -219,14 +219,15 @@ let ``every file under cases belongs to a case`` () =
     if not strays.IsEmpty then
         Assert.Fail($"""These files belong to no case:%s{"\n"}%s{String.concat "\n" strays}""")
 
-/// The folders under `oak/` no case can fill, as `cases/oak/README.md` lists them, and why.
+/// The folders under `oak/` no case can fill, as `cases/oak/README.md` lists them, and why. One that
+/// gains a case after all fails the test below, so the list and the README stay true.
 let private nodesWithoutCase: Map<string, string> =
     Map.ofList
         [
             "TypeConstraint/DefaultsToType", "only FSharp.Core may write `default 'T : int`"
             "ExprConstant", "ASTTransformer builds no ExprConstantNode"
             "String", "ASTTransformer builds no StringNode"
-            "Oak", "the root of every case"
+            "Oak", "it is the root of every case"
         ]
 
 /// Every union case of the Oak has a folder under `oak/` with a case in it, and so does every node
@@ -290,6 +291,22 @@ let ``every node and every setting has a case`` () =
         )
         |> Array.toList
 
-    match missingNodes @ missingSettings with
+    let filledAfterAll: string list =
+        nodesWithoutCase
+        |> Map.toList
+        |> List.choose (fun (folder: string, reason: string) ->
+            if not (hasCase $"oak/%s{folder}") then
+                None
+            else
+                Some
+                    $"oak/%s{folder}/ has a case, and is listed as a folder no case can fill, since %s{reason}: take it off the list in CaseTests.fs and in cases/oak/README.md."
+        )
+
+    let missing: string list =
+        match missingNodes @ missingSettings with
+        | [] -> []
+        | missing -> [ $"""These folders have no case:%s{"\n"}%s{String.concat "\n" missing}""" ]
+
+    match missing @ filledAfterAll with
     | [] -> ()
-    | missing -> Assert.Fail($"""These folders have no case:%s{"\n"}%s{String.concat "\n" missing}""")
+    | problems -> Assert.Fail(String.concat "\n\n" problems)

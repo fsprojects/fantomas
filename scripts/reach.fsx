@@ -155,41 +155,69 @@ let attributeNamed (name: string) (methodInfo: MethodInfo) : obj list =
     |> Array.filter (fun (attribute: obj) -> attribute.GetType().Name = name)
     |> Array.toList
 
-/// The arguments of every test a `[<TestCaseSource>]` names, as NUnit reads its source: a static
-/// field, property or method of the test's own module or of `SourceType`, each item of which is
-/// the arguments of one test, a `TestCaseData`, or the single argument.
-let sourceCases (testType: Type) (attribute: obj) : obj array list =
+/// The arguments of every test a `[<TestCaseSource>]` names, as NUnit reads its source. The source
+/// is a static field, property or method of the test's own module, or of `SourceType`; a method is
+/// called with `MethodParams`. Without a name, `SourceType` is the source itself, created with its
+/// constructor. Each item of the source is one test: an `obj array` or a `TestCaseData` holds its
+/// arguments, an array as long as the test has parameters is spread over them, unless the test's
+/// one parameter takes that array, and anything else, `null` included, is the single argument.
+let sourceCases (testType: Type) (test: MethodInfo) (attribute: obj) : obj array list =
     let attributeType: Type = attribute.GetType()
 
-    let sourceName: string =
-        attributeType.GetProperty("SourceName").GetValue(attribute) :?> string
+    let property (name: string) : obj =
+        attributeType.GetProperty(name).GetValue(attribute)
 
     let sourceType: Type =
-        match attributeType.GetProperty("SourceType").GetValue(attribute) with
+        match property "SourceType" with
         | :? Type as sourceType -> sourceType
         | _ -> testType
 
     let source: obj =
-        match sourceType.GetMember(sourceName, everyStatic) |> Array.tryHead with
-        | Some(:? FieldInfo as field) -> field.GetValue null
-        | Some(:? PropertyInfo as property) -> property.GetValue null
-        | Some(:? MethodInfo as methodInfo) -> methodInfo.Invoke(null, [||])
-        | _ -> failwith $"The test case source %s{sourceName} is no static member of %s{sourceType.FullName}."
+        match property "SourceName" with
+        | :? string as sourceName ->
+            let methodParams: obj array =
+                match property "MethodParams" with
+                | :? (obj array) as methodParams -> methodParams
+                | _ -> [||]
 
-    source :?> Collections.IEnumerable
-    |> Seq.cast<obj>
-    |> Seq.map (fun (item: obj) ->
-        match item with
-        | :? (obj array) as arguments -> arguments
-        | item when item.GetType().Name = "TestCaseData" ->
-            item.GetType().GetProperty("Arguments").GetValue(item) :?> obj array
-        | item -> [| item |]
-    )
-    |> Seq.toList
+            match sourceType.GetMember(sourceName, everyStatic) |> Array.tryHead with
+            | Some(:? FieldInfo as field) -> field.GetValue null
+            | Some(:? PropertyInfo as property) -> property.GetValue null
+            | Some(:? MethodInfo as methodInfo) when methodInfo.GetParameters().Length = methodParams.Length ->
+                methodInfo.Invoke(null, methodParams)
+            | Some(:? MethodInfo) ->
+                failwith
+                    $"The test case source %s{sourceName} of %s{test.Name} takes other parameters than the %d{methodParams.Length} it is given."
+            | _ ->
+                failwith
+                    $"The test case source %s{sourceName} of %s{test.Name} is no static member of %s{sourceType.FullName}."
+        | _ -> Activator.CreateInstance sourceType
+
+    let parameters: ParameterInfo array = test.GetParameters()
+
+    match source with
+    | :? Collections.IEnumerable as items ->
+        items
+        |> Seq.cast<obj>
+        |> Seq.map (fun (item: obj) ->
+            match item with
+            | null -> [| null |]
+            | :? (obj array) as arguments -> arguments
+            | item when item.GetType().Name = "TestCaseData" ->
+                item.GetType().GetProperty("Arguments").GetValue(item) :?> obj array
+            | :? Array as array when
+                array.Length = parameters.Length
+                && not (parameters.Length = 1 && parameters[0].ParameterType.IsInstanceOfType array)
+                ->
+                Array.init array.Length (fun (index: int) -> array.GetValue index)
+            | item -> [| item |]
+        )
+        |> Seq.toList
+    | _ -> failwith $"The test case source of %s{test.Name} is no sequence of test cases."
 
 /// Every unit test as NUnit runs it: `[<Test>]`, and `[<TestCase>]` and `[<TestCaseSource>]` once
-/// per case. Ignored tests do not run, so they reach nothing. A test with parameters and nothing
-/// to fill them with fails the run, rather than being left out of what the tests reach.
+/// per case. Ignored tests do not run, so they reach nothing. A test with parameters and no source
+/// to fill them fails the run, rather than being left out of what the tests reach.
 let unitReach: Reach list =
     unitTests.GetTypes()
     |> Array.toList
@@ -213,15 +241,22 @@ let unitReach: Reach list =
                  attribute.GetType().GetProperty("Arguments").GetValue(attribute) :?> obj array
              ))
             @ (attributeNamed "TestCaseSourceAttribute" methodInfo
-               |> List.collect (sourceCases testType))
+               |> List.collect (sourceCases testType methodInfo))
+
+        let hasSource: bool =
+            not (attributeNamed "TestCaseSourceAttribute" methodInfo).IsEmpty
 
         let isTest: bool =
-            not (attributeNamed "TestAttribute" methodInfo).IsEmpty
+            hasSource
+            || not (attributeNamed "TestAttribute" methodInfo).IsEmpty
             || not (attributeNamed "TestCaseAttribute" methodInfo).IsEmpty
-            || not (attributeNamed "TestCaseSourceAttribute" methodInfo).IsEmpty
 
         match isTest, cases with
         | false, _ -> []
+        // A source without items is no mistake: NUnit runs no test for it, and neither does this.
+        | true, [] when hasSource ->
+            eprintfn $"%s{name} has a test case source without test cases."
+            []
         | true, [] when methodInfo.GetParameters().Length = 0 ->
             [ measure "unit" name (fun () -> methodInfo.Invoke(null, [||]) |> ignore) ]
         | true, [] -> failwith $"%s{name} has parameters and no test case to fill them with."

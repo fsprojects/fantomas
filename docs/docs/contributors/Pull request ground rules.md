@@ -57,7 +57,7 @@ Updating your fork:
 
 ### Test names
 
-- A case is named in lower case words joined by dashes. When it is linked to a GitHub issue, the number comes first, as in `512-compile-directive-between-piped-functions.fs`. The tests check this.
+- A case is named in lower case words joined by dashes. When it is linked to a GitHub issue, the number comes first, as in `1073-comment-after-closing-list-bracket.fs`. The tests check this.
 - You don't need to repeat this number for cases that are deviations from the original report problem.
 - A unit test name in `Fantomas.Core.Tests` starts with a lowercase letter.
 

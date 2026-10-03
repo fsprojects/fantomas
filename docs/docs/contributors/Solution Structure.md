@@ -12,10 +12,12 @@ The parser (`Fantomas.FCS`), the core library (`Fantomas.Core`) and the command 
 graph TD
     A[Fantomas.FCS] --> B
     B[Fantomas.Core] --> J[Fantomas.EditorConfig]
-    J --> C[Fantomas]
+    B --> C[Fantomas]
+    J --> C
     B --> D[Fantomas.Benchmarks]
     B --> E[Fantomas.Core.Tests]
-    J --> I[Fantomas.Core.SnapshotTests]
+    B --> I[Fantomas.Core.SnapshotTests]
+    J --> I
     C --> F[Fantomas.Tests]
     G[Fantomas.Client] --> H[Fantomas.Client.Tests]
 ```

@@ -106,7 +106,7 @@ type A = A of int
 - **Line endings.** A gold differing from the result only in its line endings fails like any
   other, and the diff shows every carriage return as `\r`.
 - **Strays.** Every file under `cases/` is a case, a gold or `.actual` of one, or a `README.md`.
-  Anything else fails the run.
+  Anything else fails the run, except a hidden file such as the `.DS_Store` macOS leaves behind.
 
 ## Ignored cases
 
