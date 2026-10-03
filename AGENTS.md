@@ -18,20 +18,22 @@ beside the result formatting gives for it; that project's README says how to wri
 
 All of these accept a file path or stdin, with optional `--signature` and `--editorconfig <content>` flags.
 
-- `scripts/ast.fsx` — untyped AST
-- `scripts/oak.fsx` — Oak tree
+- `scripts/ast.fsx` - untyped AST
+- `scripts/oak.fsx` - Oak tree
 - `scripts/format.fsx` - format with local build; `--define A,B` (or `no-defines`) prints that one define combination before the merge
-- `scripts/writer-events.fsx` — writer events produced during formatting
+- `scripts/writer-events.fsx` - writer events produced during formatting
 - `scripts/chain.fsx` - ExprChain structure (head, segments, terminal); ignores `--editorconfig` and a case's front matter
 - `scripts/trivia.fsx` - where each piece of trivia landed: node, token, side and kind
 
 A snapshot case (`src/Fantomas.Core.SnapshotTests/cases/`) can be passed as it is: its front matter
 is read as its settings. `scripts/format.fsx` formats the way a case is formatted and reports every
-problem the snapshot tests find in the result; whether the case sits in the right folder and
-matches its golds, only running the case says.
+problem the snapshot tests find in the result, exiting 1 when there is one; with `--define` it only
+prints that combination and checks nothing. Whether the case sits in the right folder and matches
+its golds, only running the case says.
 
 Scripts require a debug build first (`dotnet build src/Fantomas.Core.SnapshotTests`): they reference
-the snapshot test assembly, and building it builds Fantomas.Core and Fantomas.FCS too.
+the snapshot test assembly, and building it builds Fantomas.Core, Fantomas.EditorConfig and
+Fantomas.FCS too.
 
 ## Breaking changes to the Oak
 

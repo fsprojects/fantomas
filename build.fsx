@@ -36,16 +36,16 @@ let coverageXmlFiles: string list =
     coverageProjects
     |> List.map (fun (name: string) -> __SOURCE_DIRECTORY__ </> "src" </> name </> "coverage.xml")
 
-/// Run one test project under AltCover, measuring the one assembly it is there to exercise.
+/// Run one test project under AltCover, measuring the assemblies it is there to exercise.
 ///
-/// The filter is a negative lookahead: instrument that assembly and nothing else, which keeps the
-/// generated Fantomas.FCS parser and the test assembly itself out of the report and makes the run
-/// fast. It cannot name several assemblies at once, because AltCover reads `|` as the separator
-/// between filters rather than as alternation, so each project is run with its own.
+/// The filter is a negative lookahead: instrument the assemblies `assemblyPattern` matches and
+/// nothing else, which keeps the generated Fantomas.FCS parser and the test assembly itself out of
+/// the report and makes the run fast. The pattern cannot use `|`, because AltCover reads it as the
+/// separator between filters rather than as alternation: an optional group names two assemblies.
 let coverageCommand (name: string) (assemblyPattern: string) : string =
     let project: string = __SOURCE_DIRECTORY__ </> "src" </> name </> $"{name}.fsproj"
 
-    $"dotnet test {project} -c Release /p:AltCover=true "
+    $"dotnet test {quoteArgument project} -c Release /p:AltCover=true "
     + $"\"/p:AltCoverAssemblyFilter=^(?!{assemblyPattern}$)\""
 
 let benchmarkAssembly =
@@ -100,15 +100,15 @@ pipeline "Benchmark" {
     runIfOnlySpecified true
 }
 
-// Line and branch coverage for the three projects Fantomas ships, via AltCover's MSBuild
-// integration. Every test project is run under AltCover, each measuring the one assembly it is
-// there to exercise, and ReportGenerator merges the four results into a single report.
+// Line and branch coverage for the projects Fantomas ships, via AltCover's MSBuild integration.
+// Every test project is run under AltCover, each measuring the assemblies it is there to exercise,
+// and ReportGenerator merges the four results into a single report.
 //
 // So `Fantomas.Core`'s figure comes from `Fantomas.Core.Tests` and `Fantomas.Core.SnapshotTests`, whose
 // two reports ReportGenerator merges, even though `Fantomas.Tests` exercises Core heavily through
 // real formatting. Core is understated here rather than wrong.
 //
-// The filter is a negative lookahead naming the three assemblies to instrument. Everything else
+// Each filter is a negative lookahead naming the assemblies to instrument. Everything else
 // is left alone, which keeps the generated Fantomas.FCS parser and the test assemblies
 // themselves out of the report. AltCover writes OpenCover XML, which is for tooling rather than
 // reading, so ReportGenerator turns it into a browsable HTML report afterwards.
@@ -141,7 +141,9 @@ pipeline "Coverage" {
     stage "Coverage" {
         run (coverageCommand "Fantomas.Core.Tests" @"Fantomas\.Core")
         run (coverageCommand "Fantomas.Core.SnapshotTests" @"Fantomas\.Core")
-        run (coverageCommand "Fantomas.Tests" "fantomas")
+        // The tool and the editorconfig code it reads its settings with, which is a project of its
+        // own so that the snapshot cases read their front matter with it too.
+        run (coverageCommand "Fantomas.Tests" @"[Ff]antomas(\.EditorConfig)?")
         run (coverageCommand "Fantomas.Client.Tests" @"Fantomas\.Client")
     }
 
@@ -289,11 +291,11 @@ pipeline "CoverageOak" {
 
     stage "Coverage" {
         run (
-            $"dotnet test {snapshotsDir} -c Release /p:AltCover=true /p:AltCoverForce=true "
+            $"dotnet test {quoteArgument snapshotsDir} -c Release /p:AltCover=true /p:AltCoverForce=true "
             + "\"/p:AltCoverAssemblyFilter=^(?!Fantomas\\.Core$)\" "
             + "\"/p:AltCoverFileFilter=^(?!.*SyntaxOak\\.fs$)\" "
             + "/p:AltCoverMethodFilter=ToString "
-            + $"/p:AltCoverReport={syntaxOakCoverageXml}"
+            + quoteArgument $"/p:AltCoverReport={syntaxOakCoverageXml}"
         )
     }
 
@@ -319,7 +321,7 @@ let coreTestsDir: string = __SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core.Tes
 pipeline "CoverageReach" {
     workingDir __SOURCE_DIRECTORY__
 
-    stage "Build" { run $"dotnet build {snapshotsDir} -c Release --tl" }
+    stage "Build" { run $"dotnet build {quoteArgument snapshotsDir} -c Release --tl" }
 
     stage "Instrument" {
         run (fun _ ->
@@ -330,10 +332,11 @@ pipeline "CoverageReach" {
         )
 
         run (
-            $"dotnet test {coreTestsDir} -c Release "
+            $"dotnet test {quoteArgument coreTestsDir} -c Release "
             + "/p:AltCover=true /p:AltCoverForce=true "
             + "\"/p:AltCoverAssemblyFilter=^(?!Fantomas\\.Core$)\" "
-            + $"/p:AltCoverReport={coverageReachXml} "
+            + quoteArgument $"/p:AltCoverReport={coverageReachXml}"
+            + " "
             + "--filter FullyQualifiedName~Fantomas.Core.Tests.UtilsTests"
         )
     }
@@ -349,15 +352,15 @@ pipeline "UpdateSnapshots" {
 
     stage "Update" {
         envVars [| "FANTOMAS_UPDATE_SNAPSHOTS", "1" |]
-        run $"dotnet test {snapshotsDir} --tl"
+        run $"dotnet test {quoteArgument snapshotsDir} --tl"
     }
 
     runIfOnlySpecified true
 }
 
-// Two reports over every snapshot case, to read while porting a folder of old tests: which optional
+// Two reports over every snapshot case, to read while writing cases for a folder: which optional
 // parts and lists of parts of each node some case has, and where trivia lands on each node. They
-// are not golds: they change with every case, and parallel ports would fight over them.
+// are not golds: they change with every case, and two branches adding cases would fight over them.
 //
 // Produces:
 //   src/Fantomas.Core.SnapshotTests/reports/shapes.md
@@ -366,7 +369,7 @@ pipeline "SnapshotReports" {
     workingDir __SOURCE_DIRECTORY__
     stage "Reports" {
         envVars [| "FANTOMAS_SNAPSHOT_REPORTS", "1" |]
-        run $"dotnet test {snapshotsDir} --tl"
+        run $"dotnet test {quoteArgument snapshotsDir} --tl"
     }
     runIfOnlySpecified true
 }
@@ -378,7 +381,10 @@ pipeline "FormatChanged" {
             async {
                 let! files = changedFiles ctx
                 let sources: string list =
-                    List.filter (hasExtension [ ".fs"; ".fsx"; ".fsi" ]) files
+                    files
+                    |> List.filter (fun (file: string) ->
+                        hasExtension [ ".fs"; ".fsx"; ".fsi" ] file && not (isSnapshotCase file)
+                    )
 
                 match sources with
                 | [] ->

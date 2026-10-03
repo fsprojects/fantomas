@@ -40,7 +40,8 @@ val isFantomasSetting: setting: string -> bool
 /// reporting a problem: they are not mistakes, and the library derives `indent_size = tab` on its
 /// own from `indent_style = tab`, so reporting them blames an author for something they never wrote.
 ///
-/// Only these exact values are excused. Anything else, `indent_size = banana` included, is a
+/// The setting and the value are both matched without regard to case, as editorconfig matches
+/// them. Only these exact values are excused. Anything else, `indent_size = banana` included, is a
 /// mistake and is reported like any other.
 val isSpecDefinedNonValue: setting: string -> value: string -> bool
 

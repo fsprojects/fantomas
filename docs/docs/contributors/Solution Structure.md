@@ -11,10 +11,11 @@ The parser (`Fantomas.FCS`), the core library (`Fantomas.Core`) and the command 
 ```mermaid
 graph TD
     A[Fantomas.FCS] --> B
-    B[Fantomas.Core] --> C[Fantomas]
+    B[Fantomas.Core] --> J[Fantomas.EditorConfig]
+    J --> C[Fantomas]
     B --> D[Fantomas.Benchmarks]
     B --> E[Fantomas.Core.Tests]
-    B --> I[Fantomas.Core.SnapshotTests]
+    J --> I[Fantomas.Core.SnapshotTests]
     C --> F[Fantomas.Tests]
     G[Fantomas.Client] --> H[Fantomas.Client.Tests]
 ```
@@ -37,6 +38,13 @@ Fantomas can be used as a library, see `CodeFormatter.fsi` to learn what APIs ar
 
 The command line application is the main entry point of the solution.  
 It exposes the core functionality and also takes care of `.editorconfig` and `.fantomasignore` files.
+
+## Fantomas.EditorConfig
+
+Reading Fantomas's settings from `.editorconfig` properties, and writing them back. It is a project of
+its own so that the snapshot cases read their settings with the same code as the tool. It is not
+a package: it ships inside the `fantomas` tool. Finding the `.editorconfig` files that apply to a
+file stays in `Fantomas`.
 
 ## Fantomas.Benchmarks
 

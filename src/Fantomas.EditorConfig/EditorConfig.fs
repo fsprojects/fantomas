@@ -105,7 +105,8 @@ let isFantomasSetting (setting: string) : bool =
     setting.StartsWith("fsharp_", System.StringComparison.OrdinalIgnoreCase)
 
 let isSpecDefinedNonValue (setting: string) (value: string) : bool =
-    let value = value.ToLowerInvariant()
+    let setting: string = setting.ToLowerInvariant()
+    let value: string = value.ToLowerInvariant()
 
     value = "unset"
     || (setting = "indent_size" && value = "tab")

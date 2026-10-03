@@ -112,7 +112,7 @@ let configOf (properties: (string * string) list) : FormatConfig =
     let nonValues: string list =
         properties
         |> List.choose (fun (key: string, value: string) ->
-            if isSpecDefinedNonValue (key.ToLowerInvariant()) value then
+            if isSpecDefinedNonValue key value then
                 Some $"%s{key} = %s{value}"
             else
                 None

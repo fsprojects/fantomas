@@ -155,8 +155,41 @@ let attributeNamed (name: string) (methodInfo: MethodInfo) : obj list =
     |> Array.filter (fun (attribute: obj) -> attribute.GetType().Name = name)
     |> Array.toList
 
-/// Every unit test as NUnit runs it: `[<Test>]`, and `[<TestCase>]` once per case. Ignored tests do
-/// not run, so they reach nothing.
+/// The arguments of every test a `[<TestCaseSource>]` names, as NUnit reads its source: a static
+/// field, property or method of the test's own module or of `SourceType`, each item of which is
+/// the arguments of one test, a `TestCaseData`, or the single argument.
+let sourceCases (testType: Type) (attribute: obj) : obj array list =
+    let attributeType: Type = attribute.GetType()
+
+    let sourceName: string =
+        attributeType.GetProperty("SourceName").GetValue(attribute) :?> string
+
+    let sourceType: Type =
+        match attributeType.GetProperty("SourceType").GetValue(attribute) with
+        | :? Type as sourceType -> sourceType
+        | _ -> testType
+
+    let source: obj =
+        match sourceType.GetMember(sourceName, everyStatic) |> Array.tryHead with
+        | Some(:? FieldInfo as field) -> field.GetValue null
+        | Some(:? PropertyInfo as property) -> property.GetValue null
+        | Some(:? MethodInfo as methodInfo) -> methodInfo.Invoke(null, [||])
+        | _ -> failwith $"The test case source %s{sourceName} is no static member of %s{sourceType.FullName}."
+
+    source :?> Collections.IEnumerable
+    |> Seq.cast<obj>
+    |> Seq.map (fun (item: obj) ->
+        match item with
+        | :? (obj array) as arguments -> arguments
+        | item when item.GetType().Name = "TestCaseData" ->
+            item.GetType().GetProperty("Arguments").GetValue(item) :?> obj array
+        | item -> [| item |]
+    )
+    |> Seq.toList
+
+/// Every unit test as NUnit runs it: `[<Test>]`, and `[<TestCase>]` and `[<TestCaseSource>]` once
+/// per case. Ignored tests do not run, so they reach nothing. A test with parameters and nothing
+/// to fill them with fails the run, rather than being left out of what the tests reach.
 let unitReach: Reach list =
     unitTests.GetTypes()
     |> Array.toList
@@ -175,16 +208,24 @@ let unitReach: Reach list =
         let name: string = $"%s{file}\t%s{methodInfo.Name}"
 
         let cases: obj array list =
-            attributeNamed "TestCaseAttribute" methodInfo
-            |> List.map (fun (attribute: obj) ->
-                attribute.GetType().GetProperty("Arguments").GetValue(attribute) :?> obj array
-            )
+            (attributeNamed "TestCaseAttribute" methodInfo
+             |> List.map (fun (attribute: obj) ->
+                 attribute.GetType().GetProperty("Arguments").GetValue(attribute) :?> obj array
+             ))
+            @ (attributeNamed "TestCaseSourceAttribute" methodInfo
+               |> List.collect (sourceCases testType))
 
-        match attributeNamed "TestAttribute" methodInfo, cases with
-        | [], [] -> []
-        | _, [] when methodInfo.GetParameters().Length = 0 ->
+        let isTest: bool =
+            not (attributeNamed "TestAttribute" methodInfo).IsEmpty
+            || not (attributeNamed "TestCaseAttribute" methodInfo).IsEmpty
+            || not (attributeNamed "TestCaseSourceAttribute" methodInfo).IsEmpty
+
+        match isTest, cases with
+        | false, _ -> []
+        | true, [] when methodInfo.GetParameters().Length = 0 ->
             [ measure "unit" name (fun () -> methodInfo.Invoke(null, [||]) |> ignore) ]
-        | _, cases ->
+        | true, [] -> failwith $"%s{name} has parameters and no test case to fill them with."
+        | true, cases ->
             cases
             |> List.map (fun (arguments: obj array) ->
                 measure "unit" name (fun () -> methodInfo.Invoke(null, arguments) |> ignore)

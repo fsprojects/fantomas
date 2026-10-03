@@ -5,7 +5,7 @@ what formatting it produces, and one test per case compares the two.
 
 ## Running
 
-Every case is a test named after its path, `case("oak/TypeDefn/Union/single-case-with-fields.fs")`,
+Every case is a test named after its path, `case("oak/TypeDefn/Union/cases-on-their-own-lines.fs")`,
 so a test explorer lists them one by one, and `--filter` picks them by any part of the path:
 
 ```
@@ -22,7 +22,7 @@ To look at an input without making it a case, use the scripts in `scripts/`. The
 front matter as its settings, so they take a case file as it is:
 
 ```
-dotnet fsi scripts/format.fsx <file>    the result, and every problem this project would fail the case on
+dotnet fsi scripts/format.fsx <file>    the result, and every problem this project would fail the case on (exit code 1)
 dotnet fsi scripts/trivia.fsx <file>    where each piece of trivia landed: node, token, side and kind
 dotnet fsi scripts/oak.fsx <file>       the whole Oak
 ```
@@ -69,7 +69,9 @@ type A = A of int
 ```
 
 - **Front matter.** Optional. A block comment that starts on line 1 with `(*---` and ends with
-  `---*)`, holding editorconfig properties. It is read by the code the tool uses, and anything
+  `---*)`, holding editorconfig properties, one `key = value` per line. A line starting with `#`
+  is the description, and one starting with `;` a comment, as in an `.editorconfig`. It is read by
+  the code the tool uses, and anything
   that is no setting, or a value Fantomas cannot act on, fails the case. So do the values the
   editorconfig spec reserves, `unset`, `indent_size = tab` and `max_line_length = off`: the tool
   keeps its default for them, which in a case would test something other than it says. It is stripped before
@@ -78,8 +80,8 @@ type A = A of int
   case needs no module or namespace header unless the parser asks for one. See "Signature files"
   for when a `.fsi` case is worth having.
 - **Name.** Lower case words joined by dashes, with the issue number first when the case comes
-  from an issue: `1483-case-behind-a-define.fs`. Only use a number the old test or the issue names;
-  do not guess one.
+  from an issue: `1483-case-behind-a-define.fs`. Only use the number of an issue the case comes
+  from; do not guess one.
 - **Line endings.** Every input is read with `\n` line endings, and `end_of_line` is `lf` unless
   the front matter sets it. `.gitattributes` keeps `cases/` byte for byte.
 
@@ -98,8 +100,13 @@ type A = A of int
 - **Stale golds.** A gold whose case is gone, or one for a define combination the case no longer
   has, fails the run.
 - **Broken results.** A result that fails one of the checks below (invalid, not idempotent, a lost
-  comment, trailing whitespace, or disagreeing with production) is never written as a gold, not
-  even by `UpdateSnapshots`.
+  comment or directive, trailing whitespace, different with `\r\n` line endings, or disagreeing
+  with production) is never written as a gold, not even by `UpdateSnapshots`. Neither is the gold
+  of a case in the wrong folder (see "Where a case goes").
+- **Line endings.** A gold differing from the result only in its line endings fails like any
+  other, and the diff shows every carriage return as `\r`.
+- **Strays.** Every file under `cases/` is a case, a gold or `.actual` of one, or a `README.md`.
+  Anything else fails the run.
 
 ## Ignored cases
 
@@ -110,7 +117,9 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
   run lists the case as skipped with that reason, and fails a case that gives none.
 - **Comparing.** Only the golds the case has are compared, and nothing writes them, not even
   `UpdateSnapshots`. What it gives today is written to the `.actual` beside a gold it does not
-  match.
+  match. A gold whose line endings formatting never gives, `\r\n` where the case formats with
+  `\n` say, fails the case: an editor that saved it its own way would otherwise keep the case
+  ignored after its bug is fixed.
 - **Fixed.** Once it gives its golds and passes every check, it fails with "rename it to
   `name.fs`". So an ignored case cannot stay ignored after its bug is gone.
 - **Folder.** What its folder asks of the input still holds: the node the folder names, and the
@@ -132,11 +141,12 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
   under each define combination the input has, since what sits in a branch is only there under the
   defines that keep it;
 - the result is idempotent, merged and per define combination;
-- `Node.Children` lists every node in source order;
-- no line ends in whitespace;
+- every node's `Children` are in source order;
+- no line ends in whitespace, except one that ends inside a string or a comment spanning several
+  lines, where the whitespace is content;
 - with `\r\n` line endings in and `end_of_line = crlf`, the result is the same with `\r\n` line
   endings, or for a case that sets `end_of_line = crlf` the same result. That is what Windows users
-  get;
+  get. A case at `end_of_line = cr` is left out;
 - the harness, which formats each define combination itself, agrees with `formatDocumentWith`,
   which is what users run.
 
@@ -147,12 +157,18 @@ cases/scenarios/<old test file>/[negative/]                        scenarios/Com
 cases/oak/<Union>/<Case>/[trivia/][negative/]                      oak/TypeDefn/Union/trivia/negative/
 cases/oak/<Node>/[trivia/][negative/]                              oak/UnionCase/
 cases/settings/<key>/[<value>/]<Union>/<Case>/[trivia/]            settings/fsharp_bar_before_discriminated_union_declaration/true/TypeDefn/Union/
+cases/settings/<key>/[<value>/]<Node>/[trivia/]                    settings/fsharp_max_function_binding_width/Binding/
 cases/settings/<key>/[<value>/]negative/<Union>/<Case>/[trivia/]   settings/fsharp_bar_before_discriminated_union_declaration/true/negative/ModuleDecl/Exception/
+cases/settings/<key>/[<value>/]negative/<Node>/[trivia/]
 ```
+
+`negative/` comes last below a node, and right after the value below a setting. A case under a
+setting is in the folder of a node as well.
 
 Every union case and node class of the Oak has its folder under `oak/`, and every setting its folder
 under `settings/`, each with at least one case to start from;
-[`cases/oak/README.md`](cases/oak/README.md) names the few nodes no case can hold. `scenarios/` holds
+[`cases/oak/README.md`](cases/oak/README.md) names the few nodes no case can hold. A test holds every
+folder to it, so a node or a setting added to Fantomas needs its first case with it. `scenarios/` holds
 the tests that were in `Fantomas.Core.Tests` (see "Scenarios" below). A new case goes under `oak/` or
 `settings/`:
 
@@ -174,8 +190,8 @@ the tests that were in `Fantomas.Core.Tests` (see "Scenarios" below). A new case
    shows where they land, when that helps to understand a result.
 4. **Several nodes.** A relation between nodes belongs to the parent.
 5. **Left alone.** A case formatting must leave as it is goes in `negative/`, last below its node
-   folder: `oak/UnionCase/trivia/negative/2606-comment-after-the-last-case.fs`, a comment that must
-   stay where it is. It has no gold, and its result must be its input. One with `#if` keeps its
+   folder: `oak/ModuleDecl/ModuleAbbrev/trivia/negative/line-comment-after-the-alias.fs`, a comment
+   that must stay where it is. It has no gold, and its result must be its input. One with `#if` keeps its
    per-define golds, since what each combination printed is not its input. A negative case is as
    much a test as any other: while fixing a bug it is often the one that says what must not change.
 

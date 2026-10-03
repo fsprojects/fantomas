@@ -130,11 +130,15 @@ let lineDiff (expected: string array) (actual: string array) : string =
 
     let number (index: int) : string = (index + 1).ToString().PadLeft 4
 
+    // The lines are split on `\n`, so a `\r\n` line keeps its `\r`. Shown as it is, a line that
+    // differs only in its ending would print the same on both sides of the diff.
+    let visible (text: string) : string = text.Replace("\r", "\\r")
+
     let render (line: DiffLine) : string =
         match line with
-        | Same(i, j, text) -> $"  %s{number i} %s{number j}  %s{text}"
-        | Removed(i, text) -> $"- %s{number i}       %s{text}"
-        | Added(j, text) -> $"+      %s{number j}  %s{text}"
+        | Same(i, j, text) -> $"  %s{number i} %s{number j}  %s{visible text}"
+        | Removed(i, text) -> $"- %s{number i}       %s{visible text}"
+        | Added(j, text) -> $"+      %s{number j}  %s{visible text}"
 
     lines
     |> Array.mapi (fun index line -> if nearChange index then Some(render line) else None)

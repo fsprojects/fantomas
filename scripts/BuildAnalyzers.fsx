@@ -23,11 +23,6 @@ open BuildScripts
 // `analyzeTargets` and the two filters. Everything between those and the SARIF on disk is detail,
 // and detail that grew every time the reporting was made more honest.
 
-/// Whether a file is a snapshot case or one of its golds: F#, and test data rather than a source of
-/// the project around it.
-let isSnapshotCase (file: string) : bool =
-    file.Replace('\\', '/').Contains("/Fantomas.Core.SnapshotTests/cases/", StringComparison.Ordinal)
-
 /// The projects the analyzers run over: every project in the solution, minus the ones whose source
 /// is not ours to change. Fantomas.FCS is generated from the vendored compiler sources, and
 /// Fantomas.FCS.BuildTasks compiles a single vendored compiler file, so a finding in either is

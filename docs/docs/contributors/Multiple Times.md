@@ -23,7 +23,7 @@ There is a problem with merging all the code back together.
 
 The first step is to look at each define combination on its own. Doing this will simplify the debugging process.
 Put the input in a snapshot case, in the folder of the node it is about, named after the issue:
-`src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/2844-directive-in-parenthesis-argument.fs`.
+`src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/trivia/2844-directive-in-parenthesis-argument.fs`.
 That path is where the case would go, not one in the repository: create the file to follow along.
 The [snapshot tests' README](https://github.com/fsprojects/fantomas/blob/main/src/Fantomas.Core.SnapshotTests/README.md) says where a case goes.
 
@@ -44,8 +44,8 @@ program.SyncAction
 
 ```shell
 dotnet build src/Fantomas.Core.SnapshotTests
-dotnet fsi scripts/format.fsx --define no-defines src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/2844-directive-in-parenthesis-argument.fs
-dotnet fsi scripts/format.fsx --define IOS src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/2844-directive-in-parenthesis-argument.fs
+dotnet fsi scripts/format.fsx --define no-defines src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/trivia/2844-directive-in-parenthesis-argument.fs
+dotnet fsi scripts/format.fsx --define IOS src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/trivia/2844-directive-in-parenthesis-argument.fs
 ```
 
 Each result should reflect only the active code branches.
@@ -82,7 +82,7 @@ If we do this for each combination, we can narrow the problem down to find the t
 Once every combination gives its directives that way, the merge succeeds and the case can get its golds:
 
 ```shell
-FANTOMAS_UPDATE_SNAPSHOTS=1 dotnet test src/Fantomas.Core.SnapshotTests --filter "Name~2844"
+FANTOMAS_UPDATE_SNAPSHOTS=1 dotnet test src/Fantomas.Core.SnapshotTests --filter "Name~2844-directive-in-parenthesis-argument"
 ```
 
 That writes a gold per combination, `2844-directive-in-parenthesis-argument.no-defines.gold.fs` and `2844-directive-in-parenthesis-argument.IOS.gold.fs`, which hold the results above, and `2844-directive-in-parenthesis-argument.gold.fs`, the merged result users get:

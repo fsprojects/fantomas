@@ -18,11 +18,17 @@ output with what the harness gives before writing the case.
 - **The case.** A test's input as written, its config as front matter, and its expected output as
   the gold. The newline a triple quoted input started with is gone where the result is the same
   without it.
+- **Formatted twice.** A test that formatted its own result again is one case with its first
+  input: every case checks that its result is idempotent.
 - **One case or several.** The tests of one file that formatted the same input with the same
   settings are one case. A test of several steps, or a parameterised one, is a case per step or
   argument.
 - **The name.** The test's name, its issue number first.
 - **Negative.** A test whose expected output was its input is a case in `negative/`.
+- **Only the end changed.** A test whose expected output was its input with only its end tidied, a
+  final newline added or trailing spaces dropped, is a case in `negative/` too, with that expected
+  output as its input. A gold would show nothing else, and what formatting does to the end of a
+  file is what the cases under `settings/insert_final_newline/` are for. 148 cases are such.
 - **Ignored.** An `[<Ignore>]` test that still does not pass is an ignored case, with its reason.
 - **Defines.** A test that formatted one define combination merged its result with itself first,
   which moved its directives to column 0. A case keeps what each combination printed before the
@@ -33,7 +39,20 @@ output with what the harness gives before writing the case.
   formatted one define combination, which no gold can hold.
 
 The script, `scripts/convert.fsx`, and its record of what became of each test,
-`porting-ledger.tsv`, are in the commits of #3512.
+`src/Fantomas.Core.SnapshotTests/porting-ledger.tsv`, are in the commits of #3512. The record is
+not complete:
+
+- `BlankLinesAroundNestedMultilineExpressions.fs`, whose name does not end in `Tests`, was converted
+  by a later version of the script that was not committed.
+- The record was made before `main` gained three exception abbreviation tests in
+  `TypeDeclarationTests.fs` (#3511), which were converted the same way when rebasing. Its line
+  numbers for that file are from before them.
+- `long array sequence` of `ListTests.fs` sat behind `#if RELEASE`, where the script did not look,
+  and was converted by hand afterwards.
+- The two tests that formatted twice, `should keep space before :` of `LetBindingTests.fs` and
+  `should split constructor and function call correctly, double formatting` of
+  `PatternMatchingTests.fs`, first became negative cases of their result, and were given their
+  input back by hand.
 
 ## History
 

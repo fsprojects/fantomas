@@ -28,11 +28,11 @@ Beside it, `name.gold.fs` holds what formatting gives:
 let myInput : int = 42
 ```
 
-Put the case in the folder of the node it is about, or of the setting it shows, and start its name with the issue number when there is one, as in this example path: `cases/oak/Expr/Chain/2844-directive-in-parenthesis-argument.fs`.
+Put the case in the folder of the node it is about, or of the setting it shows, and start its name with the issue number when there is one, as in this example path: `cases/oak/Expr/Chain/trivia/2844-directive-in-parenthesis-argument.fs`. A case about comments, blank lines or directives goes in the `trivia/` folder of its node.
 Let the test write its gold, and read it: it is what your change pins down.
 
 ```shell
-FANTOMAS_UPDATE_SNAPSHOTS=1 dotnet test src/Fantomas.Core.SnapshotTests --filter "Name~2844"
+FANTOMAS_UPDATE_SNAPSHOTS=1 dotnet test src/Fantomas.Core.SnapshotTests --filter "Name~2844-directive-in-parenthesis-argument"
 ```
 
 The [snapshot tests' README](https://github.com/fsprojects/fantomas/blob/main/src/Fantomas.Core.SnapshotTests/README.md) has the rest: where a case goes, what every case checks, how to keep an input formatting must leave alone, and how to write the case for a bug that is not fixed yet.
@@ -55,16 +55,11 @@ Updating your fork:
 
 > git checkout main && git fetch upstream && git rebase upstream/main && git push
 
-### Unit test
+### Test names
 
-- Unit test names should start with a lowercase letter.
-- When creating a test that is linked to a GitHub issue, add the number at the back with a comma, as in the following:
-
-```fsharp
-[<Test>]
-let ``preserve compile directive between piped functions, 512`` () = ...
-```
-You don't need to repeat this number for tests that are deviations from the original report problem. 
+- A case is named in lower case words joined by dashes. When it is linked to a GitHub issue, the number comes first, as in `512-compile-directive-between-piped-functions.fs`. The tests check this.
+- You don't need to repeat this number for cases that are deviations from the original report problem.
+- A unit test name in `Fantomas.Core.Tests` starts with a lowercase letter.
 
 ### Verify signature files
 

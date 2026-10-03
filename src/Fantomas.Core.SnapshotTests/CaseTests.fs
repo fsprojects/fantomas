@@ -3,7 +3,11 @@ module Fantomas.Core.SnapshotTests.CaseTests
 
 open System
 open System.IO
+open Microsoft.FSharp.Reflection
 open NUnit.Framework
+open Fantomas.Core
+open Fantomas.Core.SyntaxOak
+open Fantomas.EditorConfig
 open Fantomas.Core.SnapshotTests.Problems
 
 [<assembly: Parallelizable(ParallelScope.All)>]
@@ -57,6 +61,11 @@ let private ignored (case: Case.Case) : unit =
 
     // What the folders ask of the input alone holds whatever formatting gives, even when it throws.
     failWith (Placement.inputProblems case)
+
+    failWith (
+        Case.existingGolds case
+        |> List.choose (Gold.lineEndingsProblem case.Config.EndOfLine)
+    )
 
     // An ignored case under `negative/` is its own gold as much as any other.
     if isNegative case && File.Exists(Case.goldPath case) then
@@ -209,3 +218,78 @@ let ``every file under cases belongs to a case`` () =
 
     if not strays.IsEmpty then
         Assert.Fail($"""These files belong to no case:%s{"\n"}%s{String.concat "\n" strays}""")
+
+/// The folders under `oak/` no case can fill, as `cases/oak/README.md` lists them, and why.
+let private nodesWithoutCase: Map<string, string> =
+    Map.ofList
+        [
+            "TypeConstraint/DefaultsToType", "only FSharp.Core may write `default 'T : int`"
+            "ExprConstant", "ASTTransformer builds no ExprConstantNode"
+            "String", "ASTTransformer builds no StringNode"
+            "Oak", "the root of every case"
+        ]
+
+/// Every union case of the Oak has a folder under `oak/` with a case in it, and so does every node
+/// class no union case holds; every setting has one under `settings/`. A node or a setting added
+/// later fails this until it has its first case.
+[<Test>]
+let ``every node and every setting has a case`` () =
+    let hasCase (folder: string) : bool =
+        let path: string = Path.Combine(Case.casesDirectory, folder)
+
+        Directory.Exists path
+        && Directory.GetFiles(path, "*", SearchOption.AllDirectories)
+           |> Array.exists Case.isCaseFile
+
+    // `TriviaContent` is what trivia is, and no node of the tree.
+    let unions: System.Type array =
+        OakFacts.syntaxOakTypes
+        |> Array.filter (fun (t: System.Type) -> FSharpType.IsUnion(t, true) && t <> typeof<TriviaContent>)
+
+    let unionCases: UnionCaseInfo list =
+        unions
+        |> Array.collect (fun (union: System.Type) -> FSharpType.GetUnionCases(union, true))
+        |> Array.toList
+
+    let heldByUnionCase: Collections.Generic.HashSet<System.Type> =
+        unionCases
+        |> List.collect (fun (case: UnionCaseInfo) ->
+            case.GetFields()
+            |> Array.map (fun (field: Reflection.PropertyInfo) -> field.PropertyType)
+            |> Array.toList
+        )
+        |> Collections.Generic.HashSet<System.Type>
+
+    let nodeFolders: string list =
+        (unionCases
+         |> List.map (fun (case: UnionCaseInfo) -> $"%s{case.DeclaringType.Name}/%s{case.Name}"))
+        @ (OakFacts.nodeClasses
+           |> List.choose (fun (nodeClass: System.Type) ->
+               if heldByUnionCase.Contains nodeClass then
+                   None
+               elif nodeClass.Name.EndsWith("Node", StringComparison.Ordinal) then
+                   Some(nodeClass.Name.Substring(0, nodeClass.Name.Length - "Node".Length))
+               else
+                   Some nodeClass.Name
+           ))
+
+    let missingNodes: string list =
+        nodeFolders
+        |> List.choose (fun (folder: string) ->
+            if nodesWithoutCase.ContainsKey folder || hasCase $"oak/%s{folder}" then
+                None
+            else
+                Some $"oak/%s{folder}/"
+        )
+
+    let missingSettings: string list =
+        FSharpType.GetRecordFields(typeof<FormatConfig>)
+        |> Array.choose (fun (field: Reflection.PropertyInfo) ->
+            let folder: string = $"settings/%s{toEditorConfigName field.Name}/"
+            if hasCase folder then None else Some folder
+        )
+        |> Array.toList
+
+    match missingNodes @ missingSettings with
+    | [] -> ()
+    | missing -> Assert.Fail($"""These folders have no case:%s{"\n"}%s{String.concat "\n" missing}""")

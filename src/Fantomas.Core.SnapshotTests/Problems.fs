@@ -42,6 +42,7 @@ type Problem =
     | GoldDiffers of path: string * diff: string
     | StaleGold of path: string
     | GoldNotExpected of path: string
+    | GoldLineEndings of path: string * lineEnding: string
 
 let private outputName (output: Output) : string =
     match output with
@@ -84,6 +85,8 @@ let describe (problem: Problem) : string =
         $"Comments were not preserved%s{under defines}.\nMissing: %A{missing}\nExtra: %A{extra}"
     | Problem.CommentCountChanged(defines, before, after) ->
         $"The source has %d{before} comments and the result %d{after}%s{under defines}."
+    | Problem.DirectivesChanged(defines, [], []) ->
+        $"Conditional and warn directives are all there and in another order%s{under defines}. Merging the define combinations relies on their order."
     | Problem.DirectivesChanged(defines, missing, extra) ->
         $"Conditional and warn directives were not preserved%s{under defines}.\nMissing: %s{listed missing}\nExtra: %s{listed extra}"
     | Problem.NotIdempotent(output, again) ->
@@ -124,3 +127,5 @@ let describe (problem: Problem) : string =
         $"The result differs from %s{path}. What came out is in its `.actual` file.\n\n%s{diff}"
     | Problem.StaleGold path -> $"%s{path} belongs to no define combination this case has."
     | Problem.GoldNotExpected path -> $"%s{path} belongs to a case under `negative/`, which is its own gold."
+    | Problem.GoldLineEndings(path, lineEnding) ->
+        $"%s{path} has line endings formatting never gives here, where every line ends in `%s{lineEnding}`. An editor that saved it with its own would do this: it could never match."

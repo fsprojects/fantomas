@@ -1,5 +1,5 @@
-/// Two reports over every case, to read while porting a folder: which shapes of each node some case
-/// produces, and where trivia ends up.
+/// Two reports over every case, to read while writing cases for a folder: which shapes of each node
+/// some case produces, and where trivia ends up.
 module Fantomas.Core.SnapshotTests.Reports
 
 open System
@@ -72,7 +72,7 @@ let private shapesReport (observed: Observed) : string =
     let report: StringBuilder =
         header
             "Node shapes"
-            "For every node class some case produces: each optional part, whether some case has it and some\ncase leaves it out, and each list of parts, whether some case has none, one and several. A shape\nunder Missing is either a case still to write or one the parser cannot produce; which, is for\nwhoever ports the folder to judge."
+            "For every node class some case produces: each optional part, whether some case has it and some\ncase leaves it out, and each list of parts, whether some case has none, one and several. A shape\nunder Missing is either a case still to write or one the parser cannot produce; which, is for\nwhoever writes the cases to judge."
 
     let unproduced: string list =
         OakFacts.nodeClasses
