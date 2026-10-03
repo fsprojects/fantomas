@@ -200,8 +200,12 @@ let snapshotReach: Reach list =
     let case: MethodInfo =
         snapshotTests.GetType("Fantomas.Core.SnapshotTests.CaseTests").GetMethod("case", everyStatic)
 
+    // An ignored case is skipped, as an ignored unit test is above.
     all.Invoke(null, [||]) :?> string array
     |> Array.toList
+    |> List.filter (fun (relativePath: string) ->
+        not (Path.GetFileNameWithoutExtension(relativePath).EndsWith(".ignore", StringComparison.Ordinal))
+    )
     |> List.map (fun (relativePath: string) ->
         measure "snapshot" relativePath (fun () -> case.Invoke(null, [| relativePath |]) |> ignore)
     )
@@ -220,7 +224,7 @@ File.WriteAllLines(
 )
 
 /// A method's visit is its metadata token, 0x06xxxxxx, and says nothing its sequence points do not.
-let isMethodToken (point: int) : bool = point > 0 && point >= 0x06000000
+let isMethodToken (point: int) : bool = point >= 0x06000000
 
 let unionOf (reaches: Reach list) : Set<int> =
     reaches

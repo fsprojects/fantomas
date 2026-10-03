@@ -102,7 +102,7 @@ pipeline "Benchmark" {
 
 // Line and branch coverage for the three projects Fantomas ships, via AltCover's MSBuild
 // integration. Every test project is run under AltCover, each measuring the one assembly it is
-// there to exercise, and ReportGenerator merges the three results into a single report.
+// there to exercise, and ReportGenerator merges the four results into a single report.
 //
 // So `Fantomas.Core`'s figure comes from `Fantomas.Core.Tests` and `Fantomas.Core.SnapshotTests`, whose
 // two reports ReportGenerator merges, even though `Fantomas.Tests` exercises Core heavily through
@@ -179,31 +179,10 @@ let syntaxOakCoverageSummary: string = snapshotsDir </> "syntaxoak-coverage.txt"
 
 /// Turn the OpenCover XML of a `CoverageOak` run into what a person acts on: every line of
 /// `SyntaxOak.fs` with a point or a branch no case reached, grouped by the class it belongs to.
-/// Methods listed in `coverage-exceptions.tsv` beside the project, a method name fragment and a reason
-/// separated by a tab, are reported apart as known exceptions.
 let summarizeSyntaxOakCoverage () : Async<int> =
     async {
         let source: string array =
             File.ReadAllLines(__SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core" </> "SyntaxOak.fs")
-
-        let exceptionsFile: string = snapshotsDir </> "coverage-exceptions.tsv"
-
-        let exceptions: (string * string) list =
-            if not (File.Exists exceptionsFile) then
-                []
-            else
-
-            File.ReadAllLines exceptionsFile
-            |> Array.choose (fun (line: string) ->
-                if String.IsNullOrWhiteSpace line || line.StartsWith("#", StringComparison.Ordinal) then
-                    None
-                else
-
-                match line.Split '\t' with
-                | [| fragment; reason |] -> Some(fragment, reason)
-                | _ -> failwith $"`{line}` in coverage-exceptions.tsv is not a method and a reason separated by a tab."
-            )
-            |> Array.toList
 
         let document: Xml.Linq.XDocument = Xml.Linq.XDocument.Load syntaxOakCoverageXml
         let name (local: string) : Xml.Linq.XName = Xml.Linq.XName.Get local
@@ -231,11 +210,6 @@ let summarizeSyntaxOakCoverage () : Async<int> =
                 |> List.length
 
             $"{reached} of {ofKind.Length}"
-
-        let exceptionFor (methodName: string) : string option =
-            exceptions
-            |> List.tryFind (fun (fragment: string, _) -> methodName.Contains fragment)
-            |> Option.map snd
 
         // `System.Void Fantomas.Core.SyntaxOak/ExprConstantNode::.ctor(...)` belongs to
         // `ExprConstantNode`, and so does a closure compiled into `ExprConstantNode/-ctor@12-3`. The
@@ -281,10 +255,6 @@ let summarizeSyntaxOakCoverage () : Async<int> =
                     summary.AppendLine($"    {line, 5}  {kinds, -12}  {source[line - 1].Trim()}")
                     |> ignore
 
-        let excepted, unexcepted =
-            missed
-            |> List.partition (fun (methodName: string, _, _) -> (exceptionFor methodName).IsSome)
-
         // A class every point of which some case reaches does not show up below, so name those
         // here: absent from the list then means covered, never "not measured".
         let reachedInFull: string list =
@@ -297,12 +267,7 @@ let summarizeSyntaxOakCoverage () : Async<int> =
         let reachedInFullText: string = String.concat ", " reachedInFull
         summary.AppendLine($"\nReached in full: %s{reachedInFullText}") |> ignore
         summary.AppendLine("\nNot reached:") |> ignore
-        describe unexcepted
-
-        if not excepted.IsEmpty then
-            summary.AppendLine("\nNot reached, and listed in coverage-exceptions.tsv:")
-            |> ignore
-            describe excepted
+        describe missed
 
         File.WriteAllText(syntaxOakCoverageSummary, summary.ToString())
         printfn "%s" (summary.ToString())

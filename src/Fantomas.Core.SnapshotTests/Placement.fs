@@ -21,16 +21,13 @@ type NodeFolder =
     /// A folder that names no node, such as `ported/<old test file>/`.
     | Unchecked of reason: string
 
-let private nestedTypes: System.Type array =
-    OakFacts.syntaxOakModule.GetNestedTypes(BindingFlags.Public ||| BindingFlags.NonPublic)
-
 /// Resolve the folders that name a node: `[ "TypeDefn"; "Union" ]` for a union case, or
 /// `[ "UnionCase" ]` for a node class, which is the folder name with `Node` after it.
 let resolveNodeFolder (folders: string list) : Result<NodeFolder, string> =
     match folders with
     | [] -> Error "The case is not in a folder that names a node."
     | [ name ] ->
-        nestedTypes
+        OakFacts.syntaxOakTypes
         |> Array.tryFind (fun (t: System.Type) ->
             (t.Name = name + "Node" || t.Name = name) && typeof<Node>.IsAssignableFrom t
         )
@@ -39,7 +36,7 @@ let resolveNodeFolder (folders: string list) : Result<NodeFolder, string> =
             | None -> Error $"`%s{name}` names no node class: there is no `%s{name}Node` in SyntaxOak."
     | [ unionName; caseName ] ->
         match
-            nestedTypes
+            OakFacts.syntaxOakTypes
             |> Array.tryFind (fun (t: System.Type) -> t.Name = unionName && FSharpType.IsUnion t)
         with
         | None -> Error $"`%s{unionName}` is no union in SyntaxOak."
@@ -68,9 +65,6 @@ type Claim =
         /// The setting the case is about, and the value its value folder names when it has one.
         Setting: (string * string option) option
         Node: NodeFolder
-        /// Whether the case sits in a `trivia/` folder. Which node its trivia attaches to is not checked:
-        /// that is how `Trivia.fs` works today, and it may change without the formatting changing.
-        IsTrivia: bool
         /// Whether the case sits in a `negative/` folder: one formatting must leave as it is, below a
         /// node, or one a setting must leave alone, below a setting. Such a case is its own gold.
         IsNegative: bool
@@ -106,7 +100,6 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
             {
                 Setting = None
                 Node = Unchecked "ported from Fantomas.Core.Tests, in the folder of the file it came from"
-                IsTrivia = false
                 IsNegative = List.tryLast folders = Some "negative"
             }
     | "oak" :: rest ->
@@ -115,7 +108,6 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
             {
                 Setting = None
                 Node = node
-                IsTrivia = isTrivia
                 IsNegative = isNegativeLast
             }
         )
@@ -124,10 +116,25 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
         | None -> Error $"`settings/%s{key}` names no setting."
         | Some settingType ->
 
-        let value, afterValue =
+        // A setting with named values has its value as the first folder, one the setting can take.
+        let isValue (value: string) : bool =
+            try
+                parseOptionsFromEditorConfig Case.defaultConfig (readOnlyDict [ key, value ])
+                |> snd
+                |> List.isEmpty
+            with _ ->
+                false
+
+        let value: Result<string option * string list, string> =
             match FSharpType.IsUnion settingType, rest with
-            | true, value :: afterValue -> Some value, afterValue
-            | _ -> None, rest
+            | false, _ -> Ok(None, rest)
+            | true, value :: afterValue when isValue value -> Ok(Some value, afterValue)
+            | true, folder :: _ -> Error $"`%s{key}` has named values, and `%s{folder}` is none of them."
+            | true, [] -> Error $"`%s{key}` has named values, and the case is in no folder for one."
+
+        match value with
+        | Error reason -> Error reason
+        | Ok(value, afterValue) ->
 
         let isNegative, nodePath =
             match afterValue with
@@ -139,7 +146,6 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
             {
                 Setting = Some(key, value)
                 Node = node
-                IsTrivia = isTrivia
                 IsNegative = isNegative
             }
         )
@@ -151,11 +157,9 @@ let private propertyValue (case: Case.Case) (key: string) : string option =
     |> List.tryFindBack (fun (written: string, _) -> String.Equals(written, key, StringComparison.OrdinalIgnoreCase))
     |> Option.map snd
 
-/// Check a case against the claim its path makes. `formatWith` formats the case with a given
-/// configuration; it is only called for a case under `settings/`.
 /// What a case's folders ask of its input alone, whatever formatting gives: that they claim
 /// something that makes sense, and that the setting they name is set, to its value folder when there
-/// is one.
+/// is one, and to other than its default.
 let inputProblems (case: Case.Case) : Problem list =
     match claimOf case with
     | Error reason -> [ Problem.UnknownFolder reason ]
@@ -169,8 +173,11 @@ let inputProblems (case: Case.Case) : Problem list =
     | None, _ -> [ Problem.SettingNotSet key ]
     | Some written, Some folderValue when not (String.Equals(folderValue, written, StringComparison.OrdinalIgnoreCase)) ->
         [ Problem.SettingValueDiffers(key, folderValue, written) ]
+    | Some written, _ when Case.configOf [ key, written ] = Case.defaultConfig -> [ Problem.SettingAtDefault key ]
     | Some _, _ -> []
 
+/// Check a case against the claim its path makes. `formatWith` formats the case with a given
+/// configuration; it is only called for a case under `settings/`.
 let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: FormatConfig -> string) : Problem list =
     match claimOf case with
     | Error reason -> [ Problem.UnknownFolder reason ]

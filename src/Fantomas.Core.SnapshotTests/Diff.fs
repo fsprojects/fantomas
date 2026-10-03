@@ -1,5 +1,4 @@
 /// A line diff between what a gold file holds and what came out, as the failure message shows it.
-/// Taken from the daemon wire snapshots on the `spike-aot` branch.
 module Fantomas.Core.SnapshotTests.Diff
 
 /// One line of a diff, with its line number on the side or sides it appears on. Zero-based.

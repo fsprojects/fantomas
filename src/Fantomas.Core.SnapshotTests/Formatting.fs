@@ -15,7 +15,8 @@ open Fantomas.Core.SnapshotTests.Problems
 /// Trivia assignment in `Trivia.fs` takes the order of `Node.Children` to be the order in the
 /// source, and every `Children` array is written by hand. Children may overlap, as ranges from the
 /// parser nest, but none may start before the one in front of it. Nodes `ASTTransformer` makes up
-/// carry `range0` and have no place in the source. Taken from `Fantomas.Core.Tests`.
+/// carry `range0` and have no place in the source. `Fantomas.Core.Tests` has the same check for its
+/// unit tests, and the two projects share no code.
 let assertChildrenInSourceOrder (oak: Oak) : unit =
     let rec visit (node: Node) : unit =
         node.Children

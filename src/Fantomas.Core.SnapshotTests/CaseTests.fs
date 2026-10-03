@@ -86,7 +86,8 @@ let private ignored (case: Case.Case) : unit =
 
             // The result is what is known to be wrong, so only what holds whatever it is gets reported
             // while the case is ignored: the node the folder names, which the input's Oak has or not,
-            // and a gold for a define combination the input does not have.
+            // and a gold for a define combination the input does not have. Both need the case to
+            // format; one that throws is skipped without them.
             let missingNodes: Problem list =
                 placementProblems
                 |> List.filter (fun (problem: Problem) ->
@@ -137,11 +138,9 @@ let case (relativePath: string) =
 
     // Updating leaves the golds alone while the result is itself wrong, which would be compared
     // against from then on, or while the case is not where it belongs, which is what to fix first.
+    // Every problem `formatAndCheck` finds is one with the result.
     let goldProblems: Problem list =
-        if
-            Case.isUpdating
-            && (List.exists breaksResult resultProblems || not placementProblems.IsEmpty)
-        then
+        if Case.isUpdating && (not resultProblems.IsEmpty || not placementProblems.IsEmpty) then
             []
         else
 

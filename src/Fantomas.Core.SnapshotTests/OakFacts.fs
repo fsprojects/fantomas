@@ -67,7 +67,8 @@ let attachments (oak: Oak) : Attachment list =
 /// The type holding every Oak node and union, `Fantomas.Core.SyntaxOak`.
 let syntaxOakModule: System.Type = typeof<Oak>.DeclaringType
 
-let private syntaxOakTypes: System.Type array =
+/// Every type `Fantomas.Core.SyntaxOak` declares: the node classes, the unions and the interfaces.
+let syntaxOakTypes: System.Type array =
     syntaxOakModule.GetNestedTypes(BindingFlags.Public ||| BindingFlags.NonPublic)
 
 /// Every concrete node class of the Oak.

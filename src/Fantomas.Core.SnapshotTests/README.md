@@ -73,8 +73,7 @@ type A = A of int
   that is no setting, or a value Fantomas cannot act on, fails the case. So do the values the
   editorconfig spec reserves, `unset`, `indent_size = tab` and `max_line_length = off`: the tool
   keeps its default for them, which in a case would test something other than it says. It is stripped before
-  formatting. F# lexes strings and nested comments inside a block comment, so keep any `"` in a
-  description balanced, and do not write `(*` in one.
+  formatting, so nothing in it is parsed as F#.
 - **Kind of file.** `name.fs` is an implementation file, `name.fsi` a signature file. A signature
   case needs no module or namespace header unless the parser asks for one. See "Signature files"
   for when a `.fsi` case is worth having.
@@ -110,13 +109,16 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
 - **Reason.** The front matter's `#` description says why it is ignored, an issue link at best. A
   run lists the case as skipped with that reason, and fails a case that gives none.
 - **Comparing.** Only the golds the case has are compared, and nothing writes them, not even
-  `UpdateSnapshots`. What it gives today is written to the `.actual` beside a gold it misses.
+  `UpdateSnapshots`. What it gives today is written to the `.actual` beside a gold it does not
+  match.
 - **Fixed.** Once it gives its golds and passes every check, it fails with "rename it to
   `name.fs`". So an ignored case cannot stay ignored after its bug is gone.
 - **Folder.** What its folder asks of the input still holds: the node the folder names, and the
   setting it names, set to its value. So does what is true of its golds whatever the result: none
   beside a case under `negative/`, and none for a define combination the input does not have. The
-  result is what is known to be wrong, so the checks of the result wait until the case passes.
+  node and the define combinations are only known once the case formats, so a case that throws is
+  skipped without those two. The result is what is known to be wrong, so the checks of the result
+  wait until the case passes.
 - **Both.** `name.fs` and `name.ignore.fs` cannot sit side by side.
 
 ## What every case checks
@@ -139,19 +141,20 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
 ## Where a case goes
 
 ```
-cases/ported/<old test file>/[negative/]                   ported/CommentTests/
-cases/oak/<Union>/<Case>/[trivia/][negative/]              oak/TypeDefn/Union/trivia/negative/
-cases/oak/<Node>/[trivia/][negative/]                      oak/UnionCase/
-cases/settings/<key>/[<value>/]<Union>/<Case>/[trivia/]    settings/fsharp_bar_before_discriminated_union_declaration/TypeDefn/Union/
-cases/settings/<key>/[<value>/]negative/<Union>/<Case>/    settings/fsharp_bar_before_discriminated_union_declaration/negative/ModuleDecl/Exception/
+cases/ported/<old test file>/[negative/]                           ported/CommentTests/
+cases/oak/<Union>/<Case>/[trivia/][negative/]                      oak/TypeDefn/Union/trivia/negative/
+cases/oak/<Node>/[trivia/][negative/]                              oak/UnionCase/
+cases/settings/<key>/[<value>/]<Union>/<Case>/[trivia/]            settings/fsharp_bar_before_discriminated_union_declaration/TypeDefn/Union/
+cases/settings/<key>/[<value>/]negative/<Union>/<Case>/[trivia/]   settings/fsharp_bar_before_discriminated_union_declaration/negative/ModuleDecl/Exception/
 ```
 
 `ported/` holds the tests that were in `Fantomas.Core.Tests` (see "The ported tests" below). A new
 case goes under `oak/` or `settings/`:
 
 1. **A setting.** If the point of a case is what a setting does, it goes under `settings/<key>/`,
-   setting a value other than the default. The value folder is only there for settings with named
-   values, such as `stroustrup`. A case a setting must leave alone goes in `negative/` below the
+   setting a value other than the default. A setting with named values, such as
+   `fsharp_multiline_bracket_style`, has a folder per value, `stroustrup/`, and a case of it must be
+   in one. A setting without, a `true` or a number, has none. A case a setting must leave alone goes in `negative/` below the
    setting: an exception, say, which never gets the bar
    `fsharp_bar_before_discriminated_union_declaration` puts before a single union case. Such a case
    has no gold: its input is already formatted, and formatting it with the setting and with the
@@ -172,7 +175,8 @@ case goes under `oak/` or `settings/`:
 
 The path is checked:
 - under `ported/`, only `negative/`: the folders name the file the tests came from, not a node;
-- a case under `settings/<key>/` must set `<key>`, to its value folder when there is one;
+- a case under `settings/<key>/` must set `<key>`, to its value folder when there is one, and not
+  to its default;
 - resetting `<key>` to its default must change the result, except under `negative/`, where
   neither the setting nor its default may change the input;
 - a case must contain the node its folder names: the node class for `oak/<Node>/`, and the union
@@ -181,7 +185,9 @@ The path is checked:
 - a case under `negative/` must come back unchanged, and any other case must not, nor may its
   result differ from the input only at its end, a final newline added say. Such a case belongs in
   `negative/` with that ending, unless its front matter sets `insert_final_newline` to other than
-  its default.
+  its default. So what formatting does to the end of a file at the default settings, a final
+  newline added or trailing whitespace dropped, cannot be a case: test it with a unit test in
+  `Fantomas.Core.Tests`.
 
 ## Signature files
 

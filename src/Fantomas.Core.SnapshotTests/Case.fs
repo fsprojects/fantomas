@@ -217,13 +217,12 @@ let read (relativePath: string) : Case =
         )
         |> Array.toList
 
+    let parts: string list = relativePath.Split('/') |> Array.toList
+
     {
         RelativePath = relativePath
         FullPath = fullPath
-        Folders =
-            relativePath.Split('/')
-            |> Array.toList
-            |> List.take (relativePath.Split('/').Length - 1)
+        Folders = List.take (parts.Length - 1) parts
         Stem = stem
         IsIgnored = isIgnored
         Extension = extension

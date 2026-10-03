@@ -30,6 +30,7 @@ type Problem =
     | UnknownFolder of reason: string
     | SettingNotSet of key: string
     | SettingValueDiffers of key: string * folderValue: string * written: string
+    | SettingAtDefault of key: string
     | SettingHasNoEffect of key: string
     | InputNotKept of formatted: string
     | AlreadyFormatted
@@ -41,32 +42,6 @@ type Problem =
     | GoldDiffers of path: string * diff: string
     | StaleGold of path: string
     | GoldNotExpected of path: string
-
-/// Whether a problem says the result itself is wrong. Such a result is never written as a gold,
-/// not even when updating them.
-let breaksResult (problem: Problem) : bool =
-    match problem with
-    | Problem.ProductionDiffers _
-    | Problem.Invalid _
-    | Problem.CommentsLost _
-    | Problem.CommentCountChanged _
-    | Problem.DirectivesChanged _
-    | Problem.NotIdempotent _
-    | Problem.CrlfDiffers _
-    | Problem.TrailingWhitespace _ -> true
-    | Problem.UnknownFolder _
-    | Problem.SettingNotSet _
-    | Problem.SettingValueDiffers _
-    | Problem.SettingHasNoEffect _
-    | Problem.InputNotKept _
-    | Problem.AlreadyFormatted
-    | Problem.OnlyEndChanged
-    | Problem.SettingApplies _
-    | Problem.NodeMissing _
-    | Problem.NoGold _
-    | Problem.GoldDiffers _
-    | Problem.StaleGold _
-    | Problem.GoldNotExpected _ -> false
 
 let private outputName (output: Output) : string =
     match output with
@@ -126,6 +101,8 @@ let describe (problem: Problem) : string =
     | Problem.SettingNotSet key -> $"The case is under `settings/%s{key}` and its front matter does not set `%s{key}`."
     | Problem.SettingValueDiffers(key, folderValue, written) ->
         $"The case is under `%s{folderValue}` and its front matter sets `%s{key} = %s{written}`."
+    | Problem.SettingAtDefault key ->
+        $"The case is under `settings/%s{key}` and its front matter sets `%s{key}` to its default, which says nothing about the setting."
     | Problem.SettingHasNoEffect key ->
         $"`%s{key}` changes nothing here: with it at its default the result is the same."
     | Problem.InputNotKept formatted ->
