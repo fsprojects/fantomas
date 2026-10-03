@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Suggestion.fsi" />
+    <Compile Include="Suggestion.fs" />
+    <Compile Include="EditorConfig.fsi" />
+    <Compile Include="EditorConfig.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" />
+  </ItemGroup>
+</Project>

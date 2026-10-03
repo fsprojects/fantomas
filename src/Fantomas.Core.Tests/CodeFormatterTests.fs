@@ -157,3 +157,16 @@ let ``GetWriterEventsAsync emits NodeStart and NodeEnd events`` () =
     // Oak is the root node
     Assert.That(nodeStarts.[0], Is.EqualTo "Oak")
     Assert.That(nodeEnds |> Array.last, Is.EqualTo "Oak")
+
+[<Test>]
+let ``should throw FormatException on unparsed input`` () =
+    Assert.Throws<ParseException>(
+        System.Action(fun () ->
+            formatSourceString
+                """
+    type GeoResults = JsonProvider<Sample= "A" + "GitHub.json" >"""
+                config
+            |> ignore
+        )
+    )
+    |> ignore

@@ -1,0 +1,2 @@
+defineCombinationValue.Value
+    .IsEmpty

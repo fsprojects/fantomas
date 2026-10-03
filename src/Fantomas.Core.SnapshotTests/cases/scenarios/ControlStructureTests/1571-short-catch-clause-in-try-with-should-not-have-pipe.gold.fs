@@ -1,0 +1,4 @@
+try
+    ()
+with exc ->
+    ()

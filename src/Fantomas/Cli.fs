@@ -14,7 +14,7 @@ type CliEnvironment =
         FindIgnoreFile: string -> IgnoreFile option
         FindIgnoreFilesAbove: IgnoreFile -> IgnoreFile list
         ReadConfiguration: string -> FormatConfig
-        ResolveConfiguration: string -> EditorConfig.ResolvedConfig
+        ResolveConfiguration: string -> EditorConfigFiles.ResolvedConfig
         Log: ILogger
         OutputTheme: Theme
         ErrorTheme: Theme

@@ -1,0 +1,2 @@
+Animal<Identifier>
+    .GetConnectionString(primaryDbReplica)

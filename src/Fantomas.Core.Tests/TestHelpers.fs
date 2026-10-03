@@ -108,32 +108,6 @@ let formatAST isFsiFile (source: string) config =
     }
     |> Async.RunSynchronously
 
-let formatSourceStringWithDefines defines (s: string) config =
-    // On Linux/Mac this will exercise different line endings
-    let s = s.Replace("\r\n", Environment.NewLine)
-
-    let result =
-        async {
-            let source = CodeFormatterImpl.getSourceText s
-            let! asts = CodeFormatterImpl.parse false source
-
-            let ast =
-                Array.filter (fun (_, DefineCombination(d)) -> List.sort d = List.sort defines) asts
-                |> Array.head
-                |> fst
-
-            return CodeFormatterImpl.formatASTWith assertChildrenInSourceOrder ast (Some source) config None
-        }
-        |> Async.RunSynchronously
-
-    let defines = DefineCombination(defines)
-
-    // merge with itself to make #if go on beginning of line
-    let mergedFormatResult =
-        MultipleDefineCombinations.mergeMultipleFormatResults config [ (defines, result); (defines, result) ]
-
-    String.normalizeNewLine mergedFormatResult.Code
-
 let isValidFSharpCode isFsiFile s =
     let validation: ValidationResult =
         CodeFormatter.ValidateFSharpCodeAsync(isFsiFile, s) |> Async.RunSynchronously

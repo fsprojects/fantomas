@@ -1,0 +1,2 @@
+getBuilder()
+    .GetConnectionString(primaryDatabaseReplica)

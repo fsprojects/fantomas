@@ -1,0 +1,17 @@
+(*---
+fsharp_max_infix_operator_expression = 50
+---*)
+let watchFiles =
+        async {
+            printfn "after start"
+            use _ =
+                !!(serverPath </> "*.fs") ++ (serverPath </> "*.fsproj") // combines fs and fsproj
+                |> ChangeWatcher.run (fun changes ->
+                                      printfn
+                                          "FILE CHANGE %A"
+                                          changes
+                                      // stopFunc()
+                                      //Async.Start (startFunc())
+                                      )
+            ()
+        }

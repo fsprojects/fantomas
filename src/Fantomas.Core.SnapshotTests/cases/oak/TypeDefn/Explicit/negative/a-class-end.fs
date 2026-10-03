@@ -1,0 +1,1 @@
+type Empty = class end

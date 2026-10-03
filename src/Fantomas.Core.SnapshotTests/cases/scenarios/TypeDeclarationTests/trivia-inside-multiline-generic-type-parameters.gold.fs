@@ -1,0 +1,5 @@
+type X =
+    Teq< //
+        int
+     //
+    >

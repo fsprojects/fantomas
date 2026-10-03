@@ -1,0 +1,1 @@
+let memoEquals x = x?(k + 1)

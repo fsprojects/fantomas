@@ -1,0 +1,7 @@
+let alert = "Hello\aWorld"
+let backspace = "Hello\bWorld"
+let formFeed = "Hello\fWorld"
+let newline = "Hello\nWorld"
+let carriageReturn = "Hello\rWorld"
+let tab = "Hello\tWorld"
+let verticalTab = "Hello\vWorld"

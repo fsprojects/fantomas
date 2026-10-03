@@ -1,0 +1,1 @@
+let hexEscape = "\x00"

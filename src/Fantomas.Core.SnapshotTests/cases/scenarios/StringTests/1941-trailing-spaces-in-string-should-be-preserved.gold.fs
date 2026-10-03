@@ -1,0 +1,3 @@
+let s =
+    """aaaa   
+bbb"""

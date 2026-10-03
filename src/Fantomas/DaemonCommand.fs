@@ -12,7 +12,7 @@ let runDaemonCommand (fs: IFileSystem) (log: ILogger) : int =
             Console.OpenStandardInput(),
             {
                 FileSystem = fs
-                ReadConfiguration = EditorConfig.tryReadConfiguration
+                ReadConfiguration = EditorConfigFiles.tryReadConfiguration
                 Log = log
             }
         )

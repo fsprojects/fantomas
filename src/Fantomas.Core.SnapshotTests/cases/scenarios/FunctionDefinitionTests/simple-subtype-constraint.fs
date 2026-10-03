@@ -1,0 +1,1 @@
+let subtype (xs : seq<'t :> System.IDisposable>) = ()

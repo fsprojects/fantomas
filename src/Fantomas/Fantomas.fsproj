@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
+    <ProjectReference Include="..\Fantomas.EditorConfig\Fantomas.EditorConfig.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fsi" />
@@ -25,16 +26,14 @@
     <Compile Include="Theme.fs" />
     <Compile Include="Invocation.fsi" />
     <Compile Include="Invocation.fs" />
-    <Compile Include="Suggestion.fsi" />
-    <Compile Include="Suggestion.fs" />
     <Compile Include="Logging.fsi" />
     <Compile Include="Logging.fs" />
     <Compile Include="Diagnostics.fsi" />
     <Compile Include="Diagnostics.fs" />
     <Compile Include="IgnoreFile.fsi" />
     <Compile Include="IgnoreFile.fs" />
-    <Compile Include="EditorConfig.fsi" />
-    <Compile Include="EditorConfig.fs" />
+    <Compile Include="EditorConfigFiles.fsi" />
+    <Compile Include="EditorConfigFiles.fs" />
     <Compile Include="EditorConfigReport.fsi" />
     <Compile Include="EditorConfigReport.fs" />
     <Compile Include="Daemon.fsi" />

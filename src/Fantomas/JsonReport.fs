@@ -9,6 +9,7 @@ open Fantomas.FCS.Parse
 open Fantomas.CommandResult
 open Fantomas.DoctorCommand
 open Fantomas.EditorConfig
+open Fantomas.EditorConfigFiles
 open Fantomas.Report
 
 type Range =

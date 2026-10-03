@@ -1,0 +1,1 @@
+let config = lazy (loadConfig ())

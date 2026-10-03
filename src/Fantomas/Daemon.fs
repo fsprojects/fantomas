@@ -16,6 +16,7 @@ open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Core
 open Fantomas.EditorConfig
+open Fantomas.EditorConfigFiles
 open Serilog
 
 [<NoComparison; NoEquality>]

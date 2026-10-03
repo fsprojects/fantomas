@@ -1,0 +1,3 @@
+extern System.Runtime.InteropServices.SafeHandle private OpenTheThingWithAVeryLongNameThatGoesOnAndOnAndOn(
+    nativeint handle
+)

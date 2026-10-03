@@ -2,3 +2,6 @@ obj/**/*.fs
 .deps
 tests/data
 scripts/hero-video/fixture
+
+# The snapshot cases: inputs and golds are what they are, not code to format
+src/Fantomas.Core.SnapshotTests/cases/

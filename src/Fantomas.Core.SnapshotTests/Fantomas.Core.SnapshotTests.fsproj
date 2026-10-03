@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Diff.fs" />
+    <Compile Include="Case.fs" />
+    <Compile Include="Problems.fs" />
+    <Compile Include="OakFacts.fs" />
+    <Compile Include="Formatting.fs" />
+    <Compile Include="Placement.fs" />
+    <Compile Include="Gold.fs" />
+    <Compile Include="Reports.fs" />
+    <Compile Include="CaseTests.fs" />
+    <Compile Include="ReportsFixture.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
+    <ProjectReference Include="..\Fantomas.EditorConfig\Fantomas.EditorConfig.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="AltCover" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

@@ -176,7 +176,7 @@ It stays quiet on a `when` guard, because a multiline guard takes a path in `Cod
 indents the body whatever column it is in, and whether a guard prints multiline is a page width
 question rather than a tree one. It stays quiet on a conditional directive inside the match. And it
 offers no fix, because re-indenting a block means leaving the multiline strings inside it exactly
-where they are, which is not a thing to do blind, least of all in `Fantomas.Core.Tests`.
+where they are, which is not a thing to do blind, least of all in tests.
 
 `match`, `match!` and `function` all reach the same clause printer, so all three are covered. So is
 the final `else` of an `if`, which reaches `genKeepIdentIfThenElse` rather than
@@ -444,10 +444,10 @@ Three things follow from that, and all three are handled in `BuildAnalyzers.fsx`
   references `Fantomas.FCS`, because resolving the members of `System.ReadOnlySpan` needs an
   assembly no script references.
 - **`--include-files` holds the report to scripts.** A script compilation includes whatever it
-  loads, and `shared.fsx` loads `EditorConfig.fs` and `Suggestion.fs` out of `src/Fantomas`. Those
-  are analyzed properly as part of their own project; reporting on them here would say something
-  else about them, because a script loads the `.fs` alone and the signature file that keeps
-  `FANTOMAS-ANNOTATE-001` and `FANTOMAS-XMLDOC-001` quiet about them is no part of the compilation.
+  loads, and `shared.fsx` loads `EditorConfigFiles.fs` out of `src/Fantomas`. That is analyzed
+  properly as part of its own project; reporting on it here would say something else about it,
+  because a script loads the `.fs` alone and the signature file that keeps `FANTOMAS-ANNOTATE-001`
+  and `FANTOMAS-XMLDOC-001` quiet about it is no part of the compilation.
 
 So a clean `Scripts` run covers less ground than a clean project run, and a rule that says nothing
 about a script has not necessarily looked at it.

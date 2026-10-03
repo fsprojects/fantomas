@@ -1,0 +1,1 @@
+let makeStreamReader x = new System.IO.StreamReader(path = x)

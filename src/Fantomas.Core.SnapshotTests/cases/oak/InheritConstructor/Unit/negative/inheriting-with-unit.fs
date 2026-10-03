@@ -1,0 +1,2 @@
+type Derived() =
+    inherit Base()

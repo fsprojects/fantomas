@@ -1,0 +1,1 @@
+type Foo = private | Bar

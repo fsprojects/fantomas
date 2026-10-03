@@ -126,6 +126,13 @@ let hasExtension (extensions: string list) (path: string) : bool =
     extensions
     |> List.exists (fun (extension: string) -> path.EndsWith(extension, StringComparison.Ordinal))
 
+/// Whether a file is a snapshot case or one of its golds: F#, and test data rather than a source of
+/// the project around it. A pipeline that hands changed files to a tool leaves them out before
+/// building the command line: `.fantomasignore` only keeps the formatter off them once it runs, an
+/// `UpdateSnapshots` run can change hundreds, and Windows caps a command line at 32,767 characters.
+let isSnapshotCase (file: string) : bool =
+    file.Replace('\\', '/').Contains("/Fantomas.Core.SnapshotTests/cases/", StringComparison.Ordinal)
+
 /// How much of a file the working tree touched.
 type ChangedLines =
     /// Every line, which is what a file that git has never seen amounts to.

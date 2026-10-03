@@ -1,0 +1,1 @@
+let inline tryAverage (seq: seq< ^a >) : ^a option = None

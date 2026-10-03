@@ -1,0 +1,9 @@
+(*---
+fsharp_max_array_or_list_width = 40
+fsharp_multiline_bracket_style = stroustrup
+---*)
+let inline skipNoFail count (source: seq<_>) =
+//if FABLE_COMPILER
+    seq {
+      yield "Hello"
+    }

@@ -1,0 +1,4 @@
+if a then
+    0
+else
+    (tare + netWeight) + 10

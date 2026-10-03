@@ -1,0 +1,1 @@
+let empty: list<int> = []

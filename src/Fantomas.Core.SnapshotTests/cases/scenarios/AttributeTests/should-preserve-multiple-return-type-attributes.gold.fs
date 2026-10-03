@@ -1,0 +1,1 @@
+let f x : [<return: AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
