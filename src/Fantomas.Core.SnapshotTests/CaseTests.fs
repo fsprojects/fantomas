@@ -170,7 +170,7 @@ let case (relativePath: string) =
 
     failWith (resultProblems @ placementProblems @ goldProblems)
 
-/// Every file under `cases/` is a case, a gold of one, or an `.actual` of one.
+/// Every file under `cases/` is a case, a gold of one, an `.actual` of one, or a `README.md`.
 [<Test>]
 let ``every file under cases belongs to a case`` () =
     let strays: string list =
@@ -199,7 +199,8 @@ let ``every file under cases belongs to a case`` () =
                 File.Exists(Path.Combine(Path.GetDirectoryName path, stem + extension))
                 || File.Exists(Path.Combine(Path.GetDirectoryName path, stem + Case.ignoreSuffix + extension))
 
-            if Case.isCaseFile path || isGoldOrActual && hasCase then
+            // A `README.md` tells what the cases of its folder share: their history, or a rule.
+            if Case.isCaseFile path || isGoldOrActual && hasCase || name = "README.md" then
                 None
             else
                 Some(Case.relativeToCases path)

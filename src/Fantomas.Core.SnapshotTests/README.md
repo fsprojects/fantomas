@@ -143,24 +143,28 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
 ## Where a case goes
 
 ```
-cases/ported/<old test file>/[negative/]                           ported/CommentTests/
+cases/scenarios/<old test file>/[negative/]                        scenarios/CommentTests/
 cases/oak/<Union>/<Case>/[trivia/][negative/]                      oak/TypeDefn/Union/trivia/negative/
 cases/oak/<Node>/[trivia/][negative/]                              oak/UnionCase/
-cases/settings/<key>/[<value>/]<Union>/<Case>/[trivia/]            settings/fsharp_bar_before_discriminated_union_declaration/TypeDefn/Union/
-cases/settings/<key>/[<value>/]negative/<Union>/<Case>/[trivia/]   settings/fsharp_bar_before_discriminated_union_declaration/negative/ModuleDecl/Exception/
+cases/settings/<key>/[<value>/]<Union>/<Case>/[trivia/]            settings/fsharp_bar_before_discriminated_union_declaration/true/TypeDefn/Union/
+cases/settings/<key>/[<value>/]negative/<Union>/<Case>/[trivia/]   settings/fsharp_bar_before_discriminated_union_declaration/true/negative/ModuleDecl/Exception/
 ```
 
-`ported/` holds the tests that were in `Fantomas.Core.Tests` (see "The ported tests" below). A new
-case goes under `oak/` or `settings/`:
+Every union case and node class of the Oak has its folder under `oak/`, and every setting its folder
+under `settings/`, each with at least one case to start from;
+[`cases/oak/README.md`](cases/oak/README.md) names the few nodes no case can hold. `scenarios/` holds
+the tests that were in `Fantomas.Core.Tests` (see "Scenarios" below). A new case goes under `oak/` or
+`settings/`:
 
-1. **A setting.** If the point of a case is what a setting does, it goes under `settings/<key>/`,
-   setting a value other than the default. A setting with named values, such as
-   `fsharp_multiline_bracket_style`, has a folder per value, `stroustrup/`, and a case of it must be
-   in one. A setting without, a `true` or a number, has none. A case a setting must leave alone goes in `negative/` below the
-   setting: an exception, say, which never gets the bar
+1. **A setting.** If the point of a case is what a setting does, it goes under `settings/<key>/`.
+   A switch has a folder for each side, `true/` and `false/`, and a setting with named values one
+   for each value, `aligned/`, `cramped/` and `stroustrup/`: the default has its folder too, and a
+   case of the setting is in one of them. A number has no value folder, and a case of it sets a
+   value other than the default. A case a setting must leave alone goes in `negative/` below the
+   value: an exception, say, which never gets the bar
    `fsharp_bar_before_discriminated_union_declaration` puts before a single union case. Such a case
-   has no gold: its input is already formatted, and formatting it with the setting and with the
-   setting at its default must both give it back unchanged.
+   has no gold: its input is already formatted, and formatting it at every value must give it back
+   unchanged.
 2. **A node.** Otherwise the case goes in the folder of the node it is about, at the default
    settings. A smaller `max_line_length` that only keeps the input short does not make it a
    settings case.
@@ -176,20 +180,20 @@ case goes under `oak/` or `settings/`:
    much a test as any other: while fixing a bug it is often the one that says what must not change.
 
 The path is checked:
-- under `ported/`, only `negative/`: the folders name the file the tests came from, not a node;
-- a case under `settings/<key>/` must set `<key>`, to its value folder when there is one, and not
-  to its default;
-- resetting `<key>` to its default must change the result, except under `negative/`, where
-  neither the setting nor its default may change the input;
+- under `scenarios/`, only `negative/`: the folders name the file the tests came from, not a node;
+- a case under `settings/<key>/` must set `<key>`, to its value folder when there is one, and to
+  other than its default when there is none;
+- `<key>` at another value must change the result: the default, for a case at another value, and
+  some other value, for a case at the default. Under `negative/` no other value may change the
+  input;
 - a case must contain the node its folder names: the node class for `oak/<Node>/`, and the union
   case itself for `oak/<Union>/<Case>/`, held by some node of the Oak. A node class some other node
   holds as well does not count: `(fun x -> x)` is no `Expr.Lambda`, it is an `Expr.ParenLambda`;
 - a case under `negative/` must come back unchanged, and any other case must not, nor may its
   result differ from the input only at its end, a final newline added say. Such a case belongs in
-  `negative/` with that ending, unless its front matter sets `insert_final_newline` to other than
-  its default. So what formatting does to the end of a file at the default settings, a final
-  newline added or trailing whitespace dropped, cannot be a case: test it with a unit test in
-  `Fantomas.Core.Tests`.
+  `negative/` with that ending. What formatting does to the end of a file is the point of the cases
+  under `settings/insert_final_newline/`, and of a case that sets it to other than its default, so
+  those are left out.
 
 ## Signature files
 
@@ -227,24 +231,18 @@ names the classes some case reaches in full, then lists, by class, every line no
 Every node class constructor and every arm of a union's `Node` member is a node or a union case
 that some case must contain.
 
-## The ported tests
+## Scenarios
 
-`cases/ported/` holds the tests `Fantomas.Core.Tests` had, one folder per test file, converted by a
-script without any test judged or rewritten. Every test's expected output was compared with what
-the harness gives before its case was written, and every test was converted, or kept as a unit
-test, or dropped because it never ran. The script and its ledger of what became of each test are in
-the history of the pull request that made the switch, #3512.
+`cases/scenarios/` holds the tests `Fantomas.Core.Tests` had, one folder per test file. They are
+inputs shaped by what users ran into, often with several settings at once because the settings
+meet, and none is about one node or one setting. That is why they are not split up into `oak/` and
+`settings/`: a case there would lose the combination it was written for. A name that starts with a
+number is the issue the case comes from.
 
-- **The case.** A test's input as written, its config as front matter, and its expected output as
-  the gold. The newline a triple quoted input started with is gone where the result is the same
-  without it. The tests of one file that formatted the same input with the same settings are one
-  case; a test of several steps, or a parameterised one, is a case per step or argument. The name
-  is the test's name, its issue number first.
-- **Negative.** A test whose expected output was its input is a negative case.
-- **Ignored.** An `[<Ignore>]` test that still does not pass is an ignored case, with its reason.
-- **Placement.** By the file a test was in, not by node: those files were never about one node.
-  Moving a case, golds and all, to the `oak/` or `settings/` folder it belongs in is welcome; the
-  checks of its new folder then apply.
-- **Not here.** What `Fantomas.Core.Tests` still holds is unit tests: of internals, of formatting a
-  syntax tree without its source (`FormatASTAsync`), of inputs large enough to overflow the stack,
-  and of a parse error.
+A new case goes in `scenarios/` only when it is such a combination: settings that interact, or a
+realistic input that no single node folder can hold. When a scenario breaks, the smallest case that
+shows why goes under `oak/` or `settings/`, and the scenario stays as it is.
+
+[`cases/scenarios/README.md`](cases/scenarios/README.md) has where they come from, how they were
+converted, and how to find their history. A `README.md` in one of their folders holds what the old
+test file said around its tests.

@@ -1,0 +1,1 @@
+let person = Person("Ada")

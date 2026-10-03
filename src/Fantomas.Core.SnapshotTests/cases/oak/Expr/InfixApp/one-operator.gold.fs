@@ -1,0 +1,1 @@
+let total = a + b

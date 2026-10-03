@@ -31,11 +31,11 @@ type Problem =
     | SettingNotSet of key: string
     | SettingValueDiffers of key: string * folderValue: string * written: string
     | SettingAtDefault of key: string
-    | SettingHasNoEffect of key: string
+    | SettingHasNoEffect of key: string * otherValues: string list
     | InputNotKept of formatted: string
     | AlreadyFormatted
     | OnlyEndChanged
-    | SettingApplies of key: string * withDefault: string
+    | SettingApplies of key: string * otherValue: string * result: string
     | NodeMissing of nodeClass: string
     // The gold disagrees. Paths are relative to the project.
     | NoGold of path: string
@@ -103,16 +103,21 @@ let describe (problem: Problem) : string =
         $"The case is under `settings/%s{key}/%s{folderValue}/` and its front matter sets `%s{key} = %s{written}`."
     | Problem.SettingAtDefault key ->
         $"The case is under `settings/%s{key}` and its front matter sets `%s{key}` to its default, which says nothing about the setting."
-    | Problem.SettingHasNoEffect key ->
-        $"`%s{key}` changes nothing here: with it at its default the result is the same."
+    | Problem.SettingHasNoEffect(key, otherValues) ->
+        let values: string =
+            otherValues
+            |> List.map (fun (value: string) -> $"`%s{value}`")
+            |> String.concat " or "
+
+        $"`%s{key}` changes nothing here: at %s{values} the result is the same."
     | Problem.InputNotKept formatted ->
         $"The case is under `negative/`, so it is its own gold and formatting must leave it as it is. It gave:\n%s{formatted}"
     | Problem.AlreadyFormatted ->
         "The result is the input unchanged, so a gold would only repeat it. Change the input so the result earns its gold, or move the case to a `negative/` folder, where a case is its own gold."
     | Problem.OnlyEndChanged ->
         "The result is the input with only its end changed, a final newline added say, so a gold would show nothing else. End the input the way the result does and move the case to a `negative/` folder, where a case is its own gold."
-    | Problem.SettingApplies(key, withDefault) ->
-        $"The case is under `negative/`, and `%s{key}` does change it: with the setting at its default the result is:\n%s{withDefault}"
+    | Problem.SettingApplies(key, otherValue, result) ->
+        $"The case is under `negative/`, and `%s{key}` does change it: at `%s{otherValue}` the result is:\n%s{result}"
     | Problem.NodeMissing nodeClass -> $"The case is in a folder for `%s{nodeClass}` and its Oak has none."
     | Problem.NoGold path -> $"There is no gold at %s{path} yet. What came out is in its `.actual` file."
     | Problem.GoldDiffers(path, diff) ->

@@ -1,0 +1,66 @@
+# Scenarios
+
+Every case here was a test in `src/Fantomas.Core.Tests` before #3512 replaced those tests with snapshot
+cases. Each folder is one test file, named after it, and `Stroustrup/` is the subfolder of the same name.
+Most tests were written while fixing an issue: a name that starts with a number is that issue, and
+`--filter "Name~3484"` finds its case.
+
+They are inputs shaped by what users ran into, often with several settings at once because the settings
+meet. That is why they stay together instead of being split up into `oak/` and `settings/`: a case there
+is about one node or one setting, and these would lose the combination they were written for. A new case
+belongs here when it is such a combination too.
+
+## How a test became a case
+
+A script converted every test, without judging or rewriting any of them, and compared each expected
+output with what the harness gives before writing the case.
+
+- **The case.** A test's input as written, its config as front matter, and its expected output as
+  the gold. The newline a triple quoted input started with is gone where the result is the same
+  without it.
+- **One case or several.** The tests of one file that formatted the same input with the same
+  settings are one case. A test of several steps, or a parameterised one, is a case per step or
+  argument.
+- **The name.** The test's name, its issue number first.
+- **Negative.** A test whose expected output was its input is a case in `negative/`.
+- **Ignored.** An `[<Ignore>]` test that still does not pass is an ignored case, with its reason.
+- **Defines.** A test that formatted one define combination merged its result with itself first,
+  which moved its directives to column 0. A case keeps what each combination printed before the
+  merge, so a per-define gold need not match that expected output there.
+- **Not here.** What `Fantomas.Core.Tests` still holds is unit tests: of internals, of formatting a
+  syntax tree without its source, of inputs large enough to overflow the stack, and of a parse
+  error. A test that never ran, having no `[<Test>]`, was dropped, and so was an ignored test that
+  formatted one define combination, which no gold can hold.
+
+The script, `scripts/convert.fsx`, and its record of what became of each test,
+`porting-ledger.tsv`, are in the commits of #3512.
+
+## History
+
+The tests as they last were:
+[`src/Fantomas.Core.Tests` at 8bf81a1](https://github.com/fsprojects/fantomas/tree/8bf81a121bf52e557b12e710f24a922c172a7ed5/src/Fantomas.Core.Tests).
+Their history did not move with them. To see why a test was written, ask git about the file it was in:
+
+```
+git log --follow -- src/Fantomas.Core.Tests/CommentTests.fs
+git blame 8bf81a1 -- src/Fantomas.Core.Tests/CommentTests.fs
+```
+
+The commit that added a test usually names the issue or the pull request behind it.
+
+## What the old files said
+
+A test file said more than its tests: why a group of tests exists, which style guide a layout follows,
+what was still an open question. The conversion carried only the tests, so a folder whose file had
+comments around its tests has a `README.md` holding them, each with the cases it was written above or
+inside. Read them with this in mind:
+
+- They are as they were written. Only their em dashes became other punctuation.
+- "The test below" or "these tests" means the cases listed with the comment.
+- They speak from the day they were written. "The current behavior results in a compile error" is
+  the bug a test was written for, not what Fantomas does today: the case passes. A `TODO` is a
+  question that was open then, and may be settled now.
+- A link to a style guide or a document may have moved since.
+
+Section labels that only repeat the names of the tests below them are kept too: they still say which
+cases the file grouped together.

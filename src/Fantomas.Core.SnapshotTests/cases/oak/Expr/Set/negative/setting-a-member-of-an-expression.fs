@@ -1,0 +1,1 @@
+(getCell ()).Value <- 1

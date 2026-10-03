@@ -1,0 +1,3 @@
+namespace Shapes
+
+type Circle

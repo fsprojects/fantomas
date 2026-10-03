@@ -5,6 +5,7 @@ module Fantomas.Core.SnapshotTests.Placement
 
 open System
 open System.Reflection
+open System.Text.RegularExpressions
 open Microsoft.FSharp.Reflection
 open Fantomas.Core
 open Fantomas.Core.SyntaxOak
@@ -18,7 +19,7 @@ type NodeFolder =
     | NodeClass of System.Type
     /// A union case every case in the folder has to contain: `Expr.Lambda` for `Expr/Lambda/`.
     | UnionCase of union: System.Type * caseName: string
-    /// A folder that names no node, such as `ported/<old test file>/`.
+    /// A folder that names no node, such as `scenarios/<old test file>/`.
     | Unchecked of reason: string
 
 /// Resolve the folders that name a node: `[ "TypeDefn"; "Union" ]` for a union case, or
@@ -62,12 +63,42 @@ let private settingTypes: Map<string, System.Type> =
     |> Array.map (fun (field: PropertyInfo) -> toEditorConfigName field.Name, field.PropertyType)
     |> Map.ofArray
 
+/// Whether a setting takes a value, as an `.editorconfig` would spell it.
+let private isValue (key: string) (value: string) : bool =
+    try
+        parseOptionsFromEditorConfig Case.defaultConfig (readOnlyDict [ key, value ])
+        |> snd
+        |> List.isEmpty
+    with _ ->
+        false
+
+/// The values of a setting that have a folder of their own: both of a switch, and every named value
+/// a setting can take. A number has none, as there are too many to pick from.
+let private folderValues (key: string) (settingType: System.Type) : string list =
+    if settingType = typeof<bool> then
+        [ "true"; "false" ]
+    elif FSharpType.IsUnion settingType then
+        FSharpType.GetUnionCases settingType
+        |> Array.choose (fun (case: UnionCaseInfo) ->
+            let value: string =
+                Regex.Replace(case.Name, "(?<=[a-z])(?=[A-Z])", "_").ToLowerInvariant()
+
+            if isValue key value then Some value else None
+        )
+        |> Array.toList
+    else
+        []
+
 /// What a case's path claims about it.
 [<NoComparison; NoEquality>]
 type Claim =
     {
-        /// The setting the case is about, and the value its value folder names when it has one.
+        /// The setting the case is about, and the value its value folder names when it has one: every
+        /// switch and setting with named values has one, a number none.
         Setting: (string * string option) option
+        /// The values the setting is tried at besides the case's own: the default for a case at another
+        /// value, and every other value for a case at the default.
+        OtherValues: string list
         Node: NodeFolder
         /// Whether the case sits in a `negative/` folder: one formatting must leave as it is, below a
         /// node, or one a setting must leave alone, below a setting. Such a case is its own gold.
@@ -97,13 +128,15 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
             folders
 
     match folders with
-    // The tests Fantomas.Core.Tests had, one folder per file they were in. Those files are not about
-    // one node or one setting, so the folders claim nothing more.
-    | "ported" :: _ ->
+    // Inputs shaped by what users ran into, settings combined where they meet, in the folder of the
+    // file of `Fantomas.Core.Tests` they come from. That file is about a topic, not one node or one
+    // setting, so the folders claim nothing more.
+    | "scenarios" :: _ ->
         Ok
             {
                 Setting = None
-                Node = Unchecked "ported from Fantomas.Core.Tests, in the folder of the file it came from"
+                OtherValues = []
+                Node = Unchecked "a scenario from Fantomas.Core.Tests, in the folder of the file it came from"
                 IsNegative = List.tryLast folders = Some "negative"
             }
     | "oak" :: rest ->
@@ -111,6 +144,7 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
         |> Result.map (fun (node: NodeFolder) ->
             {
                 Setting = None
+                OtherValues = []
                 Node = node
                 IsNegative = isNegativeLast
             }
@@ -120,21 +154,17 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
         | None -> Error $"`settings/%s{key}` names no setting."
         | Some settingType ->
 
-        // A setting with named values has its value as the first folder, one the setting can take.
-        let isValue (value: string) : bool =
-            try
-                parseOptionsFromEditorConfig Case.defaultConfig (readOnlyDict [ key, value ])
-                |> snd
-                |> List.isEmpty
-            with _ ->
-                false
+        // A switch or a setting with named values has its value as the first folder.
+        let values: string list = folderValues key settingType
 
         let value: Result<string option * string list, string> =
-            match FSharpType.IsUnion settingType, rest with
-            | false, _ -> Ok(None, rest)
-            | true, value :: afterValue when isValue value -> Ok(Some value, afterValue)
-            | true, folder :: _ -> Error $"`%s{key}` has named values, and `%s{folder}` is none of them."
-            | true, [] -> Error $"`%s{key}` has named values, and the case is in no folder for one."
+            match values, rest with
+            | [], _ -> Ok(None, rest)
+            | values, value :: afterValue when List.contains value values -> Ok(Some value, afterValue)
+            | values, folder :: _ ->
+                Error
+                    $"""`%s{key}` has a folder per value, %s{values |> List.map (sprintf "`%s/`") |> String.concat ", "}, and `%s{folder}` is none of them."""
+            | _, [] -> Error $"`%s{key}` has a folder per value, and the case is in none."
 
         match value with
         | Error reason -> Error reason
@@ -145,15 +175,26 @@ let claimOf (case: Case.Case) : Result<Claim, string> =
             | "negative" :: nodePath -> true, nodePath
             | nodePath -> false, nodePath
 
+        let defaultValue: string option =
+            settingValues Case.defaultConfig
+            |> List.tryFind (fun (name: string, _) -> name = key)
+            |> Option.map snd
+
+        let otherValues: string list =
+            match value with
+            | Some value when Some value = defaultValue -> values |> List.filter (fun (other: string) -> other <> value)
+            | _ -> Option.toList defaultValue
+
         resolveNodeFolder (nodeFolders nodePath)
         |> Result.map (fun (node: NodeFolder) ->
             {
                 Setting = Some(key, value)
+                OtherValues = otherValues
                 Node = node
                 IsNegative = isNegative
             }
         )
-    | top :: _ -> Error $"`%s{top}` is none of `oak`, `settings` and `ported`."
+    | top :: _ -> Error $"`%s{top}` is none of `oak`, `settings` and `scenarios`."
     | [] -> Error "The case is not in a folder."
 
 let private propertyValue (case: Case.Case) (key: string) : string option =
@@ -163,7 +204,7 @@ let private propertyValue (case: Case.Case) (key: string) : string option =
 
 /// What a case's folders ask of its input alone, whatever formatting gives: that they claim
 /// something that makes sense, and that the setting they name is set, to its value folder when there
-/// is one, and to other than its default.
+/// is one, and to other than its default when there is none.
 let inputProblems (case: Case.Case) : Problem list =
     match claimOf case with
     | Error reason -> [ Problem.UnknownFolder reason ]
@@ -177,7 +218,7 @@ let inputProblems (case: Case.Case) : Problem list =
     | None, _ -> [ Problem.SettingNotSet key ]
     | Some written, Some folderValue when not (String.Equals(folderValue, written, StringComparison.OrdinalIgnoreCase)) ->
         [ Problem.SettingValueDiffers(key, folderValue, written) ]
-    | Some written, _ when Case.configOf [ key, written ] = Case.defaultConfig -> [ Problem.SettingAtDefault key ]
+    | Some written, None when Case.configOf [ key, written ] = Case.defaultConfig -> [ Problem.SettingAtDefault key ]
     | Some _, _ -> []
 
 /// Check a case against the claim its path makes. `formatWith` formats the case with a given
@@ -200,30 +241,33 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
         | None -> []
         | Some _ ->
 
-        // The setting has to matter. Reset it to the default and the result has to change.
-        let withoutSetting: FormatConfig =
-            case.Properties
-            |> List.filter (fun (written: string, _) ->
-                not (String.Equals(written, key, StringComparison.OrdinalIgnoreCase))
+        // The setting has to matter: at another value, the result has to change.
+        let others: (string * string) list =
+            claim.OtherValues
+            |> List.map (fun (other: string) ->
+                let config: FormatConfig =
+                    case.Properties
+                    |> List.map (fun (written: string, value: string) ->
+                        if String.Equals(written, key, StringComparison.OrdinalIgnoreCase) then
+                            written, other
+                        else
+                            written, value
+                    )
+                    |> Case.configOf
+
+                other, formatWith config
             )
-            |> Case.configOf
 
-        // A case under `negative/` is the opposite: its input comes back unchanged without the setting
-        // too. That it comes back unchanged with the setting is checked for every negative case.
-        let effectProblems: Problem list =
-            if claim.IsNegative then
-                let withDefault: string = formatWith withoutSetting
-
-                if formatted.Merged = case.Source && withDefault <> case.Source then
-                    [ Problem.SettingApplies(key, withDefault) ]
-                else
-                    []
-            elif formatWith withoutSetting <> formatted.Merged then
-                []
-            else
-                [ Problem.SettingHasNoEffect key ]
-
-        effectProblems
+        // A case under `negative/` is the opposite: its input comes back unchanged at every other
+        // value too. That it comes back unchanged at its own is checked for every negative case.
+        if claim.IsNegative then
+            match others |> List.tryFind (fun (_, result: string) -> result <> case.Source) with
+            | Some(other, result) when formatted.Merged = case.Source -> [ Problem.SettingApplies(key, other, result) ]
+            | _ -> []
+        elif others |> List.exists (fun (_, result: string) -> result <> formatted.Merged) then
+            []
+        else
+            [ Problem.SettingHasNoEffect(key, claim.OtherValues) ]
 
     let nodeProblems: Problem list =
         match claim.Node with
@@ -253,10 +297,13 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
     // A negative case is its own gold, so its result must be its input. Any other case has to earn
     // its gold: a result that is the input unchanged says nothing a gold could add.
     // A result that only ends differently, with a final newline added say, earns no gold either,
-    // unless ending a file is the point of the case: `insert_final_newline` at other than its default.
+    // unless ending a file is the point of the case: one about `insert_final_newline`, or one that
+    // sets it to other than its default.
     let onlyEndChanged: bool =
         formatted.Merged <> case.Source
         && formatted.Merged.TrimEnd() = case.Source.TrimEnd()
+        && claim.Setting
+           |> Option.forall (fun (key: string, _) -> key <> "insert_final_newline")
         && case.Config.InsertFinalNewline = Case.defaultConfig.InsertFinalNewline
 
     let keptProblems: Problem list =
