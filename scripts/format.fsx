@@ -18,7 +18,8 @@ let format (input: string) (isSignature: bool) (config: FormatConfig) : string =
 
         formatted.Merged
     with ex ->
-        $"Error while formatting: %A{ex}"
+        eprintfn $"Error while formatting: %A{ex}"
+        exit 1
 
 /// The result for one define combination on its own, before the merge: what a case's per-define gold
 /// holds. `--define no-defines` is the combination without any. When the merge of all combinations

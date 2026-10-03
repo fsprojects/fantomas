@@ -100,7 +100,7 @@ let describe (problem: Problem) : string =
     | Problem.UnknownFolder reason -> reason
     | Problem.SettingNotSet key -> $"The case is under `settings/%s{key}` and its front matter does not set `%s{key}`."
     | Problem.SettingValueDiffers(key, folderValue, written) ->
-        $"The case is under `%s{folderValue}` and its front matter sets `%s{key} = %s{written}`."
+        $"The case is under `settings/%s{key}/%s{folderValue}/` and its front matter sets `%s{key} = %s{written}`."
     | Problem.SettingAtDefault key ->
         $"The case is under `settings/%s{key}` and its front matter sets `%s{key}` to its default, which says nothing about the setting."
     | Problem.SettingHasNoEffect key ->

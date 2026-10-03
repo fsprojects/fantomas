@@ -118,7 +118,12 @@ let private ignored (case: Case.Case) : unit =
 
 [<TestCaseSource(nameof cases)>]
 let case (relativePath: string) =
-    let case: Case.Case = Case.read relativePath
+    // A case that cannot be read, its front matter wrong say, fails with what is wrong and no trace.
+    let case: Case.Case =
+        try
+            Case.read relativePath
+        with ex ->
+            raise (AssertionException ex.Message)
 
     if case.IsIgnored then
         ignored case

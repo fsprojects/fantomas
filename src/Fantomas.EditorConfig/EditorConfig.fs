@@ -104,14 +104,6 @@ type EditorConfigProblem =
 let isFantomasSetting (setting: string) : bool =
     setting.StartsWith("fsharp_", System.StringComparison.OrdinalIgnoreCase)
 
-/// Values the editorconfig spec gives a meaning that is not a value. `unset` says a setting from
-/// a parent file no longer applies, `indent_size = tab` says to follow `tab_width`, and
-/// `max_line_length = off` says there is no limit. Fantomas cannot act on any of them, but they
-/// are not mistakes, and the library derives `indent_size = tab` on its own from
-/// `indent_style = tab`, so reporting them blames an author for something they never wrote.
-///
-/// Only these exact values are excused. Anything else, `indent_size = banana` included, is a
-/// mistake and is reported like any other.
 let isSpecDefinedNonValue (setting: string) (value: string) : bool =
     let value = value.ToLowerInvariant()
 

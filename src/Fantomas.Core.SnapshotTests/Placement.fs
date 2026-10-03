@@ -32,6 +32,10 @@ let resolveNodeFolder (folders: string list) : Result<NodeFolder, string> =
             (t.Name = name + "Node" || t.Name = name) && typeof<Node>.IsAssignableFrom t
         )
         |> function
+            // No node is an instance of an abstract class itself, so no case could ever pass.
+            | Some nodeClass when nodeClass.IsAbstract ->
+                Error
+                    $"`%s{name}` names `%s{nodeClass.Name}`, which is abstract: the case goes in the folder of the node class it contains."
             | Some nodeClass -> Ok(NodeClass nodeClass)
             | None -> Error $"`%s{name}` names no node class: there is no `%s{name}Node` in SyntaxOak."
     | [ unionName; caseName ] ->

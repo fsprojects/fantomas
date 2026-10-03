@@ -34,9 +34,14 @@ val supportedSettings: string list
 /// Matched without regard to case, as editorconfig matches keys.
 val isFantomasSetting: setting: string -> bool
 
-/// Whether a value is one the editorconfig spec gives a meaning that is not a value: `unset`,
-/// `indent_size = tab`, `max_line_length = off`. Fantomas keeps its default for them without
-/// reporting a problem.
+/// Whether a value is one the editorconfig spec gives a meaning that is not a value. `unset` says a
+/// setting from a parent file no longer applies, `indent_size = tab` says to follow `tab_width`, and
+/// `max_line_length = off` says there is no limit. Fantomas keeps its default for them without
+/// reporting a problem: they are not mistakes, and the library derives `indent_size = tab` on its
+/// own from `indent_style = tab`, so reporting them blames an author for something they never wrote.
+///
+/// Only these exact values are excused. Anything else, `indent_size = banana` included, is a
+/// mistake and is reported like any other.
 val isSpecDefinedNonValue: setting: string -> value: string -> bool
 
 /// The supported setting closest to `setting`, when one is within `limit` edits of it. Two

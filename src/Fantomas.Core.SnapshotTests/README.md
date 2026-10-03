@@ -126,7 +126,8 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
 - the result is valid F#, under every define combination;
 - every comment of the input is in the result, and as many of them;
 - every conditional directive (`#if`, `#else`, `#endif`) and warn directive (`#nowarn`, `#warnon`)
-  of the input is in the result, with the same text. Both are trivia, like comments. Blank lines
+  of the input is in the result, with the same text and in the same order. Both are trivia, like
+  comments. Blank lines
   are left out: formatting adds and removes them on purpose. Comments and directives are compared
   under each define combination the input has, since what sits in a branch is only there under the
   defines that keep it;
@@ -134,7 +135,8 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
 - `Node.Children` lists every node in source order;
 - no line ends in whitespace;
 - with `\r\n` line endings in and `end_of_line = crlf`, the result is the same with `\r\n` line
-  endings, for a case at the default `lf`. That is what Windows users get;
+  endings, or for a case that sets `end_of_line = crlf` the same result. That is what Windows users
+  get;
 - the harness, which formats each define combination itself, agrees with `formatDocumentWith`,
   which is what users run.
 

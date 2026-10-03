@@ -268,7 +268,8 @@ let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) :
         elif countBefore <> countAfter then
             problems.Add(Problem.CommentCountChanged(defines, countBefore, countAfter))
 
-        if List.sort directivesBefore <> List.sort directivesAfter then
+        // In order: merging the combinations relies on their directives coming in the same order.
+        if directivesBefore <> directivesAfter then
             problems.Add(
                 Problem.DirectivesChanged(
                     defines,
@@ -278,8 +279,17 @@ let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) :
             )
 
     // Windows writes `\r\n`. A case is read and formatted with `\n`, so it is formatted once more with
-    // `\r\n` in and out, and must give the same result with `\r\n` line endings.
-    if config.EndOfLine = EndOfLineStyle.LF then
+    // `\r\n` in and out, and must give the same result with `\r\n` line endings. A case at
+    // `end_of_line = crlf` already gives `\r\n`, so its result is what has to come back.
+    let expectedCrlf: string option =
+        match config.EndOfLine with
+        | EndOfLineStyle.LF -> Some(formatted.Merged.Replace("\n", "\r\n"))
+        | EndOfLineStyle.CRLF -> Some formatted.Merged
+        | EndOfLineStyle.CR -> None
+
+    match expectedCrlf with
+    | None -> ()
+    | Some expected ->
         let crlf: string =
             formatProduction
                 { config with
@@ -288,7 +298,7 @@ let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) :
                 isSignature
                 (source.Replace("\n", "\r\n"))
 
-        if crlf <> formatted.Merged.Replace("\n", "\r\n") then
+        if crlf <> expected then
             problems.Add(Problem.CrlfDiffers crlf)
 
     let again: string = (formatEach config isSignature formatted.Merged).Merged

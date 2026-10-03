@@ -108,7 +108,11 @@ let parseArgs (args: string array) =
 
         let isSignature = hasSignatureFlag || path.EndsWith(".fsi")
         sample, isSignature, config, defines
-    | _ ->
+    | Some path ->
+        // Read stdin instead and a mistyped path waits for input, or formats nothing.
+        eprintfn $"No such file: %s{path}"
+        exit 1
+    | None ->
         // With `\n` line endings, as a case file is read, whatever the terminal sends.
         let sample: string = stdin.ReadToEnd().Replace("\r\n", "\n")
         sample, hasSignatureFlag, config, defines
