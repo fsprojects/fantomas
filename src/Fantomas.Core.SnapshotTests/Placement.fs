@@ -232,14 +232,18 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
         formatted.Combinations
         |> List.map (fun (each: Formatting.ForDefines) -> each.Oak)
 
+    let inputProblems: Problem list = inputProblems case
+
     let settingProblems: Problem list =
         match claim.Setting with
         | None -> []
         | Some(key, _) ->
 
-        match propertyValue case key with
-        | None -> []
-        | Some _ ->
+        // A setting the input does not set the way its folders say is that one mistake, and not
+        // also a setting that changes nothing.
+        if not inputProblems.IsEmpty then
+            []
+        else
 
         // The setting has to matter: at another value, the result has to change.
         let others: (string * string) list =
@@ -313,4 +317,4 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
         | false, false when onlyEndChanged -> [ Problem.OnlyEndChanged ]
         | _ -> []
 
-    inputProblems case @ keptProblems @ settingProblems @ nodeProblems
+    inputProblems @ keptProblems @ settingProblems @ nodeProblems

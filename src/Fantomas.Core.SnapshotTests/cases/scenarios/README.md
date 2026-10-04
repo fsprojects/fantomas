@@ -23,7 +23,9 @@ output with what the harness gives before writing the case.
 - **One case or several.** The tests of one file that formatted the same input with the same
   settings are one case. A test of several steps, or a parameterised one, is a case per step or
   argument.
-- **The name.** The test's name, its issue number first.
+- **The name.** The test's name, its issue number first, cut at the last dash before 60
+  characters. Where that left two cases of a folder told apart by a `-2` alone, or by their folder
+  alone, both took back the words that set them apart.
 - **Negative.** A test whose expected output was its input is a case in `negative/`.
 - **Only the end changed.** A test whose expected output was its input with only its end tidied, a
   final newline added or trailing spaces dropped, is a case in `negative/` too, with that expected
@@ -56,6 +58,7 @@ not complete:
   `should split constructor and function call correctly, double formatting` of
   `PatternMatchingTests.fs`, first became negative cases of their result, and were given their
   input back by hand.
+- The eleven cases renamed to take back words the cut lost are recorded under their cut names.
 
 ## History
 

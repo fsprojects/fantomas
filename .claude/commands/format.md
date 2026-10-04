@@ -8,13 +8,16 @@ First build the project: `dotnet build src/Fantomas.Core.SnapshotTests` (the scr
 Then run the format script. Pass a file path as argument:
 
 ```
-dotnet fsi scripts/format.fsx [--editorconfig <content>] <file>
+dotnet fsi scripts/format.fsx [--signature] [--editorconfig <content>] [--define A,B] <file>
 ```
 
 Or pipe inline source via stdin:
 
 ```
-echo '<source>' | dotnet fsi scripts/format.fsx [--editorconfig <content>] [--signature]
+echo '<source>' | dotnet fsi scripts/format.fsx [--editorconfig <content>] [--signature] [--define A,B]
 ```
+
+`--define A,B` (or `no-defines`) prints that one define combination before the merge, and checks
+nothing.
 
 $ARGUMENTS

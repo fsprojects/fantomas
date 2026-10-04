@@ -107,6 +107,8 @@ type A = A of int
   other, and the diff shows every carriage return as `\r`.
 - **Strays.** Every file under `cases/` is a case, a gold or `.actual` of one, or a `README.md`.
   Anything else fails the run, except a hidden file such as the `.DS_Store` macOS leaves behind.
+  An `.actual` whose case was renamed or deleted is deleted rather than reported: git ignores it,
+  so nothing else would show it.
 
 ## Ignored cases
 
@@ -127,8 +129,8 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
   beside a case under `negative/`, and none for a define combination the input does not have. The
   node and the define combinations are only known once the case formats, so a case that throws is
   skipped without those two. The result is what is known to be wrong, so the checks of the result
-  wait until the case passes.
-- **Both.** `name.fs` and `name.ignore.fs` cannot sit side by side.
+  wait until the case passes. A case that throws is skipped with what it throws after its reason.
+- **Both.** `name.fs` and `name.ignore.fs` cannot sit side by side: both fail.
 
 ## What every case checks
 

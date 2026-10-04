@@ -286,7 +286,9 @@ Write its gold by hand, holding the **correct** output, the one that round-trips
 source. Do not let `FANTOMAS_UPDATE_SNAPSHOTS` write it: that would write the broken output. The
 case fails right now, and that is the point: it pins the regression so it cannot be forgotten,
 and it turns green the moment someone fixes it. Do not weaken the gold to match the current
-broken output, and do not make it an ignored case (`name.ignore.fs`).
+broken output, and do not make it an ignored case (`name.ignore.fs`). An ignored case is for a
+bug users already live with, waiting for its fix. A regression the bump causes is one the bump
+must not ship with, and a skipped test would let it through.
 
 Do this for the syntax that is actually broken, and also for any near neighbour the probe showed
 still works but no test covered. The one that works costs nothing and stops the next walk from

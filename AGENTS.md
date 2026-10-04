@@ -23,7 +23,7 @@ A path that does not exist exits 1 rather than falling back to stdin.
 - `scripts/oak.fsx` - Oak tree
 - `scripts/format.fsx` - format with local build; `--define A,B` (or `no-defines`) prints that one define combination before the merge
 - `scripts/writer-events.fsx` - writer events produced during formatting
-- `scripts/chain.fsx` - ExprChain structure (head, segments, terminal); ignores `--editorconfig` and a case's front matter
+- `scripts/chain.fsx` - ExprChain structure (head, segments, terminal); ignores `--editorconfig` and the settings in a case's front matter
 - `scripts/trivia.fsx` - where each piece of trivia landed: node, token, side and kind
 
 A snapshot case (`src/Fantomas.Core.SnapshotTests/cases/`) can be passed as it is: its front matter

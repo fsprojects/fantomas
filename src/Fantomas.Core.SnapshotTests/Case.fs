@@ -7,6 +7,9 @@ open System.Text.RegularExpressions
 open Fantomas.Core
 open Fantomas.EditorConfig
 
+/// Where the project was compiled from, which is where the cases are read from at run time: the
+/// build and the run share a checkout. A build that maps source paths, `ContinuousIntegrationBuild`
+/// or `PathMap` say, would leave no case to find.
 let projectDirectory: string = __SOURCE_DIRECTORY__
 
 let casesDirectory: string = Path.Combine(__SOURCE_DIRECTORY__, "cases")

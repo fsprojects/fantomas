@@ -46,12 +46,6 @@ let private goldsOf (case: Case.Case) (formatted: Formatting.Formatted) : (strin
 /// does, so that it loses its `.ignore`. Only the golds it has are compared: they hold what it should
 /// give, written by hand, and nothing writes them for it.
 let private ignored (case: Case.Case) : unit =
-    let twin: string =
-        Path.Combine(Path.GetDirectoryName case.FullPath, case.Stem + case.Extension)
-
-    if File.Exists twin then
-        Assert.Fail $"Both %s{case.RelativePath} and %s{Case.relativeToCases twin} exist."
-
     if case.Description.IsEmpty then
         Assert.Fail "An ignored case says why in a `#` description."
 
@@ -71,7 +65,7 @@ let private ignored (case: Case.Case) : unit =
     if isNegative case && File.Exists(Case.goldPath case) then
         failWith [ Problem.GoldNotExpected(Case.relativeToProject (Case.goldPath case)) ]
 
-    let passes, standing =
+    let passes, standing, thrown =
         try
             let formatted, resultProblems =
                 Formatting.formatAndCheck case.Config case.IsSignature case.Source
@@ -114,16 +108,20 @@ let private ignored (case: Case.Case) : unit =
                         Some(Problem.StaleGold(Case.relativeToProject path))
                 )
 
-            resultProblems.IsEmpty && placementProblems.IsEmpty && mismatched.IsEmpty, missingNodes @ staleGolds
-        with _ ->
-            false, []
+            resultProblems.IsEmpty && placementProblems.IsEmpty && mismatched.IsEmpty, missingNodes @ staleGolds, None
+        with ex ->
+            false, [], Some ex.Message
 
     failWith standing
 
     if passes then
         Assert.Fail $"%s{case.RelativePath} gives its golds now: rename it to %s{case.Stem}%s{case.Extension}."
 
-    Assert.Ignore(String.concat " " case.Description)
+    // What it throws goes with the reason, so that a harness bug is not taken for the bug the case
+    // is ignored for.
+    match thrown with
+    | None -> Assert.Ignore(String.concat " " case.Description)
+    | Some message -> Assert.Ignore $"""%s{String.concat " " case.Description} It throws: %s{message}"""
 
 [<TestCaseSource(nameof cases)>]
 let case (relativePath: string) =
@@ -133,6 +131,20 @@ let case (relativePath: string) =
             Case.read relativePath
         with ex ->
             raise (AssertionException ex.Message)
+
+    // `name.fs` and `name.ignore.fs` would share their golds and `.actual` files, so both fail
+    // before either writes one.
+    let twin: string =
+        let name: string =
+            if case.IsIgnored then
+                case.Stem + case.Extension
+            else
+                case.Stem + Case.ignoreSuffix + case.Extension
+
+        Path.Combine(Path.GetDirectoryName case.FullPath, name)
+
+    if File.Exists twin then
+        Assert.Fail $"Both %s{case.RelativePath} and %s{Case.relativeToCases twin} exist."
 
     if case.IsIgnored then
         ignored case
@@ -188,6 +200,8 @@ let case (relativePath: string) =
         @ (golds
            |> List.choose (fun (path: string, code: string) ->
                if earnsNoGold && path = Case.goldPath case then
+                   // An `.actual` an earlier run left beside it would no longer be what came out.
+                   File.Delete(Gold.actualPath path)
                    None
                else
                    Gold.verify path code
@@ -195,7 +209,8 @@ let case (relativePath: string) =
 
     failWith (resultProblems @ placementProblems @ goldProblems)
 
-/// Every file under `cases/` is a case, a gold of one, an `.actual` of one, or a `README.md`.
+/// Every file under `cases/` is a case, a gold of one, an `.actual` of one, or a `README.md`. An
+/// `.actual` of no case is deleted instead.
 [<Test>]
 let ``every file under cases belongs to a case`` () =
     let strays: string list =
@@ -216,16 +231,20 @@ let ``every file under cases belongs to a case`` () =
 
             let extension: string = Path.GetExtension path
 
-            let isGoldOrActual: bool =
-                name.Contains(".gold.", StringComparison.Ordinal)
-                || name.Contains(".actual.", StringComparison.Ordinal)
+            let isGold: bool = name.Contains(".gold.", StringComparison.Ordinal)
+            let isActual: bool = name.Contains(".actual.", StringComparison.Ordinal)
 
             let hasCase: bool =
                 File.Exists(Path.Combine(Path.GetDirectoryName path, stem + extension))
                 || File.Exists(Path.Combine(Path.GetDirectoryName path, stem + Case.ignoreSuffix + extension))
 
             // A `README.md` tells what the cases of its folder share: their history, or a rule.
-            if Case.isCaseFile path || isGoldOrActual && hasCase || name = "README.md" then
+            if Case.isCaseFile path || (isGold || isActual) && hasCase || name = "README.md" then
+                None
+            // Git ignores an `.actual`, so one a case renamed or deleted since left behind is
+            // invisible to `git status` and `git clean`. It is cleared rather than reported.
+            elif isActual then
+                File.Delete path
                 None
             else
                 Some(Case.relativeToCases path)

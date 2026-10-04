@@ -52,4 +52,4 @@ match Array.tryHead fsi.CommandLineArgs with
     if scriptFile.FullName = sourceFile.FullName then
         let sample, isSignature, config, _ = parseArgs fsi.CommandLineArgs.[1..]
         listTrivia sample isSignature config |> printfn "%s"
-| _ -> printfn "Usage: dotnet fsi trivia.fsx [--signature] <input file>"
+| _ -> printfn "Usage: dotnet fsi trivia.fsx [--signature] [--editorconfig <content>] <input file>"

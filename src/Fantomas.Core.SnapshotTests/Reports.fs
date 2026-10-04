@@ -30,30 +30,35 @@ let private observe () : Observed =
             Trivia = Dictionary<string * string, HashSet<string>>()
         }
 
-    for relativePath in Case.all () do
-        // A case that does not format is its own test's failure, not the report's.
-        let oaks: Oak list =
+    // Formatting is what takes the time, so the cases are formatted side by side, and only the
+    // tables are filled one Oak at a time.
+    let oaks: Oak array =
+        Case.all ()
+        |> Array.Parallel.collect (fun (relativePath: string) ->
+            // A case that does not format is its own test's failure, not the report's.
             try
                 let case: Case.Case = Case.read relativePath
 
                 (Formatting.formatEach case.Config case.IsSignature case.Source).Combinations
                 |> List.map (fun (each: Formatting.ForDefines) -> each.Oak)
+                |> List.toArray
             with _ ->
-                []
+                [||]
+        )
 
-        for oak in oaks do
-            for visit in OakFacts.visits oak do
-                let nodeClass: System.Type = visit.Node.GetType()
-                observed.Classes.Add nodeClass.Name |> ignore
+    for oak in oaks do
+        for visit in OakFacts.visits oak do
+            let nodeClass: System.Type = visit.Node.GetType()
+            observed.Classes.Add nodeClass.Name |> ignore
 
-                for property in OakFacts.shapeProperties nodeClass do
-                    OakFacts.shapeOf property visit.Node
-                    |> Option.iter (add observed.Shapes (nodeClass.Name, property.Name))
+            for property in OakFacts.shapeProperties nodeClass do
+                OakFacts.shapeOf property visit.Node
+                |> Option.iter (add observed.Shapes (nodeClass.Name, property.Name))
 
-            for attachment in OakFacts.attachments oak do
-                let (owner: System.Type), (slot: string) = OakFacts.slotOf attachment.Visit
-                let side: string = if attachment.IsBefore then "before" else "after"
-                add observed.Trivia (owner.Name, slot) $"%s{side}: %s{attachment.Kind}"
+        for attachment in OakFacts.attachments oak do
+            let (owner: System.Type), (slot: string) = OakFacts.slotOf attachment.Visit
+            let side: string = if attachment.IsBefore then "before" else "after"
+            add observed.Trivia (owner.Name, slot) $"%s{side}: %s{attachment.Kind}"
 
     observed
 
