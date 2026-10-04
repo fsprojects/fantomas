@@ -38,7 +38,11 @@ output with what the harness gives before writing the case.
 - **Not here.** What `Fantomas.Core.Tests` still holds is unit tests: of internals, of formatting a
   syntax tree without its source, of inputs large enough to overflow the stack, and of a parse
   error. A test that never ran, having no `[<Test>]`, was dropped, and so was an ignored test that
-  formatted one define combination, which no gold can hold.
+  formatted one define combination, which no gold can hold. Three of the tests that never ran give
+  what they expected and are cases elsewhere now: `indent multiline lambda in parenthesis, 523` in
+  `oak/Expr/ParenLambda/`, the signature file `should preserve quotes around type parameters, 2875`
+  in `oak/Type/Var/negative/`, and `multiline field body expression where indent_size = 2, inherit
+  record` in `settings/fsharp_multiline_bracket_style/cramped/Expr/InheritRecord/`.
 
 The script, `scripts/convert.fsx`, and its record of what became of each test,
 `src/Fantomas.Core.SnapshotTests/porting-ledger.tsv`, are in the commits of #3512. The record is
