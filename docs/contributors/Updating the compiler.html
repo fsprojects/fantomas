@@ -179,11 +179,7 @@
     <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item "><a href="../../reference/fantomas-client.html" class="nav-link" title="" > Fantomas.Client</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-core.html" class="nav-link" title="" > Fantomas.Core</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-fcs.html" class="nav-link" title="" > Fantomas.FCS</a></li>
+    <li class="nav-item "><a href="../../reference/fantomas.html" class="nav-link" title="" > Fantomas</a></li>
 
 <li class="nav-item "><a href="../../reference/internal-utilities-library.html" class="nav-link" title="" > Internal.Utilities.Library</a></li>
 
@@ -344,11 +340,7 @@
     <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item "><a href="../../reference/fantomas-client.html" class="nav-link" title="" > Fantomas.Client</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-core.html" class="nav-link" title="" > Fantomas.Core</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-fcs.html" class="nav-link" title="" > Fantomas.FCS</a></li>
+    <li class="nav-item "><a href="../../reference/fantomas.html" class="nav-link" title="" > Fantomas</a></li>
 
 <li class="nav-item "><a href="../../reference/internal-utilities-library.html" class="nav-link" title="" > Internal.Utilities.Library</a></li>
 
@@ -375,8 +367,8 @@ Run</p>
 <div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">dotnet build
 </code></pre></div>
 <p>If not, you can run the <code>Fantomas.Core</code> tests next</p>
-<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">cd ./src/Fantomas.Core.Tests
-dotnet test
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">dotnet test ./src/Fantomas.Core.SnapshotTests
+dotnet test ./src/Fantomas.Core.Tests
 </code></pre></div>
 <p>Even if the tests are all green you should take a look at all the changes made to the <a href="https://github.com/dotnet/fsharp/commits/main/src/Compiler/SyntaxTree">SyntaxTree</a> and make sure these changes don't need further adjustments in Fantomas.</p>
 <p>Think about tests to catch any regressions caused by the update and it's effects on Fantomas.</p>

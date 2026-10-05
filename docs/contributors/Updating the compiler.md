@@ -34,8 +34,8 @@ dotnet build
 If not, you can run the `Fantomas.Core` tests next
 
 ```shell
-cd ./src/Fantomas.Core.Tests
-dotnet test
+dotnet test ./src/Fantomas.Core.SnapshotTests
+dotnet test ./src/Fantomas.Core.Tests
 ```
 
 Even if the tests are all green you should take a look at all the changes made to the [SyntaxTree](https://github.com/dotnet/fsharp/commits/main/src/Compiler/SyntaxTree) and make sure these changes don't need further adjustments in Fantomas.

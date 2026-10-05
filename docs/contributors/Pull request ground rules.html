@@ -179,11 +179,7 @@
     <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item "><a href="../../reference/fantomas-client.html" class="nav-link" title="" > Fantomas.Client</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-core.html" class="nav-link" title="" > Fantomas.Core</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-fcs.html" class="nav-link" title="" > Fantomas.FCS</a></li>
+    <li class="nav-item "><a href="../../reference/fantomas.html" class="nav-link" title="" > Fantomas</a></li>
 
 <li class="nav-item "><a href="../../reference/internal-utilities-library.html" class="nav-link" title="" > Internal.Utilities.Library</a></li>
 
@@ -344,11 +340,7 @@
     <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item "><a href="../../reference/fantomas-client.html" class="nav-link" title="" > Fantomas.Client</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-core.html" class="nav-link" title="" > Fantomas.Core</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-fcs.html" class="nav-link" title="" > Fantomas.FCS</a></li>
+    <li class="nav-item "><a href="../../reference/fantomas.html" class="nav-link" title="" > Fantomas</a></li>
 
 <li class="nav-item "><a href="../../reference/internal-utilities-library.html" class="nav-link" title="" > Internal.Utilities.Library</a></li>
 
@@ -363,31 +355,23 @@
 In general, changes should be made as consistent to the current code base as possible.
 Don't introduce unnecessary new concepts and try and change as little code as possible to achieve your goal.</p>
 <p>Always start with the mindset that you are going to introduce a change that might have an impact on how the tool behaves.
-Capture this change first in a unit test. Set your expectations in the assert part of the test before touching anything.
+Capture this change first in a test. Set your expectations before touching anything.
 This project is very well suited for <a href="https://en.wikipedia.org/wiki/Test-driven_development">Test-driven development</a> and that should be the goal.</p>
-<p>Typical unit test template:</p>
-<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
-<span class="k">let</span> <span class="fn">``my new test``</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
-    <span class="id">formatSourceString</span> <span class="k">false</span> <span class="s">&quot;&quot;&quot;</span>
-<span class="s">let myInput =     42</span>
-<span class="s">&quot;&quot;&quot;</span>  <span class="id">config</span>
-    <span class="o">|&gt;</span> <span class="id">prepend</span> <span class="id">newline</span>
-    <span class="o">|&gt;</span> <span class="id">should</span> <span class="id">equal</span> <span class="s">&quot;&quot;&quot;</span>
-<span class="s">let myInput = 42</span>
-<span class="s">&quot;&quot;&quot;</span>
+<p>A formatting test is a snapshot case: a file in <code>src/Fantomas.Core.SnapshotTests/cases/</code> with the input, and its settings, if any, in a comment on top:</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="c">(*---</span>
+<span class="c">fsharp_space_before_colon = true</span>
+<span class="c">---*)</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="id">myInput</span><span class="pn">:</span><span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="vt">int</span> <span class="o">=</span>     <span class="n">42</span>
 </code></pre></div>
-<p>The vast majority of the tests use the template listed above. Only deviate from this when necessary.
-Try and find a suitable file in <code>Fantomas.Core.Tests</code>, or introduce a new file.</p>
-<p>A new test file should look like:</p>
-<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span class="m">Fantomas</span><span class="pn">.</span><span class="id">Core</span><span class="pn">.</span><span class="id">Tests</span><span class="pn">.</span><span class="id">MyNewConceptTests</span>
-
-<span class="k">open</span> <span class="id">NUnit</span><span class="pn">.</span><span class="id">Framework</span>
-<span class="k">open</span> <span class="id">FsUnit</span>
-<span class="k">open</span> <span class="m">Fantomas</span><span class="pn">.</span><span class="id">Core</span><span class="pn">.</span><span class="id">Tests</span><span class="pn">.</span><span class="id">TestHelpers</span>
-
-<span class="c">// add tests here...</span>
+<p>Beside it, <code>name.gold.fs</code> holds what formatting gives:</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="3" class="id">myInput</span> <span class="pn">:</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="4" class="vt">int</span> <span class="o">=</span> <span class="n">42</span>
 </code></pre></div>
-<p>Filename: <code>MyNewConceptTests.fs</code>.</p>
+<p>Put the case in the folder of the node it is about, or of the setting it shows, and start its name with the issue number when there is one, as in this example path: <code>cases/oak/Expr/Chain/trivia/2844-directive-in-parenthesis-argument.fs</code>. A case about comments, blank lines or directives goes in the <code>trivia/</code> folder of its node.
+Let the test write its gold, and read it: it is what your change pins down.</p>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">FANTOMAS_UPDATE_SNAPSHOTS=1 dotnet test src/Fantomas.Core.SnapshotTests --filter "Name~2844-directive-in-parenthesis-argument"
+</code></pre></div>
+<p>The <a href="https://github.com/fsprojects/fantomas/blob/main/src/Fantomas.Core.SnapshotTests/README.md">snapshot tests' README</a> has the rest: where a case goes, what every case checks, how to keep an input formatting must leave alone, and how to write the case for a bug that is not fixed yet.
+<code>Fantomas.Core.Tests</code> is for what a case cannot show: unit tests of internals.</p>
 <p>When developing a new feature, add new tests to cover all code paths.</p>
 <p>If you come across an issue, which can't be reproduced with the latest version of Fantomas but is still open, please submit a regression test.
 That way, we can ensure the issue stays fixed after closing it.</p>
@@ -402,15 +386,12 @@ To keep your fork up to date, run this command:</p>
 <blockquote>
 <p>git checkout main &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/main &amp;&amp; git push</p>
 </blockquote>
-<h3 data-fsdocs-heading="4"><a name="Unit-test" class="anchor" href="#Unit-test">Unit test</a></h3>
+<h3 data-fsdocs-heading="4"><a name="Test-names" class="anchor" href="#Test-names">Test names</a></h3>
 <ul>
-<li>Unit test names should start with a lowercase letter.</li>
-<li>When creating a test that is linked to a GitHub issue, add the number at the back with a comma, as in the following:</li>
+<li>A case is named in lower case words joined by dashes. When it is linked to a GitHub issue, the number comes first, as in <code>1073-comment-after-closing-list-bracket.fs</code>. The tests check this.</li>
+<li>You don't need to repeat this number for cases that are deviations from the original report problem.</li>
+<li>A unit test name in <code>Fantomas.Core.Tests</code> starts with a lowercase letter.</li>
 </ul>
-<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
-<span class="k">let</span> <span class="fn">``preserve compile directive between piped functions, 512``</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span> <span class="o">..</span><span class="pn">.</span>
-</code></pre></div>
-<p>You don't need to repeat this number for tests that are deviations from the original report problem.</p>
 <h3 data-fsdocs-heading="5"><a name="Verify-signature-files" class="anchor" href="#Verify-signature-files">Verify signature files</a></h3>
 <p>Verify if the change you are making should also apply to signature files (<code>*.fsi</code>).</p>
 <h3 data-fsdocs-heading="6"><a name="Verify-slight-variations" class="anchor" href="#Verify-slight-variations">Verify slight variations</a></h3>
@@ -533,7 +514,9 @@ In case no major or minor branch was created yet, please reach out to the mainta
 The maintainers will frequently rebase this branch on top of the main branch and release alpha/beta packages accordingly.</p>
 <fantomas-nav source="docs/contributors/Pull request ground rules.md" previous="Multiple%20Times.html" next="Updating%20the%20compiler.html"></fantomas-nav>
 
-        
+        <div popover class="fsdocs-tip" id="fs1"><span class="k">val</span> <span class="fn">myInput</span><span class="pn">:</span> <span class="vt">int</span></div>
+<div popover class="fsdocs-tip" id="fs2">Multiple items<br /><span class="k">val</span> <span class="fn">int</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="vt">int</span> <span class="pn">(</span><span class="k">requires</span> <span class="k">member</span> <span class="fn">op_Explicit</span><span class="pn">)</span><br /><br />--------------------<br /><span class="k">type</span> int <span class="o">=</span> <span class="vt">int32</span><br /><br />--------------------<br /><span class="k">type</span> int<span class="pn">&lt;</span><span class="ta">&#39;Measure</span><span class="pn">&gt;</span> <span class="o">=</span><br />&#160;&#160;<span class="vt">int</span></div>
+
     </div>
 </main>
 <aside id="fsdocs-page-menu">
@@ -555,8 +538,8 @@ The maintainers will frequently rebase this branch on top of the main branch and
     </a>
   </li>
   <li class="level-3" data-fsdocs-heading="4">
-    <a href="#Unit-test">
-      Unit test
+    <a href="#Test-names">
+      Test names
     </a>
   </li>
   <li class="level-3" data-fsdocs-heading="5">

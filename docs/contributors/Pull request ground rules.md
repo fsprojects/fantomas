@@ -11,39 +11,33 @@ In general, changes should be made as consistent to the current code base as pos
 Don't introduce unnecessary new concepts and try and change as little code as possible to achieve your goal.
 
 Always start with the mindset that you are going to introduce a change that might have an impact on how the tool behaves.
-Capture this change first in a unit test. Set your expectations in the assert part of the test before touching anything.
+Capture this change first in a test. Set your expectations before touching anything.
 This project is very well suited for [Test-driven development](https://en.wikipedia.org/wiki/Test-driven_development) and that should be the goal.
 
-Typical unit test template:
+A formatting test is a snapshot case: a file in `src/Fantomas.Core.SnapshotTests/cases/` with the input, and its settings, if any, in a comment on top:
 
 ```fsharp
-[<Test>]
-let ``my new test`` () =
-    formatSourceString false """
-let myInput =     42
-"""  config
-    |> prepend newline
-    |> should equal """
-let myInput = 42
-"""
+(*---
+fsharp_space_before_colon = true
+---*)
+let myInput:int =     42
 ```
 
-The vast majority of the tests use the template listed above. Only deviate from this when necessary.
-Try and find a suitable file in `Fantomas.Core.Tests`, or introduce a new file.
-
-A new test file should look like:
+Beside it, `name.gold.fs` holds what formatting gives:
 
 ```fsharp
-module Fantomas.Core.Tests.MyNewConceptTests
-
-open NUnit.Framework
-open FsUnit
-open Fantomas.Core.Tests.TestHelpers
-
-// add tests here...
+let myInput : int = 42
 ```
 
-Filename: `MyNewConceptTests.fs`.
+Put the case in the folder of the node it is about, or of the setting it shows, and start its name with the issue number when there is one, as in this example path: `cases/oak/Expr/Chain/trivia/2844-directive-in-parenthesis-argument.fs`. A case about comments, blank lines or directives goes in the `trivia/` folder of its node.
+Let the test write its gold, and read it: it is what your change pins down.
+
+```shell
+FANTOMAS_UPDATE_SNAPSHOTS=1 dotnet test src/Fantomas.Core.SnapshotTests --filter "Name~2844-directive-in-parenthesis-argument"
+```
+
+The [snapshot tests' README](https://github.com/fsprojects/fantomas/blob/main/src/Fantomas.Core.SnapshotTests/README.md) has the rest: where a case goes, what every case checks, how to keep an input formatting must leave alone, and how to write the case for a bug that is not fixed yet.
+`Fantomas.Core.Tests` is for what a case cannot show: unit tests of internals.
 
 When developing a new feature, add new tests to cover all code paths.
 
@@ -63,16 +57,11 @@ Updating your fork:
 
 > git checkout main &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/main &amp;&amp; git push
 
-### Unit test
+### Test names
 
-* Unit test names should start with a lowercase letter.
-* When creating a test that is linked to a GitHub issue, add the number at the back with a comma, as in the following:
-
-```fsharp
-[<Test>]
-let ``preserve compile directive between piped functions, 512`` () = ...
-```
-You don't need to repeat this number for tests that are deviations from the original report problem.
+* A case is named in lower case words joined by dashes. When it is linked to a GitHub issue, the number comes first, as in `1073-comment-after-closing-list-bracket.fs`. The tests check this.
+* You don't need to repeat this number for cases that are deviations from the original report problem.
+* A unit test name in `Fantomas.Core.Tests` starts with a lowercase letter.
 
 ### Verify signature files
 

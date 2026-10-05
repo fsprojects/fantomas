@@ -179,11 +179,7 @@
     <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item "><a href="../../reference/fantomas-client.html" class="nav-link" title="" > Fantomas.Client</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-core.html" class="nav-link" title="" > Fantomas.Core</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-fcs.html" class="nav-link" title="" > Fantomas.FCS</a></li>
+    <li class="nav-item "><a href="../../reference/fantomas.html" class="nav-link" title="" > Fantomas</a></li>
 
 <li class="nav-item "><a href="../../reference/internal-utilities-library.html" class="nav-link" title="" > Internal.Utilities.Library</a></li>
 
@@ -344,11 +340,7 @@
     <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
 </li>
 <div class="menu-items">
-    <li class="nav-item "><a href="../../reference/fantomas-client.html" class="nav-link" title="" > Fantomas.Client</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-core.html" class="nav-link" title="" > Fantomas.Core</a></li>
-
-<li class="nav-item "><a href="../../reference/fantomas-fcs.html" class="nav-link" title="" > Fantomas.FCS</a></li>
+    <li class="nav-item "><a href="../../reference/fantomas.html" class="nav-link" title="" > Fantomas</a></li>
 
 <li class="nav-item "><a href="../../reference/internal-utilities-library.html" class="nav-link" title="" > Internal.Utilities.Library</a></li>
 
@@ -369,120 +361,68 @@ Unfortunately, this is not always the case and an exception will be thrown if th
 <span class="pn">[</span><span class="id">IOS</span><span class="pn">]</span> <span class="id">has</span> <span class="n">9</span> <span class="id">fragments</span>
 </code></pre></div>
 <h2 data-fsdocs-heading="2"><a name="Isolate-each-define-combination" class="anchor" href="#Isolate-each-define-combination">Isolate each define combination</a></h2>
-<p>The first step is to isolate each define combination in a unit test. Doing this will simplify the debugging process.<br />
-The <code>formatSourceStringWithDefines</code> can be used to only format the input with a specific set of defines.</p>
-<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
-<span class="k">let</span> <span class="id">``good unit test name, no defines``</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
-    <span class="id">formatSourceStringWithDefines</span>
-        <span class="pn">[</span><span class="pn">]</span>
-        <span class="s">&quot;&quot;&quot;</span>
-<span class="s">                        program.SyncAction</span>
-<span class="s">                            (</span>
-<span class="s">#if IOS</span>
-<span class="s">                            // iOS animates by default layout changes, we don&#39;t want that</span>
-<span class="s">                            fun () -&gt; v</span>
-<span class="s">#else</span>
-<span class="s">                            fn</span>
-<span class="s">#endif</span>
-<span class="s">                        )</span>
-<span class="s">&quot;&quot;&quot;</span>
-        <span class="id">config</span>
-    <span class="o">|&gt;</span> <span class="id">prepend</span> <span class="id">newline</span>
-    <span class="o">|&gt;</span> <span class="id">should</span>
-        <span class="id">equal</span>
-        <span class="s">&quot;&quot;&quot;</span>
-<span class="s">program.SyncAction(</span>
-<span class="s">#if IOS</span>
-<span class="s">#else</span>
-<span class="s">    fn</span>
-<span class="s">#endif</span>
-<span class="s">)</span>
-<span class="s">&quot;&quot;&quot;</span>
+<p>The first step is to look at each define combination on its own. Doing this will simplify the debugging process.
+Put the input in a snapshot case, in the folder of the node it is about, named after the issue:
+<code>src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/trivia/2844-directive-in-parenthesis-argument.fs</code>.
+That path is where the case would go, not one in the repository: create the file, and the <code>trivia/</code> folder it sits in, to follow along.
+The <a href="https://github.com/fsprojects/fantomas/blob/main/src/Fantomas.Core.SnapshotTests/README.md">snapshot tests' README</a> says where a case goes.</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">program</span><span class="pn">.</span><span class="id">SyncAction</span>
+    <span class="pn">(</span>
+<span class="pp">#if</span> <span class="id">IOS</span>
+<span class="inactive">    </span><span class="inactive">//</span><span class="inactive"> </span><span class="inactive">iOS</span><span class="inactive"> </span><span class="inactive">animates</span><span class="inactive"> </span><span class="inactive">by</span><span class="inactive"> </span><span class="inactive">default</span><span class="inactive"> </span><span class="inactive">layout</span><span class="inactive"> </span><span class="inactive">changes,</span><span class="inactive"> </span><span class="inactive">we</span><span class="inactive"> </span><span class="inactive">don&#39;t</span><span class="inactive"> </span><span class="inactive">want</span><span class="inactive"> </span><span class="inactive">that</span>
+<span class="inactive">    </span><span class="inactive">fun</span><span class="inactive"> </span><span class="inactive">()</span><span class="inactive"> </span><span class="inactive">-&gt;</span><span class="inactive"> </span><span class="inactive">v</span>
+<span class="pp">#else</span>
+    <span class="id">fn</span>
+<span class="pp">#endif</span>
+    <span class="pn">)</span>
 </code></pre></div>
-<p>Notice that our result code should reflect only the active code branches.
-<code>IOS</code> is not present and so no code is expected between <code>#if IOS</code> and <code>#else</code>.</p>
-<p>If we do this for each combination, we can narrow the problem down to find the troublesome combination.</p>
-<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
-<span class="k">let</span> <span class="id">``good unit test name, IOS``</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
-    <span class="id">formatSourceStringWithDefines</span>
-        <span class="pn">[</span> <span class="s">&quot;IOS&quot;</span> <span class="pn">]</span>
-        <span class="s">&quot;&quot;&quot;</span>
-<span class="s">                        program.SyncAction</span>
-<span class="s">                            (</span>
-<span class="s">#if IOS</span>
-<span class="s">                            // iOS animates by default layout changes, we don&#39;t want that</span>
-<span class="s">                            fun () -&gt; v</span>
-<span class="s">#else</span>
-<span class="s">                            fn</span>
-<span class="s">#endif</span>
-<span class="s">                        )</span>
-<span class="s">&quot;&quot;&quot;</span>
-        <span class="id">config</span>
-    <span class="o">|&gt;</span> <span class="id">prepend</span> <span class="id">newline</span>
-    <span class="o">|&gt;</span> <span class="k">fun</span> <span class="id">r</span> <span class="k">-&gt;</span>
-        <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="3" class="id">printfn</span> <span class="s">&quot;%s&quot;</span> <span class="id">r</span>
-        <span class="id">r</span>
-    <span class="o">|&gt;</span> <span class="id">should</span>
-        <span class="id">equal</span>
-        <span class="s">&quot;&quot;&quot;</span>
-<span class="s">program.SyncAction</span>
-<span class="s">    (</span>
-<span class="s">#if IOS</span>
-<span class="s">    // iOS animates by default layout changes, we don&#39;t want that</span>
-<span class="s">    fun () -&gt; v</span>
-<span class="s">#else</span>
-<span class="s">#endif</span>
-<span class="s">    )</span>
-<span class="s">&quot;&quot;&quot;</span>
+<p><code>scripts/format.fsx</code> formats one combination at a time when it is given <code>--define</code>, and prints the result for that combination before the merge.
+<code>no-defines</code> is the combination without any.</p>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">dotnet build src/Fantomas.Core.SnapshotTests
+dotnet fsi scripts/format.fsx --define no-defines src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/trivia/2844-directive-in-parenthesis-argument.fs
+dotnet fsi scripts/format.fsx --define IOS src/Fantomas.Core.SnapshotTests/cases/oak/Expr/Chain/trivia/2844-directive-in-parenthesis-argument.fs
 </code></pre></div>
-<p><img src="../../images/multiple-times-test-explorer.png" alt="Result in test explorer" /></p>
+<p>Each result should reflect only the active code branches.
+<code>IOS</code> is not defined in the first, so no code is expected between <code>#if IOS</code> and <code>#else</code>:</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">program</span><span class="pn">.</span><span class="id">SyncAction</span><span class="pn">(</span>
+    <span class="pp">#if</span> <span class="id">IOS</span>
+    <span class="pp">#else</span>
+    <span class="id">fn</span>
+<span class="pp">#endif</span>
+<span class="pn">)</span>
+</code></pre></div>
+<p>With <code>IOS</code> defined, the code between <code>#else</code> and <code>#endif</code> is gone instead:</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">program</span><span class="pn">.</span><span class="id">SyncAction</span><span class="pn">(</span>
+    <span class="pp">#if</span> <span class="id">IOS</span>
+<span class="inactive">    </span><span class="inactive">//</span><span class="inactive"> </span><span class="inactive">iOS</span><span class="inactive"> </span><span class="inactive">animates</span><span class="inactive"> </span><span class="inactive">by</span><span class="inactive"> </span><span class="inactive">default</span><span class="inactive"> </span><span class="inactive">layout</span><span class="inactive"> </span><span class="inactive">changes,</span><span class="inactive"> </span><span class="inactive">we</span><span class="inactive"> </span><span class="inactive">don&#39;t</span><span class="inactive"> </span><span class="inactive">want</span><span class="inactive"> </span><span class="inactive">that</span>
+<span class="inactive">    </span><span class="inactive">fun</span><span class="inactive"> </span><span class="inactive">()</span><span class="inactive"> </span><span class="inactive">-&gt;</span><span class="inactive"> </span><span class="inactive">v</span>
+<span class="pp">#else</span>
+<span class="pp">#endif</span>
+<span class="pn">)</span>
+</code></pre></div>
+<p>A directive is printed where the code around it puts it, which is why some are indented here; the merge moves every one of them to the start of its line.
+What the merge needs is that every combination has its directives on lines of their own, as many of them, in the same order.
+It splits each result at its directives and stitches the pieces back together, so a combination that puts code on the line of a directive, or moves code across one, is the one to fix.
+If we do this for each combination, we can narrow the problem down to find the troublesome combination.</p>
 <h2 data-fsdocs-heading="3"><a name="Bringing-it-all-together" class="anchor" href="#Bringing-it-all-together">Bringing it all together</a></h2>
-<p>If each combination is fixed, we can now try to format the input with all the defines.<br />
-Notice that we use <code>formatSourceString</code> instead of <code>formatSourceStringWithDefines</code> here.</p>
-<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
-<span class="k">let</span> <span class="id">``good unit test name, 2844``</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
-    <span class="id">formatSourceString</span>
-        <span class="k">false</span>
-        <span class="s">&quot;&quot;&quot;</span>
-<span class="s">                        program.SyncAction</span>
-<span class="s">                            (</span>
-<span class="s">#if IOS</span>
-<span class="s">                            // iOS animates by default layout changes, we don&#39;t want that</span>
-<span class="s">                            fun () -&gt; v</span>
-<span class="s">#else</span>
-<span class="s">                            fn</span>
-<span class="s">#endif</span>
-<span class="s">                        )</span>
-<span class="s">&quot;&quot;&quot;</span>
-        <span class="id">config</span>
-    <span class="o">|&gt;</span> <span class="id">prepend</span> <span class="id">newline</span>
-    <span class="o">|&gt;</span> <span class="id">should</span>
-        <span class="id">equal</span>
-        <span class="s">&quot;&quot;&quot;</span>
-<span class="s">program.SyncAction</span>
-<span class="s">    (</span>
-<span class="s">#if IOS</span>
-<span class="s">    // iOS animates by default layout changes, we don&#39;t want that</span>
-<span class="s">    fun () -&gt; v</span>
-<span class="s">#else</span>
-<span class="s">    fn</span>
-<span class="s">#endif</span>
-<span class="s">    )</span>
-<span class="s">&quot;&quot;&quot;</span>
+<p>Once every combination gives its directives that way, the merge succeeds and the case can get its golds:</p>
+<div class="fsdocs-snippet"><pre class="fssnip"><code lang="shell">FANTOMAS_UPDATE_SNAPSHOTS=1 dotnet test src/Fantomas.Core.SnapshotTests --filter "Name~2844-directive-in-parenthesis-argument"
 </code></pre></div>
-<h2 data-fsdocs-heading="4"><a name="Unit-test-naming-conventions" class="anchor" href="#Unit-test-naming-conventions">Unit test naming conventions</a></h2>
-<p>When dealing with multiple defines, it is important to name the unit tests in a way that makes it easy to understand what is going on.<br />
-Use the following naming convention suffix:</p>
-<ul>
-<li><code>, no defines</code> for the <code>[]</code> case</li>
-<li><code>, defineA defineB</code> for the <code>[ "defineA"; "defineB" ]</code> case</li>
-<li><code>, issue-number</code> for the full test.</li>
-</ul>
+<p>That writes a gold per combination, <code>2844-directive-in-parenthesis-argument.no-defines.gold.fs</code> and <code>2844-directive-in-parenthesis-argument.IOS.gold.fs</code>, which hold the results above, and <code>2844-directive-in-parenthesis-argument.gold.fs</code>, the merged result users get:</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">program</span><span class="pn">.</span><span class="id">SyncAction</span><span class="pn">(</span>
+<span class="pp">#if</span> <span class="id">IOS</span>
+<span class="inactive">    </span><span class="inactive">//</span><span class="inactive"> </span><span class="inactive">iOS</span><span class="inactive"> </span><span class="inactive">animates</span><span class="inactive"> </span><span class="inactive">by</span><span class="inactive"> </span><span class="inactive">default</span><span class="inactive"> </span><span class="inactive">layout</span><span class="inactive"> </span><span class="inactive">changes,</span><span class="inactive"> </span><span class="inactive">we</span><span class="inactive"> </span><span class="inactive">don&#39;t</span><span class="inactive"> </span><span class="inactive">want</span><span class="inactive"> </span><span class="inactive">that</span>
+<span class="inactive">    </span><span class="inactive">fun</span><span class="inactive"> </span><span class="inactive">()</span><span class="inactive"> </span><span class="inactive">-&gt;</span><span class="inactive"> </span><span class="inactive">v</span>
+<span class="pp">#else</span>
+    <span class="id">fn</span>
+<span class="pp">#endif</span>
+<span class="pn">)</span>
+</code></pre></div>
+<p>Read all of them: they are what the fix pins down.</p>
 <fantomas-nav source="docs/contributors/Multiple Times.md" previous="The%20Missing%20Comment.html" next="Pull%20request%20ground%20rules.html"></fantomas-nav>
 
         <div popover class="fsdocs-tip" id="fs1"><span class="k">namespace</span> <span class="m">System</span></div>
 <div popover class="fsdocs-tip" id="fs2">Multiple items<br /><em>The exception that is thrown when the format of an argument is invalid, or when a composite format string is not well formed.</em><br /><span class="k">type</span> <span class="rt">FormatException</span> <span class="o">=</span><br />&#160;&#160;<span class="k">inherit</span> <span class="rt">SystemException</span><br />&#160;&#160;<span class="k">new</span><span class="pn">:</span> <span class="vt">unit</span> <span class="pn">-&gt;</span> <span class="rt">unit</span> + 2 overloads<br /><br />--------------------<br /><span class="m">System.</span><span class="rt">FormatException</span><span class="pn">(</span><span class="pn">)</span> <span class="pn">:</span> <span class="m">System.</span><span class="rt">FormatException</span><br /><span class="m">System.</span><span class="rt">FormatException</span><span class="pn">(</span><span class="id">message</span><span class="pn">:</span> <span class="rt">string</span><span class="pn">)</span> <span class="pn">:</span> <span class="m">System.</span><span class="rt">FormatException</span><br /><span class="m">System.</span><span class="rt">FormatException</span><span class="pn">(</span><span class="id">message</span><span class="pn">:</span> <span class="rt">string</span><span class="pn">,</span> <span class="id">innerException</span><span class="pn">:</span> <span class="rt">exn</span><span class="pn">)</span> <span class="pn">:</span> <span class="m">System.</span><span class="rt">FormatException</span></div>
-<div popover class="fsdocs-tip" id="fs3"><span class="k">val</span> <span class="fn">printfn</span><span class="pn">:</span> <span class="id">format</span><span class="pn">:</span> <span class="m">Printf.</span><span class="rt">TextWriterFormat</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
 
     </div>
 </main>
@@ -504,25 +444,17 @@ Use the following naming convention suffix:</p>
       Bringing it all together
     </a>
   </li>
-  <li class="level-2" data-fsdocs-heading="4">
-    <a href="#Unit-test-naming-conventions">
-      Unit test naming conventions
-    </a>
-  </li>
 </ul><style>
-body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-main; }
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-main; }
 #content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
 #fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
 body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
-#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-main; }
 body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
-#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-main; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-main; }
 body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
-#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
-#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-main; }
-body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
 </style>
 </aside>
 <dialog>
