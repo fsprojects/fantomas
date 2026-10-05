@@ -43,9 +43,26 @@ Some common use cases include:
         <OtherFlags>$(OtherFlags) --realsig+</OtherFlags>
     </PropertyGroup>
 
+    <!--
+    A Native AOT publish restores every project for a runtime identifier, which is not what the lock
+    files record, and would rewrite them. Its lock files go under artifacts/obj instead, where
+    nothing keeps them, so a publish leaves the working tree as it found it. The `TestAot` pipeline
+    of build.fsx is what sets `FantomasAot`.
+    -->
+    <PropertyGroup Condition="'$(FantomasAot)' == 'true'">
+        <NuGetLockFilePath>$(MSBuildThisFileDirectory)artifacts/obj/$(MSBuildProjectName)/packages.aot.lock.json</NuGetLockFilePath>
+        <RestoreLockedMode>false</RestoreLockedMode>
+    </PropertyGroup>
+
     <!-- Versions -->
     <PropertyGroup>
-        <FCSCommitHash>5e9647f158fe282462aba57ed83ada910a91b90e</FCSCommitHash>
+        <FCSCommitHash>c3cf92a72ac5da1f9aafacbb03a9d1096012d1ae</FCSCommitHash>
+        <!--
+        The GitHub repository the vendored compiler sources are downloaded from. Temporarily a fork, for
+        the Native AOT fixes of dotnet/fsharp#20658 before they are merged. Back to dotnet/fsharp once
+        they are.
+        -->
+        <FCSRepository>nojaf/fsharp</FCSRepository>
     </PropertyGroup>
 
     <PropertyGroup>

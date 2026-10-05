@@ -1,0 +1,15 @@
+{
+  "description": "A file matched by .fantomasignore is reported as ignored, and still gets an empty configuration warning.",
+  "files": {
+    ".fantomasignore": "*.fs\n"
+  },
+  "requests": [
+    {
+      "method": "fantomas/formatDocument",
+      "params": {
+        "FilePath": "A.fs",
+        "SourceCode": "let   foo = 4"
+      }
+    }
+  ]
+}

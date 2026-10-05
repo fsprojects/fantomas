@@ -178,3 +178,63 @@ let ``UnionCase.name qualifies the case with the type it belongs to`` () =
 [<Test>]
 let ``UnionCase.name falls back to the type name for something that is not a union`` () =
     Fantomas.Core.UnionCase.name 42 |> should equal "Int32"
+
+// A case without fields is an instance of the union itself rather than a class of its own, so this
+// is the case only F# reflection can name.
+[<Test>]
+let ``UnionCase.name names a case without fields`` () =
+    Fantomas.Core.UnionCase.name Fantomas.FCS.Syntax.SynTypeDefnKind.Unspecified
+    |> should equal "SynTypeDefnKind.Unspecified"
+
+// `UnionCase.name` reads a case with fields off the class the compiler makes for it, which is
+// nested in the union and named after the case, because F# reflection may be trimmed away under
+// Native AOT. This holds it to what F# reflection says for every case of every union either
+// assembly has, so a union the compiler lays out some other way cannot go unnoticed.
+[<Test>]
+let ``UnionCase.name agrees with F# reflection for every case of every union`` () =
+    let flags: System.Reflection.BindingFlags =
+        System.Reflection.BindingFlags.Public
+        ||| System.Reflection.BindingFlags.NonPublic
+
+    let unionTypes: System.Type list =
+        [
+            typeof<Fantomas.FCS.Syntax.SynExpr>.Assembly
+            typeof<Fantomas.Core.SyntaxOak.Expr>.Assembly
+        ]
+        |> List.collect (fun assembly -> List.ofArray (assembly.GetTypes()))
+        |> List.filter (fun (t: System.Type) ->
+            not t.ContainsGenericParameters
+            && Microsoft.FSharp.Reflection.FSharpType.IsUnion(t, flags)
+            // The class of a single case counts as a union to F# reflection as well.
+            && (isNull t.BaseType
+                || not (Microsoft.FSharp.Reflection.FSharpType.IsUnion(t.BaseType, flags)))
+        )
+
+    let mismatches: string list =
+        [
+            for unionType in unionTypes do
+                for case in Microsoft.FSharp.Reflection.FSharpType.GetUnionCases(unionType, flags) do
+                    let fields: obj array =
+                        case.GetFields()
+                        |> Array.map (fun (field: System.Reflection.PropertyInfo) ->
+                            if field.PropertyType.IsValueType then
+                                System.Activator.CreateInstance field.PropertyType
+                            else
+                                null
+                        )
+
+                    let value: obj =
+                        Microsoft.FSharp.Reflection.FSharpValue.MakeUnion(case, fields, flags)
+
+                    let expected: string = $"%s{unionType.Name}.%s{case.Name}"
+
+                    // A case represented by null, as `None` is, has nothing to read a name off.
+                    if not (isNull value) then
+                        let actual: string = Fantomas.Core.UnionCase.name value
+
+                        if actual <> expected then
+                            yield $"%s{expected} was named %s{actual}"
+        ]
+
+    List.length unionTypes |> should be (greaterThan 100)
+    mismatches |> should be Empty

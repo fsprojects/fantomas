@@ -1,21 +1,66 @@
 namespace Fantomas.Core
 
 open System
+open System.Diagnostics.CodeAnalysis
 open Microsoft.FSharp.Core.CompilerServices
 open Microsoft.FSharp.Reflection
 
 [<RequireQualifiedAccess>]
 module UnionCase =
 
+    // Why the reflection in `name` is fine under Native AOT, for the attribute below.
+    [<Literal>]
+    let ReflectionFallback: string =
+        "Only a case without fields of a union with four or more cases reaches F# reflection, inside a try that falls back to the union's name where the trimmer took what it needs."
+
+    [<UnconditionalSuppressMessage("Trimming", "IL2072", Justification = ReflectionFallback)>]
     let name (value: 'T) : string =
-        let unionType: Type = typeof<'T>
+        match box value with
+        | null -> typeof<'T>.Name
+        | boxed ->
 
-        if isNull (box value) || not (FSharpType.IsUnion unionType) then
-            unionType.Name
-        else
+        let runtimeType: Type = boxed.GetType()
 
-        let case, _ = FSharpValue.GetUnionFields(value, unionType)
-        $"%s{unionType.Name}.%s{case.Name}"
+        // A case with fields is a class of its own, nested in the union and named after the case,
+        // so naming it needs nothing a Native AOT build may have trimmed away. So is a case without
+        // fields of a union with fewer than four cases, which the compiler tells apart by type
+        // rather than by tag, named with a leading underscore. A case name has to start with an
+        // uppercase letter, so an underscore there is always that one.
+        match runtimeType.DeclaringType with
+        | declaringType when not (isNull declaringType) && runtimeType.BaseType = declaringType ->
+            let caseName: string = runtimeType.Name.TrimStart '_'
+            $"%s{declaringType.Name}.%s{caseName}"
+        | _ ->
+
+        // A case without fields is an instance of the union itself, and only F# reflection can tell
+        // which one. Under Native AOT that works or not depending on what the trimmer kept, and
+        // where it does not the union is named without the case. The name goes into the message of
+        // an exception that is already being raised, which a failure here must not replace.
+        try
+            if not (FSharpType.IsUnion(runtimeType, true)) then
+                runtimeType.Name
+            else
+
+            let case, _ = FSharpValue.GetUnionFields(boxed, runtimeType, true)
+            $"%s{runtimeType.Name}.%s{case.Name}"
+        with _ ->
+            runtimeType.Name
+
+[<RequireQualifiedAccess>]
+module Triage =
+
+    // A try rather than a check of `RuntimeFeature.IsDynamicCodeSupported`, which netstandard2.0
+    // does not have. Every failure is caught, not only the NotSupportedException of Native AOT: the
+    // dump rides along on an exception that is already being raised, and failing to write it must
+    // not replace that exception with its own.
+    let dump (value: 'T) : string =
+        try
+            // fsharpanalyzer: ignore-line-next FANTOMAS-PRINTF-001
+            $"%A{value}"
+        with _ ->
+            match box value with
+            | null -> typeof<'T>.FullName
+            | boxed -> boxed.GetType().FullName
 
 [<RequireQualifiedAccess>]
 module String =

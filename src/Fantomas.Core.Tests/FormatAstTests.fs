@@ -213,6 +213,51 @@ $"{x,10:N2} then {y}"
 $"{x, 10:N2} then {y}"
 """
 
+// Without the source text, a number is printed from its value. Each must come back as the same type
+// and, for a float, the same number.
+[<Test>]
+let ``numeric literals without the source text`` () =
+    formatAST
+        false
+        """
+let a = 1uy
+let b = 1s
+let c = -1
+let d = 1L
+let e = 1u
+let f = 1UL
+let g = 1n
+let h = 1un
+let i = 2.
+let j = 0.30000000000000004
+let k = 123456789012.0
+let l = 1e-7
+let m = 3.1415927f
+let n = 2.0M
+let o = 0.10m
+    """
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = 1uy
+let b = 1s
+let c = -1
+let d = 1L
+let e = 1u
+let f = 1UL
+let g = 1n
+let h = 1un
+let i = 2.0
+let j = 0.30000000000000004
+let k = 123456789012.0
+let l = 1e-07
+let m = 3.1415927f
+let n = 2.0M
+let o = 0.10M
+"""
+
 [<Test>]
 let ``uncommon literals strict mode`` () =
     formatAST
