@@ -2339,7 +2339,7 @@ let genExpr (e: Expr) =
         genExpr node.OptimizedExpr
         +> onlyIfNot node.Constraints.IsEmpty (!-" when ")
         +> col
-            sepSpace
+            (sepSpace +> wordAndFixed +> sepSpace)
             node.Constraints
             (function
             | StaticOptimizationConstraint.WhenTyparIsStruct t -> genSingleTextNode t +> !-" struct"
