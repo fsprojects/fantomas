@@ -27,8 +27,8 @@ open Fantomas.Tests
 // - `<case>.gold` is every message that went over the wire: `sent` is what the client wrote,
 //   `received` what the daemon answered, with the folder and the version as placeholders.
 //
-// A case whose conversation differs fails with a line diff and leaves `<case>.received.gold` beside
-// `<case>.gold`. Rename it over the snapshot to accept it, or run the `UpdateSnapshots` pipeline of
+// A case whose conversation differs fails with a line diff and leaves `<case>.actual` beside
+// `<case>.gold`. Rename it over the gold to accept it, or run the `UpdateSnapshots` pipeline of
 // `build.fsx` to accept every change. `FANTOMAS_EXECUTABLE` points the cases at another build
 // of the tool, a Native AOT one for instance.
 

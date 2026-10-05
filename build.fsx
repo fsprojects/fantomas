@@ -304,14 +304,17 @@ pipeline "CoverageOak" {
     runIfOnlySpecified true
 }
 
-// Rewrite every gold the snapshot tests compare against from what the current build produces. A
-// gold that changes is a change in formatting, so read the diff before keeping it.
+// Rewrite every gold the snapshot tests compare against from what the current build produces: the
+// formatting cases of `Fantomas.Core.SnapshotTests`, and the daemon conversations under
+// `src/Fantomas.Tests/Integration/DaemonWire`. A gold that changes is a change in formatting, or in
+// what editors receive, so read the diff before keeping it.
 pipeline "UpdateSnapshots" {
     workingDir __SOURCE_DIRECTORY__
 
     stage "Update" {
         envVars [| "FANTOMAS_UPDATE_SNAPSHOTS", "1" |]
         run $"dotnet test {quoteArgument snapshotsDir} --tl"
+        run "dotnet test src/Fantomas.Tests --filter TestCategory=Snapshot --tl"
     }
 
     runIfOnlySpecified true
@@ -411,18 +414,6 @@ pipeline "Docs" {
 pipeline "FormatAll" {
     workingDir __SOURCE_DIRECTORY__
     stage "Fantomas" { run "dotnet fantomas --json src analyzers docs scripts build.fsx" }
-    runIfOnlySpecified true
-}
-
-// Rewrite every snapshot the tests compare against from what the current build produces: the
-// `.gold` file of each daemon conversation under src/Fantomas.Tests/Integration/DaemonWire. A
-// snapshot that changes is a change in what editors receive, so read the diff before keeping it.
-pipeline "UpdateSnapshots" {
-    workingDir __SOURCE_DIRECTORY__
-    stage "Update" {
-        envVars [| "FANTOMAS_UPDATE_SNAPSHOTS", "1" |]
-        run "dotnet test src/Fantomas.Tests --filter TestCategory=Snapshot --tl"
-    }
     runIfOnlySpecified true
 }
 

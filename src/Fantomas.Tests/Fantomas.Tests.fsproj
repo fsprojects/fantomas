@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestHelpers.fs" />
+    <Compile Include="..\Fantomas.Core.SnapshotTests\Diff.fs" Link="Diff.fs" />
     <Compile Include="Snapshot.fs" />
     <Compile Include="PathsTests.fs" />
     <Compile Include="ArgumentsTests.fs" />
