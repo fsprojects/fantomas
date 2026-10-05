@@ -240,12 +240,6 @@ would change with every case. The pipeline sets
 under Missing is either a case still to write or one the parser cannot produce, and the person
 writing the cases judges which. One the parser cannot produce needs no record anywhere.
 
-`dotnet fsi build.fsx -- -p CoverageReach` measures what each unit test in `Fantomas.Core.Tests`
-and each case reaches in all of Fantomas.Core, one at a time, and writes every test and case with
-the points it reached to `artifacts/coverage/reach.tsv`. A point is a line or a branch, as AltCover
-counts them. Module initialisers run before anything is measured, since whatever ran first would
-otherwise get them to itself.
-
 `dotnet fsi build.fsx -- -p CoverageOak` measures `SyntaxOak.fs` alone. `syntaxoak-coverage.txt`
 names the classes some case reaches in full, then lists, by class, every line no case reaches.
 Every node class constructor and every arm of a union's `Node` member is a node or a union case

@@ -303,50 +303,6 @@ pipeline "CoverageOak" {
     runIfOnlySpecified true
 }
 
-/// Where `CoverageReach` writes: the instrumentation report, and what each test reached.
-let coverageReachDir: string = artifactsDir </> "coverage"
-
-let coverageReachXml: string = coverageReachDir </> "fantomas-core.xml"
-
-let coreTestsDir: string = __SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core.Tests"
-
-// What every unit test and every snapshot case reaches in Fantomas.Core, each on its own. The unit
-// tests are run once under AltCover, which leaves an instrumented Fantomas.Core beside them;
-// `scripts/reach.fsx` then calls every test and every case against it, one at a time. The filter
-// only keeps that run short: what it ran is not what is measured. `AltCoverAll` has the recorder
-// count every visit to a point rather than only the first, which is how the script tells what each
-// test reached: the points whose count rose while it ran.
-//
-// Produces:
-//   artifacts/coverage/fantomas-core.xml   what each point is, in the source
-//   artifacts/coverage/reach.tsv           every test and case, and the points it reached
-pipeline "CoverageReach" {
-    workingDir __SOURCE_DIRECTORY__
-
-    stage "Build" { run $"dotnet build {quoteArgument snapshotsDir} -c Release --tl" }
-
-    stage "Instrument" {
-        run (fun _ ->
-            async {
-                Directory.CreateDirectory coverageReachDir |> ignore
-                return 0
-            }
-        )
-
-        run (
-            $"dotnet test {quoteArgument coreTestsDir} -c Release "
-            + "/p:AltCover=true /p:AltCoverForce=true /p:AltCoverAll=true "
-            + "\"/p:AltCoverAssemblyFilter=^(?!Fantomas\\.Core$)\" "
-            + quoteArgument $"/p:AltCoverReport={coverageReachXml}"
-            + " "
-            + "--filter FullyQualifiedName~Fantomas.Core.Tests.UtilsTests"
-        )
-    }
-
-    stage "Measure" { run "dotnet fsi scripts/reach.fsx" }
-    runIfOnlySpecified true
-}
-
 // Rewrite every gold the snapshot tests compare against from what the current build produces. A
 // gold that changes is a change in formatting, so read the diff before keeping it.
 pipeline "UpdateSnapshots" {
