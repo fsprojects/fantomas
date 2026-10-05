@@ -125,6 +125,15 @@ let configOf (properties: (string * string) list) : FormatConfig =
         failwith
             $"""The front matter sets what Fantomas does not act on, so the default stays: %s{String.concat ", " nonValues}."""
 
+    // Set twice, one value would win without a word, and the case would not say which.
+    let repeated: string list =
+        properties
+        |> List.countBy (fun (key: string, _) -> key.ToLowerInvariant())
+        |> List.choose (fun (key: string, count: int) -> if count > 1 then Some key else None)
+
+    if not repeated.IsEmpty then
+        failwith $"""The front matter sets more than once: %s{String.concat ", " repeated}."""
+
     let config, problems =
         parseOptionsFromEditorConfig defaultConfig (readOnlyDict properties)
 

@@ -4,8 +4,10 @@
 //   dotnet fsi build.fsx -- -p CoverageReach      instrument, build, and run this
 //
 // AltCover's own tracking of which test reached what loses the test at the first async hop, which
-// formatting is full of. So this script calls the tests itself, one after the other, and between two
-// tests reads and clears what AltCover's recorder keeps. Both test assemblies run against the one
+// formatting is full of. So this script calls the tests itself, one after the other, and compares
+// what AltCover's recorder has counted before and after each. `CoverageReach` has the recorder count
+// every visit, so a point whose count rose during a test is one the test reached. The recorder is
+// only read: nothing here changes what it records. Both test assemblies run against the one
 // instrumented Fantomas.Core, so a point is the same point for both.
 //
 // Produces, in artifacts/coverage/:
@@ -13,7 +15,9 @@
 
 open System
 open System.Collections
+open System.Collections.Generic
 open System.IO
+open System.Linq.Expressions
 open System.Reflection
 open System.Runtime.Loader
 
@@ -48,34 +52,50 @@ let snapshotTests: Assembly = load snapshotBinaries "Fantomas.Core.SnapshotTests
 let everyStatic: BindingFlags =
     BindingFlags.Public ||| BindingFlags.NonPublic ||| BindingFlags.Static
 
-/// The recorder's visits: per instrumented module, the points visited since the table was cleared.
+/// The recorder's visits: per instrumented module, every point visited so far and its `PointVisit`.
 /// Read anew each time, because the recorder can put a new table in its place.
 let visitsField: FieldInfo =
     recorder.GetType("AltCover.Recorder.Instance+I").GetField("visits", everyStatic)
 
-/// The points the recorder has seen once. It runs in `Single` mode, where a point seen once is not
-/// recorded again, so this is cleared along with the visits for the next test to be seen at all.
-let samplesField: FieldInfo =
-    recorder.GetType("AltCover.Recorder.Instance+I").GetField("samples", everyStatic)
+/// How often a point was visited, read from its `PointVisit`. Compiled once: it is read for every
+/// point visited so far, twice per test.
+let countOf: Func<obj, int64> =
+    let pointVisit: Type =
+        recorder.GetTypes() |> Array.find (fun (each: Type) -> each.Name = "PointVisit")
 
-/// The points visited since the last call, and none from then on.
-let take () : int list =
+    let visit: ParameterExpression = Expression.Parameter(typeof<obj>, "visit")
+
+    let count: Expression =
+        Expression.Convert(Expression.PropertyOrField(Expression.Convert(visit, pointVisit), "Count"), typeof<int64>)
+
+    Expression.Lambda<Func<obj, int64>>(count, visit).Compile()
+
+/// Every point visited so far and how often. A module's table is copied under the lock the recorder
+/// takes on it to add a point.
+let snapshot () : Dictionary<int, int64> =
     let visits: IDictionary = visitsField.GetValue(null) :?> IDictionary
-    let samples: IDictionary = samplesField.GetValue(null) :?> IDictionary
+    let counts: Dictionary<int, int64> = Dictionary<int, int64>()
 
-    lock
-        visits
-        (fun () ->
-            for inner in samples.Values do
-                (inner :?> IDictionary).Clear()
+    for inner in visits.Values do
+        let inner: IDictionary = inner :?> IDictionary
 
-            [
-                for inner in visits.Values do
-                    let inner: IDictionary = inner :?> IDictionary
-                    yield! inner.Keys |> Seq.cast<int>
-                    inner.Clear()
-            ]
-        )
+        lock
+            inner
+            (fun () ->
+                for point in inner.Keys do
+                    counts[point :?> int] <- countOf.Invoke inner[point]
+            )
+
+    counts
+
+/// The points whose count rose from one snapshot to the next: the ones visited in between.
+let visitedBetween (before: Dictionary<int, int64>) (after: Dictionary<int, int64>) : int list =
+    [
+        for KeyValue(point: int, count: int64) in after do
+            match before.TryGetValue point with
+            | true, earlier when earlier = count -> ()
+            | _ -> yield point
+    ]
 
 /// What a test reached, and whether it passed.
 type Reach =
@@ -88,7 +108,7 @@ type Reach =
     }
 
 let measure (suite: string) (name: string) (run: unit -> unit) : Reach =
-    take () |> ignore
+    let before: Dictionary<int, int64> = snapshot ()
 
     let passed: bool =
         try
@@ -101,7 +121,7 @@ let measure (suite: string) (name: string) (run: unit -> unit) : Reach =
         Suite = suite
         Name = name
         Passed = passed
-        Points = set (take ())
+        Points = set (visitedBetween before (snapshot ()))
     }
 
 /// The file of each test module, by the module's name. A module is not always named after its file:
@@ -126,7 +146,7 @@ let warmUp: Set<int> =
     let core: Assembly = load instrumented "Fantomas.Core"
     let formatter: Type = core.GetType "Fantomas.Core.CodeFormatter"
 
-    take () |> ignore
+    let before: Dictionary<int, int64> = snapshot ()
 
     for each in core.GetTypes() do
         try
@@ -148,7 +168,7 @@ let warmUp: Set<int> =
         .Invoke(null, [| formatting; null; null |])
     |> ignore
 
-    set (take ())
+    set (visitedBetween before (snapshot ()))
 
 let attributeNamed (name: string) (methodInfo: MethodInfo) : obj list =
     methodInfo.GetCustomAttributes(true)

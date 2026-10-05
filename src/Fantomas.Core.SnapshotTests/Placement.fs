@@ -55,7 +55,9 @@ let resolveNodeFolder (folders: string list) : Result<NodeFolder, string> =
         | Some case ->
 
         Ok(UnionCase(union, case.Name))
-    | folders -> Error $"""`%s{String.concat "/" folders}` is too deep to name a node."""
+    | folders ->
+        Error
+            $"""`%s{String.concat "/" folders}` is too deep to name a node, which is `<Union>/<Case>/` or `<Node>/`: "Where a case goes" in the README lists the folders around it."""
 
 /// The `FormatConfig` field behind every setting, by the name it is written under.
 let private settingTypes: Map<string, System.Type> =

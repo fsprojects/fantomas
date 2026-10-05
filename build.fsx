@@ -313,7 +313,9 @@ let coreTestsDir: string = __SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core.Tes
 // What every unit test and every snapshot case reaches in Fantomas.Core, each on its own. The unit
 // tests are run once under AltCover, which leaves an instrumented Fantomas.Core beside them;
 // `scripts/reach.fsx` then calls every test and every case against it, one at a time. The filter
-// only keeps that run short: what it ran is not what is measured.
+// only keeps that run short: what it ran is not what is measured. `AltCoverAll` has the recorder
+// count every visit to a point rather than only the first, which is how the script tells what each
+// test reached: the points whose count rose while it ran.
 //
 // Produces:
 //   artifacts/coverage/fantomas-core.xml   what each point is, in the source
@@ -333,7 +335,7 @@ pipeline "CoverageReach" {
 
         run (
             $"dotnet test {quoteArgument coreTestsDir} -c Release "
-            + "/p:AltCover=true /p:AltCoverForce=true "
+            + "/p:AltCover=true /p:AltCoverForce=true /p:AltCoverAll=true "
             + "\"/p:AltCoverAssemblyFilter=^(?!Fantomas\\.Core$)\" "
             + quoteArgument $"/p:AltCoverReport={coverageReachXml}"
             + " "

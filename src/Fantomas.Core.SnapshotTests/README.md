@@ -71,17 +71,19 @@ type A = A of int
 - **Front matter.** Optional. A block comment that starts on line 1 with `(*---` and ends with
   `---*)`, holding editorconfig properties, one `key = value` per line. A line starting with `#`
   is the description, and one starting with `;` a comment, as in an `.editorconfig`. It is read by
-  the code the tool uses, and anything
-  that is no setting, or a value Fantomas cannot act on, fails the case. So do the values the
-  editorconfig spec reserves, `unset`, `indent_size = tab` and `max_line_length = off`: the tool
-  keeps its default for them, which in a case would test something other than it says. It is stripped before
-  formatting, so nothing in it is parsed as F#.
+  the code the tool uses, and anything that is no setting, or a value Fantomas cannot act on, fails
+  the case. So does a setting set twice, and so do the values the editorconfig spec reserves,
+  `unset`, `indent_size = tab` and `max_line_length = off`: the tool keeps its default for them,
+  which in a case would test something other than it says. It is stripped before formatting, so
+  nothing in it is parsed as F#.
 - **Kind of file.** `name.fs` is an implementation file, `name.fsi` a signature file. A signature
   case needs no module or namespace header unless the parser asks for one. See "Signature files"
   for when a `.fsi` case is worth having.
 - **Name.** Lower case words joined by dashes, with the issue number first when the case comes
   from an issue: `1483-case-behind-a-define.fs`. Only use the number of an issue the case comes
-  from; do not guess one.
+  from; do not guess one. Keep it short: the longest path in the repository is 190 characters, and
+  a Windows checkout a few folders deep reaches the 260 Windows allows unless git sets
+  `core.longpaths`. A gold per define combination makes the name longer still.
 - **Line endings.** Every input is read with `\n` line endings, and `end_of_line` is `lf` unless
   the front matter sets it. `.gitattributes` keeps `cases/` byte for byte.
 

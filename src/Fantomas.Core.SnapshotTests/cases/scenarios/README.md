@@ -38,7 +38,10 @@ output with what the harness gives before writing the case.
 - **Not here.** What `Fantomas.Core.Tests` still holds is unit tests: of internals, of formatting a
   syntax tree without its source, of inputs large enough to overflow the stack, and of a parse
   error. A test that never ran, having no `[<Test>]`, was dropped, and so was an ignored test that
-  formatted one define combination, which no gold can hold. Three of the tests that never ran give
+  formatted one define combination: what it expected is that one combination merged with itself,
+  which no gold holds. Two of those, `hash nested in multiline string` and `hash nested in multiline
+  block comment` of `CompilerDirectivesTests.fs`, are ignored cases again, their golds written by
+  hand: both pin a bug no other case shows. Three of the tests that never ran give
   what they expected and are cases elsewhere now: `indent multiline lambda in parenthesis, 523` in
   `oak/Expr/ParenLambda/`, the signature file `should preserve quotes around type parameters, 2875`
   in `oak/Type/Var/negative/`, and `multiline field body expression where indent_size = 2, inherit
@@ -63,6 +66,8 @@ not complete:
   `PatternMatchingTests.fs`, first became negative cases of their result, and were given their
   input back by hand.
 - The eleven cases renamed to take back words the cut lost are recorded under their cut names.
+- The two `hash nested` tests of `CompilerDirectivesTests.fs` are recorded as dropped, and were
+  written as ignored cases by hand afterwards.
 
 ## History
 
