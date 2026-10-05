@@ -118,14 +118,17 @@ A case for a bug that is not fixed yet is `name.ignore.fs`. Its golds hold what 
 give, written by hand: `name.gold.fs`, the same name it will have once the `.ignore` goes.
 
 - **Reason.** The front matter's `#` description says why it is ignored, an issue link at best. A
-  run lists the case as skipped with that reason, and fails a case that gives none.
+  run lists the case as skipped with that reason, and fails a case that gives none. An issue opened
+  for the bug later goes in the reason too, so a search for its number finds the case.
 - **Comparing.** Only the golds the case has are compared, and nothing writes them, not even
   `UpdateSnapshots`. What it gives today is written to the `.actual` beside a gold it does not
   match. A gold whose line endings formatting never gives, `\r\n` where the case formats with
   `\n` say, fails the case: an editor that saved it its own way would otherwise keep the case
   ignored after its bug is fixed.
 - **Fixed.** Once it gives its golds and passes every check, it fails with "rename it to
-  `name.fs`". So an ignored case cannot stay ignored after its bug is gone.
+  `name.fs`". So an ignored case cannot stay ignored after its bug is gone. The reason goes with
+  the `.ignore`: write a description of what the case shows in its place, or none when the name
+  says it.
 - **Folder.** What its folder asks of the input still holds: the node the folder names, and the
   setting it names, set to its value. So does what is true of its golds whatever the result: none
   beside a case under `negative/`, and none for a define combination the input does not have. The

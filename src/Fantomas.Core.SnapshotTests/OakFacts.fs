@@ -192,7 +192,7 @@ let tokenProperties (nodeClass: System.Type) : PropertyInfo list =
     )
 
 /// The token slot a node fills in its parent, named after the parent's property that holds it:
-/// `(node)` for a node that is not a token of its parent, `(token)` for a token the parent holds
+/// `(whole node)` for a node that is not a token of its parent, `(token)` for a token the parent holds
 /// some other way, inside a list for instance.
 let slotOf (visit: Visit) : System.Type * string =
     match visit.Node, visit.Parent with
@@ -211,4 +211,4 @@ let slotOf (visit: Visit) : System.Type * string =
         match holder with
         | Some property -> parent.GetType(), property.Name
         | None -> parent.GetType(), "(token)"
-    | node, _ -> node.GetType(), "(node)"
+    | node, _ -> node.GetType(), "(whole node)"
