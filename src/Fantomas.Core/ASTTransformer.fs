@@ -1923,29 +1923,42 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprSetNode(mkExpr creationAide e1, mkExpr creationAide e2, exprRange)
         |> Expr.Set
 
-    | SynExpr.LibraryOnlyStaticOptimization(constraints, e, optExpr, _) ->
-        let constraints =
-            constraints
-            |> List.map (
-                function
-                | SynStaticOptimizationConstraint.WhenTyparTyconEqualsTycon(t1, t2, _) ->
-                    StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode(
-                        mkSynTypar t1,
-                        mkType creationAide t2,
-                        unionRanges t1.Range t2.Range
-                    )
-                    |> StaticOptimizationConstraint.WhenTyparTyconEqualsTycon
-                | SynStaticOptimizationConstraint.WhenTyparIsStruct(t, _) ->
-                    mkSynTypar t |> StaticOptimizationConstraint.WhenTyparIsStruct
-            )
+    | SynExpr.LibraryOnlyStaticOptimization _ ->
+        let mkConstraint (c: SynStaticOptimizationConstraint) : StaticOptimizationConstraint =
+            match c with
+            | SynStaticOptimizationConstraint.WhenTyparTyconEqualsTycon(t1, t2, _) ->
+                StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode(
+                    mkSynTypar t1,
+                    mkType creationAide t2,
+                    unionRanges t1.Range t2.Range
+                )
+                |> StaticOptimizationConstraint.WhenTyparTyconEqualsTycon
+            | SynStaticOptimizationConstraint.WhenTyparIsStruct(t, _) ->
+                mkSynTypar t |> StaticOptimizationConstraint.WhenTyparIsStruct
 
-        ExprLibraryOnlyStaticOptimizationNode(
-            mkExpr creationAide optExpr,
-            constraints,
-            mkExpr creationAide e,
-            exprRange
-        )
-        |> Expr.LibraryOnlyStaticOptimization
+        // The parser nests `e when A = a when B = b` as A(a, B(b, e)), with the first clause outermost, while the
+        // Oak puts the last clause outermost: B(b, A(a, e)). `wrap` builds the clauses seen so far around `e`.
+        let rec collect (wrap: Expr -> Expr) (expr: SynExpr) : Expr =
+            match expr with
+            | SynExpr.LibraryOnlyStaticOptimization(constraints, e, optExpr, _) ->
+                collect
+                    (fun inner ->
+                        let optimizedExpr: Expr = wrap inner
+                        let expr: Expr = mkExpr creationAide e
+
+                        ExprLibraryOnlyStaticOptimizationNode(
+                            optimizedExpr,
+                            // The parser keeps the conditions of a `when` in reverse.
+                            constraints |> List.rev |> List.map mkConstraint,
+                            expr,
+                            unionRanges (Expr.Node optimizedExpr).Range (Expr.Node expr).Range
+                        )
+                        |> Expr.LibraryOnlyStaticOptimization
+                    )
+                    optExpr
+            | _ -> wrap (mkExpr creationAide expr)
+
+        collect id e
     | SynExpr.InterpolatedString(parts, _, _) ->
         let lastIndex = parts.Length - 1
 
