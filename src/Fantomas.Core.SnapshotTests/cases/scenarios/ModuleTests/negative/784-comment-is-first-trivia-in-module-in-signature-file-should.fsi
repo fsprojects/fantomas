@@ -1,0 +1,4 @@
+module foo
+
+// bar
+// baz

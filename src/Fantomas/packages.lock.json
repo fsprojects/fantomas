@@ -192,6 +192,13 @@
           "Fantomas.FCS": "[1.0.0, )"
         }
       },
+      "fantomas.editorconfig": {
+        "type": "Project",
+        "dependencies": {
+          "FSharp.Core": "[10.1.203, )",
+          "Fantomas.Core": "[1.0.0, )"
+        }
+      },
       "fantomas.fcs": {
         "type": "Project",
         "dependencies": {

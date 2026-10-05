@@ -1,0 +1,2 @@
+#if FOO // MEH
+#endif

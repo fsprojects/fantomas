@@ -1,0 +1,2 @@
+base.Initializer()
+global.Test()

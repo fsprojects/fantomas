@@ -239,7 +239,11 @@ the full pipeline was skipped:
 
 ```
 dotnet test src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj
+dotnet test src/Fantomas.Core.SnapshotTests/Fantomas.Core.SnapshotTests.fsproj
 ```
+
+The formatting tests are the snapshot cases. `Fantomas.Core.Tests` alone holds only unit tests of
+internals, and passing it says nothing about what formatting gives.
 
 ## 6. On failure, hand over
 
@@ -253,7 +257,7 @@ wrote a test for, and the failure mode of a shape change is silently dropped sou
 existing assertion notices. Round-tripping the construct through the local build takes seconds:
 
 ```
-dotnet build src/Fantomas/Fantomas.fsproj -v quiet
+dotnet build src/Fantomas.Core.SnapshotTests -v quiet
 dotnet fsi scripts/format.fsx <file>
 ```
 
@@ -273,15 +277,18 @@ a hash bump.
 ### Pin every behaviour change with a test
 
 A behaviour change that no test covers is the dangerous kind, the suite stays green while the
-formatter misbehaves. Before handing over, **add the missing test**, in the existing test file
-that already owns that syntax (attributes go in `AttributeTests.fs`, and so on). Match the
-surrounding idiom, `formatSourceString ... config |> should equal`, and name it after the syntax,
-not after the upstream commit.
+formatter misbehaves. Before handing over, **add the missing test**: a snapshot case in the
+folder of the node that owns that syntax under `src/Fantomas.Core.SnapshotTests/cases/oak/`
+(an attribute goes in `oak/Attribute/`, and so on). The project README says where a case goes.
+Name it after the syntax, not after the upstream commit.
 
-Assert the **correct** output, the one that round-trips the user's source. That test fails right
-now, and that is the point: it pins the regression so it cannot be forgotten, and it turns green
-the moment someone fixes it. Do not weaken the expectation to match the current broken output,
-and do not `Ignore` the test.
+Write its gold by hand, holding the **correct** output, the one that round-trips the user's
+source. Do not let `FANTOMAS_UPDATE_SNAPSHOTS` write it: that would write the broken output. The
+case fails right now, and that is the point: it pins the regression so it cannot be forgotten,
+and it turns green the moment someone fixes it. Do not weaken the gold to match the current
+broken output, and do not make it an ignored case (`name.ignore.fs`). An ignored case is for a
+bug users already live with, waiting for its fix. A regression the bump causes is one the bump
+must not ship with, and a skipped test would let it through.
 
 Do this for the syntax that is actually broken, and also for any near neighbour the probe showed
 still works but no test covered. The one that works costs nothing and stops the next walk from

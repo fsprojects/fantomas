@@ -1,0 +1,3 @@
+getConfiguredServiceBuilder()
+    .AddLogging(loggingOptions)
+    .Build()

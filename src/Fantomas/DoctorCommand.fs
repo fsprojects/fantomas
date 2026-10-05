@@ -7,7 +7,7 @@ open Fantomas.FCS.Parse
 open Fantomas
 open Fantomas.Arguments
 open Fantomas.Cli
-open Fantomas.EditorConfig
+open Fantomas.EditorConfigFiles
 open Fantomas.Paths
 
 // Carriage returns are folded away before splitting, so a file written with the other platform's

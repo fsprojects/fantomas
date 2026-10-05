@@ -4,7 +4,7 @@ open Fantomas.FCS.Parse
 open Fantomas
 open Fantomas.Arguments
 open Fantomas.Cli
-open Fantomas.EditorConfig
+open Fantomas.EditorConfigFiles
 
 /// The lines of a source file, however it ends its lines, and without an empty last line for the
 /// newline that terminates the last one. A file that ends in a newline has as many lines as one

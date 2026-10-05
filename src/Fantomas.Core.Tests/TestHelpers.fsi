@@ -19,7 +19,6 @@ val formatSourceString: (string -> FormatConfig -> string)
 
 /// The `source` will first be parsed to AST.
 val formatAST: isFsiFile: bool -> source: string -> config: FormatConfig -> string
-val formatSourceStringWithDefines: defines: string list -> s: string -> config: FormatConfig -> string
 val isValidFSharpCode: isFsiFile: bool -> s: string -> bool
 /// A wrapper around FsUnit's equal that also normalizes newlines.
 val equal: x: 'a -> Constraints.EqualConstraint

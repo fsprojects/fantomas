@@ -24,15 +24,19 @@ open BuildCommon
 /// Anchored at `repositoryRoot` rather than written relative, so it names the same project whatever
 /// the working directory of the run is.
 ///
-/// `shared.fsx` references the debug build of Fantomas.Core, and Fantomas.Core references
-/// Fantomas.FCS, so building this one project puts both assemblies where the scripts look for them.
-/// The CLI and the test projects are no part of what a script loads and are not built for this.
+/// `shared.fsx` references the debug builds of the snapshot tests, Fantomas.EditorConfig,
+/// Fantomas.Core and Fantomas.FCS, and the snapshot tests reference the other three, so building
+/// this one project puts every assembly where the scripts look for it. The CLI is no part of what a
+/// script loads and is not built for this.
 ///
 /// It is the debug build they reference, and that is not a detail to tidy away into the release
 /// build the rest of the pipeline makes: these scripts are for prototyping against a local
 /// Fantomas, which is something you want to be able to step through.
 let scriptProject: string =
-    repositoryRoot </> "src" </> "Fantomas.Core" </> "Fantomas.Core.fsproj"
+    repositoryRoot
+    </> "src"
+    </> "Fantomas.Core.SnapshotTests"
+    </> "Fantomas.Core.SnapshotTests.fsproj"
 
 /// Of the given scripts, the ones that are meant to be run directly.
 ///

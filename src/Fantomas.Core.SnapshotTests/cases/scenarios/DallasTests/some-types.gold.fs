@@ -1,0 +1,14 @@
+let a (b: (int)) = 0
+let x (y: int[,,]) = 0
+type t = int -> int
+type A = int * int
+type B = h / s
+let _: struct (int * int) = ()
+let a (b: #int) = 0
+let a (b: const int) = 0
+let a: 't = 0
+let b: ^t = 0
+let x: int list = 0
+let y: int list array = 0
+let z: Task<int> = 0
+let p: Prefix.Task<int> = 0

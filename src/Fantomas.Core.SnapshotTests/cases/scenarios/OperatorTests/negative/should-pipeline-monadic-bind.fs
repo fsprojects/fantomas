@@ -1,0 +1,7 @@
+strToInt "1"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"

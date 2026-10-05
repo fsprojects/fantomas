@@ -1,0 +1,1 @@
+exception MyError = System.Exception

@@ -234,7 +234,7 @@ let recordingEnvironment (fs: IFileSystem) (ignoreFile: IgnoreFile option) : Rec
                 // chain and should not pretend to one.
                 ResolveConfiguration =
                     fun _ ->
-                        EditorConfig.withoutEditorConfig
+                        EditorConfigFiles.withoutEditorConfig
                             { FormatConfig.Default with
                                 EndOfLine = EndOfLineStyle.LF
                             }
@@ -260,7 +260,7 @@ let defaultSettings: CliSettings =
 /// configuration, as opposed to one about where the configuration came from.
 let daemonEnvironment
     (fs: IFileSystem)
-    (readConfiguration: string -> EditorConfig.EditorConfigResult option)
+    (readConfiguration: string -> EditorConfigFiles.EditorConfigResult option)
     : DaemonEnvironment
     =
     {
@@ -273,7 +273,7 @@ let daemonEnvironment
 let realDaemonEnvironment: DaemonEnvironment =
     {
         FileSystem = FileSystem()
-        ReadConfiguration = EditorConfig.tryReadConfiguration
+        ReadConfiguration = EditorConfigFiles.tryReadConfiguration
         Log = Log.Logger
     }
 
@@ -285,7 +285,7 @@ let realEnvironment: CliEnvironment =
         FindIgnoreFile = fun _ -> None
         FindIgnoreFilesAbove = fun _ -> []
         ReadConfiguration = EditorConfigReport.readConfiguration (EditorConfigReport.createReporter Log.Logger)
-        ResolveConfiguration = EditorConfig.resolveConfiguration
+        ResolveConfiguration = EditorConfigFiles.resolveConfiguration
         Log = Log.Logger
         OutputTheme = plainTheme
         ErrorTheme = plainTheme

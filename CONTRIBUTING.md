@@ -97,7 +97,7 @@ Leading to very strange situations and unexpected behavior.
 
 We prefer that all bugs are created using our online tool: https://fsprojects.github.io/fantomas-tools/ <br />
 Here we can easily report bugs against the code of the latest main branch.
-The tool generates a report with all the technical information that is necessary to reproduce the bug in a unit test.
+The tool generates a report with all the technical information that is necessary to reproduce the bug in a snapshot case.
 
 Please try and make the bug report as small as possible. Isolate the part of your code that is causing the bug.
 

@@ -39,6 +39,7 @@ let projectsToAnalyze: string list =
     // long the whole run takes. Starting with it means it is never the one left waiting for a slot.
     let sourceSize (project: string) =
         Directory.EnumerateFiles(Path.GetDirectoryName(repositoryRoot </> project), "*.fs", SearchOption.AllDirectories)
+        |> Seq.filter (isSnapshotCase >> not)
         |> Seq.sumBy (fun file -> FileInfo(file).Length)
 
     XDocument.Load(repositoryRoot </> "fantomas.slnx").XPathSelectElements("//Project")
@@ -58,9 +59,9 @@ type AnalysisTarget =
     /// The scripts of this repository. Which scripts are compiled is not a choice, `runnableScripts`
     /// decides that; the file list says which of the files they reach a finding may be about, and is
     /// never empty. A script compilation includes whatever it `#load`s, and `shared.fsx` loads
-    /// `EditorConfig.fs` and `Suggestion.fs` out of `src/Fantomas`, which belong to that project's
-    /// run: a script loads the `.fs` alone, so the signature file that keeps several of the rules
-    /// quiet about them is no part of the compilation and they report as debt they are not.
+    /// `EditorConfigFiles.fs` out of `src/Fantomas`, which belongs to that project's run: a script
+    /// loads the `.fs` alone, so the signature file that keeps several of the rules quiet about it
+    /// is no part of the compilation and it reports as debt it is not.
     | Scripts of files: string list
 
 /// Every script a finding may be about: `build.fsx` and everything beside this file. The ones that
@@ -77,12 +78,18 @@ let analyzableScripts: string list =
 /// the projects in, with the scripts last because they are the quickest to answer.
 ///
 /// Only compiled sources, project files and scripts count. A document or a test data file is not
-/// part of any compilation, so changing one leaves the analyzers with nothing new to say.
+/// part of any compilation, so changing one leaves the analyzers with nothing new to say. The
+/// snapshot cases are F# files but test data: a run that updates their golds changes hundreds of
+/// them, which would load the project for nothing and run past the length of a command line.
 ///
 /// A changed project file asks for the whole project: what it compiles is no longer what it
 /// compiled before, and there is no single source file that stands for that.
 let targetsFor (files: string list) : AnalysisTarget list =
-    let sources: string list = List.filter (hasExtension [ ".fs"; ".fsi" ]) files
+    let sources: string list =
+        files
+        |> List.filter (hasExtension [ ".fs"; ".fsi" ])
+        |> List.filter (isSnapshotCase >> not)
+
     let projectFiles: string list = List.filter (hasExtension [ ".fsproj" ]) files
     let scripts: string list = List.filter (hasExtension [ ".fsx" ]) files
 
@@ -331,8 +338,8 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
 /// findings arrive while the run is still going and no two projects can interleave their lines.
 ///
 /// A target that names files is analyzed for those files alone. The project is still loaded and
-/// type checked, but a whole project is checked file by file, so looking at one file of
-/// `Fantomas.Core.Tests` takes seconds where the whole project takes minutes.
+/// type checked, but a whole project is checked file by file, so looking at a few files of it takes a
+/// fraction of the whole.
 ///
 /// Whatever is analyzed here is what `analysis.sarif` holds afterwards, so a run over a couple of
 /// files replaces the report of an earlier run over the solution.

@@ -1,0 +1,2 @@
+upcast // comment
+    foobar

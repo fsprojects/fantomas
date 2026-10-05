@@ -816,7 +816,7 @@ let private healthy: Fantomas.DoctorCommand.DoctorReport =
                     UnreachableUnder = None
                 }
         Ignore = Some Fantomas.DoctorCommand.IgnoreStep.NoIgnoreFile
-        Settings = Some(Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default)
+        Settings = Some(Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default)
         Format =
             Some(Fantomas.DoctorCommand.FormatStep.Produced("let a = 1\n", Fantomas.DoctorCommand.FormatChange.Nothing))
         Validity = Some Fantomas.DoctorCommand.ValidityStep.Valid
@@ -904,16 +904,16 @@ let ``a folder is refused with the command that would answer the question instea
 let ``the settings line names the .editorconfig it means, absolutely`` () =
     // `.editorconfig` on its own is the one thing somebody reading this report cannot go and open,
     // and every other path it prints is absolute.
-    let resolved: Fantomas.EditorConfig.ResolvedConfig =
-        let plain: Fantomas.EditorConfig.ResolvedConfig =
-            Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default
+    let resolved: Fantomas.EditorConfigFiles.ResolvedConfig =
+        let plain: Fantomas.EditorConfigFiles.ResolvedConfig =
+            Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default
 
         { plain with
             // A chain of two, where only the further one sets anything Fantomas reads.
             EditorConfigFiles = [ "/repo/.editorconfig"; "/repo/src/.editorconfig" ]
             Settings =
                 plain.Settings
-                |> List.map (fun (setting: Fantomas.EditorConfig.ResolvedSetting) ->
+                |> List.map (fun (setting: Fantomas.EditorConfigFiles.ResolvedSetting) ->
                     if setting.Setting <> "max_line_length" then
                         setting
                     else
@@ -947,15 +947,15 @@ let ``every setting the file will be formatted with is listed`` () =
 
 [<Test>]
 let ``the settings an .editorconfig set are set apart from the defaults by a blank line`` () =
-    let fromEditorConfig: Fantomas.EditorConfig.ResolvedConfig =
-        let resolved: Fantomas.EditorConfig.ResolvedConfig =
-            Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default
+    let fromEditorConfig: Fantomas.EditorConfigFiles.ResolvedConfig =
+        let resolved: Fantomas.EditorConfigFiles.ResolvedConfig =
+            Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default
 
         { resolved with
             EditorConfigFiles = [ "/repo/.editorconfig" ]
             Settings =
                 resolved.Settings
-                |> List.map (fun (setting: Fantomas.EditorConfig.ResolvedSetting) ->
+                |> List.map (fun (setting: Fantomas.EditorConfigFiles.ResolvedSetting) ->
                     if setting.Setting <> "max_line_length" then
                         setting
                     else
@@ -1190,7 +1190,7 @@ let ``an .editorconfig that sets nothing Fantomas reads is named as having set n
         { healthy with
             Settings =
                 Some
-                    { Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default with
+                    { Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default with
                         EditorConfigFiles = [ "/repo/.editorconfig" ]
                     }
         }
@@ -1203,7 +1203,7 @@ let ``a setting Fantomas cannot use is reported under the settings that apply`` 
             { healthy with
                 Settings =
                     Some
-                        { Fantomas.EditorConfig.withoutEditorConfig FormatConfig.Default with
+                        { Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default with
                             EditorConfigFiles = [ "/repo/.editorconfig" ]
                             Problems =
                                 [

@@ -1,0 +1,1 @@
+let empty: int[] = [||]

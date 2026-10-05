@@ -1,0 +1,1 @@
+let f (arg: 'T) = (^T: (member Value: string) arg)

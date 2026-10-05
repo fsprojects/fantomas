@@ -1,0 +1,4 @@
+getConfiguration()
+    .Settings.GetValue(
+        theConfigurationKeyNameThatIsRatherLong
+    )

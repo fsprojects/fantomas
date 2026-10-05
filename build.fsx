@@ -25,22 +25,27 @@ open BuildCompiler
 
 /// Every test project, by name. Each writes its raw coverage beside its own project file.
 let coverageProjects: string list =
-    [ "Fantomas.Core.Tests"; "Fantomas.Tests"; "Fantomas.Client.Tests" ]
+    [
+        "Fantomas.Core.Tests"
+        "Fantomas.Core.SnapshotTests"
+        "Fantomas.Tests"
+        "Fantomas.Client.Tests"
+    ]
 
 let coverageXmlFiles: string list =
     coverageProjects
     |> List.map (fun (name: string) -> __SOURCE_DIRECTORY__ </> "src" </> name </> "coverage.xml")
 
-/// Run one test project under AltCover, measuring the one assembly it is there to exercise.
+/// Run one test project under AltCover, measuring the assemblies it is there to exercise.
 ///
-/// The filter is a negative lookahead: instrument that assembly and nothing else, which keeps the
-/// generated Fantomas.FCS parser and the test assembly itself out of the report and makes the run
-/// fast. It cannot name several assemblies at once, because AltCover reads `|` as the separator
-/// between filters rather than as alternation, so each project is run with its own.
+/// The filter is a negative lookahead: instrument the assemblies `assemblyPattern` matches and
+/// nothing else, which keeps the generated Fantomas.FCS parser and the test assembly itself out of
+/// the report and makes the run fast. The pattern cannot use `|`, because AltCover reads it as the
+/// separator between filters rather than as alternation: an optional group names two assemblies.
 let coverageCommand (name: string) (assemblyPattern: string) : string =
     let project: string = __SOURCE_DIRECTORY__ </> "src" </> name </> $"{name}.fsproj"
 
-    $"dotnet test {project} -c Release /p:AltCover=true "
+    $"dotnet test {quoteArgument project} -c Release /p:AltCover=true "
     + $"\"/p:AltCoverAssemblyFilter=^(?!{assemblyPattern}$)\""
 
 let benchmarkAssembly =
@@ -95,14 +100,15 @@ pipeline "Benchmark" {
     runIfOnlySpecified true
 }
 
-// Line and branch coverage for the three projects Fantomas ships, via AltCover's MSBuild
-// integration. Every test project is run under AltCover, each measuring the one assembly it is
-// there to exercise, and ReportGenerator merges the three results into a single report.
+// Line and branch coverage for the projects Fantomas ships, via AltCover's MSBuild integration.
+// Every test project is run under AltCover, each measuring the assemblies it is there to exercise,
+// and ReportGenerator merges the four results into a single report.
 //
-// So `Fantomas.Core`'s figure comes from `Fantomas.Core.Tests` alone, even though `Fantomas.Tests`
-// exercises Core heavily through real formatting. Core is understated here rather than wrong.
+// So `Fantomas.Core`'s figure comes from `Fantomas.Core.Tests` and `Fantomas.Core.SnapshotTests`, whose
+// two reports ReportGenerator merges, even though `Fantomas.Tests` exercises Core heavily through
+// real formatting. Core is understated here rather than wrong.
 //
-// The filter is a negative lookahead naming the three assemblies to instrument. Everything else
+// Each filter is a negative lookahead naming the assemblies to instrument. Everything else
 // is left alone, which keeps the generated Fantomas.FCS parser and the test assemblies
 // themselves out of the report. AltCover writes OpenCover XML, which is for tooling rather than
 // reading, so ReportGenerator turns it into a browsable HTML report afterwards.
@@ -134,7 +140,10 @@ pipeline "Coverage" {
 
     stage "Coverage" {
         run (coverageCommand "Fantomas.Core.Tests" @"Fantomas\.Core")
-        run (coverageCommand "Fantomas.Tests" "fantomas")
+        run (coverageCommand "Fantomas.Core.SnapshotTests" @"Fantomas\.Core")
+        // The tool and the editorconfig code it reads its settings with, which is a project of its
+        // own so that the snapshot cases read their front matter with it too.
+        run (coverageCommand "Fantomas.Tests" @"[Ff]antomas(\.EditorConfig)?")
         run (coverageCommand "Fantomas.Client.Tests" @"Fantomas\.Client")
     }
 
@@ -161,6 +170,168 @@ pipeline "Coverage" {
     runIfOnlySpecified true
 }
 
+/// The snapshot tests of `Fantomas.Core`, and the files `CoverageOak` writes beside them.
+let snapshotsDir: string =
+    __SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core.SnapshotTests"
+
+// Not `coverage.xml`, which the `Coverage` pipeline writes for this project.
+let syntaxOakCoverageXml: string = snapshotsDir </> "syntaxoak-coverage.xml"
+
+let syntaxOakCoverageSummary: string = snapshotsDir </> "syntaxoak-coverage.txt"
+
+/// Turn the OpenCover XML of a `CoverageOak` run into what a person acts on: every line of
+/// `SyntaxOak.fs` with a point or a branch no case reached, grouped by the class it belongs to.
+let summarizeSyntaxOakCoverage () : Async<int> =
+    async {
+        let source: string array =
+            File.ReadAllLines(__SOURCE_DIRECTORY__ </> "src" </> "Fantomas.Core" </> "SyntaxOak.fs")
+
+        let document: Xml.Linq.XDocument = Xml.Linq.XDocument.Load syntaxOakCoverageXml
+        let name (local: string) : Xml.Linq.XName = Xml.Linq.XName.Get local
+
+        let attribute (element: Xml.Linq.XElement) (local: string) : string = element.Attribute(name local).Value
+
+        // Every point and branch, with the method it is in.
+        let points: (string * string * int * bool) list =
+            [
+                for methodElement in document.Descendants(name "Method") do
+                    let methodName: string = methodElement.Element(name "Name").Value
+
+                    for kind in [ "SequencePoint"; "BranchPoint" ] do
+                        for point in methodElement.Descendants(name kind) do
+                            methodName, kind, int (attribute point "sl"), attribute point "vc" <> "0"
+            ]
+
+        let count (kind: string) : string =
+            let ofKind: (string * string * int * bool) list =
+                points |> List.filter (fun (_, pointKind: string, _, _) -> pointKind = kind)
+
+            let reached: int =
+                ofKind
+                |> List.filter (fun (_, _, _, isReached: bool) -> isReached)
+                |> List.length
+
+            $"{reached} of {ofKind.Length}"
+
+        // `System.Void Fantomas.Core.SyntaxOak/ExprConstantNode::.ctor(...)` belongs to
+        // `ExprConstantNode`, and so does a closure compiled into `ExprConstantNode/-ctor@12-3`. The
+        // return type in front can name a SyntaxOak type too, so the type is read from right before `::`.
+        let owner (methodName: string) : string =
+            let declaringType: string =
+                let beforeMethod: string = methodName.Substring(0, methodName.IndexOf "::")
+                beforeMethod.Substring(beforeMethod.LastIndexOf ' ' + 1)
+
+            match declaringType.Split('/') |> Array.toList with
+            | _ :: className :: _ -> className
+            | _ -> "(module SyntaxOak)"
+
+        let missed: (string * string * int) list =
+            points
+            |> List.filter (fun (_, _, _, isReached: bool) -> not isReached)
+            |> List.map (fun (methodName: string, kind: string, line: int, _) -> methodName, kind, line)
+
+        let summary: Text.StringBuilder = Text.StringBuilder()
+
+        let pointCount: string = count "SequencePoint"
+        let branchCount: string = count "BranchPoint"
+
+        summary.AppendLine(
+            $"SyntaxOak.fs: {pointCount} points and {branchCount} branches reached by the snapshot cases."
+        )
+        |> ignore
+
+        let describe (entries: (string * string * int) list) : unit =
+            for className, inClass in
+                entries
+                |> List.groupBy (fun (methodName: string, _, _) -> owner methodName)
+                |> List.sortBy fst do
+                summary.AppendLine($"\n  {className}") |> ignore
+
+                for line, onLine in inClass |> List.groupBy (fun (_, _, line: int) -> line) |> List.sortBy fst do
+                    let kinds: string =
+                        onLine
+                        |> List.map (fun (_, kind: string, _) -> if kind = "SequencePoint" then "line" else "branch")
+                        |> List.distinct
+                        |> String.concat ", "
+
+                    summary.AppendLine($"    {line, 5}  {kinds, -12}  {source[line - 1].Trim()}")
+                    |> ignore
+
+        // A class every point of which some case reaches does not show up below, so name those
+        // here: absent from the list then means covered, never "not measured".
+        let reachedInFull: string list =
+            points
+            |> List.groupBy (fun (methodName: string, _, _, _) -> owner methodName)
+            |> List.filter (fun (_, inClass) -> inClass |> List.forall (fun (_, _, _, isReached: bool) -> isReached))
+            |> List.map fst
+            |> List.sort
+
+        let reachedInFullText: string = String.concat ", " reachedInFull
+        summary.AppendLine($"\nReached in full: %s{reachedInFullText}") |> ignore
+        summary.AppendLine("\nNot reached:") |> ignore
+        describe missed
+
+        File.WriteAllText(syntaxOakCoverageSummary, summary.ToString())
+        printfn "%s" (summary.ToString())
+        printfn $"Written to {syntaxOakCoverageSummary}"
+        return 0
+    }
+
+// Coverage of `SyntaxOak.fs` alone, by the snapshot cases alone. A node class's constructor only
+// runs when some case produces that node, and every union's `Node` member has an arm per case, so
+// a line missed here is a node or a union case no case contains yet. Debug printing, which no
+// formatting path calls, is left out by the method filter: AltCover reads `|` as a separator
+// between filters, and every such method has `ToString` in its name.
+//
+// Produces:
+//   src/Fantomas.Core.SnapshotTests/syntaxoak-coverage.xml  raw OpenCover XML
+//   src/Fantomas.Core.SnapshotTests/syntaxoak-coverage.txt  what was not reached, by class
+pipeline "CoverageOak" {
+    workingDir __SOURCE_DIRECTORY__
+
+    stage "Coverage" {
+        run (
+            $"dotnet test {quoteArgument snapshotsDir} -c Release /p:AltCover=true /p:AltCoverForce=true "
+            + "\"/p:AltCoverAssemblyFilter=^(?!Fantomas\\.Core$)\" "
+            + "\"/p:AltCoverFileFilter=^(?!.*SyntaxOak\\.fs$)\" "
+            + "/p:AltCoverMethodFilter=ToString "
+            + quoteArgument $"/p:AltCoverReport={syntaxOakCoverageXml}"
+        )
+    }
+
+    stage "Report" { run (fun _ -> summarizeSyntaxOakCoverage ()) }
+    runIfOnlySpecified true
+}
+
+// Rewrite every gold the snapshot tests compare against from what the current build produces. A
+// gold that changes is a change in formatting, so read the diff before keeping it.
+pipeline "UpdateSnapshots" {
+    workingDir __SOURCE_DIRECTORY__
+
+    stage "Update" {
+        envVars [| "FANTOMAS_UPDATE_SNAPSHOTS", "1" |]
+        run $"dotnet test {quoteArgument snapshotsDir} --tl"
+    }
+
+    runIfOnlySpecified true
+}
+
+// Two reports over every snapshot case, to read while writing cases for a folder: which optional
+// parts and lists of parts of each node some case has, and where trivia lands on each node. They
+// are not golds: they change with every case, and two branches adding cases would fight over them.
+//
+// Produces:
+//   src/Fantomas.Core.SnapshotTests/reports/shapes.md
+//   src/Fantomas.Core.SnapshotTests/reports/trivia.md
+pipeline "SnapshotReports" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Reports" {
+        envVars [| "FANTOMAS_SNAPSHOT_REPORTS", "1" |]
+        run $"dotnet test {quoteArgument snapshotsDir} --tl"
+    }
+    runIfOnlySpecified true
+}
+
 pipeline "FormatChanged" {
     workingDir __SOURCE_DIRECTORY__
     stage "Format" {
@@ -168,7 +339,10 @@ pipeline "FormatChanged" {
             async {
                 let! files = changedFiles ctx
                 let sources: string list =
-                    List.filter (hasExtension [ ".fs"; ".fsx"; ".fsi" ]) files
+                    files
+                    |> List.filter (fun (file: string) ->
+                        hasExtension [ ".fs"; ".fsx"; ".fsi" ] file && not (isSnapshotCase file)
+                    )
 
                 match sources with
                 | [] ->

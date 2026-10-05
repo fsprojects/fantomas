@@ -8,59 +8,64 @@ Follow these steps in order:
 
 ## 1. Fetch the issue
 
-Use `gh issue view <number> --repo fsprojects/fantomas --json title,body,labels` to get the issue details. Extract the example code and expected behavior. Note the labels — `bug (soundness)` vs `bug (stylistic)` affects the changelog entry.
+Use `gh issue view <number> --repo fsprojects/fantomas --json title,body,labels` to get the issue details. Extract the example code and expected behavior. Note the labels: `bug (soundness)` vs `bug (stylistic)` affects the changelog entry.
 
 ## 2. Reproduce the problem
 
 Use the /format skill to format the example code and confirm the bug exists. If confirmed, try to trim the example down to the minimal reproduction case.
 
-## 3. Add a failing unit test
+## 3. Add a failing snapshot case
 
-Find a suitable test file in `src/Fantomas.Core.Tests/`. Look for existing tests related to the same AST node or concept using grep. If no good file exists, ask the user where to create a new file.
+A formatting test is a snapshot case in `src/Fantomas.Core.SnapshotTests/cases/`. Read that
+project's `README.md` first: it says where a case goes, how to name it and what every case checks.
+In short:
 
-A new test file should follow this template:
+- Put the input in the folder of the node it is about, `cases/oak/<Union>/<Case>/` or
+  `cases/oak/<Node>/`, or under `cases/settings/<key>/` when the point is what a setting does. A
+  case about comments, blank lines or directives goes in the node's `trivia/` folder. One that
+  formatting must leave as it is goes in `negative/`, and is its own gold.
+- Name it in lower case words joined by dashes, the issue number first:
+  `1234-comment-after-the-arrow.fs`. Variations of the original report need no number.
+- Settings go in front matter on top of the input:
 
 ```fsharp
-module Fantomas.Core.Tests.MyNewConceptTests
-
-open NUnit.Framework
-open FsUnit
-open Fantomas.Core.Tests.TestHelpers
-
-// add tests here...
+(*---
+fsharp_multiline_bracket_style = stroustrup
+---*)
+let x = ...
 ```
 
-Test naming rules:
-- Test names must start with a **lowercase** letter.
-- When linked to a GitHub issue, add the issue number at the back with a comma: `` let ``my test description, 1234`` () = ``
-- You don't need to repeat the issue number for tests that are variations of the original report.
+- Write `name.gold.fs` by hand with the output the issue asks for. With `#if` in the input, each
+  define combination has a gold too (`name.no-defines.gold.fs`, `name.DEBUG.gold.fs`), and
+  `name.gold.fs` holds the merged result.
 
 ### Verify signature files
 
-Check if the fix should also apply to signature files (`*.fsi`). If so, add a test using `formatSignatureString` or the `--signature` flag.
+Check if the fix should also apply to signature files (`*.fsi`). If so, add a `.fsi` case beside
+the `.fs` one, or try the input with `scripts/format.fsx --signature`.
 
 ### Verify slight variations
 
-- Check if additional tests are needed for different setting combinations.
-- If the code involves `#if`/`#else` directives, use `formatSourceStringWithDefines` to test each define combination separately, plus a `formatSourceString` test for the merged result. Name suffixes: `, no defines`, `, DEBUG`, `, 1234`.
+Check if additional cases are needed for different setting combinations or define combinations.
 
-Run the test and **assert it fails** before proceeding to the fix.
+Run the case with `dotnet test src/Fantomas.Core.SnapshotTests --filter "Name~1234"` and **assert
+it fails** before proceeding to the fix.
 
 ## 4. Investigate the root cause
 
 Use the /ast, /oak, and /writer-events skills to understand what's happening. Key files to inspect:
-- `src/Fantomas.Core/CodePrinter.fs` — the main printer
-- `src/Fantomas.Core/Context.fs` — writer context
-- `src/Fantomas.Core/ASTTransformer.fs` — AST to Oak transformation
-- `src/Fantomas.Core/Trivia.fs` — trivia (comments, blank lines, directives)
+- `src/Fantomas.Core/CodePrinter.fs` - the main printer
+- `src/Fantomas.Core/Context.fs` - writer context
+- `src/Fantomas.Core/ASTTransformer.fs` - AST to Oak transformation
+- `src/Fantomas.Core/Trivia.fs` - trivia (comments, blank lines, directives)
 
 ## 5. Implement the fix
 
-Make the minimal change needed. Run the new test to confirm it passes.
+Make the minimal change needed. Run the new case to confirm it passes.
 
 ## 6. Run all tests
 
-Run `dotnet test src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj`. If many tests fail, the fix is likely too broad — make it more targeted. If only a few tests fail and the new behavior is arguably better, update those tests and ask the user for their opinion (a git diff is easiest to review).
+Run `dotnet test src/Fantomas.Core.SnapshotTests` and `dotnet test src/Fantomas.Core.Tests`. If many cases fail, the fix is likely too broad: make it more targeted. If only a few fail and the new behavior is arguably better, accept their new golds with `FANTOMAS_UPDATE_SNAPSHOTS=1` and a filter on their names, and ask the user for their opinion (`git diff` of the golds is easiest to review).
 
 ## 7. Update CHANGELOG.md
 

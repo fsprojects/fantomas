@@ -1,0 +1,1 @@
+if ready then start ()

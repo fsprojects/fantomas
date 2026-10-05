@@ -31,7 +31,7 @@ type CliEnvironment =
         /// where the Fantomas default is what applies. Beside `ReadConfiguration` rather than in
         /// place of it, because working out where a value came from costs a second walk of the
         /// chain and only `doctor` has anything to do with the answer.
-        ResolveConfiguration: string -> EditorConfig.ResolvedConfig
+        ResolveConfiguration: string -> EditorConfigFiles.ResolvedConfig
         /// Where the tool writes. A test hands over a logger with a collecting sink instead of
         /// reading a console. Which stream a level lands on is the logger's own configuration,
         /// not this record's.

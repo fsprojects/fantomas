@@ -1,0 +1,1 @@
+async { return 42 }

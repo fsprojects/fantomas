@@ -6,6 +6,7 @@ open Serilog
 open Serilog.Events
 open Fantomas.Core
 open Fantomas.EditorConfig
+open Fantomas.EditorConfigFiles
 
 type EditorConfigReporter = string -> EditorConfigProblem list -> unit
 
