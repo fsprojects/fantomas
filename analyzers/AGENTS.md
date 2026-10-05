@@ -12,7 +12,7 @@ feedback arrives while you work instead of in review. They are ordinary F# analy
 | [`FANTOMAS-ARMORDER-001`](#fantomas-armorder-001) | Shortest match arm first |
 | [`FANTOMAS-BRANCHORDER-001`](#fantomas-branchorder-001) | Shortest `if` branch first |
 | [`FANTOMAS-KEEPINDENT-001`](#fantomas-keepindent-001) | Last branch keeps the indentation |
-| [`FANTOMAS-ANNOTATE-001`](#fantomas-annotate-001) | Annotate every `let` binding |
+| [`FANTOMAS-ANNOTATE-001`](#fantomas-annotate-001) | Annotate every `let` binding, constructor parameter and `member val` |
 | [`FANTOMAS-XMLDOC-001`](#fantomas-xmldoc-001) | No doc comment the signature file already carries |
 | [`FANTOMAS-OPENS-001`](#fantomas-opens-001) | No `open` nothing in the file uses |
 | [`FANTOMAS-PARENS-001`](#fantomas-parens-001) | No parentheses the code parses the same without |
@@ -202,6 +202,18 @@ let writeRow (column: int) (left: string) (right: string) : unit = ...
 let extensions: Set<string> = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
 ```
 
+The same goes for the parameters of a primary constructor and for an auto property, `member val`.
+A class is often little more than those two, as the node types of the Oak are, and an untyped
+parameter there leaves every property built from it untyped too:
+
+```fsharp
+type TypeDefnAbbrevNode(typeNameNode: TypeNameNode, t: Type, range: range) =
+    inherit NodeBase(range)
+    member val Type: Type = t
+```
+
+Any other member is left to the author.
+
 A written type reads as documentation, and a wrong assumption fails at the definition rather than at
 a call site somewhere else. Both matter more when the reader is skimming unfamiliar code, which is
 most of the time, and a reader should not have to run the inference in their head to find out what a
@@ -218,7 +230,7 @@ accepted and does not have to be rewritten as `((a, b): int * string)`. Both sta
 the parameter, and the first is the one people write.
 
 Passed over: signature files, since a `val` already states the type; the unit parameter, which has
-nowhere to put one; tuple and record patterns on the left of the equals, which have no sensible
+nowhere to put one, of a function or of a primary constructor, `type T() =`; tuple and record patterns on the left of the equals, which have no sensible
 annotation to ask for; and any binding carrying a test attribute, along with everything nested
 inside it. Annotating `let someTest () : unit` says nothing a reader did not already know, and the
 locals in a test body are scaffolding. The test exemption keys on the attribute rather than on the

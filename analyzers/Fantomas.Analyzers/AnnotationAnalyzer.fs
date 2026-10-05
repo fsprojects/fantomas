@@ -15,7 +15,7 @@ let Name: string = "AnnotationAnalyzer"
 
 [<Literal>]
 let ShortDescription: string =
-    "Detects a let binding without a type annotation, where a written type would say what the name holds."
+    "Detects a let binding, primary constructor parameter or auto property without a type annotation, where a written type would say what the name holds."
 
 [<Literal>]
 let HelpUri: string =
@@ -111,7 +111,24 @@ let missingAnnotations (binding: SynBinding) : (range * string) list =
         untypedParameters @ missingReturn
     | _ -> []
 
-// Every let binding that is missing a type, with the test bindings passed over.
+// The parameters of a primary constructor that carry no type, reported one by one. `type T() =`
+// takes the unit argument, which has nowhere to put one.
+let missingConstructorAnnotations (typeName: string) (constructorArguments: SynPat) : (range * string) list =
+    let parameters: SynPat list =
+        match constructorArguments with
+        | SynPat.Paren(pat = SynPat.Tuple(elementPats = elements)) -> elements
+        | pattern -> [ pattern ]
+
+    parameters
+    |> List.choose (fun (parameter: SynPat) ->
+        if isTyped parameter || isUnit parameter then
+            None
+        else
+            Some(parameter.Range, $"A constructor parameter of `%s{typeName}` has no type annotation.")
+    )
+
+// Every let binding, primary constructor parameter and auto property that is missing a type, with
+// the test bindings passed over.
 //
 // Signature files are skipped whole: a `val` already states the type, which is the point.
 let analyze (parsedInput: ParsedInput) : Message list =
@@ -133,6 +150,26 @@ let analyze (parsedInput: ParsedInput) : Message list =
                         exempt.Add binding.RangeOfBindingWithRhs
                     elif isLetBinding keyword then
                         findings.AddRange(missingAnnotations binding)
+
+            override _.WalkTypeDefn(_path: SyntaxVisitorPath, typeDefn: SynTypeDefn) : unit =
+                match typeDefn with
+                | SynTypeDefn(
+                    typeInfo = SynComponentInfo(longId = identifiers)
+                    implicitConstructor = Some(SynMemberDefn.ImplicitCtor(ctorArgs = constructorArguments))) ->
+                    let typeName: string =
+                        identifiers
+                        |> List.tryLast
+                        |> Option.map (fun (i: Ident) -> i.idText)
+                        |> Option.defaultValue "this type"
+
+                    findings.AddRange(missingConstructorAnnotations typeName constructorArguments)
+                | _ -> ()
+
+            override _.WalkMember(_path: SyntaxVisitorPath, memberDefn: SynMemberDefn) : unit =
+                match memberDefn with
+                | SynMemberDefn.AutoProperty(ident = name; typeOpt = None) ->
+                    findings.Add(name.idRange, $"`%s{name.idText}` has no type annotation.")
+                | _ -> ()
         }
 
     walkAst walker parsedInput
