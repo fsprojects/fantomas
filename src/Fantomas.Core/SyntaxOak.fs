@@ -2273,6 +2273,7 @@ type ExternBindingNode
     (
         xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode option,
+        staticNode: SingleTextNode option,
         externNode: SingleTextNode,
         attributesOfType: MultipleAttributeListNode option,
         t: Type,
@@ -2290,6 +2291,7 @@ type ExternBindingNode
         [|
             yield! noa xmlDoc
             yield! noa attributes
+            yield! noa staticNode
             yield externNode
             yield! noa attributesOfType
             yield Type.Node t
@@ -2302,6 +2304,7 @@ type ExternBindingNode
 
     member val XmlDoc = xmlDoc
     member val Attributes = attributes
+    member val Static = staticNode
     member val Extern = externNode
     member val AttributesOfType = attributesOfType
     member val Type = t

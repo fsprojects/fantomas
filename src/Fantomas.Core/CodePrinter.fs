@@ -4118,6 +4118,7 @@ let genExternBinding (externNode: ExternBindingNode) =
 
     genXml externNode.XmlDoc
     +> genAttributes externNode.Attributes
+    +> optSingle (fun staticNode -> genSingleTextNode staticNode +> sepSpace) externNode.Static
     +> genSingleTextNode externNode.Extern
     +> sepSpace
     +> genOnelinerAttributes externNode.AttributesOfType

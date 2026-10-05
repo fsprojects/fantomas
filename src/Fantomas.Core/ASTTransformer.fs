@@ -2364,8 +2364,55 @@ let mkBinding
         range
     )
 
+/// The parser keeps no range for the `static` of `static extern`, so it is found again. Without attributes it opens
+/// the member, after them it is the last `static` in the source before `extern`.
+let mkStaticOfExtern
+    (creationAide: CreationAide)
+    (attributes: SynAttributes)
+    (mExtern: range)
+    (mLeadingStatic: range)
+    : SingleTextNode
+    =
+    match List.tryLast attributes with
+    | None -> stn "static" mLeadingStatic
+    | Some lastAttributeList ->
+
+    let searchStart: pos = lastAttributeList.Range.End
+
+    let mStatic: range option =
+        match creationAide.SourceText with
+        | None -> None
+        | Some sourceText ->
+
+        [ mExtern.StartLine .. -1 .. searchStart.Line ]
+        |> List.tryPick (fun line ->
+            let text: string = sourceText.GetLineString(line - 1)
+            let fromColumn: int = if line = searchStart.Line then searchStart.Column else 0
+
+            let toColumn: int =
+                if line = mExtern.StartLine then
+                    mExtern.StartColumn
+                else
+                    text.Length
+
+            match
+                text
+                    .Substring(fromColumn, toColumn - fromColumn)
+                    .LastIndexOf("static", System.StringComparison.Ordinal)
+            with
+            | -1 -> None
+            | index ->
+
+            let column: int = fromColumn + index
+            Some(mkRange mExtern.FileName (Position.mkPos line column) (Position.mkPos line (column + 6)))
+        )
+
+    // Without the source there is no trivia to place, so where `static` sits does not matter.
+    stn "static" (defaultArg mStatic (mkRange mExtern.FileName mExtern.Start mExtern.Start))
+
 let mkExternBinding
     (creationAide: CreationAide)
+    (staticNode: SingleTextNode option)
     (SynBinding(
         accessibility = accessibility
         attributes = attributes
@@ -2376,12 +2423,14 @@ let mkExternBinding
         trivia = trivia))
     : ExternBindingNode
     =
-    // `range` runs from the attributes to the closing parenthesis. The head pattern covers the name alone.
-    let m =
-        if xmlDoc.IsEmpty then
-            range
-        else
-            unionRanges xmlDoc.Range range
+    // `range` runs from the attributes to the closing parenthesis, leaving out `static`. The head pattern covers the name alone.
+    let m: range =
+        let m: range =
+            match staticNode with
+            | None -> range
+            | Some staticNode -> unionRanges staticNode.Range range
+
+        if xmlDoc.IsEmpty then m else unionRanges xmlDoc.Range m
 
     let externNode =
         match trivia.LeadingKeyword with
@@ -2479,6 +2528,7 @@ let mkExternBinding
     ExternBindingNode(
         mkXmlDoc xmlDoc,
         mkAttributes creationAide attributes,
+        staticNode,
         externNode,
         attributesOfReturnType,
         returnType,
@@ -2536,7 +2586,8 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
         bindings = [ SynBinding(
                          trivia = {
                                       LeadingKeyword = SynLeadingKeyword.Extern _
-                                  }) as binding ]) -> mkExternBinding creationAide binding |> ModuleDecl.ExternBinding
+                                  }) as binding ]) ->
+        mkExternBinding creationAide None binding |> ModuleDecl.ExternBinding
     | SynModuleDecl.Let(bindings = [ singleBinding ]; trivia = trivia) ->
         mkBinding creationAide singleBinding (Option.map (stn "in") trivia.InKeyword)
         |> ModuleDecl.TopLevelBinding
@@ -3450,9 +3501,19 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     | SynMemberDefn.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
     | SynMemberDefn.LetBindings(
         bindings = [ SynBinding(
+                         attributes = attributes
                          trivia = {
-                                      LeadingKeyword = SynLeadingKeyword.Extern _
-                                  }) as binding ]) -> mkExternBinding creationAide binding |> MemberDefn.ExternBinding
+                                      LeadingKeyword = SynLeadingKeyword.Extern mExtern
+                                  }) as binding ]
+        isStatic = isStatic
+        range = StartRange 6 (mLeadingStatic, _)) ->
+        let staticNode: SingleTextNode option =
+            if isStatic then
+                Some(mkStaticOfExtern creationAide attributes mExtern mLeadingStatic)
+            else
+                None
+
+        mkExternBinding creationAide staticNode binding |> MemberDefn.ExternBinding
     | SynMemberDefn.LetBindings(bindings = [ SynBinding(kind = SynBindingKind.Do; expr = expr; trivia = trivia) ]) ->
         // This is a shortcut to support "static do"
         let leadingKw =
