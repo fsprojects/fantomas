@@ -377,7 +377,7 @@
         <p class="fsdocs-summary">
            Discriminated union of all F# type-definition forms in the Oak representation.
  <c>None</c> is used for a bare type name with no body (e.g. <c>type T</c> in a signature);
- all other cases wrap a dedicated node type that also implements <see cref="ITypeDefn"/>.
+ all other cases wrap a dedicated node type.
         </p>
       </div>
     </div>
@@ -917,6 +917,89 @@
             <div>
               <code data-fsdocs-tip="2529" data-fsdocs-tip-unique="2529">
                 <p>
+                  <a id="Members">
+                    <a href="#Members">
+                      <code><span>TypeDefn.Members<span><span>(<span>x</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="2529">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>TypeDefn.Members<span><span>(<span>x</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        x
+                      </b>
+                      :
+                      <code><a href="../reference/fantomas-core-syntaxoak-typedefn.html">TypeDefn</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="../reference/fantomas-core-syntaxoak-memberdefn.html">MemberDefn</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-list-1">list</a></span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       The members after the body, or all of them for a type without one.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.SyntaxOak.TypeDefn.Members\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.SyntaxOak.TypeDefn.Members`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    x
+                  </span>
+                  :
+                  <code><a href="../reference/fantomas-core-syntaxoak-typedefn.html">TypeDefn</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span><a href="../reference/fantomas-core-syntaxoak-memberdefn.html">MemberDefn</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-list-1">list</a></span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="2530" data-fsdocs-tip-unique="2530">
+                <p>
                   <a id="Node">
                     <a href="#Node">
                       <code><span>TypeDefn.Node<span><span>(<span>x</span>)</span></span></span></code>
@@ -924,7 +1007,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2529">
+              <div popover="" class="fsdocs-tip" id="2530">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>TypeDefn.Node<span><span>(<span>x</span>)</span></span></span></code>
@@ -983,19 +1066,19 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="2530" data-fsdocs-tip-unique="2530">
+              <code data-fsdocs-tip="2531" data-fsdocs-tip-unique="2531">
                 <p>
-                  <a id="TypeDefnNode">
-                    <a href="#TypeDefnNode">
-                      <code><span>TypeDefn.TypeDefnNode<span><span>(<span>x</span>)</span></span></span></code>
+                  <a id="TypeName">
+                    <a href="#TypeName">
+                      <code><span>TypeDefn.TypeName<span><span>(<span>x</span>)</span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2530">
+              <div popover="" class="fsdocs-tip" id="2531">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>TypeDefn.TypeDefnNode<span><span>(<span>x</span>)</span></span></span></code>
+                  <code><span>TypeDefn.TypeName<span><span>(<span>x</span>)</span></span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
@@ -1012,7 +1095,7 @@
                   <br/>
                   <span>
                     Returns: 
-                    <code><a href="../reference/fantomas-core-syntaxoak-itypedefn.html">ITypeDefn</a></code>
+                    <code><a href="../reference/fantomas-core-syntaxoak-typenamenode.html">TypeNameNode</a></code>
                   </span>
                   <br/>
                 </div>
@@ -1020,12 +1103,27 @@
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       The header every case has.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.SyntaxOak.TypeDefn.TypeName\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.SyntaxOak.TypeDefn.TypeName`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
               <dl class="fsdocs-params">
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
@@ -1041,11 +1139,94 @@
                   <span class="fsdocs-return-name">
                     Returns: 
                   </span>
-                  <code><a href="../reference/fantomas-core-syntaxoak-itypedefn.html">ITypeDefn</a></code>
+                  <code><a href="../reference/fantomas-core-syntaxoak-typenamenode.html">TypeNameNode</a></code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="2532" data-fsdocs-tip-unique="2532">
+                <p>
+                  <a id="WithKeyword">
+                    <a href="#WithKeyword">
+                      <code><span>TypeDefn.WithKeyword<span><span>(<span>x</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="2532">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>TypeDefn.WithKeyword<span><span>(<span>x</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        x
+                      </b>
+                      :
+                      <code><a href="../reference/fantomas-core-syntaxoak-typedefn.html">TypeDefn</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="../reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-option-1">option</a></span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
             </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       The `with` before the members: `type T with`, or after the body, `type T = { X: int } with`.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.SyntaxOak.TypeDefn.WithKeyword\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.SyntaxOak.TypeDefn.WithKeyword`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    x
+                  </span>
+                  :
+                  <code><a href="../reference/fantomas-core-syntaxoak-typedefn.html">TypeDefn</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span><a href="../reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-option-1">option</a></span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
           </td>
         </tr>
       </tbody>

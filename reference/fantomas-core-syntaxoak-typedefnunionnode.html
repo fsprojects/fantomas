@@ -373,8 +373,6 @@
     <dt>
       All Interfaces: 
       <code><a href="../reference/fantomas-core-syntaxoak-node.html">Node</a></code>
-      , 
-      <code><a href="../reference/fantomas-core-syntaxoak-itypedefn.html">ITypeDefn</a></code>
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
@@ -412,19 +410,19 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="2634" data-fsdocs-tip-unique="2634">
+              <code data-fsdocs-tip="2655" data-fsdocs-tip-unique="2655">
                 <p>
                   <a id="``.ctor``">
                     <a href="#``.ctor``">
-                      <code><span>TypeDefnUnionNode<span><span>(<span>typeNameNode,&#32;accessibility,&#32;unionCases,&#32;members,&#32;range</span>)</span></span></span></code>
+                      <code><span>TypeDefnUnionNode<span><span>(<span>typeNameNode,&#32;accessibility,&#32;unionCases,&#32;withKeyword,&#32;members,&#32;range</span>)</span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2634">
+              <div popover="" class="fsdocs-tip" id="2655">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>TypeDefnUnionNode<span><span>(<span>typeNameNode,&#32;accessibility,&#32;unionCases,&#32;members,&#32;range</span>)</span></span></span></code>
+                  <code><span>TypeDefnUnionNode<span><span>(<span>typeNameNode,&#32;accessibility,&#32;unionCases,&#32;withKeyword,&#32;members,&#32;range</span>)</span></span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
@@ -451,6 +449,14 @@
                       </b>
                       :
                       <code><span><a href="../reference/fantomas-core-syntaxoak-unioncasenode.html">UnionCaseNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-list-1">list</a></span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        withKeyword
+                      </b>
+                      :
+                      <code><span><a href="../reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-option-1">option</a></span></code>
                     </span>
                     <br/>
                     <span>
@@ -514,6 +520,14 @@
                 <dd class="fsdocs-param-docs"></dd>
                 <dt class="fsdocs-param">
                   <span class="fsdocs-param-name">
+                    withKeyword
+                  </span>
+                  :
+                  <code><span><a href="../reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-option-1">option</a></span></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
                     members
                   </span>
                   :
@@ -564,7 +578,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="2635" data-fsdocs-tip-unique="2635">
+              <code data-fsdocs-tip="2656" data-fsdocs-tip-unique="2656">
                 <p>
                   <a id="Accessibility">
                     <a href="#Accessibility">
@@ -573,7 +587,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2635">
+              <div popover="" class="fsdocs-tip" id="2656">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.Accessibility</span></code>
@@ -610,7 +624,99 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="2636" data-fsdocs-tip-unique="2636">
+              <code data-fsdocs-tip="2657" data-fsdocs-tip-unique="2657">
+                <p>
+                  <a id="Members">
+                    <a href="#Members">
+                      <code><span>this.Members</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="2657">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.Members</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="../reference/fantomas-core-syntaxoak-memberdefn.html">MemberDefn</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-list-1">list</a></span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span><a href="../reference/fantomas-core-syntaxoak-memberdefn.html">MemberDefn</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-list-1">list</a></span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="2658" data-fsdocs-tip-unique="2658">
+                <p>
+                  <a id="TypeName">
+                    <a href="#TypeName">
+                      <code><span>this.TypeName</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="2658">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.TypeName</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="../reference/fantomas-core-syntaxoak-typenamenode.html">TypeNameNode</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><a href="../reference/fantomas-core-syntaxoak-typenamenode.html">TypeNameNode</a></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="2659" data-fsdocs-tip-unique="2659">
                 <p>
                   <a id="UnionCases">
                     <a href="#UnionCases">
@@ -619,7 +725,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2636">
+              <div popover="" class="fsdocs-tip" id="2659">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.UnionCases</span></code>
@@ -647,6 +753,52 @@
                     Returns: 
                   </span>
                   <code><span><a href="../reference/fantomas-core-syntaxoak-unioncasenode.html">UnionCaseNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-list-1">list</a></span></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="2660" data-fsdocs-tip-unique="2660">
+                <p>
+                  <a id="WithKeyword">
+                    <a href="#WithKeyword">
+                      <code><span>this.WithKeyword</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="2660">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.WithKeyword</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="../reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-option-1">option</a></span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span><a href="../reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-option-1">option</a></span></code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>
@@ -684,7 +836,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="2637" data-fsdocs-tip-unique="2637">
+              <code data-fsdocs-tip="2661" data-fsdocs-tip-unique="2661">
                 <p>
                   <a id="AddAfter">
                     <a href="#AddAfter">
@@ -693,7 +845,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2637">
+              <div popover="" class="fsdocs-tip" id="2661">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.AddAfter</span></code>
@@ -738,7 +890,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="2638" data-fsdocs-tip-unique="2638">
+              <code data-fsdocs-tip="2662" data-fsdocs-tip-unique="2662">
                 <p>
                   <a id="AddBefore">
                     <a href="#AddBefore">
@@ -747,7 +899,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2638">
+              <div popover="" class="fsdocs-tip" id="2662">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.AddBefore</span></code>
@@ -792,99 +944,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="2639" data-fsdocs-tip-unique="2639">
-                <p>
-                  <a id="HasAnyContentAfter">
-                    <a href="#HasAnyContentAfter">
-                      <code><span>this.HasAnyContentAfter</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="2639">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.HasAnyContentAfter</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><a href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><a href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="2640" data-fsdocs-tip-unique="2640">
-                <p>
-                  <a id="Range">
-                    <a href="#Range">
-                      <code><span>this.Range</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="2640">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.Range</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><a href="../reference/fantomas-fcs-text-range-0.html">range</a></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><a href="../reference/fantomas-fcs-text-range-0.html">range</a></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="2641" data-fsdocs-tip-unique="2641">
+              <code data-fsdocs-tip="2663" data-fsdocs-tip-unique="2663">
                 <p>
                   <a id="HasContentBefore">
                     <a href="#HasContentBefore">
@@ -893,7 +953,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2641">
+              <div popover="" class="fsdocs-tip" id="2663">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.HasContentBefore</span></code>
@@ -930,53 +990,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="2642" data-fsdocs-tip-unique="2642">
-                <p>
-                  <a id="ContentAfter">
-                    <a href="#ContentAfter">
-                      <code><span>this.ContentAfter</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div popover="" class="fsdocs-tip" id="2642">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.ContentAfter</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><span><a href="../reference/fantomas-core-syntaxoak-trivianode.html">TriviaNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-seq-1">seq</a></span></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-member-xmldoc-column">
-              <div class="icon-button-row">
-                <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
-                </a>
-              </div>
-              <dl class="fsdocs-returns">
-                <dt>
-                  <span class="fsdocs-return-name">
-                    Returns: 
-                  </span>
-                  <code><span><a href="../reference/fantomas-core-syntaxoak-trivianode.html">TriviaNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-seq-1">seq</a></span></code>
-                </dt>
-                <dd class="fsdocs-return-docs"></dd>
-              </dl>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code data-fsdocs-tip="2643" data-fsdocs-tip-unique="2643">
+              <code data-fsdocs-tip="2664" data-fsdocs-tip-unique="2664">
                 <p>
                   <a id="HasAnyContentBefore">
                     <a href="#HasAnyContentBefore">
@@ -985,7 +999,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2643">
+              <div popover="" class="fsdocs-tip" id="2664">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.HasAnyContentBefore</span></code>
@@ -1022,7 +1036,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="2644" data-fsdocs-tip-unique="2644">
+              <code data-fsdocs-tip="2665" data-fsdocs-tip-unique="2665">
                 <p>
                   <a id="Children">
                     <a href="#Children">
@@ -1031,7 +1045,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2644">
+              <div popover="" class="fsdocs-tip" id="2665">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.Children</span></code>
@@ -1071,7 +1085,53 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="2645" data-fsdocs-tip-unique="2645">
+              <code data-fsdocs-tip="2666" data-fsdocs-tip-unique="2666">
+                <p>
+                  <a id="HasContentAfter">
+                    <a href="#HasContentAfter">
+                      <code><span>this.HasContentAfter</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="2666">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.HasContentAfter</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><a href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="2667" data-fsdocs-tip-unique="2667">
                 <p>
                   <a id="ContentBefore">
                     <a href="#ContentBefore">
@@ -1080,7 +1140,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2645">
+              <div popover="" class="fsdocs-tip" id="2667">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.ContentBefore</span></code>
@@ -1117,19 +1177,65 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="2646" data-fsdocs-tip-unique="2646">
+              <code data-fsdocs-tip="2668" data-fsdocs-tip-unique="2668">
                 <p>
-                  <a id="HasContentAfter">
-                    <a href="#HasContentAfter">
-                      <code><span>this.HasContentAfter</span></code>
+                  <a id="Range">
+                    <a href="#Range">
+                      <code><span>this.Range</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="2646">
+              <div popover="" class="fsdocs-tip" id="2668">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.HasContentAfter</span></code>
+                  <code><span>this.Range</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="../reference/fantomas-fcs-text-range-0.html">range</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><a href="../reference/fantomas-fcs-text-range-0.html">range</a></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="2669" data-fsdocs-tip-unique="2669">
+                <p>
+                  <a id="HasAnyContentAfter">
+                    <a href="#HasAnyContentAfter">
+                      <code><span>this.HasAnyContentAfter</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="2669">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.HasAnyContentAfter</span></code>
                   <br/>
                   <br/>
                   <span>
@@ -1154,6 +1260,52 @@
                     Returns: 
                   </span>
                   <code><a href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="2670" data-fsdocs-tip-unique="2670">
+                <p>
+                  <a id="ContentAfter">
+                    <a href="#ContentAfter">
+                      <code><span>this.ContentAfter</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="2670">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.ContentAfter</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="../reference/fantomas-core-syntaxoak-trivianode.html">TriviaNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-seq-1">seq</a></span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-member-xmldoc-column">
+              <div class="icon-button-row">
+                <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                  <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                </a>
+              </div>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><span><a href="../reference/fantomas-core-syntaxoak-trivianode.html">TriviaNode</a>&#32;<a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-seq-1">seq</a></span></code>
                 </dt>
                 <dd class="fsdocs-return-docs"></dd>
               </dl>

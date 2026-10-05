@@ -179,7 +179,6 @@
 - [FieldNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-fieldnode.html)
 - [FillExprNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-fillexprnode.html)
 - [HashDirectiveListNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-hashdirectivelistnode.html)
-- [ITypeDefn](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-itypedefn.html)
 - [IdentListNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-identlistnode.html)
 - [IdentifierOrDot](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-identifierordot.html)
 - [IfKeywordNode](https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-ifkeywordnode.html)

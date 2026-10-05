@@ -454,6 +454,93 @@
             <div>
               <code data-fsdocs-tip="42" data-fsdocs-tip-unique="42">
                 <p>
+                  <a id="isAbsoluteZero">
+                    <a href="#isAbsoluteZero">
+                      <code><span>RangeHelpers.isAbsoluteZero&#32;<span>r</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div popover="" class="fsdocs-tip" id="42">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>RangeHelpers.isAbsoluteZero&#32;<span>r</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        r
+                      </b>
+                      :
+                      <code><a href="../reference/fantomas-fcs-text-range.html">Range</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <details>
+              <summary>
+                <div class="fsdocs-summary">
+                  <div class="fsdocs-summary-contents">
+                    <p class="fsdocs-summary">
+                       Whether a range is `absoluteZeroRange`, the range of the module of a file without code. A
+ source has no line 0, so the start line says it. Reading `absoluteZeroRange` instead
+ initializes it, which enters the compiler's `range.fs` through its `Range` module. Doing that
+ while another thread enters the same file through its first parse can leave that parse with
+ a null file index, as `ParserWarmupFixture` in `Fantomas.Core.Tests` explains.
+                    </p>
+                  </div>
+                  <div class="icon-button-row">
+                    <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                      <iconify-icon icon="ri:github-fill" height="24" width="24"></iconify-icon>
+                    </a>
+                    <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.RangeHelpers.isAbsoluteZero\'/>')">
+                      <iconify-icon icon="bi:filetype-xml" height="24" width="24"></iconify-icon>
+                    </div>
+                    <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.RangeHelpers.isAbsoluteZero`')">
+                      <iconify-icon icon="bi:filetype-md" height="24" width="24"></iconify-icon>
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <dl class="fsdocs-params">
+                <dt class="fsdocs-param">
+                  <span class="fsdocs-param-name">
+                    r
+                  </span>
+                  :
+                  <code><a href="../reference/fantomas-fcs-text-range.html">Range</a></code>
+                </dt>
+                <dd class="fsdocs-param-docs"></dd>
+              </dl>
+              <dl class="fsdocs-returns">
+                <dt>
+                  <span class="fsdocs-return-name">
+                    Returns: 
+                  </span>
+                  <code><a href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></code>
+                </dt>
+                <dd class="fsdocs-return-docs"></dd>
+              </dl>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code data-fsdocs-tip="43" data-fsdocs-tip-unique="43">
+                <p>
                   <a id="isAdjacentTo">
                     <a href="#isAdjacentTo">
                       <code><span>RangeHelpers.isAdjacentTo&#32;<span>r1&#32;r2</span></span></code>
@@ -461,7 +548,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="42">
+              <div popover="" class="fsdocs-tip" id="43">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>RangeHelpers.isAdjacentTo&#32;<span>r1&#32;r2</span></span></code>
@@ -552,7 +639,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="43" data-fsdocs-tip-unique="43">
+              <code data-fsdocs-tip="44" data-fsdocs-tip-unique="44">
                 <p>
                   <a id="rangeContainsRange">
                     <a href="#rangeContainsRange">
@@ -561,7 +648,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="43">
+              <div popover="" class="fsdocs-tip" id="44">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>RangeHelpers.rangeContainsRange&#32;<span>a&#32;b</span></span></code>
@@ -651,7 +738,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code data-fsdocs-tip="44" data-fsdocs-tip-unique="44">
+              <code data-fsdocs-tip="45" data-fsdocs-tip-unique="45">
                 <p>
                   <a id="rangeEq">
                     <a href="#rangeEq">
@@ -660,7 +747,7 @@
                   </a>
                 </p>
               </code>
-              <div popover="" class="fsdocs-tip" id="44">
+              <div popover="" class="fsdocs-tip" id="45">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>RangeHelpers.rangeEq&#32;<span></span></span></code>
