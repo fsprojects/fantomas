@@ -7,7 +7,7 @@ open Shared
 
 /// Every piece of trivia in the input and where it landed, one line each in source order: its
 /// position, its kind, which side of the node, and the node class with the token slot it fills.
-/// `(node)` is the node itself, a property name the token that property holds. It reads the Oaks a
+/// `(whole node)` is the node itself, a property name the token that property holds. It reads the Oaks a
 /// snapshot case is printed from, and names things the way the reports do. A source with
 /// conditional directives is listed once per define combination.
 let listTrivia (input: string) (isSignature: bool) (config: FormatConfig) : string =

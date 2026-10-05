@@ -127,13 +127,13 @@ let private triviaReport (observed: Observed) : string =
     let report: StringBuilder =
         header
             "Trivia"
-            "For every node class some case produces: where trivia ended up. `(node)` is the node itself,\na property name is the token that property holds, and `(token)` is a token the node holds some\nother way, in a list for instance. An empty row is a place no case puts trivia yet."
+            "For every node class some case produces: where trivia ended up. `(whole node)` is the node\nitself, a property name is the token that property holds, and `(token)` is a token the node holds\nsome other way, in a list for instance. An empty row is a place no case puts trivia yet."
 
     for nodeClass in OakFacts.nodeClasses do
         if observed.Classes.Contains nodeClass.Name then
             let slots: string list =
                 let declared: string list =
-                    "(node)"
+                    "(whole node)"
                     :: (OakFacts.tokenProperties nodeClass
                         |> List.map (fun (property: PropertyInfo) -> property.Name))
 

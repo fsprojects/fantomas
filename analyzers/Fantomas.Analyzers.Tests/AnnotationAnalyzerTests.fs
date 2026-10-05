@@ -168,3 +168,69 @@ type Holder(value: int) =
     member _.Value = value"""
 
     analyzeSource cliAnalyzer source |> assertLines []
+
+[<Test>]
+let ``an unannotated primary constructor parameter is reported`` () =
+    let source: string =
+        """module M
+
+type Holder(value) =
+    member _.Value: int = value"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 3 ]
+
+[<Test>]
+let ``every unannotated primary constructor parameter is reported`` () =
+    let source: string =
+        """module M
+
+type Holder
+    (
+        first,
+        second: int,
+        third
+    ) =
+    member _.Sum: int = first + second + third"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 5; 7 ]
+
+[<Test>]
+let ``an annotated primary constructor is not reported`` () =
+    let source: string =
+        """module M
+
+type Holder(value: int, name: string) =
+    member _.Name: string = name"""
+
+    analyzeSource cliAnalyzer source |> assertLines []
+
+[<Test>]
+let ``a unit primary constructor is not asked to carry a type`` () =
+    let source: string =
+        """module M
+
+type Holder() =
+    member _.Value: int = 1"""
+
+    analyzeSource cliAnalyzer source |> assertLines []
+
+[<Test>]
+let ``an unannotated auto property is reported`` () =
+    let source: string =
+        """module M
+
+type Holder(value: int) =
+    member val Value = value
+    static member val Count = 0 with get, set"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 4; 5 ]
+
+[<Test>]
+let ``an annotated auto property is not reported`` () =
+    let source: string =
+        """module M
+
+type Holder(value: int) =
+    member val Value: int = value"""
+
+    analyzeSource cliAnalyzer source |> assertLines []

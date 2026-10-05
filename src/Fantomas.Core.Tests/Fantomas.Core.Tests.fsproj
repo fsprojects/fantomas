@@ -9,6 +9,7 @@
   <ItemGroup>
     <Compile Include="TestHelpers.fsi" />
     <Compile Include="TestHelpers.fs" />
+    <Compile Include="ParserWarmupFixture.fs" />
     <Compile Include="UtilsTests.fs" />
     <Compile Include="QueueTests.fs" />
     <Compile Include="DefinesTests.fs" />

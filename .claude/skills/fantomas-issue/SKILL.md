@@ -20,6 +20,8 @@ A formatting test is a snapshot case in `src/Fantomas.Core.SnapshotTests/cases/`
 project's `README.md` first: it says where a case goes, how to name it and what every case checks.
 In short:
 
+- Look for a case that already pins the bug: a `*.ignore.fs` in the node's folder, or one that
+  names the issue. Renaming it to `name.fs` gives the failing case, golds included.
 - Put the input in the folder of the node it is about, `cases/oak/<Union>/<Case>/` or
   `cases/oak/<Node>/`, or under `cases/settings/<key>/` when the point is what a setting does. A
   case about comments, blank lines or directives goes in the node's `trivia/` folder. One that
@@ -53,7 +55,9 @@ it fails** before proceeding to the fix.
 
 ## 4. Investigate the root cause
 
-Use the /ast, /oak, and /writer-events skills to understand what's happening. Key files to inspect:
+Use the /ast, /oak, /trivia and /writer-events skills to understand what's happening. When the
+syntax tree lacks a range or a flag, the parser that builds it is in `.deps/<hash>/src/Compiler/`:
+`pars.fsy` and `SyntaxTree/ParseHelpers.fs`. Key files to inspect:
 - `src/Fantomas.Core/CodePrinter.fs` - the main printer
 - `src/Fantomas.Core/Context.fs` - writer context
 - `src/Fantomas.Core/ASTTransformer.fs` - AST to Oak transformation

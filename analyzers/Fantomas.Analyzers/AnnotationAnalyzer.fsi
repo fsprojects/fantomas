@@ -10,13 +10,13 @@ val Name: string = "AnnotationAnalyzer"
 
 [<Literal>]
 val ShortDescription: string =
-    "Detects a let binding without a type annotation, where a written type would say what the name holds."
+    "Detects a let binding, primary constructor parameter or auto property without a type annotation, where a written type would say what the name holds."
 
 [<Literal>]
 val HelpUri: string = "https://github.com/fsprojects/fantomas/blob/main/analyzers/AGENTS.md#fantomas-annotate-001"
 
-/// Reports every let binding that is missing a type, on the name rather than on the whole binding
-/// so that the range stays small.
+/// Reports every let binding, primary constructor parameter and auto property (`member val`) that is
+/// missing a type, on the name rather than on the whole binding so that the range stays small.
 ///
 /// Signature files are skipped whole, since a `val` already states the type. So is the unit
 /// parameter, which has nowhere to put one. So is any binding carrying a test attribute, along with

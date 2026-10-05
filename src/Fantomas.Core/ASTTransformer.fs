@@ -2329,19 +2329,25 @@ let mkBinding
 
     let returnTypeNode = mkBindingReturnInfo creationAide returnInfo
 
+    let exprNode: Expr = mkExpr creationAide e
+
     let range =
         let start =
+            let keywordRange: range =
+                match trivia.LeadingKeyword, pat with
+                | SynLeadingKeyword.Member _, SynPat.LongIdent(extraId = Some _) -> pat.Range
+                | _ -> trivia.LeadingKeyword.Range
+
+            // The attributes can follow the keyword, as in `let rec [<A>] f x = x`.
             if not xmlDoc.IsEmpty then
-                xmlDoc.Range
+                unionRanges xmlDoc.Range keywordRange
             elif not attributes.IsEmpty then
-                attributes.Head.Range
+                unionRanges attributes.Head.Range keywordRange
             else
+                keywordRange
 
-            match trivia.LeadingKeyword, pat with
-            | SynLeadingKeyword.Member _, SynPat.LongIdent(extraId = Some _) -> pat.Range
-            | _ -> trivia.LeadingKeyword.Range
-
-        let range = unionRanges start e.Range
+        // The node of a static optimization runs on over its `when` clauses, past the expression's range.
+        let range: range = unionRanges start (Expr.Node exprNode).Range
 
         match inKeyword with
         | None -> range
@@ -2359,7 +2365,7 @@ let mkBinding
         parameters,
         returnTypeNode,
         equals,
-        (mkExpr creationAide e),
+        exprNode,
         inKeyword,
         range
     )
@@ -2579,7 +2585,8 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             Option.map mkLongIdent abbreviation,
             Option.map (stn "with") withKeyword,
             List.map (mkMemberDefn creationAide) ms,
-            declRange
+            // The parser ends the range before a `with end` without members.
+            Option.fold unionRanges declRange withKeyword
         )
         |> ModuleDecl.Exception
     | SynModuleDecl.Let(
@@ -2621,10 +2628,16 @@ let mkSynTyparDecl
     (creationAide: CreationAide)
     (SynTyparDecl(attributes = attrs; typar = typar; intersectionConstraints = intersectionConstraints; trivia = trivia))
     =
+    // The intersection constraints follow the type parameter, as in `'T & #IDisposable`.
     let m =
-        match List.tryHead attrs with
-        | None -> typar.Range
-        | Some a -> unionRanges a.Range typar.Range
+        let m: range =
+            match List.tryHead attrs with
+            | None -> typar.Range
+            | Some a -> unionRanges a.Range typar.Range
+
+        match List.tryLast intersectionConstraints with
+        | None -> m
+        | Some t -> unionRanges m t.Range
 
     let intersectionConstraintNodes =
         if intersectionConstraints.Length <> trivia.AmpersandRanges.Length then
@@ -2702,11 +2715,8 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
     visit rc
 
 let mkSynTypar (SynTypar(ident, req, _)) =
-    let range =
-        mkRange
-            ident.idRange.FileName
-            (Position.mkPos ident.idRange.StartLine (ident.idRange.StartColumn - 1))
-            ident.idRange.End
+    // The range of the identifier includes the `'` or `^`.
+    let range: range = ident.idRange
 
     let identText =
         let width = ident.idRange.EndColumn - ident.idRange.StartColumn
@@ -3059,6 +3069,30 @@ let mkSynUnionCase
         fullRange
     )
 
+let mkSynEnumCase
+    (creationAide: CreationAide)
+    (SynEnumCase(attributes, ident, valueExpr, xmlDoc, range, trivia): SynEnumCase)
+    : EnumCaseNode
+    =
+    // The parser starts the range after the `|` and the xml doc.
+    let m: range =
+        let m: range =
+            match trivia.BarRange with
+            | None -> range
+            | Some mBar -> unionRanges mBar range
+
+        if xmlDoc.IsEmpty then m else unionRanges xmlDoc.Range m
+
+    EnumCaseNode(
+        mkXmlDoc xmlDoc,
+        Option.map (stn "|") trivia.BarRange,
+        mkAttributes creationAide attributes,
+        mkSynIdent creationAide ident,
+        stn "=" trivia.EqualsRange,
+        mkExpr creationAide valueExpr,
+        m
+    )
+
 let mkImplicitCtor
     (creationAide: CreationAide)
     (vis: SynAccess option)
@@ -3068,11 +3102,19 @@ let mkImplicitCtor
     (xmlDoc: PreXmlDoc)
     : ImplicitConstructorNode
     =
+    let accessibility: SingleTextNode option = mkSynAccess vis
+
     let range =
         let startRange =
-            if not xmlDoc.IsEmpty then xmlDoc.Range
-            else if not attrs.IsEmpty then attrs.[0].Range
-            else pat.Range
+            if not xmlDoc.IsEmpty then
+                xmlDoc.Range
+            else if not attrs.IsEmpty then
+                attrs.[0].Range
+            else
+
+            match accessibility with
+            | Some accessibility -> accessibility.Range
+            | None -> pat.Range
 
         let endRange =
             match self with
@@ -3092,7 +3134,7 @@ let mkImplicitCtor
     ImplicitConstructorNode(
         mkXmlDoc xmlDoc,
         mkAttributes creationAide attrs,
-        mkSynAccess vis,
+        accessibility,
         mkPat creationAide pat,
         asSelfNode,
         range
@@ -3106,6 +3148,50 @@ let mkComponentInfoName (creationAide: CreationAide) (SynComponentInfo(synType =
     | Some t -> mkType creationAide t
     | None -> invariantViolationAbout m info "component info without a name"
 
+/// The header of a type definition. Its range runs over every piece it holds, from the xml doc or
+/// attributes to the `=`.
+let mkTypeNameNode
+    (
+        xmlDoc: XmlDocNode option,
+        attributes: MultipleAttributeListNode option,
+        leadingKeyword: SingleTextNode,
+        ao: SingleTextNode option,
+        identifier: Type,
+        typeParams: TyparDecls option,
+        constraints: TypeConstraint list,
+        implicitConstructor: ImplicitConstructorNode option,
+        equalsToken: SingleTextNode option
+    )
+    : TypeNameNode
+    =
+    let m: range =
+        [
+            yield! noa xmlDoc
+            yield! noa attributes
+            yield leadingKeyword
+            yield! noa ao
+            yield Type.Node identifier
+            yield! noa (Option.map TyparDecls.Node typeParams)
+            yield! List.map TypeConstraint.Node constraints
+            yield! noa implicitConstructor
+            yield! noa equalsToken
+        ]
+        |> List.map nodeRange
+        |> List.reduce unionRanges
+
+    TypeNameNode(
+        xmlDoc,
+        attributes,
+        leadingKeyword,
+        ao,
+        identifier,
+        typeParams,
+        constraints,
+        implicitConstructor,
+        equalsToken,
+        m
+    )
+
 let mkTypeDefn
     (creationAide: CreationAide)
     (SynTypeDefn(typeInfo, typeRepr, members, implicitConstructor, range, trivia))
@@ -3116,7 +3202,6 @@ let mkTypeDefn
         | SynComponentInfo(ats, tds, tcs, _, px, _preferPostfix, ao, _) ->
 
         let identifierNode = mkComponentInfoName creationAide typeInfo
-        let mIdentifierNode = (Type.Node identifierNode).Range
 
         let leadingKeyword =
             match trivia.LeadingKeyword with
@@ -3141,26 +3226,7 @@ let mkTypeDefn
                 mkImplicitCtor creationAide vis attrs pats self xmlDoc |> Some
             | _ -> None
 
-        let m =
-            let startRange =
-                if not px.IsEmpty then
-                    px.Range
-                elif leadingKeyword.Text = "and" then
-                    leadingKeyword.Range
-                else
-
-                match ats with
-                | [] -> leadingKeyword.Range
-                | firstAttr :: _ -> firstAttr.Range
-
-            let endRange =
-                match trivia.EqualsRange with
-                | None -> mIdentifierNode
-                | Some mEq -> mEq
-
-            unionRanges startRange endRange
-
-        TypeNameNode(
+        mkTypeNameNode (
             mkXmlDoc px,
             mkAttributes creationAide ats,
             leadingKeyword,
@@ -3169,37 +3235,24 @@ let mkTypeDefn
             Option.map (mkSynTyparDecls creationAide) tds,
             List.map (mkSynTypeConstraint creationAide) tcs,
             implicitConstructorNode,
-            Option.map (stn "=") trivia.EqualsRange,
-            Option.map (stn "with") trivia.WithKeyword,
-            m
+            Option.map (stn "=") trivia.EqualsRange
         )
 
     let members = List.map (mkMemberDefn creationAide) members
+    let withKeyword: SingleTextNode option = Option.map (stn "with") trivia.WithKeyword
     let typeDefnRange = unionRanges typeNameNode.Range range
 
     match typeRepr with
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Enum(ecs, _)) ->
-        let enumCases =
-            ecs
-            |> List.map (fun (SynEnumCase(attributes, ident, valueExpr, xmlDoc, range, trivia)) ->
-                EnumCaseNode(
-                    mkXmlDoc xmlDoc,
-                    Option.map (stn "|") trivia.BarRange,
-                    mkAttributes creationAide attributes,
-                    mkSynIdent creationAide ident,
-                    stn "=" trivia.EqualsRange,
-                    mkExpr creationAide valueExpr,
-                    range
-                )
-            )
+        let enumCases: EnumCaseNode list = ecs |> List.map (mkSynEnumCase creationAide)
 
-        TypeDefnEnumNode(typeNameNode, enumCases, members, typeDefnRange)
+        TypeDefnEnumNode(typeNameNode, enumCases, withKeyword, members, typeDefnRange)
         |> TypeDefn.Enum
 
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Union(ao, cases, _)) ->
         let unionCases = cases |> List.map (mkSynUnionCase creationAide)
 
-        TypeDefnUnionNode(typeNameNode, mkSynAccess ao, unionCases, members, typeDefnRange)
+        TypeDefnUnionNode(typeNameNode, mkSynAccess ao, unionCases, withKeyword, members, typeDefnRange)
         |> TypeDefn.Union
 
     | SynTypeDefnRepr.Simple(
@@ -3212,13 +3265,14 @@ let mkTypeDefn
             stn "{" openingBrace,
             fields,
             stn "}" closingBrace,
+            withKeyword,
             members,
             typeDefnRange
         )
         |> TypeDefn.Record
 
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.TypeAbbrev(rhsType = t)) ->
-        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, members, typeDefnRange))
+        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, withKeyword, members, typeDefnRange))
 
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.None _) -> TypeDefn.None typeNameNode
 
@@ -3247,12 +3301,12 @@ let mkTypeDefn
 
         let body = TypeDefnExplicitBodyNode(kindNode, objectMembers, endNode, range)
 
-        TypeDefnExplicitNode(typeNameNode, body, members, typeDefnRange)
+        TypeDefnExplicitNode(typeNameNode, body, withKeyword, members, typeDefnRange)
         |> TypeDefn.Explicit
 
     | SynTypeDefnRepr.ObjectModel(kind = SynTypeDefnKind.Augmentation mWith) ->
         let typeNameNode =
-            TypeNameNode(
+            mkTypeNameNode (
                 typeNameNode.XmlDoc,
                 typeNameNode.Attributes,
                 typeNameNode.LeadingKeyword,
@@ -3261,12 +3315,10 @@ let mkTypeDefn
                 typeNameNode.TypeParameters,
                 typeNameNode.Constraints,
                 None,
-                None,
-                Some(stn "with" mWith),
-                typeNameNode.Range
+                None
             )
 
-        TypeDefnAugmentationNode(typeNameNode, members, typeDefnRange)
+        TypeDefnAugmentationNode(typeNameNode, Some(stn "with" mWith), members, typeDefnRange)
         |> TypeDefn.Augmentation
 
     | SynTypeDefnRepr.ObjectModel(
@@ -3289,7 +3341,8 @@ let mkTypeDefn
 
             [ yield! objectMembers; yield! members ]
 
-        TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
+        TypeDefnRegularNode(typeNameNode, withKeyword, allMembers, typeDefnRange)
+        |> TypeDefn.Regular
     | _ -> missingOakNode "type definition" range typeRepr
 
 let mkWithGetSet
@@ -3348,7 +3401,7 @@ let mkPropertyGetSetBinding
     match binding with
     | SynBinding(
         attributes = attributes
-        headPat = SynPat.LongIdent(extraId = Some extraIdent; argPats = SynArgPats.Pats ps)
+        headPat = SynPat.LongIdent(extraId = Some _; argPats = SynArgPats.Pats ps)
         returnInfo = returnInfo
         expr = expr
         trivia = {
@@ -3360,13 +3413,7 @@ let mkPropertyGetSetBinding
         // We use the `with` or `and` keyword to filter them.
         let attributes =
             attributes
-            |> List.map (fun al ->
-                { al with
-                    Attributes =
-                        al.Attributes
-                        |> List.filter (fun a -> Position.posGt a.Range.Start withOrAndKeyword.End)
-                }
-            )
+            |> List.filter (fun (al: SynAttributeList) -> Position.posGt al.Range.Start withOrAndKeyword.End)
 
         let e = parseExpressionInSynBinding returnInfo expr
         let returnTypeNode = mkBindingReturnInfo creationAide returnInfo
@@ -3402,17 +3449,35 @@ let mkPropertyGetSetBinding
             | [ SynPat.Tuple(false, [ p1; p2 ], _, _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
             | ps -> List.map (mkPat creationAide) ps
 
-        let range = unionRanges extraIdent.idRange e.Range
+        let inlineNode: SingleTextNode option = Option.map (stn "inline") inlineKw
+
+        let attributesNode: MultipleAttributeListNode option =
+            mkAttributes creationAide attributes
+
+        let accessibilityNode: SingleTextNode option = mkSynAccess accessibility
+        let exprNode: Expr = mkExpr creationAide e
+
+        // `inline`, the attributes and the accessibility come before `get` or `set`.
+        let range: range =
+            [
+                yield! noa inlineNode
+                yield! noa attributesNode
+                yield! noa accessibilityNode
+                yield leadingKeyword
+                yield Expr.Node exprNode
+            ]
+            |> List.map nodeRange
+            |> List.reduce unionRanges
 
         PropertyGetSetBindingNode(
-            Option.map (stn "inline") inlineKw,
-            mkAttributes creationAide attributes,
-            mkSynAccess accessibility,
+            inlineNode,
+            attributesNode,
+            accessibilityNode,
             leadingKeyword,
             pats,
             returnTypeNode,
             stn "=" mEq,
-            mkExpr creationAide e,
+            exprNode,
             range
         )
     | _ ->
@@ -3437,7 +3502,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                                  px,
                                                  valData,
                                                  SynPat.LongIdent(lid,
-                                                                  extraId,
+                                                                  _,
                                                                   typarDecls,
                                                                   SynArgPats.Pats [ SynPat.Paren(
                                                                                         pat = SynPat.Const(
@@ -3453,7 +3518,9 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                  _,
                                  { GetKeyword = Some _ }) ->
 
-        let pat = SynPat.LongIdent(lid, extraId, typarDecls, SynArgPats.Pats([]), ao, mPat)
+        // Without the `get` the binding is a member like any other.
+        let pat: SynPat =
+            SynPat.LongIdent(lid, None, typarDecls, SynArgPats.Pats([]), ao, mPat)
 
         mkBinding
             creationAide
@@ -3868,6 +3935,20 @@ let rec mkModuleDecls
     | head :: tail ->
         mkModuleDecls creationAide tail (fun nodes -> mkModuleDecl creationAide head :: nodes |> finalContinuation)
 
+/// The parser can end a module's range before its last declaration does, as with the type
+/// parameters of `type T<'a>` in a signature file, so the range is widened over the declarations.
+let mkModuleOrNamespaceNode
+    (header: ModuleOrNamespaceHeaderNode option)
+    (decls: ModuleDecl list)
+    (range: range)
+    : ModuleOrNamespaceNode
+    =
+    let m: range =
+        decls
+        |> List.fold (fun (m: range) (decl: ModuleDecl) -> unionRanges m (ModuleDecl.Node decl).Range) range
+
+    ModuleOrNamespaceNode(header, decls, m)
+
 let mkModuleOrNamespace
     (creationAide: CreationAide)
     (SynModuleOrNamespace(
@@ -3934,7 +4015,17 @@ let mkModuleOrNamespace
 
     let decls = mkModuleDecls creationAide decls id
 
-    ModuleOrNamespaceNode(header, decls, range)
+    mkModuleOrNamespaceNode header decls range
+
+/// The whole tree, widened over its modules like `mkModuleOrNamespaceNode` is over its declarations.
+/// The module of a file without code carries `absoluteZeroRange`, which is no place to widen to.
+let mkOakNode (hashDirectives: ParsedHashDirectiveNode list) (mds: ModuleOrNamespaceNode list) (range: range) : Oak =
+    let m: range =
+        mds
+        |> List.filter (fun (md: ModuleOrNamespaceNode) -> not (RangeHelpers.isAbsoluteZero md.Range))
+        |> List.fold (fun (m: range) (md: ModuleOrNamespaceNode) -> unionRanges m md.Range) range
+
+    Oak(hashDirectives, mds, m)
 
 let mkImplFile
     (creationAide: CreationAide)
@@ -3943,7 +4034,7 @@ let mkImplFile
     =
     let phds = List.map (mkParsedHashDirective creationAide) hashDirectives
     let mds = List.map (mkModuleOrNamespace creationAide) contents
-    Oak(phds, mds, m)
+    mkOakNode phds mds m
 
 // start sig file
 [<TailCall>]
@@ -3994,7 +4085,8 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
             Option.map mkLongIdent abbreviation,
             Option.map (stn "with") withKeyword,
             List.map (mkMemberSig creationAide) ms,
-            declRange
+            // The parser ends the range before a `with end` without members.
+            Option.fold unionRanges declRange withKeyword
         )
         |> ModuleDecl.Exception
     | SynModuleSigDecl.ModuleAbbrev(ident, lid, StartRange 6 (mModule, _)) ->
@@ -4029,7 +4121,6 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
         | SynComponentInfo(ats, tds, tcs, _, px, _preferPostfix, ao, _) ->
 
         let identifierNode = mkComponentInfoName creationAide typeInfo
-        let mIdentifierNode = (Type.Node identifierNode).Range
 
         let leadingKeyword =
             match trivia.LeadingKeyword with
@@ -4043,16 +4134,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 trivia.LeadingKeyword
                 $"unexpected leading keyword %s{UnionCase.name trivia.LeadingKeyword}"
 
-        let m =
-            if not px.IsEmpty then
-                unionRanges px.Range mIdentifierNode
-            else
-
-            match ats with
-            | [] -> unionRanges leadingKeyword.Range mIdentifierNode
-            | firstAttr :: _ -> unionRanges firstAttr.Range mIdentifierNode
-
-        TypeNameNode(
+        mkTypeNameNode (
             mkXmlDoc px,
             mkAttributes creationAide ats,
             leadingKeyword,
@@ -4061,37 +4143,24 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             Option.map (mkSynTyparDecls creationAide) tds,
             List.map (mkSynTypeConstraint creationAide) tcs,
             None,
-            Option.map (stn "=") trivia.EqualsRange,
-            Option.map (stn "with") trivia.WithKeyword,
-            m
+            Option.map (stn "=") trivia.EqualsRange
         )
 
     let members = List.map (mkMemberSig creationAide) members
+    let withKeyword: SingleTextNode option = Option.map (stn "with") trivia.WithKeyword
     let typeDefnRange = unionRanges typeNameNode.Range range
 
     match typeRepr with
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.Enum(ecs, _)) ->
-        let enumCases =
-            ecs
-            |> List.map (fun (SynEnumCase(attributes, ident, valueExpr, xmlDoc, range, trivia)) ->
-                EnumCaseNode(
-                    mkXmlDoc xmlDoc,
-                    Option.map (stn "|") trivia.BarRange,
-                    mkAttributes creationAide attributes,
-                    mkSynIdent creationAide ident,
-                    stn "=" trivia.EqualsRange,
-                    mkExpr creationAide valueExpr,
-                    range
-                )
-            )
+        let enumCases: EnumCaseNode list = ecs |> List.map (mkSynEnumCase creationAide)
 
-        TypeDefnEnumNode(typeNameNode, enumCases, members, typeDefnRange)
+        TypeDefnEnumNode(typeNameNode, enumCases, withKeyword, members, typeDefnRange)
         |> TypeDefn.Enum
 
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.Union(ao, cases, _)) ->
         let unionCases = cases |> List.map (mkSynUnionCase creationAide)
 
-        TypeDefnUnionNode(typeNameNode, mkSynAccess ao, unionCases, members, typeDefnRange)
+        TypeDefnUnionNode(typeNameNode, mkSynAccess ao, unionCases, withKeyword, members, typeDefnRange)
         |> TypeDefn.Union
 
     | SynTypeDefnSigRepr.Simple(
@@ -4104,17 +4173,18 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             stn "{" openingBrace,
             fields,
             stn "}" closingBrace,
+            withKeyword,
             members,
             typeDefnRange
         )
         |> TypeDefn.Record
 
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.TypeAbbrev(rhsType = t)) ->
-        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, members, range))
+        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, withKeyword, members, typeDefnRange))
 
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.None _) when List.isNotEmpty members ->
         let typeNameNode =
-            TypeNameNode(
+            mkTypeNameNode (
                 typeNameNode.XmlDoc,
                 typeNameNode.Attributes,
                 typeNameNode.LeadingKeyword,
@@ -4123,12 +4193,10 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 typeNameNode.TypeParameters,
                 typeNameNode.Constraints,
                 None,
-                None,
-                typeNameNode.WithKeyword,
-                typeNameNode.Range
+                None
             )
 
-        TypeDefnAugmentationNode(typeNameNode, members, typeDefnRange)
+        TypeDefnAugmentationNode(typeNameNode, withKeyword, members, typeDefnRange)
         |> TypeDefn.Augmentation
 
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.None _) -> TypeDefn.None typeNameNode
@@ -4153,12 +4221,12 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
 
         let body = TypeDefnExplicitBodyNode(kindNode, objectMembers, endNode, range)
 
-        TypeDefnExplicitNode(typeNameNode, body, members, typeDefnRange)
+        TypeDefnExplicitNode(typeNameNode, body, withKeyword, members, typeDefnRange)
         |> TypeDefn.Explicit
 
     | SynTypeDefnSigRepr.ObjectModel(kind = SynTypeDefnKind.Augmentation mWith) ->
         let typeNameNode =
-            TypeNameNode(
+            mkTypeNameNode (
                 typeNameNode.XmlDoc,
                 typeNameNode.Attributes,
                 typeNameNode.LeadingKeyword,
@@ -4167,12 +4235,10 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 typeNameNode.TypeParameters,
                 typeNameNode.Constraints,
                 None,
-                None,
-                Some(stn "with" mWith),
-                typeNameNode.Range
+                None
             )
 
-        TypeDefnAugmentationNode(typeNameNode, members, typeDefnRange)
+        TypeDefnAugmentationNode(typeNameNode, Some(stn "with" mWith), members, typeDefnRange)
         |> TypeDefn.Augmentation
 
     | SynTypeDefnSigRepr.ObjectModel(
@@ -4188,7 +4254,8 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
 
             [ yield! objectMembers; yield! members ]
 
-        TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
+        TypeDefnRegularNode(typeNameNode, withKeyword, allMembers, typeDefnRange)
+        |> TypeDefn.Regular
     | _ -> missingOakNode "type definition" range typeRepr
 
 [<TailCall>]
@@ -4293,7 +4360,7 @@ let mkModuleOrNamespaceSig
             )
             |> Some
 
-    ModuleOrNamespaceNode(header, decls, range)
+    mkModuleOrNamespaceNode header decls range
 
 let mkSigFile
     (creationAide: CreationAide)
@@ -4302,7 +4369,7 @@ let mkSigFile
     =
     let phds = List.map (mkParsedHashDirective creationAide) hashDirectives
     let mds = List.map (mkModuleOrNamespaceSig creationAide) contents
-    Oak(phds, mds, m)
+    mkOakNode phds mds m
 
 let includeTrivia (baseRange: range) (trivia: ParsedInputTrivia) : range =
     let ranges =
