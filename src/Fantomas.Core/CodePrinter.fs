@@ -2342,7 +2342,7 @@ let genExpr (e: Expr) =
             sepSpace
             node.Constraints
             (function
-            | StaticOptimizationConstraint.WhenTyparIsStruct t -> genSingleTextNode t
+            | StaticOptimizationConstraint.WhenTyparIsStruct t -> genSingleTextNode t +> !-" struct"
             | StaticOptimizationConstraint.WhenTyparTyconEqualsTycon n ->
                 genSingleTextNode n.TypeParameter +> sepColon +> sepSpace +> genType n.Type
             )

@@ -5,6 +5,7 @@
 ### Fixed
 
 - Exception abbreviation loses its right-hand side. [#3511](https://github.com/fsprojects/fantomas/issues/3511)
+- Static optimization when ^T struct loses struct. [#3514](https://github.com/fsprojects/fantomas/issues/3514)
 
 ## [8.0.6] - 2026-10-01
 
