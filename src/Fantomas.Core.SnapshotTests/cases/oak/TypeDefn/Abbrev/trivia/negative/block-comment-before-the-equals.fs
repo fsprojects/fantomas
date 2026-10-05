@@ -1,0 +1,1 @@
+type A (* c *) = int

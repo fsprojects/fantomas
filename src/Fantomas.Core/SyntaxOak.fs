@@ -2571,8 +2571,7 @@ type TypeNameNode
         constraints: TypeConstraint list,
         implicitConstructor: ImplicitConstructorNode option,
         equalsToken: SingleTextNode option,
-        withKeyword: SingleTextNode option,
-        range
+        range: range
     )
     =
     inherit NodeBase(range)
@@ -2605,27 +2604,36 @@ type TypeNameNode
             yield! List.map TypeConstraint.Node constraints
             yield! noa implicitConstructor
             yield! noa equalsToken
-            yield! noa withKeyword
         |]
 
-    member val XmlDoc = xmlDoc
-    member val Attributes = attributes
-    member val IsFirstType = leadingKeyword.Text = "type"
-    member val LeadingKeyword = leadingKeyword
-    member val Accessibility = ao
-    member val Identifier = identifier
-    member val TypeParameters = typeParams
-    member val Constraints = constraints
-    member val ImplicitConstructor = implicitConstructor
-    member val EqualsToken = equalsToken
-    member val WithKeyword = withKeyword
+    member val XmlDoc: XmlDocNode option = xmlDoc
+    member val Attributes: MultipleAttributeListNode option = attributes
+    member val IsFirstType: bool = leadingKeyword.Text = "type"
+    member val LeadingKeyword: SingleTextNode = leadingKeyword
+    member val Accessibility: SingleTextNode option = ao
+    member val Identifier: Type = identifier
+    member val TypeParameters: TyparDecls option = typeParams
+    member val Constraints: TypeConstraint list = constraints
+    member val ImplicitConstructor: ImplicitConstructorNode option = implicitConstructor
+    member val EqualsToken: SingleTextNode option = equalsToken
 
-/// Interface implemented by all type-definition node types that carry a type name and a
-/// member list. Used to access the common parts of a type definition (its header and
-/// members) without matching on every <see cref="TypeDefn"/> case.
-type ITypeDefn =
-    abstract member TypeName: TypeNameNode
-    abstract member Members: MemberDefn list
+/// The members of a type definition with its `with` among them, in source order. The `with` precedes
+/// the members, except in a class whose body has members of its own, `type T() = member … with member …`,
+/// where it stands between the two.
+let membersAroundWith (withKeyword: SingleTextNode option) (members: MemberDefn list) : Node seq =
+    let (before: MemberDefn list), (after: MemberDefn list) =
+        match withKeyword with
+        | None -> [], members
+        | Some withNode ->
+
+        members
+        |> List.partition (fun (md: MemberDefn) -> Position.posLt (MemberDefn.Node md).Range.Start withNode.Range.Start)
+
+    seq {
+        yield! List.map MemberDefn.Node before
+        yield! noa withKeyword
+        yield! List.map MemberDefn.Node after
+    }
 
 /// Example: `| Red = 0` — a single enum case declaration.
 type EnumCaseNode
@@ -2658,25 +2666,40 @@ type EnumCaseNode
     member val Constant = constant
 
 /// Example: `type Color = Red | Green | Blue` — an enum-style type definition with integer-valued cases.
-type TypeDefnEnumNode(typeNameNode, enumCases: EnumCaseNode list, members: MemberDefn list, range) =
+type TypeDefnEnumNode
+    (
+        typeNameNode: TypeNameNode,
+        enumCases: EnumCaseNode list,
+        withKeyword: SingleTextNode option,
+        members: MemberDefn list,
+        range: range
+    )
+    =
     inherit NodeBase(range)
 
     override val Children: Node array =
         [|
             yield typeNameNode
             yield! nodes enumCases
-            yield! nodes (List.map MemberDefn.Node members)
+            yield! membersAroundWith withKeyword members
         |]
 
-    member val EnumCases = enumCases
+    member val EnumCases: EnumCaseNode list = enumCases
 
-    interface ITypeDefn with
-        member val TypeName = typeNameNode
-        member val Members = members
+    member val TypeName: TypeNameNode = typeNameNode
+    member val WithKeyword: SingleTextNode option = withKeyword
+    member val Members: MemberDefn list = members
 
 /// Example: `type Result<'T> = Ok of 'T | Error of string` — a discriminated union type definition.
 type TypeDefnUnionNode
-    (typeNameNode, accessibility: SingleTextNode option, unionCases: UnionCaseNode list, members: MemberDefn list, range)
+    (
+        typeNameNode: TypeNameNode,
+        accessibility: SingleTextNode option,
+        unionCases: UnionCaseNode list,
+        withKeyword: SingleTextNode option,
+        members: MemberDefn list,
+        range: range
+    )
     =
     inherit NodeBase(range)
 
@@ -2685,26 +2708,27 @@ type TypeDefnUnionNode
             yield typeNameNode
             yield! noa accessibility
             yield! nodes unionCases
-            yield! nodes (List.map MemberDefn.Node members)
+            yield! membersAroundWith withKeyword members
         |]
 
-    member val Accessibility = accessibility
-    member val UnionCases = unionCases
+    member val Accessibility: SingleTextNode option = accessibility
+    member val UnionCases: UnionCaseNode list = unionCases
 
-    interface ITypeDefn with
-        member val TypeName = typeNameNode
-        member val Members = members
+    member val TypeName: TypeNameNode = typeNameNode
+    member val WithKeyword: SingleTextNode option = withKeyword
+    member val Members: MemberDefn list = members
 
 /// Example: `type Point = { X: float; Y: float }` — a record type definition.
 type TypeDefnRecordNode
     (
-        typeNameNode,
+        typeNameNode: TypeNameNode,
         accessibility: SingleTextNode option,
         openingBrace: SingleTextNode,
         fields: TypeDefnRecordFieldOrSpread list,
         closingBrace: SingleTextNode,
-        members,
-        range
+        withKeyword: SingleTextNode option,
+        members: MemberDefn list,
+        range: range
     )
     =
     inherit NodeBase(range)
@@ -2716,34 +2740,36 @@ type TypeDefnRecordNode
             yield openingBrace
             yield! List.map TypeDefnRecordFieldOrSpread.Node fields
             yield closingBrace
-            yield! nodes (List.map MemberDefn.Node members)
+            yield! membersAroundWith withKeyword members
         |]
 
-    member val Accessibility = accessibility
-    member val OpeningBrace = openingBrace
-    member val Fields = fields
-    member val ClosingBrace = closingBrace
+    member val Accessibility: SingleTextNode option = accessibility
+    member val OpeningBrace: SingleTextNode = openingBrace
+    member val Fields: TypeDefnRecordFieldOrSpread list = fields
+    member val ClosingBrace: SingleTextNode = closingBrace
 
-    interface ITypeDefn with
-        member val TypeName = typeNameNode
-        member val Members = members
+    member val TypeName: TypeNameNode = typeNameNode
+    member val WithKeyword: SingleTextNode option = withKeyword
+    member val Members: MemberDefn list = members
 
 /// Example: `type Alias = OtherType` — a type abbreviation.
-type TypeDefnAbbrevNode(typeNameNode, t: Type, members, range) =
+type TypeDefnAbbrevNode
+    (typeNameNode: TypeNameNode, t: Type, withKeyword: SingleTextNode option, members: MemberDefn list, range: range)
+    =
     inherit NodeBase(range)
 
     override val Children: Node array =
         [|
             yield typeNameNode
             yield Type.Node t
-            yield! nodes (List.map MemberDefn.Node members)
+            yield! membersAroundWith withKeyword members
         |]
 
-    member val Type = t
+    member val Type: Type = t
 
-    interface ITypeDefn with
-        member val TypeName = typeNameNode
-        member val Members = members
+    member val TypeName: TypeNameNode = typeNameNode
+    member val WithKeyword: SingleTextNode option = withKeyword
+    member val Members: MemberDefn list = members
 
 /// Example: `as self` — the self-identifier binding at the end of an implicit constructor parameter list.
 type AsSelfIdentifierNode(asNode: SingleTextNode, self: SingleTextNode, range) =
@@ -2781,69 +2807,81 @@ type ImplicitConstructorNode
     member val Self = self
 
 /// The body of a `class … end` / `struct … end` / `interface … end` explicit type definition block.
-type TypeDefnExplicitBodyNode(kind: SingleTextNode, members: MemberDefn list, endNode: SingleTextNode, range) =
+type TypeDefnExplicitBodyNode(kind: SingleTextNode, members: MemberDefn list, endNode: SingleTextNode, range: range) =
     inherit NodeBase(range)
 
     override val Children: Node array = [| yield kind; yield! nodes (List.map MemberDefn.Node members); yield endNode |]
 
-    member val Kind = kind
-    member val Members = members
-    member val End = endNode
+    member val Kind: SingleTextNode = kind
+    member val Members: MemberDefn list = members
+    member val End: SingleTextNode = endNode
 
 /// Example: `type MyClass() = class … end` — a type definition using an explicit `class`/`struct`/`interface` block.
-type TypeDefnExplicitNode(typeNameNode, body: TypeDefnExplicitBodyNode, members, range) =
+type TypeDefnExplicitNode
+    (
+        typeNameNode: TypeNameNode,
+        body: TypeDefnExplicitBodyNode,
+        withKeyword: SingleTextNode option,
+        members: MemberDefn list,
+        range: range
+    )
+    =
     inherit NodeBase(range)
 
     override val Children: Node array =
         [|
             yield typeNameNode
             yield body
-            yield! nodes (List.map MemberDefn.Node members)
+            yield! membersAroundWith withKeyword members
         |]
 
-    member val Body = body
+    member val Body: TypeDefnExplicitBodyNode = body
 
-    interface ITypeDefn with
-        member val TypeName = typeNameNode
-        member val Members = members
+    member val TypeName: TypeNameNode = typeNameNode
+    member val WithKeyword: SingleTextNode option = withKeyword
+    member val Members: MemberDefn list = members
 
 /// Example: `type MyClass with` — a type augmentation (intrinsic extension) adding members to an existing type.
-type TypeDefnAugmentationNode(typeNameNode, members, range) =
+type TypeDefnAugmentationNode
+    (typeNameNode: TypeNameNode, withKeyword: SingleTextNode option, members: MemberDefn list, range: range)
+    =
     inherit NodeBase(range)
 
-    override val Children: Node array = [| yield typeNameNode; yield! (List.map MemberDefn.Node members) |]
+    override val Children: Node array = [| yield typeNameNode; yield! membersAroundWith withKeyword members |]
 
-    interface ITypeDefn with
-        member val TypeName = typeNameNode
-        member val Members = members
+    member val TypeName: TypeNameNode = typeNameNode
+    member val WithKeyword: SingleTextNode option = withKeyword
+    member val Members: MemberDefn list = members
 
 /// Example: `type MyDelegate = delegate of int * string -> bool` — a delegate type declaration.
-type TypeDefnDelegateNode(typeNameNode, delegateNode: SingleTextNode, typeList: TypeFunsNode, range) =
+type TypeDefnDelegateNode
+    (typeNameNode: TypeNameNode, delegateNode: SingleTextNode, typeList: TypeFunsNode, range: range)
+    =
     inherit NodeBase(range)
 
     override val Children: Node array = [| yield typeNameNode; yield delegateNode; yield typeList |]
 
-    member val DelegateNode = delegateNode
-    member val TypeList = typeList
+    member val DelegateNode: SingleTextNode = delegateNode
+    member val TypeList: TypeFunsNode = typeList
 
-    interface ITypeDefn with
-        member val TypeName = typeNameNode
-        member val Members = List.empty
+    member val TypeName: TypeNameNode = typeNameNode
 
 /// A regular type definition (class, interface, or abstract class without an explicit `class … end` block).
 /// Example: `type MyClass() =\n    member _.Foo() = …`
-type TypeDefnRegularNode(typeNameNode, members, range) =
+type TypeDefnRegularNode
+    (typeNameNode: TypeNameNode, withKeyword: SingleTextNode option, members: MemberDefn list, range: range)
+    =
     inherit NodeBase(range)
 
-    override val Children: Node array = [| yield typeNameNode; yield! List.map MemberDefn.Node members |]
+    override val Children: Node array = [| yield typeNameNode; yield! membersAroundWith withKeyword members |]
 
-    interface ITypeDefn with
-        member val TypeName = typeNameNode
-        member val Members = members
+    member val TypeName: TypeNameNode = typeNameNode
+    member val WithKeyword: SingleTextNode option = withKeyword
+    member val Members: MemberDefn list = members
 
 /// Discriminated union of all F# type-definition forms in the Oak representation.
 /// <c>None</c> is used for a bare type name with no body (e.g. <c>type T</c> in a signature);
-/// all other cases wrap a dedicated node type that also implements <see cref="ITypeDefn"/>.
+/// all other cases wrap a dedicated node type.
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type TypeDefn =
     | Enum of TypeDefnEnumNode
@@ -2868,21 +2906,44 @@ type TypeDefn =
         | Delegate n -> n
         | Regular n -> n
 
-    static member TypeDefnNode(x: TypeDefn) : ITypeDefn =
+    /// The header every case has.
+    static member TypeName(x: TypeDefn) : TypeNameNode =
         match x with
-        | Enum n -> n
-        | Union n -> n
-        | Record n -> n
-        | None n ->
-            { new ITypeDefn with
-                member _.TypeName = n
-                member _.Members = []
-            }
-        | Abbrev n -> n
-        | Explicit n -> n
-        | Augmentation n -> n
-        | Delegate n -> n
-        | Regular n -> n
+        | Enum n -> n.TypeName
+        | Union n -> n.TypeName
+        | Record n -> n.TypeName
+        | None n -> n
+        | Abbrev n -> n.TypeName
+        | Explicit n -> n.TypeName
+        | Augmentation n -> n.TypeName
+        | Delegate n -> n.TypeName
+        | Regular n -> n.TypeName
+
+    /// The `with` before the members: `type T with`, or after the body, `type T = { X: int } with`.
+    static member WithKeyword(x: TypeDefn) : SingleTextNode option =
+        match x with
+        | Enum n -> n.WithKeyword
+        | Union n -> n.WithKeyword
+        | Record n -> n.WithKeyword
+        | Abbrev n -> n.WithKeyword
+        | Explicit n -> n.WithKeyword
+        | Augmentation n -> n.WithKeyword
+        | Regular n -> n.WithKeyword
+        | None _
+        | Delegate _ -> Option.None
+
+    /// The members after the body, or all of them for a type without one.
+    static member Members(x: TypeDefn) : MemberDefn list =
+        match x with
+        | Enum n -> n.Members
+        | Union n -> n.Members
+        | Record n -> n.Members
+        | Abbrev n -> n.Members
+        | Explicit n -> n.Members
+        | Augmentation n -> n.Members
+        | Regular n -> n.Members
+        | None _
+        | Delegate _ -> []
 
 /// Example: `inherit Base()` — an `inherit` member declaration inside a class body that specifies the base class.
 type MemberDefnInheritNode(inheritKeyword: SingleTextNode, baseType: Type, range) =

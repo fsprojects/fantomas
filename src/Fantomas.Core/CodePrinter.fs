@@ -4392,12 +4392,12 @@ let addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: Type) =
         | _ -> sepNone
     | _ -> sepNone
 
-let sepNlnBetweenTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
-    match node.Members with
+let sepNlnBetweenTypeAndMembers (td: TypeDefn) (ctx: Context) : Context =
+    match TypeDefn.Members td with
     | [] -> sepNone ctx
     | firstMember :: _ ->
 
-    match node.TypeName.WithKeyword with
+    match TypeDefn.WithKeyword td with
     | Some node when node.HasContentBefore -> enterNode node ctx
     | _ ->
 
@@ -4480,8 +4480,8 @@ let hasTriviaAfterLeadingKeyword (identifier: Node) (accessibility: SingleTextNo
     beforeAccess || beforeIdentifier
 
 let genTypeDefn (td: TypeDefn) =
-    let typeDefnNode = TypeDefn.TypeDefnNode td
-    let typeName = typeDefnNode.TypeName
+    let typeName: TypeNameNode = TypeDefn.TypeName td
+    let withKeyword: SingleTextNode option = TypeDefn.WithKeyword td
 
     let header =
         let implicitConstructor = typeName.ImplicitConstructor
@@ -4516,7 +4516,7 @@ let genTypeDefn (td: TypeDefn) =
             )
         |> genNode typeName
 
-    let members = typeDefnNode.Members
+    let members: MemberDefn list = TypeDefn.Members td
 
     match td with
     | TypeDefn.Enum node ->
@@ -4540,7 +4540,7 @@ let genTypeDefn (td: TypeDefn) =
         +> indentSepNlnUnindent (
             col sepNln node.EnumCases genEnumCase
             +> onlyIf hasMembers sepNln
-            +> sepNlnBetweenTypeAndMembers typeDefnNode
+            +> sepNlnBetweenTypeAndMembers td
             +> genMemberDefnList members
         )
         |> genNode node
@@ -4575,9 +4575,7 @@ let genTypeDefn (td: TypeDefn) =
 
         header
         +> unionCases
-        +> onlyIf
-            hasMembers
-            (indentSepNlnUnindent (sepNlnBetweenTypeAndMembers typeDefnNode +> genMemberDefnList members))
+        +> onlyIf hasMembers (indentSepNlnUnindent (sepNlnBetweenTypeAndMembers td +> genMemberDefnList members))
         |> genNode node
     | TypeDefn.Record node ->
         let hasMembers = List.isNotEmpty members
@@ -4589,8 +4587,14 @@ let genTypeDefn (td: TypeDefn) =
                 +> sepNlnUnlessLastEventIsNewline
                 +> genSingleTextNode node.ClosingBrace
 
+            // These styles leave out the `with`: a comment after it goes after the closing brace.
             let genMembers =
-                onlyIf hasMembers (sepNln +> sepNlnBetweenTypeAndMembers typeDefnNode +> genMemberDefnList members)
+                onlyIf
+                    hasMembers
+                    (optSingle leaveNode withKeyword
+                     +> sepNln
+                     +> sepNlnBetweenTypeAndMembers td
+                     +> genMemberDefnList members)
 
             let anyFieldHasXmlDoc =
                 node.Fields
@@ -4608,7 +4612,7 @@ let genTypeDefn (td: TypeDefn) =
 
             let stroustrup =
                 let withKw =
-                    match typeName.WithKeyword with
+                    match withKeyword with
                     | None -> !-"with"
                     | Some withNode -> genSingleTextNode withNode
 
@@ -4676,7 +4680,7 @@ let genTypeDefn (td: TypeDefn) =
                  header
                  +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
                  +> (
-                     match List.tryHead members, typeName.WithKeyword with
+                     match List.tryHead members, withKeyword with
                      | Some firstMember, Some withNode ->
                          indentSepNlnUnindent (
                              genSingleTextNode withNode
@@ -4722,7 +4726,7 @@ let genTypeDefn (td: TypeDefn) =
     | TypeDefn.Augmentation node ->
         header
         +> sepSpace
-        +> optSingle genSingleTextNode typeName.WithKeyword
+        +> optSingle genSingleTextNode withKeyword
         +> indentSepNlnUnindent (genMemberDefnList members)
         |> genNode node
     | TypeDefn.Delegate node ->

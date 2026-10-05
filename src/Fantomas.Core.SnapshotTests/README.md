@@ -149,6 +149,7 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
   defines that keep it;
 - the result is idempotent, merged and per define combination;
 - every node's `Children` are in source order;
+- every node lies within its parent's range;
 - no line ends in whitespace, except one that ends inside a string or a comment spanning several
   lines, where the whitespace is content;
 - with `\r\n` line endings in and `end_of_line = crlf`, the result is the same with `\r\n` line

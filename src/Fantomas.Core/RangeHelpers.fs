@@ -26,6 +26,8 @@ module RangeHelpers =
 
         startRange, endRange
 
+    let isAbsoluteZero (r: Range) : bool = r.StartLine = 0 && r.EndLine = 0
+
     let absoluteZeroRange =
         Range.mkRange Range.range0.FileName (Position.mkPos 0 0) (Position.mkPos 0 0)
 

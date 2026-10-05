@@ -86,16 +86,9 @@ let isOption (t: System.Type) : bool = isGeneric typedefof<obj option> t
 let isList (t: System.Type) : bool = isGeneric typedefof<obj list> t
 
 /// The properties a node class has itself, leaving out what every node has through `Node` and
-/// `NodeBase`: the ones the class declares, the ones it inherits from an Oak base class of its own,
-/// such as `Fields` that `ExprRecordNode` gets from `ExprRecordBaseNode`, and the ones of the Oak's
-/// own interfaces it implements, such as `ITypeDefn.Members`, which are explicit implementations
-/// and no public property of the class.
+/// `NodeBase`: the ones the class declares, and the ones it inherits from an Oak base class of its
+/// own, such as `Fields` that `ExprRecordNode` gets from `ExprRecordBaseNode`.
 let declaredProperties (nodeClass: System.Type) : PropertyInfo list =
-    let ownInterfaces: PropertyInfo array =
-        nodeClass.GetInterfaces()
-        |> Array.filter (fun (i: System.Type) -> i.DeclaringType = syntaxOakModule && i <> typeof<Node>)
-        |> Array.collect (fun (i: System.Type) -> i.GetProperties())
-
     let rec ownClasses (t: System.Type) : System.Type list =
         if isNull t || t = typeof<NodeBase> || t.DeclaringType <> syntaxOakModule then
             []
@@ -107,7 +100,6 @@ let declaredProperties (nodeClass: System.Type) : PropertyInfo list =
     |> Array.collect (fun (t: System.Type) ->
         t.GetProperties(BindingFlags.Public ||| BindingFlags.Instance ||| BindingFlags.DeclaredOnly)
     )
-    |> Array.append ownInterfaces
     |> Array.filter (fun (property: PropertyInfo) -> property.GetIndexParameters().Length = 0)
     |> Array.distinctBy (fun (property: PropertyInfo) -> property.Name)
     |> Array.toList

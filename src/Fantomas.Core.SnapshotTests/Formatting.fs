@@ -13,20 +13,42 @@ open Fantomas.Core.SyntaxOak
 open Fantomas.Core.SnapshotTests.Problems
 
 /// Trivia assignment in `Trivia.fs` takes the order of `Node.Children` to be the order in the
-/// source, and every `Children` array is written by hand. Children may overlap, as ranges from the
-/// parser nest, but none may start before the one in front of it. Nodes `ASTTransformer` makes up
-/// carry `range0` and have no place in the source. `Fantomas.Core.Tests` has the same check for its
-/// unit tests, and the two projects share no code.
-let assertChildrenInSourceOrder (oak: Oak) : unit =
+/// source, and goes down into a node only when the trivia lies within the node's range. Every
+/// `Children` array and most ranges are written by hand, so this checks both: no child starts
+/// before the one in front of it, and every child lies within its parent's range. Children may
+/// overlap, as ranges from the parser nest. Nodes `ASTTransformer` makes up carry `range0` and
+/// have no place in the source, and neither does the module of a file without code, which carries
+/// `RangeHelpers.absoluteZeroRange`. `Fantomas.Core.Tests` has the same check for its unit tests, and
+/// the two projects share no code.
+let assertChildrenInPlace (oak: Oak) : unit =
     let rec visit (node: Node) : unit =
-        node.Children
-        |> Array.filter (fun (child: Node) -> not (Range.equals child.Range Range.range0))
+        let placed: Node array =
+            node.Children
+            |> Array.filter (fun (child: Node) -> not (Range.equals child.Range Range.range0))
+
+        placed
         |> Array.pairwise
         |> Array.iter (fun (previous: Node, next: Node) ->
             if Position.posLt next.Range.Start previous.Range.Start then
                 failwith
                     $"The children of %s{node.GetType().Name} are not in source order: %s{next.GetType().Name} %O{next.Range} comes after %s{previous.GetType().Name} %O{previous.Range}"
         )
+
+        if not (Range.equals node.Range Range.range0) then
+            placed
+            |> Array.iter (fun (child: Node) ->
+                if
+                    not (RangeHelpers.isAbsoluteZero child.Range)
+                    && not (RangeHelpers.rangeContainsRange node.Range child.Range)
+                then
+                    let slot: string =
+                        match child with
+                        | :? SingleTextNode -> snd (OakFacts.slotOf { Node = child; Parent = Some node })
+                        | _ -> child.GetType().Name
+
+                    failwith
+                        $"%s{node.GetType().Name}.%s{slot} %O{child.Range} lies outside %s{node.GetType().Name} %O{node.Range}"
+            )
 
         Array.iter visit node.Children
 
@@ -67,7 +89,7 @@ let formatCombinations (config: FormatConfig) (isSignature: bool) (source: strin
             let result: FormatResult =
                 CodeFormatterImpl.formatASTWith
                     (fun (oak: Oak) ->
-                        assertChildrenInSourceOrder oak
+                        assertChildrenInPlace oak
                         printed <- Some oak
                     )
                     tree

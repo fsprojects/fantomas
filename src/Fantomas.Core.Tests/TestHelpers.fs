@@ -18,21 +18,38 @@ module String =
 let config = FormatConfig.Default
 let newline = "\n"
 
-/// Trivia assignment in `Trivia.fs` takes the order of `Node.Children` to be the order in the source.
-/// Every `Children` array is written by hand, so check it for each input the tests format.
-/// Children may overlap, as ranges from the parser can nest, but none may start before the one in front of it.
-/// Nodes that `ASTTransformer` makes up carry `range0` and have no place in the source.
+/// Trivia assignment in `Trivia.fs` takes the order of `Node.Children` to be the order in the source,
+/// and goes down into a node only when the trivia lies within the node's range.
+/// Every `Children` array and most ranges are written by hand, so check both for each input the tests format:
+/// no child starts before the one in front of it, and every child lies within its parent's range.
+/// Children may overlap, as ranges from the parser can nest.
+/// Nodes that `ASTTransformer` makes up carry `range0` and have no place in the source,
+/// and neither does the module of a file without code, which carries `RangeHelpers.absoluteZeroRange`.
 /// It is handed to `CodeFormatterImpl.formatDocumentWith`, which calls it on the Oak it is about to print.
-let assertChildrenInSourceOrder (oak: Oak) : unit =
+let assertChildrenInPlace (oak: Oak) : unit =
     let rec visit (node: Node) : unit =
-        node.Children
-        |> Array.filter (fun child -> not (Range.equals child.Range Range.range0))
+        let placed: Node array =
+            node.Children
+            |> Array.filter (fun child -> not (Range.equals child.Range Range.range0))
+
+        placed
         |> Array.pairwise
         |> Array.iter (fun (previous, next) ->
             if Position.posLt next.Range.Start previous.Range.Start then
                 failwith
                     $"The children of %s{node.GetType().Name} are not in source order: %s{next.GetType().Name} %O{next.Range} comes after %s{previous.GetType().Name} %O{previous.Range}"
         )
+
+        if not (Range.equals node.Range Range.range0) then
+            placed
+            |> Array.iter (fun child ->
+                if
+                    not (RangeHelpers.isAbsoluteZero child.Range)
+                    && not (RangeHelpers.rangeContainsRange node.Range child.Range)
+                then
+                    failwith
+                        $"%s{child.GetType().Name} %O{child.Range} lies outside its parent %s{node.GetType().Name} %O{node.Range}"
+            )
 
         Array.iter visit node.Children
 
@@ -46,7 +63,7 @@ let formatFSharpString isFsiFile (s: string) config =
         let inputComments = Trivia.collectCommentTextsFromAST inputSourceText inputAst
 
         let! formatted =
-            CodeFormatterImpl.formatDocumentWith assertChildrenInSourceOrder config isFsiFile inputSourceText None
+            CodeFormatterImpl.formatDocumentWith assertChildrenInPlace config isFsiFile inputSourceText None
 
         let formattedCode = formatted.Code.Replace("\r\n", "\n")
 
@@ -73,7 +90,7 @@ let formatFSharpString isFsiFile (s: string) config =
         // Idempotency check
         let! secondFormat =
             CodeFormatterImpl.formatDocumentWith
-                assertChildrenInSourceOrder
+                assertChildrenInPlace
                 config
                 isFsiFile
                 (CodeFormatterImpl.getSourceText formattedCode)
@@ -97,7 +114,7 @@ let formatAST isFsiFile (source: string) config =
             Fantomas.FCS.Parse.parseFile isFsiFile (Fantomas.FCS.Text.SourceText.ofString source) []
 
         let formattedCode: string =
-            (CodeFormatterImpl.formatASTWith assertChildrenInSourceOrder ast None config None).Code
+            (CodeFormatterImpl.formatASTWith assertChildrenInPlace ast None config None).Code
 
         let! validation = CodeFormatter.ValidateFSharpCodeAsync(isFsiFile, formattedCode)
 
