@@ -80,16 +80,6 @@ pipeline "Build" {
     stage "CheckDocScripts" { run checkDocScripts }
     stage "UnitTests" { run "dotnet test -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
-    stage "Docs" {
-        whenNot { platformOSX }
-        envVars
-            [|
-                "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
-                "DOTNET_ROLL_FORWARD", "LatestMajor"
-            |]
-        run
-            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict"
-    }
     runIfOnlySpecified false
 }
 
@@ -381,6 +371,25 @@ pipeline "PushClient" {
     runIfOnlySpecified true
 }
 
+/// Build the documentation into `output`, the way it is published. CI runs this in a job of its
+/// own, on pull requests too: `--eval` and `--strict` catch what typechecking the doc scripts in
+/// the Build pipeline does not.
+pipeline "BuildDocs" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "RestoreTools" { run "dotnet tool restore" }
+    stage "Build" { run "dotnet build -c Release --tl" }
+    stage "Docs" {
+        envVars
+            [|
+                "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
+                "DOTNET_ROLL_FORWARD", "LatestMajor"
+            |]
+        run
+            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict"
+    }
+    runIfOnlySpecified true
+}
+
 pipeline "Docs" {
     workingDir __SOURCE_DIRECTORY__
     stage "Prepare" {
@@ -557,6 +566,9 @@ pipeline "Release" {
                 else
                     printfn $"Release {currentRelease.Version} does not exist yet. Proceeding with release process."
 
+                    let! source = getReleaseSource ctx
+                    printfn $"Releasing from {source.Branch} at {source.Commit}"
+
                     // Determine if this is a prerelease
                     let isPrerelease = currentRelease.Version.Contains("-")
                     if isPrerelease then
@@ -581,7 +593,7 @@ pipeline "Release" {
                         let exitCodesStr = nugetExitCodes |> Array.map string |> String.concat ", "
                         printfn $"Warning: Some NuGet packages failed to push. Exit codes: {exitCodesStr}"
 
-                    let! notes = getReleaseNotes ctx currentRelease lastPublishedDate
+                    let! notes = getReleaseNotes ctx source currentRelease lastPublishedDate
                     printfn "Release notes that will be used:"
                     printfn "---"
                     printfn "%s" notes
@@ -623,7 +635,7 @@ pipeline "Release" {
                         printfn "This is a prerelease version"
 
                     let releaseCommand =
-                        $"release create v{currentRelease.Version} {files} {isDraftFlag} {prereleaseFlag} --title \"{currentRelease.Title}\" --notes-file \"{noteFile}\""
+                        $"release create v{currentRelease.Version} {files} --target {source.Commit} {isDraftFlag} {prereleaseFlag} --title \"{currentRelease.Title}\" --notes-file \"{noteFile}\""
 
                     let! draftExitCode =
                         if isDryRun then

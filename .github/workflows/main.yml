@@ -8,8 +8,8 @@ env:
 
 jobs:
   build:
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
     runs-on: ${{ matrix.os }}
@@ -27,15 +27,37 @@ jobs:
       run: dotnet fsi build.fsx
     - name: Benchmark
       run: dotnet fsi build.fsx -p Benchmark
-    - name: "trigger fantomas-tools action"
-      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'
-      run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
-    - name: "Documentation"
-      if: matrix.os == 'windows-latest' && github.ref == 'refs/heads/main'
+
+  documentation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v7.0.1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v6
+      with:
+        cache: true
+        cache-dependency-path: Directory.Packages.props
+    - name: Init
+      run: dotnet fsi build.fsx -p Init
+    - name: Build documentation
+      run: dotnet fsi build.fsx -p BuildDocs
+    - name: Publish documentation
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./output
+
+  # The online tools build against main, and against the next major's branch for their preview.
+  fantomas-tools:
+    needs: build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v9.0')
+    runs-on: ubuntu-latest
+    steps:
+    - name: Trigger the fantomas-tools build
+      run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
 
   analyze:
     name: Analyze solution
