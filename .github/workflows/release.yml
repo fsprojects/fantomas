@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      # The next major, released as alphas while main keeps shipping the current one.
+      - v9.0
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true

@@ -50,9 +50,10 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./output
 
+  # The online tools build against main, and against the next major's branch for their preview.
   fantomas-tools:
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v9.0')
     runs-on: ubuntu-latest
     steps:
     - name: Trigger the fantomas-tools build

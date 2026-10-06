@@ -566,6 +566,9 @@ pipeline "Release" {
                 else
                     printfn $"Release {currentRelease.Version} does not exist yet. Proceeding with release process."
 
+                    let! source = getReleaseSource ctx
+                    printfn $"Releasing from {source.Branch} at {source.Commit}"
+
                     // Determine if this is a prerelease
                     let isPrerelease = currentRelease.Version.Contains("-")
                     if isPrerelease then
@@ -590,7 +593,7 @@ pipeline "Release" {
                         let exitCodesStr = nugetExitCodes |> Array.map string |> String.concat ", "
                         printfn $"Warning: Some NuGet packages failed to push. Exit codes: {exitCodesStr}"
 
-                    let! notes = getReleaseNotes ctx currentRelease lastPublishedDate
+                    let! notes = getReleaseNotes ctx source currentRelease lastPublishedDate
                     printfn "Release notes that will be used:"
                     printfn "---"
                     printfn "%s" notes
@@ -632,7 +635,7 @@ pipeline "Release" {
                         printfn "This is a prerelease version"
 
                     let releaseCommand =
-                        $"release create v{currentRelease.Version} {files} {isDraftFlag} {prereleaseFlag} --title \"{currentRelease.Title}\" --notes-file \"{noteFile}\""
+                        $"release create v{currentRelease.Version} {files} --target {source.Commit} {isDraftFlag} {prereleaseFlag} --title \"{currentRelease.Title}\" --notes-file \"{noteFile}\""
 
                     let! draftExitCode =
                         if isDryRun then

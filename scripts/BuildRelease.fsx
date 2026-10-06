@@ -200,8 +200,33 @@ let private mostRecentReleaseDate (ctx: StageContext) : Async<string> =
                 return ghDate
     }
 
+/// The branch and commit a release is cut from.
+///
+/// A next major is released from its own branch (`v9.0`, say) while the current major keeps
+/// shipping from main. `gh release create` tags the head of the default branch unless it is told
+/// otherwise, and the contributor query would read the pull requests that went into main.
+type ReleaseSource = { Branch: string; Commit: string }
+
+let getReleaseSource (ctx: StageContext) : Async<ReleaseSource> =
+    async {
+        let! branchExitCode, branch, branchError = runGitCommand ctx "branch --show-current"
+        let! commitExitCode, commit, commitError = runGitCommand ctx "rev-parse HEAD"
+
+        if branchExitCode <> 0 || String.IsNullOrWhiteSpace branch then
+            return failwith $"Could not tell which branch is being released, is HEAD detached? %s{branchError}"
+        elif commitExitCode <> 0 then
+            return failwith $"Could not tell which commit is being released: %s{commitError}"
+        else
+            return
+                {
+                    Branch = branch.Trim()
+                    Commit = commit.Trim()
+                }
+    }
+
 let getReleaseNotes
     (ctx: StageContext)
+    (source: ReleaseSource)
     (currentRelease: GithubRelease)
     (lastPublishedDate: string option)
     : Async<string>
@@ -215,11 +240,11 @@ let getReleaseNotes
             printfn $"Using last release published date for author attribution: {d}"
             async.Return d
 
-        printfn $"Querying PRs closed after {date} for author attribution..."
+        printfn $"Querying PRs into {source.Branch} closed after {date} for author attribution..."
 
         let! queryResult =
             ctx.RunCommandCaptureAll(
-                $"gh pr list -S \"state:closed base:main closed:>{date}\" --json commits,mergedAt",
+                $"gh pr list -S \"state:closed base:{source.Branch} closed:>{date}\" --json commits,mergedAt",
                 disablePrintOutput = true
             )
 
