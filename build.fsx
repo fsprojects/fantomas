@@ -80,16 +80,6 @@ pipeline "Build" {
     stage "CheckDocScripts" { run checkDocScripts }
     stage "UnitTests" { run "dotnet test -c Release --tl" }
     stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
-    stage "Docs" {
-        whenNot { platformOSX }
-        envVars
-            [|
-                "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
-                "DOTNET_ROLL_FORWARD", "LatestMajor"
-            |]
-        run
-            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict"
-    }
     runIfOnlySpecified false
 }
 
@@ -377,6 +367,25 @@ pipeline "PushClient" {
                     )
             }
         )
+    }
+    runIfOnlySpecified true
+}
+
+/// Build the documentation into `output`, the way it is published. CI runs this in a job of its
+/// own, on pull requests too: `--eval` and `--strict` catch what typechecking the doc scripts in
+/// the Build pipeline does not.
+pipeline "BuildDocs" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "RestoreTools" { run "dotnet tool restore" }
+    stage "Build" { run "dotnet build -c Release --tl" }
+    stage "Docs" {
+        envVars
+            [|
+                "DOTNET_ROLL_FORWARD_TO_PRERELEASE", "1"
+                "DOTNET_ROLL_FORWARD", "LatestMajor"
+            |]
+        run
+            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict"
     }
     runIfOnlySpecified true
 }
