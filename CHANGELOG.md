@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Space inserted before final > in type parameter. Stroustrup generic applications now keep anonymous-record boundaries attached for single, multiple, and mixed type arguments. [#2860](https://github.com/fsprojects/fantomas/issues/2860)
+- Regression: Stroustrup bracket style in anonymous record type parameter is not respected. [#3069](https://github.com/fsprojects/fantomas/issues/3069)
+
 ## [8.0.7] - 2026-10-05
 
 ### Fixed

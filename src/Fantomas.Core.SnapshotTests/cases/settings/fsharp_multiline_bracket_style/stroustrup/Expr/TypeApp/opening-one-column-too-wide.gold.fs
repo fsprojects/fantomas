@@ -1,0 +1,4 @@
+abcdefghijklmnopq<
+    {|
+        a: int
+    |}>

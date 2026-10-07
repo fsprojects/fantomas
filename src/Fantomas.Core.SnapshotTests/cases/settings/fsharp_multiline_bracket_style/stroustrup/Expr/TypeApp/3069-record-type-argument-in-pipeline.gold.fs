@@ -3,7 +3,4 @@ let private asJson (arm: IArmResource) =
     |> convertTo<{|
         kind: string
         properties: {| statisticsEnabled: bool |}
-    |}, {|
-        kind: string
-        properties: {| statisticsEnabled: bool |}
     |}>

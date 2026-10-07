@@ -190,11 +190,12 @@ let recordCursorIfSingleTextNode (n: Node) (f: Context -> Context) (ctx: Context
     | :? SingleTextNode as node -> recordCursorNode f node ctx
     | _ -> f ctx
 
-let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) =
+// Handles trivia and debug events; the body callback owns any cursor capture.
+let genNodeWithoutAutomaticCursorCapture<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) : Context =
     // The NodeStart/NodeEnd payloads are only ever observed via CodeFormatter.GetWriterEventsAsync.
     // Keep them out of the default path entirely: building them costs a reflection call and a sprintf per node.
     if not ctx.DebugMode then
-        // `enterNode n +> recordCursorIfSingleTextNode n f +> leaveNode n`, without composing three closures
+        // `enterNode n +> f +> leaveNode n`, without composing three closures
         // for every node: each step is skipped once a short expression is known to be multiline.
         let ctx: Context = enterNode n ctx
 
@@ -202,15 +203,22 @@ let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) =
             ctx
         else
 
-        let ctx: Context = recordCursorIfSingleTextNode n f ctx
+        let ctx: Context = f ctx
         if isConfirmedMultiline ctx then ctx else leaveNode n ctx
     else
         (writerEvent (NodeStart(n.GetType().Name, sprintf "%O" n.Range))
          +> enterNode n
-         +> recordCursorIfSingleTextNode n f
+         +> f
          +> leaveNode n
          +> writerEvent (NodeEnd(n.GetType().Name, sprintf "%O" n.Range)))
             ctx
+
+let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) (ctx: Context) : Context =
+    genNodeWithoutAutomaticCursorCapture n (recordCursorIfSingleTextNode n f) ctx
+
+// Leading trivia is emitted before positioning, and the cursor is captured at the final token position.
+let genPositionedSingleTextNode (position: Context -> Context) (node: SingleTextNode) : Context -> Context =
+    genNodeWithoutAutomaticCursorCapture node (position +> genSingleTextNodeText node)
 
 let genSingleTextNode (node: SingleTextNode) (ctx: Context) : Context =
     // The most common node by far, and most carry no trivia or cursor: write the text directly.
@@ -2034,10 +2042,10 @@ let genExpr (e: Expr) =
 
         |> genNode node
     | Expr.TypeApp node ->
-        genPrefixApp
-            (genExpr node.Identifier)
-            node.LessThan
-            (colGenericTypeParameters node.TypeParameters)
+        genGenericApplication
+            (genExpr node.Identifier +> genSingleTextNode node.LessThan)
+            node.TypeParameters
+            sepNone
             node.GreaterThan
         |> genNode node
     | Expr.TryWithSingleClause node ->
@@ -3261,24 +3269,223 @@ let colGenericTypeParameters typeParameters =
     | [ Type.StaticConstant(Constant.FromText textNode) ] when textNode.Text.Contains("\n") -> short
     | _ -> expressionFitsOnRestOfLine short long
 
+// Measurement and genType use the same opening-token printers.
+// Node trivia, child types, and closing tokens belong to the caller.
+let genTypeOpeningTokens (t: Type) : Context -> Context =
+    match t with
+    | Type.Paren node -> genSingleTextNode node.OpeningParen
+    | Type.AnonRecord node ->
+        let genOpeningToken: Context -> Context =
+            match node.Opening with
+            | None -> sepOpenAnonRecdFixed
+            | Some opening -> genSingleTextNode opening
+
+        optSingle (fun keyword -> genSingleTextNode keyword +> sepSpace) node.Struct
+        +> genOpeningToken
+    | Type.AppPrefix node ->
+        genType node.Identifier
+        +> optSingle genIdentListNodeWithDot node.PostIdentifier
+        +> genSingleTextNode node.LessThen
+    | _ -> sepNone
+
 /// In F#, a closing `>` on a new line is ambiguous with the comparison operator.
-/// Formats `identifier< typeParameters >` while ensuring the closing `>` satisfies F#'s offside rule.
-let genPrefixApp
-    (identifier: Context -> Context)
-    (lessThan: SingleTextNode)
-    (typeParameters: Context -> Context)
+/// Keeps the standard generic-list layout and its closing-angle padding in one place.
+let genStandardGenericArgumentsAndClosing
+    (applicationStartColumn: int)
+    (typeArguments: Type list)
+    (lexicalPadding: Context -> Context)
+    (greaterThan: SingleTextNode)
+    : Context -> Context
+    =
+    lexicalPadding
+    +> colGenericTypeParameters typeArguments
+    +> lexicalPadding
+    +> addFixedSpaces (applicationStartColumn + 1)
+    +> genSingleTextNode greaterThan
+
+let genStandardGenericApplication
+    (genApplicationOpening: Context -> Context)
+    (typeArguments: Type list)
+    (lexicalPadding: Context -> Context)
     (greaterThan: SingleTextNode)
     (ctx: Context)
     : Context
     =
-    let startColumn = ctx.Column
+    let applicationStartColumn: int = ctx.Column
 
-    (identifier
-     +> genSingleTextNode lessThan
-     +> typeParameters
-     +> addFixedSpaces (startColumn + 1)
-     +> genSingleTextNode greaterThan)
+    (genApplicationOpening
+     +> genStandardGenericArgumentsAndClosing applicationStartColumn typeArguments lexicalPadding greaterThan)
         ctx
+
+let genGenericArgumentLexicalPadding (typeArguments: Type list) : Context -> Context =
+    // Keep lexical separation after '<' for SRTP variables and verbatim static strings,
+    // including expression type applications on the attached path.
+    match typeArguments with
+    | [] -> sepNone
+    | Type.Var node :: _ when String.startsWithOrdinal "^" node.Text -> sepSpace
+    | t :: _ -> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
+
+// Only measure through the supported opening, including nested generic prefixes.
+// Actual output always uses genType for the complete argument.
+let tryGenAttachedTypeArgumentOpening (t: Type) : (Context -> Context) option =
+    match t with
+    | Type.AnonRecord node -> Some(enterNode node +> genTypeOpeningTokens t)
+    | Type.Paren node ->
+        tryGenAttachedTypeArgumentOpening node.Type
+        |> Option.map (fun genOpening -> enterNode node +> genTypeOpeningTokens t +> genOpening)
+    | Type.Array node ->
+        tryGenAttachedTypeArgumentOpening node.Type
+        |> Option.map (fun genOpening -> enterNode node +> genOpening)
+    | Type.AppPrefix node ->
+        match node.Arguments with
+        | [] -> None
+        | first :: rest ->
+
+        let firstArgumentOpening: (Context -> Context) option =
+            tryGenAttachedTypeArgumentOpening first
+
+        if
+            Option.isNone firstArgumentOpening
+            && not (List.exists (tryGenAttachedTypeArgumentOpening >> Option.isSome) rest)
+        then
+            None
+        else
+            Some(
+                enterNode node
+                +> genTypeOpeningTokens t
+                +> genGenericArgumentLexicalPadding node.Arguments
+                +> Option.defaultWith (fun () -> fun ctx -> genType first ctx) firstArgumentOpening
+            )
+    | _ -> None
+
+let fitsOnCurrentLine (genContent: Context -> Context) (ctx: Context) : bool =
+    if hasWriteBeforeNewlineContent ctx then
+        false
+    else
+
+    let measuredContext: Context = ctx.WithDummy(genContent, keepPageWidth = true)
+
+    measuredContext.WriterModel.LineCount = ctx.WriterModel.LineCount
+    && measuredContext.Column <= ctx.Config.MaxLineLength
+    && not (hasWriteBeforeNewlineContent measuredContext)
+
+let genGenericClosingBracket (applicationStartColumn: int) (greaterThan: SingleTextNode) (ctx: Context) : Context =
+    let lastArgumentLineCount: int = ctx.WriterModel.LineCount
+
+    let positionClosingBracket (ctx: Context) : Context =
+        let ctx: Context = sepNlnWhenWriteBeforeNewlineNotEmpty ctx
+
+        let ctx: Context =
+            if
+                ctx.WriterModel.LineCount = lastArgumentLineCount
+                && ctx.Column + 1 > ctx.Config.MaxLineLength
+            then
+                sepNln ctx
+            else
+                ctx
+
+        if
+            ctx.WriterModel.LineCount > lastArgumentLineCount
+            || String.IsNullOrWhiteSpace(ctx.WriterEvents.CurrentLineContent())
+        then
+            addFixedSpaces (applicationStartColumn + 1) ctx
+        else
+            ctx
+
+    genPositionedSingleTextNode positionClosingBracket greaterThan ctx
+
+// Opening lexical padding must not add a space before the attached closing bracket.
+let tryGenAttachedGenericArguments
+    (argumentsWithOpenings: (Type * (Context -> Context) option) list)
+    (ctx: Context)
+    : Context option
+    =
+    let rec tryGenRemainingArguments
+        (remainingArguments: (Type * (Context -> Context) option) list)
+        (isFirst: bool)
+        (ctx: Context)
+        : Context option
+        =
+        match remainingArguments with
+        | [] -> Some ctx
+        | (t, argumentOpening) :: rest ->
+
+        let genSeparator: Context -> Context = if isFirst then sepNone else sepComma
+        let genArgument: Context -> Context = genType t
+
+        let genClosingForWidthCheck: Context -> Context =
+            onlyIf (List.isEmpty rest && Option.isNone argumentOpening) !-">"
+
+        let keepOnCurrentLine: bool =
+            fitsOnCurrentLine
+                (genSeparator
+                 +> Option.defaultValue genArgument argumentOpening
+                 +> genClosingForWidthCheck)
+                ctx
+
+        let afterArgument: Context =
+            (onlyIf (not isFirst) (sepCommaFixed +> onlyIf keepOnCurrentLine addSpaceIfSpaceAfterComma)
+             +> ifElse keepOnCurrentLine genArgument (indentSepNlnUnindent genArgument))
+                ctx
+
+        let expectedContinuationLineCount: int = if keepOnCurrentLine then 0 else 1
+
+        if isConfirmedMultiline afterArgument then
+            // An enclosing strict one-line trial has already failed.
+            // Stop emitting; that trial will discard this output and run its fallback.
+            Some afterArgument
+        elif
+            Option.isNone argumentOpening
+            && afterArgument.WriterModel.LineCount > ctx.WriterModel.LineCount + expectedContinuationLineCount
+        then
+            // Do not guess how to attach an opaque multiline type.
+            None
+        else
+            tryGenRemainingArguments rest false afterArgument
+
+    tryGenRemainingArguments argumentsWithOpenings true ctx
+
+let genGenericApplication
+    (genApplicationOpening: Context -> Context)
+    (typeArguments: Type list)
+    (standardLexicalPadding: Context -> Context)
+    (greaterThan: SingleTextNode)
+    : Context -> Context
+    =
+    fun (ctx: Context) ->
+        if not ctx.Config.IsStroustrupStyle then
+            genStandardGenericApplication genApplicationOpening typeArguments standardLexicalPadding greaterThan ctx
+        else
+
+        let argumentOpenings: (Context -> Context) option list =
+            List.map tryGenAttachedTypeArgumentOpening typeArguments
+
+        if not (List.exists Option.isSome argumentOpenings) then
+            genStandardGenericApplication genApplicationOpening typeArguments standardLexicalPadding greaterThan ctx
+        else
+
+        let applicationStartColumn: int = ctx.Column
+        let ctx: Context = genApplicationOpening ctx
+        let argumentsBackup: EventNode = ctx.WriterEvents.CreateBackupPoint()
+
+        // Keep the attached output itself, rather than measuring a complete plan and printing it again.
+        // Only an unsupported multiline child rejects this attempt; restore its events and cursor context.
+        match
+            tryGenAttachedGenericArguments
+                (List.zip typeArguments argumentOpenings)
+                (genGenericArgumentLexicalPadding typeArguments ctx)
+        with
+        | Some attachedContext -> genGenericClosingBracket applicationStartColumn greaterThan attachedContext
+        | None ->
+
+        ctx.WriterEvents.RollbackTo(argumentsBackup)
+
+        genStandardGenericArgumentsAndClosing
+            applicationStartColumn
+            typeArguments
+            standardLexicalPadding
+            greaterThan
+            ctx
 
 [<return: Struct>]
 let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
@@ -4253,16 +4460,10 @@ let genType (t: Type) =
     | Type.Var node -> genSingleTextNode node
     | Type.AppPostfix node -> genType node.First +> sepSpace +> genType node.Last |> genNode node
     | Type.AppPrefix node ->
-        let addExtraSpace =
-            match node.Arguments with
-            | [] -> sepNone
-            | Type.Var node :: _ when String.startsWithOrdinal "^" node.Text -> sepSpace
-            | t :: _ -> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
-
-        genPrefixApp
-            (genType node.Identifier +> optSingle genIdentListNodeWithDot node.PostIdentifier)
-            node.LessThen
-            (addExtraSpace +> colGenericTypeParameters node.Arguments +> addExtraSpace)
+        genGenericApplication
+            (genTypeOpeningTokens t)
+            node.Arguments
+            (genGenericArgumentLexicalPadding node.Arguments)
             node.GreaterThan
         |> genNode node
     | Type.StructTuple node ->
@@ -4276,15 +4477,7 @@ let genType (t: Type) =
     | Type.WithGlobalConstraints node -> genType node.Type +> genTypeConstraints node.TypeConstraints |> genNode node
     | Type.LongIdent idn -> genIdentListNode idn
     | Type.AnonRecord node ->
-        let genStruct =
-            match node.Struct with
-            | None -> sepNone
-            | Some n -> genSingleTextNode n +> sepSpace
-
-        let genOpening =
-            match node.Opening with
-            | None -> sepOpenAnonRecdFixed +> addSpaceIfSpaceAroundDelimiter
-            | Some n -> genSingleTextNode n +> addSpaceIfSpaceAroundDelimiter
+        let genOpening: Context -> Context = genTypeOpeningTokens t
 
         let genAnonRecordFieldType (identifier, t) =
             genSingleTextNode identifier
@@ -4292,8 +4485,8 @@ let genType (t: Type) =
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
 
         let smallExpression =
-            genStruct
-            +> genOpening
+            genOpening
+            +> addSpaceIfSpaceAroundDelimiter
             +> col sepSemi node.Fields genAnonRecordFieldType
             +> addSpaceIfSpaceAroundDelimiter
             +> genSingleTextNode node.Closing
@@ -4302,13 +4495,12 @@ let genType (t: Type) =
             let genAnonRecordFields = col sepNln node.Fields genAnonRecordFieldType
 
             ifAlignOrStroustrupBrackets
-                (genStruct
-                 +> sepOpenAnonRecdFixed
+                (genOpening
                  +> indentSepNlnUnindent (atCurrentColumnIndent genAnonRecordFields)
                  +> sepNln
                  +> genSingleTextNode node.Closing)
-                (genStruct
-                 +> genOpening
+                (genOpening
+                 +> addSpaceIfSpaceAroundDelimiter
                  +> atCurrentColumn genAnonRecordFields
                  +> addSpaceIfSpaceAroundDelimiter
                  +> genSingleTextNode node.Closing)
@@ -4318,15 +4510,15 @@ let genType (t: Type) =
             genNode node (isSmallExpression size smallExpression longExpression) ctx
 
     | Type.Paren node ->
+        let genOpening: Context -> Context = genTypeOpeningTokens t
+
         match node.Type with
         | Type.Funs _ ->
-            let short =
-                genSingleTextNode node.OpeningParen
-                +> genType node.Type
-                +> genSingleTextNode node.ClosingParen
+            let short: Context -> Context =
+                genOpening +> genType node.Type +> genSingleTextNode node.ClosingParen
 
-            let long =
-                genSingleTextNode node.OpeningParen
+            let long: Context -> Context =
+                genOpening
                 +> indent
                 +> genType node.Type
                 +> unindent
@@ -4334,9 +4526,7 @@ let genType (t: Type) =
 
             expressionFitsOnRestOfLine short long |> genNode node
         | _ ->
-            genSingleTextNode node.OpeningParen
-            +> genType node.Type
-            +> genSingleTextNode node.ClosingParen
+            genOpening +> genType node.Type +> genSingleTextNode node.ClosingParen
             |> genNode node
     | Type.SignatureParameter node ->
         genOnelinerAttributes node.Attributes

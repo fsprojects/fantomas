@@ -4,6 +4,7 @@ open Fantomas.FCS.Text
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core
+open Fantomas.Core.Tests.TestHelpers
 
 let formatWithCursor source (line, column) =
     CodeFormatter.FormatDocumentAsync(false, source, FormatConfig.Default, CodeFormatter.MakePosition(line, column))
@@ -14,6 +15,19 @@ let assertCursor (expectedLine: int, expectedColumn: int) (result: FormatResult)
     | None -> Assert.Fail "Expected a cursor"
     | Some cursor -> Assert.AreEqual(Position.mkPos expectedLine expectedColumn, cursor)
 
+let formatStroustrupRecordTypeArgumentWithCursor (line: int, column: int) : FormatResult =
+    CodeFormatter.FormatDocumentAsync(
+        false,
+        "f<{| a: int |}>",
+        { FormatConfig.Default with
+            MultilineBracketStyle = Stroustrup
+            RecordMultilineFormatter = NumberOfItems
+            MaxRecordNumberOfItems = 0
+        },
+        CodeFormatter.MakePosition(line, column)
+    )
+    |> Async.RunSynchronously
+
 [<Test>]
 let ``cursor inside of a node`` () =
     formatWithCursor
@@ -23,6 +37,174 @@ let a =
 """
         (3, 8)
     |> assertCursor (1, 12)
+
+[<Test>]
+let ``cursor on generic opening angle bracket does not change stroustrup layout`` () =
+    let result = formatStroustrupRecordTypeArgumentWithCursor (1, 1)
+
+    result.Code
+    |> String.normalizeNewLine
+    |> prepend newline
+    |> should
+        equal
+        """
+f<{|
+    a: int
+|}>
+"""
+
+    result |> assertCursor (1, 1)
+
+[<Test>]
+let ``cursor on anonymous record opening brace does not change stroustrup layout`` () =
+    let result = formatStroustrupRecordTypeArgumentWithCursor (1, 2)
+
+    result.Code
+    |> String.normalizeNewLine
+    |> prepend newline
+    |> should
+        equal
+        """
+f<{|
+    a: int
+|}>
+"""
+
+    result |> assertCursor (1, 2)
+
+[<Test>]
+let ``cursor on anonymous record opening bar does not change stroustrup layout`` () =
+    let result = formatStroustrupRecordTypeArgumentWithCursor (1, 3)
+
+    result.Code
+    |> String.normalizeNewLine
+    |> prepend newline
+    |> should
+        equal
+        """
+f<{|
+    a: int
+|}>
+"""
+
+    result |> assertCursor (1, 3)
+
+[<Test>]
+let ``cursor on anonymous record closing bar does not change stroustrup layout`` () =
+    let result = formatStroustrupRecordTypeArgumentWithCursor (1, 12)
+
+    result.Code
+    |> String.normalizeNewLine
+    |> prepend newline
+    |> should
+        equal
+        """
+f<{|
+    a: int
+|}>
+"""
+
+    result |> assertCursor (3, 0)
+
+[<Test>]
+let ``cursor on anonymous record closing brace does not change stroustrup layout`` () =
+    let result = formatStroustrupRecordTypeArgumentWithCursor (1, 13)
+
+    result.Code
+    |> String.normalizeNewLine
+    |> prepend newline
+    |> should
+        equal
+        """
+f<{|
+    a: int
+|}>
+"""
+
+    result |> assertCursor (3, 1)
+
+[<Test>]
+let ``cursor on generic closing angle bracket does not change stroustrup layout`` () =
+    let result = formatStroustrupRecordTypeArgumentWithCursor (1, 14)
+
+    result.Code
+    |> String.normalizeNewLine
+    |> prepend newline
+    |> should
+        equal
+        """
+f<{|
+    a: int
+|}>
+"""
+
+    result |> assertCursor (3, 2)
+
+[<Test>]
+let ``cursor on separate generic closing angle bracket follows offside padding`` () =
+    let result =
+        CodeFormatter.FormatDocumentAsync(
+            false,
+            """f<{| a: int |} // keep me
+ >""",
+            { FormatConfig.Default with
+                MultilineBracketStyle = Stroustrup
+                RecordMultilineFormatter = NumberOfItems
+                MaxRecordNumberOfItems = 0
+            },
+            CodeFormatter.MakePosition(2, 1)
+        )
+        |> Async.RunSynchronously
+
+    result.Code
+    |> String.normalizeNewLine
+    |> prepend newline
+    |> should
+        equal
+        """
+f<{|
+    a: int
+|} // keep me
+ >
+"""
+
+    result |> assertCursor (4, 1)
+
+[<Test>]
+let ``cursor on generic closing bracket survives fallback with comments`` () =
+    let result =
+        CodeFormatter.FormatDocumentAsync(
+            false,
+            """f<{| a: int // field
+ |}, int -> int -> int -> string // closing
+ >""",
+            { FormatConfig.Default with
+                MultilineBracketStyle = Stroustrup
+                MaxRecordWidth = 0
+                MaxLineLength = 20
+            },
+            CodeFormatter.MakePosition(3, 1)
+        )
+        |> Async.RunSynchronously
+
+    result.Code
+    |> String.normalizeNewLine
+    |> prepend newline
+    |> should
+        equal
+        """
+f<
+    {|
+        a: int // field
+    |},
+    int
+        -> int
+        -> int
+        -> string // closing
+ >
+"""
+
+    result |> assertCursor (9, 1)
 
 [<Test>]
 let ``cursor outside of a node`` () =
