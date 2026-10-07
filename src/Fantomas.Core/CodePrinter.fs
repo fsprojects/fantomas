@@ -2034,9 +2034,10 @@ let genExpr (e: Expr) =
 
         |> genNode node
     | Expr.TypeApp node ->
-        genPrefixApp
+        genApplicationWithTypeArgument
             (genExpr node.Identifier)
             node.LessThan
+            node.TypeParameters
             (colGenericTypeParameters node.TypeParameters)
             node.GreaterThan
         |> genNode node
@@ -3280,6 +3281,46 @@ let genPrefixApp
      +> genSingleTextNode greaterThan)
         ctx
 
+/// In Stroustrup style, a type application whose only type argument is an anonymous record keeps
+/// the record attached: `identifier<{| ... |}>`, with the closing `>` glued to the record.
+/// The anonymous record printer lays out its own fields and closing `|}`.
+/// Every other shape takes the standard genPrefixApp layout, with the caller's lexical padding.
+/// That includes a comment after `<`, and an opening that does not fit on the line.
+let genApplicationWithTypeArgument
+    (identifier: Context -> Context)
+    (lessThan: SingleTextNode)
+    (typeArguments: Type list)
+    (standardArguments: Context -> Context)
+    (greaterThan: SingleTextNode)
+    (ctx: Context)
+    : Context
+    =
+    let standard: Context -> Context =
+        genPrefixApp identifier lessThan standardArguments greaterThan
+
+    match typeArguments with
+    | [ Type.AnonRecord node as recordType ] when
+        ctx.Config.IsStroustrupStyle
+        && canSafelyUseStroustrup (Type.Node recordType) ctx
+        && not lessThan.HasAnyContentAfter
+        ->
+
+        let opening: Context -> Context =
+            identifier
+            +> genSingleTextNode lessThan
+            +> optSingle (fun keyword -> genSingleTextNode keyword +> sepSpace) node.Struct
+            +> sepOpenAnonRecdFixed
+
+        if exceedsWidth (ctx.Config.MaxLineLength - ctx.Column) opening ctx then
+            standard ctx
+        else
+            (identifier
+             +> genSingleTextNode lessThan
+             +> genType recordType
+             +> genSingleTextNode greaterThan)
+                ctx
+    | _ -> standard ctx
+
 [<return: Struct>]
 let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
     if not (config.ExperimentalElmish || config.IsStroustrupStyle) then
@@ -4259,9 +4300,10 @@ let genType (t: Type) =
             | Type.Var node :: _ when String.startsWithOrdinal "^" node.Text -> sepSpace
             | t :: _ -> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
 
-        genPrefixApp
+        genApplicationWithTypeArgument
             (genType node.Identifier +> optSingle genIdentListNodeWithDot node.PostIdentifier)
             node.LessThen
+            node.Arguments
             (addExtraSpace +> colGenericTypeParameters node.Arguments +> addExtraSpace)
             node.GreaterThan
         |> genNode node
