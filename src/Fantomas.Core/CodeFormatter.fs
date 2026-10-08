@@ -11,7 +11,9 @@ type CodeFormatter =
             let! results =
                 CodeFormatterImpl.getSourceText source |> CodeFormatterImpl.parse isSignature
 
-            return results |> Array.map (fun (ast, DefineCombination(defines)) -> ast, defines)
+            return
+                results
+                |> Array.map (fun (tree: UnderDefines<ParsedInput>) -> tree.Value, tree.Defines.Value)
         }
 
     static member FormatASTAsync(ast: ParsedInput) : Async<string> =
@@ -40,14 +42,41 @@ type CodeFormatter =
             return result.Code
         }
 
-    static member FormatDocumentAsync(isSignature, source) =
-        CodeFormatterImpl.formatDocument FormatConfig.Default isSignature (CodeFormatterImpl.getSourceText source) None
+    static member FormatDocumentAsync(isSignature: bool, source: string) : Async<FormatResult> =
+        CodeFormatter.FormatDocumentAsync(isSignature, source, FormatConfig.Default)
 
-    static member FormatDocumentAsync(isSignature, source, config) =
-        CodeFormatterImpl.formatDocument config isSignature (CodeFormatterImpl.getSourceText source) None
+    static member FormatDocumentAsync(isSignature: bool, source: string, config: FormatConfig) : Async<FormatResult> =
+        CodeFormatter.FormatDocumentWithValidationsAsync(isSignature, source, config, Validations.CommentSearch)
 
-    static member FormatDocumentAsync(isSignature, source, config, cursor) =
-        CodeFormatterImpl.formatDocument config isSignature (CodeFormatterImpl.getSourceText source) (Some cursor)
+    static member FormatDocumentAsync
+        (isSignature: bool, source: string, config: FormatConfig, cursor: pos)
+        : Async<FormatResult>
+        =
+        CodeFormatter.FormatDocumentWithValidationsAsync(isSignature, source, config, cursor, Validations.CommentSearch)
+
+    static member FormatDocumentWithValidationsAsync
+        (isSignature: bool, source: string, config: FormatConfig, validations: Validations)
+        : Async<FormatResult>
+        =
+        CodeFormatter.Format(isSignature, source, config, None, validations)
+
+    static member FormatDocumentWithValidationsAsync
+        (isSignature: bool, source: string, config: FormatConfig, cursor: pos, validations: Validations)
+        : Async<FormatResult>
+        =
+        CodeFormatter.Format(isSignature, source, config, Some cursor, validations)
+
+    static member private Format
+        (isSignature: bool, source: string, config: FormatConfig, cursor: pos option, validations: Validations)
+        : Async<FormatResult>
+        =
+        CodeFormatterImpl.formatDocument
+            ignore
+            config
+            isSignature
+            (CodeFormatterImpl.getSourceText source)
+            cursor
+            validations
 
     static member FormatSelectionAsync(isSignature, source, selection) =
         CodeFormatterImpl.getSourceText source
@@ -70,14 +99,17 @@ type CodeFormatter =
     static member ParseOakAsync(isSignature: bool, source: string) : Async<(Oak * string list) array> =
         async {
             let sourceText = CodeFormatterImpl.getSourceText source
-            let! ast = CodeFormatterImpl.parse isSignature sourceText
+            let! asts = CodeFormatterImpl.parse isSignature sourceText
 
             return
-                ast
-                |> Array.map (fun (ast, defines) ->
-                    let oak = ASTTransformer.mkOak (Some sourceText) ast
-                    let oak = Trivia.enrichTree FormatConfig.Default sourceText ast oak
-                    oak, defines.Value
+                asts
+                |> Array.map (fun (tree: UnderDefines<ParsedInput>) ->
+                    let oak: Oak = ASTTransformer.mkOak (Some sourceText) tree.Value
+
+                    let oak: Oak =
+                        Trivia.enrichTree FormatConfig.Default sourceText tree.Value oak |> fst
+
+                    oak, tree.Defines.Value
                 )
         }
 
@@ -86,7 +118,7 @@ type CodeFormatter =
     static member TransformAST(ast, source) =
         let sourceText = SourceText.ofString source
         let oak = ASTTransformer.mkOak (Some sourceText) ast
-        Trivia.enrichTree FormatConfig.Default sourceText ast oak
+        Trivia.enrichTree FormatConfig.Default sourceText ast oak |> fst
 
     static member FormatOakAsync(oak: Oak) : Async<string> =
         async {
@@ -113,18 +145,20 @@ type CodeFormatter =
             let sourceText = CodeFormatterImpl.getSourceText source
             let! asts = CodeFormatterImpl.parse isSignature sourceText
 
-            let ast, _ =
+            let ast: ParsedInput =
                 if List.isEmpty defines then
-                    asts.[0]
+                    asts.[0].Value
                 else
 
                 let sortedDefines = List.sort defines
 
                 asts
-                |> Array.find (fun (_, DefineCombination(d)) -> List.sort d = sortedDefines)
+                |> Array.find (fun (tree: UnderDefines<ParsedInput>) -> List.sort tree.Defines.Value = sortedDefines)
+                |> _.Value
 
             let oak = ASTTransformer.mkOak (Some sourceText) ast
-            let oak = Trivia.enrichTree config sourceText ast oak
+
+            let oak: Oak = Trivia.enrichTree config sourceText ast oak |> fst
 
             let context =
                 { Context.Context.Create config with
