@@ -34,6 +34,11 @@ type GetDaemonError =
 type Msg =
     | GetDaemon of folder: Folder * replyChannel: AsyncReplyChannel<Result<JsonRpc, GetDaemonError>>
     | Reset of AsyncReplyChannel<unit>
+    /// Dispose the daemons like `Reset`, then end the loop. Cancelling the token the mailbox was
+    /// started with is not enough to end it: a cancellation that lands while the loop is entering
+    /// `inbox.Receive()` can leave that wait registered with the thread pool for good, and through
+    /// the loop's closure it keeps the host's log delegate alive.
+    | Stop of AsyncReplyChannel<unit>
 
 type IDaemon =
     inherit IDisposable
@@ -221,7 +226,12 @@ let createAgent
                 async {
                     let! msg = inbox.Receive()
 
-                    let nextState =
+                    let disposeDaemons (state: ServiceState<CachedDaemon>) : unit =
+                        Map.toList state.Daemons
+                        |> List.iter (fun (_, daemon) -> (daemon :> IDaemon).Dispose())
+
+                    // `None` ends the loop.
+                    let nextState: ServiceState<CachedDaemon> option =
                         try
                             match msg with
                             | GetDaemon(folder, replyChannel) ->
@@ -231,13 +241,15 @@ let createAgent
                                     Result.map (fun (daemon: CachedDaemon) -> daemon.Tool.RpcClient) daemon
                                 )
 
-                                nextState
+                                Some nextState
                             | Reset replyChannel ->
-                                Map.toList state.Daemons
-                                |> List.iter (fun (_, daemon) -> (daemon :> IDaemon).Dispose())
-
+                                disposeDaemons state
                                 replyChannel.Reply()
-                                ServiceState.Empty
+                                Some ServiceState.Empty
+                            | Stop replyChannel ->
+                                disposeDaemons state
+                                replyChannel.Reply()
+                                None
                         with ex ->
                             // This loop must not die. Every caller reaches it through a
                             // `PostAndReply` with no timeout, so an exception escaping here is not
@@ -253,18 +265,23 @@ let createAgent
                                 $"The Fantomas daemon cache hit an unexpected error: %s{ex.Message}"
 
                             try
-                                // Both arms throw before they reply, so this is the first answer
+                                // Every arm throws before it replies, so this is the first answer
                                 // the caller gets rather than a second one.
                                 match msg with
-                                | Reset replyChannel -> replyChannel.Reply()
+                                | Reset replyChannel
+                                | Stop replyChannel -> replyChannel.Reply()
                                 | GetDaemon(_, replyChannel) ->
                                     replyChannel.Reply(Error(GetDaemonError.UnexpectedException ex.Message))
                             with _ ->
                                 ()
 
-                            state
+                            match msg with
+                            | Stop _ -> None
+                            | _ -> Some state
 
-                    return! messageLoop nextState
+                    match nextState with
+                    | Some nextState -> return! messageLoop nextState
+                    | None -> return ()
                 }
 
             messageLoop ServiceState.Empty
@@ -528,8 +545,9 @@ type LSPFantomasService(log: Action<FantomasLogLevel, string>) =
     interface FantomasService with
         member this.Dispose() =
             if not cts.IsCancellationRequested then
-                let _ = agent.PostAndReply Reset
+                agent.PostAndReply Stop
                 cts.Cancel()
+                (agent :> IDisposable).Dispose()
 
         member _.VersionAsync(filePath, ?cancellationToken: CancellationToken) : Task<FantomasResponse> =
             isCancellationRequested cts.IsCancellationRequested
