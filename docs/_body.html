@@ -30,9 +30,11 @@
     // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
     // it render both here and on GitHub. Pages using the <div> form directly keep working.
     for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
-        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
-        // outermost wrapper so no table scaffolding is left behind around the diagram.
-        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        // fsdocs wraps the snippet in <div class="fsdocs-snippet"><pre><code>…, older versions in
+        // <table class="pre"><tr><td><pre><code>…; replace the outermost wrapper. Left inside
+        // `.fsdocs-snippet`, a grid with an auto sized column for line numbers, the diagram lands in
+        // that column and shrinks to a fraction of the page.
+        const snippet = code.closest(".fsdocs-snippet") ?? code.closest("table.pre") ?? code.closest("pre");
         if (!snippet) continue;
         const diagram = document.createElement("div");
         diagram.className = "mermaid text-center";
@@ -48,8 +50,18 @@
         themeVariables: {
             primaryColor: '#338cbb',
             primaryTextColor: '#FFF',
-            primaryBorderColor: '#5aacd6'
-        }
+            primaryBorderColor: '#5aacd6',
+            // The base theme derives these from the primary colour, which gives a green label and
+            // an orange subgraph.
+            textColor: '#1d3b4f',
+            edgeLabelBackground: '#e8f3f9',
+            clusterBkg: '#e8f3f9',
+            clusterBorder: '#5aacd6',
+            titleColor: '#1d3b4f'
+        },
+        // The flowchart styles give every span the white text meant for the boxes, the text of an
+        // arrow's label included, which no theme variable changes.
+        themeCSS: ".edgeLabel, .edgeLabel span, .edgeLabel p { color: #1d3b4f; }"
     });
 </script>
 <script type="module" src="{{root}}content/webcomponents.js"></script>
