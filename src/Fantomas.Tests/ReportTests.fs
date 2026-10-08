@@ -221,7 +221,10 @@ let ``code that came out invalid is reported as a failure and exits 1`` () =
     let code, log =
         reportFormat
             defaultSettings
-            (FormatCommandResult.Completed [| FormatResult.InvalidCode("A.fs", rejectedOutput, rejection) |])
+            (FormatCommandResult.Completed
+                [|
+                    FormatResult.InvalidCode("A.fs", rejectedOutput, [ ValidationIssue.NotValidFSharp([], rejection) ])
+                |])
 
     code |> shouldEqual 1
 
@@ -239,10 +242,14 @@ let ``code that came out invalid is reported as a failure and exits 1`` () =
     // valid, which reads as though the file were at fault and leaves the reader with nothing to do
     // but run again with `--force` and find it themselves.
     report |> shouldContainText "a bug in Fantomas"
-    report |> shouldContainText "your file is unchanged"
+    report |> shouldContainText "Your file is unchanged"
     report |> shouldContainText "https://fsprojects.github.io/fantomas-tools/"
     report |> shouldContainText "error FS0583: Unmatched '('"
     report |> shouldContainText "3 | let a = (1"
+    // At a terminal, how a coding agent can file it, right after the request.
+    report
+    |> shouldContainText
+        "fantomas-tools/.\nWith a coding agent, the fantomas-report skill can do that for you: npx skills add fsprojects/fantomas --skill fantomas-report -g.\n"
 
 [<Test>]
 let ``a failure says what went wrong at any verbosity`` () =
@@ -410,7 +417,11 @@ let ``a check reports invalid output the same way a format run does`` () =
             CheckCommandResult.Completed(
                 [],
                 {
-                    Errors = [ "A.fs", InvalidCodeException(rejectedOutput, rejection) ]
+                    Errors =
+                        [
+                            "A.fs",
+                            InvalidCodeException(rejectedOutput, [ ValidationIssue.NotValidFSharp([], rejection) ])
+                        ]
                     Formatted = []
                     Unchanged = []
                 }
@@ -425,7 +436,7 @@ let ``a check reports invalid output the same way a format run does`` () =
     |> Array.head
     |> shouldEqual "x A.fs could not be formatted by Fantomas:"
 
-    report |> shouldContainText "your file is unchanged"
+    report |> shouldContainText "Your file is unchanged"
     report |> shouldContainText "error FS0583: Unmatched '('"
 
 [<Test>]
@@ -817,9 +828,11 @@ let private healthy: Fantomas.DoctorCommand.DoctorReport =
                 }
         Ignore = Some Fantomas.DoctorCommand.IgnoreStep.NoIgnoreFile
         Settings = Some(Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default)
+        Parse = Some(Fantomas.DoctorCommand.ParseStep.Parsed [ [] ])
         Format =
             Some(Fantomas.DoctorCommand.FormatStep.Produced("let a = 1\n", Fantomas.DoctorCommand.FormatChange.Nothing))
         Validity = Some Fantomas.DoctorCommand.ValidityStep.Valid
+        Trivia = Some Fantomas.DoctorCommand.TriviaStep.Kept
         Idempotency = Some Fantomas.DoctorCommand.IdempotencyStep.Idempotent
     }
 
@@ -846,15 +859,17 @@ let ``a step the walk never reached is named as not looked at, and why`` () =
         { healthy with
             Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, [], []))
             Settings = None
+            Parse = None
             Format = None
             Validity = None
+            Trivia = None
             Idempotency = None
         }
 
     let written: string = diagnosed ignored
 
     written
-    |> shouldContainText "Settings, Format, Valid and Idempotent were not looked at"
+    |> shouldContainText "Settings, Parse, Format, Valid, Comments and Idempotent were not looked at"
 
     written
     |> shouldContainText "does not format a file its .fantomasignore matches"
@@ -869,6 +884,7 @@ let ``the whole report is on standard out, whatever any step came to`` () =
         { healthy with
             Format = Some(Fantomas.DoctorCommand.FormatStep.Failed(exn "could not be read"))
             Validity = None
+            Trivia = None
             Idempotency = None
         }
 
@@ -1226,27 +1242,20 @@ let ``each way the format step can end has a sentence of its own`` () =
             { healthy with
                 Format = Some step
                 Validity = None
+                Trivia = None
                 Idempotency = None
             }
 
-    says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.Nothing))
-    |> shouldContainText "Already formatted. Nothing would change."
-
-    // The file keeps its length, so where it parts from the result is the whole answer.
+    // Whether there is a result, and nothing about what it changes: the verdict says that.
     says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.Reformatted(12, 20)))
-    |> shouldContainText "Not formatted: the first change is at line 12."
+    |> shouldContainText "Fantomas formatted your file.\n"
 
-    // It does not, so the lengths are worth saying as well.
-    says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.Reformatted(1, 24)))
-    |> shouldContainText "the first change is at line 1, and the file would go from 20 lines to 24."
-
-    // Not a count of nought, which reads as nothing to do. Every line is right and the file would
-    // still be rewritten, so it gets a sentence rather than a number.
     says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.LineEndingsOnly))
-    |> shouldContainText "the line endings are not, so the whole file would be rewritten"
+    |> shouldContainText
+        "Fantomas would write the formatted result to your file, though every line of it stays as it is."
 
     says (Fantomas.DoctorCommand.FormatStep.Failed(exn "Access to the path is denied"))
-    |> shouldContainText "Formatting failed: Access to the path is denied"
+    |> shouldContainText "Fantomas could not format your file: Access to the path is denied"
 
 [<Test>]
 let ``a failure with nothing to say for itself still says that it happened`` () =
@@ -1254,9 +1263,10 @@ let ``a failure with nothing to say for itself still says that it happened`` () 
         { healthy with
             Format = Some(Fantomas.DoctorCommand.FormatStep.Failed(exn ""))
             Validity = None
+            Trivia = None
             Idempotency = None
         }
-    |> shouldContainText "Formatting failed."
+    |> shouldContainText "Fantomas could not format your file."
 
 [<Test>]
 let ``output Fantomas will not accept is reported with what the parser said about it`` () =
@@ -1270,14 +1280,190 @@ let ``output Fantomas will not accept is reported with what the parser said abou
                             Fantomas.DoctorCommand.FormatChange.Reformatted(3, 3)
                         )
                     )
-                Validity = Some(Fantomas.DoctorCommand.ValidityStep.Invalid rejection)
+                Validity =
+                    Some(Fantomas.DoctorCommand.ValidityStep.Invalid [ ValidationIssue.NotValidFSharp([], rejection) ])
+                Trivia = None
                 Idempotency = None
             }
 
-    written |> shouldContainText "will not accept what it produced"
+    written |> shouldContainText "The formatted result is not valid F#."
     written |> shouldContainText "a bug in Fantomas"
     written |> shouldContainText "error FS0583: Unmatched '('"
-    written |> shouldContainText "Idempotent was not looked at"
+
+    written
+    |> shouldContainText "Fantomas would leave your file unchanged, because the formatted result is not valid F#."
+
+[<Test>]
+let ``output that does not keep every comment is a row, and what it lost hangs under it`` () =
+    let written: string =
+        diagnosed
+            { healthy with
+                Trivia =
+                    Some(
+                        Fantomas.DoctorCommand.TriviaStep.Changed
+                            [ ValidationIssue.CommentsChanged([], [ comment 1 0 "// one" ], []) ]
+                    )
+            }
+
+    written
+    |> shouldContainText "The formatted result does not keep every comment and directive of your file."
+
+    written
+    |> shouldContainText "This comment of your file is not in the formatted result:"
+
+    written |> shouldContainText "1 | // one"
+    written |> shouldContainText "a bug in Fantomas"
+
+[<Test>]
+let ``the parse step names the define combinations, one a line`` () =
+    let written: string =
+        diagnosed
+            { healthy with
+                Parse = Some(Fantomas.DoctorCommand.ParseStep.Parsed [ [ "DEBUG"; "TRACE" ]; []; [ "DEBUG" ] ])
+            }
+
+    written
+    |> shouldContainText "so Fantomas parsed it once for each of these 3 combinations of defines:"
+
+    written |> shouldContainText "- no defines"
+    written |> shouldContainText "- DEBUG\n"
+    written |> shouldContainText "- DEBUG and TRACE"
+
+    diagnosed healthy |> shouldContainText "Fantomas parsed your file."
+
+[<Test>]
+let ``a file that does not parse says so at the parse step, and nothing would be written`` () =
+    let written: string =
+        diagnosed
+            { healthy with
+                Parse = Some(Fantomas.DoctorCommand.ParseStep.Failed(DefineParseException [ [ "DEBUG" ] ]))
+                Format = None
+                Validity = None
+                Trivia = None
+                Idempotency = None
+            }
+
+    written |> shouldContainText "Your file is not valid F# with DEBUG defined."
+
+    written
+    |> shouldContainText "Fantomas would leave your file unchanged: it is not valid F#."
+
+[<Test>]
+let ``the verdict says what a format run would do, from what the steps found`` () =
+    let verdict (report: Fantomas.DoctorCommand.DoctorReport) : string =
+        (diagnosed report).Split('\n')
+        |> Array.find (fun (line: string) -> line.Contains "Verdict")
+
+    // `healthy` formats to itself.
+    verdict healthy
+    |> shouldContainText "Your file is already formatted: Fantomas would leave it as it is."
+
+    let changes: Fantomas.DoctorCommand.DoctorReport =
+        { healthy with
+            Format =
+                Some(
+                    Fantomas.DoctorCommand.FormatStep.Produced(
+                        "",
+                        Fantomas.DoctorCommand.FormatChange.Reformatted(1, 20)
+                    )
+                )
+        }
+
+    verdict changes
+    |> shouldContainText "Fantomas would write the formatted result to your file, which changes it first at line 1."
+
+    verdict
+        { changes with
+            Format =
+                Some(
+                    Fantomas.DoctorCommand.FormatStep.Produced(
+                        "",
+                        Fantomas.DoctorCommand.FormatChange.Reformatted(12, 24)
+                    )
+                )
+        }
+    |> shouldContainText
+        "Fantomas would write the formatted result to your file, which changes it first at line 12, and takes it from 20 lines to 24."
+
+    // The search a format run does missed a comment: it refuses the result.
+    verdict
+        { changes with
+            Trivia =
+                Some(Fantomas.DoctorCommand.TriviaStep.Changed [ ValidationIssue.MissingComment(comment 1 0 "// a") ])
+        }
+    |> shouldContainText
+        "Fantomas would leave your file unchanged, because it cannot find a comment of your file in the formatted result."
+
+    // Only the comparison found something, which a format run does not check: it writes the result.
+    verdict
+        { changes with
+            Trivia =
+                Some(Fantomas.DoctorCommand.TriviaStep.Changed [ ValidationIssue.CommentsChanged([], [], [ "// a" ]) ])
+        }
+    |> shouldContainText "Fantomas would write the formatted result to your file, which changes it first at line 1."
+
+[<Test>]
+let ``a comparison that failed claims nothing about the comments, and says why`` () =
+    let written: string =
+        diagnosed
+            { healthy with
+                Trivia =
+                    Some(
+                        Fantomas.DoctorCommand.TriviaStep.Changed
+                            [
+                                ValidationIssue.CheckFailed(Validations.TriviaComparison, exn "no node for this")
+                            ]
+                    )
+            }
+
+    written
+    |> shouldContainText
+        "Fantomas could not compare the comments and directives of your file with those of the formatted result."
+
+    written
+    |> shouldContainText
+        "Comparing the comments and directives of your file with those of the formatted result failed: no node for this"
+
+    written |> shouldNotContainText "does not keep every comment"
+
+[<Test>]
+let ``on output that is not valid F#, the comments row claims only what the search checked`` () =
+    let written: string =
+        diagnosed
+            { healthy with
+                Validity =
+                    Some(Fantomas.DoctorCommand.ValidityStep.Invalid [ ValidationIssue.NotValidFSharp([], rejection) ])
+                Idempotency = None
+            }
+
+    written
+    |> shouldContainText "Fantomas finds every comment of your file in the formatted result."
+
+    written |> shouldNotContainText "keeps every comment and directive"
+    // One refusal, so one bug.
+    written |> shouldContainText "This is a bug in Fantomas"
+
+    let missing: string =
+        diagnosed
+            { healthy with
+                Validity =
+                    Some(Fantomas.DoctorCommand.ValidityStep.Invalid [ ValidationIssue.NotValidFSharp([], rejection) ])
+                Trivia =
+                    Some(
+                        Fantomas.DoctorCommand.TriviaStep.Changed [ ValidationIssue.MissingComment(comment 1 0 "// a") ]
+                    )
+                Idempotency = None
+            }
+
+    missing
+    |> shouldContainText "Fantomas cannot find every comment of your file in the formatted result."
+
+    missing |> shouldNotContainText "every comment and directive"
+
+[<Test>]
+let ``output that keeps every comment is a row that says so`` () =
+    diagnosed healthy
+    |> shouldContainText "The formatted result keeps every comment and directive of your file."
 
 [<Test>]
 let ``each way the idempotency step can end has a sentence of its own`` () =
@@ -1285,17 +1471,27 @@ let ``each way the idempotency step can end has a sentence of its own`` () =
         diagnosed { healthy with Idempotency = Some step }
 
     says Fantomas.DoctorCommand.IdempotencyStep.Idempotent
-    |> shouldContainText "Formatting the result again changes nothing."
+    |> shouldContainText "Formatting the formatted result again changes nothing."
 
     says (Fantomas.DoctorCommand.IdempotencyStep.Failed(exn "the second pass fell over"))
-    |> shouldContainText "Formatting the result again failed: the second pass fell over"
+    |> shouldContainText "Formatting the formatted result again failed: the second pass fell over"
 
+    // The lines around where the passes part, two either side, from each pass.
     let disagreed: string =
-        says (Fantomas.DoctorCommand.IdempotencyStep.NotIdempotent(7, "let a = 1", "let a =  1"))
+        says (
+            Fantomas.DoctorCommand.IdempotencyStep.NotIdempotent(
+                4,
+                "let a = 1\nlet b = 2\nlet c = 3\nlet d = 4\n",
+                "let a = 1\nlet b = 2\nlet c = 3\nlet d =  4\n"
+            )
+        )
 
-    disagreed |> shouldContainText "changes it, first at line 7"
-    disagreed |> shouldContainText "after one pass:   let a = 1"
-    disagreed |> shouldContainText "after two passes: let a =  1"
+    disagreed |> shouldContainText "changes it, first at line 4"
+    disagreed |> shouldContainText "Formatted once:"
+    disagreed |> shouldContainText "4 | let d = 4"
+    disagreed |> shouldContainText "Formatted again:"
+    disagreed |> shouldContainText "4 | let d =  4"
+    disagreed |> shouldNotContainText "1 | let a = 1"
 
 [<Test>]
 let ``a run that fell over says what went wrong, on standard error`` () =
@@ -1332,8 +1528,10 @@ let private stoppedAtTheFile (step: Fantomas.DoctorCommand.FileStep) : Fantomas.
         File = step
         Ignore = None
         Settings = None
+        Parse = None
         Format = None
         Validity = None
+        Trivia = None
         Idempotency = None
     }
 
@@ -1343,7 +1541,7 @@ let ``a path that is not there says nothing below it was looked at, and why`` ()
         diagnosed (stoppedAtTheFile (Fantomas.DoctorCommand.FileStep.NotFound "/repo/A.fs"))
 
     written
-    |> shouldContainText "Ignore, Settings, Format, Valid and Idempotent were not looked at"
+    |> shouldContainText "Ignore, Settings, Parse, Format, Valid, Comments and Idempotent were not looked at"
 
     written |> shouldContainText "there is no file here to put through them"
 
@@ -1354,9 +1552,9 @@ let ``a file Fantomas does not format says so as the reason the rest was skipped
 
 [<Test>]
 let ``a file that will not parse is reported with the parser's own diagnostics and a snippet`` () =
-    // The failure describes itself below the table, at full width, because a snippet with a caret
-    // under it is not something that survives being indented into a column. The lines it draws come
-    // from the file on disk, so this one is a real file and a real file system.
+    // The failure describes itself under the Parse row, with a snippet and a caret under the
+    // construct. The lines it draws come from the file on disk, so this one is a real file and a
+    // real file system.
     use fileFixture = new TemporaryFileCodeSample(rejectedOutput)
 
     let recorded: RecordedRun =
@@ -1375,7 +1573,7 @@ let ``a file that will not parse is reported with the parser's own diagnostics a
                           UnreachableUnder = None
                       }
               ) with
-                Format = Some(Fantomas.DoctorCommand.FormatStep.Failed(ParseException rejection))
+                Parse = Some(Fantomas.DoctorCommand.ParseStep.Failed(ParseException rejection))
             })
     |> ignore
 

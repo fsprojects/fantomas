@@ -35,7 +35,7 @@ let private goldsOf (case: Case.Case) (formatted: Formatting.Formatted) : (strin
         | combinations ->
 
         combinations
-        |> List.map (fun (each: Formatting.ForDefines) -> Case.defineGoldPath case each.Defines, each.Code)
+        |> List.map (fun (each: Formatting.FormattedCombination) -> Case.defineGoldPath case each.Defines, each.Code)
 
     if isNegative case then
         perDefine

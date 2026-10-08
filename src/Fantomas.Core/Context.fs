@@ -376,6 +376,7 @@ let dump (isSelection: bool) (ctx: Context) =
     {
         Code = code
         Cursor = ctx.FormattedCursor
+        Issues = []
     }
 
 let dumpEvents (ctx: Context) : WriterEvent array = ctx.WriterEvents.ToSeq() |> Seq.toArray

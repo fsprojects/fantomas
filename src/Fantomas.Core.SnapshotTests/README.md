@@ -141,7 +141,7 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
 
 - the result is valid F#, under every define combination;
 - every comment of the input is in the result, and as many of them;
-- every conditional directive (`#if`, `#else`, `#endif`) and warn directive (`#nowarn`, `#warnon`)
+- every conditional directive (`#if`, `#elif`, `#else`, `#endif`) and warn directive (`#nowarn`, `#warnon`)
   of the input is in the result, with the same text and in the same order. Both are trivia, like
   comments. Blank lines
   are left out: formatting adds and removes them on purpose. Comments and directives are compared
@@ -155,8 +155,16 @@ give, written by hand: `name.gold.fs`, the same name it will have once the `.ign
 - with `\r\n` line endings in and `end_of_line = crlf`, the result is the same with `\r\n` line
   endings, or for a case that sets `end_of_line = crlf` the same result. That is what Windows users
   get. A case at `end_of_line = cr` is left out;
-- the harness, which formats each define combination itself, agrees with `formatDocumentWith`,
-  which is what users run.
+- every comment and directive the parser recorded is attached to a node of the Oak, under each
+  define combination.
+
+The first three, and merged idempotency, are what `formatDocument` checks when asked for every
+check (`Validations.All`). A comment is compared by its text and its kind: a line comment may move
+between a line of its own and the end of a line of code, and a block comment may not. A format run
+and the daemon ask only for the first (`Validations.Parse`), and search the result for the text of
+every comment of the source instead, in the order of the source (`Validations.CommentSearch`).
+`fantomas doctor` asks for every check, like the cases. Every case checks that this search finds
+them all, since a comment it misses is a file users cannot format.
 
 ## Where a case goes
 

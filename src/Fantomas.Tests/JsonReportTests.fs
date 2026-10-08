@@ -211,7 +211,14 @@ let ``output Fantomas invalidated is reported as a failure of that file`` () =
         ]
 
     let document: JsonElement =
-        completed [ FormatResult.InvalidCode("a.fs", "module A\n\nlet a = (1\n", rejection) ]
+        completed
+            [
+                FormatResult.InvalidCode(
+                    "a.fs",
+                    "module A\n\nlet a = (1\n",
+                    [ ValidationIssue.NotValidFSharp([], rejection) ]
+                )
+            ]
 
     let file: JsonElement = files document |> List.exactlyOne
     snd (statusOf file) |> shouldEqual "error"
@@ -222,7 +229,7 @@ let ``output Fantomas invalidated is reported as a failure of that file`` () =
     // The same wording the console prints, minus the colour and the file in front of it, rather
     // than a shorter sentence written for this document alone.
     let message: string = file.GetProperty("message").GetString()
-    message |> shouldContainText "your file is unchanged"
+    message |> shouldContainText "Your file is unchanged"
     message |> shouldContainText "a bug in Fantomas"
 
     // What was wrong with the output, carried the way a parse failure's diagnostics are, so a
@@ -238,6 +245,77 @@ let ``output Fantomas invalidated is reported as a failure of that file`` () =
     diagnostic.GetProperty("range").GetProperty("startLine").GetInt32()
     |> shouldEqual 3
 
+    // The combinations it was reported under, the one without defines here.
+    diagnostic.GetProperty("reportedUnder").EnumerateArray()
+    |> Seq.map (fun (defines: JsonElement) -> defines.GetArrayLength())
+    |> List.ofSeq
+    |> shouldEqual [ 0 ]
+
+    file.GetProperty("missingComments").GetArrayLength() |> shouldEqual 0
+
+// Output that is valid F# and still refused, because it lost a comment. The comment is listed as
+// the file has it, with where it is in the file.
+[<Test>]
+let ``the comments a refused output is missing are in the document`` () =
+    let document: JsonElement =
+        completed
+            [
+                FormatResult.InvalidCode(
+                    "a.fs",
+                    "let a = 1\n",
+                    [
+                        ValidationIssue.MissingComment
+                            {
+                                Range = Range.mkRange "" (Position.mkPos 1 10) (Position.mkPos 1 16)
+                                Text = "// one"
+                            }
+                    ]
+                )
+            ]
+
+    let file: JsonElement = files document |> List.exactlyOne
+    snd (statusOf file) |> shouldEqual "error"
+    file.GetProperty("diagnostics").GetArrayLength() |> shouldEqual 0
+
+    let comment: JsonElement =
+        file.GetProperty("missingComments").EnumerateArray() |> Seq.exactlyOne
+
+    comment.GetProperty("text").GetString() |> shouldEqual "// one"
+
+    comment.GetProperty("range").GetProperty("startLine").GetInt32()
+    |> shouldEqual 1
+
+    comment.GetProperty("range").GetProperty("startColumn").GetInt32()
+    |> shouldEqual 11
+
+// Written although a format run refuses it: the document says so, and what was wrong, which the
+// warning only told standard error.
+[<Test>]
+let ``a file written by force says so, and what was wrong with it`` () =
+    let document: JsonElement =
+        completed
+            [
+                FormatResult.Forced(
+                    "a.fs",
+                    "let a = 1\n",
+                    [
+                        ValidationIssue.MissingComment
+                            {
+                                Range = Range.mkRange "" (Position.mkPos 1 10) (Position.mkPos 1 16)
+                                Text = "// one"
+                            }
+                    ]
+                )
+            ]
+
+    let file: JsonElement = files document |> List.exactlyOne
+    snd (statusOf file) |> shouldEqual "formatted"
+    file.GetProperty("forced").GetBoolean() |> shouldEqual true
+    file.GetProperty("diagnostics").GetArrayLength() |> shouldEqual 0
+
+    file.GetProperty("missingComments").[0].GetProperty("text").GetString()
+    |> shouldEqual "// one"
+
 // Only a file that failed carries them, so a folder of files that were fine does not repeat a null
 // message and an empty list for every one of them.
 [<Test>]
@@ -247,6 +325,7 @@ let ``a file that did not fail carries neither a message nor diagnostics`` () =
 
     file.TryGetProperty "message" |> fst |> shouldEqual false
     file.TryGetProperty "diagnostics" |> fst |> shouldEqual false
+    file.TryGetProperty "missingComments" |> fst |> shouldEqual false
 
 // A check counts a file it could not read as changed as well as errored. One file is one entry, and
 // the failure is the more useful of the two answers.
@@ -379,6 +458,7 @@ let private healthy: Fantomas.DoctorCommand.DoctorReport =
                 }
         Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, [], []))
         Settings = Some(Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default)
+        Parse = Some(Fantomas.DoctorCommand.ParseStep.Parsed [ [] ])
         Format =
             Some(
                 Fantomas.DoctorCommand.FormatStep.Produced(
@@ -387,6 +467,7 @@ let private healthy: Fantomas.DoctorCommand.DoctorReport =
                 )
             )
         Validity = Some Fantomas.DoctorCommand.ValidityStep.Valid
+        Trivia = Some Fantomas.DoctorCommand.TriviaStep.Kept
         Idempotency = Some Fantomas.DoctorCommand.IdempotencyStep.Idempotent
     }
 
@@ -406,6 +487,7 @@ let ``a doctor document carries a key per step`` () =
     statusAt document "ignore" |> shouldEqual "not-ignored"
     statusAt document "format" |> shouldEqual "changed"
     statusAt document "validity" |> shouldEqual "valid"
+    statusAt document "trivia" |> shouldEqual "kept"
     statusAt document "idempotency" |> shouldEqual "idempotent"
 
     document.GetProperty("format").GetProperty("firstChangedLine").GetInt32()
@@ -422,14 +504,16 @@ let ``a step the walk never reached is null rather than absent`` () =
         { healthy with
             Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, [], []))
             Settings = None
+            Parse = None
             Format = None
             Validity = None
+            Trivia = None
             Idempotency = None
         }
 
     let document: JsonElement = diagnosed ignored
 
-    for key in [ "configuration"; "format"; "validity"; "idempotency" ] do
+    for key in [ "configuration"; "format"; "validity"; "trivia"; "idempotency" ] do
         document.GetProperty(key).ValueKind |> shouldEqual JsonValueKind.Null
 
     statusAt document "ignore" |> shouldEqual "ignored"
@@ -540,8 +624,10 @@ let ``the pattern that matched is carried with its line number`` () =
                     )
                 )
             Settings = None
+            Parse = None
             Format = None
             Validity = None
+            Trivia = None
             Idempotency = None
         }
 
@@ -566,7 +652,20 @@ let ``a path that is not one file is the document's error, with every step null`
 
     document.GetProperty("exitCode").GetInt32() |> shouldEqual 1
     document.GetProperty("error").GetString() |> shouldContainText "one file"
-    document.GetProperty("file").ValueKind |> shouldEqual JsonValueKind.Null
+
+    // Every step a report has, so that a reader can take each key for granted.
+    for step in
+        [
+            "file"
+            "ignore"
+            "configuration"
+            "parse"
+            "format"
+            "validity"
+            "trivia"
+            "idempotency"
+        ] do
+        document.GetProperty(step).ValueKind |> shouldEqual JsonValueKind.Null
 
 // ---- one case per key the doctor document can carry ----
 
@@ -730,6 +829,7 @@ let ``formatting that failed carries what went wrong and where`` () =
             { healthy with
                 Format = Some(Fantomas.DoctorCommand.FormatStep.Failed unmatchedBracket)
                 Validity = None
+                Trivia = None
                 Idempotency = None
             })
             .GetProperty
@@ -755,7 +855,9 @@ let ``output Fantomas will not accept carries what it would not accept about it`
     let validity: JsonElement =
         (diagnosed
             { healthy with
-                Validity = Some(Fantomas.DoctorCommand.ValidityStep.Invalid refused)
+                Validity =
+                    Some(Fantomas.DoctorCommand.ValidityStep.Invalid [ ValidationIssue.NotValidFSharp([], refused) ])
+                Trivia = None
                 Idempotency = None
             })
             .GetProperty
@@ -765,15 +867,132 @@ let ``output Fantomas will not accept carries what it would not accept about it`
     validity.GetProperty("diagnostics").GetArrayLength() |> shouldEqual 1
 
 [<Test>]
+let ``the parse step carries the define combinations`` () =
+    let parse: JsonElement =
+        (diagnosed
+            { healthy with
+                Parse = Some(Fantomas.DoctorCommand.ParseStep.Parsed [ []; [ "DEBUG" ] ])
+            })
+            .GetProperty
+            "parse"
+
+    parse.GetProperty("status").GetString() |> shouldEqual "parsed"
+
+    parse.GetProperty("defines").EnumerateArray()
+    |> Seq.map (fun (defines: JsonElement) ->
+        defines.EnumerateArray()
+        |> Seq.map (fun (define: JsonElement) -> define.GetString())
+        |> List.ofSeq
+    )
+    |> List.ofSeq
+    |> shouldEqual [ []; [ "DEBUG" ] ]
+
+[<Test>]
+let ``every comment and directive the result does not keep is in the document`` () =
+    let trivia: JsonElement =
+        (diagnosed
+            { healthy with
+                Trivia =
+                    Some(
+                        Fantomas.DoctorCommand.TriviaStep.Changed
+                            [
+                                ValidationIssue.CommentsChanged(
+                                    [ "FOO" ],
+                                    [
+                                        {
+                                            Range = Range.mkRange "" (Position.mkPos 2 0) (Position.mkPos 2 6)
+                                            Text = "// one"
+                                        }
+                                    ],
+                                    []
+                                )
+                                ValidationIssue.DirectivesChanged([], [], [])
+                            ]
+                    )
+            })
+            .GetProperty
+            "trivia"
+
+    trivia.GetProperty("status").GetString() |> shouldEqual "changed"
+
+    let changes: JsonElement list =
+        trivia.GetProperty("changes").EnumerateArray() |> List.ofSeq
+
+    List.length changes |> shouldEqual 2
+
+    let comments: JsonElement = List.head changes
+    comments.GetProperty("kind").GetString() |> shouldEqual "comments"
+    comments.GetProperty("defines").[0].GetString() |> shouldEqual "FOO"
+
+    comments.GetProperty("missing").[0].GetProperty("text").GetString()
+    |> shouldEqual "// one"
+
+    comments.GetProperty("missing").[0].GetProperty("range").GetProperty("startLine").GetInt32()
+    |> shouldEqual 2
+
+    comments.GetProperty("added").GetArrayLength() |> shouldEqual 0
+
+    (List.last changes).GetProperty("kind").GetString() |> shouldEqual "directives"
+
+[<Test>]
+let ``a comment the search did not find names no define combination`` () =
+    let change: JsonElement =
+        (diagnosed
+            { healthy with
+                Trivia =
+                    Some(
+                        Fantomas.DoctorCommand.TriviaStep.Changed
+                            [
+                                ValidationIssue.MissingComment
+                                    {
+                                        Range = Range.mkRange "" (Position.mkPos 2 0) (Position.mkPos 2 4)
+                                        Text = "// a"
+                                    }
+                            ]
+                    )
+            })
+            .GetProperty("trivia")
+            .GetProperty("changes")
+            .[0]
+
+    change.GetProperty("kind").GetString() |> shouldEqual "search"
+    // An empty list would read as the combination without defines.
+    change.TryGetProperty("defines") |> fst |> shouldEqual false
+
+    change.GetProperty("missing").[0].GetProperty("text").GetString()
+    |> shouldEqual "// a"
+
+[<Test>]
+let ``a comparison that failed is a change of its own kind`` () =
+    let change: JsonElement =
+        (diagnosed
+            { healthy with
+                Trivia =
+                    Some(
+                        Fantomas.DoctorCommand.TriviaStep.Changed
+                            [
+                                ValidationIssue.CheckFailed(Validations.TriviaComparison, exn "no node for this")
+                            ]
+                    )
+            })
+            .GetProperty("trivia")
+            .GetProperty("changes")
+            .[0]
+
+    change.GetProperty("kind").GetString() |> shouldEqual "failed"
+    change.GetProperty("message").GetString() |> shouldEqual "no node for this"
+
+[<Test>]
 let ``each way the idempotency step can end has a status of its own`` () =
     let idempotency (step: Fantomas.DoctorCommand.IdempotencyStep) : JsonElement =
         (diagnosed { healthy with Idempotency = Some step }).GetProperty "idempotency"
 
     let disagreed: JsonElement =
-        idempotency (Fantomas.DoctorCommand.IdempotencyStep.NotIdempotent(7, "let a = 1", "let a =  1"))
+        idempotency (Fantomas.DoctorCommand.IdempotencyStep.NotIdempotent(2, "// a\nlet a = 1\n", "// a\nlet a =  1\n"))
 
+    // The line each pass has where they part.
     disagreed.GetProperty("status").GetString() |> shouldEqual "not-idempotent"
-    disagreed.GetProperty("line").GetInt32() |> shouldEqual 7
+    disagreed.GetProperty("line").GetInt32() |> shouldEqual 2
     disagreed.GetProperty("afterFirstPass").GetString() |> shouldEqual "let a = 1"
     disagreed.GetProperty("afterSecondPass").GetString() |> shouldEqual "let a =  1"
 
@@ -799,7 +1018,16 @@ let ``a run that fell over is the document's error, with every step null`` () =
     document.GetProperty("exitCode").GetInt32() |> shouldEqual 1
     document.GetProperty("error").GetString() |> shouldEqual "the disk went away"
 
-    for key in [ "file"; "ignore"; "configuration"; "format"; "validity"; "idempotency" ] do
+    for key in
+        [
+            "file"
+            "ignore"
+            "configuration"
+            "format"
+            "validity"
+            "trivia"
+            "idempotency"
+        ] do
         document.GetProperty(key).ValueKind |> shouldEqual JsonValueKind.Null
 
 [<Test>]
@@ -820,13 +1048,15 @@ let ``a walk that stopped at the file step carries the file and nulls the rest``
                 File = Fantomas.DoctorCommand.FileStep.NotFound "/repo/A.fs"
                 Ignore = None
                 Settings = None
+                Parse = None
                 Format = None
                 Validity = None
+                Trivia = None
                 Idempotency = None
             }
 
     document.GetProperty("file").GetProperty("status").GetString()
     |> shouldEqual "not-found"
 
-    for key in [ "ignore"; "configuration"; "format"; "validity"; "idempotency" ] do
+    for key in [ "ignore"; "configuration"; "format"; "validity"; "trivia"; "idempotency" ] do
         document.GetProperty(key).ValueKind |> shouldEqual JsonValueKind.Null

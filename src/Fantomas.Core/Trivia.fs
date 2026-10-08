@@ -537,30 +537,42 @@ let addToTree (tree: Oak) (trivia: TriviaNode array) : unit =
         | BlockComment _
         | Cursor -> blockCommentToTriviaInstruction parentNode trivia
 
-let internal collectCommentTextsFromAST (sourceText: ISourceText) (ast: ParsedInput) : Set<TriviaContent> =
+[<NoComparison; NoEquality>]
+type RecordedTrivia =
+    {
+        Comments: TriviaNode list
+        Directives: TriviaNode list
+    }
+
+// Only what lies within `treeRange` is read out of the source. The tree of a whole file covers every
+// comment and directive of it; a selection covers a few.
+let collectRecordedTrivia (sourceText: ISourceText) (ast: ParsedInput) (treeRange: range) : RecordedTrivia =
     let parsedTrivia =
         match ast with
         | ParsedInput.ImplFile(ParsedImplFileInput(trivia = t))
         | ParsedInput.SigFile(ParsedSigFileInput(trivia = t)) -> t
 
-    let fullRange =
-        let startPos = Position.mkPos 0 0
-        let endPos = Position.mkPos sourceText.Length 0
-        Range.mkRange String.Empty startPos endPos
+    let directiveRanges: range list =
+        (parsedTrivia.ConditionalDirectives |> List.map _.Range)
+        @ (parsedTrivia.WarnDirectives
+           |> List.map (
+               function
+               | WarnDirectiveTrivia.Nowarn(m)
+               | WarnDirectiveTrivia.Warnon(m) -> m
+           ))
 
-    let normalize (content: TriviaContent) =
-        match content with
-        | CommentOnSingleLine s
-        | LineCommentAfterSourceCode s -> CommentOnSingleLine(s.TrimEnd())
-        | BlockComment(s, _, _) -> BlockComment(s.TrimEnd(), false, false)
-        | other -> other
+    {
+        Comments = collectTriviaFromCodeComments sourceText parsedTrivia.CodeComments treeRange
+        Directives = collectTriviaFromDirectiveRanges sourceText directiveRanges treeRange
+    }
 
-    collectTriviaFromCodeComments sourceText parsedTrivia.CodeComments fullRange
-    |> List.map (fun tn -> normalize tn.Content)
-    |> Set.ofList
-
-let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak =
+let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak * RecordedTrivia =
     let fullTreeRange = tree.Range
+
+    // What the parser recorded, read before any of it is assigned, and handed back with the tree:
+    // what was assigned is what the formatted result is checked against.
+    let recordedTrivia: RecordedTrivia =
+        collectRecordedTrivia sourceText ast fullTreeRange
 
     let parsedTrivia =
         match ast with
@@ -571,26 +583,15 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
         let newlines =
             collectTriviaFromBlankLines config sourceText tree parsedTrivia.CodeComments fullTreeRange
 
-        let comments =
-            collectTriviaFromCodeComments sourceText parsedTrivia.CodeComments fullTreeRange
-
-        let directiveRanges =
-            (parsedTrivia.ConditionalDirectives |> List.map _.Range)
-            @ (parsedTrivia.WarnDirectives
-               |> List.map (
-                   function
-                   | WarnDirectiveTrivia.Nowarn(m)
-                   | WarnDirectiveTrivia.Warnon(m) -> m
-               ))
-
-        let directives =
-            collectTriviaFromDirectiveRanges sourceText directiveRanges fullTreeRange
-
-        [| yield! comments; yield! newlines; yield! directives |]
+        [|
+            yield! recordedTrivia.Comments
+            yield! newlines
+            yield! recordedTrivia.Directives
+        |]
         |> Array.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
     addToTree tree (promoteNewlinesBeforeComments trivia)
-    tree
+    tree, recordedTrivia
 
 let insertCursor (tree: Oak) (cursor: pos) =
     let cursorRange = Range.mkRange (tree :> Node).Range.FileName cursor cursor

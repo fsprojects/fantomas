@@ -25,7 +25,7 @@ let newline = "\n"
 /// Children may overlap, as ranges from the parser can nest.
 /// Nodes that `ASTTransformer` makes up carry `range0` and have no place in the source,
 /// and neither does the module of a file without code, which carries `RangeHelpers.absoluteZeroRange`.
-/// It is handed to `CodeFormatterImpl.formatDocumentWith`, which calls it on the Oak it is about to print.
+/// `inspect` runs it on every Oak `CodeFormatterImpl.formatDocument` printed.
 let assertChildrenInPlace (oak: Oak) : unit =
     let rec visit (node: Node) : unit =
         let placed: Node array =
@@ -55,51 +55,64 @@ let assertChildrenInPlace (oak: Oak) : unit =
 
     visit oak
 
+/// Every comment and directive the parser recorded is attached to a node of the Oak, as trivia
+/// before or after it. Trivia assignment that finds no node for one drops it, and the printer never
+/// sees it; caught here, before printing, in the case that shows it. Matched on where each ends,
+/// as folding blank lines into a comment moves where it starts.
+let assertTriviaAssigned (oak: Oak) (recordedTrivia: Trivia.RecordedTrivia) : unit =
+    let endOf (trivia: TriviaNode) : int * int =
+        trivia.Range.EndLine, trivia.Range.EndColumn
+
+    let rec attached (node: Node) : (int * int) seq =
+        seq {
+            yield! Seq.map endOf node.ContentBefore
+            yield! Seq.map endOf node.ContentAfter
+
+            for child in node.Children do
+                yield! attached child
+        }
+
+    let ends: Set<int * int> = attached oak |> Set.ofSeq
+
+    let unassigned: TriviaNode list =
+        recordedTrivia.Comments @ recordedTrivia.Directives
+        |> List.filter (fun (trivia: TriviaNode) -> not (ends.Contains(endOf trivia)))
+
+    match unassigned with
+    | [] -> ()
+    | unassigned ->
+
+    let listed: string =
+        unassigned
+        |> List.map (fun (trivia: TriviaNode) -> $"%O{trivia.Range}: %O{trivia.Content}")
+        |> String.concat "\n"
+
+    failwith $"Trivia the parser recorded is attached to no node of the Oak:\n%s{listed}"
+
+/// Both checks on every define combination `CodeFormatterImpl.formatDocument` hands over.
+let inspect (tree: UnderDefines<CodeFormatterImpl.FormattedTree>) : unit =
+    assertChildrenInPlace tree.Value.Oak
+    assertTriviaAssigned tree.Value.Oak tree.Value.Trivia
+
 let formatFSharpString isFsiFile (s: string) config =
     async {
-        // Collect comments from input
-        let inputSourceText = CodeFormatterImpl.getSourceText s
-        let inputAst, _ = Fantomas.FCS.Parse.parseFile isFsiFile inputSourceText []
-        let inputComments = Trivia.collectCommentTextsFromAST inputSourceText inputAst
-
+        // Every check but the search, which the comparison makes redundant here: not valid F#, a
+        // comment or directive not kept, or not idempotent. Stricter than what users are refused
+        // output for, which is invalid F# or a comment the search misses.
         let! formatted =
-            CodeFormatterImpl.formatDocumentWith assertChildrenInPlace config isFsiFile inputSourceText None
-
-        let formattedCode = formatted.Code.Replace("\r\n", "\n")
-
-        // Validity check — inlined, reusing AST for comment check below
-        let formattedSourceText = Fantomas.FCS.Text.SourceText.ofString formattedCode
-
-        let formattedAst, diagnostics =
-            Fantomas.FCS.Parse.parseFile isFsiFile formattedSourceText []
-
-        if not (Validation.noWarningOrErrorDiagnostics diagnostics) then
-            failwith $"The formatted result is not valid F# code or contains warnings\n%s{formattedCode}"
-
-        // Comment preservation check
-        let outputComments =
-            Trivia.collectCommentTextsFromAST formattedSourceText formattedAst
-
-        if inputComments <> outputComments then
-            let missing = inputComments - outputComments
-            let extra = outputComments - inputComments
-
-            failwith
-                $"Comment trivia was not preserved.\nMissing: %A{missing}\nExtra: %A{extra}\nFormatted code:\n%s{formattedCode}"
-
-        // Idempotency check
-        let! secondFormat =
-            CodeFormatterImpl.formatDocumentWith
-                assertChildrenInPlace
+            CodeFormatterImpl.formatDocument
+                inspect
                 config
                 isFsiFile
-                (CodeFormatterImpl.getSourceText formattedCode)
+                (CodeFormatterImpl.getSourceText s)
                 None
+                (Validations.Parse ||| Validations.TriviaComparison ||| Validations.Idempotency)
 
-        let secondFormattedCode = secondFormat.Code.Replace("\r\n", "\n")
+        let formattedCode: string = formatted.Code.Replace("\r\n", "\n")
 
-        if formattedCode <> secondFormattedCode then
-            failwith $"The formatted result was not idempotent.\n%s{formattedCode}\n%s{secondFormattedCode}"
+        if not (List.isEmpty formatted.Issues) then
+            failwith
+                $"The formatted result failed its checks.\n%A{formatted.Issues}\nFormatted code:\n%s{formattedCode}"
 
         return formattedCode
     }
@@ -108,13 +121,14 @@ let formatFSharpString isFsiFile (s: string) config =
 let formatSignatureString = formatFSharpString true
 let formatSourceString = formatFSharpString false
 
-let formatAST isFsiFile (source: string) config =
+let formatAST (isFsiFile: bool) (source: string) (config: FormatConfig) : string =
     async {
         let ast, _ =
             Fantomas.FCS.Parse.parseFile isFsiFile (Fantomas.FCS.Text.SourceText.ofString source) []
 
-        let formattedCode: string =
-            (CodeFormatterImpl.formatASTWith assertChildrenInPlace ast None config None).Code
+        // The Oak `FormatASTAsync` prints, which has no source to take trivia from.
+        ASTTransformer.mkOak None ast |> assertChildrenInPlace
+        let! formattedCode = CodeFormatter.FormatASTAsync(ast, config)
 
         let! validation = CodeFormatter.ValidateFSharpCodeAsync(isFsiFile, formattedCode)
 

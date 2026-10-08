@@ -600,4 +600,39 @@ has to be rebuilt against `v8`.
 - `CodeFormatter.FormatASTAsync(ast, config, source)` was added, next to the existing `FormatASTAsync(ast, source)`.
 - `CodeFormatter.GetWriterEventsAsync` was added for debugging. It returns the writer events produced while formatting.
 
+## v9
+
+### console application
+- Fantomas no longer writes a result that is missing a `//` or `(* *)` comment of your file, even when that result is valid F#. It searches the result for the text of every such comment, and when one is not there, the file is left unchanged, the run exits 1, and the report lists the missing comments, with the lines they are on in your file, and asks you to report the bug. `--force` writes the result anyway, with a warning. Up to `v8` such output was written without a word.
+- The daemon that editors use checks its result the same way a format run does: output that is not valid F#, or that is missing a comment, comes back as an error instead of replacing the document. Up to `v8` the daemon checked nothing and sent whatever came out. What this costs is parsing the result, which a format run already paid for: about a third more than formatting alone, which is 5 ms on a file of 450 lines and 18 ms on one of 5,000.
+- `fantomas doctor` has a `Comments` step between `Valid` and `Idempotent`. It runs the search a format run does, and also compares the comments and directives of the result with those of the file under every define combination, which a format run does not do as it doubles what validating costs. It fails when a comment was dropped, added, rewritten or moved ahead of another, or when the directives changed. `doctor --json` has a `trivia` key for it. The report also gained a `Parse` step, which lists the define combinations the file is parsed under (`parse` in `--json`), and ends on a `Verdict`: what a format run would do with the file.
+- In `--json`, a file with status `error` carries a `missingComments` array next to `diagnostics`. Each comment is an object with its `text` and its `range` in the file. A diagnostic of output Fantomas refused has `reportedUnder`, the define combinations of the output that reported it. A file `--force` wrote anyway has `"forced": true` with the same two arrays.
+
+### Fantomas.Core API
+
+- `CodeFormatter.FormatDocumentWithValidationsAsync` formats like `FormatDocumentAsync` and runs the checks you pass it: `FormatDocumentWithValidationsAsync(isSignature, source, config, validations)` and `FormatDocumentWithValidationsAsync(isSignature, source, config, cursor, validations)`. The three `FormatDocumentAsync` overloads run `Validations.CommentSearch`.
+- `validations` says which checks formatting runs on its own result, as a `[<Flags>]` enum that combines with `|||`:
+
+  | `Validations` | Checks | Reports |
+  |---|---|---|
+  | `CommentSearch` (what `FormatDocumentAsync` runs) | the text of every comment of the source is in the result, without parsing it | `MissingComment` |
+  | `Parse` | the result is valid F# under each of its define combinations | `NotValidFSharp` |
+  | `TriviaComparison` | the comments and directives of the result are those of the source, per define combination the result parses under | `CommentsChanged`, `DirectivesChanged`, `CheckFailed` |
+  | `Idempotency` | formatting the result again gives the result, for a result without parse errors | `NotIdempotent`, `CheckFailed` |
+
+  `None` checks nothing and `All` checks everything. The comments checked are `//` and `(* *)` comments; XML doc comments (`///`) are not. Each check runs as asked and reports only its own issues. `CheckFailed` is a check that could not finish, because reading the result or formatting it again raised. No check runs when the result is the source apart from trailing whitespace.
+- `FormatResult` has a new field, `Issues: ValidationIssue list`: what the checks found. Each issue is a bug in Fantomas, and `Code` should not replace the source while there is one. Code that only reads a `FormatResult` keeps working. Code that constructs one, a test double for example, has to give the new field:
+
+  ```fsharp
+  // v8
+  { Code = code; Cursor = None }
+
+  // v9
+  { Code = code; Cursor = None; Issues = [] }
+  ```
+
+- `SourceComment` is the type of a comment an issue is about: its `Range` in the source and its `Text`.
+- `DefineParseException.Combinations` is a `string list list`: the defines of each combination that failed to parse, `[]` for the one without defines. It was a `string list` of their names, with `"no defines"` for that one.
+- `CodeFormatter.ValidateFSharpCodeAsync` is unchanged.
+
 <fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

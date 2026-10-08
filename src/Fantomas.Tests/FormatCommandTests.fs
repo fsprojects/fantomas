@@ -276,7 +276,12 @@ let ``with force, output that is not valid F# is written anyway`` () =
         formatWith settings None fs (InputPath.File input) (OutputPath.IO output)
         |> results
     with
-    | [| FormatResult.Formatted _ |] -> fs.File.Exists output |> shouldEqual true
+    | [| FormatResult.Forced(_, _, issues) |] ->
+        fs.File.Exists output |> shouldEqual true
+
+        issues
+        |> List.exists (fun (issue: Fantomas.Core.ValidationIssue) -> issue.IsNotValidFSharp)
+        |> shouldEqual true
     | other -> failwith $"Expected the invalid output to be written anyway, got %A{other}"
 
 [<Test>]
@@ -307,6 +312,50 @@ let ``without force, output that is not valid F# is not written`` () =
             invalid.Diagnostics |> List.isEmpty |> shouldEqual false
         | other -> failwith $"Expected an InvalidCodeException, got %A{other}"
     | other -> failwith $"Expected the invalid output to be withheld, got %A{other}"
+
+// A `#if` inside a block comment is taken for a directive and moved to column 0, which rewrites the
+// comment while the result stays valid F#. The day Fantomas keeps the comment as it is, these tests
+// need another sample.
+[<Literal>]
+let private LosesAComment: string =
+    "#if FOO\n    (*\n        #if BAR\n                    printfn \"FOO\"\n        #endif\n    *)\n#else\n                ()\n#endif\n"
+
+[<Test>]
+let ``without force, output that is missing a comment is not written`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let input: string = fs.Path.Combine(root, "A.fs")
+    let output: string = fs.Path.Combine(root, "out", "A.fs")
+    write fs input LosesAComment
+
+    match format fs (InputPath.File input) (OutputPath.IO output) |> results with
+    | [| FormatResult.Error(_, error) |] ->
+        fs.File.Exists output |> shouldEqual false
+
+        match error with
+        | :? InvalidCodeException as invalid ->
+            // Valid F#, and refused all the same.
+            invalid.Diagnostics |> shouldBeEmpty
+            invalid.MissingComments |> List.isEmpty |> shouldEqual false
+        | other -> failwith $"Expected an InvalidCodeException, got %A{other}"
+    | other -> failwith $"Expected the output to be withheld, got %A{other}"
+
+[<Test>]
+let ``with force, output that is missing a comment is written and said to be`` () =
+    let fs: IFileSystem = MockFileSystem()
+    let root: string = mockRoot fs
+    let input: string = fs.Path.Combine(root, "A.fs")
+    let output: string = fs.Path.Combine(root, "out", "A.fs")
+    write fs input LosesAComment
+
+    let settings: CliSettings = { defaultSettings with Force = true }
+    let _, log = formatLogging settings fs (InputPath.File input) (OutputPath.IO output)
+
+    fs.File.Exists output |> shouldEqual true
+
+    log.Warning
+    |> shouldContain
+        $"%s{input} was formatted, but Fantomas cannot find a comment of the file in the result. It was written because --force was given."
 
 [<Test>]
 let ``a run says what it is doing at detailed verbosity`` () =

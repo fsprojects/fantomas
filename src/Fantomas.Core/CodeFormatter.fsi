@@ -25,15 +25,23 @@ type CodeFormatter =
     /// Format an abstract syntax tree with the original source for trivia processing
     static member FormatASTAsync: ast: ParsedInput * config: FormatConfig * source: string -> Async<string>
 
+    // Overloads rather than optional arguments, which reach a caller from C#, or through reflection,
+    // as `FSharpOption` values. The ones taking validations have a name of their own: a reflective
+    // caller binding on its arguments, as Rider does, passes null for a missing cursor. The default
+    // binder lets null stand for any struct, so an overload with `Validations` where this one has the
+    // `pos` would make that call ambiguous.
+
     /// <summary>
-    /// Format a source string using an optional config.
+    /// Format a source string with the default config, and search the result for every comment of the
+    /// source (<c>Validations.CommentSearch</c>). A comment it cannot find is in the result's <c>Issues</c>.
     /// </summary>
     /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
     /// <param name="source">F# source code</param>
     static member FormatDocumentAsync: isSignature: bool * source: string -> Async<FormatResult>
 
     /// <summary>
-    /// Format a source string using an optional config.
+    /// Format a source string, and search the result for every comment of the source
+    /// (<c>Validations.CommentSearch</c>). A comment it cannot find is in the result's <c>Issues</c>.
     /// </summary>
     /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
     /// <param name="source">F# source code</param>
@@ -41,14 +49,37 @@ type CodeFormatter =
     static member FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig -> Async<FormatResult>
 
     /// <summary>
-    /// Format a source string using an optional config.
+    /// Format a source string, and search the result for every comment of the source
+    /// (<c>Validations.CommentSearch</c>). A comment it cannot find is in the result's <c>Issues</c>.
     /// </summary>
     /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
     /// <param name="source">F# source code</param>
     /// <param name="config">Fantomas configuration</param>
-    /// <param name="cursor">The location of a cursor, zero-based.</param>
+    /// <param name="cursor">The location of a cursor, zero-based. Its new position is in the result.</param>
     static member FormatDocumentAsync:
         isSignature: bool * source: string * config: FormatConfig * cursor: pos -> Async<FormatResult>
+
+    /// <summary>
+    /// Format a source string, and check the result.
+    /// </summary>
+    /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
+    /// <param name="source">F# source code</param>
+    /// <param name="config">Fantomas configuration</param>
+    /// <param name="validations">The checks to run on the result, whose findings are in its <c>Issues</c>.</param>
+    static member FormatDocumentWithValidationsAsync:
+        isSignature: bool * source: string * config: FormatConfig * validations: Validations -> Async<FormatResult>
+
+    /// <summary>
+    /// Format a source string, and check the result.
+    /// </summary>
+    /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
+    /// <param name="source">F# source code</param>
+    /// <param name="config">Fantomas configuration</param>
+    /// <param name="cursor">The location of a cursor, zero-based. Its new position is in the result.</param>
+    /// <param name="validations">The checks to run on the result, whose findings are in its <c>Issues</c>.</param>
+    static member FormatDocumentWithValidationsAsync:
+        isSignature: bool * source: string * config: FormatConfig * cursor: pos * validations: Validations ->
+            Async<FormatResult>
 
     /// Format a part of a source string and return the (formatted) selected part only.
     /// Beware that the range argument is inclusive. The closest expression inside the selection will be formatted if possible.
