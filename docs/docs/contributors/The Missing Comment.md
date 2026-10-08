@@ -1,12 +1,12 @@
 ﻿---
 category: Contributors
 categoryindex: 2
-index: 10
+index: 9
 ---
 # The Missing Comment
 
 Code comments can literally exist between every single F# token. I'm looking at you block comment `(* ... *)`.  
-As explained in [Detecting trivia](./Prepare%20Context.html#Detecting-trivia), we need to do quite some processing to restore code comments.  
+As explained in [Where trivia comes from](./Trivia%20Assignment.html#Where-trivia-comes-from), we need to do quite some processing to restore code comments.  
 In this guide, we would like to give you seven tips to restore a missing comment!
 
 ## Breathe
