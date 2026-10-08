@@ -3,7 +3,6 @@ module Fantomas.DoctorCommand
 open System
 open System.IO.Abstractions
 open Fantomas.Core
-open Fantomas.FCS.Parse
 open Fantomas
 open Fantomas.Arguments
 open Fantomas.Cli
@@ -81,6 +80,11 @@ type FormatChange =
     | Reformatted of firstChangedLine: int * lineCountAfter: int
 
 [<RequireQualifiedAccess; NoComparison>]
+type ParseStep =
+    | Parsed of combinations: string list list
+    | Failed of error: exn
+
+[<RequireQualifiedAccess; NoComparison>]
 type FormatStep =
     | Failed of error: exn
     | Produced of formatted: string * change: FormatChange
@@ -88,7 +92,12 @@ type FormatStep =
 [<RequireQualifiedAccess; NoComparison>]
 type ValidityStep =
     | Valid
-    | Invalid of diagnostics: FSharpParserDiagnostic list
+    | Invalid of issues: Fantomas.Core.ValidationIssue list
+
+[<RequireQualifiedAccess; NoComparison>]
+type TriviaStep =
+    | Kept
+    | Changed of changes: ValidationIssue list
 
 [<RequireQualifiedAccess; NoComparison>]
 type IdempotencyStep =
@@ -102,8 +111,10 @@ type DoctorReport =
         File: FileStep
         Ignore: IgnoreStep option
         Settings: ResolvedConfig option
+        Parse: ParseStep option
         Format: FormatStep option
         Validity: ValidityStep option
+        Trivia: TriviaStep option
         Idempotency: IdempotencyStep option
     }
 
@@ -124,6 +135,12 @@ type DoctorCommandResult =
             | FileStep.NotFound _
             | FileStep.NotFSharp _ -> true
             | FileStep.Candidate _ ->
+                let parseFailed: bool =
+                    match report.Parse with
+                    | Some(ParseStep.Failed _) -> true
+                    | Some(ParseStep.Parsed _)
+                    | None -> false
+
                 let formatFailed: bool =
                     match report.Format with
                     | Some(FormatStep.Failed _) -> true
@@ -136,6 +153,12 @@ type DoctorCommandResult =
                     | Some ValidityStep.Valid
                     | None -> false
 
+                let triviaChanged: bool =
+                    match report.Trivia with
+                    | Some(TriviaStep.Changed _) -> true
+                    | Some TriviaStep.Kept
+                    | None -> false
+
                 let secondPassDisagreed: bool =
                     match report.Idempotency with
                     | Some(IdempotencyStep.NotIdempotent _)
@@ -143,7 +166,11 @@ type DoctorCommandResult =
                     | Some IdempotencyStep.Idempotent
                     | None -> false
 
-                formatFailed || outputRefused || secondPassDisagreed
+                parseFailed
+                || formatFailed
+                || outputRefused
+                || triviaChanged
+                || secondPassDisagreed
 
         if stepFailed then 1 else 0
 
@@ -155,8 +182,10 @@ let stoppedAt (file: FileStep) : DoctorReport =
         File = file
         Ignore = None
         Settings = None
+        Parse = None
         Format = None
         Validity = None
+        Trivia = None
         Idempotency = None
     }
 
@@ -231,33 +260,41 @@ let askIgnore (env: CliEnvironment) (file: string) : IgnoreStep =
         shadowed
     )
 
-let formatOnce (isSignature: bool) (config: FormatConfig) (content: string) : string =
-    CodeFormatter.FormatDocumentAsync(isSignature, content, config)
+// The comment search as well as the comparison: the search cares about the order of the comments
+// and the comparison does not, and a format run refuses what the search finds, which is what this
+// command is reached for to explain.
+let doctorValidations: Validations =
+    Validations.CommentSearch
+    ||| Validations.Parse
+    ||| Validations.TriviaComparison
+    ||| Validations.Idempotency
+
+let formatOnce (isSignature: bool) (config: FormatConfig) (content: string) : Fantomas.Core.FormatResult =
+    CodeFormatter.FormatDocumentWithValidationsAsync(isSignature, content, config, validations = doctorValidations)
     |> Async.RunSynchronously
-    |> fun (result: Fantomas.Core.FormatResult) -> result.Code
 
 let walkFormatting
     (report: DoctorReport)
-    (isSignature: bool)
-    (format: string -> string)
+    (format: string -> Fantomas.Core.FormatResult)
     (content: string)
     : DoctorReport
     =
     let original: string array = lines content
 
-    let formatted: Result<string, exn> =
+    let result: Result<Fantomas.Core.FormatResult, exn> =
         try
             Ok(format content)
         with error ->
             Error error
 
-    match formatted with
+    match result with
     | Error error ->
         { report with
             Format = Some(FormatStep.Failed error)
         }
-    | Ok formatted ->
+    | Ok result ->
 
+    let formatted: string = result.Code
     let after: string array = lines formatted
 
     // Whether the file would be rewritten is asked of the text as it is, which is what a format run
@@ -280,45 +317,65 @@ let walkFormatting
             Format = Some(FormatStep.Produced(formatted, change))
         }
 
-    let validation: ValidationResult =
-        CodeFormatter.ValidateFSharpCodeAsync(isSignature, formatted)
-        |> Async.RunSynchronously
+    match
+        result.Issues
+        |> List.filter (fun (issue: ValidationIssue) -> issue.IsNotValidFSharp)
+    with
+    | _ :: _ as invalid ->
+        // The comments the search did not find are what a format run refuses the result over too, so
+        // the Comments step says them. The comparison is left out, as it only reads the combinations
+        // the output parses under, and formatting does not run a second pass over output with errors.
+        let notFound: ValidationIssue list =
+            result.Issues
+            |> List.filter (fun (issue: ValidationIssue) -> issue.IsMissingComment)
 
-    if not validation.IsValid then
         { report with
-            Validity = Some(ValidityStep.Invalid validation.Diagnostics)
+            Validity = Some(ValidityStep.Invalid invalid)
+            Trivia =
+                Some(
+                    match notFound with
+                    | [] -> TriviaStep.Kept
+                    | notFound -> TriviaStep.Changed notFound
+                )
         }
-    else
+    | [] ->
 
-    let report: DoctorReport =
-        { report with
-            Validity = Some ValidityStep.Valid
-        }
+    // Not a reason to stop the walk: the result is valid F#, so a second pass over it still has
+    // something to say.
+    let trivia: TriviaStep =
+        match
+            result.Issues
+            |> List.filter (fun (issue: ValidationIssue) ->
+                match issue with
+                | ValidationIssue.MissingComment _
+                | ValidationIssue.CommentsChanged _
+                | ValidationIssue.DirectivesChanged _
+                | ValidationIssue.CheckFailed(Validations.TriviaComparison, _) -> true
+                | _ -> false
+            )
+        with
+        | [] -> TriviaStep.Kept
+        | changes -> TriviaStep.Changed changes
 
-    // Formatting what formatting produced. Run even when the first pass changed nothing, because
-    // "the same text formats to itself" is what this step claims and running it is the only thing
-    // that establishes it.
     let idempotency: IdempotencyStep =
-        try
-            let second: string = format formatted
-            let first: string array = lines formatted
-            let second: string array = lines second
+        result.Issues
+        |> List.tryPick (fun (issue: ValidationIssue) ->
+            match issue with
+            | ValidationIssue.CheckFailed(Validations.Idempotency, error) -> Some(IdempotencyStep.Failed error)
+            | ValidationIssue.NotIdempotent again ->
+                // Where the two passes part. When nothing but their line endings differs, which
+                // `lines` folds away, they part at the start.
+                let line: int =
+                    firstDifference (lines formatted) (lines again) |> Option.defaultValue 1
 
-            match firstDifference first second with
-            | None -> IdempotencyStep.Idempotent
-            | Some line ->
-
-            let at (source: string array) : string =
-                if line <= source.Length then
-                    source.[line - 1]
-                else
-                    String.Empty
-
-            IdempotencyStep.NotIdempotent(line, at first, at second)
-        with error ->
-            IdempotencyStep.Failed error
+                Some(IdempotencyStep.NotIdempotent(line, formatted, again))
+            | _ -> None
+        )
+        |> Option.defaultValue IdempotencyStep.Idempotent
 
     { report with
+        Validity = Some ValidityStep.Valid
+        Trivia = Some trivia
         Idempotency = Some idempotency
     }
 
@@ -346,7 +403,32 @@ let diagnose (env: CliEnvironment) (given: string) : DoctorReport =
 
     let isSignature: bool = file.Kind = FileKind.Signature
 
-    walkFormatting report isSignature (formatOnce isSignature settings.Config) content
+    // Parsed on its own first, as formatting would: a file that is not valid F# is the file's
+    // problem rather than Fantomas', and one that is shows the define combinations every step after
+    // this one is read under.
+    let parsed: Result<string list list, exn> =
+        try
+            CodeFormatter.ParseAsync(isSignature, content)
+            |> Async.RunSynchronously
+            |> Array.toList
+            |> List.map snd
+            |> Ok
+        with error ->
+            Error error
+
+    match parsed with
+    | Error error ->
+        { report with
+            Parse = Some(ParseStep.Failed error)
+        }
+    | Ok combinations ->
+
+    walkFormatting
+        { report with
+            Parse = Some(ParseStep.Parsed combinations)
+        }
+        (formatOnce isSignature settings.Config)
+        content
 
 let runDoctorCommand (env: CliEnvironment) (inputPath: InputPath) : DoctorCommandResult =
     try

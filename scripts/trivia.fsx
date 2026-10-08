@@ -11,11 +11,11 @@ open Shared
 /// snapshot case is printed from, and names things the way the reports do. A source with
 /// conditional directives is listed once per define combination.
 let listTrivia (input: string) (isSignature: bool) (config: FormatConfig) : string =
-    let combinations: Formatting.ForDefines list =
+    let combinations: Formatting.FormattedCombination list =
         (Formatting.formatEach config isSignature input).Combinations
 
     combinations
-    |> List.map (fun (each: Formatting.ForDefines) ->
+    |> List.map (fun (each: Formatting.FormattedCombination) ->
         let lines: string list =
             OakFacts.attachments each.Oak
             |> List.sortBy (fun (attachment: OakFacts.Attachment) ->

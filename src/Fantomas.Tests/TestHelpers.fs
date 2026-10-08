@@ -369,3 +369,22 @@ let checkCode (files: string list) : FantomasToolResult =
     runFantomasTool arguments
 
 let formatCode (files: string list) : FantomasToolResult = runFantomasTool files
+
+/// A comment of a file, starting at `line` (from one) and `column` (from zero) of it.
+let comment (line: int) (column: int) (text: string) : SourceComment =
+    let textLines: string array = text.Split('\n')
+
+    let endColumn: int =
+        if textLines.Length = 1 then
+            column + text.Length
+        else
+            (Array.last textLines).Length
+
+    {
+        Range =
+            Fantomas.FCS.Text.Range.mkRange
+                ""
+                (Fantomas.FCS.Text.Position.mkPos line column)
+                (Fantomas.FCS.Text.Position.mkPos (line + textLines.Length - 1) endColumn)
+        Text = text
+    }

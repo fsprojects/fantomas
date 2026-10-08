@@ -370,13 +370,20 @@ let ``what the doctor says would change is what a format run changes`` () =
         saidByTheDoctor |> shouldEqual doneByARun
 
 [<Test>]
-let ``a file that will not parse fails at the format step and stops there`` () =
+let ``a file with conditional directives is parsed once per define combination`` () =
+    match (diagnosing "#if DEBUG\nlet a = 1\n#endif\n").Parse with
+    | Some(ParseStep.Parsed combinations) -> List.sort combinations |> shouldEqual [ []; [ "DEBUG" ] ]
+    | other -> failwith $"Expected the file to parse, got %A{other}"
+
+[<Test>]
+let ``a file that will not parse fails at the parse step and stops there`` () =
     let report: DoctorReport = diagnosing "let a = (1 + 2\n"
 
-    match report.Format with
-    | Some(FormatStep.Failed _) -> ()
-    | other -> failwith $"Expected formatting to fail, got %A{other}"
+    match report.Parse with
+    | Some(ParseStep.Failed _) -> ()
+    | other -> failwith $"Expected parsing to fail, got %A{other}"
 
+    report.Format |> shouldEqual None
     report.Validity |> shouldEqual None
     report.Idempotency |> shouldEqual None
 
@@ -411,12 +418,105 @@ let ``every step of a file with nothing wrong with it is reached`` () =
 
 // ---- what Fantomas would do to its own output ----
 //
-// Every case below is a bug in Fantomas, and no F# anybody can write makes a correct formatter
-// produce one. They are reached by handing `walkFormatting` a formatter that does, which is what
-// it takes one for. Whether the output parses is still asked of the real parser.
+// Every case below is a bug in Fantomas, so each sample is one Fantomas gets wrong today, and doctor
+// runs on it as it would on any file. The day Fantomas formats one of them correctly, that test needs
+// another sample.
 
-/// A walk from the format step onwards over `content`, formatted by `format`.
-let private formattingWith (format: string -> string) (content: string) : DoctorReport =
+// A comment between an infix operator and a `let` is dropped, and formatting the result again joins
+// it onto one line. Found in the F# compiler's `MethodOverrides.fs`.
+let private losesAComment: string = "a &&\n// c\nlet c = b\nc\n"
+
+// A comment before a parenthesised operand of `||` gives output that is offside. Found in the F#
+// compiler's `Optimizer.fs`.
+let private invalidOutput: string =
+    """let ValueIsUsedOrHasEffect cenv fvs (b: Binding, binfo) =
+    let v = b.Var
+    // No discarding for debug code, except InlineIfLambda
+    (not cenv.settings.EliminateUnusedBindings && not v.InlineIfLambda) ||
+    // No discarding for members
+    Option.isSome v.MemberInfo ||
+    // No discarding for bindings that have an effect
+    (binfo.HasEffect && not (IsDiscardableEffectExpr b.Expr)) ||
+    // No discarding for 'fixed'
+    v.IsFixed ||
+    // No discarding for things that are used
+    Zset.contains v (fvs())
+"""
+
+[<Test>]
+let ``output Fantomas will not accept is reported, and stops the walk before the second pass`` () =
+    // Formatting the refused output again would report a parse failure in text nobody can open.
+    let report: DoctorReport = diagnosing invalidOutput
+
+    match report.Validity with
+    | Some(ValidityStep.Invalid issues) -> List.isEmpty issues |> shouldEqual false
+    | other -> failwith $"Expected the output to be refused, got %A{other}"
+
+    report.Trivia |> shouldEqual (Some TriviaStep.Kept)
+    report.Idempotency |> shouldEqual None
+
+[<Test>]
+let ``output that is not valid F# and lost a comment reports both, as a format run does`` () =
+    let report: DoctorReport =
+        diagnosing (invalidOutput + "\nlet g a b =\n    a &&\n    // c\n    let c = b\n    c\n")
+
+    match report.Validity with
+    | Some(ValidityStep.Invalid issues) ->
+        issues
+        |> List.forall (fun (issue: Fantomas.Core.ValidationIssue) -> issue.IsNotValidFSharp)
+        |> shouldEqual true
+    | other -> failwith $"Expected the output to be refused, got %A{other}"
+
+    // What the search did not find, which a format run refuses the result over too.
+    match report.Trivia with
+    | Some(TriviaStep.Changed [ Fantomas.Core.ValidationIssue.MissingComment comment ]) ->
+        (comment.Range.StartLine, comment.Text) |> shouldEqual (16, "// c")
+    | other -> failwith $"Expected the lost comment, got %A{other}"
+
+    report.Idempotency |> shouldEqual None
+
+[<Test>]
+let ``output that does not keep every comment is reported, and the walk goes on`` () =
+    let report: DoctorReport = diagnosing losesAComment
+
+    report.Validity |> shouldEqual (Some ValidityStep.Valid)
+
+    match report.Trivia with
+    | Some(TriviaStep.Changed changes) ->
+        // Both checks ask, and both miss it.
+        match changes with
+        | [ Fantomas.Core.ValidationIssue.MissingComment notFound
+            Fantomas.Core.ValidationIssue.CommentsChanged([], [ lost ], []) ] ->
+            [ notFound; lost ]
+            |> List.map (fun (comment: Fantomas.Core.SourceComment) -> comment.Range.StartLine, comment.Text)
+            |> shouldEqual [ 2, "// c"; 2, "// c" ]
+        | other -> failwith $"Expected the comment to be reported by both checks, got %A{other}"
+    | other -> failwith $"Expected the comment to be reported, got %A{other}"
+
+    // The result is valid F#, so the second pass still has something to say about it.
+    report.Idempotency.IsSome |> shouldEqual true
+
+[<Test>]
+let ``output that keeps every comment says so`` () =
+    (diagnosing "let a =  1 // one\n").Trivia |> shouldEqual (Some TriviaStep.Kept)
+
+[<Test>]
+let ``a second pass that changes the result names the line the two part at, and both passes`` () =
+    match (diagnosing losesAComment).Idempotency with
+    | Some(IdempotencyStep.NotIdempotent(line, afterFirst, afterSecond)) ->
+        line |> shouldEqual 1
+        afterFirst |> shouldEqual "a\n&& let c = b in c\n"
+        afterSecond |> shouldEqual "a && let c = b in c\n"
+    | other -> failwith $"Expected the second pass to disagree, got %A{other}"
+
+[<Test>]
+let ``two texts part at the line only one of them has`` () =
+    firstDifference [| "let a = 1" |] [| "let a = 1"; "let b = 2" |]
+    |> shouldEqual (Some 2)
+
+// The walk from formatting on, with the formatter handed over: a result of a given shape, or the issues
+// of a bug no F# makes the real one report.
+let private walking (format: string -> Fantomas.Core.FormatResult) (content: string) : DoctorReport =
     let start: DoctorReport =
         {
             File =
@@ -429,76 +529,44 @@ let private formattingWith (format: string -> string) (content: string) : Doctor
                     }
             Ignore = Some IgnoreStep.NoIgnoreFile
             Settings = None
+            Parse = None
             Format = None
             Validity = None
+            Trivia = None
             Idempotency = None
         }
 
-    walkFormatting start false format content
+    walkFormatting start format content
 
-[<Test>]
-let ``output Fantomas will not accept is reported, and stops the walk before the second pass`` () =
-    // Formatting the refused output again would report a parse failure in text nobody can open.
-    let report: DoctorReport = formattingWith (fun _ -> "let a = (\n") "let a = 1\n"
-
-    match report.Validity with
-    | Some(ValidityStep.Invalid diagnostics) -> List.isEmpty diagnostics |> shouldEqual false
-    | other -> failwith $"Expected the output to be refused, got %A{other}"
-
-    report.Idempotency |> shouldEqual None
-
-[<Test>]
-let ``a second pass that changes the result names the line the two part at, and both of them`` () =
-    let mutable passes: int = 0
-
-    let format (_: string) : string =
-        passes <- passes + 1
-
-        if passes = 1 then
-            "let a = 1\nlet b = 2\n"
-        else
-            "let a = 1\nlet b =  2\n"
-
-    match (formattingWith format "let  a = 1\nlet b = 2\n").Idempotency with
-    | Some(IdempotencyStep.NotIdempotent(line, afterFirst, afterSecond)) ->
-        line |> shouldEqual 2
-        afterFirst |> shouldEqual "let b = 2"
-        afterSecond |> shouldEqual "let b =  2"
-    | other -> failwith $"Expected the second pass to disagree, got %A{other}"
-
-[<Test>]
-let ``a second pass that adds a line parts at the line only one of them has`` () =
-    let mutable passes: int = 0
-
-    let format (_: string) : string =
-        passes <- passes + 1
-
-        if passes = 1 then
-            "let a = 1\n"
-        else
-            "let a = 1\nlet b = 2\n"
-
-    match (formattingWith format "let  a = 1\n").Idempotency with
-    | Some(IdempotencyStep.NotIdempotent(line, afterFirst, afterSecond)) ->
-        line |> shouldEqual 2
-        // The first pass has no such line, so there is nothing of it to quote.
-        afterFirst |> shouldEqual ""
-        afterSecond |> shouldEqual "let b = 2"
-    | other -> failwith $"Expected the second pass to disagree, got %A{other}"
+// Where the formatted result first parts from the file, which needs a result of a given shape rather
+// than a bug: its result has nothing wrong with it.
+let private formattingWith (format: string -> string) (content: string) : DoctorReport =
+    walking
+        (fun (source: string) ->
+            {
+                Code = format source
+                Cursor = None
+                Issues = []
+            }
+        )
+        content
 
 [<Test>]
 let ``a second pass that fails is reported as a failure of the second pass`` () =
-    let mutable passes: int = 0
+    let secondPassFails (source: string) : Fantomas.Core.FormatResult =
+        {
+            Code = source + "let b = 2\n"
+            Cursor = None
+            Issues =
+                [
+                    Fantomas.Core.ValidationIssue.CheckFailed(
+                        Fantomas.Core.Validations.Idempotency,
+                        exn "the second pass fell over"
+                    )
+                ]
+        }
 
-    let format (source: string) : string =
-        passes <- passes + 1
-
-        if passes = 1 then
-            source
-        else
-            failwith "the second pass fell over"
-
-    match (formattingWith format "let a = 1\n").Idempotency with
+    match (walking secondPassFails "let a = 1\n").Idempotency with
     | Some(IdempotencyStep.Failed error) -> error.Message |> shouldEqual "the second pass fell over"
     | other -> failwith $"Expected the second pass to fail, got %A{other}"
 
@@ -534,8 +602,10 @@ let private healthy: DoctorReport =
                 }
         Ignore = Some IgnoreStep.NoIgnoreFile
         Settings = None
+        Parse = Some(ParseStep.Parsed [ [] ])
         Format = Some(FormatStep.Produced("let a = 1\n", FormatChange.Nothing))
         Validity = Some ValidityStep.Valid
+        Trivia = Some TriviaStep.Kept
         Idempotency = Some IdempotencyStep.Idempotent
     }
 
@@ -553,6 +623,7 @@ let ``every failure a step can find exits 1`` () =
         { healthy with
             Format = Some(FormatStep.Failed(exn "could not be read"))
             Validity = None
+            Trivia = None
             Idempotency = None
         }
     |> shouldEqual 1
@@ -560,7 +631,20 @@ let ``every failure a step can find exits 1`` () =
     exitCodeOf
         { healthy with
             Validity = Some(ValidityStep.Invalid [])
+            Trivia = None
             Idempotency = None
+        }
+    |> shouldEqual 1
+
+    exitCodeOf
+        { healthy with
+            Trivia =
+                Some(
+                    TriviaStep.Changed
+                        [
+                            Fantomas.Core.ValidationIssue.CommentsChanged([], [ comment 1 0 "// a" ], [])
+                        ]
+                )
         }
     |> shouldEqual 1
 

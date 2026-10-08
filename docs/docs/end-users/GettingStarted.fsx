@@ -106,8 +106,13 @@ A file's `path` is the one you gave, so it is usually relative. `workingDirector
 relative to, and the absolute path is the two joined. They are apart rather than resolved per file
 so that a run over a thousand files does not repeat the same prefix a thousand times.
 
-A file with status `error` carries two more keys, and no other file does. A run where one file
-could not be parsed reports the whole thing like this:
+A file with status `error` carries three more keys. `missingComments` is only filled when Fantomas
+refused its own output because it could not find comments of the file in it. Each is the comment's `text` as the
+file has it and its `range` in the file. When Fantomas refused its output for not being valid F#,
+each of the `diagnostics` also has `reportedUnder`: the define combinations of the output that
+reported it, an empty one being the combination without defines. A file `--force` wrote although Fantomas refused
+its output has status `formatted`, `"forced": true`, and the same `diagnostics` and
+`missingComments`. A run where one file could not be parsed reports the whole thing like this:
 
 ```json
 {
@@ -128,7 +133,8 @@ could not be parsed reports the whole thing like this:
           "message": "Unmatched '('",
           "range": { "startLine": 3, "startColumn": 9, "endLine": 3, "endColumn": 10 }
         }
-      ]
+      ],
+      "missingComments": []
     }
   ]
 }
@@ -175,9 +181,12 @@ Fantomas 8.0.0+8f4c2b1a9 on /home/you/my-project/src/App.fs
               indent_size = 4                              the Fantomas default
               insert_final_newline = true                  the Fantomas default
               ...
-! Format      Not formatted: the first change is at line 37.
-+ Valid       Fantomas accepts what it produced.
-+ Idempotent  Formatting the result again changes nothing.
++ Parse       Fantomas parsed your file.
++ Format      Fantomas formatted your file.
++ Valid       The formatted result is valid F#.
++ Comments    The formatted result keeps every comment and directive of your file.
++ Idempotent  Formatting the formatted result again changes nothing.
+! Verdict     Fantomas would write the formatted result to your file, which changes it first at line 12.
 ```
 
 The opening line carries the whole version, commit hash and all, where every other page trims it to
@@ -186,41 +195,58 @@ the first thing whoever reads it has to know.
 
 The steps are the ones Fantomas takes, in the order it takes them, and each one gates the next:
 
-* **File** — is there a file at that path at all, and is it one Fantomas formats? A `.fsx` is
+* **File**: is there a file at that path at all, and is it one Fantomas formats? A `.fsx` is
   named as a script and a `.fsi` as a signature file, since which of the three it is decides how
   Fantomas parses it. A file under a folder a compiler
   or a package manager wrote, such as `obj`, is named as such: a run over the tree above it never
   opens that folder, so the file is invisible to it however the ignore file is written.
-* **Ignore** — which `.fantomasignore` governs the file, and which line of it decided, quoted with
+* **Ignore**: which `.fantomasignore` governs the file, and which line of it decided, quoted with
   its line number. Only the nearest one at or above the file applies; unlike `.gitignore`, Fantomas
   does not merge in the ones above it. A file an ignore file matches stops the walk here, because
   that is where Fantomas stops with it too.
-* **Settings** — every setting the file will be formatted with, and for each one that an
+* **Settings**: every setting the file will be formatted with, and for each one that an
   `.editorconfig` set, which file set it. What an `.editorconfig` decided comes first, then a blank
   line, then everything left at its Fantomas default. The line above them names the files that set
   something, which is not always every file in the chain. Anything Fantomas could not use out of
   the chain is reported here too, below both.
-* **Format** — whether the file would be rewritten, and where it first parts from the result. That
-  is decided the way a format run decides it, by comparing the text as it is, so a file whose line
-  endings are the only thing out of step is reported as needing formatting rather than as already
-  formatted. A file that will not parse fails here, with the parser's diagnostics and a snippet
-  under the table.
-* **Valid** — whether Fantomas accepts what it produced. It always should; when it does not, that
-  is a bug in Fantomas rather than a problem with the file.
-* **Idempotent** — whether formatting the result again leaves it alone. It should, and when it does
-  not the file keeps changing under a formatter that is run twice.
+* **Parse**: whether the file is valid F#. A file with conditional directives is parsed once for
+  each combination of its defines, and the combinations are listed under the row: they are what
+  the defines named further down refer to. A file that will not parse fails here, with the parser's
+  diagnostics and a snippet under the row, or with the combinations it fails under.
+* **Format**: whether Fantomas could format the file.
+* **Valid**: whether the formatted result is valid F#. It always should be; when it is not, what
+  the parser said about it is under the row, and that is a bug in Fantomas rather than a problem
+  with the file.
+* **Comments**: whether the result keeps every `//` and `(* *)` comment, conditional directive and
+  warn directive of the file. It always should. It runs the search a format run does, for the text
+  of every comment in the order of the file, which is what a format run refuses a result over. It
+  also compares the comments and directives of result and file under every define combination,
+  which is where a comment printed twice or a changed directive shows up; a format run does not check
+  that, and writes such a result. What the result lost, gained or rewrote is listed under the row.
+  XML doc comments (`///`) are not checked.
+* **Idempotent**: whether formatting the formatted result again leaves it alone. It should, and
+  when it does not the file keeps changing under a formatter that is run twice.
+* **Verdict**: what a format run would do with the file, given the steps above: leave it as it is
+  when it is already formatted, write the formatted result, or leave the file unchanged because the
+  result is not valid F# or Fantomas cannot find a comment of the file in it, the two things a
+  format run refuses a result over.
+  Whether the file is already formatted is decided the way a format run decides it, by comparing
+  the text as it is, so a file whose line endings are the only thing out of step gets written.
 
 A step the walk never reached is named below the table with the reason it was not looked at, rather
-than left out or shown as having found nothing.
+than left out or shown as having found nothing. When the formatted result is not valid F#, the
+Comments step still says which comments a format run would not find, and Idempotent is not looked
+at: Fantomas does not format output with errors again. When any step found a bug in Fantomas,
+the report ends by asking for it to be reported, once.
 
 `doctor` takes one file rather than a folder, because the answers differ per file and a table per
 file is not a report. It exits 0 for a file it could diagnose, whatever it found, and 1 when the
 path is not a file it can look at or when a step failed: a file that will not format, output
-Fantomas will not accept, or a second pass that changed the first. A file that needs formatting is
-not a failure; `fantomas check` is what fails over that.
+Fantomas will not accept, output that does not keep every comment, or a second pass that changed
+the first. A file that needs formatting is not a failure; `fantomas check` is what fails over that.
 
 `--json` writes the same walk as one document, with a key per step and `null` where the walk
-stopped before reaching it. The `configuration` key carries every setting, with `setBy` naming the
+stopped before reaching it. The verdict has no key: it is read off the steps. The `configuration` key carries every setting, with `setBy` naming the
 file for each one an `.editorconfig` set and `null` for the rest.
 
 ### Multiple paths

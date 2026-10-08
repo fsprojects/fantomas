@@ -61,14 +61,15 @@ let outcomes (results: FormatResult array) : Outcomes =
 
     for result in results do
         match result with
-        | FormatResult.Formatted(file, _) -> formatted.Add file
+        | FormatResult.Formatted(file, _)
+        | FormatResult.Forced(file, _, _) -> formatted.Add file
         | FormatResult.Unchanged file -> unchanged.Add file
         | FormatResult.IgnoredFile file -> ignored.Add file
         | FormatResult.Error(file, error) -> errored.Add(file, error)
         // Formatting produced output Fantomas would not accept, which is a failure of Fantomas
         // rather than of the file it was given, and it is reported as one.
-        | FormatResult.InvalidCode(file, formattedContent, diagnostics) ->
-            errored.Add(file, InvalidCodeException(formattedContent, diagnostics) :> exn)
+        | FormatResult.InvalidCode(file, formattedContent, issues) ->
+            errored.Add(file, InvalidCodeException(formattedContent, issues) :> exn)
 
     {
         Formatted = List.ofSeq formatted |> List.sort
@@ -84,7 +85,14 @@ let describeFailure (error: exn) : string option =
     | :? DefineParseException as dpe ->
         let combinations: string =
             dpe.Combinations
-            |> List.map (fun c -> if c = "no defines" then "no defines" else $"[%s{c}]")
+            |> List.map (fun (defines: string list) ->
+                match defines with
+                | [] -> "no defines"
+                | defines ->
+
+                let named: string = String.concat ", " defines
+                $"[%s{named}]"
+            )
             |> String.concat ", "
 
         Some
@@ -184,13 +192,18 @@ let describeItself (theme: Theme) (file: string) (source: unit -> string) (verbo
     | Some report -> Some report
     | None ->
 
+    // The two that are bugs in Fantomas end on asking for a report, and a reader at a terminal is
+    // told after it how a coding agent can file it. Both end in a newline.
+    let withAgentSkill (report: string) : string =
+        String.Concat(report, Diagnostics.agentSkill theme, "\n")
+
     match Diagnostics.describeInvariantViolation theme file source verbose error with
-    | Some report -> Some report
+    | Some report -> Some(withAgentSkill report)
     | None ->
 
     match error with
     | :? InvalidCodeException as invalid ->
-        Some(Diagnostics.renderInvalidOutput theme file invalid.FormattedContent invalid.Diagnostics)
+        Some(withAgentSkill (Diagnostics.renderInvalidOutput theme file invalid.FormattedContent invalid.Issues))
     | _ -> None
 
 let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string, error: exn) : unit =
@@ -255,10 +268,13 @@ let reportSingleResult
     | FormatResult.IgnoredFile f ->
         env.Log.Information(fileLine theme glyphs.Ignored f "was ignored by .fantomasignore.")
     | FormatResult.Error(f, e) -> reportError env settings.Verbosity (f, e)
-    | FormatResult.Formatted(f, _) -> env.Log.Information(fileLine theme glyphs.Formatted f formatted)
+    // A forced file was written, and the warning about it went out when it was.
+    | FormatResult.Formatted(f, _)
+    | FormatResult.Forced(f, _, _) -> env.Log.Information(fileLine theme glyphs.Formatted f formatted)
     | FormatResult.Unchanged f -> env.Log.Information(fileLine theme glyphs.Unchanged f unchanged)
-    | FormatResult.InvalidCode(f, formattedContent, diagnostics) ->
-        let ex: InvalidCodeException = InvalidCodeException(formattedContent, diagnostics)
+    | FormatResult.InvalidCode(f, formattedContent, issues) ->
+        let ex: InvalidCodeException = InvalidCodeException(formattedContent, issues)
+
         reportError env settings.Verbosity (f, ex)
 
 let reportFormatResults
@@ -890,64 +906,234 @@ let describeDoctorSettings (theme: Theme) (glyphs: StatusGlyphs) (resolved: Reso
         Detail = settings @ problems
     }
 
-let describeDoctorFormat (glyphs: StatusGlyphs) (lineCount: int) (step: FormatStep) : DoctorRow =
+// The lines a failure renders for itself, to hang under its row: without the header that names the
+// file, which the row already does, and without the blank lines around it.
+let detailOf (rendered: string) : string list =
+    let lines: string list = rendered.Replace("\r\n", "\n").Split('\n') |> List.ofArray
+
+    let body: string list =
+        match lines with
+        | header :: blank :: rest when header.EndsWith(":", StringComparison.Ordinal) && String.IsNullOrEmpty blank ->
+            rest
+        | header :: rest when header.EndsWith(":", StringComparison.Ordinal) -> rest
+        | lines -> lines
+
+    // Up to the last line that has something on it.
+    match List.tryFindIndexBack (String.IsNullOrEmpty >> not) body with
+    | None -> []
+    | Some last -> List.take (last + 1) body
+
+// Whether the file parses, and under which define combinations: the combinations every step after
+// this one is read under, and what the defines named further down refer to.
+let describeDoctorParse (glyphs: StatusGlyphs) (failure: string list) (step: ParseStep) : DoctorRow =
     match step with
+    | ParseStep.Parsed [ [] ] -> doctorRow glyphs.Formatted "Parse" "Fantomas parsed your file."
+    | ParseStep.Parsed combinations ->
+        // One combination a line: the defines of one are a list of their own, and inline the two
+        // kinds of list run together.
+        let named: string list =
+            combinations
+            |> List.sortBy List.length
+            |> List.map (fun (defines: string list) ->
+                match defines with
+                | [] -> "- no defines"
+                | defines -> String.Concat("- ", andList defines)
+            )
+
+        { doctorRow
+              glyphs.Formatted
+              "Parse"
+              $"Your file has conditional directives, so Fantomas parsed it once for each of these %d{List.length combinations} combinations of defines:" with
+            Detail = named
+        }
+    | ParseStep.Failed(:? DefineParseException as failure) ->
+        let named: string list =
+            failure.Combinations
+            |> List.map (fun (defines: string list) ->
+                match defines with
+                | [] -> "with no defines"
+                | defines ->
+
+                let named: string = String.concat ", " defines
+                $"with %s{named} defined"
+            )
+
+        doctorRow glyphs.Errored "Parse" $"Your file is not valid F# %s{andList named}."
+    | ParseStep.Failed error ->
+
+    let says: string =
+        match error with
+        | :? ParseException -> "Your file is not valid F#."
+        | error -> String.Concat("Fantomas could not parse your file: ", error.Message)
+
+    { doctorRow glyphs.Errored "Parse" says with
+        Detail = failure
+    }
+
+// Whether formatting produced a result, and nothing more: what Fantomas would do with it is what the
+// checks below decide, and the verdict at the end says.
+let describeDoctorFormat (glyphs: StatusGlyphs) (failure: string list) (step: FormatStep) : DoctorRow =
+    match step with
+    | FormatStep.Produced _ -> doctorRow glyphs.Formatted "Format" "Fantomas formatted your file."
     | FormatStep.Failed error ->
+
+    // A file that is not valid F# stops at the Parse step, so this is Fantomas failing on valid F#.
+    let says: string =
         let message: string = describeFailure error |> Option.defaultValue error.Message
 
-        let says: string =
-            if String.IsNullOrEmpty message then
-                "Formatting failed."
-            else
-                // The whole of it is written below the table, where it has the width for a snippet
-                // and a caret. This is the one line version, so the column can still be read down.
-                String.Concat("Formatting failed: ", (message.Split('\n')).[0])
+        if String.IsNullOrEmpty message then
+            "Fantomas could not format your file."
+        else
+            String.Concat("Fantomas could not format your file: ", (message.Split('\n')).[0])
 
-        doctorRow glyphs.Errored "Format" says
-    | FormatStep.Produced(_, FormatChange.Nothing) ->
-        doctorRow glyphs.Unchanged "Format" "Already formatted. Nothing would change."
-    | FormatStep.Produced(_, FormatChange.LineEndingsOnly) ->
-        // Worth its own sentence rather than a count of nought. It is the state that reads as
-        // already formatted to everything that compares line by line, and the one a working tree
-        // checked out with the other platform's endings is in.
-        doctorRow
-            glyphs.NeedsFormatting
-            "Format"
-            "Not formatted: every line is as it should be and the line endings are not, so the whole file would be rewritten."
-    | FormatStep.Produced(_, FormatChange.Reformatted(firstChangedLine, lineCountAfter)) ->
-        // Where to look, and what the file becomes when it becomes a different length. Both exact,
-        // where a count of the lines that differ by position is not a count of edits and read as
-        // nonsense the moment one line was split into several.
-        let says: string =
-            if lineCountAfter = lineCount then
-                $"Not formatted: the first change is at line %d{firstChangedLine}."
-            else
-                $"Not formatted: the first change is at line %d{firstChangedLine}, and the file would go from %s{describeLines lineCount} to %d{lineCountAfter}."
+    { doctorRow glyphs.Errored "Format" says with
+        Detail = failure
+    }
 
-        doctorRow glyphs.NeedsFormatting "Format" says
+// What a format run would do with the file, from what the steps above found: the judgement they
+// lead to. A format run refuses a result that is not valid F# or misses a comment, and writes
+// anything else, the comparison and the second pass only doctor makes notwithstanding.
+let describeDoctorVerdict (glyphs: StatusGlyphs) (report: DoctorReport) : DoctorRow option =
+    let invalid: bool =
+        match report.Validity with
+        | Some(ValidityStep.Invalid _) -> true
+        | _ -> false
 
-let describeDoctorValidity (glyphs: StatusGlyphs) (step: ValidityStep) : DoctorRow =
+    let notFound: int =
+        match report.Trivia with
+        | Some(TriviaStep.Changed issues) ->
+            issues
+            |> List.filter (fun (issue: ValidationIssue) -> issue.IsMissingComment)
+            |> List.length
+        | _ -> 0
+
+    // Said as what the search knows, which the Comments row above may say more about: a comment
+    // dropped, rewritten or moved ahead of another alike.
+    let comments: string =
+        if notFound = 1 then
+            "a comment of your file"
+        else
+            "comments of your file"
+
+    let refusal: string option =
+        match invalid, notFound with
+        | true, 0 -> Some "the formatted result is not valid F#"
+        | true, _ -> Some $"the formatted result is not valid F#, and it cannot find %s{comments} in it"
+        | false, 0 -> None
+        | false, _ -> Some $"it cannot find %s{comments} in the formatted result"
+
+    match report.Format, refusal with
+    | None, _ when report.Parse |> Option.exists (fun (parse: ParseStep) -> parse.IsFailed) ->
+        Some(doctorRow glyphs.Errored "Verdict" "Fantomas would leave your file unchanged: it is not valid F#.")
+    | None, _ -> None
+    | Some(FormatStep.Failed _), _ ->
+        Some(
+            doctorRow glyphs.Errored "Verdict" "Fantomas would leave your file unchanged: there is no formatted result."
+        )
+    | Some(FormatStep.Produced _), Some reason ->
+        Some(doctorRow glyphs.Errored "Verdict" $"Fantomas would leave your file unchanged, because %s{reason}.")
+    | Some(FormatStep.Produced(_, FormatChange.Nothing)), None ->
+        Some(doctorRow glyphs.Unchanged "Verdict" "Your file is already formatted: Fantomas would leave it as it is.")
+    // Every line already as formatting has it, and the file still rewritten: worth saying, as it is
+    // the state that reads as already formatted to everything that compares line by line.
+    | Some(FormatStep.Produced(_, FormatChange.LineEndingsOnly)), None ->
+        Some(
+            doctorRow
+                glyphs.NeedsFormatting
+                "Verdict"
+                "Fantomas would write the formatted result to your file, though every line of it stays as it is."
+        )
+    // Where to look, and what the file becomes when it becomes a different length. Both exact, where
+    // a count of the lines that differ by position is not a count of edits.
+    | Some(FormatStep.Produced(_, FormatChange.Reformatted(firstChangedLine, lineCountAfter))), None ->
+        let resized: string =
+            match report.File with
+            | FileStep.Candidate file when file.LineCount <> lineCountAfter ->
+                $", and takes it from %s{describeLines file.LineCount} to %d{lineCountAfter}"
+            | _ -> ""
+
+        Some(
+            doctorRow
+                glyphs.NeedsFormatting
+                "Verdict"
+                $"Fantomas would write the formatted result to your file, which changes it first at line %d{firstChangedLine}%s{resized}."
+        )
+
+let describeDoctorValidity (theme: Theme) (glyphs: StatusGlyphs) (formatted: string) (step: ValidityStep) : DoctorRow =
     match step with
-    | ValidityStep.Valid -> doctorRow glyphs.Formatted "Valid" "Fantomas accepts what it produced."
-    | ValidityStep.Invalid _ ->
-        doctorRow glyphs.Errored "Valid" "Fantomas will not accept what it produced, so nothing would be written."
+    | ValidityStep.Valid -> doctorRow glyphs.Formatted "Valid" "The formatted result is valid F#."
+    | ValidityStep.Invalid issues ->
+
+    { doctorRow glyphs.Errored "Valid" "The formatted result is not valid F#." with
+        Detail = Diagnostics.outputParserLines theme formatted issues
+    }
+
+let describeDoctorTrivia (theme: Theme) (glyphs: StatusGlyphs) (invalid: bool) (step: TriviaStep) : DoctorRow =
+    match step with
+    // Output that is not valid F# is only searched, so that is all this can claim for it.
+    | TriviaStep.Kept when invalid ->
+        doctorRow glyphs.Formatted "Comments" "Fantomas finds every comment of your file in the formatted result."
+    | TriviaStep.Kept ->
+        doctorRow glyphs.Formatted "Comments" "The formatted result keeps every comment and directive of your file."
+    | TriviaStep.Changed issues ->
+        // Only the comparison found something: a format run does not look for that, and writes the
+        // result, which the Verdict row below says too.
+        let says: string =
+            // Output that is not valid F# is only searched, which does not look at directives.
+            if invalid then
+                "Fantomas cannot find every comment of your file in the formatted result."
+            elif issues |> List.exists (fun (issue: ValidationIssue) -> issue.IsMissingComment) then
+                "The formatted result does not keep every comment and directive of your file."
+            elif issues |> List.forall (fun (issue: ValidationIssue) -> issue.IsCheckFailed) then
+                "Fantomas could not compare the comments and directives of your file with those of the formatted result. A format run does not check this, and writes the result anyway."
+            else
+                "The formatted result does not keep every comment and directive of your file. A format run does not check this, and writes the result anyway."
+
+        { doctorRow glyphs.Errored "Comments" says with
+            Detail = Diagnostics.triviaChangeLines theme issues
+        }
+
+// The lines around where the two passes part, from each pass, as two numbered blocks. A line on its
+// own reads as a coincidence of layout; the lines around it show what the second pass did.
+let passesAround (theme: Theme) (line: int) (first: string) (second: string) : string list =
+    let firstLines: string array = lines first
+    let secondLines: string array = lines second
+    let from: int = max 1 (line - 2)
+
+    let until (passLines: string array) : int = min passLines.Length (line + 2)
+
+    let gutter: int =
+        String.length (string<int>(max (until firstLines) (until secondLines)))
+
+    let block (passLines: string array) : string list =
+        [
+            for number in from .. until passLines do
+                let numbered: string = (string<int> number).PadLeft(gutter)
+                yield String.Concat(muted theme (String.Concat(numbered, " |")), " ", passLines.[number - 1])
+        ]
+
+    [
+        "Formatted once:"
+        ""
+        yield! block firstLines
+        ""
+        "Formatted again:"
+        ""
+        yield! block secondLines
+    ]
 
 let describeDoctorIdempotency (theme: Theme) (glyphs: StatusGlyphs) (step: IdempotencyStep) : DoctorRow =
     match step with
     | IdempotencyStep.Idempotent ->
-        doctorRow glyphs.Formatted "Idempotent" "Formatting the result again changes nothing."
+        doctorRow glyphs.Formatted "Idempotent" "Formatting the formatted result again changes nothing."
     | IdempotencyStep.Failed error ->
-        doctorRow glyphs.Errored "Idempotent" $"Formatting the result again failed: %s{error.Message}"
+        doctorRow glyphs.Errored "Idempotent" $"Formatting the formatted result again failed: %s{error.Message}"
     | IdempotencyStep.NotIdempotent(line, afterFirst, afterSecond) ->
-        { doctorRow glyphs.Errored "Idempotent" $"Formatting the result again changes it, first at line %d{line}." with
-            Detail =
-                [
-                    // `after one pass:` is two characters shorter than `after two passes:`, so
-                    // padded to the longer of them the two lines can be read against each other,
-                    // which is the whole reason both are printed.
-                    String.Concat("after one pass:   ", placeholder theme afterFirst)
-                    String.Concat("after two passes: ", placeholder theme afterSecond)
-                ]
+        { doctorRow
+              glyphs.Errored
+              "Idempotent"
+              $"Formatting the formatted result again changes it, first at line %d{line}." with
+            Detail = passesAround theme line afterFirst afterSecond
         }
 
 /// Why the walk did not reach the steps it did not reach. Read off where it stopped rather than
@@ -957,8 +1143,10 @@ let doctorStoppedBecause (report: DoctorReport) : string =
     | FileStep.NotFound _, _, _, _ -> "there is no file here to put through them"
     | FileStep.NotFSharp _, _, _, _ -> "Fantomas does not format this kind of file"
     | _, Some(IgnoreStep.Governed(_, true, _, _)), _, _ -> "Fantomas does not format a file its .fantomasignore matches"
+    | _ when report.Parse |> Option.exists (fun (parse: ParseStep) -> parse.IsFailed) ->
+        "your file is not valid F#, so there is nothing to format"
     | _, _, Some(FormatStep.Failed _), _ -> "formatting produced nothing to look at"
-    | _, _, _, Some(ValidityStep.Invalid _) -> "Fantomas would not accept what formatting produced"
+    | _, _, _, Some(ValidityStep.Invalid _) -> "the formatted result is not valid F#, so it is not formatted again"
     | _ -> "the walk stopped before them"
 
 let reportDoctorReport (env: CliEnvironment) (settings: CliSettings) (report: DoctorReport) : unit =
@@ -971,12 +1159,6 @@ let reportDoctorReport (env: CliEnvironment) (settings: CliSettings) (report: Do
         | FileStep.Candidate file -> file.Path
         | FileStep.NotFound path
         | FileStep.NotFSharp path -> path
-
-    let lineCount: int =
-        match report.File with
-        | FileStep.Candidate file -> file.LineCount
-        | FileStep.NotFound _
-        | FileStep.NotFSharp _ -> 0
 
     // A step that was reached becomes a row; a step that was not becomes a name in one sentence
     // below the table. Five muted rows saying nothing happened is not a report of a file that is
@@ -992,9 +1174,41 @@ let reportDoctorReport (env: CliEnvironment) (settings: CliSettings) (report: Do
     rows.Add(describeDoctorFile theme glyphs report.File)
     step "Ignore" (describeDoctorIgnore theme glyphs verbose) report.Ignore
     step "Settings" (describeDoctorSettings theme glyphs) report.Settings
-    step "Format" (describeDoctorFormat glyphs lineCount) report.Format
-    step "Valid" (describeDoctorValidity glyphs) report.Validity
+    // A failure hangs what it has to say under its own row, a parse failure's snippet included: the
+    // gutter carries the line numbers, so the indent does not stop it lining up with the file.
+    let source () : string = sourceOf env.FileSystem path
+
+    let failureOf (error: exn) : string list =
+        describeItself theme path source verbose error
+        |> Option.map detailOf
+        |> Option.defaultValue []
+
+    let failure: string list =
+        match report.Format with
+        | Some(FormatStep.Failed error) -> failureOf error
+        | _ -> []
+
+    let parseFailure: string list =
+        match report.Parse with
+        | Some(ParseStep.Failed(:? ParseException as error)) -> failureOf error
+        | _ -> []
+
+    let formatted: string =
+        match report.Format with
+        | Some(FormatStep.Produced(formatted, _)) -> formatted
+        | _ -> String.Empty
+
+    let invalid: bool =
+        match report.Validity with
+        | Some(ValidityStep.Invalid _) -> true
+        | _ -> false
+
+    step "Parse" (describeDoctorParse glyphs parseFailure) report.Parse
+    step "Format" (describeDoctorFormat glyphs failure) report.Format
+    step "Valid" (describeDoctorValidity theme glyphs formatted) report.Validity
+    step "Comments" (describeDoctorTrivia theme glyphs invalid) report.Trivia
     step "Idempotent" (describeDoctorIdempotency theme glyphs) report.Idempotency
+    describeDoctorVerdict glyphs report |> Option.iter rows.Add
 
     let column: int = doctorColumn (List.ofSeq rows)
     let mutable lastWasBlank: bool = false
@@ -1042,24 +1256,29 @@ let reportDoctorReport (env: CliEnvironment) (settings: CliSettings) (report: Do
         blank ()
         write (muted theme $"%s{andList names} %s{were} not looked at: %s{doctorStoppedBecause report}.")
 
-    // What a failure has to say for itself goes below the table at full width, because a parse
-    // failure draws a snippet with a caret under it and an indented block of source is a block
-    // nobody can line up against their file.
-    let source () : string = sourceOf env.FileSystem path
+    // Each failure of Fantomas on its own output says so once, here, rather than under every row. On
+    // output that is not valid F# the comments the search misses are part of the same refusal.
+    let bugs: int =
+        [
+            invalid
+            not invalid
+            && report.Trivia |> Option.exists (fun (trivia: TriviaStep) -> trivia.IsChanged)
+            report.Idempotency
+            |> Option.exists (fun (idempotency: IdempotencyStep) -> not idempotency.IsIdempotent)
+        ]
+        |> List.filter id
+        |> List.length
 
-    let footer: string option =
-        match report.Format, report.Validity with
-        | Some(FormatStep.Failed error), _ -> describeItself theme path source verbose error
-        | Some(FormatStep.Produced(formatted, _)), Some(ValidityStep.Invalid diagnostics) ->
-            Some(Diagnostics.renderInvalidOutput theme path formatted diagnostics)
-        | _ -> None
-
-    match footer with
-    | None -> ()
-    | Some report ->
-
-    blank ()
-    write report
+    match bugs with
+    | 0 -> ()
+    | 1 ->
+        blank ()
+        write (Diagnostics.reportAsBug theme "the file")
+        write (Diagnostics.agentSkill theme)
+    | _ ->
+        blank ()
+        write (Diagnostics.reportAsBugs theme "the file")
+        write (Diagnostics.agentSkill theme)
 
 let reportDoctorCommand (env: CliEnvironment) (settings: CliSettings) (result: DoctorCommandResult) : int =
     match result with

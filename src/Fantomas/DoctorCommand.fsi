@@ -1,6 +1,5 @@
 module Fantomas.DoctorCommand
 
-open Fantomas.FCS.Parse
 open Fantomas
 open Fantomas.Arguments
 open Fantomas.Cli
@@ -104,6 +103,16 @@ type FormatChange =
     /// answers what somebody wants without claiming to have diffed anything.
     | Reformatted of firstChangedLine: int * lineCountAfter: int
 
+/// Whether the file parses, which it has to before Fantomas can format it.
+[<RequireQualifiedAccess; NoComparison>]
+type ParseStep =
+    /// The define combinations the file was parsed under, one per tree formatting starts from: the
+    /// one without defines alone for a file without conditional directives.
+    | Parsed of combinations: string list list
+    /// The file is not valid F#: a `ParseException`, or a `DefineParseException` naming the
+    /// combinations it fails under.
+    | Failed of error: exn
+
 /// What formatting the file produced.
 [<RequireQualifiedAccess; NoComparison>]
 type FormatStep =
@@ -117,16 +126,29 @@ type FormatStep =
 [<RequireQualifiedAccess; NoComparison>]
 type ValidityStep =
     | Valid
-    | Invalid of diagnostics: FSharpParserDiagnostic list
+    /// Every `NotValidFSharp` formatting reported, one per define combination the output fails under.
+    /// The comments a format run would not find are in the Comments step.
+    | Invalid of issues: Fantomas.Core.ValidationIssue list
+
+/// Whether the result keeps every comment and directive of the file. It always should. Two checks
+/// answer it: the search a format run does, for the text of every comment in the order of the file,
+/// which is what a format run refuses a result over; and the comparison of the comments and
+/// directives of result and file under every define combination, which also finds a comment printed
+/// twice or a changed directive. `Changed` holds what either found, and the comparison failing on the
+/// result, which leaves the question open.
+[<RequireQualifiedAccess; NoComparison>]
+type TriviaStep =
+    | Kept
+    | Changed of changes: Fantomas.Core.ValidationIssue list
 
 /// Whether formatting the result again leaves it alone. It should, and when it does not the file
 /// will keep changing under a formatter that is run twice.
 [<RequireQualifiedAccess; NoComparison>]
 type IdempotencyStep =
     | Idempotent
-    /// Carries the line at which the two passes part, counting from one, and that line from each
-    /// of them, so the report can put the pair in front of the reader rather than send them to
-    /// reproduce it.
+    /// Carries the line at which the two passes part, counting from one, and the whole of what each
+    /// pass gave, so the report can put the lines around it in front of the reader rather than send
+    /// them to reproduce it.
     | NotIdempotent of line: int * afterFirstPass: string * afterSecondPass: string
     /// The second pass failed on output the first pass produced, which is a failure of Fantomas on
     /// its own text.
@@ -144,8 +166,10 @@ type DoctorReport =
         File: FileStep
         Ignore: IgnoreStep option
         Settings: ResolvedConfig option
+        Parse: ParseStep option
         Format: FormatStep option
         Validity: ValidityStep option
+        Trivia: TriviaStep option
         Idempotency: IdempotencyStep option
     }
 
@@ -170,27 +194,29 @@ type DoctorCommandResult =
     /// to act on.
     member ExitCode: int
 
+/// The checks doctor asks formatting to run on its result: the ones a format run asks for, and the
+/// comparison of comments and directives and the second pass that only doctor's steps report.
+val doctorValidations: Fantomas.Core.Validations
+
 /// Everything from formatting onwards, which is the half of the walk that is about the text rather
 /// than about the file system around it. Each step gates the one after it: there is nothing to
-/// validate when formatting failed, and formatting output Fantomas has already refused a second
-/// time reports a parse failure in text nobody can open.
+/// validate when formatting failed, and output that is not valid F# is not formatted a second time,
+/// which would only report a parse failure in text nobody can open.
 ///
-/// `format` is what turns source into formatted source, which for a run is `CodeFormatter` under
-/// the file's configuration. It is taken as a function rather than reached for, because the three
-/// things this can find are all failures of Fantomas on its own output, and there is no F# anybody
-/// can write that makes a correct formatter produce them. Without a way to hand over a formatter
-/// that does, the reports for output Fantomas will not accept and for a second pass that disagrees
-/// with the first are code nothing has ever run.
-///
-/// Whether the output parses is still asked of the real parser, whatever `format` returned. That
-/// is the question the step exists to ask, and a stubbed answer to it would be worth nothing.
+/// `format` is what turns source into formatted source and checks it, which for a run is
+/// `CodeFormatter` under the file's configuration, asked for `doctorValidations`. It is
+/// taken as a function rather than reached for, because the three things this can find are all
+/// failures of Fantomas on its own output, and there is no F# anybody can write that makes a correct
+/// formatter produce them. A formatter handed over can report them, which is what makes the reports
+/// for them code that something has run.
 val walkFormatting:
-    report: DoctorReport -> isSignature: bool -> format: (string -> string) -> content: string -> DoctorReport
+    report: DoctorReport -> format: (string -> Fantomas.Core.FormatResult) -> content: string -> DoctorReport
 
 /// Walk one file through everything Fantomas does to it and report what happened at each step:
 /// whether the file is there and is one Fantomas formats, which `.fantomasignore` governs it and
-/// which line of it decided, which settings apply and where each came from, what formatting
-/// produced, whether Fantomas accepts its own output, and whether formatting that output again
+/// which line of it decided, which settings apply and where each came from, which define
+/// combinations it is parsed under, what formatting produced, whether Fantomas accepts its own
+/// output, whether that output keeps every comment and directive, and whether formatting it again
 /// leaves it alone.
 ///
 /// Nothing is written, which is what makes it safe against a working tree that has not been

@@ -14,7 +14,7 @@ open Fantomas.FCS.Text
 [<RequireQualifiedAccess>]
 [<CustomEquality; CustomComparison>]
 type CodeFragment =
-    /// Any line that starts with `#if`, `#else` or `#endif`
+    /// Any line that starts with `#if`, `#elif`, `#else` or `#endif`
     | HashLine of line: string * defines: DefineCombination
     /// Content found between two HashLines
     | Content of code: string * lineCount: int * defines: DefineCombination
@@ -110,14 +110,6 @@ type CodeFragment =
             // You should never enter the case where you need to compare a hash line with something other than a hash line.
             | x, other -> failwith $"Cannot compare %A{x} with %A{other}"
 
-[<NoComparison>]
-type FormatResultForDefines =
-    {
-        Result: FormatResult
-        Defines: DefineCombination
-        Fragments: CodeFragment list
-    }
-
 /// Accumulator type used when building up the fragments.
 [<NoComparison>]
 type SplitHashState =
@@ -210,28 +202,26 @@ let splitWhenHash (defines: DefineCombination) (newline: string) (source: string
 
     fragmentsBuilder.Close()
 
-let mergeMultipleFormatResults config (results: (DefineCombination * FormatResult) list) : FormatResult =
-    let allInFragments: FormatResultForDefines list =
+let mergeMultipleFormatResults (config: FormatConfig) (results: UnderDefines<FormatResult> list) : FormatResult =
+    let allInFragments: UnderDefines<CodeFragment list> list =
         results
-        |> List.map (fun (dc, result) ->
-            let fragments = splitWhenHash dc config.EndOfLine.NewLineString result.Code
-
-            {
-                Result = result
-                Defines = dc
-                Fragments = fragments
-            }
+        |> List.map (fun (result: UnderDefines<FormatResult>) ->
+            result.Map(fun (formatted: FormatResult) ->
+                splitWhenHash result.Defines config.EndOfLine.NewLineString formatted.Code
+            )
         )
 
     let allHaveSameFragmentCount =
-        let allWithCount = List.map (fun { Fragments = f } -> f.Length) allInFragments
+        let allWithCount: int list =
+            List.map (fun (fragments: UnderDefines<CodeFragment list>) -> fragments.Value.Length) allInFragments
+
         (Set allWithCount).Count = 1
 
     if not allHaveSameFragmentCount then
         let chunkReport =
             allInFragments
             |> List.map (fun result ->
-                sprintf "[%s] has %i fragments" (String.concat ", " result.Defines.Value) result.Fragments.Length
+                sprintf "[%s] has %i fragments" (String.concat ", " result.Defines.Value) result.Value.Length
             )
             |> String.concat config.EndOfLine.NewLineString
 
@@ -262,7 +252,7 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
         traverseFragments (List.map List.tail input) (fun xs -> max :: xs |> continuation)
 
     let selectedFragments: CodeFragment list =
-        traverseFragments (allInFragments |> List.map (fun r -> r.Fragments)) id
+        traverseFragments (allInFragments |> List.map _.Value) id
 
     let appendNewline (fragment: CodeFragment) (builder: StringBuilder) : StringBuilder =
         match fragment with
@@ -277,7 +267,8 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
         | CodeFragment.Content(code = content) -> builder.Append content
 
     let areThereNotCursors =
-        results |> List.forall (fun (_, result) -> Option.isNone result.Cursor)
+        results
+        |> List.forall (fun (result: UnderDefines<FormatResult>) -> Option.isNone result.Value.Cursor)
 
     if areThereNotCursors then
         let code =
@@ -287,7 +278,11 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
                 (fun acc fragment -> appendContent fragment acc)
             |> stringBuilderResult
 
-        { Code = code; Cursor = None }
+        {
+            Code = code
+            Cursor = None
+            Issues = []
+        }
     else
         let weaver =
             {
@@ -296,8 +291,8 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
                 ContentBuilder = StringBuilder()
                 Cursors =
                     results
-                    |> List.choose (fun (dc, formatResult) ->
-                        formatResult.Cursor |> Option.map (fun cursor -> dc, cursor)
+                    |> List.choose (fun (result: UnderDefines<FormatResult>) ->
+                        result.Value.Cursor |> Option.map (fun cursor -> result.Defines, cursor)
                     )
                     |> Map.ofList
             }
@@ -332,4 +327,5 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
         {
             Code = finalResult.ContentBuilder.ToString()
             Cursor = Option.map snd finalResult.FoundCursor
+            Issues = []
         }

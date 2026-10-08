@@ -10,6 +10,18 @@ type internal DefineCombination =
 
     static member Empty: DefineCombination
 
+/// Something that belongs to one define combination: the tree parsed under it, the code printed for
+/// it, the trivia the parser recorded under it. One per lane of the formatting pipeline.
+[<NoComparison; NoEquality>]
+type internal UnderDefines<'T> =
+    {
+        Defines: DefineCombination
+        Value: 'T
+    }
+
+    /// The same combination with `f` applied to what belongs to it.
+    member Map: f: ('T -> 'U) -> UnderDefines<'U>
+
 module internal Defines =
     open Fantomas.FCS.SyntaxTrivia
 

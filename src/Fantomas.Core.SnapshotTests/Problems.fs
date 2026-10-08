@@ -3,7 +3,7 @@ module Fantomas.Core.SnapshotTests.Problems
 
 open Fantomas.FCS.Parse
 open Fantomas.FCS.Text
-open Fantomas.Core.SyntaxOak
+open Fantomas.Core
 
 /// Which of a case's results a problem is about.
 [<RequireQualifiedAccess>]
@@ -16,14 +16,19 @@ type Output =
 [<RequireQualifiedAccess; NoComparison>]
 type Problem =
     // The result itself is wrong.
-    | ProductionDiffers of production: string * harness: string
+    | CommentsNotFound of comments: string list
     | Invalid of output: Output * diagnostics: FSharpParserDiagnostic list
+    // Stricter than what users are refused output for, through `Validations.TriviaComparison`.
     // `defines` is the combination the source and the result were both read under, when the source
     // has `#if`: what is in an inactive branch is only trivia under the defines that make it active.
-    | CommentsLost of defines: string list option * missing: Set<TriviaContent> * extra: Set<TriviaContent>
-    | CommentCountChanged of defines: string list option * before: int * after: int
-    | DirectivesChanged of defines: string list option * missing: string list * extra: string list
+    | CommentsChanged of defines: string list option * missing: string list * added: string list
+    | DirectivesChanged of defines: string list option * missing: string list * added: string list
     | NotIdempotent of output: Output * again: string
+    | CheckFailed of check: Validations * error: exn
+    // An Oak trivia assignment cannot rely on, as formatting handed it over: the one printed for
+    // `defines`, or for the result formatted again.
+    | ChildrenOutOfPlace of defines: string list * secondPass: bool * children: string list
+    | TriviaNotAttached of defines: string list * secondPass: bool * trivia: string list
     | CrlfDiffers of crlf: string
     | TrailingWhitespace of output: Output * lines: int list
     // The case is in the wrong place.
@@ -48,6 +53,11 @@ let private outputName (output: Output) : string =
     match output with
     | Output.Merged -> "The result"
     | Output.Combination defines -> $"The result for %s{Case.combinationName defines}"
+
+let private oakName (defines: string list) (secondPass: bool) : string =
+    let pass: string = if secondPass then " of the result formatted again" else ""
+
+    $"The Oak%s{pass} for %s{Case.combinationName defines}"
 
 let private diagnosticLines (diagnostics: FSharpParserDiagnostic list) : string =
     diagnostics
@@ -75,22 +85,33 @@ let private listed (directives: string list) : string =
     |> List.map (fun (directive: string) -> $"`%s{directive}`")
     |> String.concat ", "
 
+// One comment a paragraph, as a comment can span lines.
+let private comments (texts: string list) : string =
+    match texts with
+    | [] -> " none"
+    | texts -> texts |> List.map (fun (text: string) -> $"\n%s{text}") |> String.concat ""
+
 /// A problem as the failing test words it.
 let describe (problem: Problem) : string =
     match problem with
-    | Problem.ProductionDiffers(production, harness) ->
-        $"The harness and `formatDocumentWith` disagree. Production gave:\n%s{production}\nThe harness gave:\n%s{harness}"
+    | Problem.CommentsNotFound missing ->
+        $"A format run does not find every comment of the source in the result, and would refuse it:%s{comments missing}"
     | Problem.Invalid(output, diagnostics) -> $"%s{outputName output} is not valid F#:\n%s{diagnosticLines diagnostics}"
-    | Problem.CommentsLost(defines, missing, extra) ->
-        $"Comments were not preserved%s{under defines}.\nMissing: %A{missing}\nExtra: %A{extra}"
-    | Problem.CommentCountChanged(defines, before, after) ->
-        $"The source has %d{before} comments and the result %d{after}%s{under defines}."
+    | Problem.CommentsChanged(defines, missing, added) ->
+        $"Comments were not preserved%s{under defines}.\nMissing:%s{comments missing}\nExtra:%s{comments added}"
     | Problem.DirectivesChanged(defines, [], []) ->
         $"Conditional and warn directives are all there and in another order%s{under defines}. Merging the define combinations relies on their order."
-    | Problem.DirectivesChanged(defines, missing, extra) ->
-        $"Conditional and warn directives were not preserved%s{under defines}.\nMissing: %s{listed missing}\nExtra: %s{listed extra}"
+    | Problem.DirectivesChanged(defines, missing, added) ->
+        $"Conditional and warn directives were not preserved%s{under defines}.\nMissing: %s{listed missing}\nExtra: %s{listed added}"
     | Problem.NotIdempotent(output, again) ->
         $"%s{outputName output} is not idempotent. Formatting it again gave:\n%s{again}"
+    | Problem.CheckFailed(check, error) -> $"The %O{check} check failed on the result:\n%s{error.Message}"
+    | Problem.ChildrenOutOfPlace(defines, secondPass, children) ->
+        let listed: string = String.concat "\n" children
+        $"%s{oakName defines secondPass} has children out of place:\n%s{listed}"
+    | Problem.TriviaNotAttached(defines, secondPass, trivia) ->
+        let listed: string = String.concat "\n" trivia
+        $"%s{oakName defines secondPass} has trivia the parser recorded attached to no node:\n%s{listed}"
     | Problem.CrlfDiffers crlf ->
         let shown: string = crlf.Replace("\r", "\\r")
 

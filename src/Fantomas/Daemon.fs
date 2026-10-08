@@ -265,24 +265,43 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                                 request.Config
                                 (fun config ->
                                     task {
+                                        // What a format run refuses to write, the editor is not
+                                        // sent either: it would replace the document with code that
+                                        // does not compile, or that is missing a comment.
+                                        let validations: Validations = Validations.CommentSearch ||| Validations.Parse
+
                                         let! formatResponse =
                                             match cursor with
                                             | None ->
-                                                CodeFormatter.FormatDocumentAsync(
-                                                    request.IsSignatureFile,
-                                                    request.SourceCode,
-                                                    config
-                                                )
-                                            | Some cursor ->
-                                                CodeFormatter.FormatDocumentAsync(
+                                                CodeFormatter.FormatDocumentWithValidationsAsync(
                                                     request.IsSignatureFile,
                                                     request.SourceCode,
                                                     config,
-                                                    cursor
+                                                    validations
+                                                )
+                                            | Some cursor ->
+                                                CodeFormatter.FormatDocumentWithValidationsAsync(
+                                                    request.IsSignatureFile,
+                                                    request.SourceCode,
+                                                    config,
+                                                    cursor,
+                                                    validations
                                                 )
 
                                         if formatResponse.Code = request.SourceCode then
                                             return FormatDocumentResponse.Unchanged request.FilePath
+                                        elif not (List.isEmpty formatResponse.Issues) then
+                                            // Plain, for the reason given where the failures below
+                                            // are rendered.
+                                            return
+                                                FormatDocumentResponse.Error(
+                                                    request.FilePath,
+                                                    Diagnostics.renderInvalidOutput
+                                                        Theme.plain
+                                                        request.FilePath
+                                                        formatResponse.Code
+                                                        formatResponse.Issues
+                                                )
                                         else
 
                                         let cursor =

@@ -34,7 +34,8 @@ let flags: (string * string * string * string list) list =
          "--force",
          "",
          [
-             "Write the output even when it is not valid F# code."
+             "Write the output even when Fantomas refuses it, because it is"
+             "not valid F# code or a comment of the file is missing from it."
              "For debugging purposes only."
          ])
         ("",
@@ -93,10 +94,12 @@ let commands: (Command * string * string list) list =
              "report what happened at each step: whether it is a file"
              "Fantomas formats, which .fantomasignore governs it and which"
              "line of it decided, which settings apply and where each came"
-             "from, what formatting produced, whether Fantomas accepts its"
-             "own output, and whether formatting that output again leaves"
-             "it alone. Takes one file rather than a folder, and writes"
-             "nothing."
+             "from, which define combinations it is parsed under, what"
+             "formatting produced, whether Fantomas accepts its own output,"
+             "whether that output keeps every comment and directive, and"
+             "whether formatting it again leaves it alone. Ends on what a"
+             "format run would do with the file. Takes one file rather than"
+             "a folder, and writes nothing."
          ])
         (Command.Daemon,
          "daemon",

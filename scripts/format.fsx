@@ -7,8 +7,8 @@ open Fantomas.Core.SnapshotTests.Problems
 open Shared
 
 /// Format the way a snapshot case is formatted, and print to stderr every problem the snapshot
-/// tests would fail the case on: invalid, not idempotent, a lost comment, trailing whitespace, or
-/// a result that differs from what users get. Returns the result, and whether it has no problem.
+/// tests would fail the case on: invalid, not idempotent, a lost comment or directive, or trailing
+/// whitespace. Returns the result, and whether it has no problem.
 let format (input: string) (isSignature: bool) (config: FormatConfig) : string * bool =
     try
         let formatted, problems = Formatting.formatAndCheck config isSignature input
@@ -30,19 +30,19 @@ let formatCombination (input: string) (isSignature: bool) (config: FormatConfig)
         |> List.filter (fun (define: string) -> define <> "" && define <> "no-defines")
         |> List.sort
 
-    let combinations: Formatting.ForDefines list =
+    let combinations: Formatting.FormattedCombination list =
         Formatting.formatCombinations config isSignature input
 
     match
         combinations
-        |> List.tryFind (fun (each: Formatting.ForDefines) -> List.sort each.Defines = wanted)
+        |> List.tryFind (fun (each: Formatting.FormattedCombination) -> List.sort each.Defines = wanted)
     with
     | Some each -> each.Code
     | None ->
 
     let names: string =
         combinations
-        |> List.map (fun (each: Formatting.ForDefines) -> Case.combinationName each.Defines)
+        |> List.map (fun (each: Formatting.FormattedCombination) -> Case.combinationName each.Defines)
         |> String.concat ", "
 
     eprintfn $"The input has no combination %s{Case.combinationName wanted}. It has: %s{names}."
