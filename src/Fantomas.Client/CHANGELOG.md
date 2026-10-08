@@ -5,7 +5,7 @@ This is the changelog for the Fantomas.Client package specifically. It's distinc
 ## [0.12.0-beta-004] - 2026-10-08
 
 ### Fixed
-- Fantomas.Client: LSPFantomasService.Dispose leaves its mailbox loop running, keeping the log delegate alive. `Dispose` now tells the loop to stop rather than relying on cancelling the wait it is parked in, and disposes the mailbox. [#3529](https://github.com/fsprojects/fantomas/issues/3529)
+- Fantomas.Client: LSPFantomasService.Dispose leaves its mailbox loop running, keeping the log delegate alive. `Dispose` now tells the loop to stop rather than relying on cancelling the wait it is parked in, and disposes the mailbox. A request made once `Dispose` has started is answered as cancelled straight away, and `ClearCache` on a disposed service returns rather than waiting forever. [#3529](https://github.com/fsprojects/fantomas/issues/3529)
 
 ## [0.12.0-beta-003] - 2026-09-12
 

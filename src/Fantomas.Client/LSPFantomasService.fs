@@ -522,6 +522,11 @@ let decodeFormatResult (inputFilePath: string) (json: JObject) : FantomasRespons
 
 type LSPFantomasService(log: Action<FantomasLogLevel, string>) =
     let cts = new CancellationTokenSource()
+    // Set as `Dispose` starts rather than at `cts.Cancel()`, which comes after `Stop`: a request let
+    // through in between would post behind `Stop` to a loop that has ended, and wait forever on a
+    // `PostAndReply` with no timeout. An `int` so that `Interlocked` can set it.
+    let mutable disposed: int = 0
+    let isDisposed () : bool = Volatile.Read &disposed = 1
     let configurationWarnings = Event<ConfigurationWarning>()
 
     let agent: MailboxProcessor<Msg> =
@@ -544,13 +549,13 @@ type LSPFantomasService(log: Action<FantomasLogLevel, string>) =
 
     interface FantomasService with
         member this.Dispose() =
-            if not cts.IsCancellationRequested then
+            if Interlocked.Exchange(&disposed, 1) = 0 then
                 agent.PostAndReply Stop
                 cts.Cancel()
                 (agent :> IDisposable).Dispose()
 
         member _.VersionAsync(filePath, ?cancellationToken: CancellationToken) : Task<FantomasResponse> =
-            isCancellationRequested cts.IsCancellationRequested
+            isCancellationRequested (isDisposed ())
             |> Result.bind (getFolderFor filePath)
             |> Result.bind (getDaemon agent)
             |> Result.map (fun client ->
@@ -575,7 +580,7 @@ type LSPFantomasService(log: Action<FantomasLogLevel, string>) =
             (formatDocumentOptions: FormatDocumentRequest, ?cancellationToken: CancellationToken)
             : Task<FantomasResponse>
             =
-            isCancellationRequested cts.IsCancellationRequested
+            isCancellationRequested (isDisposed ())
             |> Result.bind (getFolderFor formatDocumentOptions.FilePath)
             |> Result.bind (getDaemon agent)
             |> Result.map (fun client ->
@@ -592,7 +597,7 @@ type LSPFantomasService(log: Action<FantomasLogLevel, string>) =
         member _.FormatSelectionAsync
             (formatSelectionRequest: FormatSelectionRequest, ?cancellationToken: CancellationToken)
             =
-            isCancellationRequested cts.IsCancellationRequested
+            isCancellationRequested (isDisposed ())
             |> Result.bind (getFolderFor formatSelectionRequest.FilePath)
             |> Result.bind (getDaemon agent)
             |> Result.map (fun client ->
@@ -607,7 +612,7 @@ type LSPFantomasService(log: Action<FantomasLogLevel, string>) =
             |> mapResultToResponse formatSelectionRequest.FilePath
 
         member _.ConfigurationAsync(filePath, ?cancellationToken: CancellationToken) : Task<FantomasResponse> =
-            isCancellationRequested cts.IsCancellationRequested
+            isCancellationRequested (isDisposed ())
             |> Result.bind (getFolderFor filePath)
             |> Result.bind (getDaemon agent)
             |> Result.map (fun client ->
@@ -631,4 +636,6 @@ type LSPFantomasService(log: Action<FantomasLogLevel, string>) =
 
         member _.ConfigurationWarnings = configurationWarnings.Publish
 
-        member _.ClearCache() = agent.PostAndReply Reset
+        member _.ClearCache() =
+            if not (isDisposed ()) then
+                agent.PostAndReply Reset
