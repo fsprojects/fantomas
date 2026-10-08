@@ -40,7 +40,7 @@ let private observe () : Observed =
                 let case: Case.Case = Case.read relativePath
 
                 (Formatting.formatEach case.Config case.IsSignature case.Source).Combinations
-                |> List.map (fun (each: Formatting.ForDefines) -> each.Oak)
+                |> List.map (fun (each: Formatting.FormattedCombination) -> each.Oak)
                 |> List.toArray
             with _ ->
                 [||]

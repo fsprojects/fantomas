@@ -1,20 +1,21 @@
 ---
 category: Contributors
 categoryindex: 2
-index: 6
+index: 10
 ---
-# Fantomas.Core overview (2)
+# Printing
 
-Once the `Oak` is populated with all the found trivia, we can traverse the `Oak` to capture all the `WriterEvent`s.
+This page zooms in on the stage of [the formatting pipeline](./The%20Formatting%20Pipeline.html) that
+prints an Oak, trivia and all, as code. `CodePrinter.genFile` walks the Oak and collects `WriterEvent`s
+in a `Context`, and `Context.dump` turns those events into the code.
 
 ```mermaid
-graph TD
-    A[Transform source code to tree] --> B
-    B[Traverse Oak to get formatted code] --> C[Formatted code]
-    style B stroke:#338CBB,stroke-width:2px
+flowchart TD
+    RICH["Oak with trivia"]:::near -- "genFile" --> CTX["Context<br/>with its writer events"]
+    CTX -- "dump" --> CODE["code"]
+    CODE -. "merge" .-> ONE["merged code"]:::near
+    classDef near fill:#e8f3f9,stroke:#5aacd6,color:#1d3b4f
 ```
-
-We enter the module of `CodePrinter` and try and reconstruct the code based on the given configuration.
 
 ## WriterEvents and WriterModel
 
@@ -37,10 +38,10 @@ When solving a bug, you typically need to change the collected series of events 
 
 ### CodePrinter
 
-In `CodePrinter` the syntax tree is being traversed with the help of various (partial) active patterns.  
-These active patterns are defined in `SourceParser` and typically are used to present the information we are interested in, in a different shape.
+In `CodePrinter` the Oak is traversed, one function per kind of node, each matching on the shape of the
+node it is handed.
 
-`CodePrinter` exposes one function `genParsedInput`.
+`CodePrinter` exposes one function, `genFile`.
 
 ```fsharp
 val genFile: oak: Oak -> (Context -> Context)
@@ -48,11 +49,11 @@ val genFile: oak: Oak -> (Context -> Context)
 
 This takes an `Oak` and it returns a function that takes a `Context` and returns a new `Context`.
 
-We will eventually call this function with an initial `Context`. This initial `Context` will have our default config.
+We will eventually call this function with an initial `Context`, which holds the configuration being formatted with.
 In this function, all events are captured and stored in the `WriterEvents` and `WriterModel`.
 
 While we are traversing the syntax tree, we will compose the `Context -> Context` function based on the content.
-`Context.dump` then eventually takes the `Context` and returns a `string` of formatted code.
+`Context.dump` then eventually takes the `Context` and returns the formatted code, and where the cursor ended up.
 
 This may seem a bit complicated, but you typically can see this as an implementation detail and can abstract this when working in `CodePrinter`.
 

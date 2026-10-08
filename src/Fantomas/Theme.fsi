@@ -62,6 +62,9 @@ val flagName: theme: Theme -> text: string -> string
 /// A value the reader supplies rather than types verbatim.
 val placeholder: theme: Theme -> text: string -> string
 
+/// The text of a comment quoted from a file or a formatted result.
+val commentText: theme: Theme -> text: string -> string
+
 /// Scaffolding that carries no information of its own: a gutter, a command name already known.
 val muted: theme: Theme -> text: string -> string
 

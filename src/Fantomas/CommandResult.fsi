@@ -1,13 +1,16 @@
 module Fantomas.CommandResult
 
+open Fantomas.Core
 open Fantomas.FCS.Parse
 
 /// What formatting one file came to.
 [<RequireQualifiedAccess; NoComparison>]
 type FormatResult =
     | Formatted of filename: string * formattedContent: string
+    /// `--force` wrote output that failed the checks of a format run, with what they found.
+    | Forced of filename: string * formattedContent: string * issues: ValidationIssue list
     | Unchanged of filename: string
-    | InvalidCode of filename: string * formattedContent: string * diagnostics: FSharpParserDiagnostic list
+    | InvalidCode of filename: string * formattedContent: string * issues: ValidationIssue list
     | Error of filename: string * formattingError: exn
     | IgnoredFile of filename: string
 
@@ -39,11 +42,20 @@ type CheckResult =
 type InvalidCodeException =
     inherit Fantomas.Core.FormatException
 
-    new: formattedContent: string * diagnostics: FSharpParserDiagnostic list -> InvalidCodeException
+    new: formattedContent: string * issues: ValidationIssue list -> InvalidCodeException
+
+    /// What the checks a format run asks for found wrong with that output.
+    member Issues: ValidationIssue list
 
     /// The diagnostics that made that output unacceptable: every error, and every warning Fantomas
-    /// does not tolerate. A diagnostic it was willing to overlook is not among them.
+    /// does not tolerate, each once whichever define combinations reported it. A diagnostic it was
+    /// willing to overlook is not among them.
     member Diagnostics: FSharpParserDiagnostic list
+
+    /// The comments of the file that output does not have, as written in the file. Formatting looks
+    /// for each one in its output, and refuses the output when it does not find one, even when the
+    /// output is valid F#.
+    member MissingComments: SourceComment list
 
     /// What Fantomas produced and then would not accept. It is written nowhere, so a report that
     /// wants to show a line of it has nowhere else to read it from.

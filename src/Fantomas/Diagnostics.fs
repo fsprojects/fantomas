@@ -187,11 +187,32 @@ let describeParseFailure (theme: Theme) (file: string) (source: unit -> string) 
 // pointed half of them at the slower path. If the tool cannot take a file that size, that is the
 // tool's problem to fix rather than a fork to put in front of somebody reporting a bug.
 //
+// A coding agent can do the reporting: the skill shrinks the file to a minimal sample and opens the
+// same issue form for the reader to review. The command is what the README and the reporting page
+// give, so it is the one to copy. Said by the command line alone, to the reader at a terminal: an
+// editor shows the daemon's report to somebody who did not type a command.
+let agentSkill (theme: Theme) : string =
+    String.Concat(
+        "With a coding agent, the fantomas-report skill can do that for you: ",
+        flagName theme "npx skills add fsprojects/fantomas --skill fantomas-report -g",
+        "."
+    )
+
 // The place to report it is somewhere the reader can go, which is the one thing colour marks in
 // prose, so it is coloured as the link it is and the sentence around it is left alone.
 let reportAsBug (theme: Theme) (evidence: string) : string =
     String.Concat(
         "This is a bug in Fantomas, not a problem with your code. Please report it with ",
+        evidence,
+        " via ",
+        link theme "https://fsprojects.github.io/fantomas-tools/",
+        "."
+    )
+
+// The same request when a report has more than one failure of Fantomas in it.
+let reportAsBugs (theme: Theme) (evidence: string) : string =
+    String.Concat(
+        "These are bugs in Fantomas, not problems with your code. Please report them with ",
         evidence,
         " via ",
         link theme "https://fsprojects.github.io/fantomas-tools/",
@@ -256,19 +277,70 @@ let describeInvariantViolation
         Some(renderInvariantViolation theme file (source ()) verbose violation)
     | _ -> None
 
-// Paragraph one of the report, and the opening of the message the failure carries. Split out
-// because the report puts the parser's own words between it and the request for a report, and the
-// message does not. Nothing in it is coloured, so it needs no theme.
-let invalidOutputSummary: string =
-    "Fantomas formatted this file and then found that its own output did not pass validation, so the output was thrown away and your file is unchanged."
+// The same complaint under several define combinations is one complaint about the same text, so
+// each diagnostic is listed once, with every combination that reported it.
+let groupedDiagnostics (issues: ValidationIssue list) : (FSharpParserDiagnostic * string list list) list =
+    issues
+    |> List.collect (fun (issue: ValidationIssue) ->
+        match issue with
+        | ValidationIssue.NotValidFSharp(defines, diagnostics) ->
+            diagnostics
+            |> List.map (fun (diagnostic: FSharpParserDiagnostic) -> diagnostic, defines)
+        | _ -> []
+    )
+    |> List.groupBy (fun (diagnostic: FSharpParserDiagnostic, _) ->
+        diagnostic.Range, diagnostic.ErrorNumber, diagnostic.Message
+    )
+    |> List.map (fun (_, reported: (FSharpParserDiagnostic * string list) list) ->
+        // The parser can say the same thing more than once in one parse: an offside token is
+        // reported again each time error recovery passes it.
+        fst (List.head reported), List.map snd reported |> List.distinct
+    )
+
+let resultDiagnostics (issues: ValidationIssue list) : FSharpParserDiagnostic list =
+    groupedDiagnostics issues
+    |> List.map (fun (diagnostic: FSharpParserDiagnostic, _) -> diagnostic)
+
+let lostComments (issues: ValidationIssue list) : SourceComment list =
+    issues
+    |> List.choose (fun (issue: ValidationIssue) ->
+        match issue with
+        | ValidationIssue.MissingComment comment -> Some comment
+        | _ -> None
+    )
+
+// Paragraph one of the report, and the opening of the message the failure carries: what went wrong,
+// in one line. The report lists the comments right after it, so there it says "these" and ends on a
+// colon; the message has no room for them. Nothing in it is coloured, so it needs no theme.
+// What the search knows about a comment it misses: that its text is not where it belongs in the
+// result. That is a comment dropped, rewritten or printed ahead of one it followed alike, so it is
+// said as that rather than as a loss.
+let invalidOutputSummary (invalid: bool) (missingComments: SourceComment list) (listed: bool) : string =
+    let comments: string =
+        match missingComments, listed with
+        | [ _ ], true -> "this comment of your file"
+        | _, true -> "these comments of your file"
+        | [ _ ], false -> "a comment of your file"
+        | _, false -> "comments of your file"
+
+    let ending: string = if listed then ":" else "."
+
+    match invalid, missingComments with
+    | _, [] -> "Your file is unchanged because the formatted result is not valid F#."
+    | false, _ -> $"Your file is unchanged because Fantomas cannot find %s{comments} in the formatted result%s{ending}"
+    | true, _ ->
+        $"Your file is unchanged because the formatted result is not valid F#, and Fantomas cannot find %s{comments} in it%s{ending}"
 
 // Asked in one place so that the report and the message cannot come to send a reader after
 // different things. The file, because it is the input that reproduces this and the only part of it
 // the reader still has: the output that failed is thrown away.
 let invalidOutputReportRequest (theme: Theme) : string = reportAsBug theme "the file"
 
-let invalidOutputExplanation (theme: Theme) : string =
-    String.Concat(invalidOutputSummary, "\n\n", invalidOutputReportRequest theme)
+let invalidOutputExplanation (theme: Theme) (issues: ValidationIssue list) : string =
+    let summary: string =
+        invalidOutputSummary (not (List.isEmpty (resultDiagnostics issues))) (lostComments issues) false
+
+    String.Concat(summary, "\n\n", invalidOutputReportRequest theme)
 
 // No position, which is the one thing this drops from the shape every other diagnostic here is
 // printed in. A position is somewhere to go, and there is nowhere to go: the output it counts lines
@@ -282,42 +354,282 @@ let outputHeadline (theme: Theme) (diagnostic: FSharpParserDiagnostic) : string 
 
     $"%s{severity} %s{number}: %s{message}"
 
-let renderInvalidOutput
-    (theme: Theme)
-    (file: string)
-    (output: string)
-    (diagnostics: FSharpParserDiagnostic list)
-    : string
-    =
-    let ordered: FSharpParserDiagnostic list = List.sortBy position diagnostics
+// Whether text has a conditional directive, which is what gives it more than the one combination
+// without defines. A directive starts its line, after whitespace at most. A line of a string that
+// looks like one only makes a report name the combination without defines.
+let hasConditionalDirectives (text: string) : bool =
+    Text.RegularExpressions.Regex.IsMatch(text, @"^[ \t]*#if\b", Text.RegularExpressions.RegexOptions.Multiline)
 
-    // What the parser said, and the output around it. Without this the reader is told that
-    // something was wrong with a file they cannot see and left to find it by running again with
-    // `--force` and reading the result. With it they have the line to cut a small reproduction
-    // from, which is what a report needs and what nobody can produce from prose.
-    //
-    // Said out loud that these lines are the output. They look exactly like the lines of the file
-    // and they are not: nothing else Fantomas prints a snippet of is anything but the source.
+// The define combinations a diagnostic of the output was reported under, when the output has
+// conditional directives. An empty list is the combination without defines then, and is named,
+// since it is one branch of several. Without directives it is the only combination and says nothing.
+let reportedUnder (theme: Theme) (hasDirectives: bool) (combinations: string list list) : string =
+    match combinations with
+    | [ [] ] when not hasDirectives -> ""
+    | combinations ->
+
+    combinations
+    |> List.map (fun (defines: string list) ->
+        match defines with
+        | [] -> "with no defines"
+        | defines ->
+
+        let names: string = defines |> List.map (placeholder theme) |> String.concat ", "
+        $"with %s{names} defined"
+    )
+    |> String.concat ", "
+    |> sprintf " (%s)"
+
+// A comment can span lines, so each is its own indented block rather than an item in a sentence.
+let commentLines (theme: Theme) (comments: string list) : string list =
+    [
+        for comment in comments do
+            for line in comment.Split('\n') do
+                yield "    " + commentText theme (expandTabs (line.TrimEnd('\r')))
+    ]
+
+// Each lost comment as the file has it, beside the numbers of the lines it is on in the file, in the
+// gutter a snippet has. These are positions in the file, unlike those of the output below them. The
+// first line is put back at its column, so the lines after it line up as they do in the file.
+let missingCommentLines (theme: Theme) (comments: SourceComment list) : string list =
+    let lastLine: int =
+        comments
+        |> List.fold (fun (last: int) (comment: SourceComment) -> max last comment.Range.EndLine) 0
+
+    let gutter: int = String.length (string<int> lastLine)
+
+    [
+        for comment in comments do
+            for index, line in Array.indexed (comment.Text.Split('\n')) do
+                let number: string = (string<int>(comment.Range.StartLine + index)).PadLeft(gutter)
+
+                let text: string =
+                    if index = 0 then
+                        String.Concat(String(' ', comment.Range.StartColumn), line)
+                    else
+                        line
+
+                yield String.Concat(muted theme (String.Concat(number, " |")), " ", commentText theme (expandTabs text))
+    ]
+
+// What the parser said about output Fantomas refused, and the output around it. Without this the
+// reader is told that something was wrong with a file they cannot see and left to find it by running
+// again with `--force` and reading the result. With it they have the line to cut a small
+// reproduction from, which is what a report needs and what nobody can produce from prose.
+//
+// Said out loud that these lines are the output. They look exactly like the lines of the file and
+// they are not: nothing else Fantomas prints a snippet of is anything but the source.
+let outputParserLines (theme: Theme) (output: string) (issues: ValidationIssue list) : string list =
+    let grouped: (FSharpParserDiagnostic * string list list) list =
+        groupedDiagnostics issues
+        |> List.sortBy (fun (diagnostic: FSharpParserDiagnostic, _) -> position diagnostic)
+
+    match grouped with
+    | [] -> []
+    | grouped ->
+
+    let ordered: FSharpParserDiagnostic list =
+        List.map (fun (diagnostic: FSharpParserDiagnostic, _) -> diagnostic) grouped
+
+    [
+        yield "This is what the parser made of the formatted result. The lines below are that result, not your file."
+        yield ""
+        for diagnostic, combinations in grouped do
+            yield
+                String.Concat(
+                    outputHeadline theme diagnostic,
+                    reportedUnder theme (hasConditionalDirectives output) combinations
+                )
+        yield! snippetFor theme output (caretTarget ordered)
+    ]
+
+let renderInvalidOutput (theme: Theme) (file: string) (output: string) (issues: ValidationIssue list) : string =
+    let missingComments: SourceComment list = lostComments issues
+    let parserLines: string list = outputParserLines theme output issues
+
     let diagnosticLines: string list =
-        if List.isEmpty ordered then
-            []
-        else
-
-        [
-            yield ""
-            yield "This is what the parser made of that output. The lines below are the output, not your file."
-            yield ""
-            yield! List.map (outputHeadline theme) ordered
-            yield! snippetFor theme output (caretTarget ordered)
-        ]
+        match parserLines with
+        | [] -> []
+        | lines -> "" :: lines
 
     [
         yield $"%s{link theme file} could not be formatted by Fantomas:"
         yield ""
-        yield invalidOutputSummary
+        yield invalidOutputSummary (not (List.isEmpty parserLines)) missingComments true
+
+        if not (List.isEmpty missingComments) then
+            yield ""
+            yield! missingCommentLines theme missingComments
         yield! diagnosticLines
         yield ""
         yield invalidOutputReportRequest theme
         yield ""
     ]
     |> String.concat "\n"
+
+let directiveLine (theme: Theme) (heading: string) (directives: string list) : string list =
+    match directives with
+    | [] -> []
+    | directives ->
+
+    let listed: string =
+        directives |> List.map (placeholder theme) |> String.concat ", "
+
+    [ ""; $"%s{heading} %s{listed}" ]
+
+// `from` without one occurrence of each of `taken`.
+let without (from: string list) (taken: string list) : string list =
+    taken
+    |> List.fold
+        (fun (left: string list) (text: string) ->
+            match List.tryFindIndex ((=) text) left with
+            | Some index -> List.removeAt index left
+            | None -> left
+        )
+        from
+
+// A comment the result has with only its whitespace changed is the same comment, rewritten. Each
+// missing comment is paired with the first such comment the result has added that is not paired yet,
+// so it is shown as before and after rather than as one comment lost and an unrelated one added.
+let rewrittenComments (missing: SourceComment list) (added: string list) : (SourceComment * string) list =
+    let sameWords (text: string) : string =
+        Text.RegularExpressions.Regex.Replace(text, @"\s+", " ").Trim()
+
+    missing
+    |> List.fold
+        (fun (pairs: (SourceComment * string) list) (comment: SourceComment) ->
+            match
+                without added (List.map snd pairs)
+                |> List.tryFind (fun (text: string) -> sameWords text = sameWords comment.Text)
+            with
+            | Some text -> pairs @ [ comment, text ]
+            | None -> pairs
+        )
+        []
+
+let sameComment (comment: SourceComment) (other: SourceComment) : bool = comment.Range.Start = other.Range.Start
+
+// The comments of the file that are not in the result, the comments the result has added, and the
+// comments in both with their whitespace changed, as text.
+let commentChangeLines (theme: Theme) (issues: ValidationIssue list) : string list =
+    // Each comment is shown once, the first comparison standing for what may be one per define
+    // combination.
+    let (comparedAway: SourceComment list), (newComments: string list) =
+        issues
+        |> List.tryPick (fun (issue: ValidationIssue) ->
+            match issue with
+            | ValidationIssue.CommentsChanged(_, missing, added) -> Some(missing, added)
+            | _ -> None
+        )
+        |> Option.defaultValue ([], [])
+
+    let missingComments: SourceComment list =
+        lostComments issues @ comparedAway
+        |> List.distinctBy (fun (comment: SourceComment) -> comment.Range.Start)
+        |> List.sortBy (fun (comment: SourceComment) -> comment.Range.StartLine, comment.Range.StartColumn)
+
+    let rewritten: (SourceComment * string) list =
+        rewrittenComments missingComments newComments
+
+    let lost: SourceComment list =
+        missingComments
+        |> List.filter (fun (comment: SourceComment) -> not (List.exists (fst >> sameComment comment) rewritten))
+
+    let added: string list = without newComments (List.map snd rewritten)
+
+    // The comparison read the result and found the comment gone. The search alone only knows its
+    // text is not where it belongs, which a comment printed ahead of one it followed is too.
+    let (confirmed: SourceComment list), (searchedFor: SourceComment list) =
+        lost
+        |> List.partition (fun (comment: SourceComment) -> List.exists (sameComment comment) comparedAway)
+
+    let block (heading: string) (comments: SourceComment list) : string list =
+        match comments with
+        | [] -> []
+        | comments -> [ ""; heading; ""; yield! missingCommentLines theme comments ]
+
+    let lostHeading: string =
+        if List.length confirmed = 1 then
+            "This comment of your file is not in the formatted result:"
+        else
+            "These comments of your file are not in the formatted result:"
+
+    let searchedForHeading: string =
+        if List.length searchedFor = 1 then
+            "Fantomas cannot find this comment of your file in the formatted result:"
+        else
+            "Fantomas cannot find these comments of your file in the formatted result:"
+
+    let addedHeading: string =
+        let what: string =
+            if List.length added = 1 then
+                "this comment"
+            else
+                "these comments"
+
+        let instead: string = if List.isEmpty lost then "" else " instead"
+        $"The formatted result has %s{what} added%s{instead}:"
+
+    [
+        for before, after in rewritten do
+            yield ""
+            yield "Formatting changes the whitespace inside this comment of your file:"
+            yield ""
+            yield! missingCommentLines theme [ before ]
+            yield ""
+            yield "The formatted result has it like this:"
+            yield ""
+            yield! commentLines theme [ after ]
+
+        yield! block lostHeading confirmed
+        yield! block searchedForHeading searchedFor
+
+        if not (List.isEmpty added) then
+            yield ""
+            yield addedHeading
+            yield ""
+            yield! commentLines theme added
+    ]
+
+// What the first comparison that found the directives changed found, as text: a directive is the
+// same under every combination.
+let directiveChangeLines (theme: Theme) (issues: ValidationIssue list) : string list =
+    issues
+    |> List.tryPick (fun (issue: ValidationIssue) ->
+        match issue with
+        | ValidationIssue.DirectivesChanged(_, missing, added) -> Some(missing, added)
+        | _ -> None
+    )
+    |> Option.map (fun (missing: string list, added: string list) ->
+        match missing, added with
+        | [], [] ->
+            [
+                ""
+                "The formatted result has the directives of your file in a different order."
+            ]
+        | missing, added ->
+            [
+                yield! directiveLine theme "These directives of your file are not in the formatted result:" missing
+                yield! directiveLine theme "The formatted result has these directives added:" added
+            ]
+    )
+    |> Option.defaultValue []
+
+// What happened to the file, rather than which check saw it or under which defines: the line numbers
+// already say where a comment is.
+let triviaChangeLines (theme: Theme) (issues: ValidationIssue list) : string list =
+    let failed: string list =
+        issues
+        |> List.tryPick (fun (issue: ValidationIssue) ->
+            match issue with
+            | ValidationIssue.CheckFailed(_, error) ->
+                Some
+                    [
+                        ""
+                        $"Comparing the comments and directives of your file with those of the formatted result failed: %s{error.Message}"
+                    ]
+            | _ -> None
+        )
+        |> Option.defaultValue []
+
+    commentChangeLines theme issues @ directiveChangeLines theme issues @ failed

@@ -1,6 +1,6 @@
 ---
 name: fantomas-report
-description: Turn F# code that Fantomas fails to format into a minimal sample and a prefilled GitHub issue for fsprojects/fantomas, in the format the fantomas-tools "Create an issue" button produces. Use when Fantomas reports that its output did not pass validation, throws, is not idempotent, or loses code, and the problem should be reported upstream.
+description: Turn F# code that Fantomas fails to format into a minimal sample and a prefilled GitHub issue for fsprojects/fantomas, in the format the fantomas-tools "Create an issue" button produces. Use when Fantomas refuses its own output (not valid F#, or comments lost), throws, is not idempotent, or loses code, and the problem should be reported upstream.
 ---
 
 # Report a Fantomas bug

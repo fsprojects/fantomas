@@ -86,7 +86,12 @@ let timeOneFile (env: CliEnvironment) (file: string) : Result<FileTiming, string
 
         let stopwatch: Stopwatch = Stopwatch.StartNew()
 
-        CodeFormatter.FormatDocumentAsync(isSignatureFile, content, config)
+        CodeFormatter.FormatDocumentWithValidationsAsync(
+            isSignatureFile,
+            content,
+            config,
+            validations = Validations.None
+        )
         |> Async.RunSynchronously
         |> ignore
 

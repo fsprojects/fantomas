@@ -258,6 +258,75 @@ let ``format implementation file, error`` () =
         }
     )
 
+// What a format run refuses to write, the editor is not sent either. A `#if` inside a block comment
+// is taken for a directive and moved to column 0: valid F#, with the comment rewritten.
+[<Test>]
+let ``format implementation file, output that is missing a comment`` () =
+    runWithDaemon (fun client ->
+        async {
+            let sourceCode =
+                "#if FOO\n    (*\n        #if BAR\n                    printfn \"FOO\"\n        #endif\n    *)\n#else\n                ()\n#endif\n"
+
+            use codeFile = new TemporaryFileCodeSample(sourceCode)
+
+            let request =
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = None
+                    Cursor = None
+                }
+
+            let! response =
+                client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
+                |> Async.AwaitTask
+
+            match response with
+            | FormatDocumentResponse.Error(formattingError = message) ->
+                message
+                |> should haveSubstring "Your file is unchanged because Fantomas cannot find"
+
+                // Nobody in an editor typed a command, so the command line's pointer to the skill is not here.
+                message |> should not' (haveSubstring "npx skills")
+            | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
+        }
+    )
+
+[<Test>]
+let ``format implementation file, output that is not valid F#`` () =
+    runWithDaemon (fun client ->
+        async {
+            // The day this fails because Fantomas can format the file is the day it needs another.
+            let sourceCode: string =
+                System.IO.Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "..", "tests", "data", "CheckDeclarations.fs")
+                |> System.IO.Path.GetFullPath
+                |> System.IO.File.ReadAllText
+
+            use codeFile = new TemporaryFileCodeSample(sourceCode)
+
+            let request =
+                {
+                    SourceCode = sourceCode
+                    FilePath = codeFile.Filename
+                    Config = None
+                    Cursor = None
+                }
+
+            let! response =
+                client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
+                |> Async.AwaitTask
+
+            match response with
+            | FormatDocumentResponse.Error(formattingError = message) ->
+                message
+                |> should haveSubstring "Your file is unchanged because the formatted result is not valid F#"
+
+                message
+                |> should haveSubstring "This is what the parser made of the formatted result."
+            | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
+        }
+    )
+
 [<Test>]
 let ``format implementation file, ignored file`` () =
     runWithDaemon (fun client ->

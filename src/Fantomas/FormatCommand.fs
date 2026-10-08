@@ -35,8 +35,16 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
         try
             let isSignatureFile: bool = Path.GetExtension(formatParams.File) = ".fsi"
 
-            let! { Code = formattedContent } =
-                CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, formatParams.Config)
+            let! {
+                     Code = formattedContent
+                     Issues = issues
+                 } =
+                CodeFormatter.FormatDocumentWithValidationsAsync(
+                    isSignatureFile,
+                    originalContent,
+                    formatParams.Config,
+                    validations = (Validations.CommentSearch ||| Validations.Parse)
+                )
 
             let contentChanged: bool =
                 if not formatParams.CompareWithoutLineEndings then
@@ -49,19 +57,14 @@ let formatContentAsync (formatParams: FormatParams) (originalContent: string) : 
 
             if not contentChanged then
                 return FormatResult.Unchanged(filename = formatParams.File)
-            else
-
-            let! (validation: ValidationResult) =
-                CodeFormatter.ValidateFSharpCodeAsync(isSignatureFile, formattedContent)
-
-            if validation.IsValid then
+            elif List.isEmpty issues then
                 return FormatResult.Formatted(filename = formatParams.File, formattedContent = formattedContent)
             else
                 return
                     FormatResult.InvalidCode(
                         filename = formatParams.File,
                         formattedContent = formattedContent,
-                        diagnostics = validation.Diagnostics
+                        issues = issues
                     )
         with ex ->
             return FormatResult.Error(formatParams.File, ex)
@@ -116,7 +119,7 @@ let formatSource
         let! (formatted: FormatResult) = formatContentAsync formatParams source.Content
 
         match formatted with
-        | FormatResult.InvalidCode(f, formattedContent, _) when settings.Force ->
+        | FormatResult.InvalidCode(f, formattedContent, issues) when settings.Force ->
             // A warning, and on standard error, because it says Fantomas wrote F# it believes is not
             // valid. It used to go to standard out at Information, alongside the ordinary run of
             // things it is the opposite of.
@@ -127,18 +130,33 @@ let formatSource
             // happened instead of leaning on a line a pipeline may not have beside it.
             let theme: Theme = env.ErrorTheme
 
+            let comments: string =
+                match Diagnostics.lostComments issues with
+                | [ _ ] -> "a comment of the file"
+                | _ -> "comments of the file"
+
+            let wrong: string =
+                match
+                    List.isEmpty (Diagnostics.resultDiagnostics issues), List.isEmpty (Diagnostics.lostComments issues)
+                with
+                | false, false -> $"the result is not valid F# code, and Fantomas cannot find %s{comments} in it"
+                | false, true -> "the result is not valid F# code"
+                | true, _ -> $"Fantomas cannot find %s{comments} in the result"
+
             env.Log.Warning(
                 String.Concat(
                     link theme f,
-                    " was formatted, but the result is not valid F# code. It was written because ",
+                    " was formatted, but ",
+                    wrong,
+                    ". It was written because ",
                     flagName theme "--force",
                     " was given."
                 )
             )
 
-            return FormatResult.Formatted(file, formattedContent)
-        | FormatResult.InvalidCode(f, formattedContent, diagnostics) ->
-            return FormatResult.Error(f, InvalidCodeException(formattedContent, diagnostics))
+            return FormatResult.Forced(file, formattedContent, issues)
+        | FormatResult.InvalidCode(f, formattedContent, issues) ->
+            return FormatResult.Error(f, InvalidCodeException(formattedContent, issues))
         | r -> return r
     }
 
@@ -166,7 +184,8 @@ let processFile
 
             let toWrite: string option =
                 match result with
-                | FormatResult.Formatted(_, formattedContent) -> Some formattedContent
+                | FormatResult.Formatted(_, formattedContent)
+                | FormatResult.Forced(_, formattedContent, _) -> Some formattedContent
                 // Writing somewhere else has to carry an unchanged file across to it. Writing back
                 // over the input has nothing to do.
                 | FormatResult.Unchanged _ when not inPlace -> Some source.Content

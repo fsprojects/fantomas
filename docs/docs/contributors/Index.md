@@ -13,6 +13,7 @@ Fear not: once you get the hang of it, things are less complicated than they see
 In short, Fantomas is a source-code-to-source-code compiler. It will transform the text in the source code to an intermediate format and transform that again to source code.
 It uses the F# Compiler to do this. The parser from the F# compiler will be used to create an [UnTyped Abstract Syntax](https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-syntaxtree.html) tree (or "AST").
 The AST is then reprinted in `CodePrinter.fs`: once the whole tree is traversed, the formatted code can be constructed.
+[The formatting pipeline](./The%20Formatting%20Pipeline.html) walks through every stage of that, and is the place to start.
 
 In this section of our documentation, we wish to teach you everything you need to know to contribute to Fantomas.
 Every F# developer should be able to understand the project, even the ones new to the language.

@@ -84,12 +84,24 @@ type InvariantViolationException(msg: string, range: range, syntaxNode: string) 
         $"%s{msg}\nAt line %i{range.StartLine}, column %i{range.StartColumn} in %s{range.FileName}.\nThis is a bug in Fantomas. Please report it via https://fsprojects.github.io/fantomas-tools/"
 
 /// Raised when one or more conditional compilation define combinations produce invalid syntax trees.
-type DefineParseException(combinations: string list) =
+type DefineParseException(combinations: string list list) =
     inherit FormatException(String.Empty)
 
-    /// The define combinations that failed to parse.
+    /// The define combinations that failed to parse, each as its defines: `[]` is the combination
+    /// without defines.
     member _.Combinations = combinations
 
     override _.Message =
-        let joined: string = combinations |> String.concat ", "
+        let joined: string =
+            combinations
+            |> List.map (fun (defines: string list) ->
+                match defines with
+                | [] -> "no defines"
+                | defines ->
+
+                let named: string = String.concat ", " defines
+                $"[%s{named}]"
+            )
+            |> String.concat ", "
+
         $"Parsing failed for define combination(s): %s{joined}."

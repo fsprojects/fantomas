@@ -106,6 +106,9 @@ let heading (theme: Theme) (text: string) : string = decorate theme "1" "1" text
 let flagName (theme: Theme) (text: string) : string = decorate theme "1;38;5;80" "1;36" text
 
 let placeholder (theme: Theme) (text: string) : string = decorate theme "38;5;245" "2" text
+
+// The green editors give comments, so a comment quoted in a report reads as one at a glance.
+let commentText (theme: Theme) (text: string) : string = decorate theme "38;5;71" "32" text
 let muted (theme: Theme) (text: string) : string = decorate theme "2" "2" text
 
 // The three status colours are the three exit codes: 0, 99 and 1. There are three because there
