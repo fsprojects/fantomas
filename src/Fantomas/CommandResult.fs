@@ -2,13 +2,13 @@ module Fantomas.CommandResult
 
 open System
 open Fantomas.Core
-open Fantomas.FCS.Parse
 
 [<RequireQualifiedAccess; NoComparison>]
 type FormatResult =
     | Formatted of filename: string * formattedContent: string
+    | Forced of filename: string * formattedContent: string * issues: ValidationIssue list
     | Unchanged of filename: string
-    | InvalidCode of filename: string * formattedContent: string * diagnostics: FSharpParserDiagnostic list
+    | InvalidCode of filename: string * formattedContent: string * issues: ValidationIssue list
     | Error of filename: string * formattingError: exn
     | IgnoredFile of filename: string
 
@@ -24,14 +24,18 @@ type CheckResult =
     member this.NeedsFormatting = List.isNotEmpty this.Formatted
     member this.IsValid = List.isEmpty this.Errors && List.isEmpty this.Formatted
 
-type InvalidCodeException(formattedContent: string, diagnostics: FSharpParserDiagnostic list) =
+type InvalidCodeException(formattedContent: string, issues: ValidationIssue list) =
     inherit FormatException(String.Empty)
 
     member _.FormattedContent = formattedContent
 
-    member _.Diagnostics = diagnostics
+    member _.Issues = issues
 
-    override _.Message = Diagnostics.invalidOutputExplanation Theme.plain
+    member _.Diagnostics = Diagnostics.resultDiagnostics issues
+
+    member _.MissingComments = Diagnostics.lostComments issues
+
+    override _.Message = Diagnostics.invalidOutputExplanation Theme.plain issues
 
 [<RequireQualifiedAccess; Struct>]
 type InputProblem =
@@ -51,6 +55,7 @@ type FormatCommandResult =
             | FormatResult.Error _
             | FormatResult.InvalidCode _ -> true
             | FormatResult.Formatted _
+            | FormatResult.Forced _
             | FormatResult.Unchanged _
             | FormatResult.IgnoredFile _ -> false
 

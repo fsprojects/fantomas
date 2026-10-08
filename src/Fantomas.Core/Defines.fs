@@ -11,6 +11,19 @@ type internal DefineCombination =
 
     static member Empty = DefineCombination([])
 
+[<NoComparison; NoEquality>]
+type internal UnderDefines<'T> =
+    {
+        Defines: DefineCombination
+        Value: 'T
+    }
+
+    member x.Map(f: 'T -> 'U) : UnderDefines<'U> =
+        {
+            Defines = x.Defines
+            Value = f x.Value
+        }
+
 module private DefineCombinationSolver =
     let rec map f e =
         match f e with

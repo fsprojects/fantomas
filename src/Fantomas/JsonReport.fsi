@@ -12,8 +12,8 @@ open Fantomas.CommandResult
 // page says so beside the flag, and a reader that needs a promise wants the exit code, which has
 // one.
 
-/// Where in a file a diagnostic points. Lines and columns are both one based, matching what the F#
-/// compiler prints for the same file and what the text report writes.
+/// Where in a file a diagnostic points, or where a comment is. Lines and columns are both one based,
+/// matching what the F# compiler prints for the same file and what the text report writes.
 type Range =
     {
         StartLine: int
@@ -21,6 +21,9 @@ type Range =
         EndLine: int
         EndColumn: int
     }
+
+/// The defines of one combination a file is parsed under: `[]` is the combination without defines.
+type DefineCombination = string list
 
 /// One thing the parser had to say about a file. `Severity` is `error`, `warning` or `info`, and
 /// `Code` is the compiler's number for it in the `FSnnnn` form, `FS0000` when it has none.
@@ -33,7 +36,15 @@ type Diagnostic =
         Code: string
         Message: string
         Range: Range option
+        /// For output Fantomas refused, every define combination the output was parsed under that
+        /// reported this diagnostic. Empty for a file that does not parse, whose diagnostics are not
+        /// told apart per combination.
+        ReportedUnder: DefineCombination list
     }
+
+/// A comment of the file that output Fantomas refused does not have, as written in the file, and
+/// where it is in the file.
+type Comment = { Text: string; Range: Range }
 
 /// What became of one file that was looked at. A file an ignore file kept the run away from is not
 /// one of these and is not counted anywhere either: see `RunReport`.
@@ -48,7 +59,11 @@ type FileOutcome =
     /// Only from a `profile` run, which is the only command that measures. The milliseconds are the
     /// file alone, and the run's own total is on the report.
     | Timed of lineCount: int * defineCombinations: int * milliseconds: int
-    | Failed of message: string * diagnostics: Diagnostic list
+    /// Written by `--force` although a format run refuses it, with what was wrong with it.
+    | Forced of diagnostics: Diagnostic list * missingComments: Comment list
+    /// `missingComments` are the comments of the file that output Fantomas refused does not have.
+    /// Empty for every other failure.
+    | Failed of message: string * diagnostics: Diagnostic list * missingComments: Comment list
 
 [<NoComparison>]
 type FileReport = { Path: string; Outcome: FileOutcome }
