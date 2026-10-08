@@ -56,7 +56,7 @@ Some common use cases include:
 
     <!-- Versions -->
     <PropertyGroup>
-        <FCSCommitHash>c3cf92a72ac5da1f9aafacbb03a9d1096012d1ae</FCSCommitHash>
+        <FCSCommitHash>01e48674840c14ba12be65de0d909cfc8d4bfdb5</FCSCommitHash>
         <!--
         The GitHub repository the vendored compiler sources are downloaded from. Temporarily a fork, for
         the Native AOT fixes of dotnet/fsharp#20658 before they are merged. Back to dotnet/fsharp once
