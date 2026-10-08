@@ -1,5 +1,6 @@
 module Fantomas.Diagnostics
 
+open Fantomas.Core
 open Fantomas.FCS.Parse
 open Fantomas.Theme
 
@@ -69,6 +70,17 @@ val renderInvariantViolation:
 val describeInvariantViolation:
     theme: Theme -> file: string -> source: (unit -> string) -> verbose: bool -> error: exn -> string option
 
+/// The diagnostics of every `NotValidFSharp` among `issues`, each once, with every define combination
+/// that reported it, once each.
+val groupedDiagnostics: issues: ValidationIssue list -> (FSharpParserDiagnostic * string list list) list
+
+/// The diagnostics of every `NotValidFSharp` among `issues`, each once however many define
+/// combinations reported it.
+val resultDiagnostics: issues: ValidationIssue list -> FSharpParserDiagnostic list
+
+/// The comments of every `MissingComment` among `issues`.
+val lostComments: issues: ValidationIssue list -> SourceComment list
+
 /// What to say when formatting produced output that Fantomas itself would not accept. This is the
 /// message the failure carries, so that a caller with no console to draw a report on still has the
 /// whole of it in words.
@@ -77,25 +89,55 @@ val describeInvariantViolation:
 /// path in front of it and the JSON document carries it as a key beside it. Naming it here is what
 /// made the line read `A.fs could not be formatted: Formatting A.fs leads to invalid F# code`.
 ///
-/// What it says is that the file was not touched, which is the first thing somebody wants to know
-/// after reading that formatting produced something invalid, and that this is a bug in Fantomas and
-/// where to take it, since reaching this state is never the file's fault.
-val invalidOutputExplanation: theme: Theme -> string
+/// What it says, in one line, is that the file was not touched and why: the result is not valid F#
+/// (a `NotValidFSharp` among `issues`), comments Fantomas cannot find in it (a `MissingComment`), or
+/// both. Then that
+/// this is a bug in Fantomas and where to take it, since reaching this state is never the file's
+/// fault. The comments themselves are left to the report.
+val invalidOutputExplanation: theme: Theme -> issues: ValidationIssue list -> string
 
 /// Render an invalid output failure for `file`: the same header the other two reports open with,
-/// what happened, what the parser said about `output`, and the request for a bug report.
+/// what happened, the comments of the file `output` does not have, each beside the numbers of the
+/// lines it is on in the file, what the parser said about `output`, and the request for a bug
+/// report. A section with nothing in it is left out.
 ///
-/// `output` is what Fantomas produced and would not accept, and `diagnostics` are what it would not
-/// accept about it. Without them the reader is told that something was wrong with a file they cannot
-/// see, and is left to run again with `--force` and find it themselves. With them they have the line
-/// to cut a small reproduction from, which is what a bug report needs and what no amount of prose
-/// supplies. Pass an empty list to leave the whole section out.
+/// `output` is what Fantomas produced and would not accept, and the `NotValidFSharp` among `issues`
+/// are what it would not accept about it. Without them the reader is told that something was wrong
+/// with a file they cannot see, and is left to run again with `--force` and find it themselves. With
+/// them they have the line to cut a small reproduction from, which is what a bug report needs and
+/// what no amount of prose supplies. Each diagnostic is listed once, with the define combinations
+/// that reported it when `output` has conditional directives, the one without defines included.
+/// The `MissingComment` among `issues` are the comments shown; other issues are not part of this
+/// report.
 ///
-/// Each is rendered without its position, which is where this departs from every other report here.
-/// A position is somewhere to go and there is nowhere to go: `output` is thrown away and written
+/// Each diagnostic is rendered without its position, which is where this departs from every other
+/// report here. A position is somewhere to go and there is nowhere to go: `output` is thrown away and written
 /// nowhere, so a line number into it is a coordinate in a buffer the reader cannot open, and
 /// `path(line,column)` would be a link an editor follows to the wrong line of the right file. The
 /// snippet is what says where, by pointing at the line. It is drawn for the first of them, which is
 /// also the first listed, since they are ordered by position.
-val renderInvalidOutput:
-    theme: Theme -> file: string -> output: string -> diagnostics: FSharpParserDiagnostic list -> string
+val renderInvalidOutput: theme: Theme -> file: string -> output: string -> issues: ValidationIssue list -> string
+
+/// What formatting does to the comments and directives of a file, as lines that each block opens
+/// with a blank line: the comments of the file missing from the result, with the lines they are on in
+/// the file, what the result has in their place, a comment whose whitespace changed as before and
+/// after, and the same for directives. It says what happened, not which check found it or under
+/// which define combination: each comment is shown once, and the first change of each kind stands
+/// for what may be one per combination.
+val triviaChangeLines: theme: Theme -> issues: ValidationIssue list -> string list
+
+/// What the parser said about `output`, output Fantomas refused, and the lines of it around the first
+/// error: the `NotValidFSharp` among `issues`, each diagnostic once with the define combinations that
+/// reported it when `output` has conditional directives. Nothing when there are none.
+val outputParserLines: theme: Theme -> output: string -> issues: ValidationIssue list -> string list
+
+/// Ask for a bug report with `evidence`, saying that this is a bug in Fantomas rather than a problem
+/// with the reader's code.
+val reportAsBug: theme: Theme -> evidence: string -> string
+
+/// `reportAsBug` for a report with more than one failure of Fantomas in it.
+val reportAsBugs: theme: Theme -> evidence: string -> string
+
+/// How a coding agent can file what `reportAsBug` asks for. Said after that request by the command
+/// line's own reports alone, not by the daemon.
+val agentSkill: theme: Theme -> string

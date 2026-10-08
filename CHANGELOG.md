@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Fantomas checks that its output keeps every `//` and `(* *)` comment of the file. A format run searches its result for each of them, and does not write a result that is missing one, even when it is valid F#. The daemon that editors use refuses such output too, and output that is not valid F#, where it used to send both to the editor. `fantomas doctor` has a `Comments` step that checks, more thoroughly than a format run can afford, that the result keeps every comment and directive of the file under every define combination, a `Parse` step that lists the define combinations the file is parsed under, and ends on a `Verdict`: what a format run would do with the file. `CodeFormatter.FormatDocumentWithValidationsAsync` takes the checks to run as `Validations`, and `FormatResult` has a new field, `Issues`, with what they found, so code that constructs a `FormatResult` has to set it. `DefineParseException.Combinations` holds the defines of each combination that failed, rather than their names. [#1353](https://github.com/fsprojects/fantomas/issues/1353)
+
 ## [8.0.7] - 2026-10-05
 
 ### Fixed

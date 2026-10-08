@@ -12,6 +12,8 @@ open Fantomas.EditorConfig
 open Fantomas.EditorConfigFiles
 open Fantomas.Report
 
+type DefineCombination = string list
+
 type Range =
     {
         StartLine: int
@@ -26,7 +28,10 @@ type Diagnostic =
         Code: string
         Message: string
         Range: Range option
+        ReportedUnder: DefineCombination list
     }
+
+type Comment = { Text: string; Range: Range }
 
 [<RequireQualifiedAccess; NoComparison>]
 type FileOutcome =
@@ -34,7 +39,8 @@ type FileOutcome =
     | Unchanged
     | NeedsFormatting
     | Timed of lineCount: int * defineCombinations: int * milliseconds: int
-    | Failed of message: string * diagnostics: Diagnostic list
+    | Forced of diagnostics: Diagnostic list * missingComments: Comment list
+    | Failed of message: string * diagnostics: Diagnostic list * missingComments: Comment list
 
 [<NoComparison>]
 type FileReport = { Path: string; Outcome: FileOutcome }
@@ -74,13 +80,29 @@ let describeDiagnostic (diagnostic: FSharpParserDiagnostic) : Diagnostic =
         Code = Diagnostics.errorNumber diagnostic
         Message = diagnostic.Message
         Range = Option.map describeRange diagnostic.Range
+        ReportedUnder = []
+    }
+
+// What was wrong with output Fantomas refused, each diagnostic with the combinations that reported it.
+let describeResultDiagnostics (issues: ValidationIssue list) : Diagnostic list =
+    Diagnostics.groupedDiagnostics issues
+    |> List.map (fun (diagnostic: FSharpParserDiagnostic, combinations: DefineCombination list) ->
+        { describeDiagnostic diagnostic with
+            ReportedUnder = combinations
+        }
+    )
+
+let describeComment (comment: Fantomas.Core.SourceComment) : Comment =
+    {
+        Text = comment.Text
+        Range = describeRange comment.Range
     }
 
 // The two failures with positions worth taking apart, since those are what a caller can act on
 // without opening the file. Everything else has only a message, so it is carried as one.
 //
-// The positions of an invalid output are positions in output that was thrown away rather than in
-// the file at `path`, which the text report says out loud and this document has nowhere to. A
+// The positions of the diagnostics of an invalid output are positions in output that was thrown
+// away rather than in the file at `path`, which the text report says out loud and this document has nowhere to. A
 // caller reading these as offsets into the file on disk will be reading the wrong lines. What the
 // document is for is knowing that it happened and where to look; the text report is what says what
 // the lines are.
@@ -89,14 +111,19 @@ let describeFileFailure (file: string) (error: exn) : FileOutcome =
     | :? ParseException as parseFailure ->
         FileOutcome.Failed(
             $"%s{file} could not be parsed by Fantomas",
-            List.map describeDiagnostic parseFailure.Diagnostics
+            List.map describeDiagnostic parseFailure.Diagnostics,
+            []
         )
     | :? InvalidCodeException as invalid ->
-        FileOutcome.Failed(invalid.Message, List.map describeDiagnostic invalid.Diagnostics)
+        FileOutcome.Failed(
+            invalid.Message,
+            describeResultDiagnostics invalid.Issues,
+            List.map describeComment invalid.MissingComments
+        )
     | _ ->
         let message: string = describeFailure error |> Option.defaultValue error.Message
 
-        FileOutcome.Failed(message, [])
+        FileOutcome.Failed(message, [], [])
 
 // The order the files were worked on is the order a folder walk happened to return them in, which
 // is neither the order they were given nor one worth promising. Sorting is a rule that can be
@@ -120,17 +147,27 @@ let describeResult (result: FormatResult) : FileReport option =
                 Path = file
                 Outcome = FileOutcome.Formatted
             }
+    | FormatResult.Forced(file, _, issues) ->
+        Some
+            {
+                Path = file
+                Outcome =
+                    FileOutcome.Forced(
+                        describeResultDiagnostics issues,
+                        List.map describeComment (Diagnostics.lostComments issues)
+                    )
+            }
     | FormatResult.Error(file, error) ->
         Some
             {
                 Path = file
                 Outcome = describeFileFailure file error
             }
-    | FormatResult.InvalidCode(file, formattedContent, diagnostics) ->
+    | FormatResult.InvalidCode(file, formattedContent, issues) ->
         Some
             {
                 Path = file
-                Outcome = describeFileFailure file (InvalidCodeException(formattedContent, diagnostics))
+                Outcome = describeFileFailure file (InvalidCodeException(formattedContent, issues))
             }
 
 let formatReport (workingDirectory: string) (result: FormatCommandResult) : RunReport =
@@ -241,10 +278,19 @@ let describeCommand (command: Command) : string =
 let describeOutcome (outcome: FileOutcome) : string =
     match outcome with
     | FileOutcome.Failed _ -> "error"
-    | FileOutcome.Formatted -> "formatted"
+    | FileOutcome.Formatted
+    | FileOutcome.Forced _ -> "formatted"
     | FileOutcome.Unchanged -> "unchanged"
     | FileOutcome.NeedsFormatting -> "needs-formatting"
     | FileOutcome.Timed _ -> "timed"
+
+let writeRange (json: Utf8JsonWriter) (range: Range) : unit =
+    json.WriteStartObject "range"
+    json.WriteNumber("startLine", range.StartLine)
+    json.WriteNumber("startColumn", range.StartColumn)
+    json.WriteNumber("endLine", range.EndLine)
+    json.WriteNumber("endColumn", range.EndColumn)
+    json.WriteEndObject()
 
 let writeDiagnostic (json: Utf8JsonWriter) (diagnostic: Diagnostic) : unit =
     json.WriteStartObject()
@@ -254,19 +300,48 @@ let writeDiagnostic (json: Utf8JsonWriter) (diagnostic: Diagnostic) : unit =
 
     match diagnostic.Range with
     | None -> ()
-    | Some range ->
-        json.WriteStartObject "range"
-        json.WriteNumber("startLine", range.StartLine)
-        json.WriteNumber("startColumn", range.StartColumn)
-        json.WriteNumber("endLine", range.EndLine)
-        json.WriteNumber("endColumn", range.EndColumn)
-        json.WriteEndObject()
+    | Some range -> writeRange json range
+
+    match diagnostic.ReportedUnder with
+    | [] -> ()
+    | combinations ->
+        json.WriteStartArray "reportedUnder"
+
+        for defines in combinations do
+            json.WriteStartArray()
+            List.iter (fun (define: string) -> json.WriteStringValue define) defines
+            json.WriteEndArray()
+
+        json.WriteEndArray()
 
     json.WriteEndObject()
 
-// `message` and `diagnostics` appear only on a file that failed. A reader has to look at `status`
-// before either means anything, and a run over a folder should not carry a null message per file
-// for the thousands that were fine.
+let writeComment (json: Utf8JsonWriter) (comment: Comment) : unit =
+    json.WriteStartObject()
+    json.WriteString("text", comment.Text)
+    writeRange json comment.Range
+    json.WriteEndObject()
+
+// Both arrays are written whenever a file failed, empty or not, so that a reader can take them for
+// granted once `status` says the file failed.
+let writeFailure
+    (json: Utf8JsonWriter)
+    (message: string)
+    (diagnostics: Diagnostic list)
+    (missingComments: Comment list)
+    : unit
+    =
+    json.WriteString("message", message)
+    json.WriteStartArray "diagnostics"
+    List.iter (writeDiagnostic json) diagnostics
+    json.WriteEndArray()
+    json.WriteStartArray "missingComments"
+    List.iter (writeComment json) missingComments
+    json.WriteEndArray()
+
+// `message`, `diagnostics` and `missingComments` appear only on a file that failed. A reader has to
+// look at `status` before any of them means anything, and a run over a folder should not carry a
+// null message per file for the thousands that were fine.
 let writeFile (json: Utf8JsonWriter) (file: FileReport) : unit =
     json.WriteStartObject()
     json.WriteString("path", file.Path)
@@ -280,11 +355,15 @@ let writeFile (json: Utf8JsonWriter) (file: FileReport) : unit =
         json.WriteNumber("lineCount", lineCount)
         json.WriteNumber("defineCombinations", defineCombinations)
         json.WriteNumber("milliseconds", milliseconds)
-    | FileOutcome.Failed(message, diagnostics) ->
-        json.WriteString("message", message)
+    | FileOutcome.Forced(diagnostics, missingComments) ->
+        json.WriteBoolean("forced", true)
         json.WriteStartArray "diagnostics"
         List.iter (writeDiagnostic json) diagnostics
         json.WriteEndArray()
+        json.WriteStartArray "missingComments"
+        List.iter (writeComment json) missingComments
+        json.WriteEndArray()
+    | FileOutcome.Failed(message, diagnostics, missingComments) -> writeFailure json message diagnostics missingComments
 
     json.WriteEndObject()
 
@@ -481,6 +560,40 @@ let writeDoctorConfiguration (json: Utf8JsonWriter) (resolved: ResolvedConfig op
     json.WriteEndArray()
     json.WriteEndObject()
 
+let writeDoctorParse (json: Utf8JsonWriter) (path: string) (step: ParseStep option) : unit =
+    match step with
+    | None -> json.WriteNull "parse"
+    | Some step ->
+
+    json.WriteStartObject "parse"
+
+    match step with
+    | ParseStep.Parsed combinations ->
+        json.WriteString("status", "parsed")
+        json.WriteStartArray "defines"
+
+        for defines in combinations do
+            json.WriteStartArray()
+            List.iter (fun (define: string) -> json.WriteStringValue define) defines
+            json.WriteEndArray()
+
+        json.WriteEndArray()
+    | ParseStep.Failed error ->
+        json.WriteString("status", "failed")
+
+        match describeFileFailure path error with
+        | FileOutcome.Failed(message, diagnostics, missingComments) ->
+            writeFailure json message diagnostics missingComments
+        // `describeFileFailure` answers with nothing else. Named rather than swept up by a
+        // wildcard, so that a case added to it has to be placed here deliberately.
+        | FileOutcome.Formatted
+        | FileOutcome.Forced _
+        | FileOutcome.Unchanged
+        | FileOutcome.NeedsFormatting
+        | FileOutcome.Timed _ -> ()
+
+    json.WriteEndObject()
+
 let writeDoctorFormat (json: Utf8JsonWriter) (path: string) (step: FormatStep option) : unit =
     match step with
     | None -> json.WriteNull "format"
@@ -501,14 +614,12 @@ let writeDoctorFormat (json: Utf8JsonWriter) (path: string) (step: FormatStep op
         json.WriteString("status", "failed")
 
         match describeFileFailure path error with
-        | FileOutcome.Failed(message, diagnostics) ->
-            json.WriteString("message", message)
-            json.WriteStartArray "diagnostics"
-            List.iter (writeDiagnostic json) diagnostics
-            json.WriteEndArray()
+        | FileOutcome.Failed(message, diagnostics, missingComments) ->
+            writeFailure json message diagnostics missingComments
         // `describeFileFailure` answers with nothing else. Named rather than swept up by a
         // wildcard, so that a case added to it has to be placed here deliberately.
         | FileOutcome.Formatted
+        | FileOutcome.Forced _
         | FileOutcome.Unchanged
         | FileOutcome.NeedsFormatting
         | FileOutcome.Timed _ -> ()
@@ -530,10 +641,80 @@ let writeDoctorValidity (json: Utf8JsonWriter) (step: ValidityStep option) : uni
         json.WriteString("status", "valid")
         json.WriteStartArray "diagnostics"
         json.WriteEndArray()
-    | ValidityStep.Invalid diagnostics ->
+    // The comments a format run would not find are in `trivia`, as they are for valid output.
+    | ValidityStep.Invalid issues ->
         json.WriteString("status", "invalid")
         json.WriteStartArray "diagnostics"
-        List.iter (writeDiagnostic json) (List.map describeDiagnostic diagnostics)
+        List.iter (writeDiagnostic json) (describeResultDiagnostics issues)
+        json.WriteEndArray()
+
+    json.WriteEndObject()
+
+// A comment of the file the result lacks carries where it is in the file, like the comments a
+// refused format run lists. One of the result has no position worth giving: the result is written
+// nowhere.
+let writeTriviaChange (json: Utf8JsonWriter) (issue: ValidationIssue) : unit =
+    let writeStrings (name: string) (values: string list) : unit =
+        json.WriteStartArray name
+        List.iter (fun (value: string) -> json.WriteStringValue value) values
+        json.WriteEndArray()
+
+    match issue with
+    | ValidationIssue.CommentsChanged(defines, missing, added) ->
+        json.WriteStartObject()
+        json.WriteString("kind", "comments")
+        writeStrings "defines" defines
+        json.WriteStartArray "missing"
+        List.iter (describeComment >> writeComment json) missing
+        json.WriteEndArray()
+        writeStrings "added" added
+        json.WriteEndObject()
+    | ValidationIssue.DirectivesChanged(defines, missing, added) ->
+        json.WriteStartObject()
+        json.WriteString("kind", "directives")
+        writeStrings "defines" defines
+        writeStrings "missing" missing
+        writeStrings "added" added
+        json.WriteEndObject()
+    // What the search of a format run did not find, in the shape of the others. The search is not
+    // told apart per combination, so it has no `defines`: an empty one would read as the combination
+    // without defines.
+    | ValidationIssue.MissingComment comment ->
+        json.WriteStartObject()
+        json.WriteString("kind", "search")
+        json.WriteStartArray "missing"
+        writeComment json (describeComment comment)
+        json.WriteEndArray()
+        writeStrings "added" []
+        json.WriteEndObject()
+    // The comparison could not finish, so what it would have found is not here.
+    | ValidationIssue.CheckFailed(_, error) ->
+        json.WriteStartObject()
+        json.WriteString("kind", "failed")
+        json.WriteString("message", error.Message)
+        json.WriteEndObject()
+    // Not changes to trivia, and the step only ever holds those.
+    | ValidationIssue.NotValidFSharp _
+    | ValidationIssue.NotIdempotent _ -> ()
+
+// Every change, under every define combination, where the text report shows the first of each
+// kind: a document is read by a program, which can pick for itself.
+let writeDoctorTrivia (json: Utf8JsonWriter) (step: TriviaStep option) : unit =
+    match step with
+    | None -> json.WriteNull "trivia"
+    | Some step ->
+
+    json.WriteStartObject "trivia"
+
+    match step with
+    | TriviaStep.Kept ->
+        json.WriteString("status", "kept")
+        json.WriteStartArray "changes"
+        json.WriteEndArray()
+    | TriviaStep.Changed changes ->
+        json.WriteString("status", "changed")
+        json.WriteStartArray "changes"
+        List.iter (writeTriviaChange json) changes
         json.WriteEndArray()
 
     json.WriteEndObject()
@@ -551,10 +732,14 @@ let writeDoctorIdempotency (json: Utf8JsonWriter) (step: IdempotencyStep option)
         json.WriteString("status", "failed")
         json.WriteString("message", error.Message)
     | IdempotencyStep.NotIdempotent(line, afterFirstPass, afterSecondPass) ->
+        // The line each pass has where they part, which is what a reader compares.
+        let at (text: string) : string =
+            Array.tryItem (line - 1) (lines text) |> Option.defaultValue ""
+
         json.WriteString("status", "not-idempotent")
         json.WriteNumber("line", line)
-        json.WriteString("afterFirstPass", afterFirstPass)
-        json.WriteString("afterSecondPass", afterSecondPass)
+        json.WriteString("afterFirstPass", at afterFirstPass)
+        json.WriteString("afterSecondPass", at afterSecondPass)
 
     json.WriteEndObject()
 
@@ -587,8 +772,10 @@ let writeDoctorDocument (json: Utf8JsonWriter) (workingDirectory: string) (resul
         json.WriteNull "file"
         json.WriteNull "ignore"
         json.WriteNull "configuration"
+        json.WriteNull "parse"
         json.WriteNull "format"
         json.WriteNull "validity"
+        json.WriteNull "trivia"
         json.WriteNull "idempotency"
     | Some report ->
         let path: string =
@@ -600,8 +787,10 @@ let writeDoctorDocument (json: Utf8JsonWriter) (workingDirectory: string) (resul
         writeDoctorFile json report.File
         writeDoctorIgnore json report.Ignore
         writeDoctorConfiguration json report.Settings
+        writeDoctorParse json path report.Parse
         writeDoctorFormat json path report.Format
         writeDoctorValidity json report.Validity
+        writeDoctorTrivia json report.Trivia
         writeDoctorIdempotency json report.Idempotency
 
     json.WriteEndObject()

@@ -3,10 +3,8 @@
 module Fantomas.Core.SnapshotTests.Formatting
 
 open System
-open System.Text.RegularExpressions
+open System.Collections.Concurrent
 open Fantomas.FCS.Parse
-open Fantomas.FCS.Syntax
-open Fantomas.FCS.SyntaxTrivia
 open Fantomas.FCS.Text
 open Fantomas.Core
 open Fantomas.Core.SyntaxOak
@@ -19,196 +17,167 @@ open Fantomas.Core.SnapshotTests.Problems
 /// overlap, as ranges from the parser nest. Nodes `ASTTransformer` makes up carry `range0` and
 /// have no place in the source, and neither does the module of a file without code, which carries
 /// `RangeHelpers.absoluteZeroRange`. `Fantomas.Core.Tests` has the same check for its unit tests, and
-/// the two projects share no code.
-let assertChildrenInPlace (oak: Oak) : unit =
-    let rec visit (node: Node) : unit =
-        let placed: Node array =
-            node.Children
-            |> Array.filter (fun (child: Node) -> not (Range.equals child.Range Range.range0))
+/// the two projects share no code. Returns every child out of place, as a sentence.
+let childrenOutOfPlace (oak: Oak) : string list =
+    let rec visit (node: Node) : string seq =
+        seq {
+            let placed: Node array =
+                node.Children
+                |> Array.filter (fun (child: Node) -> not (Range.equals child.Range Range.range0))
 
-        placed
-        |> Array.pairwise
-        |> Array.iter (fun (previous: Node, next: Node) ->
-            if Position.posLt next.Range.Start previous.Range.Start then
-                failwith
-                    $"The children of %s{node.GetType().Name} are not in source order: %s{next.GetType().Name} %O{next.Range} comes after %s{previous.GetType().Name} %O{previous.Range}"
-        )
+            for previous, next in Array.pairwise placed do
+                if Position.posLt next.Range.Start previous.Range.Start then
+                    yield
+                        $"The children of %s{node.GetType().Name} are not in source order: %s{next.GetType().Name} %O{next.Range} comes after %s{previous.GetType().Name} %O{previous.Range}"
 
-        if not (Range.equals node.Range Range.range0) then
-            placed
-            |> Array.iter (fun (child: Node) ->
-                if
-                    not (RangeHelpers.isAbsoluteZero child.Range)
-                    && not (RangeHelpers.rangeContainsRange node.Range child.Range)
-                then
-                    let slot: string =
-                        match child with
-                        | :? SingleTextNode -> snd (OakFacts.slotOf { Node = child; Parent = Some node })
-                        | _ -> child.GetType().Name
+            if not (Range.equals node.Range Range.range0) then
+                for child in placed do
+                    if
+                        not (RangeHelpers.isAbsoluteZero child.Range)
+                        && not (RangeHelpers.rangeContainsRange node.Range child.Range)
+                    then
+                        let slot: string =
+                            match child with
+                            | :? SingleTextNode -> snd (OakFacts.slotOf { Node = child; Parent = Some node })
+                            | _ -> child.GetType().Name
 
-                    failwith
-                        $"%s{node.GetType().Name}.%s{slot} %O{child.Range} lies outside %s{node.GetType().Name} %O{node.Range}"
-            )
+                        yield
+                            $"%s{node.GetType().Name}.%s{slot} %O{child.Range} lies outside %s{node.GetType().Name} %O{node.Range}"
 
-        Array.iter visit node.Children
+            for child in node.Children do
+                yield! visit child
+        }
 
-    visit oak
+    visit oak |> List.ofSeq
+
+/// Every comment and directive the parser recorded is attached to a node of the Oak, as trivia
+/// before or after it. Trivia assignment that finds no node for one drops it, and the printer never
+/// sees it; caught here, before printing, in the case that shows it. Matched on where each ends,
+/// as folding blank lines into a comment moves where it starts. Returns each that is not, with
+/// where it is.
+let private unattachedTrivia (oak: Oak) (recordedTrivia: Trivia.RecordedTrivia) : string list =
+    let endOf (trivia: TriviaNode) : int * int =
+        trivia.Range.EndLine, trivia.Range.EndColumn
+
+    let rec attached (node: Node) : (int * int) seq =
+        seq {
+            yield! Seq.map endOf node.ContentBefore
+            yield! Seq.map endOf node.ContentAfter
+
+            for child in node.Children do
+                yield! attached child
+        }
+
+    let ends: Set<int * int> = attached oak |> Set.ofSeq
+
+    recordedTrivia.Comments @ recordedTrivia.Directives
+    |> List.choose (fun (trivia: TriviaNode) ->
+        if ends.Contains(endOf trivia) then
+            None
+        else
+            Some $"%O{trivia.Range}: %O{trivia.Content}"
+    )
 
 /// The result for one define combination, and the Oak it was printed from.
 [<NoComparison; NoEquality>]
-type ForDefines =
+type FormattedCombination =
     {
         Defines: string list
         Code: string
         Oak: Oak
     }
 
-/// A case formatted: the merged result users get, and the result per define combination it was
-/// merged from. A source without conditional directives has one combination, the empty one.
+/// A case formatted: the merged result users get, what the checks asked for found wrong with it,
+/// and the result per define combination it was merged from. A source without conditional
+/// directives has one combination, the empty one.
 [<NoComparison; NoEquality>]
 type Formatted =
     {
         Merged: string
-        Combinations: ForDefines list
+        Issues: ValidationIssue list
+        Combinations: FormattedCombination list
+        /// What is wrong with the Oak of a define combination, the second pass's included.
+        OakProblems: Problem list
     }
 
-/// The result of every define combination on its own, before they are merged, and the Oak each
-/// came from.
-let formatCombinations (config: FormatConfig) (isSignature: bool) (source: string) : ForDefines list =
-    let sourceText: ISourceText = CodeFormatterImpl.getSourceText source
+/// A case formatted the way users get it, with the checks of `validations`, and the result of every
+/// define combination on its own with the Oak it was printed from. Each tree is checked for its
+/// children in place and its trivia attached as `formatDocument` hands it over, the second pass's
+/// too; only the first pass's are kept. What those checks find is handed back rather than raised,
+/// so that a script can still show the result and the trivia of a case they fail.
+let formatWith (validations: Validations) (config: FormatConfig) (isSignature: bool) (source: string) : Formatted =
+    // Trees are handed over from the tasks that print them, two at a time when they finish together.
+    let combinations: ConcurrentQueue<FormattedCombination> = ConcurrentQueue()
+    let oakProblems: ConcurrentQueue<Problem> = ConcurrentQueue()
 
-    let trees: (ParsedInput * DefineCombination) array =
-        CodeFormatterImpl.parse isSignature sourceText |> Async.RunSynchronously
+    let inspect (tree: UnderDefines<CodeFormatterImpl.FormattedTree>) : unit =
+        let formatted: CodeFormatterImpl.FormattedTree = tree.Value
+        let defines: string list = tree.Defines.Value
 
-    let combinations: ForDefines list =
-        trees
-        |> Array.toList
-        |> List.map (fun (tree: ParsedInput, combination: DefineCombination) ->
-            let mutable printed: Oak option = None
+        match childrenOutOfPlace formatted.Oak with
+        | [] -> ()
+        | children -> oakProblems.Enqueue(Problem.ChildrenOutOfPlace(defines, formatted.SecondPass, children))
 
-            let result: FormatResult =
-                CodeFormatterImpl.formatASTWith
-                    (fun (oak: Oak) ->
-                        assertChildrenInPlace oak
-                        printed <- Some oak
-                    )
-                    tree
-                    (Some sourceText)
-                    config
-                    None
+        match unattachedTrivia formatted.Oak formatted.Trivia with
+        | [] -> ()
+        | trivia -> oakProblems.Enqueue(Problem.TriviaNotAttached(defines, formatted.SecondPass, trivia))
 
-            match printed with
-            | None -> failwith "The Oak was never handed to the inspection callback."
-            | Some oak ->
+        if not formatted.SecondPass then
+            combinations.Enqueue
+                {
+                    Defines = defines
+                    Code = formatted.Code
+                    Oak = formatted.Oak
+                }
 
-            {
-                Defines = combination.Value
-                Code = result.Code
-                Oak = oak
-            }
-        )
-
-    combinations
-
-/// Format the way `CodeFormatterImpl.formatDocumentWith` does, one step at a time, so that the
-/// result of every define combination and the Oak it came from are in hand.
-let formatEach (config: FormatConfig) (isSignature: bool) (source: string) : Formatted =
-    let combinations: ForDefines list = formatCombinations config isSignature source
-
-    let merged: string =
-        match combinations with
-        | [ single ] -> single.Code
-        | combinations ->
-
-        combinations
-        |> List.map (fun (each: ForDefines) -> DefineCombination each.Defines, { Code = each.Code; Cursor = None })
-        |> MultipleDefineCombinations.mergeMultipleFormatResults config
-        |> fun (result: FormatResult) -> result.Code
-
-    {
-        Merged = merged
-        Combinations = combinations
-    }
-
-/// What users get: the whole pipeline in one call.
-let formatProduction (config: FormatConfig) (isSignature: bool) (source: string) : string =
-    let result: FormatResult =
-        CodeFormatterImpl.formatDocumentWith ignore config isSignature (CodeFormatterImpl.getSourceText source) None
+    let document: FormatResult =
+        CodeFormatterImpl.formatDocument
+            inspect
+            config
+            isSignature
+            (CodeFormatterImpl.getSourceText source)
+            None
+            validations
         |> Async.RunSynchronously
 
-    result.Code
+    {
+        Merged = document.Code
+        Issues = document.Issues
+        // In an order that does not depend on which task finished first.
+        Combinations =
+            combinations
+            |> List.ofSeq
+            |> List.sortBy (fun (each: FormattedCombination) -> List.length each.Defines, each.Defines)
+        OakProblems = oakProblems |> List.ofSeq |> List.sortBy describe
+    }
 
-/// The trivia a source has under one define combination: its comments, as a set of normalised
-/// texts and as a count, and its conditional (`#if`, `#else`, `#endif`) and warn (`#nowarn`,
-/// `#warnon`) directives, as their texts in order. Two comments with the same text are one entry in
-/// the set, so the count is what notices one of them going. What sits in a branch the defines leave
-/// out is not trivia under them, so a source is read under each of its combinations in turn.
-let private triviaOf
-    (isSignature: bool)
-    (source: string)
-    (defines: string list)
-    : Set<TriviaContent> * int * string list
-    =
-    let sourceText: ISourceText = SourceText.ofString source
-    let tree, _ = parseFile isSignature sourceText defines
+/// A case formatted the way users get it, without checking the result.
+let formatEach (config: FormatConfig) (isSignature: bool) (source: string) : Formatted =
+    formatWith Validations.None config isSignature source
 
-    let comments, conditional, warn =
-        match tree with
-        | ParsedInput.ImplFile(ParsedImplFileInput(trivia = trivia)) ->
-            trivia.CodeComments, trivia.ConditionalDirectives, trivia.WarnDirectives
-        | ParsedInput.SigFile(ParsedSigFileInput(trivia = trivia)) ->
-            trivia.CodeComments, trivia.ConditionalDirectives, trivia.WarnDirectives
+/// The result of every define combination on its own, before they are merged.
+let formatCombinations (config: FormatConfig) (isSignature: bool) (source: string) : FormattedCombination list =
+    (formatEach config isSignature source).Combinations
 
-    // A directive as written, with its whitespace made single spaces.
-    let textOf (range: range) : string =
-        Regex.Replace(sourceText.GetSubTextFromRange range, @"\s+", " ").Trim()
-
-    let directives: string list =
-        [
-            for directive in conditional do
-                match directive with
-                | ConditionalDirectiveTrivia.If(range = range)
-                | ConditionalDirectiveTrivia.Elif(range = range)
-                | ConditionalDirectiveTrivia.Else range
-                | ConditionalDirectiveTrivia.EndIf range -> textOf range
-            for directive in warn do
-                match directive with
-                | WarnDirectiveTrivia.Nowarn range
-                | WarnDirectiveTrivia.Warnon range -> textOf range
-        ]
-
-    Trivia.collectCommentTextsFromAST sourceText tree, comments.Length, directives
-
-/// What one list has that the other lacks, counting repeats.
-let private without (these: string list) (those: string list) : string list =
-    those
-    |> List.fold
-        (fun (left: string list) (taken: string) ->
-            match List.tryFindIndex ((=) taken) left with
-            | Some index -> List.removeAt index left
-            | None -> left
-        )
-        these
+// The comments a search of the result did not find.
+let private notFound (issues: ValidationIssue list) : string list =
+    issues
+    |> List.choose (fun (issue: ValidationIssue) ->
+        match issue with
+        | ValidationIssue.MissingComment comment -> Some comment.Text
+        | _ -> None
+    )
 
 /// The lines of a result that end inside a token or a comment spanning several lines, a triple
 /// quoted string say. Whitespace at their end is content, not layout. Read from the result's own
 /// Oak, under each define combination it is parsed with.
-let private linesEndingInsideText
-    (isSignature: bool)
-    (config: FormatConfig)
-    (code: string)
-    (combinations: string list list)
-    : Set<int>
-    =
-    let sourceText: ISourceText = CodeFormatterImpl.getSourceText code
+let private linesEndingInsideText (isSignature: bool) (code: string) (combinations: string list list) : Set<int> =
+    let sourceText: ISourceText = SourceText.ofString code
 
     combinations
     |> List.collect (fun (defines: string list) ->
         let tree, _ = parseFile isSignature sourceText defines
-
-        let oak: Oak =
-            ASTTransformer.mkOak (Some sourceText) tree
-            |> Trivia.enrichTree config sourceText tree
+        let oak: Oak = CodeFormatter.TransformAST(tree, code)
 
         let tokens: range list =
             OakFacts.visits oak
@@ -248,22 +217,38 @@ let private trailingWhitespace (insideText: Set<int>) (code: string) : int list 
 /// Format a case and check everything that holds for every case. Returns what it formatted, and
 /// the problems it found.
 let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) : Formatted * Problem list =
-    let formatted: Formatted = formatEach config isSignature source
-    let problems: ResizeArray<Problem> = ResizeArray<Problem>()
+    // Every check on the result.
+    let formatted: Formatted = formatWith Validations.All config isSignature source
+    let problems: ResizeArray<Problem> = ResizeArray<Problem>(formatted.OakProblems)
     let hasDefines: bool = formatted.Combinations.Length > 1
 
-    // The harness takes the pipeline apart to see each combination. Production must still agree.
-    let production: string = formatProduction config isSignature source
+    // The combination is only worth naming when the source has `#if`.
+    let named (defines: string list) : string list option =
+        if hasDefines then Some defines else None
 
-    if production <> formatted.Merged then
-        problems.Add(Problem.ProductionDiffers(production, formatted.Merged))
+    // The search a format run does for every comment, which refuses the output when it misses one.
+    // The comparison is stricter, so a comment the search misses on a case that passes it is a file
+    // users could not format.
+    match notFound formatted.Issues with
+    | [] -> ()
+    | missing -> problems.Add(Problem.CommentsNotFound missing)
 
-    let validation: ValidationResult =
-        Validation.validateFSharpCode isSignature formatted.Merged
-        |> Async.RunSynchronously
-
-    if not validation.IsValid then
-        problems.Add(Problem.Invalid(Output.Merged, validation.Diagnostics))
+    for issue in formatted.Issues do
+        match issue with
+        | ValidationIssue.MissingComment _ -> ()
+        | ValidationIssue.NotValidFSharp(_, diagnostics) -> problems.Add(Problem.Invalid(Output.Merged, diagnostics))
+        | ValidationIssue.CommentsChanged(defines, missing, added) ->
+            problems.Add(
+                Problem.CommentsChanged(
+                    named defines,
+                    List.map (fun (comment: SourceComment) -> comment.Text) missing,
+                    added
+                )
+            )
+        | ValidationIssue.DirectivesChanged(defines, missing, added) ->
+            problems.Add(Problem.DirectivesChanged(named defines, missing, added))
+        | ValidationIssue.NotIdempotent again -> problems.Add(Problem.NotIdempotent(Output.Merged, again))
+        | ValidationIssue.CheckFailed(check, error) -> problems.Add(Problem.CheckFailed(check, error))
 
     if hasDefines then
         for each in formatted.Combinations do
@@ -273,32 +258,6 @@ let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) :
             match Validation.invalidatingDiagnostics diagnostics with
             | [] -> ()
             | invalid -> problems.Add(Problem.Invalid(Output.Combination each.Defines, invalid))
-
-    // Comments and directives, compared under every define combination the source has: a comment in
-    // a branch only one combination keeps is only trivia under that one.
-    for each in formatted.Combinations do
-        let defines: string list option = if hasDefines then Some each.Defines else None
-
-        let commentsBefore, countBefore, directivesBefore =
-            triviaOf isSignature source each.Defines
-
-        let commentsAfter, countAfter, directivesAfter =
-            triviaOf isSignature formatted.Merged each.Defines
-
-        if commentsBefore <> commentsAfter then
-            problems.Add(Problem.CommentsLost(defines, commentsBefore - commentsAfter, commentsAfter - commentsBefore))
-        elif countBefore <> countAfter then
-            problems.Add(Problem.CommentCountChanged(defines, countBefore, countAfter))
-
-        // In order: merging the combinations relies on their directives coming in the same order.
-        if directivesBefore <> directivesAfter then
-            problems.Add(
-                Problem.DirectivesChanged(
-                    defines,
-                    without directivesBefore directivesAfter,
-                    without directivesAfter directivesBefore
-                )
-            )
 
     // Windows writes `\r\n`. A case is read and formatted with `\n`, so it is formatted once more with
     // `\r\n` in and out, and must give the same result with `\r\n` line endings. A case at
@@ -312,32 +271,34 @@ let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) :
     match expectedCrlf with
     | None -> ()
     | Some expected ->
-        let crlf: string =
-            formatProduction
+        let crlf: Formatted =
+            formatWith
+                Validations.CommentSearch
                 { config with
                     EndOfLine = EndOfLineStyle.CRLF
                 }
                 isSignature
                 (source.Replace("\n", "\r\n"))
 
-        if crlf <> expected then
-            problems.Add(Problem.CrlfDiffers crlf)
+        if crlf.Merged <> expected then
+            problems.Add(Problem.CrlfDiffers crlf.Merged)
 
-    let again: string = (formatEach config isSignature formatted.Merged).Merged
-
-    if again <> formatted.Merged then
-        problems.Add(Problem.NotIdempotent(Output.Merged, again))
+        // A comment spanning lines carries the line endings of the source, and the result those of
+        // the configuration.
+        match notFound crlf.Issues with
+        | [] -> ()
+        | missing -> problems.Add(Problem.CommentsNotFound missing)
 
     if hasDefines then
         for each in formatted.Combinations do
-            let sourceText: ISourceText = CodeFormatterImpl.getSourceText each.Code
-            let tree, _ = parseFile isSignature sourceText each.Defines
+            let tree, _ =
+                parseFile isSignature (CodeFormatterImpl.getSourceText each.Code) each.Defines
 
-            let again: FormatResult =
-                CodeFormatterImpl.formatASTWith ignore tree (Some sourceText) config None
+            let again: string =
+                CodeFormatter.FormatASTAsync(tree, config, each.Code) |> Async.RunSynchronously
 
-            if again.Code <> each.Code then
-                problems.Add(Problem.NotIdempotent(Output.Combination each.Defines, again.Code))
+            if again <> each.Code then
+                problems.Add(Problem.NotIdempotent(Output.Combination each.Defines, again))
 
     let perDefine: (Output * string) list =
         if not hasDefines then
@@ -345,10 +306,11 @@ let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) :
         else
 
         formatted.Combinations
-        |> List.map (fun (each: ForDefines) -> Output.Combination each.Defines, each.Code)
+        |> List.map (fun (each: FormattedCombination) -> Output.Combination each.Defines, each.Code)
 
     let allDefines: string list list =
-        formatted.Combinations |> List.map (fun (each: ForDefines) -> each.Defines)
+        formatted.Combinations
+        |> List.map (fun (each: FormattedCombination) -> each.Defines)
 
     for output, code in (Output.Merged, formatted.Merged) :: perDefine do
         let combinations: string list list =
@@ -356,7 +318,7 @@ let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) :
             | Output.Merged -> allDefines
             | Output.Combination defines -> [ defines ]
 
-        match trailingWhitespace (linesEndingInsideText isSignature config code combinations) code with
+        match trailingWhitespace (linesEndingInsideText isSignature code combinations) code with
         | [] -> ()
         | lines -> problems.Add(Problem.TrailingWhitespace(output, lines))
 

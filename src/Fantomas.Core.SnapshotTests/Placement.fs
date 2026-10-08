@@ -232,7 +232,7 @@ let check (case: Case.Case) (formatted: Formatting.Formatted) (formatWith: Forma
 
     let oaks: Oak list =
         formatted.Combinations
-        |> List.map (fun (each: Formatting.ForDefines) -> each.Oak)
+        |> List.map (fun (each: Formatting.FormattedCombination) -> each.Oak)
 
     let inputProblems: Problem list = inputProblems case
 

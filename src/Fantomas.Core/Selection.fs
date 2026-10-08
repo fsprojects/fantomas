@@ -401,13 +401,15 @@ let formatSelection
             | TreeForSelection.Unsupported ->
                 raise (FormatException("The current selection is not supported right now."))
             | TreeForSelection.Standalone tree ->
-                let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
+                let enrichedTree: Oak =
+                    Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree |> fst
 
                 CodePrinter.genFile enrichedTree context
                 |> Context.dump true
                 |> fun result -> result.Code
             | TreeForSelection.RequiresExtraction(tree, t) ->
-                let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
+                let enrichedTree: Oak =
+                    Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree |> fst
 
                 let { Code = formattedCode } =
                     CodePrinter.genFile enrichedTree context |> Context.dump true

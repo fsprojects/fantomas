@@ -29,6 +29,8 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
         let getChangedFile: FormatResult -> string option =
             function
             | FormatResult.Formatted(f, _) -> Some f
+            // A check writes nothing, so nothing is forced; named so a new case is placed here.
+            | FormatResult.Forced _
             | FormatResult.Unchanged _
             | FormatResult.IgnoredFile _
             | FormatResult.Error _
@@ -41,8 +43,8 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
         let getErrors: FormatResult -> (string * exn) option =
             function
             | FormatResult.Error(f, e) -> Some(f, e)
-            | FormatResult.InvalidCode(f, formattedContent, diagnostics) ->
-                Some(f, InvalidCodeException(formattedContent, diagnostics) :> exn)
+            | FormatResult.InvalidCode(f, formattedContent, issues) ->
+                Some(f, InvalidCodeException(formattedContent, issues) :> exn)
             | _ -> None
 
         let errors: (string * exn) list = formatted |> Seq.choose getErrors |> Seq.toList
@@ -54,6 +56,7 @@ let checkCode (env: CliEnvironment) (filenames: string seq) : Async<CheckResult>
             | FormatResult.Unchanged f -> Some f
             | FormatResult.IgnoredFile _
             | FormatResult.Formatted _
+            | FormatResult.Forced _
             | FormatResult.Error _
             | FormatResult.InvalidCode _ -> None
 

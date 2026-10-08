@@ -2,6 +2,10 @@
 
 F# source code formatter. Parses F# to an untyped AST (via vendored FCS), transforms it to an intermediate representation called Oak (`SyntaxOak.fs`), then prints it back via writer events (`CodePrinter.fs` + `Context.fs`).
 
+`docs/docs/contributors/The Formatting Pipeline.md` has every stage of `CodeFormatterImpl.formatDocument`
+and how tests look inside it: through its result and its `inspect` hook, rather than through functions
+exported from a `.fsi` for them.
+
 ## Build & Test
 
 ```bash
@@ -55,6 +59,11 @@ pipelines run them alongside the two analyzer packages.
 suppress a finding, and what to know before writing another. Every finding links to its own section
 there. `dotnet fsi build.fsx -- -p AnalyzeChanged` will tell you the same thing about the code in
 front of you.
+
+One judgement call no analyzer makes: treat `List.rev` as a smell. An accumulator built backwards
+and reversed at the end is an extra pass over the list, and usually wants a list expression that
+yields in order (with a local `mutable` for the running state), `List.choose` or `List.mapFold`.
+Keep `List.rev` where reversing is the point.
 
 ## Changelog
 

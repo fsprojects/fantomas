@@ -7,6 +7,7 @@ open Fantomas.FCS.Diagnostics
 open Fantomas.FCS.Parse
 open Fantomas.FCS.Text
 open Fantomas.Theme
+open Fantomas.Tests.TestHelpers
 
 // Every one of these renders with no colour, so that what is asserted on is the words and the
 // layout. What the colour is and where it lands is `ThemeTests` and `ReportTests`.
@@ -324,13 +325,33 @@ let ``an exception that is not an invariant violation is not this module's to de
 
 // Output Fantomas would not accept is the one failure here whose positions are not positions in the
 // file, so what these pin is that the report says so and draws the right lines.
+// What a format run reports: the output not valid F# with no defines, and the comments it lost.
+let private issuesOf
+    (diagnostics: FSharpParserDiagnostic list)
+    (comments: Fantomas.Core.SourceComment list)
+    : Fantomas.Core.ValidationIssue list
+    =
+    [
+        if not (List.isEmpty diagnostics) then
+            Fantomas.Core.ValidationIssue.NotValidFSharp([], diagnostics)
+        yield! List.map Fantomas.Core.ValidationIssue.MissingComment comments
+    ]
+
+// Doctor's lines about comments and directives, as the text they make.
+let private triviaReport (issues: Fantomas.Core.ValidationIssue list) : string =
+    Diagnostics.triviaChangeLines plain issues |> String.concat "\n"
+
 let private rejectedOutput: string =
     "module A\n\nlet a = 1\n\nlet b = (2\n\nlet c = 3\n"
 
 [<Test>]
 let ``invalid output shows what the parser said and the lines it said it about`` () =
     let rendered: string =
-        Diagnostics.renderInvalidOutput plain "src/A.fs" rejectedOutput [ error 583 "Unmatched '('" (5, 8) (5, 9) ]
+        Diagnostics.renderInvalidOutput
+            plain
+            "src/A.fs"
+            rejectedOutput
+            (issuesOf [ error 583 "Unmatched '('" (5, 8) (5, 9) ] [])
 
     lines rendered
     |> should
@@ -338,9 +359,9 @@ let ``invalid output shows what the parser said and the lines it said it about``
         [
             "src/A.fs could not be formatted by Fantomas:"
             ""
-            "Fantomas formatted this file and then found that its own output did not pass validation, so the output was thrown away and your file is unchanged."
+            "Your file is unchanged because the formatted result is not valid F#."
             ""
-            "This is what the parser made of that output. The lines below are the output, not your file."
+            "This is what the parser made of the formatted result. The lines below are that result, not your file."
             ""
             "error FS0583: Unmatched '('"
             ""
@@ -356,12 +377,135 @@ let ``invalid output shows what the parser said and the lines it said it about``
         ]
 
 [<Test>]
+let ``comments and directives the result changes are shown, the first of each kind`` () =
+    let rendered: string =
+        triviaReport
+            [
+                Fantomas.Core.ValidationIssue.CommentsChanged([ "FOO" ], [ comment 2 0 "(*\n  a\n*)" ], [ "// b" ])
+                Fantomas.Core.ValidationIssue.CommentsChanged([], [ comment 6 0 "// c" ], [])
+                Fantomas.Core.ValidationIssue.DirectivesChanged([], [ "#nowarn \"42\""; "#if FOO" ], [])
+            ]
+
+    lines rendered
+    |> should
+        equal
+        [
+            ""
+            "This comment of your file is not in the formatted result:"
+            ""
+            "2 | (*"
+            "3 |   a"
+            "4 | *)"
+            ""
+            "The formatted result has this comment added instead:"
+            ""
+            "    // b"
+            ""
+            "These directives of your file are not in the formatted result: #nowarn \"42\", #if FOO"
+        ]
+
+[<Test>]
+let ``directives in another order are said to be in another order`` () =
+    triviaReport [ Fantomas.Core.ValidationIssue.DirectivesChanged([ "FOO"; "BAR" ], [], []) ]
+    |> should haveSubstring "The formatted result has the directives of your file in a different order."
+
+[<Test>]
+let ``a comment both checks miss is shown once, and what is there instead`` () =
+    let lost: Fantomas.Core.SourceComment = comment 1 10 "(* a *)"
+
+    let rendered: string =
+        triviaReport
+            [
+                Fantomas.Core.ValidationIssue.MissingComment lost
+                Fantomas.Core.ValidationIssue.CommentsChanged([], [ lost ], [ "(*a*)" ])
+            ]
+
+    lines rendered
+    |> List.filter (fun (line: string) -> line.Contains "(* a *)")
+    |> should equal [ "1 |           (* a *)" ]
+
+    rendered
+    |> should haveSubstring "The formatted result has this comment added instead:\n\n    (*a*)"
+
+[<Test>]
+let ``a comment the result has with only its whitespace changed is shown as before and after`` () =
+    let rendered: string =
+        triviaReport
+            [
+                Fantomas.Core.ValidationIssue.CommentsChanged(
+                    [],
+                    [ comment 2 4 "(*\n        a\n    *)" ],
+                    [ "(*\na\n    *)" ]
+                )
+            ]
+
+    lines rendered
+    |> should
+        equal
+        [
+            ""
+            "Formatting changes the whitespace inside this comment of your file:"
+            ""
+            "2 |     (*"
+            "3 |         a"
+            "4 |     *)"
+            ""
+            "The formatted result has it like this:"
+            ""
+            "    (*"
+            "    a"
+            "        *)"
+        ]
+
+[<Test>]
+let ``a comment only the search misses is said to be not found, not lost`` () =
+    // The comparison did not find it gone: it may be in the result ahead of one it followed.
+    triviaReport [ Fantomas.Core.ValidationIssue.MissingComment(comment 1 0 "// a") ]
+    |> should haveSubstring "Fantomas cannot find this comment of your file in the formatted result:\n\n1 | // a"
+
+[<Test>]
+let ``a comment the result has and the file does not is said to be new`` () =
+    // A comment printed twice, say: nothing is missing, so nothing was replaced.
+    triviaReport [ Fantomas.Core.ValidationIssue.CommentsChanged([], [], [ "// a" ]) ]
+    |> should haveSubstring "The formatted result has this comment added:\n\n    // a"
+
+[<Test>]
+let ``invalid output shows the comments of the file it is missing`` () =
+    let rendered: string =
+        Diagnostics.renderInvalidOutput
+            plain
+            "src/A.fs"
+            "let a = 1\n"
+            (issuesOf [] [ comment 2 0 "(*\n  a\n*)"; comment 5 10 "// b" ])
+
+    lines rendered
+    |> should
+        equal
+        [
+            "src/A.fs could not be formatted by Fantomas:"
+            ""
+            "Your file is unchanged because Fantomas cannot find these comments of your file in the formatted result:"
+            ""
+            "2 | (*"
+            "3 |   a"
+            "4 | *)"
+            "5 |           // b"
+            ""
+            "This is a bug in Fantomas, not a problem with your code. Please report it with the file via https://fsprojects.github.io/fantomas-tools/."
+            ""
+        ]
+
+[<Test>]
 let ``a position in the output is not given, since there is nowhere to go`` () =
     // Line 5 of the output is not line 5 of the file, and the output is written nowhere, so a
     // coordinate into it is one the reader cannot follow. `src/A.fs(5,9)` would be worse: a link an
     // editor follows to the wrong line of the right file. The caret is what says where.
     let rendered: string =
-        Diagnostics.renderInvalidOutput plain "src/A.fs" rejectedOutput [ error 583 "Unmatched '('" (5, 8) (5, 9) ]
+        Diagnostics.renderInvalidOutput
+            plain
+            "src/A.fs"
+            rejectedOutput
+            (issuesOf [ error 583 "Unmatched '('" (5, 8) (5, 9) ] [])
 
     rendered |> should not' (haveSubstring "src/A.fs(5,9)")
     rendered |> should not' (haveSubstring "(5,9)")
@@ -380,7 +524,7 @@ let ``invalid output with nothing to say leaves the section out`` () =
         Diagnostics.renderInvalidOutput plain "src/A.fs" rejectedOutput []
 
     rendered |> should not' (haveSubstring "the lines below")
-    rendered |> should haveSubstring "your file is unchanged"
+    rendered |> should haveSubstring "Your file is unchanged"
     rendered |> should haveSubstring "a bug in Fantomas"
 
 [<Test>]
@@ -392,7 +536,7 @@ let ``a warning Fantomas will not tolerate is pointed at like an error`` () =
             plain
             "src/A.fs"
             rejectedOutput
-            [ warning 25 "Incomplete pattern match" (5, 8) (5, 9) ]
+            (issuesOf [ warning 25 "Incomplete pattern match" (5, 8) (5, 9) ] [])
 
     rendered |> should haveSubstring "warning FS0025"
     rendered |> should haveSubstring "  |         ^"
@@ -401,26 +545,125 @@ let ``a warning Fantomas will not tolerate is pointed at like an error`` () =
 let ``the message the failure carries is the report without the parser's words`` () =
     // Which is what lets it stand alone where there is no console to draw a report on: it says what
     // happened and where to take it, and leaves the positions to whoever can show the lines too.
-    let explanation: string = Diagnostics.invalidOutputExplanation plain
+    let explanation: string = Diagnostics.invalidOutputExplanation plain []
 
     explanation |> should not' (haveSubstring "src/A.fs")
     explanation |> should not' (haveSubstring "the lines below")
-    explanation |> should haveSubstring "your file is unchanged"
+    explanation |> should haveSubstring "Your file is unchanged"
 
     explanation
     |> should haveSubstring "a bug in Fantomas, not a problem with your code"
+
+[<Test>]
+let ``the message the failure carries says in one line what went wrong`` () =
+    let summary
+        (diagnostics: FSharpParserDiagnostic list)
+        (missingComments: Fantomas.Core.SourceComment list)
+        : string
+        =
+        (Diagnostics.invalidOutputExplanation plain (issuesOf diagnostics missingComments)).Split('\n')[0]
+
+    let invalid: FSharpParserDiagnostic list =
+        [ error 583 "Unmatched '('" (5, 8) (5, 9) ]
+
+    summary invalid []
+    |> should equal "Your file is unchanged because the formatted result is not valid F#."
+
+    summary [] [ comment 1 0 "// a" ]
+    |> should
+        equal
+        "Your file is unchanged because Fantomas cannot find a comment of your file in the formatted result."
+
+    summary invalid [ comment 1 0 "// a"; comment 2 0 "// b" ]
+    |> should
+        equal
+        "Your file is unchanged because the formatted result is not valid F#, and Fantomas cannot find comments of your file in it."
+
+[<Test>]
+let ``a diagnostic of output with directives names the define combinations it was reported under`` () =
+    let offside: FSharpParserDiagnostic =
+        error 58 "Possible incorrect indentation" (5, 8) (5, 9)
+
+    let unmatched: FSharpParserDiagnostic = error 583 "Unmatched '('" (5, 8) (5, 9)
+
+    let rendered: string =
+        Diagnostics.renderInvalidOutput
+            plain
+            "src/A.fs"
+            rejectedOutput
+            [
+                Fantomas.Core.ValidationIssue.NotValidFSharp([], [ offside ])
+                Fantomas.Core.ValidationIssue.NotValidFSharp([ "DEBUG" ], [ offside; unmatched ])
+            ]
+
+    // Once each, however many combinations reported it.
+    rendered
+    |> should haveSubstring "Possible incorrect indentation (with no defines, with DEBUG defined)\n"
+
+    rendered |> should haveSubstring "Unmatched '(' (with DEBUG defined)\n"
+
+[<Test>]
+let ``a combination that reported a diagnostic more than once is named once`` () =
+    // The parser reports an offside token again each time its error recovery passes it.
+    let offside: FSharpParserDiagnostic =
+        error 58 "Possible incorrect indentation" (5, 8) (5, 9)
+
+    Diagnostics.renderInvalidOutput
+        plain
+        "src/A.fs"
+        "#if FOO\n#endif\n"
+        [
+            Fantomas.Core.ValidationIssue.NotValidFSharp([], [ offside; offside; offside ])
+            Fantomas.Core.ValidationIssue.NotValidFSharp([ "FOO" ], [ offside ])
+        ]
+    |> should haveSubstring "Possible incorrect indentation (with no defines, with FOO defined)\n"
+
+[<Test>]
+let ``a diagnostic of output with directives found with no defines alone says so`` () =
+    // The combination without defines is one branch of several there, so naming nothing would hide
+    // that the other branches are fine.
+    let rendered: string =
+        Diagnostics.renderInvalidOutput
+            plain
+            "src/A.fs"
+            "#if FOO\nlet a = 1\n#else\nlet a = (2\n#endif\n"
+            [
+                Fantomas.Core.ValidationIssue.NotValidFSharp([], [ error 583 "Unmatched '('" (4, 8) (4, 9) ])
+            ]
+
+    rendered |> should haveSubstring "Unmatched '(' (with no defines)\n"
+
+[<Test>]
+let ``a diagnostic of output without directives names no combination`` () =
+    Diagnostics.renderInvalidOutput
+        plain
+        "src/A.fs"
+        rejectedOutput
+        (issuesOf [ error 583 "Unmatched '('" (5, 8) (5, 9) ] [])
+    |> should haveSubstring "Unmatched '('\n"
+
+[<Test>]
+let ``invalid output names the one comment it is missing as this comment`` () =
+    Diagnostics.renderInvalidOutput plain "src/A.fs" "let a = 1\n" (issuesOf [] [ comment 1 10 "// b" ])
+    |> should
+        haveSubstring
+        "Your file is unchanged because Fantomas cannot find this comment of your file in the formatted result:\n\n1 |           // b\n"
 
 [<Test>]
 let ``invalid output does not blame the file it was given`` () =
     // The input parsed, or a parse failure would have been reported instead, so the one thing this
     // report may not do is read as though the file were at fault.
     let rendered: string =
-        Diagnostics.renderInvalidOutput plain "src/A.fs" rejectedOutput [ error 583 "Unmatched '('" (5, 8) (5, 9) ]
+        Diagnostics.renderInvalidOutput
+            plain
+            "src/A.fs"
+            rejectedOutput
+            (issuesOf [ error 583 "Unmatched '('" (5, 8) (5, 9) ] [])
 
     rendered
     |> should haveSubstring "a bug in Fantomas, not a problem with your code"
 
-    rendered |> should haveSubstring "your file is unchanged"
+    rendered |> should haveSubstring "Your file is unchanged"
 
 // What colour lands where. The report is one block of text rather than a row of fields, so what is
 // pinned is that each part carries its own colour and that removing the colour leaves the plain
@@ -474,9 +717,18 @@ let ``an invariant violation colours the place, the severity and the link`` () =
     |> should haveSubstring "\u001b[38;5;38mhttps://fsprojects.github.io/fantomas-tools/\u001b[0m"
 
 [<Test>]
+let ``a quoted comment is coloured as a comment, its gutter muted`` () =
+    Diagnostics.renderInvalidOutput coloured "src/A.fs" "let a = 1\n" (issuesOf [] [ comment 1 0 "// b" ])
+    |> should haveSubstring "\u001b[2m1 |\u001b[0m \u001b[38;5;71m// b\u001b[0m"
+
+[<Test>]
 let ``invalid output colours the file, the severity and the link`` () =
     let rendered: string =
-        Diagnostics.renderInvalidOutput coloured "src/A.fs" rejectedOutput [ error 583 "Unmatched '('" (5, 8) (5, 9) ]
+        Diagnostics.renderInvalidOutput
+            coloured
+            "src/A.fs"
+            rejectedOutput
+            (issuesOf [ error 583 "Unmatched '('" (5, 8) (5, 9) ] [])
 
     rendered
     |> should haveSubstring "\u001b[38;5;38msrc/A.fs\u001b[0m could not be formatted"

@@ -11,15 +11,23 @@ let private mergeAndCompare (aDefines, aCode) (bDefines, bCode) expected =
                 EndOfLine = EndOfLineStyle.LF
             }
             [
-                DefineCombination(aDefines),
                 {
-                    Code = String.normalizeNewLine aCode
-                    Cursor = None
+                    Defines = DefineCombination(aDefines)
+                    Value =
+                        {
+                            Code = String.normalizeNewLine aCode
+                            Cursor = None
+                            Issues = []
+                        }
                 }
-                DefineCombination(bDefines),
                 {
-                    Code = String.normalizeNewLine bCode
-                    Cursor = None
+                    Defines = DefineCombination(bDefines)
+                    Value =
+                        {
+                            Code = String.normalizeNewLine bCode
+                            Cursor = None
+                            Issues = []
+                        }
                 }
             ]
 
@@ -136,11 +144,13 @@ let ``triple merge`` () =
                 EndOfLine = EndOfLineStyle.LF
             }
             [
-                DefineCombination([]),
                 {
-                    Code =
-                        String.normalizeNewLine
-                            """
+                    Defines = DefineCombination([])
+                    Value =
+                        {
+                            Code =
+                                String.normalizeNewLine
+                                    """
 let v =
   #if A
 
@@ -152,13 +162,17 @@ let v =
     #endif 
   #endif
 """
-                    Cursor = None
+                            Cursor = None
+                            Issues = []
+                        }
                 }
-                DefineCombination([ "A" ]),
                 {
-                    Code =
-                        String.normalizeNewLine
-                            """
+                    Defines = DefineCombination([ "A" ])
+                    Value =
+                        {
+                            Code =
+                                String.normalizeNewLine
+                                    """
 let v =
   #if A
     'A'
@@ -170,13 +184,17 @@ let v =
     #endif 
   #endif
 """
-                    Cursor = None
+                            Cursor = None
+                            Issues = []
+                        }
                 }
-                DefineCombination([ "B" ]),
                 {
-                    Code =
-                        String.normalizeNewLine
-                            """
+                    Defines = DefineCombination([ "B" ])
+                    Value =
+                        {
+                            Code =
+                                String.normalizeNewLine
+                                    """
 let v =
   #if A
 
@@ -188,7 +206,9 @@ let v =
     #endif 
   #endif
 """
-                    Cursor = None
+                            Cursor = None
+                            Issues = []
+                        }
                 }
             ]
 
