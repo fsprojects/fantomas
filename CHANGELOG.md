@@ -1,5 +1,15 @@
 # Changelog
 
+## [8.0.8] - 2026-10-09
+
+### Changed
+
+- Update FCS to 'Add range of the when keyword to SynMatchClauseTrivia', commit 409c7a62ea193ec060e87ccad78636feeb0883f1 [#3531](https://github.com/fsprojects/fantomas/pull/3531)
+
+### Fixed
+
+- Comment after 'when' on its own line is lost. The syntax tree had no range for the `when` keyword of a match clause, so a comment after it had no node on its line to attach to. The parser now records that range, and the comment stays after the keyword. [#3521](https://github.com/fsprojects/fantomas/issues/3521)
+
 ## [8.0.7] - 2026-10-05
 
 ### Fixed

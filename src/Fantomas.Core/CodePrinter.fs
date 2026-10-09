@@ -2052,8 +2052,9 @@ let genExpr (e: Expr) =
                 )
             +> genPatInClause clauseNode.Pattern
             +> optSingle
-                (fun e ->
-                    !-" when"
+                (fun (whenNode, e) ->
+                    sepSpace
+                    +> genSingleTextNode whenNode
                     +> expressionFitsOnRestOfLine
                         (sepSpace +> genExpr e)
                         (fun ctx ->
@@ -2940,8 +2941,8 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
         sepSpace
         +> leadingExpressionIsMultiline
             (optSingle
-                (fun e ->
-                    !-"when"
+                (fun (whenNode, e) ->
+                    genSingleTextNode whenNode
                     +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
                     +> sepSpace
                 )
