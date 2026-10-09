@@ -476,10 +476,17 @@ let mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) :
         | Some r -> r
         | None -> invariantViolation range $"unable to get the arrow range from trivia in %s{nameof mkSynMatchClause}"
 
+    let whenExpr: (SingleTextNode * Expr) option =
+        match eo, trivia.WhenKeyword with
+        | None, _ -> None
+        | Some e, Some mWhen -> Some(stn "when" mWhen, mkExpr creationAide e)
+        | Some _, None ->
+            invariantViolation range $"unable to get the when range from trivia in %s{nameof mkSynMatchClause}"
+
     MatchClauseNode(
         Option.map (stn "|") trivia.BarRange,
         mkPat creationAide p,
-        Option.map (mkExpr creationAide) eo,
+        whenExpr,
         stn "->" arrowRange,
         mkExpr creationAide e,
         fullRange

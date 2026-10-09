@@ -1361,7 +1361,14 @@ type ExprLambdaNode(funNode: SingleTextNode, parameters: Pattern list, arrow: Si
 /// Example: `| pat when guard -> body` — a single arm of a `match` or `try…with` expression.
 /// The leading bar, guard (`when` clause), and arrow are all optional depending on context.
 type MatchClauseNode
-    (bar: SingleTextNode option, pattern: Pattern, whenExpr: Expr option, arrow: SingleTextNode, bodyExpr: Expr, range)
+    (
+        bar: SingleTextNode option,
+        pattern: Pattern,
+        whenExpr: (SingleTextNode * Expr) option,
+        arrow: SingleTextNode,
+        bodyExpr: Expr,
+        range: range
+    )
     =
     inherit NodeBase(range)
 
@@ -1369,7 +1376,11 @@ type MatchClauseNode
         [|
             yield! noa bar
             yield Pattern.Node pattern
-            yield! noa (Option.map Expr.Node whenExpr)
+            match whenExpr with
+            | None -> ()
+            | Some(whenNode, whenExpr) ->
+                yield whenNode
+                yield Expr.Node whenExpr
             yield arrow
             yield Expr.Node bodyExpr
         |]
