@@ -17,6 +17,7 @@ feedback arrives while you work instead of in review. They are ordinary F# analy
 | [`FANTOMAS-OPENS-001`](#fantomas-opens-001) | No `open` nothing in the file uses |
 | [`FANTOMAS-PARENS-001`](#fantomas-parens-001) | No parentheses the code parses the same without |
 | [`FANTOMAS-SNOBMATCH-001`](#fantomas-snobmatch-001) | No `match` where an `if` would do |
+| [`FANTOMAS-PRINTF-001`](#fantomas-printf-001) | No printf in code the tool runs |
 
 ## FANTOMAS-PIPEBACK-001
 
@@ -397,6 +398,56 @@ arms, because the two arms it sees are then not the arms every build sees.
 
 **The reported range is the whole match expression**, since the whole of it is what an `if`
 replaces. There is no fix attached, for the reason every other rule here has none.
+
+## FANTOMAS-PRINTF-001
+
+Do not use printf in `src/Fantomas` or `src/Fantomas.Core`, the code the command line tool runs:
+
+```fsharp
+span.TotalMilliseconds.ToString("F0", Globalization.CultureInfo.InvariantCulture) + "ms"
+```
+
+rather than
+
+```fsharp
+$"%.0f{span.TotalMilliseconds}ms"
+```
+
+printf specializes its formatters at runtime through `MethodInfo.MakeGenericMethod`, and a Native
+AOT build of the tool cannot run that. It does not fail every time, which is what makes it worth a
+rule: whether a format survives depends on which instantiations the AOT compiler happened to
+generate. `sprintf "%O"` of a range worked in the first AOT build while `sprintf "(%d:%d)"` crashed
+the parser, and `profile` crashed on the `%.0f` above. The only reliable rule is not to reach printf.
+
+That means two things. Any function that takes a printf format: `sprintf`, `printfn`, `eprintfn`,
+`failwithf`, `kprintf` and the rest. And any interpolated string the compiler does not turn into
+`String.Concat`. Since dotnet/fsharp#19971 that is one with a hole whose specifier is anything but a
+bare `%s`, `%c`, `%d`, `%i` or `%M`: `%A`, `%O`, `%b`, `%f`, `%x`, and anything with a flag, a width
+or a precision, such as `%.0f` or `%5d`. A bare `{x}` and a .NET format such as `{x:N2}` are fine.
+
+The tests, `Fantomas.Client` and the build scripts only ever run on the JIT, where printf works, so
+the rule says nothing there. It decides by the folder the file is in, because the editor hands an
+analyzer the file and not its project.
+
+**It reads the untyped tree and states the compiler's rule itself.** The typed tree would show the
+lowering already done, but it is the analyzer SDK's own compiler that builds it, and FCS 43.12 predates
+#19971: it lowers only string holes, so every `{count}` of an `int` would read as printf. Once the SDK
+ships an FCS with #19971, the rule can move to the typed tree and report every `PrintfFormat` being
+constructed, which needs no rule of its own. Until then, a change to what the compiler lowers means
+a change here.
+
+What it cannot see is an interpolated string handed to a function of your own that takes a
+`Printf.StringFormat`: that string is a printf format whatever its holes are. Such a function has to
+pass the format on to `kprintf` or one of its kin, and that call is reported.
+
+`nothing the tool runs goes through printf` in `Fantomas.Tests` is the same rule checked against
+the compiled assemblies rather than the source, and so against whatever the compiler that built them
+did. The two report the same places, and the places allowed in one are suppressed in the other.
+
+It reports at **error** severity, so that the full `Analyze`, and CI with it, fails on a new
+finding. `AnalyzeChanged` demotes it like every local rule. The few uses that remain are ones the
+tool never reaches, each suppressed with the reason beside it. There is no fix attached, for the
+reason every other rule here has none.
 
 ## Suppressing a finding
 
