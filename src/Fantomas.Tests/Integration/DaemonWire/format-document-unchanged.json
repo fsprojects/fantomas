@@ -1,0 +1,12 @@
+{
+  "description": "A document that is already formatted is reported as unchanged, without its content.",
+  "requests": [
+    {
+      "method": "fantomas/formatDocument",
+      "params": {
+        "FilePath": "A.fs",
+        "SourceCode": "module Foobar\n"
+      }
+    }
+  ]
+}

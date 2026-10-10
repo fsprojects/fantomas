@@ -218,6 +218,7 @@ analysisreports/
 
 # What a snapshot case or report produced when it differed from its gold
 src/Fantomas.Core.SnapshotTests/**/*.actual.*
+src/Fantomas.Tests/Integration/DaemonWire/*.actual
 # What the CoverageOak and SnapshotReports pipelines write
 src/Fantomas.Core.SnapshotTests/syntaxoak-coverage.txt
 src/Fantomas.Core.SnapshotTests/syntaxoak-coverage.xml

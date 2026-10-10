@@ -1,0 +1,8 @@
+{
+  "description": "The handshake: Fantomas.Client asks every daemon it starts which version it is.",
+  "requests": [
+    {
+      "method": "fantomas/version"
+    }
+  ]
+}

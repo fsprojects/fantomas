@@ -1,0 +1,39 @@
+{
+  "sent": [
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "method": "fantomas/formatDocument",
+      "params": {
+        "SourceCode": "module   Foobar\n\nval  x :  int\n",
+        "FilePath": "<folder>/A.fsi",
+        "IsSignatureFile": true
+      }
+    }
+  ],
+  "received": [
+    {
+      "jsonrpc": "2.0",
+      "method": "fantomas/configurationWarning",
+      "params": [
+        {
+          "FilePath": "<folder>/A.fsi",
+          "EditorConfigFiles": [],
+          "Problems": []
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "result": {
+        "Case": "Formatted",
+        "Fields": [
+          "<folder>/A.fsi",
+          "module Foobar\n\nval x: int\n",
+          null
+        ]
+      }
+    }
+  ]
+}

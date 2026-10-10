@@ -35,6 +35,7 @@
     <Platform Solution="*|x86" Project="x86" />
   </Project>
   <Project Path="src/Fantomas.Core.SnapshotTests/Fantomas.Core.SnapshotTests.fsproj" />
+  <Project Path="src/Fantomas.Daemon.Contract/Fantomas.Daemon.Contract.csproj" />
   <Project Path="src/Fantomas.Core/Fantomas.Core.fsproj">
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />

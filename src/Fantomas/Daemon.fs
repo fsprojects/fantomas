@@ -13,6 +13,7 @@ open System.Threading.Tasks
 open StreamJsonRpc
 open Fantomas.FCS.Text
 open Fantomas.Client.Contracts
+open Fantomas.Daemon.Contract
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Core
 open Fantomas.EditorConfig
@@ -94,7 +95,19 @@ let noConfigurationProblems (filePath: string) : ConfigurationWarning =
     }
 
 type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironment) as this =
-    let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)
+    let rpc: JsonRpc =
+        let formatter: IJsonRpcMessageTextFormatter =
+            DaemonContract.CreateFormatter(DaemonJson.serializerOptions ()) :?> IJsonRpcMessageTextFormatter
+
+        let rpc: JsonRpc =
+            new JsonRpc(new HeaderDelimitedMessageHandler(sender, reader, formatter))
+
+        // The methods come from the shape PolyType generated for `IFantomasDaemon` at compile time,
+        // rather than from reflection over this class when the first request arrives, which Native
+        // AOT cannot do.
+        rpc.AddLocalRpcTarget(DaemonContract.Metadata, this, null)
+        rpc
+
     let traceListener = new DefaultTraceListener()
 
     do
@@ -108,7 +121,7 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
     let notifyConfigurationWarning (warning: ConfigurationWarning) : Task =
         task {
             try
-                do! rpc.NotifyAsync(Methods.ConfigurationWarning, [| box warning |])
+                do! rpc.NotifyAsync(Methods.ConfigurationWarning, [| box warning |], [| typeof<ConfigurationWarning> |])
             with _ ->
                 // The client went away, or does not speak this method. Never fail a format
                 // request over a message that only carries advice.
@@ -219,6 +232,9 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
 
     do rpc.Disconnected.Add(fun _ -> exit ())
 
+    // Last, so that no request is dispatched to a daemon that is still being constructed.
+    do rpc.StartListening()
+
     interface IDisposable with
         member this.Dispose() =
             traceListener.Dispose()
@@ -233,10 +249,8 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
 
     member this.WaitForClose = rpc.Completion
 
-    [<JsonRpcMethod(Methods.Version)>]
     member _.Version() : string = CodeFormatter.GetVersion()
 
-    [<JsonRpcMethod(Methods.FormatDocument, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatDocumentAsync(request: FormatDocumentRequest) : Task<FormatDocumentResponse> =
         oneAtATimePerFile
             request.FilePath
@@ -322,7 +336,6 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                 }
             )
 
-    [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
         oneAtATimePerFile
             request.FilePath
@@ -363,7 +376,6 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
                     (fun message -> FormatSelectionResponse.Error(request.FilePath, message))
             )
 
-    [<JsonRpcMethod(Methods.Configuration)>]
     member _.Configuration() : string =
         let jsonString (value: string) : JsonNode = JsonValue.Create value :> JsonNode
 
@@ -443,3 +455,13 @@ type FantomasDaemon(sender: Stream, reader: Stream, environment: DaemonEnvironme
         let json = jsonObject [ "settings", settings; "enumOptions", enumOptions ]
 
         json.ToJsonString(JsonSerializerOptions(WriteIndented = true, IndentSize = 4))
+
+    interface IFantomasDaemon with
+        member this.Version() : string = this.Version()
+        member this.Configuration() : string = this.Configuration()
+
+        member this.FormatDocumentAsync(request: FormatDocumentRequest) : Task<FormatDocumentResponse> =
+            this.FormatDocumentAsync request
+
+        member this.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
+            this.FormatSelectionAsync request

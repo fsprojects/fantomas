@@ -1,0 +1,18 @@
+{
+  "description": "A selection is formatted on its own, and the range it ended up covering comes back with it.",
+  "requests": [
+    {
+      "method": "fantomas/formatSelection",
+      "params": {
+        "FilePath": "Selection.fs",
+        "SourceCode": "module Foo\n\nlet    x     = 4\nlet    y     = 5\n",
+        "Range": {
+          "StartLine": 3,
+          "StartColumn": 0,
+          "EndLine": 3,
+          "EndColumn": 16
+        }
+      }
+    }
+  ]
+}
