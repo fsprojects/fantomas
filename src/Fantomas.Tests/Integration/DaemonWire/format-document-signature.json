@@ -1,0 +1,12 @@
+{
+  "description": "A file ending in .fsi is formatted as a signature file.",
+  "requests": [
+    {
+      "method": "fantomas/formatDocument",
+      "params": {
+        "FilePath": "A.fsi",
+        "SourceCode": "module   Foobar\n\nval  x :  int\n"
+      }
+    }
+  ]
+}
