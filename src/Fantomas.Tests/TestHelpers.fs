@@ -313,9 +313,23 @@ let private fantomasOutputFile (fileName: string) : string =
     Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "artifacts", "bin", "Fantomas", configuration, fileName)
     |> Path.GetFullPath
 
+/// Another build of the tool for every test here to run instead of the one this build put beside
+/// them, a Native AOT one for instance, named by `FANTOMAS_EXECUTABLE`.
+let otherFantomasExecutable () : string option =
+    let executable: string = Environment.GetEnvironmentVariable "FANTOMAS_EXECUTABLE"
+
+    if String.IsNullOrEmpty executable then
+        None
+    else
+        Some executable
+
 /// The executable beside the dll the tests below run, for a test that hands a real fantomas to
 /// something that starts the process itself.
 let fantomasExecutable () : string =
+    match otherFantomasExecutable () with
+    | Some executable -> executable
+    | None ->
+
     let fileName: string =
         if RuntimeInformation.IsOSPlatform OSPlatform.Windows then
             "fantomas.exe"
@@ -330,13 +344,18 @@ let fantomasExecutable () : string =
     executable
 
 let getFantomasToolStartInfo (arguments: string list) : ProcessStartInfo =
-    let fantomasDll: string = fantomasOutputFile "fantomas.dll"
+    let startInfo: ProcessStartInfo =
+        match otherFantomasExecutable () with
+        | Some executable -> ProcessStartInfo(executable, arguments)
+        | None ->
 
-    if not (File.Exists fantomasDll) then
-        failwithf $"The fantomas dll at \"%s{fantomasDll}\" does not exist!"
+        let fantomasDll: string = fantomasOutputFile "fantomas.dll"
 
-    let argumentArray = fantomasDll :: arguments
-    let startInfo = ProcessStartInfo("dotnet", argumentArray)
+        if not (File.Exists fantomasDll) then
+            failwithf $"The fantomas dll at \"%s{fantomasDll}\" does not exist!"
+
+        ProcessStartInfo("dotnet", fantomasDll :: arguments)
+
     startInfo.UseShellExecute <- false
     startInfo.WorkingDirectory <- Path.GetTempPath()
     startInfo.RedirectStandardOutput <- true
