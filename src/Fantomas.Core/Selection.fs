@@ -367,8 +367,10 @@ let formatSelection
 
         let isValid = Validation.noWarningOrErrorDiagnostics baseDiagnostics
 
+        // The same exception formatting a whole document raises, so a caller can describe a
+        // selection that does not parse the way it describes a document that does not.
         if not isValid then
-            raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}")
+            raise (ParseException baseDiagnostics)
 
         let rootNode = ASTTransformer.mkOak (Some sourceText) baseUntypedTree
 

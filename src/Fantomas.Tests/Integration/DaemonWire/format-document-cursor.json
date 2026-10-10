@@ -1,0 +1,16 @@
+{
+  "description": "A cursor sent with the document comes back moved to where the same code ended up.",
+  "requests": [
+    {
+      "method": "fantomas/formatDocument",
+      "params": {
+        "FilePath": "A.fs",
+        "SourceCode": "\nlet a =\n    \"foobar\"\n",
+        "Cursor": {
+          "Line": 3,
+          "Column": 8
+        }
+      }
+    }
+  ]
+}
