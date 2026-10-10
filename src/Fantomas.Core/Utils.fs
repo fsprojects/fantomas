@@ -48,6 +48,7 @@ module Triage =
     // not replace that exception with its own.
     let dump (value: 'T) : string =
         try
+            // fsharpanalyzer: ignore-line-next FANTOMAS-PRINTF-001
             $"%A{value}"
         with _ ->
             match box value with
