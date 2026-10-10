@@ -14,7 +14,7 @@
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
-  <!-- Spike: `dotnet publish -r <rid> -p:FantomasAot=true -p:RestoreLockedMode=false` -->
+  <!-- Spike: `dotnet publish -r <rid> -p:FantomasAot=true`, or the `TestAot` pipeline of build.fsx -->
   <PropertyGroup Condition="'$(FantomasAot)' == 'true'">
     <PublishAot>true</PublishAot>
   </PropertyGroup>

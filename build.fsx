@@ -431,6 +431,40 @@ pipeline "FormatAll" {
     runIfOnlySpecified true
 }
 
+// The runtime identifier of this machine, and where a Native AOT build of the tool for it goes. AOT
+// compiles for the machine it runs on, which is why CI runs this pipeline once per operating system.
+let aotRuntimeIdentifier: string =
+    System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier
+
+let aotExecutable: string =
+    let fileName: string =
+        if OperatingSystem.IsWindows() then
+            "fantomas.exe"
+        else
+            "fantomas"
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "publish"
+    </> "aot"
+    </> aotRuntimeIdentifier
+    </> fileName
+
+// Publish the tool with Native AOT and run the tool's tests against that build instead of the one
+// they normally start. Native AOT fails at runtime on code the JIT runs fine, printf and reflection
+// among it, and these tests are the ones that run the tool the way a user does.
+pipeline "TestAot" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Publish" {
+        run
+            $"dotnet publish src/Fantomas/Fantomas.fsproj -c Release -r {aotRuntimeIdentifier} -p:FantomasAot=true -o \"{Path.GetDirectoryName aotExecutable}\" --tl"
+    }
+    stage "Test" {
+        envVars [| "FANTOMAS_EXECUTABLE", aotExecutable |]
+        run "dotnet test src/Fantomas.Tests -c Release --tl"
+    }
+    runIfOnlySpecified true
+}
+
 pipeline "EnsureRepoConfig" {
     workingDir __SOURCE_DIRECTORY__
     stage "Git" {

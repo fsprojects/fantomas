@@ -55,7 +55,7 @@ let rec private requestWithRetry
             return! requestWithRetry (attempt + 1) url headers
     }
 
-let downloadCompilerFile commitHash relativePath =
+let downloadCompilerFile (commitHash: string) (relativePath: string) : Async<unit> =
     async {
         let file = FileInfo(deps </> commitHash </> relativePath)
 
