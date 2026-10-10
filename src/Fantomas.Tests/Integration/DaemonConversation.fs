@@ -17,8 +17,8 @@ open Fantomas.Tests.TestHelpers
 // A conversation with a real daemon process, recorded byte for byte on the client's side and turned
 // into JSON that can be compared with a snapshot.
 //
-// `FANTOMAS_DAEMON_EXECUTABLE` starts another build of the tool instead of the one this build put
-// next to the tests, a Native AOT one for instance.
+// `FANTOMAS_EXECUTABLE` starts another build of the tool instead of the one this build put next to
+// the tests, a Native AOT one for instance, as it does for every test that runs the tool.
 
 /// A stream that keeps a copy of every byte read from or written to it.
 type private RecordingStream(inner: Stream) =
@@ -148,15 +148,6 @@ let private canonical (replacements: (string * string) list) (message: string) :
 
     sorted
 
-let private daemonExecutable () : string =
-    let executable: string =
-        Environment.GetEnvironmentVariable "FANTOMAS_DAEMON_EXECUTABLE"
-
-    if String.IsNullOrEmpty executable then
-        fantomasExecutable ()
-    else
-        executable
-
 /// Run one conversation against a fresh daemon process in a folder of its own, and return every
 /// message that went over the wire as one JSON document: `sent` is what the client wrote, `received`
 /// what the daemon answered, with the folder and the version replaced by placeholders.
@@ -188,7 +179,7 @@ let record (files: (string * string) list) (conversation: JsonRpc -> string -> T
             File.WriteAllText(Path.Join(folder, fileName), content)
 
         let startInfo: ProcessStartInfo =
-            ProcessStartInfo(daemonExecutable (), [ "--daemon" ])
+            ProcessStartInfo(fantomasExecutable (), [ "--daemon" ])
 
         startInfo.UseShellExecute <- false
         startInfo.WorkingDirectory <- folder

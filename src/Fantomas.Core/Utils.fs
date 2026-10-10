@@ -18,6 +18,21 @@ module UnionCase =
         $"%s{unionType.Name}.%s{case.Name}"
 
 [<RequireQualifiedAccess>]
+module Triage =
+
+    // A try rather than a check of `RuntimeFeature.IsDynamicCodeSupported`, which netstandard2.0
+    // does not have. Every failure is caught, not only the NotSupportedException of Native AOT: the
+    // dump rides along on an exception that is already being raised, and failing to write it must
+    // not replace that exception with its own.
+    let dump (value: 'T) : string =
+        try
+            $"%A{value}"
+        with _ ->
+            match box value with
+            | null -> typeof<'T>.FullName
+            | boxed -> boxed.GetType().FullName
+
+[<RequireQualifiedAccess>]
 module String =
 
     let startsWithOrdinal (prefix: string) (str: string) =
