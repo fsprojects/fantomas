@@ -380,7 +380,7 @@ let reportedUnder (theme: Theme) (hasDirectives: bool) (combinations: string lis
         $"with %s{names} defined"
     )
     |> String.concat ", "
-    |> sprintf " (%s)"
+    |> fun (listed: string) -> $" (%s{listed})"
 
 // A comment can span lines, so each is its own indented block rather than an item in a sentence.
 let commentLines (theme: Theme) (comments: string list) : string list =

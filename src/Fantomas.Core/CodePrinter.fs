@@ -40,7 +40,7 @@ let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
             InvariantViolationException(
                 $"cannot tell whether this type is uppercase or lowercase: %s{UnionCase.name t}",
                 (Type.Node t).Range,
-                $"%A{t}"
+                Triage.dump t
             )
         )
 
@@ -88,7 +88,7 @@ let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
             InvariantViolationException(
                 $"cannot tell whether this expression is uppercase or lowercase: %s{UnionCase.name expr}",
                 (Expr.Node expr).Range,
-                $"%A{expr}"
+                Triage.dump expr
             )
         )
 
@@ -116,7 +116,7 @@ let genTrivia (node: Node) (trivia: TriviaNode) (ctx: Context) =
     let gen =
         match trivia.Content with
         | LineCommentAfterSourceCode s ->
-            let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
+            let comment: string = if addSpace then " " + s else s
             writerEvent (WriteBeforeNewline comment)
         | BlockComment(comment, before, after) ->
             ifElse (before && addNewline) sepNlnForTrivia sepNone

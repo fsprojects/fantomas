@@ -108,7 +108,7 @@ type CodeFragment =
                 else 0
             // This is an unexpected situation.
             // You should never enter the case where you need to compare a hash line with something other than a hash line.
-            | x, other -> failwith $"Cannot compare %A{x} with %A{other}"
+            | x, other -> failwith $"Cannot compare %s{Triage.dump x} with %s{Triage.dump other}"
 
 /// Accumulator type used when building up the fragments.
 [<NoComparison>]
@@ -221,7 +221,8 @@ let mergeMultipleFormatResults (config: FormatConfig) (results: UnderDefines<For
         let chunkReport =
             allInFragments
             |> List.map (fun result ->
-                sprintf "[%s] has %i fragments" (String.concat ", " result.Defines.Value) result.Value.Length
+                let defines: string = String.concat ", " result.Defines.Value
+                $"[%s{defines}] has %i{result.Value.Length} fragments"
             )
             |> String.concat config.EndOfLine.NewLineString
 

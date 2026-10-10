@@ -11,21 +11,25 @@ open Fantomas.Core.RangePatterns
 open Fantomas.Core.SyntaxOak
 open Microsoft.FSharp.Core
 
-/// Raise an <see cref="T:Fantomas.Core.InvariantViolationException"/> with a printf-style
-/// message. Use this instead of `failwith` when a branch is unreachable by construction, so
-/// that the CLI reports something actionable rather than an empty message.
-let invariantViolation (range: range) format =
-    Printf.kprintf (fun msg -> raise (InvariantViolationException(msg, range))) format
+/// Raise an <see cref="T:Fantomas.Core.InvariantViolationException"/>. Use this instead of
+/// `failwith` when a branch is unreachable by construction, so that the CLI reports something
+/// actionable rather than an empty message.
+///
+/// The message is a finished string rather than a printf format, and an interpolated one where it
+/// needs a value: printf needs runtime code generation, which a Native AOT build does not have, and
+/// would report its own failure in place of the invariant.
+let invariantViolation (range: range) (message: string) : 'T =
+    raise (InvariantViolationException(message, range))
 
 /// Raise an <see cref="T:Fantomas.Core.InvariantViolationException"/> about a particular syntax
-/// tree node, with a printf-style message.
+/// tree node.
 ///
 /// The node is dumped onto the exception rather than into the message. What it holds is for whoever
 /// triages the report, and a `%A` in the middle of a sentence buries the sentence: it is several
 /// lines long, it wraps wherever the terminal decides to, and it says nothing to whoever hit it. Say
 /// the invariant in words, and name the union case with `UnionCase.name` where knowing it helps.
-let invariantViolationAbout (range: range) (node: 'node) (format: Printf.StringFormat<'T, 'Result>) : 'T =
-    Printf.kprintf (fun msg -> raise (InvariantViolationException(msg, range, $"%A{node}"))) format
+let invariantViolationAbout (range: range) (node: 'node) (message: string) : 'T =
+    raise (InvariantViolationException(message, range, Triage.dump node))
 
 /// The dotted text of a long identifier, for a message that has to name one.
 let longIdentText (sli: SynLongIdent) : string =
@@ -56,7 +60,7 @@ let missingOakNode (construct: string) (range: range) (node: 'node) : 'result =
         InvariantViolationException(
             $"no Oak node is defined for this %s{construct}: %s{UnionCase.name node}",
             range,
-            $"%A{node}"
+            Triage.dump node
         )
     )
 
@@ -2140,7 +2144,7 @@ let mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range l
         if tail.Length <> commas.Length then
             invariantViolation
                 m
-                $"Number of elements in tail of tuple (%i{tail.Length}) was not equal to number of commas (%i{commas.Length}), at range %O{m}."
+                $"Number of elements in tail of tuple (%i{tail.Length}) was not equal to number of commas (%i{commas.Length})."
 
         List.zip commas tail
         |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkPat creationAide e) ])
@@ -2559,7 +2563,10 @@ let mkXmlDoc (px: PreXmlDoc) =
     else
 
     let xmlDoc = px.ToXmlDoc(false, None)
-    let lines = Array.map (sprintf "///%s") xmlDoc.UnprocessedLines
+
+    let lines: string array =
+        Array.map (fun (line: string) -> "///" + line) xmlDoc.UnprocessedLines
+
     Some(XmlDocNode(lines, xmlDoc.Range))
 
 let mkModuleName (SynComponentInfo(synType = synType; range = m) as info) : IdentListNode =

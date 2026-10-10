@@ -31,8 +31,8 @@ let main argv =
     // Every way the command line can be wrong ends here. The logger is not configured yet, and
     // deliberately so: what to configure it with is one of the things being read.
     let refuse (problem: ArgumentProblem) : 'a =
-        eprintfn "%s" (describeArgumentProblem invocation problem)
-        eprintfn "%s" usagePointer
+        Console.Error.WriteLine(describeArgumentProblem invocation problem)
+        Console.Error.WriteLine usagePointer
         exit 1
 
     // The command is the first token when it names one, and what is left is the ordinary flags and
@@ -146,7 +146,8 @@ let main argv =
 
         match olderSpelling with
         | None -> ()
-        | Some(flag, verb) -> eprintfn "'%s' still works, and '%s %s' is how it is spelled now." flag invocation verb
+        | Some(flag, verb) ->
+            Console.Error.WriteLine $"'%s{flag}' still works, and '%s{invocation} %s{verb}' is how it is spelled now."
 
     // `--json` puts one document on standard out, so the logger moves off it entirely, the way it
     // does in daemon mode, where standard out carries the JSON-RPC protocol.

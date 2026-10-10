@@ -235,7 +235,7 @@ let reportError (env: CliEnvironment) (verbosity: VerbosityLevel) (file: string,
 
     // The line above is the one to act on; this keeps the type and the stack trace for whoever
     // asks for detail, rather than replacing the message with them.
-    env.Log.Debug $"%A{error}"
+    env.Log.Debug(string<exn> error)
 
 // A single named file is answered on its own terms: the caller asked about this file, so every
 // state it can be in is said out loud, and there is no summary to add to one line.
@@ -373,7 +373,8 @@ let describeLines (count: int) : string =
 let describeMilliseconds (span: TimeSpan) : string =
     // Milliseconds, because a formatter measured in `mm:ss.fff` spends its width on zeros and
     // stops making sense after an hour.
-    $"%.0f{span.TotalMilliseconds}ms"
+    span.TotalMilliseconds.ToString("F0", Globalization.CultureInfo.InvariantCulture)
+    + "ms"
 
 // The three columns, already padded and coloured, joined into a line.
 //

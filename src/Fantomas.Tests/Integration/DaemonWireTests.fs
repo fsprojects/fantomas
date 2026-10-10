@@ -29,7 +29,7 @@ open Fantomas.Tests
 //
 // A case whose conversation differs fails with a line diff and leaves `<case>.actual` beside
 // `<case>.gold`. Rename it over the gold to accept it, or run the `UpdateSnapshots` pipeline of
-// `build.fsx` to accept every change. `FANTOMAS_DAEMON_EXECUTABLE` points the cases at another build
+// `build.fsx` to accept every change. `FANTOMAS_EXECUTABLE` points the cases at another build
 // of the tool, a Native AOT one for instance.
 
 let private casesFolder: string = Path.Join(__SOURCE_DIRECTORY__, "DaemonWire")
