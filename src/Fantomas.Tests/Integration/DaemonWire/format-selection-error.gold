@@ -1,0 +1,44 @@
+{
+  "sent": [
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "method": "fantomas/formatSelection",
+      "params": {
+        "SourceCode": "module Foo\n\nlet    x     =\n",
+        "FilePath": "<folder>/Selection.fs",
+        "Range": {
+          "StartLine": 3,
+          "StartColumn": 0,
+          "EndLine": 3,
+          "EndColumn": 14
+        },
+        "IsSignatureFile": false
+      }
+    }
+  ],
+  "received": [
+    {
+      "jsonrpc": "2.0",
+      "method": "fantomas/configurationWarning",
+      "params": [
+        {
+          "FilePath": "<folder>/Selection.fs",
+          "EditorConfigFiles": [],
+          "Problems": []
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "result": {
+        "Case": "Error",
+        "Fields": [
+          "<folder>/Selection.fs",
+          "<folder>/Selection.fs could not be parsed by Fantomas:\n\n<folder>/Selection.fs(3,1): error FS0058: Unexpected syntax or possible incorrect indentation: this token is offside of context started at position (3:1). Try indenting this further.\n<folder>/Selection.fs(3,1): error FS0010: Incomplete structured construct at or before this point in binding\n\n1 | module Foo\n2 | \n3 | let    x     =\n  | ^^^^^^^^^^^^^^\n4 | \n"
+        ]
+      }
+    }
+  ]
+}

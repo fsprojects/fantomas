@@ -1,0 +1,67 @@
+{
+  "sent": [
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "method": "fantomas/formatDocument",
+      "params": {
+        "SourceCode": "let   foo = 4",
+        "FilePath": "<folder>/A.fs",
+        "Config": {
+          "Case": "Some",
+          "Fields": [
+            {
+              "max_line_length": "80",
+              "fsharp_also_not_a_setting": "1"
+            }
+          ]
+        },
+        "IsSignatureFile": false
+      }
+    }
+  ],
+  "received": [
+    {
+      "jsonrpc": "2.0",
+      "method": "fantomas/configurationWarning",
+      "params": [
+        {
+          "FilePath": "<folder>/A.fs",
+          "EditorConfigFiles": [
+            "<folder>/.editorconfig"
+          ],
+          "Problems": [
+            {
+              "Code": 1,
+              "Source": 1,
+              "Setting": "fsharp_no_such_setting"
+            },
+            {
+              "Code": 2,
+              "Source": 1,
+              "Setting": "indent_size",
+              "Value": "many"
+            },
+            {
+              "Code": 1,
+              "Source": 2,
+              "Setting": "fsharp_also_not_a_setting"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "result": {
+        "Case": "Formatted",
+        "Fields": [
+          "<folder>/A.fs",
+          "let foo = 4\n",
+          null
+        ]
+      }
+    }
+  ]
+}

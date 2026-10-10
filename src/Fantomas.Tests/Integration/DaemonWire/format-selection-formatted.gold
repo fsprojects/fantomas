@@ -1,0 +1,50 @@
+{
+  "sent": [
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "method": "fantomas/formatSelection",
+      "params": {
+        "SourceCode": "module Foo\n\nlet    x     = 4\nlet    y     = 5\n",
+        "FilePath": "<folder>/Selection.fs",
+        "Range": {
+          "StartLine": 3,
+          "StartColumn": 0,
+          "EndLine": 3,
+          "EndColumn": 16
+        },
+        "IsSignatureFile": false
+      }
+    }
+  ],
+  "received": [
+    {
+      "jsonrpc": "2.0",
+      "method": "fantomas/configurationWarning",
+      "params": [
+        {
+          "FilePath": "<folder>/Selection.fs",
+          "EditorConfigFiles": [],
+          "Problems": []
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "jsonrpc": "2.0",
+      "result": {
+        "Case": "Formatted",
+        "Fields": [
+          "<folder>/Selection.fs",
+          "let x = 4",
+          {
+            "StartLine": 3,
+            "StartColumn": 0,
+            "EndLine": 3,
+            "EndColumn": 16
+          }
+        ]
+      }
+    }
+  ]
+}
