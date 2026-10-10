@@ -1,0 +1,12 @@
+{
+  "description": "A document that does not parse comes back as an error naming the parse errors.",
+  "requests": [
+    {
+      "method": "fantomas/formatDocument",
+      "params": {
+        "FilePath": "A.fs",
+        "SourceCode": "let foo ="
+      }
+    }
+  ]
+}
