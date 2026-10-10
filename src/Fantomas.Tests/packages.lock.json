@@ -247,6 +247,7 @@
           "FSharp.Core": "[10.1.203, )",
           "Fantomas.Client": "[1.0.0, )",
           "Fantomas.Core": "[1.0.0, )",
+          "Fantomas.Daemon.Contract": "[1.0.0, )",
           "Fantomas.EditorConfig": "[1.0.0, )",
           "Ignore": "[0.2.1, )",
           "Serilog": "[4.4.0, )",
@@ -270,6 +271,13 @@
         "dependencies": {
           "FSharp.Core": "[10.0.100, )",
           "Fantomas.FCS": "[1.0.0, )"
+        }
+      },
+      "fantomas.daemon.contract": {
+        "type": "Project",
+        "dependencies": {
+          "Fantomas.Client": "[1.0.0, )",
+          "StreamJsonRpc": "[2.25.29, )"
         }
       },
       "fantomas.editorconfig": {
