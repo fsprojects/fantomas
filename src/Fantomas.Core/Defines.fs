@@ -118,7 +118,7 @@ module private DefineCombinationSolver =
                 function
                 | IfDirectiveExpression.Not(IfDirectiveExpression.Ident x) -> Negative x
                 | IfDirectiveExpression.Ident x -> Positive x
-                | _ -> failwithf "Expr not in CNF: %A" e
+                | _ -> failwith $"Expr not in CNF: %s{Triage.dump e}"
             )
             |> set
 

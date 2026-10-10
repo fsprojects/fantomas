@@ -60,7 +60,7 @@ type EndOfLineStyle =
         match System.Environment.NewLine with
         | "\n" -> LF
         | "\r\n" -> CRLF
-        | other -> failwithf "Unknown system newline string found: %s" other
+        | other -> failwith $"Unknown system newline string found: %s{other}"
 
     static member ToConfigString(eol: EndOfLineStyle) =
         match eol with

@@ -9,6 +9,14 @@ module UnionCase =
     val name: value: 'T -> string
 
 [<RequireQualifiedAccess>]
+module Triage =
+    /// `value` written out in full, as `%A` writes it, for whoever triages a bug report rather than
+    /// whoever hit it. `%A` needs runtime code generation, which a Native AOT build does not have, so
+    /// where it fails this is the name of the type instead. For a union case with fields that is
+    /// still the case, such as `SynExpr+App`.
+    val dump: value: 'T -> string
+
+[<RequireQualifiedAccess>]
 module String =
     val startsWithOrdinal: prefix: string -> str: string -> bool
     val endsWithOrdinal: postfix: string -> str: string -> bool
