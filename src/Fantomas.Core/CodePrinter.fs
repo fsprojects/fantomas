@@ -1595,7 +1595,9 @@ let genExpr (e: Expr) =
         match node.Statements with
         | [ ComputationExpressionStatement.BindingStatement bindingNode
             ComputationExpressionStatement.OtherStatement otherNode ] when bindingNode.In.IsSome ->
-            let short = genBinding bindingNode +> sepSpace +> genExpr otherNode
+            let short: Context -> Context =
+                genBinding bindingNode +> sepSpace +> genExpr otherNode |> genNode node
+
             expressionFitsOnRestOfLine short genStatements
         | _ -> genStatements
     | Expr.JoinIn node ->
@@ -3151,6 +3153,12 @@ let genExprInMultilineInfixExpr (e: Expr) =
             genExpr e
         else
 
+        // The nodes rebuilt below are printed instead of the originals, so they need their trivia.
+        // See https://github.com/fsprojects/fantomas/issues/3522
+        let copyTrivia (source: Node) (target: Node) : unit =
+            Seq.iter target.AddBefore source.ContentBefore
+            Seq.iter target.AddAfter source.ContentAfter
+
         let statements =
             node.Statements
             |> List.map (fun statement ->
@@ -3178,10 +3186,12 @@ let genExprInMultilineInfixExpr (e: Expr) =
                         bindingNode.Range
                     )
 
+                copyTrivia bindingNode updatedBindingNode
                 ComputationExpressionStatement.BindingStatement updatedBindingNode
             )
 
         let compExprBodyNode = ExprCompExprBodyNode(statements, node.Range)
+        copyTrivia node compExprBodyNode
         atCurrentColumn (genExpr (Expr.CompExprBody compExprBodyNode))
     | Expr.Paren parenNode ->
         match parenNode.Expr with
