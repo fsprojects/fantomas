@@ -5021,6 +5021,7 @@ let genMemberDefn (md: MemberDefn) =
             +> sepSpace
             +> genSingleTextNode node.Equals
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+            |> genNode node
 
         genXml node.XmlDoc
         +> genAttributes node.Attributes

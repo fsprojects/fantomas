@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.10] - 2026-10-14
+
+### Fixed
+
+- Comment after a property accessor is lost. [#3527](https://github.com/fsprojects/fantomas/issues/3527)
+
 ## [8.0.9] - 2026-10-14
 
 ### Fixed
