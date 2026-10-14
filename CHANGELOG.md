@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.9] - 2026-10-14
+
+### Fixed
+
+- Comment before a let in the right-hand side of an infix operator is lost. [#3522](https://github.com/fsprojects/fantomas/issues/3522)
+
 ## [8.0.8] - 2026-10-09
 
 ### Changed
