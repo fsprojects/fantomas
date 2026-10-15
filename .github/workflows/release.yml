@@ -12,10 +12,39 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
+  # Native AOT compiles for the C library of the machine it runs on, and Alpine has musl where Ubuntu
+  # has glibc, so `fantomas.linux-musl-x64` is packed in an Alpine container. The release job pushes
+  # it with the rest.
+  musl:
+    runs-on: ubuntu-latest
+    container: alpine:3.22
+    steps:
+    - name: Install what .NET and Native AOT need
+      run: apk add --no-cache bash curl git icu-libs krb5-libs libgcc libintl libssl3 libstdc++ zlib clang build-base zlib-dev
+    - uses: actions/checkout@v7.0.1
+    - name: Trust the checkout
+      # The container runs as root and the checkout belongs to the runner's user, and git refuses a
+      # repository someone else owns. The build reads the commit from it.
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v6
+    - name: Init
+      run: dotnet fsi build.fsx -p Init
+    - name: Pack
+      run: dotnet fsi build.fsx -p PackNativeTool
+    - uses: actions/upload-artifact@v7
+      with:
+        name: fantomas.linux-musl-x64
+        path: artifacts/package/release/fantomas.linux-musl-x64.*.nupkg
+        if-no-files-found: error
+
   release:
+    needs: musl
     # Native AOT only compiles for the machine it runs on, so the tool's native package is the one
     # for Linux. The other platforms get the portable package until each has a runner of its own.
-    runs-on: ubuntu-latest
+    # The executable needs the glibc it was linked against or newer, so the oldest Ubuntu runner
+    # decides where it runs: 22.04 has glibc 2.35, where 24.04 would ask for 2.38.
+    runs-on: ubuntu-22.04
     environment: release
     permissions:
       id-token: write
@@ -27,6 +56,11 @@ jobs:
       uses: actions/setup-dotnet@v6
     - name: Init
       run: dotnet fsi build.fsx -p Init
+    - uses: actions/download-artifact@v8
+      with:
+        name: fantomas.linux-musl-x64
+        # `nativeToolPackagesDir` in build.fsx, which the `Release` pipeline copies from.
+        path: artifacts/native-tool-packages
     - name: Obtain NuGet key
       # this hash is v1.1.0
       uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841
