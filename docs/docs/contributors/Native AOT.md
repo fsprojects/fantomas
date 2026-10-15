@@ -112,19 +112,22 @@ identifier in `ToolPackageRuntimeIdentifiers`.
 
 A package that names a package per platform is new in the .NET 10 SDK, so installing the tool takes
 that SDK or a newer one. An older SDK refuses `fantomas` with "Format version is higher than
-supported", and `fantomas.any` as well. Up to v8 an older SDK could install the tool, as long as the
-runtime it targets was there.
+supported". It refuses `fantomas.any` too, with "Settings file 'DotnetToolSettings.xml' was not found
+in the package", although the package holds one: its package type is `DotnetToolRidPackage`, which
+an older SDK does not take for a tool. Up to v8 an
+older SDK could install the tool, as long as the runtime it targets was there.
 
 ## Where the native executable runs
 
 `dotnet tool install fantomas` picks `fantomas.linux-x64` on Linux x64, and
 `fantomas.linux-musl-x64` where the SDK is the one for musl, as on Alpine.
 
-- **`fantomas.linux-x64` needs glibc 2.35 or newer.** An executable asks for the glibc version that
-  the machine it was linked on had, function by function. The release runs on `ubuntu-22.04` for
-  that reason, which has glibc 2.35, and the Linux run of the `Native AOT` job does too, so its tests
-  run the executable that ships. A newer runner would raise that: `ubuntu-24.04` links against
-  glibc 2.38. RHEL 9 and Amazon Linux 2023 have glibc 2.34.
+- **`fantomas.linux-x64` needs glibc 2.34 or newer,** which RHEL 9 and Amazon Linux 2023 have. An
+  executable asks for each glibc function at the version the machine it was linked on had, so the
+  newest of those versions is what it needs: on `ubuntu-22.04`, which has glibc 2.35, that is 2.34.
+  The release runs there for that reason, and the Linux run of the `Native AOT` job does too, so its
+  tests run the executable that ships. A newer runner would raise it: on `ubuntu-24.04` it is 2.38.
+  `objdump -T` on the executable lists the versions it asks for.
 - **`fantomas.linux-musl-x64` is compiled on Alpine 3.22,** and runs on 3.20 and every version
   since.
 - **Both need ICU,** as the .NET runtime does. A machine with the .NET SDK on it has it.
