@@ -853,8 +853,9 @@ pipeline "Release" {
                     if isPrerelease then
                         printfn $"Detected prerelease version: %s{currentRelease.Version}"
 
-                    // Push packages to NuGet. `fantomas` goes last: `dotnet tool install fantomas`
-                    // fails on a platform whose package it names but NuGet does not have yet.
+                    // Push packages to NuGet. `fantomas` goes last, and only once every other
+                    // package made it: `dotnet tool install fantomas` fails on a platform whose
+                    // package it names but NuGet does not have yet.
                     let nugetPackages =
                         Directory.EnumerateFiles(packagesDir, "*.nupkg", SearchOption.TopDirectoryOnly)
                         |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
@@ -865,8 +866,22 @@ pipeline "Release" {
                     nugetPackages
                     |> Array.iter (fun pkg -> printfn $"  - %s{Path.GetFileName(pkg)}")
 
-                    let! nugetExitCodes =
-                        nugetPackages |> Array.map (pushPackage ctx) |> Async.Sequential
+                    let toolPackages, otherPackages =
+                        nugetPackages |> Array.partition isTopLevelToolPackage
+
+                    let! otherExitCodes =
+                        otherPackages |> Array.map (pushPackage ctx) |> Async.Sequential
+
+                    let! toolExitCodes =
+                        if Array.forall (fun code -> code = 0) otherExitCodes then
+                            toolPackages |> Array.map (pushPackage ctx) |> Async.Sequential
+                        else
+                            async {
+                                Console.WriteLine "fantomas is not pushed, because a package it names failed to push."
+                                return Array.empty
+                            }
+
+                    let nugetExitCodes: int array = Array.append otherExitCodes toolExitCodes
 
                     // The GitHub release is what marks a version as released: once it exists, a run of
                     // this pipeline skips everything. So it is only created when every package made
