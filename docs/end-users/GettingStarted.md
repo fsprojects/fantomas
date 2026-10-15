@@ -43,7 +43,7 @@ dotnet fantomas --help
 ```
 
 ```
-Fantomas is an opinionated source code formatter for F#. (8.0.10+657fc5fbc)
+Fantomas is an opinionated source code formatter for F#. (8.0.10+9520205a3)
 
 Usage: dotnet fantomas [command] [...flags] [...paths]
 
