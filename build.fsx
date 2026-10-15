@@ -74,7 +74,7 @@ pipeline "Build" {
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
     stage "CheckFormat" { run $"dotnet fantomas check src analyzers docs scripts build.fsx %s{jsonFlagDuringCI}" }
-    stage "BuildDebug" { run $"dotnet build \"%s{scriptProject}\" --tl" }
+    stage "BuildDebug" { run buildScriptProject }
     stage "CheckScripts" { run checkScripts }
     stage "Build" { run "dotnet build -c Release --tl" }
     stage "CheckDocScripts" { run checkDocScripts }
@@ -706,6 +706,7 @@ pipeline "Analyze" {
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "RestoreSolution" { run "dotnet restore --tl" }
     stage "BuildAnalyzers" { run buildLocalAnalyzers }
+    stage "BuildDebug" { run buildScriptProject }
     stage "Analyze" {
         // fsharp-analyzers targets the previous runtime and loads MSBuild from the SDK that
         // global.json picks. The host never rolls a release app onto a prerelease runtime while
@@ -757,8 +758,28 @@ pipeline "AnalyzeChanged" {
                     Console.WriteLine "No changed file is analyzed."
                     return 0
                 | targets ->
-                    let! scopes = changedLines ctx
-                    return! analyzeTargets ctx [] demoteLocalErrors (keepFinding scopes) targets
+                    // Only the scripts need the debug build, so a run without one skips it.
+                    let analyzesScripts: bool =
+                        targets
+                        |> List.exists (fun (target: AnalysisTarget) ->
+                            match target with
+                            | Scripts _ -> true
+                            | Project _ -> false
+                        )
+
+                    let! built =
+                        if analyzesScripts then
+                            ctx.RunCommand buildScriptProject
+                        else
+                            async { return Ok() }
+
+                    match built with
+                    | Error(error: string) ->
+                        eprintfn "%s" error
+                        return 1
+                    | Ok() ->
+                        let! scopes = changedLines ctx
+                        return! analyzeTargets ctx [] demoteLocalErrors (keepFinding scopes) targets
             }
         )
     }

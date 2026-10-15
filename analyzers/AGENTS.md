@@ -438,6 +438,11 @@ target of their own, `Scripts`, alongside the projects. `--script` is given the 
 on their own, which between them `#load` every other one, so a rule reaches `BuildCommon.fsx`
 through `build.fsx` and `shared.fsx` through the diagnostic scripts.
 
+`shared.fsx` references the Debug build of `Fantomas.Core.SnapshotTests` and what it depends on, so
+both pipelines build that first (`AnalyzeChanged` only when a script changed). Without it, the
+diagnostic scripts do not type check, the analyzers that read the typed tree see nothing of them,
+and the run still exits 0 ([#3548](https://github.com/fsprojects/fantomas/issues/3548)).
+
 Every analyzer a project gets runs over the scripts too, the two packages and `FANTOMAS-OPENS-001`
 included. Before fsharp-analyzers 0.39.1 the typed tree of a script lost every top level bare
 expression, and the packages crashed on what was left

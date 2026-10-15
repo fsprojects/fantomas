@@ -38,6 +38,13 @@ let scriptProject: string =
     </> "Fantomas.Core.SnapshotTests"
     </> "Fantomas.Core.SnapshotTests.fsproj"
 
+/// Builds `scriptProject`, which the diagnostic scripts need before anything can compile them: the
+/// `Build` pipeline before it checks them, and the `Analyze` pipelines before the analyzers type
+/// check them. Without it a fresh checkout has none of the assemblies `shared.fsx` references, and
+/// the analyzers see nothing of the six scripts that load it.
+let buildScriptProject: string =
+    $"dotnet build %s{quoteArgument scriptProject} --tl"
+
 /// Of the given scripts, the ones that are meant to be run directly.
 ///
 /// A script that another of them `#load`s is left out, because it is already compiled as part of
