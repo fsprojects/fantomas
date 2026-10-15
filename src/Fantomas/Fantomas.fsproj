@@ -14,7 +14,6 @@
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
-  <!-- Spike: `dotnet publish -r <rid> -p:FantomasAot=true`, or the `TestAot` pipeline of build.fsx -->
   <!--
     Pilot of https://github.com/fsprojects/fantomas/issues/3171: `dotnet pack -p:FantomasAot=true`
     gives the top-level `fantomas` package, which only names the platform packages, and
