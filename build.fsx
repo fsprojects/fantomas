@@ -725,6 +725,17 @@ pipeline "Release" {
     stage "Build" { run "dotnet build -c Release" }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack -c Release" }
+    // The tool again, as a `fantomas` package that only names the platform packages, which takes the
+    // place of the one the pack above wrote. `fantomas.linux-x64` holds the executable Native AOT
+    // compiled, and AOT only compiles for the machine it runs on, which is why the release runs on
+    // Linux. `fantomas.any` is the tool as it shipped before, for every other platform. A pack takes
+    // all of the publish folder, so a file an earlier publish left there would ship too.
+    // https://github.com/fsprojects/fantomas/issues/3171
+    stage "PackTool" {
+        run (cleanFolders [| artifactsDir </> "publish" </> "Fantomas" |])
+        run "dotnet pack src/Fantomas/Fantomas.fsproj -c Release -p:FantomasAot=true"
+        run "dotnet pack src/Fantomas/Fantomas.fsproj -c Release -r any -p:FantomasAot=true"
+    }
     stage "Release" {
         run (fun ctx ->
             async {
