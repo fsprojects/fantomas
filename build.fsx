@@ -722,6 +722,9 @@ pipeline "Init" {
 
 pipeline "Release" {
     workingDir __SOURCE_DIRECTORY__
+    // The release pushes every package it finds in the packages folder, so one an earlier pack left
+    // there would be published too.
+    stage "Clean" { run (cleanFolders [| packagesDir |]) }
     stage "Build" { run "dotnet build -c Release" }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack -c Release" }

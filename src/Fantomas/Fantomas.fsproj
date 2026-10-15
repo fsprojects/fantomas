@@ -15,10 +15,14 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <!--
-    Pilot of https://github.com/fsprojects/fantomas/issues/3171: `dotnet pack -p:FantomasAot=true`
-    gives the top-level `fantomas` package, which only names the platform packages, and
-    `fantomas.linux-x64`, which holds the native executable. The SDK packs only the platforms the
-    machine it runs on can compile for, so one runner per OS is what the full list will need.
+    `FantomasAot` is set by the `TestAot` and `Release` pipelines of build.fsx: the tool is published
+    with Native AOT, and packed as one package per platform.
+    https://github.com/fsprojects/fantomas/issues/3171
+    `dotnet pack -p:FantomasAot=true` gives the top-level `fantomas` package, which only names the
+    platform packages, and `fantomas.linux-x64`, which holds the native executable. The SDK packs
+    only the platforms the machine it runs on can compile for, so each further platform needs a
+    runner of its own. `dotnet pack -r any -p:FantomasAot=true` gives `fantomas.any`, the tool
+    without Native AOT, which every other platform installs.
   -->
   <PropertyGroup Condition="'$(FantomasAot)' == 'true'">
     <PublishAot>true</PublishAot>
