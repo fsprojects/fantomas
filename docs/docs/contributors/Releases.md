@@ -51,7 +51,7 @@ The release pipeline (`build.fsx -p Release`) performs the following steps:
 1. **Parses the changelog** to find the current and last release
 2. **Checks if the release already exists** on GitHub (skips if already published)
 3. **Builds and tests** the project
-4. **Creates NuGet packages** for all projects (except `Fantomas.Client`). The tool is three packages: `fantomas`, which only names the other two, `fantomas.linux-x64`, which holds an executable compiled with Native AOT, and `fantomas.any`, the portable tool every other platform installs. Native AOT only compiles for the machine it runs on, which is why the release runs on Linux.
+4. **Creates NuGet packages** for all projects (except `Fantomas.Client`). The tool is three packages: `fantomas`, which only names the other two, `fantomas.linux-x64`, which holds an executable compiled with Native AOT, and `fantomas.any`, the portable tool every other platform installs. Native AOT only compiles for the machine it runs on, which is why the release runs on Linux. [Native AOT](./Native%20AOT.html) has the details.
 5. **Publishes packages to NuGet**
 6. **Generates release notes** including:
    - Changelog sections (Added, Changed, Fixed, etc.)
