@@ -68,7 +68,7 @@ It does four things:
    hold.
 
 The `Native AOT` job of CI runs it on Linux, Windows and macOS, because Native AOT only compiles
-for the machine it runs on.
+for the machine it runs on, and `Native AOT (Alpine)` runs it in an Alpine container, for musl.
 
 When it fails on a new warning, find where the warning points. If the tool can reach that code,
 change the code. If it cannot, add an entry to `knownAotWarnings` with the reason, which is what
@@ -88,18 +88,49 @@ and `Release` pipelines set. A normal build and restore stay as they are without
 
 ## Packages and the release
 
-The tool ships as three packages:
+The tool ships as four packages:
 
-- `fantomas` only names the two below. `dotnet tool install fantomas` reads it and installs one of
+- `fantomas` only names the three below. `dotnet tool install fantomas` reads it and installs one of
   them.
-- `fantomas.linux-x64` holds the native executable, from `dotnet pack -p:FantomasAot=true`.
+- `fantomas.linux-x64` holds the native executable for glibc, from `dotnet pack -p:FantomasAot=true`.
+- `fantomas.linux-musl-x64` holds the native executable for musl, as on Alpine, from
+  `dotnet pack -r linux-musl-x64 -p:FantomasAot=true` on Alpine.
 - `fantomas.any` is the tool as it shipped before Native AOT, from
   `dotnet pack -r any -p:FantomasAot=true`. Every platform without a package of its own installs it.
 
-The `PackTool` stage of the `Release` pipeline packs them, and the release runs on Linux for the
-native package. A native package for another platform needs a runner on that platform, and its
-identifier in `ToolPackageRuntimeIdentifiers`. The SDK only packs the platforms the machine it runs
-on can compile for, and fails on a top-level package that names none of them.
+The SDK only packs the platforms the machine it runs on can compile for, and fails with MSB4006 on a
+top-level package that names none of them. So the release workflow has a job per machine:
+
+- `musl` runs the `PackNativeTool` pipeline in an Alpine container, and hands
+  `fantomas.linux-musl-x64` on as an artifact.
+- `release` runs the `Release` pipeline on Ubuntu. Its `PackTool` stage packs the other three, copies
+  the musl package in from `artifacts/native-tool-packages`, and fails when `fantomas` names a package
+  that is not there, as `dotnet tool install` would fail on that platform.
+
+A native package for another platform takes a job like `musl` on a machine of that platform, and its
+identifier in `ToolPackageRuntimeIdentifiers`.
+
+A package that names a package per platform is new in the .NET 10 SDK, so installing the tool takes
+that SDK or a newer one. An older SDK refuses `fantomas` with "Format version is higher than
+supported", and `fantomas.any` as well. Up to v8 an older SDK could install the tool, as long as the
+runtime it targets was there.
+
+## Where the native executable runs
+
+`dotnet tool install fantomas` picks `fantomas.linux-x64` on Linux x64, and
+`fantomas.linux-musl-x64` where the SDK is the one for musl, as on Alpine.
+
+- **`fantomas.linux-x64` needs glibc 2.35 or newer.** An executable asks for the glibc version that
+  the machine it was linked on had, function by function. The release runs on `ubuntu-22.04` for
+  that reason, which has glibc 2.35, and the Linux run of the `Native AOT` job does too, so its tests
+  run the executable that ships. A newer runner would raise that: `ubuntu-24.04` links against
+  glibc 2.38. RHEL 9 and Amazon Linux 2023 have glibc 2.34.
+- **`fantomas.linux-musl-x64` is compiled on Alpine 3.22,** and runs on 3.20 and every version
+  since.
+- **Both need ICU,** as the .NET runtime does. A machine with the .NET SDK on it has it.
+
+Where it cannot run, `dotnet tool install fantomas.any` installs the portable tool by name. Its
+command is `fantomas` as well.
 
 ## Settings to look at again
 
@@ -117,6 +148,9 @@ each can go when the reason does.
 - **`knownAotWarnings`** in `build.fsx`. The `FSharp.Core` entries can go when FSharp.Core is clean
   for trimming. The `sr.fs` entries can go when the vendored compiler no longer has
   `DiagnosticMessage.mkFunctionValue`.
+- **The release runs on `ubuntu-22.04`**, for the glibc it links against. When GitHub retires that
+  runner, the next one raises the glibc the executable needs, unless the release compiles it in a
+  container with an older glibc.
 - **FANTOMAS-PRINTF-001 reads the untyped tree** until the analyzer SDK ships a compiler with
   dotnet/fsharp#19971. Its section in `analyzers/AGENTS.md` has the details.
 
