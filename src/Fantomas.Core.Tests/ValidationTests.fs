@@ -150,10 +150,16 @@ let private checking (validations: Validations) (source: string) : Found list =
 let private searchAndComparison: Validations =
     Validations.CommentSearch ||| Validations.TriviaComparison
 
-// A comment between an infix operator and a `let` is dropped, and formatting the result again joins
-// it onto one line. Found in the F# compiler's `MethodOverrides.fs`.
+// A comment between `open` and the module name is dropped: the Oak node of an `open` has no
+// children, so nothing inside it can take the comment.
 let private dropped (comment: string) (binding: string) : string =
-    $"a &&\n%s{comment}\nlet c = %s{binding}\nc\n"
+    $"open\n%s{comment}\n    System\nlet c = %s{binding}\n"
+
+// An `if` indented further than the comment above it, in a match clause, is printed with the comment
+// at the column of the `|`, and formatting the result again indents both. Found in the F#
+// compiler's `TypeRelations.fs`.
+let private notIdempotent: string =
+    "match x with\n| _ ->\n    // c\n        if a then\n            b\n        else\n            c\n"
 
 // A comment before a parenthesised operand of `||` gives output that is offside. Found in the F#
 // compiler's `Optimizer.fs`.
@@ -189,15 +195,15 @@ let ``each check reports only its own issues`` () =
 // from the order of the comments.
 [<Test>]
 let ``a lost comment whose text is further on is the only one missing`` () =
-    checking searchAndComparison "a &&\n// x\nlet c = b\n// y\nc\n// x\n"
+    checking searchAndComparison "open\n// x\n    System\n// y\nlet c = b\n// x\n"
     |> should equal [ Missing(2, "// x"); Comments([], [ 2, "// x" ], []) ]
 
 // The `//` that is dropped is on a line of its own, and the one the result has is beside code, as
 // the other `//` of the source is. Their order cannot tell the two apart; where they are does.
 [<Test>]
 let ``of two comments with the same text, where they are tells which is missing`` () =
-    checking searchAndComparison "let g a b =\n    a &&\n    //\n    let c = b\n    c\n\nlet y = 2 //\n"
-    |> should equal [ Missing(3, "//"); Comments([], [ 3, "//" ], []) ]
+    checking searchAndComparison "open\n//\n    System\n\nlet y = 2 //\n"
+    |> should equal [ Missing(2, "//"); Comments([], [ 2, "//" ], []) ]
 
 [<Test>]
 let ``all is every check`` () =
@@ -208,8 +214,7 @@ let ``all is every check`` () =
 
 [<Test>]
 let ``a result that formats differently again is not idempotent`` () =
-    checking Validations.Idempotency (dropped "// c" "b")
-    |> should equal [ NotIdempotent ]
+    checking Validations.Idempotency notIdempotent |> should equal [ NotIdempotent ]
 
 [<Test>]
 let ``a rewritten comment is missing, and what the result has instead is added`` () =
@@ -423,15 +428,15 @@ let ``UnionCase.name falls back to the type name for something that is not a uni
     Fantomas.Core.UnionCase.name 42 |> should equal "Int32"
 
 // Trivia the parser recorded and assignment found no node for is caught on the Oak, before
-// printing. A comment right after `when`, with the guard on the next line, is one: the tree gives
-// `when` no range. The day Fantomas keeps it, this needs another sample.
+// printing. A block comment between `open` and the module name is one: the Oak node of an `open`
+// has no children, so nothing inside it can take the comment. The day Fantomas keeps it, this needs
+// another sample.
 
 [<Test>]
 let ``a comment trivia assignment drops is caught on the Oak`` () =
     let failure: exn option =
         try
-            formatSourceString "match x with\n| _\n    when // c\n        a -> b\n" FormatConfig.Default
-            |> ignore
+            formatSourceString "open (* c *) System\n" FormatConfig.Default |> ignore
 
             None
         with error ->
@@ -444,4 +449,4 @@ let ``a comment trivia assignment drops is caught on the Oak`` () =
     error.Message
     |> should haveSubstring "Trivia the parser recorded is attached to no node of the Oak"
 
-    error.Message |> should haveSubstring "// c"
+    error.Message |> should haveSubstring "(* c *)"
