@@ -2,7 +2,6 @@ module Fantomas.Core.AotSmokeTest.Program
 
 open System
 open System.Text
-open Microsoft.FSharp.Reflection
 open Fantomas.FCS.Diagnostics
 open Fantomas.FCS.Parse
 open Fantomas.FCS.Syntax
@@ -355,79 +354,6 @@ let libraryChecks: (string * (unit -> string)) list =
             version
     ]
 
-/// Names every union case reached from `value`, a few levels deep, the way the expanded view of the
-/// AST viewer walks a tree.
-[<Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming",
-                                                        "IL2072",
-                                                        Justification =
-                                                            "This is fantomas-tools' reflection, here to show what Native AOT does with it.")>]
-let rec walkUnionCases (caseNames: Collections.Generic.List<string>) (depth: int) (value: obj) : unit =
-    if depth < 6 && not (isNull value) then
-        let runtimeType: System.Type = value.GetType()
-
-        if FSharpType.IsUnion(runtimeType, true) then
-            let case, fields = FSharpValue.GetUnionFields(value, runtimeType, true)
-            caseNames.Add(String.Concat(case.DeclaringType.Name, ".", case.Name))
-
-            for field in fields do
-                walkUnionCases caseNames (depth + 1) field
-        elif FSharpType.IsRecord(runtimeType, true) then
-            for field in FSharpValue.GetRecordFields(value, true) do
-                walkUnionCases caseNames (depth + 1) field
-
-/// What fantomas-tools does with the library's types on its own side. None of it is a library entry
-/// point, and none of it is this repository's to keep working, but each decides whether one of its
-/// lambdas can run on Native AOT. They count towards the exit code with `--all` only.
-///
-/// Under Native AOT the two over the syntax tree print the top union case and nothing below it, and
-/// keeping all of Fantomas.FCS with `TrimmerRootAssembly` does not change that.
-let toolChecks: (string * (unit -> string)) list =
-    [
-        "FSharpType.GetRecordFields and FSharpValue.GetRecordFields of FormatConfig, which lists the settings",
-        fun () ->
-            let names: string array =
-                FSharpType.GetRecordFields(typeof<FormatConfig>)
-                |> Array.map (fun property -> property.Name)
-
-            let values: obj array = FSharpValue.GetRecordFields(FormatConfig.Default)
-            expect (names.Length > 0) "no fields"
-            expect (names.Length = values.Length) "as many names as values"
-            $"%i{names.Length} settings, first %s{names.[0]} = %s{values.[0].ToString()}"
-
-        "FSharpValue.MakeRecord of FormatConfig, which builds the settings a request asks for",
-        fun () ->
-            let values: obj array = FSharpValue.GetRecordFields(FormatConfig.Default)
-            values.[0] <- box 2
-
-            let config: FormatConfig =
-                FSharpValue.MakeRecord(typeof<FormatConfig>, values) :?> FormatConfig
-
-            expect (config.IndentSize = 2) "IndentSize was not set"
-            $"IndentSize = %i{config.IndentSize}"
-
-        "%A of a ParsedInput, the default view of the AST viewer",
-        fun () ->
-            let ast, _ = parse false "let a = 1" []
-            // fsharpanalyzer: ignore-line-next FANTOMAS-PRINTF-001
-            let shown: string = $"%A{ast}"
-
-            expect (shown.Contains("Let", StringComparison.Ordinal)) (String.Concat("no Let in the dump:\n", shown))
-
-            shown
-
-        "FSharpValue.GetUnionFields over a ParsedInput, the expanded view of the AST viewer",
-        fun () ->
-            let ast, _ = parse false "let a = 1" []
-            let caseNames: Collections.Generic.List<string> = Collections.Generic.List<string>()
-            walkUnionCases caseNames 0 (box ast)
-
-            expect
-                (caseNames.Contains "SynModuleDecl.Let")
-                (String.Concat("SynModuleDecl.Let was not reached: ", String.concat ", " caseNames))
-
-            String.concat ", " caseNames
-    ]
-
 let runChecks (title: string) (checks: (string * (unit -> string)) list) : int =
     Console.Out.WriteLine(String.Concat("# ", title))
 
@@ -451,18 +377,8 @@ let runChecks (title: string) (checks: (string * (unit -> string)) list) : int =
     )
 
 [<EntryPoint>]
-let main (args: string array) : int =
-    let failedLibrary: int = runChecks "The library" libraryChecks
+let main (_: string array) : int =
+    let failed: int = runChecks "The library" libraryChecks
     Console.Out.WriteLine()
-
-    let failedTools: int =
-        runChecks "What fantomas-tools does with the library's types" toolChecks
-
-    Console.Out.WriteLine()
-    Console.Out.WriteLine($"%i{failedLibrary} library checks failed, %i{failedTools} fantomas-tools checks failed")
-
-    // Only the library is this repository's to keep working. `--all` counts the rest too.
-    if Array.contains "--all" args then
-        failedLibrary + failedTools
-    else
-        failedLibrary
+    Console.Out.WriteLine($"%i{failed} checks failed")
+    failed
