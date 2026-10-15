@@ -26,6 +26,9 @@ let isDryRun: bool =
     Array.exists (fun arg -> arg = "--dry-run") args
 
 /// Push a package to NuGet, unless this run was told not to publish.
+///
+/// A version NuGet already has is passed over rather than failed on, so a release that stopped
+/// halfway through its pushes can be run again and pushes only what is missing.
 let pushPackage (ctx: StageContext) (nupkg: string) : Async<int> =
     async {
         if isDryRun then
@@ -39,7 +42,7 @@ let pushPackage (ctx: StageContext) (nupkg: string) : Async<int> =
             // costs nothing: it is the one the stage just picked out of the packages folder.
             let! result =
                 ctx.RunSensitiveCommandCaptureAll(
-                    $"dotnet nuget push {quoteArgument nupkg} --api-key {key} --source https://api.nuget.org/v3/index.json"
+                    $"dotnet nuget push {quoteArgument nupkg} --api-key {key} --source https://api.nuget.org/v3/index.json --skip-duplicate"
                 )
 
             return result.ExitCode

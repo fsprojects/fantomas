@@ -593,13 +593,20 @@ pipeline "Release" {
                     let! nugetExitCodes =
                         nugetPackages |> Array.map (pushPackage ctx) |> Async.Sequential
 
+                    // The GitHub release is what marks a version as released: once it exists, a run of
+                    // this pipeline skips everything. So it is only created when every package made
+                    // it to NuGet. Otherwise the run fails without it, and running it again pushes
+                    // what is missing, the packages NuGet already has being skipped.
                     let nugetSuccess = nugetExitCodes |> Array.forall (fun code -> code = 0)
-                    if nugetSuccess then
-                        Console.WriteLine "All NuGet packages pushed successfully"
-                    else
+                    if not nugetSuccess then
                         let exitCodesStr: string =
                             nugetExitCodes |> Array.map string<int> |> String.concat ", "
-                        printfn $"Warning: Some NuGet packages failed to push. Exit codes: %s{exitCodesStr}"
+                        printfn $"Some NuGet packages failed to push. Exit codes: %s{exitCodesStr}"
+                        Console.WriteLine "The GitHub release is not created. Run the release again to push the rest."
+                        return Array.max nugetExitCodes
+                    else
+
+                    Console.WriteLine "All NuGet packages pushed successfully"
 
                     let! notes = getReleaseNotes ctx source currentRelease lastPublishedDate
                     Console.WriteLine "Release notes that will be used:"
@@ -664,7 +671,7 @@ pipeline "Release" {
                     else
                         printfn $"Warning: GitHub release creation returned exit code: %i{draftExitCode}"
 
-                    return Array.max [| yield! nugetExitCodes; yield draftExitCode |]
+                    return draftExitCode
             }
         )
     }
