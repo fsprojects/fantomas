@@ -422,9 +422,15 @@ let ``every step of a file with nothing wrong with it is reached`` () =
 // runs on it as it would on any file. The day Fantomas formats one of them correctly, that test needs
 // another sample.
 
-// A comment between an infix operator and a `let` is dropped, and formatting the result again joins
-// it onto one line. Found in the F# compiler's `MethodOverrides.fs`.
-let private losesAComment: string = "a &&\n// c\nlet c = b\nc\n"
+// A comment between `open` and the module name is dropped: the Oak node of an `open` has no
+// children, so nothing inside it can take the comment.
+let private losesAComment: string = "open\n// c\n    System\n"
+
+// An `if` indented further than the comment above it, in a match clause, is printed with the comment
+// at the column of the `|`, and formatting the result again indents both. Found in the F#
+// compiler's `TypeRelations.fs`.
+let private notIdempotent: string =
+    "match x with\n| _ ->\n    // c\n        if a then\n            b\n        else\n            c\n"
 
 // A comment before a parenthesised operand of `||` gives output that is offside. Found in the F#
 // compiler's `Optimizer.fs`.
@@ -457,8 +463,7 @@ let ``output Fantomas will not accept is reported, and stops the walk before the
 
 [<Test>]
 let ``output that is not valid F# and lost a comment reports both, as a format run does`` () =
-    let report: DoctorReport =
-        diagnosing (invalidOutput + "\nlet g a b =\n    a &&\n    // c\n    let c = b\n    c\n")
+    let report: DoctorReport = diagnosing (invalidOutput + "\nopen\n// c\n    System\n")
 
     match report.Validity with
     | Some(ValidityStep.Invalid issues) ->
@@ -470,7 +475,7 @@ let ``output that is not valid F# and lost a comment reports both, as a format r
     // What the search did not find, which a format run refuses the result over too.
     match report.Trivia with
     | Some(TriviaStep.Changed [ Fantomas.Core.ValidationIssue.MissingComment comment ]) ->
-        (comment.Range.StartLine, comment.Text) |> shouldEqual (16, "// c")
+        (comment.Range.StartLine, comment.Text) |> shouldEqual (15, "// c")
     | other -> failwith $"Expected the lost comment, got %A{other}"
 
     report.Idempotency |> shouldEqual None
@@ -502,11 +507,13 @@ let ``output that keeps every comment says so`` () =
 
 [<Test>]
 let ``a second pass that changes the result names the line the two part at, and both passes`` () =
-    match (diagnosing losesAComment).Idempotency with
+    match (diagnosing notIdempotent).Idempotency with
     | Some(IdempotencyStep.NotIdempotent(line, afterFirst, afterSecond)) ->
-        line |> shouldEqual 1
-        afterFirst |> shouldEqual "a\n&& let c = b in c\n"
-        afterSecond |> shouldEqual "a && let c = b in c\n"
+        line |> shouldEqual 3
+        afterFirst |> shouldEqual "match x with\n| _ ->\n// c\nif a then b else c\n"
+
+        afterSecond
+        |> shouldEqual "match x with\n| _ ->\n    // c\n    if a then b else c\n"
     | other -> failwith $"Expected the second pass to disagree, got %A{other}"
 
 [<Test>]
