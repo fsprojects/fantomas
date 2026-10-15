@@ -720,6 +720,89 @@ pipeline "Init" {
     runIfOnlySpecified true
 }
 
+/// Where the release workflow puts the tool packages that runners of other platforms packed, before
+/// it runs the `Release` pipeline: `fantomas.linux-musl-x64` comes from an Alpine container.
+let nativeToolPackagesDir: string = artifactsDir </> "native-tool-packages"
+
+/// Copies the tool packages that runners of other platforms packed into the packages folder, so the
+/// release pushes them with the rest.
+let copyNativeToolPackages (_: StageContext) : Async<int> =
+    async {
+        if Directory.Exists nativeToolPackagesDir then
+            for nupkg: string in Directory.EnumerateFiles(nativeToolPackagesDir, "*.nupkg") do
+                printfn $"Copying {Path.GetFileName nupkg} from {nativeToolPackagesDir}"
+                File.Copy(nupkg, packagesDir </> Path.GetFileName nupkg, true)
+
+        return 0
+    }
+
+/// Fails when the `fantomas` package names a platform package that the packages folder does not
+/// hold. Pushed without it, `dotnet tool install fantomas` fails on that platform. A dry run on a
+/// machine of its own has no packages from the other runners, so there it is a warning.
+let checkToolPackages (_: StageContext) : Async<int> =
+    async {
+        // `fantomas.<version>.nupkg`, and not one of the platform packages or `Fantomas.Core`, which
+        // the pattern also finds where file names are not case sensitive.
+        let isTopLevel (path: string) : bool =
+            let name: string = Path.GetFileName path
+            name.StartsWith("fantomas.", StringComparison.Ordinal)
+            && Char.IsDigit name.["fantomas.".Length]
+
+        match
+            Directory.EnumerateFiles(packagesDir, "fantomas.*.nupkg")
+            |> Seq.tryFind isTopLevel
+        with
+        | None ->
+            printfn $"There is no fantomas package in {packagesDir}."
+            return 1
+        | Some(topLevel: string) ->
+
+        let version: string =
+            Path.GetFileNameWithoutExtension(topLevel).Substring("fantomas.".Length)
+
+        use archive: Compression.ZipArchive = Compression.ZipFile.OpenRead topLevel
+        use settings: Stream =
+            archive.GetEntry("tools/any/any/DotnetToolSettings.xml").Open()
+
+        let missing: string list =
+            Xml.Linq.XDocument.Load(settings).Descendants(Xml.Linq.XName.Get "RuntimeIdentifierPackage")
+            |> Seq.map (fun (package: Xml.Linq.XElement) ->
+                let id: string = package.Attribute(Xml.Linq.XName.Get "Id").Value
+                $"{id}.{version}.nupkg"
+            )
+            |> Seq.filter (fun (fileName: string) -> not (File.Exists(packagesDir </> fileName)))
+            |> Seq.toList
+
+        if List.isEmpty missing then
+            return 0
+        else
+
+        printfn $"The fantomas package names packages that are not in {packagesDir}:"
+
+        for fileName in missing do
+            printfn $"  {fileName}"
+
+        if not isDryRun then
+            return 1
+        else
+
+        printfn "[DRY-RUN] A release would stop here."
+        return 0
+    }
+
+// Packs the tool compiled with Native AOT for the platform this runs on, for a platform the runner of
+// the release cannot compile for. The release workflow runs it in an Alpine container for
+// `fantomas.linux-musl-x64`, and hands the package to the `Release` pipeline through
+// `nativeToolPackagesDir`.
+pipeline "PackNativeTool" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Clean" { run (cleanFolders [| packagesDir; artifactsDir </> "publish" </> "Fantomas" |]) }
+    stage "Pack" {
+        run $"dotnet pack src/Fantomas/Fantomas.fsproj -c Release -r {aotRuntimeIdentifier} -p:FantomasAot=true"
+    }
+    runIfOnlySpecified true
+}
+
 pipeline "Release" {
     workingDir __SOURCE_DIRECTORY__
     // The release pushes every package it finds in the packages folder, so one an earlier pack left
@@ -731,13 +814,16 @@ pipeline "Release" {
     // The tool again, as a `fantomas` package that only names the platform packages, which takes the
     // place of the one the pack above wrote. `fantomas.linux-x64` holds the executable Native AOT
     // compiled, and AOT only compiles for the machine it runs on, which is why the release runs on
-    // Linux. `fantomas.any` is the tool as it shipped before, for every other platform. A pack takes
-    // all of the publish folder, so a file an earlier publish left there would ship too.
+    // Linux. `fantomas.linux-musl-x64` comes from the `PackNativeTool` pipeline in an Alpine
+    // container. `fantomas.any` is the tool as it shipped before, for every other platform. A pack
+    // takes all of the publish folder, so a file an earlier publish left there would ship too.
     // https://github.com/fsprojects/fantomas/issues/3171
     stage "PackTool" {
         run (cleanFolders [| artifactsDir </> "publish" </> "Fantomas" |])
         run "dotnet pack src/Fantomas/Fantomas.fsproj -c Release -p:FantomasAot=true"
         run "dotnet pack src/Fantomas/Fantomas.fsproj -c Release -r any -p:FantomasAot=true"
+        run copyNativeToolPackages
+        run checkToolPackages
     }
     stage "Release" {
         run (fun ctx ->
@@ -855,29 +941,6 @@ pipeline "Release" {
                         printfn $"Warning: GitHub release creation returned exit code: %i{draftExitCode}"
 
                     return draftExitCode
-            }
-        )
-    }
-    runIfOnlySpecified true
-}
-
-pipeline "PublishAlpha" {
-    workingDir __SOURCE_DIRECTORY__
-    stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
-    stage "Build" { run "dotnet build -c Release --tl" }
-    stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
-    stage "Publish" {
-        run (fun ctx ->
-            async {
-                let nugetPackages =
-                    Directory.EnumerateFiles(packagesDir, "*.nupkg", SearchOption.TopDirectoryOnly)
-                    |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
-                    |> Seq.toArray
-
-                let! nugetExitCodes =
-                    nugetPackages |> Array.map (pushPackage ctx) |> Async.Sequential
-
-                return Array.sum nugetExitCodes
             }
         )
     }

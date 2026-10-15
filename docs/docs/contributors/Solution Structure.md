@@ -18,8 +18,12 @@ graph TD
     B --> E[Fantomas.Core.Tests]
     B --> I[Fantomas.Core.SnapshotTests]
     J --> I
+    B --> K[Fantomas.Core.AotSmokeTest]
     C --> F[Fantomas.Tests]
     G[Fantomas.Client] --> H[Fantomas.Client.Tests]
+    G --> L[Fantomas.Daemon.Contract]
+    L --> C
+    G --> C
 ```
 
 ## Fantomas.FCS
@@ -48,6 +52,13 @@ its own so that the snapshot cases read their settings with the same code as the
 a package: it ships inside the `fantomas` tool. Finding the `.editorconfig` files that apply to a
 file stays in `Fantomas`.
 
+## Fantomas.Daemon.Contract
+
+The methods the daemon answers, as a C# interface, `IFantomasDaemon`. It is C# for PolyType's source
+generator alone, which describes those methods at compile time so the daemon runs under Native AOT.
+It is not a package: it ships inside the `fantomas` tool. [Native AOT](./Native%20AOT.html) has
+more.
+
 ## Fantomas.Benchmarks
 
 A [BenchmarkDotNet](https://benchmarkdotnet.org/articles/overview.html) project used to measure the performance of the core library.
@@ -69,6 +80,12 @@ formatting gives for it. Its README says how to write a case.
 
 Unit tests of the internals of `Fantomas.Core`, and of what a snapshot case cannot show, such as
 formatting a syntax tree without its source.
+
+## Fantomas.Core.AotSmokeTest
+
+A console application that calls the public API of `Fantomas.Core` the way a consumer such as
+fantomas-tools does. The `TestAot` pipeline publishes it with Native AOT and runs it, which is how a
+part of the library that fails under Native AOT shows up before a consumer finds it.
 
 ## Fantomas.Tests
 

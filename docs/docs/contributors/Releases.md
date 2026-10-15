@@ -5,7 +5,7 @@ index: 17
 ---
 # Releases
 
-Releases in Fantomas are automated via GitHub Actions. When a new release entry is added to the [CHANGELOG.md](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md) and pushed to the `main` branch, the release workflow will automatically:
+Releases in Fantomas are automated via GitHub Actions. When a new release entry is added to the [CHANGELOG.md](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md) and pushed to the `main` branch, or to the branch of the next major version (such as `v9.0`, listed in `.github/workflows/release.yml`), the release workflow will automatically:
 
 1. Build and test the project
 2. Create NuGet packages
@@ -28,7 +28,7 @@ For prerelease versions, include the prerelease suffix:
 
 Verify that all recent PRs and closed issues are listed in the changelog. Normally, this should be ok as we require a changelog entry before we merge a PR.
 
-Once the changelog entry is merged into `main`, the release workflow will automatically trigger and handle the release process.
+Once the changelog entry is merged into `main`, or into the branch of the next major, the release workflow will automatically trigger and handle the release process.
 
 ## Testing Releases Locally
 
@@ -51,7 +51,7 @@ The release pipeline (`build.fsx -p Release`) performs the following steps:
 1. **Parses the changelog** to find the current and last release
 2. **Checks if the release already exists** on GitHub (skips if already published)
 3. **Builds and tests** the project
-4. **Creates NuGet packages** for all projects (except `Fantomas.Client`). The tool is three packages: `fantomas`, which only names the other two, `fantomas.linux-x64`, which holds an executable compiled with Native AOT, and `fantomas.any`, the portable tool every other platform installs. Native AOT only compiles for the machine it runs on, which is why the release runs on Linux. [Native AOT](./Native%20AOT.html) has the details.
+4. **Creates NuGet packages** for all projects (except `Fantomas.Client`). The tool is four packages: `fantomas`, which only names the other three, `fantomas.linux-x64` and `fantomas.linux-musl-x64`, which hold an executable compiled with Native AOT for glibc and for musl, and `fantomas.any`, the portable tool every other platform installs. Native AOT only compiles for the machine it runs on, which is why the release runs on Linux, and packs the musl package in an Alpine container first. [Native AOT](./Native%20AOT.html) has the details.
 5. **Publishes packages to NuGet**
 6. **Generates release notes** including:
    - Changelog sections (Added, Changed, Fixed, etc.)

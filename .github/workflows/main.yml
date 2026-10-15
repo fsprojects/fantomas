@@ -60,13 +60,14 @@ jobs:
       run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
 
   # Publishes the tool with Native AOT and runs its tests against that build. AOT compiles for the
-  # machine it runs on, which is why every operating system gets a run of its own.
+  # machine it runs on, which is why every operating system gets a run of its own. Linux runs on the
+  # Ubuntu the release builds on, so the tests run the executable that ships.
   aot:
     name: Native AOT
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-22.04, windows-latest, macOS-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7.0.1
@@ -75,6 +76,26 @@ jobs:
         with:
           cache: true
           cache-dependency-path: Directory.Packages.props
+      - name: Init
+        run: dotnet fsi build.fsx -p Init
+      - name: Test against Native AOT
+        run: dotnet fsi build.fsx -p TestAot
+
+  # The same on Alpine, whose C library is musl rather than glibc, for `fantomas.linux-musl-x64`.
+  aot-musl:
+    name: Native AOT (Alpine)
+    runs-on: ubuntu-latest
+    container: alpine:3.22
+    steps:
+      - name: Install what .NET and Native AOT need
+        run: apk add --no-cache bash curl git icu-libs krb5-libs libgcc libintl libssl3 libstdc++ zlib clang build-base zlib-dev
+      - uses: actions/checkout@v7.0.1
+      - name: Trust the checkout
+        # The container runs as root and the checkout belongs to the runner's user, and git refuses
+        # a repository someone else owns. The build reads the commit from it.
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v6
       - name: Init
         run: dotnet fsi build.fsx -p Init
       - name: Test against Native AOT
