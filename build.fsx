@@ -457,7 +457,7 @@ let aotNativeIntermediates: string =
     </> "artifacts"
     </> "obj"
     </> "Fantomas"
-    </> $"release_{aotRuntimeIdentifier}"
+    </> $"release_%s{aotRuntimeIdentifier}"
     </> "native"
 
 let aotWarningsLog: string =
@@ -465,7 +465,7 @@ let aotWarningsLog: string =
     </> "artifacts"
     </> "publish"
     </> "aot"
-    </> $"{aotRuntimeIdentifier}.warnings.log"
+    </> $"%s{aotRuntimeIdentifier}.warnings.log"
 
 // The same three for Fantomas.Core.AotSmokeTest, which calls the library the way fantomas-tools does.
 let aotSmokeTestExecutable: string =
@@ -486,7 +486,7 @@ let aotSmokeTestNativeIntermediates: string =
     </> "artifacts"
     </> "obj"
     </> "Fantomas.Core.AotSmokeTest"
-    </> $"release_{aotRuntimeIdentifier}"
+    </> $"release_%s{aotRuntimeIdentifier}"
     </> "native"
 
 let aotSmokeTestWarningsLog: string =
@@ -494,7 +494,7 @@ let aotSmokeTestWarningsLog: string =
     </> "artifacts"
     </> "publish"
     </> "aotsmoketest"
-    </> $"{aotRuntimeIdentifier}.warnings.log"
+    </> $"%s{aotRuntimeIdentifier}.warnings.log"
 
 /// The trim and Native AOT warnings a publish of the tool or of Fantomas.Core.AotSmokeTest is known to give,
 /// each with the reason it can stay: the code, a piece of the message that places it, and why.
@@ -540,7 +540,7 @@ let checkAotWarnings (log: string) (_: StageContext) : Async<int> =
                         knownCode = code && message.Contains(place, StringComparison.Ordinal)
                     )
 
-                if isKnown then None else Some $"{code}: {message}"
+                if isKnown then None else Some $"%s{code}: %s{message}"
             )
             |> Array.distinct
             |> Array.toList
@@ -549,12 +549,12 @@ let checkAotWarnings (log: string) (_: StageContext) : Async<int> =
             return 0
         else
 
-        printfn "The Native AOT publish gave warnings that are not in knownAotWarnings in build.fsx:"
+        Console.WriteLine "The Native AOT publish gave warnings that are not in knownAotWarnings in build.fsx:"
 
         for line in unknown do
-            printfn $"  {line}"
+            printfn $"  %s{line}"
 
-        printfn
+        Console.WriteLine
             "Read each one: a warning is code the AOT compiler could not prove works. Fix it, or add it there with the reason it can stay."
         return 1
     }
@@ -581,7 +581,7 @@ pipeline "TestAot" {
     stage "Clean" { run (cleanFolders [| aotNativeIntermediates; aotSmokeTestNativeIntermediates |]) }
     stage "Publish" {
         run
-            $"dotnet publish src/Fantomas/Fantomas.fsproj -c Release -r {aotRuntimeIdentifier} -p:FantomasAot=true -o \"{Path.GetDirectoryName aotExecutable}\" -flp:WarningsOnly;LogFile=\"{aotWarningsLog}\" --tl"
+            $"dotnet publish src/Fantomas/Fantomas.fsproj -c Release -r %s{aotRuntimeIdentifier} -p:FantomasAot=true -o \"%s{Path.GetDirectoryName aotExecutable}\" -flp:WarningsOnly;LogFile=\"%s{aotWarningsLog}\" --tl"
     }
     stage "Warnings" { run (checkAotWarnings aotWarningsLog) }
     stage "Test" {
@@ -590,7 +590,7 @@ pipeline "TestAot" {
     }
     stage "PublishSmokeTest" {
         run
-            $"dotnet publish src/Fantomas.Core.AotSmokeTest/Fantomas.Core.AotSmokeTest.fsproj -c Release -r {aotRuntimeIdentifier} -p:FantomasAot=true -o \"{Path.GetDirectoryName aotSmokeTestExecutable}\" -flp:WarningsOnly;LogFile=\"{aotSmokeTestWarningsLog}\" --tl"
+            $"dotnet publish src/Fantomas.Core.AotSmokeTest/Fantomas.Core.AotSmokeTest.fsproj -c Release -r %s{aotRuntimeIdentifier} -p:FantomasAot=true -o \"%s{Path.GetDirectoryName aotSmokeTestExecutable}\" -flp:WarningsOnly;LogFile=\"%s{aotSmokeTestWarningsLog}\" --tl"
     }
     stage "SmokeTestWarnings" { run (checkAotWarnings aotSmokeTestWarningsLog) }
     stage "SmokeTest" { run (runExecutable aotSmokeTestExecutable) }
@@ -730,30 +730,31 @@ let copyNativeToolPackages (_: StageContext) : Async<int> =
     async {
         if Directory.Exists nativeToolPackagesDir then
             for nupkg: string in Directory.EnumerateFiles(nativeToolPackagesDir, "*.nupkg") do
-                printfn $"Copying {Path.GetFileName nupkg} from {nativeToolPackagesDir}"
+                printfn $"Copying %s{Path.GetFileName nupkg} from %s{nativeToolPackagesDir}"
                 File.Copy(nupkg, packagesDir </> Path.GetFileName nupkg, true)
 
         return 0
     }
+
+/// Whether the path is the `fantomas.<version>.nupkg` that names the platform packages, and not one
+/// of the platform packages or `Fantomas.Core`, which `fantomas.*.nupkg` also finds where file names
+/// are not case sensitive.
+let isTopLevelToolPackage (path: string) : bool =
+    let name: string = Path.GetFileName path
+    name.StartsWith("fantomas.", StringComparison.Ordinal)
+    && Char.IsDigit name.["fantomas.".Length]
 
 /// Fails when the `fantomas` package names a platform package that the packages folder does not
 /// hold. Pushed without it, `dotnet tool install fantomas` fails on that platform. A dry run on a
 /// machine of its own has no packages from the other runners, so there it is a warning.
 let checkToolPackages (_: StageContext) : Async<int> =
     async {
-        // `fantomas.<version>.nupkg`, and not one of the platform packages or `Fantomas.Core`, which
-        // the pattern also finds where file names are not case sensitive.
-        let isTopLevel (path: string) : bool =
-            let name: string = Path.GetFileName path
-            name.StartsWith("fantomas.", StringComparison.Ordinal)
-            && Char.IsDigit name.["fantomas.".Length]
-
         match
             Directory.EnumerateFiles(packagesDir, "fantomas.*.nupkg")
-            |> Seq.tryFind isTopLevel
+            |> Seq.tryFind isTopLevelToolPackage
         with
         | None ->
-            printfn $"There is no fantomas package in {packagesDir}."
+            printfn $"There is no fantomas package in %s{packagesDir}."
             return 1
         | Some(topLevel: string) ->
 
@@ -766,27 +767,30 @@ let checkToolPackages (_: StageContext) : Async<int> =
 
         let missing: string list =
             Xml.Linq.XDocument.Load(settings).Descendants(Xml.Linq.XName.Get "RuntimeIdentifierPackage")
-            |> Seq.map (fun (package: Xml.Linq.XElement) ->
+            |> Seq.choose (fun (package: Xml.Linq.XElement) ->
                 let id: string = package.Attribute(Xml.Linq.XName.Get "Id").Value
-                $"{id}.{version}.nupkg"
+                let fileName: string = $"%s{id}.%s{version}.nupkg"
+                if File.Exists(packagesDir </> fileName) then
+                    None
+                else
+                    Some fileName
             )
-            |> Seq.filter (fun (fileName: string) -> not (File.Exists(packagesDir </> fileName)))
             |> Seq.toList
 
         if List.isEmpty missing then
             return 0
         else
 
-        printfn $"The fantomas package names packages that are not in {packagesDir}:"
+        printfn $"The fantomas package names packages that are not in %s{packagesDir}:"
 
         for fileName in missing do
-            printfn $"  {fileName}"
+            printfn $"  %s{fileName}"
 
         if not isDryRun then
             return 1
         else
 
-        printfn "[DRY-RUN] A release would stop here."
+        Console.WriteLine "[DRY-RUN] A release would stop here."
         return 0
     }
 
@@ -798,7 +802,7 @@ pipeline "PackNativeTool" {
     workingDir __SOURCE_DIRECTORY__
     stage "Clean" { run (cleanFolders [| packagesDir; artifactsDir </> "publish" </> "Fantomas" |]) }
     stage "Pack" {
-        run $"dotnet pack src/Fantomas/Fantomas.fsproj -c Release -r {aotRuntimeIdentifier} -p:FantomasAot=true"
+        run $"dotnet pack src/Fantomas/Fantomas.fsproj -c Release -r %s{aotRuntimeIdentifier} -p:FantomasAot=true"
     }
     runIfOnlySpecified true
 }
@@ -849,10 +853,12 @@ pipeline "Release" {
                     if isPrerelease then
                         printfn $"Detected prerelease version: %s{currentRelease.Version}"
 
-                    // Push packages to NuGet
+                    // Push packages to NuGet. `fantomas` goes last: `dotnet tool install fantomas`
+                    // fails on a platform whose package it names but NuGet does not have yet.
                     let nugetPackages =
                         Directory.EnumerateFiles(packagesDir, "*.nupkg", SearchOption.TopDirectoryOnly)
                         |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
+                        |> Seq.sortBy isTopLevelToolPackage
                         |> Seq.toArray
 
                     printfn $"Found %i{nugetPackages.Length} packages to push to NuGet:"
@@ -952,6 +958,7 @@ pipeline "Analyze" {
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "RestoreSolution" { run "dotnet restore --tl" }
     stage "BuildAnalyzers" { run buildLocalAnalyzers }
+    stage "BuildCSharpProjects" { run buildCSharpProjects }
     stage "Analyze" {
         // fsharp-analyzers targets the previous runtime and loads MSBuild from the SDK that
         // global.json picks. The host never rolls a release app onto a prerelease runtime while
@@ -982,6 +989,7 @@ pipeline "AnalyzeChanged" {
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "RestoreSolution" { run "dotnet restore --tl" }
     stage "BuildAnalyzers" { run buildLocalAnalyzers }
+    stage "BuildCSharpProjects" { run buildCSharpProjects }
 
     stage "Analyze" {
         // fsharp-analyzers targets the previous runtime and loads MSBuild from the SDK that
