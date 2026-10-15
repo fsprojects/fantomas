@@ -13,7 +13,9 @@ env:
 
 jobs:
   release:
-    runs-on: windows-latest
+    # Native AOT only compiles for the machine it runs on, so the tool's native package is the one
+    # for Linux. The other platforms get the portable package until each has a runner of its own.
+    runs-on: ubuntu-latest
     environment: release
     permissions:
       id-token: write
