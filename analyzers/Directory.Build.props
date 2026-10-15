@@ -10,7 +10,7 @@
     <PropertyGroup>
         <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
         <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
-        <WarningsAsErrors>FS0025;FS1182</WarningsAsErrors>
+        <WarningsAsErrors>FS0025;FS1182;FS3520</WarningsAsErrors>
         <WarnOn>1182;3390;1178;$(WarnOn)</WarnOn>
     </PropertyGroup>
 </Project>

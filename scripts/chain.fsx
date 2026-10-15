@@ -1,5 +1,6 @@
 #load "shared.fsx"
 
+open System
 open System.IO
 open Fantomas.Core
 open Fantomas.Core.SyntaxOak
@@ -17,11 +18,11 @@ let rec exprName (e: Expr) : string =
             | _ -> None
         )
         |> String.concat "."
-    | Expr.TypeApp n -> $"{exprName n.Identifier}<...>"
+    | Expr.TypeApp n -> $"%s{exprName n.Identifier}<...>"
     | _ -> e.GetType().Name
 
 let printChain (chain: ExprChain) =
-    printfn "Chain:"
+    Console.WriteLine "Chain:"
     printfn "  Head    : %s" (exprName chain.Head)
 
     printfn "  Segments: %d" chain.Segments.Length
@@ -85,7 +86,7 @@ match Array.tryHead fsi.CommandLineArgs with
         let chains = collectChains oak
 
         if chains.IsEmpty then
-            printfn "No chain expression found in input."
+            Console.WriteLine "No chain expression found in input."
         else
 
         printfn "Found %d chain(s):\n" chains.Length
@@ -94,8 +95,8 @@ match Array.tryHead fsi.CommandLineArgs with
         |> List.iteri (fun i chain ->
             printfn "--- Chain #%d ---" (i + 1)
             printChain chain
-            printfn ""
+            Console.WriteLine()
         )
 | _ ->
-    printfn "Usage: dotnet fsi chain.fsx [--signature] [<input file>]"
-    printfn "       source code is read from stdin when no input file is given"
+    Console.WriteLine "Usage: dotnet fsi chain.fsx [--signature] [<input file>]"
+    Console.WriteLine "       source code is read from stdin when no input file is given"

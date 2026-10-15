@@ -29,7 +29,7 @@ let isDryRun: bool =
 let pushPackage (ctx: StageContext) (nupkg: string) : Async<int> =
     async {
         if isDryRun then
-            printfn $"[DRY-RUN] Would push package: {nupkg}"
+            printfn $"[DRY-RUN] Would push package: %s{nupkg}"
             return 0
         else
             let key: string = Environment.GetEnvironmentVariable "NUGET_KEY"
@@ -58,9 +58,9 @@ type GithubRelease =
 
 let formatVersion (v: SemanticVersion) : string =
     if String.IsNullOrEmpty v.Prerelease then
-        $"{v.Major}.{v.Minor}.{v.Patch}"
+        $"%i{v.Major.GetValueOrDefault()}.%i{v.Minor.GetValueOrDefault()}.%i{v.Patch.GetValueOrDefault()}"
     else
-        $"{v.Major}.{v.Minor}.{v.Patch}-{v.Prerelease}"
+        $"%i{v.Major.GetValueOrDefault()}.%i{v.Minor.GetValueOrDefault()}.%i{v.Patch.GetValueOrDefault()}-%s{v.Prerelease}"
 
 /// Releases are ordered on their version and not on their date. A hotfix for an older major is
 /// released from its own branch, so it can enter the changelog with a date that is newer than
@@ -81,23 +81,23 @@ let versionSortKey (v: SemanticVersion) : int * int * int * int * string =
 /// to NuGet by hand, like 7.0.6.
 let getPublishedDate (ctx: StageContext) (version: string) : Async<string option> =
     async {
-        let prefixedVersion: string = $"v{version}"
-        printfn $"Checking if release {prefixedVersion} already exists on GitHub..."
+        let prefixedVersion: string = $"v%s{version}"
+        printfn $"Checking if release %s{prefixedVersion} already exists on GitHub..."
 
         let! cmdResult =
             ctx.RunCommandCaptureAll(
-                $"gh release view {prefixedVersion} --json publishedAt -t \"{{{{.publishedAt}}}}\"",
+                $"gh release view %s{prefixedVersion} --json publishedAt -t \"{{{{.publishedAt}}}}\"",
                 disablePrintOutput = true
             )
 
         if cmdResult.ExitCode <> 0 then
-            printfn $"Release {prefixedVersion} does not exist yet"
+            printfn $"Release %s{prefixedVersion} does not exist yet"
             return None
         else
             let output: string = cmdResult.StandardOutput.Trim()
             let lastIdx: int = output.LastIndexOf("Z", StringComparison.Ordinal)
             let dateStr: string = output.Substring(0, lastIdx)
-            printfn $"Release {prefixedVersion} already exists, published at: {dateStr}"
+            printfn $"Release %s{prefixedVersion} already exists, published at: %s{dateStr}"
             return Some dateStr
     }
 
@@ -113,12 +113,12 @@ let mkGithubRelease
     async {
         let version = formatVersion v
 
-        printfn $"Parsing release version: {version} (prerelease: {not (String.IsNullOrEmpty v.Prerelease)})"
+        printfn $"Parsing release version: %s{version} (prerelease: %b{not (String.IsNullOrEmpty v.Prerelease)})"
 
         let title =
             let month = d.ToString("MMMM")
             let day = d.Day.Ordinalize()
-            $"{month} {day} Release"
+            $"%s{month} %s{day} Release"
 
         let! publishDate = getPublishedDate ctx version
 
@@ -149,9 +149,9 @@ let mkGithubRelease
             |> String.concat "\n\n"
 
         let draft =
-            $"""# {version}
+            $"""# %s{version}
 
-{sections}"""
+%s{sections}"""
 
         return
             {
@@ -169,14 +169,14 @@ let mkGithubRelease
 /// widening it: a release with no contributors named is better than one that fails to be cut.
 let private mostRecentReleaseDate (ctx: StageContext) : Async<string> =
     async {
-        printfn "No earlier changelog entry is on GitHub, querying GitHub for most recent release..."
+        Console.WriteLine "No earlier changelog entry is on GitHub, querying GitHub for most recent release..."
 
         let! result =
             ctx.RunCommandCaptureAll("gh release list --limit 1 --json createdAt", disablePrintOutput = true)
 
         if result.ExitCode <> 0 || String.IsNullOrWhiteSpace(result.StandardOutput.Trim()) then
             let fallbackDate: string = DateTime.UtcNow.ToString "yyyy-MM-dd"
-            printfn $"Could not query GitHub releases, using current date: {fallbackDate}"
+            printfn $"Could not query GitHub releases, using current date: %s{fallbackDate}"
             return fallbackDate
         else
 
@@ -186,7 +186,7 @@ let private mostRecentReleaseDate (ctx: StageContext) : Async<string> =
             match Array.tryHead releases |> Option.bind (fun r -> r.TryGetProperty "createdAt") with
             | None ->
                 let fallbackDate: string = DateTime.UtcNow.ToString "yyyy-MM-dd"
-                printfn $"No GitHub release with a createdAt, using current date: {fallbackDate}"
+                printfn $"No GitHub release with a createdAt, using current date: %s{fallbackDate}"
                 return fallbackDate
             | Some createdAtJson ->
                 // Parse ISO 8601 date and convert back to string format for the query
@@ -196,7 +196,7 @@ let private mostRecentReleaseDate (ctx: StageContext) : Async<string> =
                         .ToUniversalTime()
 
                 let ghDate: string = dateTime.ToString("yyyy-MM-ddTHH:mm:ss")
-                printfn $"Using most recent GitHub release date for author attribution: {ghDate}"
+                printfn $"Using most recent GitHub release date for author attribution: %s{ghDate}"
                 return ghDate
     }
 
@@ -237,20 +237,20 @@ let getReleaseNotes
             | None -> mostRecentReleaseDate ctx
             | Some d ->
 
-            printfn $"Using last release published date for author attribution: {d}"
+            printfn $"Using last release published date for author attribution: %s{d}"
             async.Return d
 
-        printfn $"Querying PRs into {source.Branch} closed after {date} for author attribution..."
+        printfn $"Querying PRs into %s{source.Branch} closed after %s{date} for author attribution..."
 
         let! queryResult =
             ctx.RunCommandCaptureAll(
-                $"gh pr list -S \"state:closed base:{source.Branch} closed:>{date}\" --json commits,mergedAt",
+                $"gh pr list -S \"state:closed base:%s{source.Branch} closed:>%s{date}\" --json commits,mergedAt",
                 disablePrintOutput = true
             )
 
         let authorMsg =
             if queryResult.ExitCode <> 0 then
-                printfn $"Warning: Failed to query PRs for author attribution (exit code: {queryResult.ExitCode})"
+                printfn $"Warning: Failed to query PRs for author attribution (exit code: %i{queryResult.ExitCode})"
                 String.Empty
             else
                 let jsonOutput = queryResult.StandardOutput.Trim()
@@ -263,7 +263,7 @@ let getReleaseNotes
                 let cutoffTimestamp =
                     DateTime.Parse(date, null, System.Globalization.DateTimeStyles.RoundtripKind).ToUniversalTime()
 
-                printfn $"Filtering PRs merged after: {cutoffTimestamp:O}"
+                printfn "Filtering PRs merged after: %s" (cutoffTimestamp.ToString "O")
 
                 let authors =
                     prs
@@ -316,7 +316,7 @@ let getReleaseNotes
                     |> Array.distinct
                     |> Array.sort
 
-                printfn $"Found {authors.Length} contributors for this release"
+                printfn $"Found %i{authors.Length} contributors for this release"
 
                 if authors.Length = 0 then
                     String.Empty
@@ -328,7 +328,7 @@ let getReleaseNotes
 
                 let otherAuthors: string =
                     if authors.Length = 2 then
-                        $"@{authors.[0]}"
+                        $"@%s{authors.[0]}"
                     else
 
                     authors
@@ -339,11 +339,11 @@ let getReleaseNotes
                 $"Special thanks to %s{otherAuthors} and @%s{lastAuthor}!"
 
         return
-            $"""{currentRelease.Draft}
+            $"""%s{currentRelease.Draft}
 
-{authorMsg}
+%s{authorMsg}
 
-[https://www.nuget.org/packages/fantomas/{currentRelease.Version}](https://www.nuget.org/packages/fantomas/{currentRelease.Version})
+[https://www.nuget.org/packages/fantomas/%s{currentRelease.Version}](https://www.nuget.org/packages/fantomas/%s{currentRelease.Version})
     """
     }
 
@@ -365,7 +365,7 @@ let rec private firstPublished (ctx: StageContext) (versions: string list) : Asy
 
 let getCurrentReleaseAndLastPublishedDate (ctx: StageContext) : Async<GithubRelease * string option> =
     async {
-        printfn "Parsing CHANGELOG.md to find current and last release..."
+        Console.WriteLine "Parsing CHANGELOG.md to find current and last release..."
         let changelog = FileInfo(repositoryRoot </> "CHANGELOG.md")
 
         let changeLogResult =
@@ -373,7 +373,7 @@ let getCurrentReleaseAndLastPublishedDate (ctx: StageContext) : Async<GithubRele
             | Error error -> failwithf "Failed to parse changelog: %A" error
             | Ok result ->
 
-            printfn $"Found {result.Releases.Length} releases in changelog"
+            printfn $"Found %i{result.Releases.Length} releases in changelog"
             result
 
         let releases =
@@ -385,7 +385,7 @@ let getCurrentReleaseAndLastPublishedDate (ctx: StageContext) : Async<GithubRele
         | current :: earlierReleases ->
 
         let! currentRelease = mkGithubRelease ctx current
-        printfn $"Current release: {currentRelease.Version}"
+        printfn $"Current release: %s{currentRelease.Version}"
 
         // The release below the current one does not have to exist on GitHub: 7.0.6 went to
         // NuGet by hand from the v7.0.6 branch and never got a GitHub release. Walk down the
@@ -399,8 +399,8 @@ let getCurrentReleaseAndLastPublishedDate (ctx: StageContext) : Async<GithubRele
             |> firstPublished ctx
 
         match lastPublishedRelease with
-        | None -> printfn "None of the recent changelog entries has a GitHub release"
-        | Some(version, date) -> printfn $"Last release on GitHub: {version}, published at {date}"
+        | None -> Console.WriteLine "None of the recent changelog entries has a GitHub release"
+        | Some(version, date) -> printfn $"Last release on GitHub: %s{version}, published at %s{date}"
 
         return currentRelease, Option.map snd lastPublishedRelease
     }

@@ -11,7 +11,7 @@ open Fun.Build.Internal
 // look like a success while doing no work at all. Say so instead.
 if Path.GetFileName(fsi.CommandLineArgs[0]) = Path.GetFileName __SOURCE_FILE__ then
     eprintfn "%s is loaded by build.fsx and is not meant to be run on its own." (Path.GetFileName __SOURCE_FILE__)
-    eprintfn "Run a pipeline instead, for example: dotnet fsi build.fsx -- -p Build"
+    Console.Error.WriteLine "Run a pipeline instead, for example: dotnet fsi build.fsx -- -p Build"
     exit 1
 
 // What every part of the build agrees on: where things are, how to run a process, and what the
@@ -69,7 +69,7 @@ let runGitCommand (ctx: StageContext) (arguments: string) : Async<int * string *
     async {
         let! result =
             ctx.RunCommandCaptureAll(
-                $"git {arguments}",
+                $"git %s{arguments}",
                 workingDir = repositoryRoot,
                 disablePrintCommand = true,
                 disablePrintOutput = true
@@ -82,7 +82,7 @@ let runGitCommand (ctx: StageContext) (arguments: string) : Async<int * string *
 ///
 /// Fun.Build takes a command as one string and splits it back apart on whitespace, unless quotes
 /// say otherwise.
-let quoteArgument (argument: string) : string = $"\"{argument}\""
+let quoteArgument (argument: string) : string = $"\"%s{argument}\""
 
 /// The files git reports as changed in the working tree, as paths relative to the repository root.
 ///
@@ -99,7 +99,7 @@ let changedFiles (ctx: StageContext) : Async<string list> =
             runGitCommand ctx "status --porcelain --untracked-files=all"
 
         if exitCode <> 0 then
-            failwith $"Could not read the git status.\n{stdErr}"
+            failwith $"Could not read the git status.\n%s{stdErr}"
 
         return
             stdout.Split('\n')
@@ -154,7 +154,7 @@ let changedLines (ctx: StageContext) : Async<Map<string, ChangedLines>> =
             runGitCommand ctx "diff -U0 --src-prefix=a/ --dst-prefix=b/ HEAD --"
 
         if exitCode <> 0 then
-            failwith $"Could not read the git diff.\n{stdErr}"
+            failwith $"Could not read the git diff.\n%s{stdErr}"
 
         let hunk: Text.RegularExpressions.Regex =
             Text.RegularExpressions.Regex(@"^@@ -\S+ \+(?<start>\d+)(,(?<count>\d+))? @@")

@@ -1,5 +1,6 @@
 #load "shared.fsx"
 
+open System
 open System.IO
 open Fantomas.Core
 open Fantomas.Core.SnapshotTests
@@ -84,4 +85,6 @@ match Array.tryHead fsi.CommandLineArgs with
             stdout.Write formatted
             exit (if isClean then 0 else 1)
         | defines -> stdout.Write(formatCombination sample isSignature config defines)
-| _ -> printfn "Usage: dotnet fsi format.fsx [--signature] [--editorconfig <content>] [--define A,B] <input file>"
+| _ ->
+    Console.WriteLine
+        "Usage: dotnet fsi format.fsx [--signature] [--editorconfig <content>] [--define A,B] <input file>"

@@ -1,5 +1,6 @@
 #load "shared.fsx"
 
+open System
 open System.IO
 open Fantomas.Core
 open Fantomas.Core.SnapshotTests
@@ -52,4 +53,4 @@ match Array.tryHead fsi.CommandLineArgs with
     if scriptFile.FullName = sourceFile.FullName then
         let sample, isSignature, config, _ = parseArgs fsi.CommandLineArgs.[1..]
         listTrivia sample isSignature config |> printfn "%s"
-| _ -> printfn "Usage: dotnet fsi trivia.fsx [--signature] [--editorconfig <content>] <input file>"
+| _ -> Console.WriteLine "Usage: dotnet fsi trivia.fsx [--signature] [--editorconfig <content>] <input file>"
