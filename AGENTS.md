@@ -122,9 +122,6 @@ fifteen, and `Fantomas.Core`, the slowest, in about a minute. Run it before open
 and while working use `AnalyzeChanged`, which cannot see a finding your change causes in a file you
 did not edit.
 
-The scripts are a weaker check than the projects, for reasons that are all downstream of the typed
-tree a script gets. [analyzers/AGENTS.md](analyzers/AGENTS.md) has what that costs and why.
-
 Both pipelines analyze each project in its own process, so findings are printed per project as
 that project finishes rather than all at the end.
 

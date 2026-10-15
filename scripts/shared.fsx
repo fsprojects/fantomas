@@ -10,6 +10,7 @@
 
 #load "../src/Fantomas/EditorConfigFiles.fs"
 
+open System
 open System.IO
 open Fantomas.Core
 open Fantomas.EditorConfigFiles
@@ -92,8 +93,7 @@ let parseArgs (args: string array) =
     let positionalArgs =
         args
         |> Array.indexed
-        |> Array.filter (fun (i, _) -> not (Array.contains i flagIndices))
-        |> Array.map snd
+        |> Array.choose (fun (i, arg) -> if Array.contains i flagIndices then None else Some arg)
 
     match Array.tryLast positionalArgs with
     | Some path when File.Exists(path) ->
@@ -106,7 +106,9 @@ let parseArgs (args: string array) =
             else
                 Fantomas.Core.SnapshotTests.Case.configOf properties
 
-        let isSignature = hasSignatureFlag || path.EndsWith(".fsi")
+        let isSignature: bool =
+            hasSignatureFlag || path.EndsWith(".fsi", StringComparison.Ordinal)
+
         sample, isSignature, config, defines
     | Some path ->
         // Read stdin instead and a mistyped path waits for input, or formats nothing.

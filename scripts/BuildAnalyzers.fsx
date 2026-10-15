@@ -43,8 +43,14 @@ let projectsToAnalyze: string list =
         |> Seq.sumBy (fun file -> FileInfo(file).Length)
 
     XDocument.Load(repositoryRoot </> "fantomas.slnx").XPathSelectElements("//Project")
-    |> Seq.map (fun project -> project.Attribute(XName.Get "Path").Value.Replace('\\', '/'))
-    |> Seq.filter (fun path -> not (excluded.Contains(Path.GetFileNameWithoutExtension path)))
+    |> Seq.choose (fun project ->
+        let path: string = project.Attribute(XName.Get "Path").Value.Replace('\\', '/')
+
+        if excluded.Contains(Path.GetFileNameWithoutExtension path) then
+            None
+        else
+            Some path
+    )
     |> Seq.sortByDescending sourceSize
     |> Seq.toList
 
@@ -87,8 +93,7 @@ let analyzableScripts: string list =
 let targetsFor (files: string list) : AnalysisTarget list =
     let sources: string list =
         files
-        |> List.filter (hasExtension [ ".fs"; ".fsi" ])
-        |> List.filter (isSnapshotCase >> not)
+        |> List.filter (fun (file: string) -> hasExtension [ ".fs"; ".fsi" ] file && not (isSnapshotCase file))
 
     let projectFiles: string list = List.filter (hasExtension [ ".fsproj" ]) files
     let scripts: string list = List.filter (hasExtension [ ".fsx" ]) files
@@ -145,7 +150,7 @@ let analyzerPaths (ctx: StageContext) : Async<string list> =
     async {
         if not (File.Exists(localAnalyzerPath </> "Fantomas.Analyzers.dll")) then
             failwith
-                $"The local analyzers are not built. Expected an assembly in {localAnalyzerPath}.\nRun `dotnet build analyzers/Fantomas.Analyzers -c Release` first."
+                $"The local analyzers are not built. Expected an assembly in %s{localAnalyzerPath}.\nRun `dotnet build analyzers/Fantomas.Analyzers -c Release` first."
 
         let! result =
             ctx.RunCommandCaptureAll(
@@ -158,7 +163,7 @@ let analyzerPaths (ctx: StageContext) : Async<string list> =
             )
 
         if result.ExitCode <> 0 then
-            failwith $"Could not resolve the analyzer packages. Run `dotnet restore` first.\n{result.StandardError}"
+            failwith $"Could not resolve the analyzer packages. Run `dotnet restore` first.\n%s{result.StandardError}"
 
         let properties = JsonValue.Parse(result.StandardOutput).GetProperty("Properties")
 
@@ -167,9 +172,12 @@ let analyzerPaths (ctx: StageContext) : Async<string list> =
                 for property in properties.Properties() do
                     let name, value = property
 
-                    match value.AsString() with
-                    | "" -> failwith $"MSBuild has no value for {name}. Run `dotnet restore` first."
-                    | path -> path </> "analyzers" </> "dotnet" </> "fs"
+                    let path: string = value.AsString()
+
+                    if String.IsNullOrEmpty path then
+                        failwith $"MSBuild has no value for %s{name}. Run `dotnet restore` first."
+
+                    path </> "analyzers" </> "dotnet" </> "fs"
 
                 localAnalyzerPath
             ]
@@ -235,8 +243,12 @@ let withRules (rules: JsonValue array) (run: JsonValue) : JsonValue =
 let mergeSarifReports (reports: string list) (target: string) : unit =
     let documents =
         reports
-        |> List.filter File.Exists
-        |> List.map (fun report -> JsonValue.Parse(File.ReadAllText report))
+        |> List.choose (fun report ->
+            if File.Exists report then
+                Some(JsonValue.Parse(File.ReadAllText report))
+            else
+                None
+        )
 
     let runs =
         documents
@@ -537,35 +549,13 @@ let analyzeTargets
 
         let count: string = "target".ToQuantity targets.Length
 
-        printfn $"Analyzing {count}: {names}"
+        printfn $"Analyzing %s{count}: %s{names}"
 
         let analyzeTarget (target: AnalysisTarget) : Async<string * int> =
             async {
                 let name: string = targetName target
-                let report = analysisReportsDir </> $"{name}.sarif"
+                let report: string = analysisReportsDir </> $"%s{name}.sarif"
                 let started = DateTime.UtcNow
-
-                // Only the analyzers this repository owns are run over the scripts. Both packaged
-                // ones walk the typed tree, and the typed tree of a script is not one they survive:
-                // `Ionide.Analyzers` brings the run down with `error recovery at ...` on every
-                // script that loads `shared.fsx`. See
-                // https://github.com/ionide/FSharp.Analyzers.SDK/issues/332
-                let analyzers: string list =
-                    match target with
-                    | Project _ -> analyzers
-                    | Scripts _ -> [ localAnalyzerPath ]
-
-                // `FANTOMAS-OPENS-001` asks the compiler which opens the file resolves nothing
-                // through, and on a script that question goes wrong twice over. It brings the run
-                // down on anything that references `Fantomas.FCS`, because resolving the members of
-                // `System.ReadOnlySpan` needs an assembly the script never references. And where it
-                // does answer, it answers about a typed tree that is missing every top level bare
-                // expression, so the opens `build.fsx` uses only inside a `pipeline { }` read as
-                // unused. Same issue as above.
-                let excludedAnalyzers: string list =
-                    match target with
-                    | Project _ -> excludedAnalyzers
-                    | Scripts _ -> "UnusedOpensAnalyzer" :: excludedAnalyzers
 
                 let arguments: string list =
                     [
@@ -623,7 +613,7 @@ let analyzeTargets
 
                 let! result =
                     ctx.RunCommandCaptureAll(
-                        $"dotnet fsharp-analyzers {command}",
+                        $"dotnet fsharp-analyzers %s{command}",
                         workingDir = repositoryRoot,
                         disablePrintCommand = true,
                         disablePrintOutput = true
@@ -647,7 +637,7 @@ let analyzeTargets
                     if result.ExitCode = 0 then
                         counted
                     else
-                        $"{counted}, exit code {result.ExitCode}"
+                        $"%s{counted}, exit code %i{result.ExitCode}"
 
                 // A whole project says nothing about its scope. Anything else names how many
                 // files it was asked about, which for the scripts is always some of them.
@@ -655,9 +645,9 @@ let analyzeTargets
                     match target with
                     | Project(_, []) -> ""
                     | Scripts files
-                    | Project(_, files) -> $""" ({"file".ToQuantity files.Length})"""
+                    | Project(_, files) -> $""" (%s{"file".ToQuantity files.Length})"""
 
-                printfn $"\n=== {name}{scope}: {summary} in {elapsed.TotalSeconds:F1}s"
+                printfn $"\n=== %s{name}%s{scope}: %s{summary} in %.1f{elapsed.TotalSeconds}s"
                 printf "%s" (narrowOutput keep result.StandardOutput)
                 eprintf "%s" result.StandardError
 

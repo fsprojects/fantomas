@@ -84,17 +84,34 @@ let runnableDocScripts () : string list =
     |> runnableIn
 
 /// Compile one script and stop short of running it, reporting whatever the compiler said.
+///
+/// The script is compiled through a one line script that `#load`s it, rather than handed to `fsi`
+/// directly, and that is for FS3520, a `///` that documents nothing. `fsi` parses the script it is
+/// given the way it parses what is typed at its prompt, and that parse never looks for a misplaced
+/// doc comment, so the script itself goes unchecked while every file it `#load`s is checked. Going
+/// through `#load` checks the script like the rest. FS3520 is informational, which no build prints,
+/// so `--warnaserror+:3520` makes it fail the check, as `WarningsAsErrors` does in the projects.
+/// `fsi` stops at the first one.
 let private typecheckScript (ctx: StageContext) (script: string) : Async<string * int * string> =
     async {
-        let! result =
-            ctx.RunCommandCaptureAll(
-                $"dotnet fsi --typecheck-only --nologo {quoteArgument script}",
-                workingDir = repositoryRoot,
-                disablePrintCommand = true,
-                disablePrintOutput = true
-            )
+        let loader: string =
+            Path.Combine(Path.GetTempPath(), $"typecheck-%s{Path.GetRandomFileName()}.fsx")
+        // Forward slashes, so that a Windows path holds no backslash for the string literal to escape.
+        let path: string = script.Replace('\\', '/')
+        File.WriteAllText(loader, $"#load \"%s{path}\"\n")
 
-        return script, result.ExitCode, (result.StandardOutput + result.StandardError).Trim()
+        try
+            let! result =
+                ctx.RunCommandCaptureAll(
+                    $"dotnet fsi --typecheck-only --nologo --warnaserror+:3520 %s{quoteArgument loader}",
+                    workingDir = repositoryRoot,
+                    disablePrintCommand = true,
+                    disablePrintOutput = true
+                )
+
+            return script, result.ExitCode, (result.StandardOutput + result.StandardError).Trim()
+        finally
+            File.Delete loader
     }
 
 /// Compile each of the given scripts, and report what the compiler said about any that would not

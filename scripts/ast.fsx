@@ -1,5 +1,6 @@
 #load "shared.fsx"
 
+open System
 open System.IO
 open Shared
 
@@ -23,4 +24,4 @@ match Array.tryHead fsi.CommandLineArgs with
     if scriptFile.FullName = sourceFile.FullName then
         let sample, isSignature, _, defines = parseArgs fsi.CommandLineArgs.[1..]
         parseAst sample isSignature defines |> printfn "%s"
-| _ -> printfn "Usage: dotnet fsi ast.fsx [--signature] [--define FOO,BAR] <input file>"
+| _ -> Console.WriteLine "Usage: dotnet fsi ast.fsx [--signature] [--define FOO,BAR] <input file>"

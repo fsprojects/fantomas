@@ -438,49 +438,25 @@ target of their own, `Scripts`, alongside the projects. `--script` is given the 
 on their own, which between them `#load` every other one, so a rule reaches `BuildCommon.fsx`
 through `build.fsx` and `shared.fsx` through the diagnostic scripts.
 
-It is a weaker check than a project gets, and the difference is worth knowing before acting on what
-it says or fails to say. The typed tree the analyzers receive for a script is missing every top level
-bare expression, which in this repository is every `pipeline { }` of `build.fsx` and the command line
-handling at the foot of each diagnostic script. See
-[FSharp.Analyzers.SDK#332](https://github.com/ionide/FSharp.Analyzers.SDK/issues/332).
+Every analyzer a project gets runs over the scripts too, the two packages and `FANTOMAS-OPENS-001`
+included. Before fsharp-analyzers 0.39.1 the typed tree of a script lost every top level bare
+expression, and the packages crashed on what was left
+([FSharp.Analyzers.SDK#332](https://github.com/ionide/FSharp.Analyzers.SDK/issues/332)). Since
+[#333](https://github.com/ionide/FSharp.Analyzers.SDK/pull/333) and
+[#334](https://github.com/ionide/FSharp.Analyzers.SDK/issues/334) a script gets the references
+`dotnet fsi` gives it, and the `pipeline { }` blocks of `build.fsx` are checked like any other code.
 
-Three things follow from that, and all three are handled in `BuildAnalyzers.fsx` rather than here:
+Two things still set the `Scripts` run apart from a project run:
 
-- **Only the analyzers this repository owns run over the scripts.** `Ionide.Analyzers` and
-  `G-Research.FSharp.Analyzers` walk the typed tree, and walking one with error recovery nodes in it
-  throws out of `FSharpExprConvert` and takes the whole run down. Both packages do it, on every
-  script that has a top level `match`.
-- **`FANTOMAS-OPENS-001` is excluded.** It asks the compiler which opens the file resolves nothing
-  through, and on a script it answers about that same incomplete tree: the opens `build.fsx` uses
-  only inside a `pipeline { }` read as unused. It also brings the run down on any script that
-  references `Fantomas.FCS`, because resolving the members of `System.ReadOnlySpan` needs an
-  assembly no script references.
 - **`--include-files` holds the report to scripts.** A script compilation includes whatever it
   loads, and `shared.fsx` loads `EditorConfigFiles.fs` out of `src/Fantomas`. That is analyzed
   properly as part of its own project; reporting on it here would say something else about it,
   because a script loads the `.fs` alone and the signature file that keeps `FANTOMAS-ANNOTATE-001`
-  and `FANTOMAS-XMLDOC-001` quiet about it is no part of the compilation.
-
-So a clean `Scripts` run covers less ground than a clean project run, and a rule that says nothing
-about a script has not necessarily looked at it.
-
-All three are answered upstream, by two changes that together give a script the same references
-`dotnet fsi` gives it:
-
-- [#333](https://github.com/ionide/FSharp.Analyzers.SDK/pull/333) resolves a script against the SDK
-  reference assemblies rather than the .NET Framework ones, so `FSharp.Core` loads.
-- [#334](https://github.com/ionide/FSharp.Analyzers.SDK/issues/334) is the `fsi` object.
-  `GetProjectOptionsFromScript` did not reference `FSharp.Compiler.Interactive.Settings`, so every
-  script here that reads `fsi.CommandLineArgs` failed to type check on that one name and error
-  recovery took the expressions around it with it.
-
-Built against both, every script of this repository type checks with no errors, both crashes go, and
-the fourteen opens the scripts falsely reported drop to none while `FANTOMAS-OPENS-001` still catches
-a real unused one in a script. Once that is released and `.config/dotnet-tools.json` is bumped, all
-three bullets above can go.
-
-The packaged analyzers then have plenty to say about the scripts, `GRA-INTERPOLATED-001` alone
-accounts for 94 findings, so letting them in is a decision rather than a formality.
+  and `FANTOMAS-XMLDOC-001` quiet about it is no part of the compilation. A `#load`ed script the
+  pattern does not match is dropped from the report without a word.
+- **A finding in a `#load`ed script is reported once per script that loads it.** Each runnable
+  script is its own compilation, so a finding in `shared.fsx` shows up six times, once for every
+  diagnostic script. It is one finding to fix.
 
 `build.fsx` and `scripts/**/*.fsx` share the `.editorconfig` section of `src` and `analyzers`, so
 `fsharp_experimental_keep_indent_in_branch` is on for them too, and acting on a

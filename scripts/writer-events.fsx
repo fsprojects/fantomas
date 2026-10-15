@@ -1,5 +1,6 @@
 #load "shared.fsx"
 
+open System
 open System.IO
 open Fantomas.Core
 open Shared
@@ -8,7 +9,7 @@ let getWriterEvents (input: string) (isSignature: bool) (config: FormatConfig) (
     async {
         try
             let! events = CodeFormatter.GetWriterEventsAsync(isSignature, input, config, defines)
-            return events |> Array.map string |> String.concat "\n"
+            return events |> Array.map string<WriterEvent> |> String.concat "\n"
         with ex ->
             return $"Error while getting writer events: %A{ex}"
     }
@@ -24,4 +25,5 @@ match Array.tryHead fsi.CommandLineArgs with
         getWriterEvents sample isSignature config defines
         |> Async.RunSynchronously
         |> printfn "%s"
-| _ -> printfn "Usage: dotnet fsi writer-events.fsx [--editorconfig <content>] [--define FOO,BAR] <input file>"
+| _ ->
+    Console.WriteLine "Usage: dotnet fsi writer-events.fsx [--editorconfig <content>] [--define FOO,BAR] <input file>"

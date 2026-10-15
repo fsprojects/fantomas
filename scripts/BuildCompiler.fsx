@@ -25,7 +25,7 @@ let updateFileRaw (file: FileInfo) =
     let updatedLines =
         lines
         |> Array.map (fun line ->
-            if line.StartsWith("namespace FSharp.Build") then
+            if line.StartsWith("namespace FSharp.Build", StringComparison.Ordinal) then
                 line.Replace("namespace FSharp.Build", "namespace Fantomas.FCS.Build")
             elif line.Contains("FSharp.Compiler") then
                 line.Replace("FSharp.Compiler", "Fantomas.FCS")
@@ -68,10 +68,10 @@ let downloadCompilerFile commitHash relativePath =
         let fileName: string = Path.GetFileName(relativePath)
 
         let url: string =
-            $"https://raw.githubusercontent.com/dotnet/fsharp/{commitHash}/{relativePath}"
+            $"https://raw.githubusercontent.com/dotnet/fsharp/%s{commitHash}/%s{relativePath}"
 
         let! response =
-            requestWithRetry 1 url [| "Content-Disposition", $"attachment; filename=\"{fileName}\"" |]
+            requestWithRetry 1 url [| "Content-Disposition", $"attachment; filename=\"%s{fileName}\"" |]
 
         if response.StatusCode <> 200 then
             printfn $"Could not download %s{relativePath}"

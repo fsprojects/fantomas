@@ -1,5 +1,6 @@
 #load "shared.fsx"
 
+open System
 open System.IO
 open Fantomas.Core
 open Shared
@@ -19,7 +20,7 @@ let parseOak (input: string) (isSignature: bool) (defines: string list) =
 
             match result with
             | None -> return "No Oak found in input"
-            | Some(oak, _) -> return (string oak)
+            | Some(oak, _) -> return string<SyntaxOak.Oak> oak
         with ex ->
             return $"Error while parsing to Oak: %A{ex}"
     }
@@ -32,4 +33,4 @@ match Array.tryHead fsi.CommandLineArgs with
     if scriptFile.FullName = sourceFile.FullName then
         let sample, isSignature, _, defines = parseArgs fsi.CommandLineArgs.[1..]
         parseOak sample isSignature defines |> Async.RunSynchronously |> printfn "%s"
-| _ -> printfn "Usage: dotnet fsi oak.fsx [--signature] [--define FOO,BAR] <input file>"
+| _ -> Console.WriteLine "Usage: dotnet fsi oak.fsx [--signature] [--define FOO,BAR] <input file>"

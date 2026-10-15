@@ -43,10 +43,10 @@ let coverageXmlFiles: string list =
 /// the report and makes the run fast. The pattern cannot use `|`, because AltCover reads it as the
 /// separator between filters rather than as alternation: an optional group names two assemblies.
 let coverageCommand (name: string) (assemblyPattern: string) : string =
-    let project: string = __SOURCE_DIRECTORY__ </> "src" </> name </> $"{name}.fsproj"
+    let project: string = __SOURCE_DIRECTORY__ </> "src" </> name </> $"%s{name}.fsproj"
 
-    $"dotnet test {quoteArgument project} -c Release /p:AltCover=true "
-    + $"\"/p:AltCoverAssemblyFilter=^(?!{assemblyPattern}$)\""
+    $"dotnet test %s{quoteArgument project} -c Release /p:AltCover=true "
+    + $"\"/p:AltCoverAssemblyFilter=^(?!%s{assemblyPattern}$)\""
 
 let benchmarkAssembly =
     binDir </> "Fantomas.Benchmarks" </> "release" </> "Fantomas.Benchmarks.dll"
@@ -73,8 +73,8 @@ pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
-    stage "CheckFormat" { run $"dotnet fantomas check src analyzers docs scripts build.fsx {jsonFlagDuringCI}" }
-    stage "BuildDebug" { run $"dotnet build \"{scriptProject}\" --tl" }
+    stage "CheckFormat" { run $"dotnet fantomas check src analyzers docs scripts build.fsx %s{jsonFlagDuringCI}" }
+    stage "BuildDebug" { run $"dotnet build \"%s{scriptProject}\" --tl" }
     stage "CheckScripts" { run checkScripts }
     stage "Build" { run "dotnet build -c Release --tl" }
     stage "CheckDocScripts" { run checkDocScripts }
@@ -86,7 +86,7 @@ pipeline "Build" {
 pipeline "Benchmark" {
     workingDir __SOURCE_DIRECTORY__
     stage "Prepare" { run "dotnet build -c Release src/Fantomas.Benchmarks --tl" }
-    stage "Benchmark" { run $"dotnet \"{benchmarkAssembly}\"" }
+    stage "Benchmark" { run $"dotnet \"%s{benchmarkAssembly}\"" }
     runIfOnlySpecified true
 }
 
@@ -139,8 +139,8 @@ pipeline "Coverage" {
 
     stage "Report" {
         run (
-            $"dotnet reportgenerator -reports:{String.Join(';', coverageXmlFiles)} "
-            + $"-targetdir:{coverageReportDir} -reporttypes:Html;TextSummary"
+            $"dotnet reportgenerator -reports:%s{String.Join(';', coverageXmlFiles)} "
+            + $"-targetdir:%s{coverageReportDir} -reporttypes:Html;TextSummary"
         )
 
         run (fun _ ->
@@ -151,7 +151,7 @@ pipeline "Coverage" {
                 if File.Exists summary then
                     printfn "%s" (File.ReadAllText summary)
 
-                printfn $"Browse the full report at {index}"
+                printfn $"Browse the full report at %s{index}"
                 return 0
             }
         )
@@ -201,14 +201,15 @@ let summarizeSyntaxOakCoverage () : Async<int> =
                 |> List.filter (fun (_, _, _, isReached: bool) -> isReached)
                 |> List.length
 
-            $"{reached} of {ofKind.Length}"
+            $"%i{reached} of %i{ofKind.Length}"
 
         // `System.Void Fantomas.Core.SyntaxOak/ExprConstantNode::.ctor(...)` belongs to
         // `ExprConstantNode`, and so does a closure compiled into `ExprConstantNode/-ctor@12-3`. The
         // return type in front can name a SyntaxOak type too, so the type is read from right before `::`.
         let owner (methodName: string) : string =
             let declaringType: string =
-                let beforeMethod: string = methodName.Substring(0, methodName.IndexOf "::")
+                let beforeMethod: string =
+                    methodName.Substring(0, methodName.IndexOf("::", StringComparison.Ordinal))
                 beforeMethod.Substring(beforeMethod.LastIndexOf ' ' + 1)
 
             match declaringType.Split('/') |> Array.toList with
@@ -217,8 +218,9 @@ let summarizeSyntaxOakCoverage () : Async<int> =
 
         let missed: (string * string * int) list =
             points
-            |> List.filter (fun (_, _, _, isReached: bool) -> not isReached)
-            |> List.map (fun (methodName: string, kind: string, line: int, _) -> methodName, kind, line)
+            |> List.choose (fun (methodName: string, kind: string, line: int, isReached: bool) ->
+                if isReached then None else Some(methodName, kind, line)
+            )
 
         let summary: Text.StringBuilder = Text.StringBuilder()
 
@@ -226,7 +228,7 @@ let summarizeSyntaxOakCoverage () : Async<int> =
         let branchCount: string = count "BranchPoint"
 
         summary.AppendLine(
-            $"SyntaxOak.fs: {pointCount} points and {branchCount} branches reached by the snapshot cases."
+            $"SyntaxOak.fs: %s{pointCount} points and %s{branchCount} branches reached by the snapshot cases."
         )
         |> ignore
 
@@ -235,7 +237,7 @@ let summarizeSyntaxOakCoverage () : Async<int> =
                 entries
                 |> List.groupBy (fun (methodName: string, _, _) -> owner methodName)
                 |> List.sortBy fst do
-                summary.AppendLine($"\n  {className}") |> ignore
+                summary.AppendLine($"\n  %s{className}") |> ignore
 
                 for line, onLine in inClass |> List.groupBy (fun (_, _, line: int) -> line) |> List.sortBy fst do
                     let kinds: string =
@@ -244,7 +246,7 @@ let summarizeSyntaxOakCoverage () : Async<int> =
                         |> List.distinct
                         |> String.concat ", "
 
-                    summary.AppendLine($"    {line, 5}  {kinds, -12}  {source[line - 1].Trim()}")
+                    summary.AppendLine($"    %5i{line}  %-12s{kinds}  %s{source[line - 1].Trim()}")
                     |> ignore
 
         // A class every point of which some case reaches does not show up below, so name those
@@ -252,8 +254,12 @@ let summarizeSyntaxOakCoverage () : Async<int> =
         let reachedInFull: string list =
             points
             |> List.groupBy (fun (methodName: string, _, _, _) -> owner methodName)
-            |> List.filter (fun (_, inClass) -> inClass |> List.forall (fun (_, _, _, isReached: bool) -> isReached))
-            |> List.map fst
+            |> List.choose (fun (className: string, inClass) ->
+                if List.forall (fun (_, _, _, isReached: bool) -> isReached) inClass then
+                    Some className
+                else
+                    None
+            )
             |> List.sort
 
         let reachedInFullText: string = String.concat ", " reachedInFull
@@ -263,7 +269,7 @@ let summarizeSyntaxOakCoverage () : Async<int> =
 
         File.WriteAllText(syntaxOakCoverageSummary, summary.ToString())
         printfn "%s" (summary.ToString())
-        printfn $"Written to {syntaxOakCoverageSummary}"
+        printfn $"Written to %s{syntaxOakCoverageSummary}"
         return 0
     }
 
@@ -281,11 +287,11 @@ pipeline "CoverageOak" {
 
     stage "Coverage" {
         run (
-            $"dotnet test {quoteArgument snapshotsDir} -c Release /p:AltCover=true /p:AltCoverForce=true "
+            $"dotnet test %s{quoteArgument snapshotsDir} -c Release /p:AltCover=true /p:AltCoverForce=true "
             + "\"/p:AltCoverAssemblyFilter=^(?!Fantomas\\.Core$)\" "
             + "\"/p:AltCoverFileFilter=^(?!.*SyntaxOak\\.fs$)\" "
             + "/p:AltCoverMethodFilter=ToString "
-            + quoteArgument $"/p:AltCoverReport={syntaxOakCoverageXml}"
+            + quoteArgument $"/p:AltCoverReport=%s{syntaxOakCoverageXml}"
         )
     }
 
@@ -300,7 +306,7 @@ pipeline "UpdateSnapshots" {
 
     stage "Update" {
         envVars [| "FANTOMAS_UPDATE_SNAPSHOTS", "1" |]
-        run $"dotnet test {quoteArgument snapshotsDir} --tl"
+        run $"dotnet test %s{quoteArgument snapshotsDir} --tl"
     }
 
     runIfOnlySpecified true
@@ -317,7 +323,7 @@ pipeline "SnapshotReports" {
     workingDir __SOURCE_DIRECTORY__
     stage "Reports" {
         envVars [| "FANTOMAS_SNAPSHOT_REPORTS", "1" |]
-        run $"dotnet test {quoteArgument snapshotsDir} --tl"
+        run $"dotnet test %s{quoteArgument snapshotsDir} --tl"
     }
     runIfOnlySpecified true
 }
@@ -336,12 +342,12 @@ pipeline "FormatChanged" {
 
                 match sources with
                 | [] ->
-                    printfn "No changed F# files to format."
+                    Console.WriteLine "No changed F# files to format."
                     return 0
                 | sources ->
                     let arguments: string = sources |> List.map quoteArgument |> String.concat " "
 
-                    let! result = ctx.RunCommandCaptureAll $"dotnet fantomas --json {arguments}"
+                    let! result = ctx.RunCommandCaptureAll $"dotnet fantomas --json %s{arguments}"
                     return result.ExitCode
             }
         )
@@ -361,7 +367,7 @@ pipeline "PushClient" {
                     |> Option.map (pushPackage ctx)
                     |> Option.defaultValue (
                         async {
-                            printfn "Fantomas.Client package was not found."
+                            Console.WriteLine "Fantomas.Client package was not found."
                             return -1
                         }
                     )
@@ -371,9 +377,9 @@ pipeline "PushClient" {
     runIfOnlySpecified true
 }
 
-/// Build the documentation into `output`, the way it is published. CI runs this in a job of its
-/// own, on pull requests too: `--eval` and `--strict` catch what typechecking the doc scripts in
-/// the Build pipeline does not.
+// Build the documentation into `output`, the way it is published. CI runs this in a job of its
+// own, on pull requests too: `--eval` and `--strict` catch what typechecking the doc scripts in
+// the Build pipeline does not.
 pipeline "BuildDocs" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
@@ -385,7 +391,7 @@ pipeline "BuildDocs" {
                 "DOTNET_ROLL_FORWARD", "LatestMajor"
             |]
         run
-            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict"
+            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:%s{semanticVersioning}\" --eval --strict"
     }
     runIfOnlySpecified true
 }
@@ -410,7 +416,7 @@ pipeline "Docs" {
                 |> String.concat " "
 
             ctx.RunCommand
-                $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval %s{extraArgs}"
+                $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:%s{semanticVersioning}\" --eval %s{extraArgs}"
         )
     }
     runIfOnlySpecified true
@@ -554,25 +560,25 @@ pipeline "Release" {
         run (fun ctx ->
             async {
                 if isDryRun then
-                    printfn "[DRY-RUN] Starting release pipeline in dry-run mode"
+                    Console.WriteLine "[DRY-RUN] Starting release pipeline in dry-run mode"
                 else
-                    printfn "Starting release pipeline"
+                    Console.WriteLine "Starting release pipeline"
 
                 let! currentRelease, lastPublishedDate = getCurrentReleaseAndLastPublishedDate ctx
 
                 if Option.isSome currentRelease.PublishedDate then
-                    printfn $"Release {currentRelease.Version} already exists on GitHub. Skipping release process."
+                    printfn $"Release %s{currentRelease.Version} already exists on GitHub. Skipping release process."
                     return 0
                 else
-                    printfn $"Release {currentRelease.Version} does not exist yet. Proceeding with release process."
+                    printfn $"Release %s{currentRelease.Version} does not exist yet. Proceeding with release process."
 
                     let! source = getReleaseSource ctx
-                    printfn $"Releasing from {source.Branch} at {source.Commit}"
+                    printfn $"Releasing from %s{source.Branch} at %s{source.Commit}"
 
                     // Determine if this is a prerelease
                     let isPrerelease = currentRelease.Version.Contains("-")
                     if isPrerelease then
-                        printfn $"Detected prerelease version: {currentRelease.Version}"
+                        printfn $"Detected prerelease version: %s{currentRelease.Version}"
 
                     // Push packages to NuGet
                     let nugetPackages =
@@ -580,24 +586,33 @@ pipeline "Release" {
                         |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
                         |> Seq.toArray
 
-                    printfn $"Found {nugetPackages.Length} packages to push to NuGet:"
-                    nugetPackages |> Array.iter (fun pkg -> printfn $"  - {Path.GetFileName(pkg)}")
+                    printfn $"Found %i{nugetPackages.Length} packages to push to NuGet:"
+                    nugetPackages
+                    |> Array.iter (fun pkg -> printfn $"  - %s{Path.GetFileName(pkg)}")
 
                     let! nugetExitCodes =
                         nugetPackages |> Array.map (pushPackage ctx) |> Async.Sequential
 
+                    // The GitHub release is what marks a version as released: once it exists, a run of
+                    // this pipeline skips everything. So it is only created when every package made
+                    // it to NuGet. Otherwise the run fails without it, and running it again pushes
+                    // what is missing, the packages NuGet already has being skipped.
                     let nugetSuccess = nugetExitCodes |> Array.forall (fun code -> code = 0)
-                    if nugetSuccess then
-                        printfn "All NuGet packages pushed successfully"
+                    if not nugetSuccess then
+                        let exitCodesStr: string =
+                            nugetExitCodes |> Array.map string<int> |> String.concat ", "
+                        printfn $"Some NuGet packages failed to push. Exit codes: %s{exitCodesStr}"
+                        Console.WriteLine "The GitHub release is not created. Run the release again to push the rest."
+                        return Array.max nugetExitCodes
                     else
-                        let exitCodesStr = nugetExitCodes |> Array.map string |> String.concat ", "
-                        printfn $"Warning: Some NuGet packages failed to push. Exit codes: {exitCodesStr}"
+
+                    Console.WriteLine "All NuGet packages pushed successfully"
 
                     let! notes = getReleaseNotes ctx source currentRelease lastPublishedDate
-                    printfn "Release notes that will be used:"
-                    printfn "---"
+                    Console.WriteLine "Release notes that will be used:"
+                    Console.WriteLine "---"
                     printfn "%s" notes
-                    printfn "---"
+                    Console.WriteLine "---"
                     let noteFile = Path.GetTempFileName()
                     File.WriteAllText(noteFile, notes)
                     let files = nugetPackages |> Array.map (sprintf "\"%s\"") |> String.concat " "
@@ -630,21 +645,21 @@ pipeline "Release" {
                         if isPrerelease then "prerelease (published)"
                         elif isRevision then "revision (published)"
                         else "minor/major (draft)"
-                    printfn $"Release type: {releaseType}"
+                    printfn $"Release type: %s{releaseType}"
                     if isPrerelease then
-                        printfn "This is a prerelease version"
+                        Console.WriteLine "This is a prerelease version"
 
                     let releaseCommand =
-                        $"release create v{currentRelease.Version} {files} --target {source.Commit} {isDraftFlag} {prereleaseFlag} --title \"{currentRelease.Title}\" --notes-file \"{noteFile}\""
+                        $"release create v%s{currentRelease.Version} %s{files} --target %s{source.Commit} %s{isDraftFlag} %s{prereleaseFlag} --title \"%s{currentRelease.Title}\" --notes-file \"%s{noteFile}\""
 
                     let! draftExitCode =
                         if isDryRun then
-                            printfn $"[DRY-RUN] Would execute: gh {releaseCommand}"
+                            printfn $"[DRY-RUN] Would execute: gh %s{releaseCommand}"
                             async { return 0 }
                         else
-                            printfn $"Creating GitHub release: v{currentRelease.Version}"
+                            printfn $"Creating GitHub release: v%s{currentRelease.Version}"
                             async {
-                                let! result = ctx.RunCommandCaptureAll $"gh {releaseCommand}"
+                                let! result = ctx.RunCommandCaptureAll $"gh %s{releaseCommand}"
                                 return result.ExitCode
                             }
 
@@ -652,11 +667,11 @@ pipeline "Release" {
                         File.Delete(noteFile)
 
                     if draftExitCode = 0 then
-                        printfn $"Successfully created GitHub release: v{currentRelease.Version}"
+                        printfn $"Successfully created GitHub release: v%s{currentRelease.Version}"
                     else
-                        printfn $"Warning: GitHub release creation returned exit code: {draftExitCode}"
+                        printfn $"Warning: GitHub release creation returned exit code: %i{draftExitCode}"
 
-                    return Seq.max [| yield! nugetExitCodes; yield draftExitCode |]
+                    return draftExitCode
             }
         )
     }
@@ -679,7 +694,7 @@ pipeline "PublishAlpha" {
                 let! nugetExitCodes =
                     nugetPackages |> Array.map (pushPackage ctx) |> Async.Sequential
 
-                return Seq.sum nugetExitCodes
+                return Array.sum nugetExitCodes
             }
         )
     }
@@ -739,7 +754,7 @@ pipeline "AnalyzeChanged" {
 
                 match targetsFor files with
                 | [] ->
-                    printfn "No changed file is analyzed."
+                    Console.WriteLine "No changed file is analyzed."
                     return 0
                 | targets ->
                     let! scopes = changedLines ctx
