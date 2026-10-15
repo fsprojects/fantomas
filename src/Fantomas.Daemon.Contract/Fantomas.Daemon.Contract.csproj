@@ -8,6 +8,14 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <!--
+    The AOT analyzers come with a reference to Microsoft.NET.ILLink.Tasks at the newest patch the
+    SDK knows, which a lock file cannot hold still: every SDK update breaks a locked restore. So they
+    only run when publishing for Native AOT, whose lock files go under artifacts/obj, and whose
+    warnings the `TestAot` pipeline of build.fsx fails on.
+  -->
+  <PropertyGroup Condition="'$(FantomasAot)' == 'true'">
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
   <ItemGroup>

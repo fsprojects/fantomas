@@ -20,12 +20,6 @@
         "resolved": "0.3.3",
         "contentHash": "ADFNczSi+DBaO/UpvkkFAX8wLrm0Mk1AsXzOhrPFWA87M2iJDZwFjpQWKaQDAGVFbOCqlfL4q2QHYtz0ivQb1Q=="
       },
-      "Microsoft.NET.ILLink.Tasks": {
-        "type": "Direct",
-        "requested": "[10.0.12, )",
-        "resolved": "10.0.12",
-        "contentHash": "xi+BDjFpW+Sb+MHFHaH6Y/gV9I8BluFwRXc1QyCdoZbIK26eNiBeFuMTe/FMwc33G1wdHCyDg7CVTmb8OdQrMQ=="
-      },
       "StreamJsonRpc": {
         "type": "Direct",
         "requested": "[2.25.29, )",
