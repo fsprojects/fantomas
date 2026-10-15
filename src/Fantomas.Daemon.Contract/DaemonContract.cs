@@ -38,7 +38,7 @@ public interface IFantomasDaemon
 
 /// <summary>Where PolyType generates the shape of <see cref="IFantomasDaemon"/>.</summary>
 [GenerateShapeFor<IFantomasDaemon>]
-public partial class DaemonShapes;
+internal partial class DaemonShapes;
 
 /// <summary>What the daemon hands to StreamJsonRpc, built from the generated shape.</summary>
 public static class DaemonContract
