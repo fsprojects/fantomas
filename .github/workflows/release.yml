@@ -43,7 +43,7 @@ jobs:
     # Native AOT only compiles for the machine it runs on, so the tool's native package is the one
     # for Linux. The other platforms get the portable package until each has a runner of its own.
     # The executable needs the glibc it was linked against or newer, so the oldest Ubuntu runner
-    # decides where it runs: 22.04 has glibc 2.35, where 24.04 would ask for 2.38.
+    # decides where it runs: built on 22.04 it asks for glibc 2.34, on 24.04 for 2.38.
     runs-on: ubuntu-22.04
     environment: release
     permissions:

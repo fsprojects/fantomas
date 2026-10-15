@@ -23,11 +23,18 @@ open BuildScripts
 // `analyzeTargets` and the two filters. Everything between those and the SARIF on disk is detail,
 // and detail that grew every time the reporting was made more honest.
 
-/// The projects the analyzers run over: every project in the solution, minus the ones whose source
-/// is not ours to change. Fantomas.FCS is generated from the vendored compiler sources, and
+/// Every project in the solution, as a path relative to the repository root. Reading the solution
+/// rather than globbing keeps the rest of the build tooling out.
+let solutionProjects: string list =
+    XDocument.Load(repositoryRoot </> "fantomas.slnx").XPathSelectElements("//Project")
+    |> Seq.map (fun project -> project.Attribute(XName.Get "Path").Value.Replace('\\', '/'))
+    |> Seq.toList
+
+/// The projects the analyzers run over: every F# project in the solution, minus the ones whose
+/// source is not ours to change. Fantomas.FCS is generated from the vendored compiler sources, and
 /// Fantomas.FCS.BuildTasks compiles a single vendored compiler file, so a finding in either is
-/// something to report upstream rather than something to fix here. Reading the solution rather than
-/// globbing keeps the rest of the build tooling out.
+/// something to report upstream rather than something to fix here. A C# project is left out too:
+/// the analyzers read F#, and say no more about one than that it did not type check.
 ///
 /// This includes the analyzers themselves, which are in the solution like everything else. There is
 /// nothing circular about a rule reporting on the project that defines it: the pipelines build the
@@ -42,17 +49,33 @@ let projectsToAnalyze: string list =
         |> Seq.filter (isSnapshotCase >> not)
         |> Seq.sumBy (fun file -> FileInfo(file).Length)
 
-    XDocument.Load(repositoryRoot </> "fantomas.slnx").XPathSelectElements("//Project")
-    |> Seq.choose (fun project ->
-        let path: string = project.Attribute(XName.Get "Path").Value.Replace('\\', '/')
-
-        if excluded.Contains(Path.GetFileNameWithoutExtension path) then
-            None
-        else
-            Some path
+    solutionProjects
+    |> List.filter (fun (path: string) ->
+        hasExtension [ ".fsproj" ] path
+        && not (excluded.Contains(Path.GetFileNameWithoutExtension path))
     )
-    |> Seq.sortByDescending sourceSize
-    |> Seq.toList
+    |> List.sortByDescending sourceSize
+
+/// Builds the C# projects of the solution. The analyzers type check an F# project from its sources,
+/// and those of the F# projects it references, but take a C# project it references from the
+/// reference assembly a build leaves in `artifacts/obj`. With none there, the project does not type
+/// check, and the analyzers that read the typed tree see nothing of it, while the run still passes:
+/// Fantomas and Fantomas.Tests, through Fantomas.Daemon.Contract. It is a Debug build, because that
+/// is what the analyzers load the projects as.
+let buildCSharpProjects (ctx: StageContext) : Async<int> =
+    async {
+        let csharpProjects: string list =
+            List.filter (hasExtension [ ".csproj" ]) solutionProjects
+
+        let! results =
+            csharpProjects
+            |> List.map (fun (project: string) ->
+                ctx.RunCommand($"dotnet build %s{project} --no-restore --tl", workingDir = repositoryRoot)
+            )
+            |> Async.Sequential
+
+        return if Array.forall Result.isOk results then 0 else 1
+    }
 
 /// What one run of the analyzers covers, and which of the files it reaches to report on.
 ///
