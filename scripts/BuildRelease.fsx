@@ -29,6 +29,9 @@ let isDryRun: bool =
 ///
 /// A version NuGet already has is passed over rather than failed on, so a release that stopped
 /// halfway through its pushes can be run again and pushes only what is missing.
+///
+/// The timeout is the client's, and covers the retry it makes after a 5xx. At the default of 300
+/// seconds it gave up on uploads that nuget.org was slow to answer but went on to accept.
 let pushPackage (ctx: StageContext) (nupkg: string) : Async<int> =
     async {
         if isDryRun then
@@ -42,7 +45,7 @@ let pushPackage (ctx: StageContext) (nupkg: string) : Async<int> =
             // costs nothing: it is the one the stage just picked out of the packages folder.
             let! result =
                 ctx.RunSensitiveCommandCaptureAll(
-                    $"dotnet nuget push {quoteArgument nupkg} --api-key {key} --source https://api.nuget.org/v3/index.json --skip-duplicate"
+                    $"dotnet nuget push {quoteArgument nupkg} --api-key {key} --source https://api.nuget.org/v3/index.json --skip-duplicate --timeout 1200"
                 )
 
             return result.ExitCode
