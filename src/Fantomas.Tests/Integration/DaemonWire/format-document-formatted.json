@@ -1,0 +1,12 @@
+{
+  "description": "A document that needs formatting comes back formatted, with no cursor.",
+  "requests": [
+    {
+      "method": "fantomas/formatDocument",
+      "params": {
+        "FilePath": "A.fs",
+        "SourceCode": "module   Foobar"
+      }
+    }
+  ]
+}

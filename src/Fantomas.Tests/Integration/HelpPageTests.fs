@@ -28,6 +28,9 @@ let ``both spellings of the flag write the page to standard out`` (flag: string)
 // rather than name a command this reader does not have.
 [<Test>]
 let ``the page names the command this Fantomas was started as`` () =
+    if (otherFantomasExecutable ()).IsSome then
+        Assert.Ignore "FANTOMAS_EXECUTABLE starts the tool directly rather than through the muxer."
+
     let { Output = output } = runFantomasTool [ "--help" ]
 
     Assert.That(output, Does.Contain "Usage: dotnet fantomas [command]")

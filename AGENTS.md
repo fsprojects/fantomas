@@ -18,6 +18,11 @@ Formatting is tested by snapshot cases, files under `src/Fantomas.Core.SnapshotT
 beside the result formatting gives for it; that project's README says how to write one.
 `Fantomas.Core.Tests` holds the unit tests of internals.
 
+Native AOT: on Linux x64 the tool ships as a native executable. Read
+`docs/docs/contributors/Native AOT.md` before changing a daemon request or response, reaching for
+reflection in `src/Fantomas` or `src/Fantomas.Core`, or changing a setting behind `FantomasAot`, and
+when `dotnet fsi build.fsx -- -p TestAot` fails.
+
 ## Diagnostic Scripts
 
 All of these accept a file path or stdin, with optional `--signature` and `--editorconfig <content>` flags.

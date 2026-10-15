@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    C#, in a repository that is otherwise F#, for one reason: PolyType's source generator. It
+    describes the daemon's methods at compile time, which is what lets StreamJsonRpc dispatch to
+    them under Native AOT without reflection. F# has no source generators.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <!--
+      Not an API anyone builds on: it only ships inside the tool. Without the documentation file
+      fsdocs leaves it out of the API reference of the site.
+    -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <!--
+    The AOT analyzers come with a reference to Microsoft.NET.ILLink.Tasks at the newest patch the
+    SDK knows, which a lock file cannot hold still: every SDK update breaks a locked restore. So they
+    only run when publishing for Native AOT, whose lock files go under artifacts/obj, and whose
+    warnings the `TestAot` pipeline of build.fsx fails on.
+  -->
+  <PropertyGroup Condition="'$(FantomasAot)' == 'true'">
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="StreamJsonRpc" />
+    <!-- Not packed on its own, but shipped inside the tool, so it carries the tool's version. -->
+    <PackageReference Include="Ionide.KeepAChangelog.Tasks" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

@@ -28,7 +28,9 @@ let severityText (diagnostic: FSharpParserDiagnostic) : string =
 // special cased into a different shape.
 let errorNumber (diagnostic: FSharpParserDiagnostic) : string =
     match diagnostic.ErrorNumber with
-    | Some number -> $"FS%04i{number}"
+    // Not `%04i`: a hole with a width goes through F#'s printf machinery, which Native AOT cannot
+    // run, and a parse error is the one thing this has to be able to report.
+    | Some number -> "FS" + number.ToString("0000", Globalization.CultureInfo.InvariantCulture)
     | None -> "FS0000"
 
 // The word carries the same weight the exit codes give it: an error is what ends the run, a warning
@@ -378,7 +380,7 @@ let reportedUnder (theme: Theme) (hasDirectives: bool) (combinations: string lis
         $"with %s{names} defined"
     )
     |> String.concat ", "
-    |> sprintf " (%s)"
+    |> fun (listed: string) -> $" (%s{listed})"
 
 // A comment can span lines, so each is its own indented block rather than an item in a sentence.
 let commentLines (theme: Theme) (comments: string list) : string list =

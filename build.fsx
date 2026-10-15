@@ -17,6 +17,7 @@
 open System
 open System.IO
 open Fun.Build
+open Fun.Build.Internal
 open BuildCommon
 open BuildScripts
 open BuildAnalyzers
@@ -299,14 +300,17 @@ pipeline "CoverageOak" {
     runIfOnlySpecified true
 }
 
-// Rewrite every gold the snapshot tests compare against from what the current build produces. A
-// gold that changes is a change in formatting, so read the diff before keeping it.
+// Rewrite every gold the snapshot tests compare against from what the current build produces: the
+// formatting cases of `Fantomas.Core.SnapshotTests`, and the daemon conversations under
+// `src/Fantomas.Tests/Integration/DaemonWire`. A gold that changes is a change in formatting, or in
+// what editors receive, so read the diff before keeping it.
 pipeline "UpdateSnapshots" {
     workingDir __SOURCE_DIRECTORY__
 
     stage "Update" {
         envVars [| "FANTOMAS_UPDATE_SNAPSHOTS", "1" |]
         run $"dotnet test %s{quoteArgument snapshotsDir} --tl"
+        run "dotnet test src/Fantomas.Tests --filter TestCategory=Snapshot --tl"
     }
 
     runIfOnlySpecified true
@@ -425,6 +429,171 @@ pipeline "Docs" {
 pipeline "FormatAll" {
     workingDir __SOURCE_DIRECTORY__
     stage "Fantomas" { run "dotnet fantomas --json src analyzers docs scripts build.fsx" }
+    runIfOnlySpecified true
+}
+
+// The runtime identifier of this machine, and where a Native AOT build of the tool for it goes. AOT
+// compiles for the machine it runs on, which is why CI runs this pipeline once per operating system.
+let aotRuntimeIdentifier: string =
+    System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier
+
+let aotExecutable: string =
+    let fileName: string =
+        if OperatingSystem.IsWindows() then
+            "fantomas.exe"
+        else
+            "fantomas"
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "publish"
+    </> "aot"
+    </> aotRuntimeIdentifier
+    </> fileName
+
+// What the AOT compiler produced for this runtime identifier. It is skipped when this is up to date,
+// and then logs no warnings at all, so `TestAot` clears it to check the warnings on every run.
+let aotNativeIntermediates: string =
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "obj"
+    </> "Fantomas"
+    </> $"release_%s{aotRuntimeIdentifier}"
+    </> "native"
+
+let aotWarningsLog: string =
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "publish"
+    </> "aot"
+    </> $"%s{aotRuntimeIdentifier}.warnings.log"
+
+// The same three for Fantomas.Core.AotSmokeTest, which calls the library the way fantomas-tools does.
+let aotSmokeTestExecutable: string =
+    let fileName: string =
+        if OperatingSystem.IsWindows() then
+            "Fantomas.Core.AotSmokeTest.exe"
+        else
+            "Fantomas.Core.AotSmokeTest"
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "publish"
+    </> "aotsmoketest"
+    </> aotRuntimeIdentifier
+    </> fileName
+
+let aotSmokeTestNativeIntermediates: string =
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "obj"
+    </> "Fantomas.Core.AotSmokeTest"
+    </> $"release_%s{aotRuntimeIdentifier}"
+    </> "native"
+
+let aotSmokeTestWarningsLog: string =
+    __SOURCE_DIRECTORY__
+    </> "artifacts"
+    </> "publish"
+    </> "aotsmoketest"
+    </> $"%s{aotRuntimeIdentifier}.warnings.log"
+
+/// The trim and Native AOT warnings a publish of the tool or of Fantomas.Core.AotSmokeTest is known to give,
+/// each with the reason it can stay: the code, a piece of the message that places it, and why.
+///
+/// A warning is where the AOT compiler could not prove the code works, and whether it does is only
+/// learned at runtime, on the path that reaches it. Keeping this list short and every entry
+/// explained is what makes a new one stand out, so `TestAot` fails on anything not here.
+let knownAotWarnings: (string * string * string) list =
+    let fsharpCore: string =
+        "FSharp.Core's own printf and reflection. The tool does not call into them, which FANTOMAS-PRINTF-001 and PrintfTests hold it to. The library does in Triage.dump, which falls back to a type name."
+
+    let resourceString: string =
+        "Only reached through a DiagnosticMessage.ResourceString, which no vendored compiler source declares."
+
+    [
+        "IL3053", "Assembly 'FSharp.Core'", fsharpCore
+        "IL2104", "Assembly 'FSharp.Core'", fsharpCore
+        "IL2062", "Fantomas.FCS.DiagnosticMessage.mkFunctionValue", resourceString
+        "IL2072", "Fantomas.FCS.DiagnosticMessage.mkFunctionValue", resourceString
+    ]
+
+/// Fails on every warning in the log of an AOT publish that `knownAotWarnings` does not account for.
+let checkAotWarnings (log: string) (_: StageContext) : Async<int> =
+    async {
+        let warning: Text.RegularExpressions.Regex =
+            Text.RegularExpressions.Regex(@"warning (?<code>IL\d{4}): (?<message>.*)")
+
+        let unknown: string list =
+            File.ReadAllLines log
+            |> Array.choose (fun (line: string) ->
+                let found: Text.RegularExpressions.Match = warning.Match line
+
+                if not found.Success then
+                    None
+                else
+
+                let code: string = found.Groups.["code"].Value
+                let message: string = found.Groups.["message"].Value
+
+                let isKnown: bool =
+                    knownAotWarnings
+                    |> List.exists (fun (knownCode: string, place: string, _: string) ->
+                        knownCode = code && message.Contains(place, StringComparison.Ordinal)
+                    )
+
+                if isKnown then None else Some $"%s{code}: %s{message}"
+            )
+            |> Array.distinct
+            |> Array.toList
+
+        if List.isEmpty unknown then
+            return 0
+        else
+
+        Console.WriteLine "The Native AOT publish gave warnings that are not in knownAotWarnings in build.fsx:"
+
+        for line in unknown do
+            printfn $"  %s{line}"
+
+        Console.WriteLine
+            "Read each one: a warning is code the AOT compiler could not prove works. Fix it, or add it there with the reason it can stay."
+        return 1
+    }
+
+/// Runs a program by its path, which Fun.Build's command string cannot take quoted, with its output
+/// going straight to the console.
+let runExecutable (path: string) (_: StageContext) : Async<int> =
+    async {
+        use proc: Diagnostics.Process =
+            Diagnostics.Process.Start(Diagnostics.ProcessStartInfo(path))
+        do! proc.WaitForExitAsync() |> Async.AwaitTask
+        return proc.ExitCode
+    }
+
+// Publish the tool with Native AOT and run the tool's tests against that build instead of the one
+// they normally start. Native AOT fails at runtime on code the JIT runs fine, printf and reflection
+// among it, and these tests are the ones that run the tool the way a user does. The publish must
+// also give no warning beyond the known ones, since a test only catches what it happens to reach.
+//
+// Then the same for Fantomas.Core.AotSmokeTest, which reaches the library's public API the way
+// fantomas-tools does rather than the way the tool does, and fails on a check that does not hold.
+pipeline "TestAot" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Clean" { run (cleanFolders [| aotNativeIntermediates; aotSmokeTestNativeIntermediates |]) }
+    stage "Publish" {
+        run
+            $"dotnet publish src/Fantomas/Fantomas.fsproj -c Release -r %s{aotRuntimeIdentifier} -p:FantomasAot=true -o \"%s{Path.GetDirectoryName aotExecutable}\" -flp:WarningsOnly;LogFile=\"%s{aotWarningsLog}\" --tl"
+    }
+    stage "Warnings" { run (checkAotWarnings aotWarningsLog) }
+    stage "Test" {
+        envVars [| "FANTOMAS_EXECUTABLE", aotExecutable |]
+        run "dotnet test src/Fantomas.Tests -c Release --tl"
+    }
+    stage "PublishSmokeTest" {
+        run
+            $"dotnet publish src/Fantomas.Core.AotSmokeTest/Fantomas.Core.AotSmokeTest.fsproj -c Release -r %s{aotRuntimeIdentifier} -p:FantomasAot=true -o \"%s{Path.GetDirectoryName aotSmokeTestExecutable}\" -flp:WarningsOnly;LogFile=\"%s{aotSmokeTestWarningsLog}\" --tl"
+    }
+    stage "SmokeTestWarnings" { run (checkAotWarnings aotSmokeTestWarningsLog) }
+    stage "SmokeTest" { run (runExecutable aotSmokeTestExecutable) }
     runIfOnlySpecified true
 }
 
@@ -551,11 +720,115 @@ pipeline "Init" {
     runIfOnlySpecified true
 }
 
+/// Where the release workflow puts the tool packages that runners of other platforms packed, before
+/// it runs the `Release` pipeline: `fantomas.linux-musl-x64` comes from an Alpine container.
+let nativeToolPackagesDir: string = artifactsDir </> "native-tool-packages"
+
+/// Copies the tool packages that runners of other platforms packed into the packages folder, so the
+/// release pushes them with the rest.
+let copyNativeToolPackages (_: StageContext) : Async<int> =
+    async {
+        if Directory.Exists nativeToolPackagesDir then
+            for nupkg: string in Directory.EnumerateFiles(nativeToolPackagesDir, "*.nupkg") do
+                printfn $"Copying %s{Path.GetFileName nupkg} from %s{nativeToolPackagesDir}"
+                File.Copy(nupkg, packagesDir </> Path.GetFileName nupkg, true)
+
+        return 0
+    }
+
+/// Whether the path is the `fantomas.<version>.nupkg` that names the platform packages, and not one
+/// of the platform packages or `Fantomas.Core`, which `fantomas.*.nupkg` also finds where file names
+/// are not case sensitive.
+let isTopLevelToolPackage (path: string) : bool =
+    let name: string = Path.GetFileName path
+    name.StartsWith("fantomas.", StringComparison.Ordinal)
+    && Char.IsDigit name.["fantomas.".Length]
+
+/// Fails when the `fantomas` package names a platform package that the packages folder does not
+/// hold. Pushed without it, `dotnet tool install fantomas` fails on that platform. A dry run on a
+/// machine of its own has no packages from the other runners, so there it is a warning.
+let checkToolPackages (_: StageContext) : Async<int> =
+    async {
+        match
+            Directory.EnumerateFiles(packagesDir, "fantomas.*.nupkg")
+            |> Seq.tryFind isTopLevelToolPackage
+        with
+        | None ->
+            printfn $"There is no fantomas package in %s{packagesDir}."
+            return 1
+        | Some(topLevel: string) ->
+
+        let version: string =
+            Path.GetFileNameWithoutExtension(topLevel).Substring("fantomas.".Length)
+
+        use archive: Compression.ZipArchive = Compression.ZipFile.OpenRead topLevel
+        use settings: Stream =
+            archive.GetEntry("tools/any/any/DotnetToolSettings.xml").Open()
+
+        let missing: string list =
+            Xml.Linq.XDocument.Load(settings).Descendants(Xml.Linq.XName.Get "RuntimeIdentifierPackage")
+            |> Seq.choose (fun (package: Xml.Linq.XElement) ->
+                let id: string = package.Attribute(Xml.Linq.XName.Get "Id").Value
+                let fileName: string = $"%s{id}.%s{version}.nupkg"
+                if File.Exists(packagesDir </> fileName) then
+                    None
+                else
+                    Some fileName
+            )
+            |> Seq.toList
+
+        if List.isEmpty missing then
+            return 0
+        else
+
+        printfn $"The fantomas package names packages that are not in %s{packagesDir}:"
+
+        for fileName in missing do
+            printfn $"  %s{fileName}"
+
+        if not isDryRun then
+            return 1
+        else
+
+        Console.WriteLine "[DRY-RUN] A release would stop here."
+        return 0
+    }
+
+// Packs the tool compiled with Native AOT for the platform this runs on, for a platform the runner of
+// the release cannot compile for. The release workflow runs it in an Alpine container for
+// `fantomas.linux-musl-x64`, and hands the package to the `Release` pipeline through
+// `nativeToolPackagesDir`.
+pipeline "PackNativeTool" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Clean" { run (cleanFolders [| packagesDir; artifactsDir </> "publish" </> "Fantomas" |]) }
+    stage "Pack" {
+        run $"dotnet pack src/Fantomas/Fantomas.fsproj -c Release -r %s{aotRuntimeIdentifier} -p:FantomasAot=true"
+    }
+    runIfOnlySpecified true
+}
+
 pipeline "Release" {
     workingDir __SOURCE_DIRECTORY__
+    // The release pushes every package it finds in the packages folder, so one an earlier pack left
+    // there would be published too.
+    stage "Clean" { run (cleanFolders [| packagesDir |]) }
     stage "Build" { run "dotnet build -c Release" }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Pack" { run "dotnet pack -c Release" }
+    // The tool again, as a `fantomas` package that only names the platform packages, which takes the
+    // place of the one the pack above wrote. `fantomas.linux-x64` holds the executable Native AOT
+    // compiled, and AOT only compiles for the machine it runs on, which is why the release runs on
+    // Linux. `fantomas.linux-musl-x64` comes from the `PackNativeTool` pipeline in an Alpine
+    // container. `fantomas.any` is the tool as it shipped before, for every other platform. A pack
+    // takes all of the publish folder, so a file an earlier publish left there would ship too.
+    // https://github.com/fsprojects/fantomas/issues/3171
+    stage "PackTool" {
+        run (cleanFolders [| artifactsDir </> "publish" </> "Fantomas" |])
+        run "dotnet pack src/Fantomas/Fantomas.fsproj -c Release -p:FantomasAot=true"
+        run "dotnet pack src/Fantomas/Fantomas.fsproj -c Release -r any -p:FantomasAot=true"
+        run copyNativeToolPackages
+        run checkToolPackages
+    }
     stage "Release" {
         run (fun ctx ->
             async {
@@ -580,10 +853,12 @@ pipeline "Release" {
                     if isPrerelease then
                         printfn $"Detected prerelease version: %s{currentRelease.Version}"
 
-                    // Push packages to NuGet
+                    // Push packages to NuGet. `fantomas` goes last: `dotnet tool install fantomas`
+                    // fails on a platform whose package it names but NuGet does not have yet.
                     let nugetPackages =
                         Directory.EnumerateFiles(packagesDir, "*.nupkg", SearchOption.TopDirectoryOnly)
                         |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
+                        |> Seq.sortBy isTopLevelToolPackage
                         |> Seq.toArray
 
                     printfn $"Found %i{nugetPackages.Length} packages to push to NuGet:"
@@ -678,34 +953,12 @@ pipeline "Release" {
     runIfOnlySpecified true
 }
 
-pipeline "PublishAlpha" {
-    workingDir __SOURCE_DIRECTORY__
-    stage "Clean" { run (cleanFolders [| analysisReportsDir; artifactsDir |]) }
-    stage "Build" { run "dotnet build -c Release --tl" }
-    stage "Pack" { run "dotnet pack --no-restore -c Release --tl" }
-    stage "Publish" {
-        run (fun ctx ->
-            async {
-                let nugetPackages =
-                    Directory.EnumerateFiles(packagesDir, "*.nupkg", SearchOption.TopDirectoryOnly)
-                    |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
-                    |> Seq.toArray
-
-                let! nugetExitCodes =
-                    nugetPackages |> Array.map (pushPackage ctx) |> Async.Sequential
-
-                return Array.sum nugetExitCodes
-            }
-        )
-    }
-    runIfOnlySpecified true
-}
-
 pipeline "Analyze" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "RestoreSolution" { run "dotnet restore --tl" }
     stage "BuildAnalyzers" { run buildLocalAnalyzers }
+    stage "BuildCSharpProjects" { run buildCSharpProjects }
     stage "Analyze" {
         // fsharp-analyzers targets the previous runtime and loads MSBuild from the SDK that
         // global.json picks. The host never rolls a release app onto a prerelease runtime while
@@ -736,6 +989,7 @@ pipeline "AnalyzeChanged" {
     stage "RestoreTools" { run "dotnet tool restore" }
     stage "RestoreSolution" { run "dotnet restore --tl" }
     stage "BuildAnalyzers" { run buildLocalAnalyzers }
+    stage "BuildCSharpProjects" { run buildCSharpProjects }
 
     stage "Analyze" {
         // fsharp-analyzers targets the previous runtime and loads MSBuild from the SDK that
