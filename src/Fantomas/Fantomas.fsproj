@@ -15,8 +15,20 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <!-- Spike: `dotnet publish -r <rid> -p:FantomasAot=true`, or the `TestAot` pipeline of build.fsx -->
+  <!--
+    Pilot of https://github.com/fsprojects/fantomas/issues/3171: `dotnet pack -p:FantomasAot=true`
+    gives the top-level `fantomas` package, which only names the platform packages, and
+    `fantomas.linux-x64`, which holds the native executable. The SDK packs only the platforms the
+    machine it runs on can compile for, so one runner per OS is what the full list will need.
+  -->
   <PropertyGroup Condition="'$(FantomasAot)' == 'true'">
     <PublishAot>true</PublishAot>
+    <ToolPackageRuntimeIdentifiers>linux-x64;any</ToolPackageRuntimeIdentifiers>
+    <RuntimeIdentifiers>$(ToolPackageRuntimeIdentifiers)</RuntimeIdentifiers>
+    <!-- The native debug symbols and the XML documentation are no use to someone running the tool. -->
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <PublishDocumentationFile>false</PublishDocumentationFile>
+    <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
