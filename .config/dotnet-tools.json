@@ -2,13 +2,6 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "fantomas": {
-      "version": "9.0.0-alpha-001",
-      "commands": [
-        "fantomas"
-      ],
-      "rollForward": false
-    },
     "fsdocs-tool": {
       "version": "23.0.0-alpha.8",
       "commands": [
@@ -27,6 +20,13 @@
       "version": "5.5.11",
       "commands": [
         "reportgenerator"
+      ],
+      "rollForward": false
+    },
+    "fantomas": {
+      "version": "9.0.0-alpha-001",
+      "commands": [
+        "fantomas"
       ],
       "rollForward": false
     }
