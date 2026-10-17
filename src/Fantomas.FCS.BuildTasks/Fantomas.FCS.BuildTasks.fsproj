@@ -25,6 +25,11 @@
     <RestoreLockedMode>false</RestoreLockedMode>
     <!-- Analyzers run over the products, not over vendored build tooling. -->
     <RunAnalyzers>false</RunAnalyzers>
+    <!--
+      A folder per FCS commit, so a hash change builds the task from that commit's sources.
+      FantomasBuildTasksAssembly in Fantomas.FCS.fsproj points into it.
+    -->
+    <ArtifactsPivots>$(Configuration.ToLowerInvariant())_$(FCSCommitHash)</ArtifactsPivots>
   </PropertyGroup>
 
   <ItemGroup>

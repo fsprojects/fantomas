@@ -376,22 +376,33 @@
     <Exec Command="dotnet fsi ../../build.fsx -p Init" />
   </Target>
 
+  <!--
+    The task and what it generates both live in a folder named after the FCS commit. Neither the
+    !Exists check below nor the task's own up-to-date check, which only compares FSComp.txt with its
+    outputs, notices a new commit, so a new folder is what makes a hash change rebuild the task and
+    regenerate FSComp.fs. The pivot matches ArtifactsPivots in Fantomas.FCS.BuildTasks.fsproj.
+  -->
   <PropertyGroup>
-    <FantomasBuildTasksAssembly>$(MSBuildThisFileDirectory)..\..\artifacts\bin\Fantomas.FCS.BuildTasks\$(Configuration.ToLowerInvariant())\Fantomas.FCS.BuildTasks.dll</FantomasBuildTasksAssembly>
+    <FantomasBuildTasksAssembly>$(MSBuildThisFileDirectory)..\..\artifacts\bin\Fantomas.FCS.BuildTasks\$(Configuration.ToLowerInvariant())_$(FCSCommitHash)\Fantomas.FCS.BuildTasks.dll</FantomasBuildTasksAssembly>
   </PropertyGroup>
 
-  <UsingTask TaskName="Fantomas.FCS.Build.FSharpEmbedResourceText" AssemblyFile="$(FantomasBuildTasksAssembly)" />
+  <!-- TaskHostFactory loads the task in a process of its own, so a reused node does not keep it, or lock it. -->
+  <UsingTask TaskName="Fantomas.FCS.Build.FSharpEmbedResourceText" AssemblyFile="$(FantomasBuildTasksAssembly)" TaskFactory="TaskHostFactory" />
 
   <!-- Build the task before anything needs to run it. -->
   <Target Name="BuildFantomasBuildTasks" BeforeTargets="GenerateFantomasTextResources" Condition="!Exists('$(FantomasBuildTasksAssembly)')">
-    <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)..\Fantomas.FCS.BuildTasks\Fantomas.FCS.BuildTasks.fsproj&quot; -c $(Configuration) -v quiet" />
+    <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)..\Fantomas.FCS.BuildTasks\Fantomas.FCS.BuildTasks.fsproj&quot; -c $(Configuration) -p:FCSCommitHash=$(FCSCommitHash) -v quiet" />
   </Target>
 
   <!-- The SDK's GenerateFSharpTextResources, but over our item and with our task. -->
   <Target Name="GenerateFantomasTextResources" BeforeTargets="CoreResGen;PrepareForBuild">
-    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <!-- Set here, as the SDK only sets IntermediateOutputPath after the project body. -->
+    <PropertyGroup>
+      <FantomasTextResourcesPath>$(IntermediateOutputPath)$(FCSCommitHash)\</FantomasTextResourcesPath>
+    </PropertyGroup>
+    <MakeDir Directories="$(FantomasTextResourcesPath)" />
 
-    <Fantomas.FCS.Build.FSharpEmbedResourceText EmbeddedText="@(FantomasEmbeddedText)" IntermediateOutputPath="$(IntermediateOutputPath)">
+    <Fantomas.FCS.Build.FSharpEmbedResourceText EmbeddedText="@(FantomasEmbeddedText)" IntermediateOutputPath="$(FantomasTextResourcesPath)">
       <Output TaskParameter="GeneratedSource" ItemName="_FantomasGeneratedTxtSource" />
       <Output TaskParameter="GeneratedResx" ItemName="_FantomasGeneratedResx" />
     </Fantomas.FCS.Build.FSharpEmbedResourceText>
