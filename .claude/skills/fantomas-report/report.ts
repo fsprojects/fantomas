@@ -6,8 +6,11 @@
 // Runs on Bun, or on Node 22.18 and later, which strip the types themselves:
 //
 //   bun report.ts check <sample> [--fsi] [--setting Key=Value ...]
-//   bun report.ts issue <sample> --title <title> [--description <file>] [--fsi]
+//   bun report.ts issue <sample> --title <title> [--description <file>] [--fsi] [--preview]
 //                       [--setting Key=Value ...] [--compiles] [--no-open]
+//
+// `check` formats with main, and with preview too when preview runs a branch of its own: the next
+// major's, while there is one. `issue --preview` reports against the preview tab.
 
 // lz-string is CommonJS and assigns its exports at runtime, so Node only sees the default export.
 import LZString from "lz-string";
@@ -18,9 +21,8 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 
 // The main stage fantomas-tools itself calls, from `setViteToProduction` in its build.fsx.
-const backend =
-  "https://arlp8cgo97.execute-api.eu-west-1.amazonaws.com/fantomas-main-stage-1c52a6a/fantomas/main";
-const toolsUrl = "https://fsprojects.github.io/fantomas-tools/#/fantomas/main";
+const stageUrl = "https://arlp8cgo97.execute-api.eu-west-1.amazonaws.com/fantomas-main-stage-1c52a6a/fantomas";
+const toolsUrl = "https://fsprojects.github.io/fantomas-tools/#/fantomas";
 
 // GitHub drops an issues/new link long before browsers do, and its limit covers the cookies too.
 // Measured on 2026-09-23: without cookies, links up to about 7,060 characters went through; with a
@@ -51,6 +53,8 @@ type Outcome =
   | { kind: "error"; message: string }
   | { kind: "issues"; result: FormatResponse }
   | { kind: "formatted"; result: FormatResponse };
+type Target = "main" | "preview";
+type Backend = { target: Target; version: string; defaults: Option[] };
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -59,6 +63,7 @@ const { positionals, values } = parseArgs({
     setting: { type: "string", multiple: true, default: [] },
     title: { type: "string" },
     description: { type: "string" },
+    preview: { type: "boolean", default: false },
     compiles: { type: "boolean", default: false },
     "no-open": { type: "boolean", default: false },
   },
@@ -66,21 +71,43 @@ const { positionals, values } = parseArgs({
 
 const [command, samplePath] = positionals;
 if ((command !== "check" && command !== "issue") || !samplePath) {
-  fail("usage: report.ts check|issue <sample> [--fsi] [--setting Key=Value] [--title ...]");
+  fail("usage: report.ts check|issue <sample> [--fsi] [--setting Key=Value] [--title ...] [--preview]");
 }
 
 const code = readFileSync(samplePath, "utf8");
-const [version, defaults] = await Promise.all([
-  fetchText(`${backend}/version`),
-  fetchText(`${backend}/options`).then((json) => JSON.parse(json) as Option[]),
-]);
-const changed = applySettings(defaults, values.setting);
-const outcome = await format(code, values.fsi, defaults, changed);
 
 if (command === "check") {
-  printCheck(outcome);
+  const [main, preview] = await Promise.all([connect("main"), connectPreview()]);
+  const mainSettings = applySettings(main, values.setting);
+  if (!Array.isArray(mainSettings)) fail(mainSettings.unknown);
+  const mainOutcome = await format(main, mainSettings);
+  printCheck(main, mainOutcome);
+
+  // Without a next-major branch, fantomas-tools either deploys no preview or builds it from main, and
+  // then both name one commit.
+  const mainCommit = commitOf(main.version);
+  if (preview === null) {
+    console.log("\nno preview is deployed: there is no next major to check");
+  } else if (mainCommit !== undefined && mainCommit === commitOf(preview.version)) {
+    console.log("\npreview runs the same commit as main: there is no next major to check");
+  } else {
+    const previewSettings = applySettings(preview, values.setting);
+    if (!Array.isArray(previewSettings)) {
+      console.log(`\nnot checked on preview: ${previewSettings.unknown}`);
+    } else {
+      const previewOutcome = await format(preview, previewSettings);
+      console.log();
+      printCheck(preview, previewOutcome);
+      console.log(`\nmain: ${mainOutcome.kind}, preview: ${previewOutcome.kind}`);
+    }
+  }
 } else {
   if (!values.title) fail("issue needs --title");
+  const backend = values.preview ? await connectPreview() : await connect("main");
+  if (backend === null) fail("no preview is deployed: report against main");
+  const changed = applySettings(backend, values.setting);
+  if (!Array.isArray(changed)) fail(changed.unknown);
+  const outcome = await format(backend, changed);
   if (outcome.kind === "invalid-source" && !values.compiles) {
     fail(
       `not reporting: the sample itself does not parse.\n${outcome.message}\n` +
@@ -91,7 +118,7 @@ if (command === "check") {
   // fantomas-tools has no button for it, and blames the code instead.
   const reported = outcome.kind === "invalid-source" ? { kind: "error" as const, message: outcome.message } : outcome;
   const description = values.description ? readFileSync(values.description, "utf8").trim() : null;
-  openIssue(values.title, buildBody(reported, description));
+  openIssue(values.title, buildBody(backend, changed, reported, description));
 }
 
 function fail(message: string): never {
@@ -108,25 +135,49 @@ async function fetchText(url: string, init?: RequestInit): Promise<string> {
   return text;
 }
 
-/** The options the user changed, with their new values. Unknown keys are an error, not ignored. */
-function applySettings(defaults: Option[], settings: string[]): Option[] {
-  return settings.map((setting) => {
-    const [key, raw] = setting.split("=", 2);
-    const option = defaults.find((o) => o.$value[1] === key);
-    if (!option || raw === undefined) {
-      fail(`unknown setting ${setting}, expected one of: ${defaults.map((o) => o.$value[1]).join(", ")}`);
-    }
-    const value = option.$type === "int" ? Number(raw) : option.$type === "bool" ? raw === "true" : raw;
-    return { $type: option.$type, $value: [option.$value[0], key, value] };
-  });
+async function connect(target: Target): Promise<Backend> {
+  const [version, defaults] = await Promise.all([
+    fetchText(`${stageUrl}/${target}/version`),
+    fetchText(`${stageUrl}/${target}/options`).then((json) => JSON.parse(json) as Option[]),
+  ]);
+  return { target, version, defaults };
 }
 
-async function format(code: string, isFsi: boolean, defaults: Option[], changed: Option[]): Promise<Outcome> {
-  const options = defaults.map((d) => changed.find((c) => c.$value[1] === d.$value[1]) ?? d);
-  const response = await fetch(`${backend}/format`, {
+/** The preview backend, or null when it does not answer: without a next-major branch, fantomas-tools
+ * may deploy no preview function at all, and the stage answers 404. */
+async function connectPreview(): Promise<Backend | null> {
+  const response = await fetch(`${stageUrl}/preview/version`).catch(() => null);
+  return response?.ok ? connect("preview") : null;
+}
+
+/** The Fantomas commit a backend runs, from its version: main names it, preview has it after `+`. */
+function commitOf(version: string): string | undefined {
+  return /[0-9a-f]{40}/.exec(version)?.[0];
+}
+
+/** The options the user changed, with their new values. Unknown keys are an error, not ignored: a
+ * major version can drop a setting, so the backend that does not know it is named. */
+function applySettings(backend: Backend, settings: string[]): Option[] | { unknown: string } {
+  const changed: Option[] = [];
+  for (const setting of settings) {
+    const [key, raw] = setting.split("=", 2);
+    const option = backend.defaults.find((o) => o.$value[1] === key);
+    if (!option || raw === undefined) {
+      const known = backend.defaults.map((o) => o.$value[1]).join(", ");
+      return { unknown: `${backend.target} has no setting ${setting}, expected one of: ${known}` };
+    }
+    const value = option.$type === "int" ? Number(raw) : option.$type === "bool" ? raw === "true" : raw;
+    changed.push({ $type: option.$type, $value: [option.$value[0], key, value] });
+  }
+  return changed;
+}
+
+async function format(backend: Backend, changed: Option[]): Promise<Outcome> {
+  const options = backend.defaults.map((d) => changed.find((c) => c.$value[1] === d.$value[1]) ?? d);
+  const response = await fetch(`${stageUrl}/${backend.target}/format`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sourceCode: code, options, isFsi }),
+    body: JSON.stringify({ sourceCode: code, options, isFsi: values.fsi }),
   });
   const text = await response.text();
   if (!response.ok) {
@@ -146,8 +197,8 @@ function tryParse(text: string): { kind?: string; message?: string } | null {
   }
 }
 
-function printCheck(outcome: Outcome) {
-  console.log(`Fantomas ${version}`);
+function printCheck(backend: Backend, outcome: Outcome) {
+  console.log(`${backend.target}: Fantomas ${backend.version}`);
   console.log(`outcome: ${outcome.kind}\n`);
   switch (outcome.kind) {
     case "invalid-source":
@@ -232,14 +283,19 @@ function issuesAsMarkdown(issues: FormatIssue[]): string {
 
 /** The fantomas-tools link that reopens this sample. Only changed settings travel: the tool fills in
  * the rest from its defaults, and every setting left out keeps the issue link under GitHub's limit. */
-function sampleLink(): string {
+function sampleLink(backend: Backend, changed: Option[]): string {
   const data = LZString.compressToEncodedURIComponent(
     JSON.stringify({ code, settings: changed, isFsi: values.fsi }),
   );
-  return `${toolsUrl}?${new URLSearchParams({ data })}`;
+  return `${toolsUrl}/${backend.target}?${new URLSearchParams({ data })}`;
 }
 
-function buildBody(outcome: Exclude<Outcome, { kind: "invalid-source" }>, description: string | null): string {
+function buildBody(
+  backend: Backend,
+  changed: Option[],
+  outcome: Exclude<Outcome, { kind: "invalid-source" }>,
+  description: string | null,
+): string {
   const codeTemplate = (header: string, content: string) => `
 #### ${header}
 
@@ -294,7 +350,7 @@ ${content}
     please fill in the feature request template at https://github.com/fsprojects/fantomas/issues/new/choose
 
 -->
-Issue created from [fantomas-online](${sampleLink()})
+Issue created from [fantomas-online](${sampleLink(backend, changed)})
 
 ${left}
 ${right}
@@ -311,7 +367,7 @@ ${problem}
 
 #### Options
 
-Fantomas ${version}
+Fantomas ${backend.version}
 
 ${options}
 ${values.fsi ? "\n*Signature file*" : ""}

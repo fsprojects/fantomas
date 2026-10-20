@@ -114,20 +114,26 @@ describes this limitation and the other ones directives have.
 `cons.( :: ).1 <- t` and similar parse only when compiling FSharp.Core. Fantomas does not support them
 on purpose; such files belong in `.fantomasignore`.
 
-## 4. Check it against main
+## 4. Check it against main and preview
 
 ```bash
 bun report.ts check <sample> [--fsi] [--setting MaxLineLength=60]
 ```
 
 This formats with the deployed main branch, which is what a maintainer gets when they click the link
-in the issue. The outcome is one of:
+in the issue. While the next major is worked on in a branch of its own, fantomas-tools deploys that
+branch as preview, and `check` formats with it too and prints both outcomes. When there is no such
+branch, preview is either not deployed or runs the same commit as main; `check` says which and
+checks main alone. Each outcome is one of:
 
 - `issues`: the backend found something wrong with the result, listed by kind. Report. The kinds are
   - `notValidFSharp`: the result does not parse.
   - `notIdempotent`: formatting the result again changes it. When it is the only issue, the issue
     shows the code, the first format and the second.
   - `checkFailed`: formatting the result again threw.
+
+  Preview runs the checks of the next major, which can also find `missingComment`,
+  `commentsChanged` and `directivesChanged`.
 - `error`: Fantomas threw on the sample itself. Report.
 - `formatted`: nothing wrong mechanically. Report if the output lost or changed code, or if the layout
   is wrong and you can say why.
@@ -136,6 +142,14 @@ in the issue. The outcome is one of:
   vendors is behind the compiler, which is a bug: report it with `--compiles` on the `issue` command.
 
 If main passes while the latest release fails, the fix is on main and ships with the next release.
+
+When preview was checked, compare the two:
+
+- Fails on both: report against main, and say it fails on the next major too.
+- Fails on main only: still report against main, and say the next major formats it correctly. The
+  fix may already exist there, which tells the maintainers where to look.
+- Fails on preview only: a regression in the next major. Report it with `--preview` on the `issue`
+  command, which formats with preview and links to its tab, and say main formats it correctly.
 
 ## 5. Look for related issues
 
@@ -152,7 +166,7 @@ Write the problem description to a file: what goes wrong, which variations trigg
 not, the versions it fails on, and where the code came from. Keep it short. Then:
 
 ```bash
-bun report.ts issue <sample> --title "<what goes wrong>" --description <file> [--fsi] [--setting ...]
+bun report.ts issue <sample> --title "<what goes wrong>" --description <file> [--fsi] [--setting ...] [--preview]
 ```
 
 It writes the body to `fantomas-issue-body.md` in the temp folder, prints the link length, and opens
