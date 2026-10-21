@@ -45,6 +45,12 @@ compatibility overload, and without calling it out as a breaking change. Leave O
 between tags instead. Code generation on top of the Oak is told to expect
 this (`docs/docs/end-users/GeneratingCode.fsx`, "Updates").
 
+## Choosing a layout
+
+When more than one layout parses, the design decisions in
+[docs/docs/end-users/DesignDecisions.md](docs/docs/end-users/DesignDecisions.md) choose. Name the
+one you apply when you recommend an option.
+
 ## Talking about a formatting change
 
 ### Trivia versus comments in our code
