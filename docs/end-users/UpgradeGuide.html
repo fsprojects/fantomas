@@ -104,6 +104,9 @@
 <li class="nav-item "><a href="../../docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" title="" > Conditional Compilation Directives
 </a></li>
 
+<li class="nav-item "><a href="../../docs/end-users/RuleOfMultitudes.html" class="nav-link" title="" > The rule of multitudes
+</a></li>
+
 <li class="nav-item "><a href="../../docs/end-users/ReportingBugs.html" class="nav-link" title="" > Reporting a bug
 </a></li>
 
@@ -263,6 +266,9 @@
 </a></li>
 
 <li class="nav-item "><a href="../../docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" title="" > Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/RuleOfMultitudes.html" class="nav-link" title="" > The rule of multitudes
 </a></li>
 
 <li class="nav-item "><a href="../../docs/end-users/ReportingBugs.html" class="nav-link" title="" > Reporting a bug
@@ -845,6 +851,174 @@ If you catch <code>FormatException</code>, you already catch this.</p>
 <li><p><code>CodeFormatter.FormatASTAsync(ast, config, source)</code> was added, next to the existing <code>FormatASTAsync(ast, source)</code>.</p></li>
 <li><p><code>CodeFormatter.GetWriterEventsAsync</code> was added for debugging. It returns the writer events produced while formatting.</p></li>
 </ul>
+<h2 data-fsdocs-heading="34"><a name="v8-1" class="anchor" href="#v8-1">v8.1</a></h2>
+<h3 data-fsdocs-heading="35"><a name="Formatting-1" class="anchor" href="#Formatting-1">Formatting</a></h3>
+<p>8.1 fixes a handful of layouts where the formatted code did not compile, or changed again on the
+next format; the <a href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">changelog</a> lists
+them. Fixing them at the cause, rather than with a special case each, also moves a few layouts of
+code that was already valid. Two ideas are behind most changes below:</p>
+<ul>
+<li>
+Indent only as far as the parser needs, and on a multiple of <code>indent_size</code>: the
+<a href="./RuleOfMultitudes.html">rule of multitudes</a>. 8.0 added extra indentation in places to keep the
+compiler happy, and some of it landed on columns like 10 or 14 with an indent size of 4.
+</li>
+<li>Keep a comment with the code it lines up with.</li>
+</ul>
+<p>The examples use the default settings.</p>
+<h4 data-fsdocs-heading="36"><a name="A-function-type-in-parentheses-goes-one-level-in-not-two" class="anchor" href="#A-function-type-in-parentheses-goes-one-level-in-not-two">A function type in parentheses goes one level in, not two</a></h4>
+<p>Since 8.0, every multiline function type in parentheses got an extra level, to avoid a compiler
+error after an outer <code>-&gt;</code> (<a href="https://github.com/fsprojects/fantomas/issues/3043">#3043</a>). There it
+stays, and so it does when the function type starts with a tuple: the tuple's lines go one level
+past the <code>(</code>, the <code>-&gt;</code> lines two. Everywhere else this is the 7.0.6 layout again.</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v8.0</span>
+<span class="k">type</span> <span class="id">T</span> <span class="o">=</span>
+    <span class="pn">(</span><span class="id">LongTypeNameNumberOne</span>
+            <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberTwo</span>
+            <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberThree</span>
+            <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFour</span>
+            <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFive</span><span class="pn">)</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="29" class="id">list</span>
+
+<span class="c">// v8.1</span>
+<span class="k">type</span> <span class="id">T</span> <span class="o">=</span>
+    <span class="pn">(</span><span class="id">LongTypeNameNumberOne</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberTwo</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberThree</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFour</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFive</span><span class="pn">)</span> <span data-fsdocs-tip="fs12" data-fsdocs-tip-unique="30" class="id">list</span>
+</code></pre></div>
+<h4 data-fsdocs-heading="37"><a name="A-return-type-lands-on-a-multiple-of-the-indent-size" class="anchor" href="#A-return-type-lands-on-a-multiple-of-the-indent-size">A return type lands on a multiple of the indent size</a></h4>
+<p>The lines of a return type no longer hang off the column after <code>:</code>. They go one level past the
+binding. With <code>indent_size = 2</code> that level would be the column after <code>:</code>, so there the lines are
+measured from that column, as in 8.0.</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v8.0</span>
+<span class="k">let</span> <span class="id">f</span>
+    <span class="id">x</span>
+    <span class="pn">:</span> <span class="pn">(</span><span class="id">LongTypeNameNumberOne</span>
+              <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberTwo</span>
+              <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberThree</span>
+              <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFour</span>
+              <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFive</span><span class="pn">)</span>
+    <span class="o">=</span>
+    <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="31" class="id">failwith</span> <span class="s">&quot;&quot;</span>
+
+<span class="c">// v8.1</span>
+<span class="k">let</span> <span class="id">f</span>
+    <span class="id">x</span>
+    <span class="pn">:</span> <span class="pn">(</span><span class="id">LongTypeNameNumberOne</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberTwo</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberThree</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFour</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFive</span><span class="pn">)</span>
+    <span class="o">=</span>
+    <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="32" class="id">failwith</span> <span class="s">&quot;&quot;</span>
+</code></pre></div>
+<h4 data-fsdocs-heading="38"><a name="A-long-struct-tuple-type-is-written-like-a-long-list" class="anchor" href="#A-long-struct-tuple-type-is-written-like-a-long-list">A long struct tuple type is written like a long list</a></h4>
+<p>The elements go on lines of their own, one level in, and the <code>)</code> back on the indent of the line it
+started on. The elements after the first used to start left of <code>struct (</code>, at a column the parser
+only accepts in some places: in the middle of a function type, the same shape did not compile.</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v8.0</span>
+<span class="k">let</span> <span class="id">f</span>
+    <span class="id">x</span>
+    <span class="pn">:</span> <span class="k">struct</span> <span class="pn">(</span><span class="id">LongTypeNameNumberOne</span> <span class="pn">*</span>
+      <span class="id">LongTypeNameNumberTwo</span> <span class="pn">*</span>
+      <span class="id">LongTypeNameNumberThree</span> <span class="pn">*</span>
+      <span class="id">LongTypeNameNumberFour</span> <span class="pn">*</span>
+      <span class="id">LongTypeNameNumberFive</span><span class="pn">)</span>
+    <span class="o">=</span>
+    <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="33" class="id">failwith</span> <span class="s">&quot;&quot;</span>
+
+<span class="c">// v8.1</span>
+<span class="k">let</span> <span class="id">f</span>
+    <span class="id">x</span>
+    <span class="pn">:</span> <span class="k">struct</span> <span class="pn">(</span>
+        <span class="id">LongTypeNameNumberOne</span> <span class="pn">*</span>
+        <span class="id">LongTypeNameNumberTwo</span> <span class="pn">*</span>
+        <span class="id">LongTypeNameNumberThree</span> <span class="pn">*</span>
+        <span class="id">LongTypeNameNumberFour</span> <span class="pn">*</span>
+        <span class="id">LongTypeNameNumberFive</span>
+    <span class="pn">)</span>
+    <span class="o">=</span>
+    <span data-fsdocs-tip="fs13" data-fsdocs-tip-unique="34" class="id">failwith</span> <span class="s">&quot;&quot;</span>
+</code></pre></div>
+<h4><a name="A-tuple-type-after-or-goes-one-level-in" class="anchor" href="#A-tuple-type-after-or-goes-one-level-in">A tuple type after <code>:&gt;</code>, <code>:?&gt;</code>, <code>:</code> or <code>:?</code> goes one level in</a></h4>
+<p>The lines after the first element used to go back to the column of the operator line, where they
+read as if the type had ended. A tuple after the <code>-&gt;</code> of a function type does the same.</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v8.0</span>
+<span class="k">let</span> <span class="id">x</span> <span class="o">=</span>
+    <span class="id">someValue</span>
+    <span class="o">:&gt;</span> <span class="pn">(</span><span class="id">LongTypeNameNumberOne</span> <span class="pn">*</span>
+    <span class="id">LongTypeNameNumberTwo</span> <span class="pn">*</span>
+    <span class="id">LongTypeNameNumberThree</span> <span class="pn">*</span>
+    <span class="id">LongTypeNameNumberFour</span> <span class="pn">*</span>
+    <span class="id">LongTypeNameNumberFive</span><span class="pn">)</span>
+
+<span class="c">// v8.1</span>
+<span class="k">let</span> <span class="id">x</span> <span class="o">=</span>
+    <span class="id">someValue</span>
+    <span class="o">:&gt;</span> <span class="pn">(</span><span class="id">LongTypeNameNumberOne</span> <span class="pn">*</span>
+        <span class="id">LongTypeNameNumberTwo</span> <span class="pn">*</span>
+        <span class="id">LongTypeNameNumberThree</span> <span class="pn">*</span>
+        <span class="id">LongTypeNameNumberFour</span> <span class="pn">*</span>
+        <span class="id">LongTypeNameNumberFive</span><span class="pn">)</span>
+</code></pre></div>
+<h4 data-fsdocs-heading="39"><a name="A-comment-lined-up-with-the-elements-stays-with-them" class="anchor" href="#A-comment-lined-up-with-the-elements-stays-with-them">A comment lined up with the elements stays with them</a></h4>
+<p>A line comment written on the column where the elements of a list start now stays with the
+elements, also when the closing <code>]</code> is on that column too. It used to move before the <code>]</code>. A
+comment on the column of the opening bracket still stays with the brackets.</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// input</span>
+<span class="k">let</span> <span class="id">a</span> <span class="o">=</span> <span class="pn">[</span>
+    <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">2</span><span class="pn">,</span><span class="n">3</span><span class="pn">)</span><span class="pn">;</span> <span class="pn">(</span><span class="n">4</span><span class="pn">,</span><span class="n">5</span><span class="pn">,</span><span class="n">6</span><span class="pn">)</span><span class="pn">;</span> <span class="pn">(</span><span class="n">7</span><span class="pn">,</span><span class="n">8</span><span class="pn">,</span><span class="n">9</span><span class="pn">)</span>
+    <span class="c">// some line comment</span>
+    <span class="pn">]</span>
+
+<span class="c">// v8.0</span>
+<span class="k">let</span> <span class="id">a</span> <span class="o">=</span>
+    <span class="pn">[</span>
+        <span class="pn">(</span><span class="n">1</span><span class="pn">,</span> <span class="n">2</span><span class="pn">,</span> <span class="n">3</span><span class="pn">)</span>
+        <span class="pn">(</span><span class="n">4</span><span class="pn">,</span> <span class="n">5</span><span class="pn">,</span> <span class="n">6</span><span class="pn">)</span>
+        <span class="pn">(</span><span class="n">7</span><span class="pn">,</span> <span class="n">8</span><span class="pn">,</span> <span class="n">9</span><span class="pn">)</span>
+    <span class="c">// some line comment</span>
+    <span class="pn">]</span>
+
+<span class="c">// v8.1</span>
+<span class="k">let</span> <span class="id">a</span> <span class="o">=</span>
+    <span class="pn">[</span>
+        <span class="pn">(</span><span class="n">1</span><span class="pn">,</span> <span class="n">2</span><span class="pn">,</span> <span class="n">3</span><span class="pn">)</span>
+        <span class="pn">(</span><span class="n">4</span><span class="pn">,</span> <span class="n">5</span><span class="pn">,</span> <span class="n">6</span><span class="pn">)</span>
+        <span class="pn">(</span><span class="n">7</span><span class="pn">,</span> <span class="n">8</span><span class="pn">,</span> <span class="n">9</span><span class="pn">)</span>
+        <span class="c">// some line comment</span>
+    <span class="pn">]</span>
+</code></pre></div>
+<h4 data-fsdocs-heading="40"><a name="A-single-anonymous-record-type-argument-stays-attached-in-Stroustrup" class="anchor" href="#A-single-anonymous-record-type-argument-stays-attached-in-Stroustrup">A single anonymous record type argument stays attached in Stroustrup</a></h4>
+<p>This applies with <strong><code>fsharp_multiline_bracket_style = stroustrup</code></strong>. <code>aligned</code> and <code>cramped</code> are
+untouched.</p>
+<p>A type application whose only type argument is an anonymous record keeps <code>&lt;{|</code> and <code>|}&gt;</code> together,
+the way Stroustrup puts the bracket of a record at the end of the line before it. Since 6.3.0 the
+record went on lines of its own, one level in, with the closing <code>&gt;</code> on a line by itself. With more
+than one type argument, the arguments still go on lines of their own.</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v8.0</span>
+<span class="k">let</span> <span class="id">asJson</span> <span class="pn">(</span><span class="id">arm</span><span class="pn">:</span> <span class="id">IArmResource</span><span class="pn">)</span> <span class="o">=</span>
+    <span class="id">arm</span><span class="pn">.</span><span class="id">JsonModel</span>
+    <span class="o">|&gt;</span> <span class="id">convertTo</span><span class="pn">&lt;</span>
+        <span class="pn">{|</span>
+            <span class="id">kind</span><span class="pn">:</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="35" class="id">string</span>
+            <span class="id">properties</span><span class="pn">:</span> <span class="pn">{|</span> <span class="id">statisticsEnabled</span><span class="pn">:</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="36" class="id">bool</span> <span class="pn">|}</span>
+            <span class="id">location</span><span class="pn">:</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="37" class="id">string</span>
+            <span class="id">sku</span><span class="pn">:</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="38" class="id">string</span>
+        <span class="pn">|}</span>
+        <span class="pn">&gt;</span>
+
+<span class="c">// v8.1</span>
+<span class="k">let</span> <span class="id">asJson</span> <span class="pn">(</span><span class="id">arm</span><span class="pn">:</span> <span class="id">IArmResource</span><span class="pn">)</span> <span class="o">=</span>
+    <span class="id">arm</span><span class="pn">.</span><span class="id">JsonModel</span>
+    <span class="o">|&gt;</span> <span class="id">convertTo</span><span class="pn">&lt;</span><span class="pn">{|</span>
+        <span class="id">kind</span><span class="pn">:</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="39" class="id">string</span>
+        <span class="id">properties</span><span class="pn">:</span> <span class="pn">{|</span> <span class="id">statisticsEnabled</span><span class="pn">:</span> <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="40" class="id">bool</span> <span class="pn">|}</span>
+        <span class="id">location</span><span class="pn">:</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="41" class="id">string</span>
+        <span class="id">sku</span><span class="pn">:</span> <span data-fsdocs-tip="fs14" data-fsdocs-tip-unique="42" class="id">string</span>
+    <span class="pn">|}</span><span class="pn">&gt;</span>
+</code></pre></div>
 <fantomas-nav source="docs/end-users/UpgradeGuide.md" previous="Configuration.html" next="IgnoreFiles.html"></fantomas-nav>
 
         <div popover class="fsdocs-tip" id="fs1"><span class="k">val</span> <span class="fn">unbox</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="rt">objnull</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
@@ -858,6 +1032,9 @@ If you catch <code>FormatException</code>, you already catch this.</p>
 <div popover class="fsdocs-tip" id="fs9"><span class="k">namespace</span> <span class="m">System</span></div>
 <div popover class="fsdocs-tip" id="fs10"><em>Provides a mechanism for releasing unmanaged resources.</em><br /><span class="k">type</span> <span class="if">IDisposable</span> <span class="o">=</span><br />&#160;&#160;<span class="k">override</span> <span class="fn">Dispose</span><span class="pn">:</span> <span class="vt">unit</span> <span class="pn">-&gt;</span> <span class="rt">unit</span></div>
 <div popover class="fsdocs-tip" id="fs11"><span class="k">val</span> <span class="fn">printfn</span><span class="pn">:</span> <span class="id">format</span><span class="pn">:</span> <span class="m">Printf.</span><span class="rt">TextWriterFormat</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
+<div popover class="fsdocs-tip" id="fs12"><span class="k">type</span> <span class="ta">&#39;T</span> list <span class="o">=</span> <span class="rt">List</span><span class="pn">&lt;</span><span class="ta">&#39;T</span><span class="pn">&gt;</span></div>
+<div popover class="fsdocs-tip" id="fs13"><span class="k">val</span> <span class="fn">failwith</span><span class="pn">:</span> <span class="id">message</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
+<div popover class="fsdocs-tip" id="fs14">Multiple items<br /><span class="k">val</span> <span class="fn">string</span><span class="pn">:</span> <span class="id">value</span><span class="pn">:</span> <span class="ta">&#39;T</span> <span class="pn">-&gt;</span> <span class="rt">string</span><br /><br />--------------------<br /><span class="k">type</span> <span class="rt">string</span> <span class="o">=</span> <span class="m">System.</span><span class="rt">String</span></div>
 
     </div>
 </main>
@@ -1029,8 +1206,43 @@ If you catch <code>FormatException</code>, you already catch this.</p>
       CodeFormatter
     </a>
   </li>
+  <li class="level-2" data-fsdocs-heading="34">
+    <a href="#v8-1">
+      v8.1
+    </a>
+  </li>
+  <li class="level-3" data-fsdocs-heading="35">
+    <a href="#Formatting-1">
+      Formatting
+    </a>
+  </li>
+  <li class="level-4" data-fsdocs-heading="36">
+    <a href="#A-function-type-in-parentheses-goes-one-level-in-not-two">
+      A function type in parentheses goes one level in, not two
+    </a>
+  </li>
+  <li class="level-4" data-fsdocs-heading="37">
+    <a href="#A-return-type-lands-on-a-multiple-of-the-indent-size">
+      A return type lands on a multiple of the indent size
+    </a>
+  </li>
+  <li class="level-4" data-fsdocs-heading="38">
+    <a href="#A-long-struct-tuple-type-is-written-like-a-long-list">
+      A long struct tuple type is written like a long list
+    </a>
+  </li>
+  <li class="level-4" data-fsdocs-heading="39">
+    <a href="#A-comment-lined-up-with-the-elements-stays-with-them">
+      A comment lined up with the elements stays with them
+    </a>
+  </li>
+  <li class="level-4" data-fsdocs-heading="40">
+    <a href="#A-single-anonymous-record-type-argument-stays-attached-in-Stroustrup">
+      A single anonymous record type argument stays attached in Stroustrup
+    </a>
+  </li>
 </ul><style>
-body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-heading-10, --fsdocs-heading-11, --fsdocs-heading-12, --fsdocs-heading-13, --fsdocs-heading-14, --fsdocs-heading-15, --fsdocs-heading-16, --fsdocs-heading-17, --fsdocs-heading-18, --fsdocs-heading-19, --fsdocs-heading-20, --fsdocs-heading-21, --fsdocs-heading-22, --fsdocs-heading-23, --fsdocs-heading-24, --fsdocs-heading-25, --fsdocs-heading-26, --fsdocs-heading-27, --fsdocs-heading-28, --fsdocs-heading-29, --fsdocs-heading-30, --fsdocs-heading-31, --fsdocs-heading-32, --fsdocs-heading-33, --fsdocs-main; }
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-heading-6, --fsdocs-heading-7, --fsdocs-heading-8, --fsdocs-heading-9, --fsdocs-heading-10, --fsdocs-heading-11, --fsdocs-heading-12, --fsdocs-heading-13, --fsdocs-heading-14, --fsdocs-heading-15, --fsdocs-heading-16, --fsdocs-heading-17, --fsdocs-heading-18, --fsdocs-heading-19, --fsdocs-heading-20, --fsdocs-heading-21, --fsdocs-heading-22, --fsdocs-heading-23, --fsdocs-heading-24, --fsdocs-heading-25, --fsdocs-heading-26, --fsdocs-heading-27, --fsdocs-heading-28, --fsdocs-heading-29, --fsdocs-heading-30, --fsdocs-heading-31, --fsdocs-heading-32, --fsdocs-heading-33, --fsdocs-heading-34, --fsdocs-heading-35, --fsdocs-heading-36, --fsdocs-heading-37, --fsdocs-heading-38, --fsdocs-heading-39, --fsdocs-heading-40, --fsdocs-main; }
 #content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
 #fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
 body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
@@ -1125,11 +1337,32 @@ body:has(#content [data-fsdocs-heading="30"]:is(:focus, .fsdocs-hotkey-focus)) #
 #fsdocs-page-menu [data-fsdocs-heading="31"] { animation-timeline: --fsdocs-heading-31, --fsdocs-heading-32; }
 body:has(#content [data-fsdocs-heading="31"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="31"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="32"] { view-timeline-name: --fsdocs-heading-32; }
-#fsdocs-page-menu [data-fsdocs-heading="32"] { animation-timeline: --fsdocs-heading-32, --fsdocs-heading-33, --fsdocs-main; }
+#fsdocs-page-menu [data-fsdocs-heading="32"] { animation-timeline: --fsdocs-heading-32, --fsdocs-heading-33; }
 body:has(#content [data-fsdocs-heading="32"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="32"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="33"] { view-timeline-name: --fsdocs-heading-33; }
-#fsdocs-page-menu [data-fsdocs-heading="33"] { animation-timeline: --fsdocs-heading-33, --fsdocs-main; }
+#fsdocs-page-menu [data-fsdocs-heading="33"] { animation-timeline: --fsdocs-heading-33, --fsdocs-heading-34; }
 body:has(#content [data-fsdocs-heading="33"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="33"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="34"] { view-timeline-name: --fsdocs-heading-34; }
+#fsdocs-page-menu [data-fsdocs-heading="34"] { animation-timeline: --fsdocs-heading-34, --fsdocs-heading-35; }
+body:has(#content [data-fsdocs-heading="34"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="34"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="35"] { view-timeline-name: --fsdocs-heading-35; }
+#fsdocs-page-menu [data-fsdocs-heading="35"] { animation-timeline: --fsdocs-heading-35, --fsdocs-heading-36; }
+body:has(#content [data-fsdocs-heading="35"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="35"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="36"] { view-timeline-name: --fsdocs-heading-36; }
+#fsdocs-page-menu [data-fsdocs-heading="36"] { animation-timeline: --fsdocs-heading-36, --fsdocs-heading-37; }
+body:has(#content [data-fsdocs-heading="36"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="36"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="37"] { view-timeline-name: --fsdocs-heading-37; }
+#fsdocs-page-menu [data-fsdocs-heading="37"] { animation-timeline: --fsdocs-heading-37, --fsdocs-heading-38; }
+body:has(#content [data-fsdocs-heading="37"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="37"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="38"] { view-timeline-name: --fsdocs-heading-38; }
+#fsdocs-page-menu [data-fsdocs-heading="38"] { animation-timeline: --fsdocs-heading-38, --fsdocs-heading-39; }
+body:has(#content [data-fsdocs-heading="38"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="38"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="39"] { view-timeline-name: --fsdocs-heading-39; }
+#fsdocs-page-menu [data-fsdocs-heading="39"] { animation-timeline: --fsdocs-heading-39, --fsdocs-heading-40, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="39"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="39"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="40"] { view-timeline-name: --fsdocs-heading-40; }
+#fsdocs-page-menu [data-fsdocs-heading="40"] { animation-timeline: --fsdocs-heading-40, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="40"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="40"] { --fsdocs-toc-focused: 1; }
 </style>
 </aside>
 <dialog>

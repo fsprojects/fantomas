@@ -21,6 +21,7 @@
 - [Formatting chain expressions](https://fsprojects.github.io/fantomas/docs/end-users/Chains.md)
 - [Formatting Check](https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.md)
 - [Generating source code](https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.md)
+- [The rule of multitudes](https://fsprojects.github.io/fantomas/docs/end-users/RuleOfMultitudes.md)
 - [Git hooks](https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.md)
 - [History](https://fsprojects.github.io/fantomas/docs/contributors/History.md)
 - [Formatting Conventions](https://fsprojects.github.io/fantomas/docs/contributors/Formatting Conventions.md)

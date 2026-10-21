@@ -104,6 +104,9 @@
 <li class="nav-item "><a href="../../docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" title="" > Conditional Compilation Directives
 </a></li>
 
+<li class="nav-item "><a href="../../docs/end-users/RuleOfMultitudes.html" class="nav-link" title="" > The rule of multitudes
+</a></li>
+
 <li class="nav-item "><a href="../../docs/end-users/ReportingBugs.html" class="nav-link" title="" > Reporting a bug
 </a></li>
 
@@ -265,6 +268,9 @@
 <li class="nav-item "><a href="../../docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" title="" > Conditional Compilation Directives
 </a></li>
 
+<li class="nav-item "><a href="../../docs/end-users/RuleOfMultitudes.html" class="nav-link" title="" > The rule of multitudes
+</a></li>
+
 <li class="nav-item "><a href="../../docs/end-users/ReportingBugs.html" class="nav-link" title="" > Reporting a bug
 </a></li>
 
@@ -373,6 +379,10 @@ See <a href="./Chains.html">Formatting chain expressions</a>.</p>
 <p>Fantomas formats code under every combination of <code>#if</code> / <code>#else</code> / <code>#endif</code> defines and merges the
 results, which means every combination has to produce valid F# on its own.
 See <a href="./ConditionalCompilationDirectives.html">Conditional Compilation Directives</a>.</p>
+<h2 data-fsdocs-heading="5"><a name="The-rule-of-multitudes" class="anchor" href="#The-rule-of-multitudes">The rule of multitudes</a></h2>
+<p>When more than one layout parses, Fantomas prefers the one where every line starts on a multiple of
+<code>indent_size</code>, rather than on a column taken from a token, which moves when a name changes length.
+See <a href="./RuleOfMultitudes.html">The rule of multitudes</a>.</p>
 <fantomas-nav source="docs/end-users/DesignDecisions.md" previous="StyleGuide.html" next="Chains.html"></fantomas-nav>
 
         
@@ -401,8 +411,13 @@ See <a href="./ConditionalCompilationDirectives.html">Conditional Compilation Di
       Conditional compilation directives
     </a>
   </li>
+  <li class="level-2" data-fsdocs-heading="5">
+    <a href="#The-rule-of-multitudes">
+      The rule of multitudes
+    </a>
+  </li>
 </ul><style>
-body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-main; }
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-main; }
 #content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
 #fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
 body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
@@ -410,11 +425,14 @@ body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #f
 #fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
 body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
-#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-main; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4; }
 body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
 #content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
-#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-main; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-heading-5, --fsdocs-main; }
 body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="5"] { view-timeline-name: --fsdocs-heading-5; }
+#fsdocs-page-menu [data-fsdocs-heading="5"] { animation-timeline: --fsdocs-heading-5, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="5"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="5"] { --fsdocs-toc-focused: 1; }
 </style>
 </aside>
 <dialog>

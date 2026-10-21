@@ -620,4 +620,198 @@ If you catch `FormatException`, you already catch this.
 * `CodeFormatter.GetWriterEventsAsync` was added for debugging. It returns the writer events produced while formatting.
   
 
+## v8.1
+
+### Formatting
+
+8.1 fixes a handful of layouts where the formatted code did not compile, or changed again on the
+next format; the [changelog](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md) lists
+them. Fixing them at the cause, rather than with a special case each, also moves a few layouts of
+code that was already valid. Two ideas are behind most changes below:
+
+* Indent only as far as the parser needs, and on a multiple of `indent_size`: the
+[rule of multitudes](./RuleOfMultitudes.html). 8.0 added extra indentation in places to keep the
+compiler happy, and some of it landed on columns like 10 or 14 with an indent size of 4.
+* Keep a comment with the code it lines up with.
+
+The examples use the default settings.
+
+#### A function type in parentheses goes one level in, not two
+
+Since 8.0, every multiline function type in parentheses got an extra level, to avoid a compiler
+error after an outer `->` ([#3043](https://github.com/fsprojects/fantomas/issues/3043)). There it
+stays, and so it does when the function type starts with a tuple: the tuple's lines go one level
+past the `(`, the `->` lines two. Everywhere else this is the 7.0.6 layout again.
+
+```fsharp
+// v8.0
+type T =
+    (LongTypeNameNumberOne
+            -> LongTypeNameNumberTwo
+            -> LongTypeNameNumberThree
+            -> LongTypeNameNumberFour
+            -> LongTypeNameNumberFive) list
+
+// v8.1
+type T =
+    (LongTypeNameNumberOne
+        -> LongTypeNameNumberTwo
+        -> LongTypeNameNumberThree
+        -> LongTypeNameNumberFour
+        -> LongTypeNameNumberFive) list
+```
+
+#### A return type lands on a multiple of the indent size
+
+The lines of a return type no longer hang off the column after `:`. They go one level past the
+binding. With `indent_size = 2` that level would be the column after `:`, so there the lines are
+measured from that column, as in 8.0.
+
+```fsharp
+// v8.0
+let f
+    x
+    : (LongTypeNameNumberOne
+              -> LongTypeNameNumberTwo
+              -> LongTypeNameNumberThree
+              -> LongTypeNameNumberFour
+              -> LongTypeNameNumberFive)
+    =
+    failwith ""
+
+// v8.1
+let f
+    x
+    : (LongTypeNameNumberOne
+        -> LongTypeNameNumberTwo
+        -> LongTypeNameNumberThree
+        -> LongTypeNameNumberFour
+        -> LongTypeNameNumberFive)
+    =
+    failwith ""
+```
+
+#### A long struct tuple type is written like a long list
+
+The elements go on lines of their own, one level in, and the `)` back on the indent of the line it
+started on. The elements after the first used to start left of `struct (`, at a column the parser
+only accepts in some places: in the middle of a function type, the same shape did not compile.
+
+```fsharp
+// v8.0
+let f
+    x
+    : struct (LongTypeNameNumberOne *
+      LongTypeNameNumberTwo *
+      LongTypeNameNumberThree *
+      LongTypeNameNumberFour *
+      LongTypeNameNumberFive)
+    =
+    failwith ""
+
+// v8.1
+let f
+    x
+    : struct (
+        LongTypeNameNumberOne *
+        LongTypeNameNumberTwo *
+        LongTypeNameNumberThree *
+        LongTypeNameNumberFour *
+        LongTypeNameNumberFive
+    )
+    =
+    failwith ""
+```
+
+#### A tuple type after `:>`, `:?>`, `:` or `:?` goes one level in
+
+The lines after the first element used to go back to the column of the operator line, where they
+read as if the type had ended. A tuple after the `->` of a function type does the same.
+
+```fsharp
+// v8.0
+let x =
+    someValue
+    :> (LongTypeNameNumberOne *
+    LongTypeNameNumberTwo *
+    LongTypeNameNumberThree *
+    LongTypeNameNumberFour *
+    LongTypeNameNumberFive)
+
+// v8.1
+let x =
+    someValue
+    :> (LongTypeNameNumberOne *
+        LongTypeNameNumberTwo *
+        LongTypeNameNumberThree *
+        LongTypeNameNumberFour *
+        LongTypeNameNumberFive)
+```
+
+#### A comment lined up with the elements stays with them
+
+A line comment written on the column where the elements of a list start now stays with the
+elements, also when the closing `]` is on that column too. It used to move before the `]`. A
+comment on the column of the opening bracket still stays with the brackets.
+
+```fsharp
+// input
+let a = [
+    (1,2,3); (4,5,6); (7,8,9)
+    // some line comment
+    ]
+
+// v8.0
+let a =
+    [
+        (1, 2, 3)
+        (4, 5, 6)
+        (7, 8, 9)
+    // some line comment
+    ]
+
+// v8.1
+let a =
+    [
+        (1, 2, 3)
+        (4, 5, 6)
+        (7, 8, 9)
+        // some line comment
+    ]
+```
+
+#### A single anonymous record type argument stays attached in Stroustrup
+
+This applies with **`fsharp_multiline_bracket_style = stroustrup`**. `aligned` and `cramped` are
+untouched.
+
+A type application whose only type argument is an anonymous record keeps `<{|` and `|}>` together,
+the way Stroustrup puts the bracket of a record at the end of the line before it. Since 6.3.0 the
+record went on lines of its own, one level in, with the closing `>` on a line by itself. With more
+than one type argument, the arguments still go on lines of their own.
+
+```fsharp
+// v8.0
+let asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<
+        {|
+            kind: string
+            properties: {| statisticsEnabled: bool |}
+            location: string
+            sku: string
+        |}
+        >
+
+// v8.1
+let asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+        location: string
+        sku: string
+    |}>
+```
+
 <fantomas-nav source="docs/end-users/UpgradeGuide.md" previous="Configuration.md" next="IgnoreFiles.md"></fantomas-nav>

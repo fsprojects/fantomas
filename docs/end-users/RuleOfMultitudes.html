@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en" data-root="../../">
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Florian Verdonck, Jindřich Ivánek, David Schaefer" name="author">
+    <!-- Opengraph properties (https://ogp.me/) -->
+    <meta property="og:site_name" content="fantomas">
+    <meta property="og:title" content="The rule of multitudes
+" />
+    <meta property="og:url" content="https://fsprojects.github.io/fantomas/docs/end-users/RuleOfMultitudes.html">
+    <meta property="og:type" content="website" />
+    <!-- Twitter cards (https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="https://fsprojects.github.io/fantomas/">
+    <meta name="twitter:title" content="The rule of multitudes
+">
+    
+    <title>The rule of multitudes
+ | fantomas</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="../../images/favicon.ico" rel="icon" sizes="32x32" type="image/png"/>
+    <script type="application/javascript" src="../../content/fsdocs-theme-set-dark.js"></script>
+    <script type="application/javascript" src="../../content/fsdocs-details-set-expanded.js"></script>
+    <link href="../../content/fsdocs-default.css" rel="stylesheet" type="text/css"/>
+    <link href="../../content/fsdocs-theme.css" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+
+    
+</head>
+<body class="content">
+<header>
+    <div class="start">
+        <div id="menu-toggle">
+            <iconify-icon class="icon closed" height="22" icon="eva:menu-fill" width="22"></iconify-icon>
+            <iconify-icon class="icon open" height="22" icon="mi:close" width="22"></iconify-icon>
+            <input type="checkbox" name="mobile-menu" />
+            <ul class="menu">
+                <li class="nav-header">Links</li>
+                <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+                </li>
+                <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
+                                        href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+                    Notes</a></li>
+                <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+                    Repository</a></li>
+                <li class="nav-header active" id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" title="" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/Configuration.html" class="nav-link" title="" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/UpgradeGuide.html" class="nav-link" title="" > Upgrade guide
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/IgnoreFiles.html" class="nav-link" title="" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/FormattingCheck.html" class="nav-link" title="" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/GitHooks.html" class="nav-link" title="" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/Rider.html" class="nav-link" title="" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/VSCode.html" class="nav-link" title="" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/VisualStudio.html" class="nav-link" title="" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/GeneratingCode.html" class="nav-link" title="" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/FantomasClient.html" class="nav-link" title="" > Formatting from an editor with Fantomas.Client
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/Recipes.html" class="nav-link" title="" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/StyleGuide.html" class="nav-link" title="" > Style guide
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/DesignDecisions.html" class="nav-link" title="" > Design decisions
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/Chains.html" class="nav-link" title="" > Formatting chain expressions
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/OpenEndedExpressions.html" class="nav-link" title="" > Open-ended expressions
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" title="" > Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item active"><a href="../../docs/end-users/RuleOfMultitudes.html" class="nav-link" title="" > The rule of multitudes
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/ReportingBugs.html" class="nav-link" title="" > Reporting a bug
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/FAQ.html" class="nav-link" title="" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header " id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" title="" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/FSharp.html" class="nav-link" title="" > F#
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Getting Started.html" class="nav-link" title="" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Solution Structure.html" class="nav-link" title="" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Transforming.html" class="nav-link" title="" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Traverse.html" class="nav-link" title="" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Formatted Code.html" class="nav-link" title="" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Conditional Compilation Directives.html" class="nav-link" title="" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/How Can I Contribute.html" class="nav-link" title="" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/The Missing Comment.html" class="nav-link" title="" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Multiple Times.html" class="nav-link" title="" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Pull request ground rules.html" class="nav-link" title="" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Updating the compiler.html" class="nav-link" title="" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Releases.html" class="nav-link" title="" > Releases
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Formatting Conventions.html" class="nav-link" title="" > Formatting Conventions
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/History.html" class="nav-link" title="" > History
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/EventList Architecture.html" class="nav-link" title="" > Writer Events and the EventList
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Trivia Assignment.html" class="nav-link" title="" > Trivia Assignment
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Glossary.html" class="nav-link" title="" > Glossary
+</a></li>
+
+</div>
+                <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="../../reference/fantomas.html" class="nav-link" title="" > Fantomas</a></li>
+
+<li class="nav-item "><a href="../../reference/internal-utilities-library.html" class="nav-link" title="" > Internal.Utilities.Library</a></li>
+
+</div>
+            </ul>
+        </div>
+        <a href="https://fsprojects.github.io/fantomas/">
+            <img alt="Logo" src="../../images/logo.png">
+            <strong>fantomas</strong>
+        </a>
+    </div>
+    <div class="end">
+        <a href="https://github.com/fsprojects/fantomas/" target="_blank">
+            <iconify-icon icon="uil:github" width="26" height="26"></iconify-icon>
+        </a>
+        <iconify-icon id="search-btn" icon="carbon:search" class="search" width="24" height="24"></iconify-icon>
+        <fsdocs-theme-toggle></fsdocs-theme-toggle>
+    </div>
+</header>
+<aside id="fsdocs-main-menu">
+    <ul class="menu">
+        <li class="nav-header">Links</li>
+        <li class="license-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/main/LICENSE.md">License</a>
+        </li>
+        <li class="release-notes-menu-item builtin-menu-item nav-item"><a class="nav-link"
+                                href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">Release
+            Notes</a></li>
+        <li class="repository-menu-item builtin-menu-item nav-item"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source
+            Repository</a></li>
+        <li class="nav-header active" id="end-users">
+    End-users
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="../../docs/end-users/GettingStarted.html" class="nav-link" title="" > Getting Started
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/Configuration.html" class="nav-link" title="" > Configuration
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/UpgradeGuide.html" class="nav-link" title="" > Upgrade guide
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/IgnoreFiles.html" class="nav-link" title="" > Ignore Files
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/FormattingCheck.html" class="nav-link" title="" > Formatting Check
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/GitHooks.html" class="nav-link" title="" > Git hooks
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/Rider.html" class="nav-link" title="" > JetBrains Rider
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/VSCode.html" class="nav-link" title="" > Visual Studio Code
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/VisualStudio.html" class="nav-link" title="" > Visual Studio
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/GeneratingCode.html" class="nav-link" title="" > Generating source code
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/FantomasClient.html" class="nav-link" title="" > Formatting from an editor with Fantomas.Client
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/Recipes.html" class="nav-link" title="" > Recipes
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/StyleGuide.html" class="nav-link" title="" > Style guide
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/DesignDecisions.html" class="nav-link" title="" > Design decisions
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/Chains.html" class="nav-link" title="" > Formatting chain expressions
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/OpenEndedExpressions.html" class="nav-link" title="" > Open-ended expressions
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/ConditionalCompilationDirectives.html" class="nav-link" title="" > Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item active"><a href="../../docs/end-users/RuleOfMultitudes.html" class="nav-link" title="" > The rule of multitudes
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/ReportingBugs.html" class="nav-link" title="" > Reporting a bug
+</a></li>
+
+<li class="nav-item "><a href="../../docs/end-users/FAQ.html" class="nav-link" title="" > FAQ
+</a></li>
+
+</div>
+<li class="nav-header " id="contributors">
+    Contributors
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="../../docs/contributors/Index.html" class="nav-link" title="" > Contributors
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/FSharp.html" class="nav-link" title="" > F#
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Getting Started.html" class="nav-link" title="" > Getting started
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Solution Structure.html" class="nav-link" title="" > Solution structure
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Transforming.html" class="nav-link" title="" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Traverse.html" class="nav-link" title="" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Formatted Code.html" class="nav-link" title="" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Conditional Compilation Directives.html" class="nav-link" title="" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/How Can I Contribute.html" class="nav-link" title="" > How can I contribute?
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/The Missing Comment.html" class="nav-link" title="" > The Missing Comment
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Multiple Times.html" class="nav-link" title="" > Fantomas is trying to format the input multiple times due to the detection of multiple defines
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Pull request ground rules.html" class="nav-link" title="" > Pull request ground rules
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Updating the compiler.html" class="nav-link" title="" > Updating the compiler sources
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Releases.html" class="nav-link" title="" > Releases
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Formatting Conventions.html" class="nav-link" title="" > Formatting Conventions
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/History.html" class="nav-link" title="" > History
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/EventList Architecture.html" class="nav-link" title="" > Writer Events and the EventList
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Trivia Assignment.html" class="nav-link" title="" > Trivia Assignment
+</a></li>
+
+<li class="nav-item "><a href="../../docs/contributors/Glossary.html" class="nav-link" title="" > Glossary
+</a></li>
+
+</div>
+        <li class="nav-header " id="api_reference">
+    API Reference
+    <iconify-icon icon="fluent:chevron-up-24-regular" rotate="180deg"></iconify-icon>
+</li>
+<div class="menu-items">
+    <li class="nav-item "><a href="../../reference/fantomas.html" class="nav-link" title="" > Fantomas</a></li>
+
+<li class="nav-item "><a href="../../reference/internal-utilities-library.html" class="nav-link" title="" > Internal.Utilities.Library</a></li>
+
+</div>
+    </ul>
+</aside>
+<main>
+    <div id="content">
+        
+<h1 data-fsdocs-heading="1"><a name="The-rule-of-multitudes" class="anchor" href="#The-rule-of-multitudes">The rule of multitudes</a></h1>
+<p>Often more than one layout of the same code parses. When Fantomas has to choose, it prefers the one
+where every line it starts sits on a multiple of <code>indent_size</code>: a continuation goes in by whole
+levels, never to a column in between. Only where a line starts counts; where a token lands further
+along a line does not.</p>
+<p>Why:</p>
+<ul>
+<li>
+<strong>The style guides ask for it.</strong> Both the
+<a href="https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#use-consistent-indentation">Microsoft</a>
+and the <a href="https://github.com/G-Research/fsharp-formatting-conventions#general-rules-for-indentation">G-Research</a>
+guide count indentation in spaces "per indentation", and put "consistency of indentation" first.
+</li>
+<li>
+<strong>A level reads as structure.</strong> With an indent size of 4, a line at column 10 sits between two
+levels and reads as a mistake.
+</li>
+<li>
+<strong>It does not depend on names.</strong> A column taken from a token moves when the name in front of it
+gets longer or shorter, and every line aligned to it moves along. The Microsoft guide says the
+same in
+<a href="https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#avoid-formatting-that-is-sensitive-to-name-length">Avoid formatting that is sensitive to name length</a>.
+</li>
+</ul>
+<p>8.1 moved the lines of a return type off the column after <code>:</code> for this reason:</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// v8.0: the `-&gt;` lines at column 14, between two levels</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="1" class="fn">f</span>
+    <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="2" class="fn">x</span>
+    <span class="pn">:</span> <span class="pn">(</span><span class="id">LongTypeNameNumberOne</span>
+              <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberTwo</span>
+              <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberThree</span>
+              <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFour</span>
+              <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFive</span><span class="pn">)</span>
+    <span class="o">=</span>
+    <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="3" class="fn">failwith</span> <span class="s">&quot;&quot;</span>
+
+<span class="c">// v8.1: one level past the binding, column 8</span>
+<span class="k">let</span> <span data-fsdocs-tip="fs1" data-fsdocs-tip-unique="4" class="fn">f</span>
+    <span data-fsdocs-tip="fs2" data-fsdocs-tip-unique="5" class="fn">x</span>
+    <span class="pn">:</span> <span class="pn">(</span><span class="id">LongTypeNameNumberOne</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberTwo</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberThree</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFour</span>
+        <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFive</span><span class="pn">)</span>
+    <span class="o">=</span>
+    <span data-fsdocs-tip="fs3" data-fsdocs-tip-unique="6" class="fn">failwith</span> <span class="s">&quot;&quot;</span>
+</code></pre></div>
+<h2 data-fsdocs-heading="2"><a name="When-the-parser-needs-a-line-past-a-column" class="anchor" href="#When-the-parser-needs-a-line-past-a-column">When the parser needs a line past a column</a></h2>
+<p>The offside rule sometimes forbids a column. A parenthesis, for one, opens a context at the first
+token inside it, and a line that starts on that column ends it. Fantomas does not then align to
+the column after it: it steps in whole levels until the line is past it. <code>indentPast</code> in
+<code>Context.fs</code> does that measuring and stepping.</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="7" class="fn">T</span> <span class="o">=</span>
+    <span class="id">a</span>
+        <span class="k">-&gt;</span> <span class="pn">(</span><span class="id">LongTypeNameNumberOne</span>
+                <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberTwo</span> <span class="c">// 12, a multiple too, would end the parenthesis; 16 is the next</span>
+                <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberThree</span>
+                <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFour</span>
+                <span class="k">-&gt;</span> <span class="id">LongTypeNameNumberFive</span><span class="pn">)</span>
+</code></pre></div>
+<h2 data-fsdocs-heading="3"><a name="Applying-it" class="anchor" href="#Applying-it">Applying it</a></h2>
+<p>When two layouts parse, write down the column each line starts on, and prefer the layout where
+every one of them is a multiple of <code>indent_size</code>. Try <code>indent_size = 2</code> and <code>3</code> as well: a layout
+that lands on the grid only with 4 does not follow the rule, it follows the number 4. This is how a
+new layout for Fantomas is judged, so it is the check to make when you propose one.</p>
+<h2 data-fsdocs-heading="4"><a name="Where-it-does-not-hold" class="anchor" href="#Where-it-does-not-hold">Where it does not hold</a></h2>
+<p>A few layouts align to a token on purpose or for now. A new layout should not add to them without a
+reason written down.</p>
+<ul>
+<li>
+<p><code>fsharp_multiline_bracket_style = cramped</code> puts the elements of a list under the first one, two
+columns past the <code>[</code>:</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span data-fsdocs-tip="fs5" data-fsdocs-tip-unique="8" class="id">values</span> <span class="o">=</span>
+    <span class="pn">[</span> <span class="id">someLongValueExpressionThatIsLongNumberOne</span>
+      <span class="id">someLongValueExpressionThatIsLongNumberTwo</span>
+      <span class="id">someLongValueExpressionThatIsLongNumberThree</span> <span class="pn">]</span>
+</code></pre></div>
+</li>
+<li>
+<p>The closing <code>&gt;</code> of a multiline type application lands one column past the indent:</p>
+<div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span data-fsdocs-tip="fs4" data-fsdocs-tip-unique="9" class="id">T</span> <span class="o">=</span>
+    <span class="id">Dictionary</span><span class="pn">&lt;</span>
+        <span class="id">LongTypeNameNumberOne</span><span class="pn">,</span>
+        <span class="id">LongTypeNameNumberTwo</span> <span class="pn">*</span> <span class="id">LongTypeNameNumberThree</span> <span class="pn">*</span> <span class="id">LongTypeNameNumberFour</span> <span class="pn">*</span> <span class="id">LongTypeNameNumberFive</span>
+     <span class="pn">&gt;</span>
+</code></pre></div>
+</li>
+</ul>
+<fantomas-nav source="docs/end-users/RuleOfMultitudes.md" previous="ConditionalCompilationDirectives.html" next="ReportingBugs.html"></fantomas-nav>
+
+        <div popover class="fsdocs-tip" id="fs1"><span class="k">val</span> <span class="fn">f</span><span class="pn">:</span> <span class="id">x</span><span class="pn">:</span> <span class="ta">&#39;a</span> <span class="pn">-&gt;</span> <span class="pn">(</span><span class="ta">&#39;b</span> <span class="pn">-&gt;</span> <span class="ta">&#39;c</span> <span class="pn">-&gt;</span> <span class="ta">&#39;d</span> <span class="pn">-&gt;</span> <span class="ta">&#39;e</span> <span class="pn">-&gt;</span> <span class="ta">&#39;f</span><span class="pn">)</span></div>
+<div popover class="fsdocs-tip" id="fs2"><span class="k">val</span> <span class="id">x</span><span class="pn">:</span> <span class="ta">&#39;a</span></div>
+<div popover class="fsdocs-tip" id="fs3"><span class="k">val</span> <span class="fn">failwith</span><span class="pn">:</span> <span class="id">message</span><span class="pn">:</span> <span class="rt">string</span> <span class="pn">-&gt;</span> <span class="ta">&#39;T</span></div>
+<div popover class="fsdocs-tip" id="fs4"><span class="k">type</span> T <span class="o">=</span> <span class="rt">obj</span> <span class="pn">-&gt;</span> <span class="rt">obj</span> <span class="pn">-&gt;</span> <span class="rt">obj</span> <span class="pn">-&gt;</span> <span class="rt">obj</span> <span class="pn">-&gt;</span> <span class="rt">obj</span> <span class="pn">-&gt;</span> <span class="rt">obj</span></div>
+<div popover class="fsdocs-tip" id="fs5"><span class="k">val</span> <span class="fn">values</span><span class="pn">:</span> <span class="rt">obj</span> <span class="rt">list</span></div>
+
+    </div>
+</main>
+<aside id="fsdocs-page-menu">
+    <p id="on-this-page">On this page</p>
+    <ul>
+  <li class="level-1" data-fsdocs-heading="1">
+    <a href="#The-rule-of-multitudes">
+      The rule of multitudes
+    </a>
+  </li>
+  <li class="level-2" data-fsdocs-heading="2">
+    <a href="#When-the-parser-needs-a-line-past-a-column">
+      When the parser needs a line past a column
+    </a>
+  </li>
+  <li class="level-2" data-fsdocs-heading="3">
+    <a href="#Applying-it">
+      Applying it
+    </a>
+  </li>
+  <li class="level-2" data-fsdocs-heading="4">
+    <a href="#Where-it-does-not-hold">
+      Where it does not hold
+    </a>
+  </li>
+</ul><style>
+body { timeline-scope: --fsdocs-heading-1, --fsdocs-heading-2, --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-main; }
+#content [data-fsdocs-heading="1"] { view-timeline-name: --fsdocs-heading-1; }
+#fsdocs-page-menu [data-fsdocs-heading="1"] { animation-timeline: --fsdocs-heading-1, --fsdocs-heading-2; }
+body:has(#content [data-fsdocs-heading="1"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="1"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="2"] { view-timeline-name: --fsdocs-heading-2; }
+#fsdocs-page-menu [data-fsdocs-heading="2"] { animation-timeline: --fsdocs-heading-2, --fsdocs-heading-3; }
+body:has(#content [data-fsdocs-heading="2"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="2"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="3"] { view-timeline-name: --fsdocs-heading-3; }
+#fsdocs-page-menu [data-fsdocs-heading="3"] { animation-timeline: --fsdocs-heading-3, --fsdocs-heading-4, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="3"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="3"] { --fsdocs-toc-focused: 1; }
+#content [data-fsdocs-heading="4"] { view-timeline-name: --fsdocs-heading-4; }
+#fsdocs-page-menu [data-fsdocs-heading="4"] { animation-timeline: --fsdocs-heading-4, --fsdocs-main; }
+body:has(#content [data-fsdocs-heading="4"]:is(:focus, .fsdocs-hotkey-focus)) #fsdocs-page-menu [data-fsdocs-heading="4"] { --fsdocs-toc-focused: 1; }
+</style>
+</aside>
+<dialog>
+    <input type="search" placeholder="Search docs" />
+    <div class="results">
+        <ul></ul>
+        <p class="empty">Type something to start searching.</p>
+    </div>
+</dialog>
+<script type="module" src="../../content/fsdocs-tips.js"></script>
+<script type="module" src="../../content/fsdocs-theme-toggle.js"></script>
+<script type="module" src="../../content/fsdocs-details-toggle.js"></script>
+<script type="module" src="../../content/fsdocs-theme.js"></script>
+<script type="module" src="../../content/fsdocs-search.js"></script>
+<script type="module" src="../../content/fsdocs-copy-button.js"></script>
+<script type="module" src="../../content/fsdocs-hotkeys.js"></script>
+<script type="module">
+    const menuHeaders = [...document.querySelectorAll(".nav-header")].filter(nh => nh.id);
+    menuHeaders.forEach(nv => {
+        nv.addEventListener("click", () => {
+            nv.classList.toggle("active");
+        });
+        // A link in a folded section can still receive the focus, from Tab or from the j / k
+        // hotkeys of fsdocs. Unfold the section so the reader sees where the focus went.
+        const items = nv.nextElementSibling;
+        items?.addEventListener("focusin", ev => {
+            if (nv.classList.contains("active")) return;
+            nv.classList.add("active");
+            // The section grows over its transition, and a scroll made while it was still folded
+            // could not reach a link below the folded height. Scroll again once it is fully open.
+            const link = ev.target;
+            const unfolded = e => {
+                if (e.target !== items) return;
+                items.removeEventListener("transitionend", unfolded);
+                link.scrollIntoView({ block: "nearest" });
+            };
+            items.addEventListener("transitionend", unfolded);
+        });
+    })
+</script>
+<script type="module">
+    import mermaid from "https://esm.sh/mermaid@11.16.1";
+
+    // A ```mermaid fenced block renders on github.com but reaches fsdocs as a syntax-highlighted
+    // code block, so it would show as source rather than a diagram. Promote those blocks to the
+    // <div class="mermaid"> elements mermaid looks for, so a page can use a plain fence and have
+    // it render both here and on GitHub. Pages using the <div> form directly keep working.
+    for (const code of document.querySelectorAll('code[lang="mermaid"]')) {
+        // fsdocs wraps the snippet in <table class="pre"><tr><td><pre><code>…; replace the
+        // outermost wrapper so no table scaffolding is left behind around the diagram.
+        const snippet = code.closest("table.pre") ?? code.closest("pre");
+        if (!snippet) continue;
+        const diagram = document.createElement("div");
+        diagram.className = "mermaid text-center";
+        // textContent, not innerHTML: the source arrives HTML-escaped (`--&gt;`) and mermaid
+        // needs the raw arrows back.
+        diagram.textContent = code.textContent;
+        snippet.replaceWith(diagram);
+    }
+
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        themeVariables: {
+            primaryColor: '#338cbb',
+            primaryTextColor: '#FFF',
+            primaryBorderColor: '#5aacd6'
+        }
+    });
+</script>
+<script type="module" src="../../content/webcomponents.js"></script>
+</body>
+</html>
