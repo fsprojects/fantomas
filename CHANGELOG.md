@@ -1,5 +1,11 @@
 # Changelog
 
+## [9.0.0-alpha-002] - 2026-10-21
+
+### Changed
+
+- Everything that changed in 8.1.0, the layout changes and fixes listed under that release below. [v8.1.0](https://github.com/fsprojects/fantomas/releases/tag/v8.1.0)
+
 ## [9.0.0-alpha-001] - 2026-10-15
 
 ### Changed
