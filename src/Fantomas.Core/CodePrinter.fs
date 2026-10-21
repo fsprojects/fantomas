@@ -1307,7 +1307,25 @@ let genExpr (e: Expr) =
             genExpr node.Expr +> genOperator +> sepSpace +> genType node.Type
 
         let long =
-            genExpr node.Expr +> sepNln +> !-node.Operator +> sepSpace +> genType node.Type
+            let genOperatorAndType: Context -> Context =
+                !-node.Operator
+                +> sepSpace
+                +> if startsWithTuple node.Type then
+                       // someValue
+                       // :> (int *
+                       //     Long)    one level in: a tuple puts its lines at the indent, the
+                       //              column of `:>`
+                       indent +> genType node.Type +> unindent
+                   else
+                       genType node.Type
+
+            if node.Operator = ":?" then
+                // someValue
+                //     :? LongTypeName    one level in: `:?` is no infix operator, so on the column
+                //                        of `someValue` it starts a new expression
+                genExpr node.Expr +> indentSepNlnUnindent genOperatorAndType
+            else
+                genExpr node.Expr +> sepNln +> genOperatorAndType
 
         match node.Expr with
         | Expr.Lambda _ -> long
