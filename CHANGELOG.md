@@ -15,6 +15,8 @@
 - Long type test with :? gives invalid code. [#3558](https://github.com/fsprojects/fantomas/issues/3558)
 - Line comment after the opening parenthesis of a type moves and breaks the type. [#3559](https://github.com/fsprojects/fantomas/issues/3559)
 - Comment between a match pattern and its when guard gives invalid code. [#3560](https://github.com/fsprojects/fantomas/issues/3560)
+- Regression: Stroustrup bracket style in anonymous record type parameter is not respected. [#3069](https://github.com/fsprojects/fantomas/issues/3069)
+- Space inserted before final > in type parameter. [#2860](https://github.com/fsprojects/fantomas/issues/2860)
 
 ## [8.0.10] - 2026-10-14
 

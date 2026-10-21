@@ -2054,11 +2054,7 @@ let genExpr (e: Expr) =
 
         |> genNode node
     | Expr.TypeApp node ->
-        genPrefixApp
-            (genExpr node.Identifier)
-            node.LessThan
-            (colGenericTypeParameters node.TypeParameters)
-            node.GreaterThan
+        genPrefixApp (genExpr node.Identifier) node.LessThan node.TypeParameters sepNone node.GreaterThan
         |> genNode node
     | Expr.TryWithSingleClause node ->
         let genClause =
@@ -3318,17 +3314,36 @@ let colGenericTypeParameters typeParameters =
 let genPrefixApp
     (identifier: Context -> Context)
     (lessThan: SingleTextNode)
-    (typeParameters: Context -> Context)
+    (typeParameters: Type list)
+    (spaceInsideBrackets: Context -> Context)
     (greaterThan: SingleTextNode)
     (ctx: Context)
     : Context
     =
-    let startColumn = ctx.Column
+    let startColumn: int = ctx.Column
+
+    // Decided once `<` is written, so a comment after it counts as one waiting for a line break.
+    let genTypeParameters (ctx: Context) : Context =
+        match typeParameters with
+        | [ t ] when
+            isStroustrupStyleType ctx.Config t
+            && canSafelyUseStroustrup (Type.Node t) ctx
+            && not greaterThan.HasContentBefore
+            ->
+            // convertTo<{|
+            //     kind: string
+            // |}>    `>` follows `|}` on its line and never starts one, so it needs no padding
+            genType t ctx
+        | _ ->
+            (spaceInsideBrackets
+             +> colGenericTypeParameters typeParameters
+             +> spaceInsideBrackets
+             +> addFixedSpaces (startColumn + 1))
+                ctx
 
     (identifier
      +> genSingleTextNode lessThan
-     +> typeParameters
-     +> addFixedSpaces (startColumn + 1)
+     +> genTypeParameters
      +> genSingleTextNode greaterThan)
         ctx
 
@@ -4346,6 +4361,9 @@ let genType (t: Type) =
     | Type.Var node -> genSingleTextNode node
     | Type.AppPostfix node -> genType node.First +> sepSpace +> genType node.Last |> genNode node
     | Type.AppPrefix node ->
+        // Foo< ^T >           a space inside both brackets: older compilers read `<^` as an
+        //                     operator (#803, #984); SDK 8 and 10 no longer do
+        // Csv< @"data.csv" >  `<@` opens a quotation (#1209)
         let addExtraSpace =
             match node.Arguments with
             | [] -> sepNone
@@ -4355,7 +4373,8 @@ let genType (t: Type) =
         genPrefixApp
             (genType node.Identifier +> optSingle genIdentListNodeWithDot node.PostIdentifier)
             node.LessThen
-            (addExtraSpace +> colGenericTypeParameters node.Arguments +> addExtraSpace)
+            node.Arguments
+            addExtraSpace
             node.GreaterThan
         |> genNode node
     | Type.StructTuple node ->

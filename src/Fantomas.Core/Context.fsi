@@ -368,6 +368,7 @@ val addParenIfAutoNln: expr: Expr -> f: (Expr -> Context -> Context) -> (Context
 // =============================================================================
 
 val isStroustrupStyleExpr: config: FormatConfig -> e: Expr -> bool
+val isStroustrupStyleType: config: FormatConfig -> t: Type -> bool
 
 /// A bracket can only open on the line of what precedes it when nothing else wants that line first,
 /// which a comment in front of the node does.
