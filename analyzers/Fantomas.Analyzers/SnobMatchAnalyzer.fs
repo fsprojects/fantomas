@@ -14,7 +14,7 @@ let Name: string = "SnobMatchAnalyzer"
 
 [<Literal>]
 let ShortDescription: string =
-    "Detects a two armed match on a boolean, which is an if expression dressed up as pattern matching."
+    "Detects a two armed match on a boolean, or on a constant against a wildcard, which is an if expression dressed up as pattern matching."
 
 [<Literal>]
 let HelpUri: string =
@@ -32,6 +32,26 @@ let isBooleanTest (first: SynPat) (second: SynPat) : bool =
     | SynPat.Const(SynConst.Bool firstValue, _), SynPat.Const(SynConst.Bool secondValue, _) -> firstValue <> secondValue
     | _ -> false
 
+// Whether a pair of arm patterns is an equality test written out as two arms.
+//
+// A constant against a wildcard: the first arm is reached when the scrutinee equals the constant
+// and the second whenever it does not, which is `if scrutinee = constant then ... else ...` with
+// the scrutinee still written once. A boolean constant is the test above, and unit has one value
+// and nothing to test.
+let isConstantTest (first: SynPat) (second: SynPat) : bool =
+    match first, second with
+    | SynPat.Const((SynConst.Bool _ | SynConst.Unit), _), _ -> false
+    | SynPat.Const _, SynPat.Wild _ -> true
+    | _ -> false
+
+[<Literal>]
+let booleanMessage: string =
+    "Write this as an `if`. A `match` is for taking a value apart, and this one only asks whether a boolean is true, which `if ... then ... else ...` says with no pattern in sight and the scrutinee still written once."
+
+[<Literal>]
+let constantMessage: string =
+    "Write this as an `if`. A `match` is for taking a value apart, and this one only asks whether a value equals a constant, which `if ... = ... then ... else ...` says with no pattern in sight and the scrutinee still written once."
+
 // Whether this expression is a match an `if` would say better.
 //
 // `SynExpr.Match` alone, where the two rules about arm layout reach through `matchClausesOf` for
@@ -43,40 +63,46 @@ let isBooleanTest (first: SynPat) (second: SynPat) : bool =
 // A `when` guard on either arm means the arms no longer cover the scrutinee between them, so the
 // match is asking something the patterns do not say. A conditional directive inside means the two
 // arms this reads are not the arms every build sees.
-let shouldBeAnIf (directives: range list) (expr: SynExpr) : range option =
+let shouldBeAnIf (directives: range list) (expr: SynExpr) : (range * string) option =
     match expr with
     | SynExpr.Match(
         clauses = [ SynMatchClause(pat = first; whenExpr = None); SynMatchClause(pat = second; whenExpr = None) ]
-        range = matchRange) when isBooleanTest first second ->
+        range = matchRange) ->
 
         let holdsADirective: bool =
             directives
             |> List.exists (fun (directive: range) -> Range.rangeContainsRange matchRange directive)
 
-        if holdsADirective then None else Some matchRange
+        if holdsADirective then
+            None
+        elif isBooleanTest first second then
+            Some(matchRange, booleanMessage)
+        elif isConstantTest first second then
+            Some(matchRange, constantMessage)
+        else
+            None
     | _ -> None
 
 // Reported on the whole match expression, because the whole of it is what goes.
 let analyze (parsedInput: ParsedInput) : Message list =
     let _, directives = triviaOf parsedInput
-    let findings: ResizeArray<range> = ResizeArray<range>()
+    let findings: ResizeArray<range * string> = ResizeArray<range * string>()
 
     let walker: SyntaxCollectorBase =
         { new SyntaxCollectorBase() with
             override _.WalkExpr(_path: SyntaxVisitorPath, expr: SynExpr) : unit =
                 match shouldBeAnIf directives expr with
                 | None -> ()
-                | Some matchRange -> findings.Add matchRange
+                | Some finding -> findings.Add finding
         }
 
     walkAst walker parsedInput
 
     findings
-    |> Seq.map (fun (matchRange: range) ->
+    |> Seq.map (fun (matchRange: range, message: string) ->
         {
             Type = Name
-            Message =
-                "Write this as an `if`. A `match` is for taking a value apart, and this one only asks whether a boolean is true, which `if ... then ... else ...` says with no pattern in sight and the scrutinee still written once."
+            Message = message
             Code = Code
             Severity = Severity.Warning
             Range = matchRange

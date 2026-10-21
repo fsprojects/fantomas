@@ -55,6 +55,69 @@ let f (xs: int list) : int =
     analyzeSource cliAnalyzer source |> assertLines [ 4 ]
 
 [<Test>]
+let ``a match on a string constant and a wildcard is reported`` () =
+    let source: string =
+        """module M
+
+let f (operator: string) : int =
+    match operator with
+    | ":?" -> 1
+    | _ -> 0"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 4 ]
+
+[<Test>]
+let ``a match on an integer constant and a wildcard is reported`` () =
+    let source: string =
+        """module M
+
+let f (x: int) : int =
+    match x with
+    | -1 -> 0
+    | _ -> x"""
+
+    analyzeSource cliAnalyzer source |> assertLines [ 4 ]
+
+// A constant arm after the wildcard is never reached; the compiler says so, and an `if` would
+// have to invent the opposite test to keep the order.
+[<Test>]
+let ``a match on a wildcard and then a constant is not reported`` () =
+    let source: string =
+        """module M
+
+let f (x: int) : int =
+    match x with
+    | _ -> 0
+    | 1 -> 1"""
+
+    analyzeSource cliAnalyzer source |> assertLines []
+
+// Two constants do not cover the scrutinee between them, so the second arm is not an `else`.
+[<Test>]
+let ``a match on two constants is not reported`` () =
+    let source: string =
+        """module M
+
+let f (x: char) : int =
+    match x with
+    | 'a' -> 1
+    | 'b' -> 2"""
+
+    analyzeSource cliAnalyzer source |> assertLines []
+
+[<Test>]
+let ``a match on unit and a wildcard is not reported`` () =
+    let source: string =
+        """module M
+
+let f (x: unit) : int =
+    match x with
+    | () -> 1
+    | _ -> 0"""
+
+    analyzeSource cliAnalyzer source |> assertLines []
+
+[<Test>]
 let ``a match on a union is not reported`` () =
     let source: string =
         """module M

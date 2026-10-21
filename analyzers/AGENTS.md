@@ -365,11 +365,31 @@ the reader to expect a destructuring and then does not deliver one, and it spend
 patterns on a question that has a keyword of its own. That is what the name is about: the match is
 dressed up for an occasion the code is not having.
 
-It speaks only for the boolean case, which is the one where the rewrite is mechanical. Both arms
-are `true` and `false` in either order, or one of them against a wildcard, and either way the
-scrutinee becomes the condition and is written once, exactly where it already was. Nothing is
-duplicated, nothing new is bound, and there is no judgement to make about whether the scrutinee is
-cheap enough to evaluate twice.
+It speaks for the two shapes where the rewrite is mechanical. The first is the boolean case: both
+arms are `true` and `false` in either order, or one of them against a wildcard, and the scrutinee
+becomes the condition. The second is any other constant against a wildcard:
+
+```fsharp
+if node.Operator = ":?" then
+    genExpr node.Expr +> indentSepNlnUnindent genOperatorAndType
+else
+    genExpr node.Expr +> sepNln +> genOperatorAndType
+```
+
+rather than
+
+```fsharp
+match node.Operator with
+| ":?" -> genExpr node.Expr +> indentSepNlnUnindent genOperatorAndType
+| _ -> genExpr node.Expr +> sepNln +> genOperatorAndType
+```
+
+The constant is not taking anything apart either: the match asks one equality and spends a pattern
+on each answer. Either way the scrutinee is written once, exactly where it already was, as the condition or
+as the left of the `=`. Nothing is duplicated, nothing new is bound, and there is no judgement to
+make about whether the scrutinee is cheap enough to evaluate twice. Unit is left out, having one
+value and nothing to ask, and so are two constants without a wildcard, which do not cover the
+scrutinee between them.
 
 The shape next door is the one this deliberately leaves alone, a constant arm and a binder holding
 the scrutinee under a second name:
