@@ -4329,26 +4329,20 @@ let genType (t: Type) =
             genNode node (isSmallExpression size smallExpression longExpression) ctx
 
     | Type.Paren node ->
-        match node.Type with
-        | Type.Funs _ ->
-            let short =
-                genSingleTextNode node.OpeningParen
-                +> genType node.Type
-                +> genSingleTextNode node.ClosingParen
+        let genOpeningAndInner: Context -> Context =
+            if not node.Type.IsFuns then
+                genSingleTextNode node.OpeningParen +> genType node.Type
+            else
 
-            let long =
-                genSingleTextNode node.OpeningParen
-                +> indent
-                +> genType node.Type
-                +> unindent
-                +> genSingleTextNode node.ClosingParen
+            // The parenthesis opens an offside context at the first token inside it, and a line
+            // starting on that column ends it. The `->` lines of the function type start past the
+            // column right after the parenthesis, taken before its trivia: a comment there moves
+            // the first token right, and a line left of that token parses.
+            enterNode node.OpeningParen
+            +> genSingleTextNodeText node.OpeningParen
+            +> fun ctx -> (leaveNode node.OpeningParen +> indentPast ctx.Column (genType node.Type)) ctx
 
-            expressionFitsOnRestOfLine short long |> genNode node
-        | _ ->
-            genSingleTextNode node.OpeningParen
-            +> genType node.Type
-            +> genSingleTextNode node.ClosingParen
-            |> genNode node
+        genOpeningAndInner +> genSingleTextNode node.ClosingParen |> genNode node
     | Type.SignatureParameter node ->
         genOnelinerAttributes node.Attributes
         +> optSingle (fun id -> genSingleTextNode id +> sepColon) node.Identifier
