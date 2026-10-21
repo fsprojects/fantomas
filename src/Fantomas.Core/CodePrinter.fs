@@ -2957,61 +2957,84 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
         | Some barNode -> genSingleTextNodeWithSpaceSuffix sepSpace barNode
         | None -> sepBar
 
-    let genWhenAndBody =
-        sepSpace
-        +> leadingExpressionIsMultiline
-            (optSingle
-                (fun (whenNode, e) ->
-                    genSingleTextNode whenNode
-                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
-                    +> sepSpace
-                )
-                node.WhenExpr)
-            (fun isMultiline ctx ->
-                if isMultiline then
-                    indentSepNlnUnindent (genSingleTextNode node.Arrow +> sepNln +> genExpr node.BodyExpr) ctx
-                else
+    // A multiline guard puts `->` and the body on lines of their own.
+    let genArrowAndBody (isMultilineGuard: bool) (ctx: Context) : Context =
+        if isMultilineGuard then
+            indentSepNlnUnindent (genSingleTextNode node.Arrow +> sepNln +> genExpr node.BodyExpr) ctx
+        else
 
-                let genKeepIndentInBranch =
-                    let long =
-                        let startNode =
-                            match node.Bar with
-                            | None -> Pattern.Node node.Pattern
-                            | Some bar -> bar
+        let genKeepIndentInBranch: Context -> Context =
+            let long: Context -> Context =
+                let startNode: Node =
+                    match node.Bar with
+                    | None -> Pattern.Node node.Pattern
+                    | Some bar -> bar
 
-                        genKeepIdentMatchClause startNode node.BodyExpr
+                let genKeptBranch: Context -> Context =
+                    genKeepIdentMatchClause startNode node.BodyExpr
 
-                    expressionFitsOnRestOfLine (sepSpace +> genExpr node.BodyExpr) long
+                match node.WhenExpr with
+                | Some(whenNode, _) when
+                    whenNode.HasContentBefore
+                    && startNode.Range.StartColumn = (Expr.Node node.BodyExpr).Range.StartColumn
+                    ->
+                    // | Some x
+                    //     // trivia
+                    //     when x.IsEmpty ->
+                    //
+                    // body    on the column of `|`, out of the level genAfterPattern added
+                    unindent +> genKeptBranch +> indent
+                | _ -> genKeptBranch
 
-                let sepArrow =
-                    if not node.Arrow.HasContentBefore then
-                        genSingleTextNodeWithSpaceSuffix sepSpace node.Arrow
-                    else
-                        // In the weird case where the arrow has content before it and there is no multiline whenExpr,
-                        // we need to ensure a space was written before the arrow to avoid offset errors.
-                        // See https://github.com/fsprojects/fantomas/issues/2888
-                        !- $" %s{node.Arrow.Text} " |> genNode node.Arrow
+            expressionFitsOnRestOfLine (sepSpace +> genExpr node.BodyExpr) long
 
-                (sepArrow
-                 +> ifElse
-                     (ctx.Config.ExperimentalKeepIndentInBranch
-                      && isLastItem
-                      && not (isStroustrupStyleExpr ctx.Config node.BodyExpr))
-                     genKeepIndentInBranch
-                     (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.BodyExpr))
-                    ctx
-            )
+        let sepArrow: Context -> Context =
+            if not node.Arrow.HasContentBefore then
+                genSingleTextNodeWithSpaceSuffix sepSpace node.Arrow
+            else
+                // In the weird case where the arrow has content before it and there is no multiline whenExpr,
+                // we need to ensure a space was written before the arrow to avoid offset errors.
+                // See https://github.com/fsprojects/fantomas/issues/2888
+                !- $" %s{node.Arrow.Text} " |> genNode node.Arrow
+
+        (sepArrow
+         +> ifElse
+             (ctx.Config.ExperimentalKeepIndentInBranch
+              && isLastItem
+              && not (isStroustrupStyleExpr ctx.Config node.BodyExpr))
+             genKeepIndentInBranch
+             (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.BodyExpr))
+            ctx
+
+    // The trivia before `when` is written by genAfterPattern, before this measures the guard.
+    let genGuardArrowAndBody (whenNode: SingleTextNode) (guard: Expr) : Context -> Context =
+        leadingExpressionIsMultiline
+            (genSingleTextNodeText whenNode
+             +> leaveNode whenNode
+             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr guard)
+             +> sepSpace)
+            genArrowAndBody
+
+    let genAfterPattern: Context -> Context =
+        match node.WhenExpr with
+        | None -> sepSpace +> genArrowAndBody false
+        | Some(whenNode, guard) when whenNode.HasContentBefore ->
+            // | a
+            //     // trivia
+            //     when a -> 1    one level in: on the column of `|`, `when` ends the clause
+            indent +> enterNode whenNode +> genGuardArrowAndBody whenNode guard +> unindent
+        | Some(whenNode, guard) -> sepSpace +> enterNode whenNode +> genGuardArrowAndBody whenNode guard
 
     let genPatAndBody ctx =
         if not (isStroustrupStyleExpr ctx.Config node.BodyExpr) then
-            (genPatInClause node.Pattern +> genWhenAndBody) ctx
+            (genPatInClause node.Pattern +> genAfterPattern) ctx
         else
 
         // The column is taken after the bar, so a stroustrup closing bracket lands strictly right of
         // it. On the bar's own column the `|` of the next clause no longer parses, and giving only
         // the last clause the bar's column would leave two columns in one match. See #2990.
         let startColumn = ctx.Column
-        (genPatInClause node.Pattern +> atIndentLevel false startColumn genWhenAndBody) ctx
+        (genPatInClause node.Pattern +> atIndentLevel false startColumn genAfterPattern) ctx
 
     genBar +> genPatAndBody |> genNode node
 
