@@ -4256,17 +4256,22 @@ let genType (t: Type) =
             | [] -> genType node.ReturnType
             | (ht, ha) :: rest ->
 
-            // A tuple puts its lines at the indent, the column of the `->` lines. The element after a
-            // line-ending `*` starts a block at its own column, and a `->` on that column is read as
-            // a new statement. Where a tuple starts the lines of the type, it goes one level in.
-            let genTypeAfterArrow (t: Type) : Context -> Context =
-                sepSpaceUnlessWriteBeforeNewlineNotEmpty
-                +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (
-                    if startsWithTuple t then
-                        indent +> genType t +> unindent
-                    else
-                        genType t
-                )
+            let genTypeAfterArrow (t: Type) (ctx: Context) : Context =
+                if hasWriteBeforeNewlineContent ctx then
+                    // a
+                    //     -> // trivia
+                    //         int *
+                    //         Long    under `int`: already past the `->` lines, so no extra level
+                    //     -> unit
+                    indentSepNlnUnindent (genType t) ctx
+                elif startsWithTuple t then
+                    // a
+                    //     -> int *
+                    //         Long    one level in: on the `->` column, the next `->` does not parse
+                    //     -> unit
+                    (sepSpace +> indent +> genType t +> unindent) ctx
+                else
+                    (sepSpace +> genType t) ctx
 
             genType ht
             +> indentSepNlnUnindent (

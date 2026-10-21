@@ -90,12 +90,17 @@ numbers. When where the printer does it helps, say it in plain words with enough
 without opening `CodePrinter.fs`. After a review, first one line on what it found, then one numbered
 question at a time.
 
-### Asking with question.fs
+### question.fs and review.fs
 
 When a question needs F# code to show it, because it is about what Fantomas formats code to or
 about a formatting bug, write it into `question.fs` in the repo root, left untracked: the chat wraps
 long lines, and the user reads code in the editor. Questions about anything else (the docs site,
-tooling, staging) stay in the chat. The file:
+tooling, staging) stay in the chat.
+
+A review's findings that come with F# code, nits included, go into `review.fs` the same way, as
+soon as the review is in: every finding with its full example, ending on the first question.
+
+Either file:
 
 - opens with the situation in a few sentences and ends with the question;
 - holds the prose as trivia block comments, the `// <-` markers as trivia line comments and every
@@ -103,9 +108,9 @@ tooling, staging) stay in the chat. The file:
 - parses as a whole: give each block its own name (`Input`, `OptionA`) and say at the top what the
   real name is; check it with `scripts/ast.fsx`.
 
-`.fantomasignore` lists `question.fs`, so the formatter hook and the editor leave its examples as
-written. The chat message gives its path and the question in one line. Once the user has answered,
-delete the file before doing anything else.
+`.fantomasignore` lists both, so the formatter hook and the editor leave their examples as written.
+The chat message gives the path and the question in one line. Once the user has answered the last
+question in it, delete the file before doing anything else.
 
 ## Code Style
 

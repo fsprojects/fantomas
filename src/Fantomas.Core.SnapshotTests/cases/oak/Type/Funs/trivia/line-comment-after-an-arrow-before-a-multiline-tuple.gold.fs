@@ -2,5 +2,5 @@ type T =
     a
         -> // after arrow
             int *
-                LongTypeNameNumberOneLongTypeNameNumberTwoLongTypeNameNumberThreeLongTypeNameNumberFourLongTypeNameNumberFive
+            LongTypeNameNumberOneLongTypeNameNumberTwoLongTypeNameNumberThreeLongTypeNameNumberFourLongTypeNameNumberFive
         -> unit
