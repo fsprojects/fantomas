@@ -16,7 +16,10 @@ dotnet test src/Fantomas.Core.SnapshotTests --list-tests                        
 ```
 
 A failing case prints a line diff against its gold and writes what came out to the `.actual` file
-beside it.
+beside it. Below the diff it prints a command to compare the gold with that `.actual` in a diff tool,
+and one to accept the result for this case alone, which is left out while the result is itself
+wrong. The comparison runs `git diff --no-index`, or the command in `FANTOMAS_DIFF_TOOL`, such as
+`zed -e --diff` or `code --diff`.
 
 To look at an input without making it a case, use the scripts in `scripts/`. They read a case's
 front matter as its settings, so they take a case file as it is:

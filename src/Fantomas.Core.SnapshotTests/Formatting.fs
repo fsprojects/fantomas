@@ -323,12 +323,23 @@ let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) :
         if crlf <> expected then
             problems.Add(Problem.CrlfDiffers crlf)
 
-    let again: string = (formatEach config isSignature formatted.Merged).Merged
+    // A result that does not parse cannot be formatted again: the parse would throw and take the
+    // problems found so far with it.
+    let isValid: bool =
+        problems
+        |> Seq.forall (fun (problem: Problem) ->
+            match problem with
+            | Problem.Invalid _ -> false
+            | _ -> true
+        )
 
-    if again <> formatted.Merged then
-        problems.Add(Problem.NotIdempotent(Output.Merged, again))
+    if isValid then
+        let again: string = (formatEach config isSignature formatted.Merged).Merged
 
-    if hasDefines then
+        if again <> formatted.Merged then
+            problems.Add(Problem.NotIdempotent(Output.Merged, again))
+
+    if isValid && hasDefines then
         for each in formatted.Combinations do
             let sourceText: ISourceText = CodeFormatterImpl.getSourceText each.Code
             let tree, _ = parseFile isSignature sourceText each.Defines
@@ -350,7 +361,12 @@ let formatAndCheck (config: FormatConfig) (isSignature: bool) (source: string) :
     let allDefines: string list list =
         formatted.Combinations |> List.map (fun (each: ForDefines) -> each.Defines)
 
-    for output, code in (Output.Merged, formatted.Merged) :: perDefine do
+    // Telling text from code needs the result's Oak, which a result that does not parse has none of.
+    for output, code in
+        (if isValid then
+             (Output.Merged, formatted.Merged) :: perDefine
+         else
+             []) do
         let combinations: string list list =
             match output with
             | Output.Merged -> allDefines

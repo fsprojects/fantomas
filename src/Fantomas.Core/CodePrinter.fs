@@ -3845,6 +3845,27 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
         | [ "default" ] -> ctx.Config.SpaceBeforeMember, ctx.Config.AlternativeLongMemberDefinitions
         | _ -> ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
 
+    // A line of the return type that starts on the column of the `:` ends it. The indent stays the
+    // binding's, so a type that indents its own lines lands on a multiple of the indent size. A
+    // multiline tuple starts the lines after its first element at the indent, so where a tuple
+    // starts the lines of the type, AtColumn keeps them past the `:`.
+    let genReturnTypeAfterColon (t: Type) : Context -> Context =
+        let rec isTuple (t: Type) : bool =
+            match t with
+            | Type.Paren parenNode -> isTuple parenNode.Type
+            | Type.WithGlobalConstraints wgcNode -> isTuple wgcNode.Type
+            | Type.Funs funNode ->
+                match List.tryHead funNode.Parameters with
+                | None -> isTuple funNode.ReturnType
+                | Some(p, _) -> isTuple p
+            | Type.AppPostfix appPostFixNode -> isTuple appPostFixNode.First
+            | Type.Array arrayNode -> isTuple arrayNode.Type
+            | Type.StructTuple _ -> true
+            | Type.Tuple _ -> true
+            | _ -> false
+
+        if isTuple t then atCurrentColumn (genType t) else genType t
+
     let isRecursiveLetOrUseFunction =
         match b.LeadingKeyword.Content with
         | [ singleText ] -> singleText.Text = "and" || singleText.Text = "and!"
@@ -3882,7 +3903,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 onlyIfNot isFixed sepSpace
                 +> (genSingleTextNode returnTypeNode.Colon
                     +> sepSpace
-                    +> atCurrentColumnIndent (genType returnTypeNode.Type)
+                    +> genReturnTypeAfterColon returnTypeNode.Type
                     |> genNode returnTypeNode)
 
             let genSignature =
@@ -4073,7 +4094,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                         onlyIfCtx (fun ctx -> hasGenerics || ctx.Config.SpaceBeforeColon) sepSpace
                         +> genSingleTextNode rt.Colon
                         +> sepSpace
-                        +> atCurrentColumnIndent (genType rt.Type)
+                        +> genReturnTypeAfterColon rt.Type
                     )
                     +> sepSpaceUnlessWriteBeforeNewlineNotEmpty
                     +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty genEqualsInBinding

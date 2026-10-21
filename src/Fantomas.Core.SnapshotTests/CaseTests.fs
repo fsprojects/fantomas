@@ -20,6 +20,49 @@ let private failWith (problems: Problem list) : unit =
     if not problems.IsEmpty then
         Assert.Fail(problems |> List.map describe |> String.concat "\n\n")
 
+/// The command a gold and its `.actual` are compared with: `FANTOMAS_DIFF_TOOL`, `zed -e --diff` say,
+/// or `git diff --no-index` without it.
+let private diffTool: string =
+    let tool: string = Environment.GetEnvironmentVariable "FANTOMAS_DIFF_TOOL"
+
+    if String.IsNullOrEmpty tool then
+        "git diff --no-index"
+    else
+        tool
+
+/// For a case whose result differs from its golds: a command to compare each gold with what came out,
+/// and one to accept them all, unless the update would leave them alone because the result is itself
+/// wrong. Absolute paths, so that they work from wherever they are pasted.
+let private nextSteps (case: Case.Case) (canAccept: bool) (problems: Problem list) : string list =
+    let compare: string list =
+        problems
+        |> List.choose (fun (problem: Problem) ->
+            match problem with
+            | Problem.GoldDiffers(path, _) ->
+                let gold: string = Path.GetFullPath(Path.Combine(Case.projectDirectory, path))
+                Some $"Compare: %s{diffTool} %s{gold} %s{Gold.actualPath gold}"
+            | _ -> None
+        )
+
+    let differs: bool =
+        problems
+        |> List.exists (fun (problem: Problem) ->
+            match problem with
+            | Problem.NoGold _
+            | Problem.GoldDiffers _ -> true
+            | _ -> false
+        )
+
+    let accept: string list =
+        if canAccept && differs then
+            [
+                $"Accept: FANTOMAS_UPDATE_SNAPSHOTS=1 dotnet test %s{Case.projectDirectory} --filter \"Name~%s{case.RelativePath}\""
+            ]
+        else
+            []
+
+    compare @ accept
+
 /// Whether a case is under `negative/`, and so its own gold.
 let private isNegative (case: Case.Case) : bool =
     match Placement.claimOf case with
@@ -207,7 +250,17 @@ let case (relativePath: string) =
                    Gold.verify path code
            ))
 
-    failWith (resultProblems @ placementProblems @ goldProblems)
+    let problems: Problem list = resultProblems @ placementProblems @ goldProblems
+
+    if not problems.IsEmpty then
+        Assert.Fail(
+            (problems |> List.map describe)
+            @ [
+                String.concat "\n" (nextSteps case (resultProblems.IsEmpty && placementProblems.IsEmpty) goldProblems)
+            ]
+            |> List.filter (fun (part: string) -> part <> "")
+            |> String.concat "\n\n"
+        )
 
 /// Every file under `cases/` is a case, a gold of one, an `.actual` of one, or a `README.md`. An
 /// `.actual` of no case is deleted instead.
