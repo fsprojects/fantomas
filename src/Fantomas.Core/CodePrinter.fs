@@ -3832,6 +3832,22 @@ let genReturnTypeBinding (node: BindingReturnInfoNode option) =
     +> sepSpace
     +> genType node.Type
 
+/// Whether a tuple starts the lines of a type: the type is one, or begins with one. A multiline tuple
+/// starts the lines after its first element at the indent rather than indenting them itself, so the
+/// code around the type decides where they go.
+let rec startsWithTuple (t: Type) : bool =
+    match t with
+    | Type.Tuple _ -> true
+    | Type.Paren node -> startsWithTuple node.Type
+    | Type.WithGlobalConstraints node -> startsWithTuple node.Type
+    | Type.AppPostfix node -> startsWithTuple node.First
+    | Type.Array node -> startsWithTuple node.Type
+    | Type.Funs node ->
+        match List.tryHead node.Parameters with
+        | None -> startsWithTuple node.ReturnType
+        | Some(parameter, _) -> startsWithTuple parameter
+    | _ -> false
+
 let genBinding (b: BindingNode) (ctx: Context) : Context =
     let spaceBefore, alternativeSyntax =
         let keywords =
@@ -3846,25 +3862,13 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
         | _ -> ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
 
     // A line of the return type that starts on the column of the `:` ends it. The indent stays the
-    // binding's, so a type that indents its own lines lands on a multiple of the indent size. A
-    // multiline tuple starts the lines after its first element at the indent, so where a tuple
-    // starts the lines of the type, AtColumn keeps them past the `:`.
+    // binding's, so a type that indents its own lines lands on a multiple of the indent size. Where
+    // a tuple starts the lines of the type, AtColumn keeps them past the `:`.
     let genReturnTypeAfterColon (t: Type) : Context -> Context =
-        let rec isTuple (t: Type) : bool =
-            match t with
-            | Type.Paren parenNode -> isTuple parenNode.Type
-            | Type.WithGlobalConstraints wgcNode -> isTuple wgcNode.Type
-            | Type.Funs funNode ->
-                match List.tryHead funNode.Parameters with
-                | None -> isTuple funNode.ReturnType
-                | Some(p, _) -> isTuple p
-            | Type.AppPostfix appPostFixNode -> isTuple appPostFixNode.First
-            | Type.Array arrayNode -> isTuple arrayNode.Type
-            | Type.StructTuple _ -> true
-            | Type.Tuple _ -> true
-            | _ -> false
-
-        if isTuple t then atCurrentColumn (genType t) else genType t
+        if startsWithTuple t then
+            atCurrentColumn (genType t)
+        else
+            genType t
 
     let isRecursiveLetOrUseFunction =
         match b.LeadingKeyword.Content with
@@ -4252,12 +4256,23 @@ let genType (t: Type) =
             | [] -> genType node.ReturnType
             | (ht, ha) :: rest ->
 
+            // A tuple puts its lines at the indent, the column of the `->` lines. The element after a
+            // line-ending `*` starts a block at its own column, and a `->` on that column is read as
+            // a new statement. Where a tuple starts the lines of the type, it goes one level in.
+            let genTypeAfterArrow (t: Type) : Context -> Context =
+                sepSpaceUnlessWriteBeforeNewlineNotEmpty
+                +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (
+                    if startsWithTuple t then
+                        indent +> genType t +> unindent
+                    else
+                        genType t
+                )
+
             genType ht
             +> indentSepNlnUnindent (
                 genSingleTextNode ha
-                +> sepSpace
-                +> col sepNone rest (fun (t, arrow) -> genType t +> sepNln +> genSingleTextNode arrow +> sepSpace)
-                +> genType node.ReturnType
+                +> col sepNone rest (fun (t, arrow) -> genTypeAfterArrow t +> sepNln +> genSingleTextNode arrow)
+                +> genTypeAfterArrow node.ReturnType
             )
 
         expressionFitsOnRestOfLine short long |> genNode node
@@ -4298,12 +4313,21 @@ let genType (t: Type) =
             node.GreaterThan
         |> genNode node
     | Type.StructTuple node ->
-        genSingleTextNode node.Keyword
-        +> sepSpace
-        +> sepOpenT
-        +> genSynTupleTypeSegments node.Path
-        +> genSingleTextNode node.ClosingParen
-        |> genNode node
+        let genOpening: Context -> Context =
+            genSingleTextNode node.Keyword +> sepSpace +> sepOpenT
+
+        let short: Context -> Context =
+            genOpening
+            +> genSynTupleTypeSegments node.Path
+            +> genSingleTextNode node.ClosingParen
+
+        let long: Context -> Context =
+            genOpening
+            +> indentSepNlnUnindent (genSynTupleTypeSegments node.Path)
+            +> sepNln
+            +> genSingleTextNode node.ClosingParen
+
+        expressionFitsOnRestOfLine short long |> genNode node
     | Type.WithSubTypeConstraint tc -> genTypeConstraint tc
     | Type.WithGlobalConstraints node -> genType node.Type +> genTypeConstraints node.TypeConstraints |> genNode node
     | Type.LongIdent idn -> genIdentListNode idn

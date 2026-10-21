@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Parenthesized function type gets an extra indent level where no outer function type needs it. [#3554](https://github.com/fsprojects/fantomas/issues/3554)
+- Multiline tuple in the middle of a function type gives invalid code. [#3556](https://github.com/fsprojects/fantomas/issues/3556)
+
 ## [8.0.10] - 2026-10-14
 
 ### Fixed

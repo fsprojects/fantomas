@@ -5,4 +5,4 @@ type T =
                 -> LongTypeNameNumberThree
                 -> LongTypeNameNumberFour
                 -> LongTypeNameNumberFive) *
-        int
+            int
