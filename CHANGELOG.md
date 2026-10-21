@@ -1,6 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [8.1.0] - 2026-10-21
+
+### Changed
+
+- Multiline tuple type after a cast or type annotation operator goes one level in. [#3561](https://github.com/fsprojects/fantomas/pull/3561)
+- Line comment lined up with the first element of its container stays with the elements. [#3561](https://github.com/fsprojects/fantomas/pull/3561)
 
 ### Fixed
 
