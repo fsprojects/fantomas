@@ -35,4 +35,10 @@ Fantomas formats code under every combination of `#if` / `#else` / `#endif` defi
 results, which means every combination has to produce valid F# on its own.
 See [Conditional Compilation Directives](./ConditionalCompilationDirectives.html).
 
+## The rule of multitudes
+
+When more than one layout parses, Fantomas prefers the one where every line starts on a multiple of
+`indent_size`, rather than on a column taken from a token, which moves when a name changes length.
+See [The rule of multitudes](./RuleOfMultitudes.html).
+
 <fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

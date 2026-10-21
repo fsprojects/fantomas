@@ -1,7 +1,7 @@
 ---
 category: End-users
 categoryindex: 1
-index: 18
+index: 19
 ---
 # Reporting a bug
 

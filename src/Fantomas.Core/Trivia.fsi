@@ -22,7 +22,8 @@ val collectCommentTextsFromAST: sourceText: ISourceText -> ast: ParsedInput -> S
 /// Which side wins depends on the kind of trivia. A comment after code on the same line goes after
 /// the last node on that line. A comment on its own line goes before the next sibling, unless that
 /// sibling is a closing bracket, or the comment is indented to the column of the previous sibling
-/// while the next one is not. Blank lines before an indented comment travel with the comment.
+/// while the next one is not, or to the column of earlier content in the same node. Blank lines
+/// before an indented comment travel with the comment.
 /// Trivia outside every node is attached to the root.
 ///
 /// The choices are illustrated in src/Fantomas.Core.Tests/TriviaAssignmentTests.fs.

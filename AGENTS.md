@@ -14,6 +14,9 @@ Formatting is tested by snapshot cases, files under `src/Fantomas.Core.SnapshotT
 beside the result formatting gives for it; that project's README says how to write one.
 `Fantomas.Core.Tests` holds the unit tests of internals.
 
+A layout you check by hand while working, at another setting or in another position, becomes a case
+when no case covers it yet. A check that ran once guards nothing the next time that code changes.
+
 ## Diagnostic Scripts
 
 All of these accept a file path or stdin, with optional `--signature` and `--editorconfig <content>` flags.
@@ -44,6 +47,79 @@ compatibility overload, and without calling it out as a breaking change. Leave O
 `docs/docs/end-users/UpgradeGuide.md`: its "The Oak" section tells readers to diff `SyntaxOak.fs`
 between tags instead. Code generation on top of the Oak is told to expect
 this (`docs/docs/end-users/GeneratingCode.fsx`, "Updates").
+
+## Choosing a layout
+
+When more than one layout parses, the design decisions in
+[docs/docs/end-users/DesignDecisions.md](docs/docs/end-users/DesignDecisions.md) choose. Name the
+one you apply when you recommend an option.
+
+## Talking about a formatting change
+
+### Trivia versus comments in our code
+
+"Comment" alone is ambiguous here, so always name which kind:
+
+- **Trivia** is what sits in the F# that Fantomas reads or writes: a trivia line comment, a trivia
+  block comment, a blank line, a directive. A comment in a formatted result is always trivia.
+- In Fantomas' own source, say **explanatory comment** (`//` saying why the code does what it does)
+  or **doc comment** (`///`).
+
+Keep the explanatory and doc comments beside the code a change touches accurate as part of every
+change, and correct them without asking: re-read them after editing, and say in your report what you
+corrected. Comments elsewhere in the file stay as they are.
+
+An explanatory comment sits beside the code it explains. When it explains one branch of an `if` or a
+`match`, it goes at the top of that branch, rather than in a block above the whole expression that
+explains every branch at once.
+
+When it explains a layout, show the layout instead of describing it: a few lines of the F# the code
+produces, with a short note on the line that matters.
+
+### Every example in full
+
+The user answers from the message alone, without the code base open. Every finding, review point or
+question about formatting carries a full example:
+
+1. The input, as a user would write it: a whole, parseable declaration, never a fragment.
+2. What main formats it to, or what the branch did before this change (say which). When the result
+   is not idempotent, every pass until it settles.
+3. What this branch formats it to.
+4. What is wrong or what changed, marked with an F# `// <-` comment on the exact lines, and the
+   compiler error when it does not compile.
+5. For a decision: every option as complete code, each saying whether it compiles and is
+   idempotent, then the question, with an easy answer (A/B, yes/no).
+
+Say which examples are real output and which are written by hand. Fantomas' parser accepts some
+layouts the shipped compilers reject, so check "it compiles" with the SDK compilers: a `.fsx` in its
+own folder under `tmp/`, a `global.json` pinning the SDK, then `dotnet fsi`.
+
+Repeat context rather than refer back to earlier messages, files, section numbers or review point
+numbers. When where the printer does it helps, say it in plain words with enough context to follow
+without opening `CodePrinter.fs`. After a review, first one line on what it found, then one numbered
+question at a time.
+
+### question.fs and review.fs
+
+When a question needs F# code to show it, because it is about what Fantomas formats code to or
+about a formatting bug, write it into `question.fs` in the repo root, left untracked: the chat wraps
+long lines, and the user reads code in the editor. Questions about anything else (the docs site,
+tooling, staging) stay in the chat.
+
+A review's findings that come with F# code, nits included, go into `review.fs` the same way, as
+soon as the review is in: every finding with its full example, ending on the first question.
+
+Either file:
+
+- opens with the situation in a few sentences and ends with the question;
+- holds the prose as trivia block comments, the `// <-` markers as trivia line comments and every
+  example as code, so it is the single source of truth;
+- parses as a whole: give each block its own name (`Input`, `OptionA`) and say at the top what the
+  real name is; check it with `scripts/ast.fsx`.
+
+`.fantomasignore` lists both, so the formatter hook and the editor leave their examples as written.
+The chat message gives the path and the question in one line. Once the user has answered the last
+question in it, delete the file before doing anything else.
 
 ## Code Style
 

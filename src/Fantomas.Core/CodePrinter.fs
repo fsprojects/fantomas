@@ -1307,7 +1307,25 @@ let genExpr (e: Expr) =
             genExpr node.Expr +> genOperator +> sepSpace +> genType node.Type
 
         let long =
-            genExpr node.Expr +> sepNln +> !-node.Operator +> sepSpace +> genType node.Type
+            let genOperatorAndType: Context -> Context =
+                !-node.Operator
+                +> sepSpace
+                +> if startsWithTuple node.Type then
+                       // someValue
+                       // :> (int *
+                       //     Long)    one level in: a tuple puts its lines at the indent, the
+                       //              column of `:>`
+                       indent +> genType node.Type +> unindent
+                   else
+                       genType node.Type
+
+            if node.Operator = ":?" then
+                // someValue
+                //     :? LongTypeName    one level in: `:?` is no infix operator, so on the column
+                //                        of `someValue` it starts a new expression
+                genExpr node.Expr +> indentSepNlnUnindent genOperatorAndType
+            else
+                genExpr node.Expr +> sepNln +> genOperatorAndType
 
         match node.Expr with
         | Expr.Lambda _ -> long
@@ -2036,11 +2054,7 @@ let genExpr (e: Expr) =
 
         |> genNode node
     | Expr.TypeApp node ->
-        genPrefixApp
-            (genExpr node.Identifier)
-            node.LessThan
-            (colGenericTypeParameters node.TypeParameters)
-            node.GreaterThan
+        genPrefixApp (genExpr node.Identifier) node.LessThan node.TypeParameters sepNone node.GreaterThan
         |> genNode node
     | Expr.TryWithSingleClause node ->
         let genClause =
@@ -2939,61 +2953,84 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
         | Some barNode -> genSingleTextNodeWithSpaceSuffix sepSpace barNode
         | None -> sepBar
 
-    let genWhenAndBody =
-        sepSpace
-        +> leadingExpressionIsMultiline
-            (optSingle
-                (fun (whenNode, e) ->
-                    genSingleTextNode whenNode
-                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
-                    +> sepSpace
-                )
-                node.WhenExpr)
-            (fun isMultiline ctx ->
-                if isMultiline then
-                    indentSepNlnUnindent (genSingleTextNode node.Arrow +> sepNln +> genExpr node.BodyExpr) ctx
-                else
+    // A multiline guard puts `->` and the body on lines of their own.
+    let genArrowAndBody (isMultilineGuard: bool) (ctx: Context) : Context =
+        if isMultilineGuard then
+            indentSepNlnUnindent (genSingleTextNode node.Arrow +> sepNln +> genExpr node.BodyExpr) ctx
+        else
 
-                let genKeepIndentInBranch =
-                    let long =
-                        let startNode =
-                            match node.Bar with
-                            | None -> Pattern.Node node.Pattern
-                            | Some bar -> bar
+        let genKeepIndentInBranch: Context -> Context =
+            let long: Context -> Context =
+                let startNode: Node =
+                    match node.Bar with
+                    | None -> Pattern.Node node.Pattern
+                    | Some bar -> bar
 
-                        genKeepIdentMatchClause startNode node.BodyExpr
+                let genKeptBranch: Context -> Context =
+                    genKeepIdentMatchClause startNode node.BodyExpr
 
-                    expressionFitsOnRestOfLine (sepSpace +> genExpr node.BodyExpr) long
+                match node.WhenExpr with
+                | Some(whenNode, _) when
+                    whenNode.HasContentBefore
+                    && startNode.Range.StartColumn = (Expr.Node node.BodyExpr).Range.StartColumn
+                    ->
+                    // | Some x
+                    //     // trivia
+                    //     when x.IsEmpty ->
+                    //
+                    // body    on the column of `|`, out of the level genAfterPattern added
+                    unindent +> genKeptBranch +> indent
+                | _ -> genKeptBranch
 
-                let sepArrow =
-                    if not node.Arrow.HasContentBefore then
-                        genSingleTextNodeWithSpaceSuffix sepSpace node.Arrow
-                    else
-                        // In the weird case where the arrow has content before it and there is no multiline whenExpr,
-                        // we need to ensure a space was written before the arrow to avoid offset errors.
-                        // See https://github.com/fsprojects/fantomas/issues/2888
-                        !- $" %s{node.Arrow.Text} " |> genNode node.Arrow
+            expressionFitsOnRestOfLine (sepSpace +> genExpr node.BodyExpr) long
 
-                (sepArrow
-                 +> ifElse
-                     (ctx.Config.ExperimentalKeepIndentInBranch
-                      && isLastItem
-                      && not (isStroustrupStyleExpr ctx.Config node.BodyExpr))
-                     genKeepIndentInBranch
-                     (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.BodyExpr))
-                    ctx
-            )
+        let sepArrow: Context -> Context =
+            if not node.Arrow.HasContentBefore then
+                genSingleTextNodeWithSpaceSuffix sepSpace node.Arrow
+            else
+                // In the weird case where the arrow has content before it and there is no multiline whenExpr,
+                // we need to ensure a space was written before the arrow to avoid offset errors.
+                // See https://github.com/fsprojects/fantomas/issues/2888
+                !- $" %s{node.Arrow.Text} " |> genNode node.Arrow
+
+        (sepArrow
+         +> ifElse
+             (ctx.Config.ExperimentalKeepIndentInBranch
+              && isLastItem
+              && not (isStroustrupStyleExpr ctx.Config node.BodyExpr))
+             genKeepIndentInBranch
+             (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.BodyExpr))
+            ctx
+
+    // The trivia before `when` is written by genAfterPattern, before this measures the guard.
+    let genGuardArrowAndBody (whenNode: SingleTextNode) (guard: Expr) : Context -> Context =
+        leadingExpressionIsMultiline
+            (genSingleTextNodeText whenNode
+             +> leaveNode whenNode
+             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr guard)
+             +> sepSpace)
+            genArrowAndBody
+
+    let genAfterPattern: Context -> Context =
+        match node.WhenExpr with
+        | None -> sepSpace +> genArrowAndBody false
+        | Some(whenNode, guard) when whenNode.HasContentBefore ->
+            // | a
+            //     // trivia
+            //     when a -> 1    one level in: on the column of `|`, `when` ends the clause
+            indent +> enterNode whenNode +> genGuardArrowAndBody whenNode guard +> unindent
+        | Some(whenNode, guard) -> sepSpace +> enterNode whenNode +> genGuardArrowAndBody whenNode guard
 
     let genPatAndBody ctx =
         if not (isStroustrupStyleExpr ctx.Config node.BodyExpr) then
-            (genPatInClause node.Pattern +> genWhenAndBody) ctx
+            (genPatInClause node.Pattern +> genAfterPattern) ctx
         else
 
         // The column is taken after the bar, so a stroustrup closing bracket lands strictly right of
         // it. On the bar's own column the `|` of the next clause no longer parses, and giving only
         // the last clause the bar's column would leave two columns in one match. See #2990.
         let startColumn = ctx.Column
-        (genPatInClause node.Pattern +> atIndentLevel false startColumn genWhenAndBody) ctx
+        (genPatInClause node.Pattern +> atIndentLevel false startColumn genAfterPattern) ctx
 
     genBar +> genPatAndBody |> genNode node
 
@@ -3277,17 +3314,36 @@ let colGenericTypeParameters typeParameters =
 let genPrefixApp
     (identifier: Context -> Context)
     (lessThan: SingleTextNode)
-    (typeParameters: Context -> Context)
+    (typeParameters: Type list)
+    (spaceInsideBrackets: Context -> Context)
     (greaterThan: SingleTextNode)
     (ctx: Context)
     : Context
     =
-    let startColumn = ctx.Column
+    let startColumn: int = ctx.Column
+
+    // Decided once `<` is written, so a comment after it counts as one waiting for a line break.
+    let genTypeParameters (ctx: Context) : Context =
+        match typeParameters with
+        | [ t ] when
+            isStroustrupStyleType ctx.Config t
+            && canSafelyUseStroustrup (Type.Node t) ctx
+            && not greaterThan.HasContentBefore
+            ->
+            // convertTo<{|
+            //     kind: string
+            // |}>    `>` follows `|}` on its line and never starts one, so it needs no padding
+            genType t ctx
+        | _ ->
+            (spaceInsideBrackets
+             +> colGenericTypeParameters typeParameters
+             +> spaceInsideBrackets
+             +> addFixedSpaces (startColumn + 1))
+                ctx
 
     (identifier
      +> genSingleTextNode lessThan
-     +> typeParameters
-     +> addFixedSpaces (startColumn + 1)
+     +> genTypeParameters
      +> genSingleTextNode greaterThan)
         ctx
 
@@ -3832,6 +3888,22 @@ let genReturnTypeBinding (node: BindingReturnInfoNode option) =
     +> sepSpace
     +> genType node.Type
 
+/// Whether a tuple starts the lines of a type: the type is one, or begins with one. A multiline tuple
+/// starts the lines after its first element at the indent rather than indenting them itself, so the
+/// code around the type decides where they go.
+let rec startsWithTuple (t: Type) : bool =
+    match t with
+    | Type.Tuple _ -> true
+    | Type.Paren node -> startsWithTuple node.Type
+    | Type.WithGlobalConstraints node -> startsWithTuple node.Type
+    | Type.AppPostfix node -> startsWithTuple node.First
+    | Type.Array node -> startsWithTuple node.Type
+    | Type.Funs node ->
+        match List.tryHead node.Parameters with
+        | None -> startsWithTuple node.ReturnType
+        | Some(parameter, _) -> startsWithTuple parameter
+    | _ -> false
+
 let genBinding (b: BindingNode) (ctx: Context) : Context =
     let spaceBefore, alternativeSyntax =
         let keywords =
@@ -3844,6 +3916,22 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
         | [ "abstract"; "member" ]
         | [ "default" ] -> ctx.Config.SpaceBeforeMember, ctx.Config.AlternativeLongMemberDefinitions
         | _ -> ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
+
+    // A line of the return type that starts on the column of the `:` ends it. The indent stays the
+    // binding's, so a type that indents its own lines lands on a multiple of the indent size. Where
+    // a tuple starts the lines of the type, AtColumn keeps them past the `:`.
+    let genReturnTypeAfterColon (t: Type) (ctx: Context) : Context =
+        if startsWithTuple t then
+            atCurrentColumn (genType t) ctx
+        elif ctx.Config.IndentSize = 2 then
+            // let items
+            //   : Dictionary<
+            //       string,    a level past `Dictionary`: `: ` is one level wide, so a level past the
+            //                  binding would be its column
+            //      >
+            atCurrentColumnIndent (genType t) ctx
+        else
+            genType t ctx
 
     let isRecursiveLetOrUseFunction =
         match b.LeadingKeyword.Content with
@@ -3882,7 +3970,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 onlyIfNot isFixed sepSpace
                 +> (genSingleTextNode returnTypeNode.Colon
                     +> sepSpace
-                    +> atCurrentColumnIndent (genType returnTypeNode.Type)
+                    +> genReturnTypeAfterColon returnTypeNode.Type
                     |> genNode returnTypeNode)
 
             let genSignature =
@@ -4073,7 +4161,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                         onlyIfCtx (fun ctx -> hasGenerics || ctx.Config.SpaceBeforeColon) sepSpace
                         +> genSingleTextNode rt.Colon
                         +> sepSpace
-                        +> atCurrentColumnIndent (genType rt.Type)
+                        +> genReturnTypeAfterColon rt.Type
                     )
                     +> sepSpaceUnlessWriteBeforeNewlineNotEmpty
                     +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty genEqualsInBinding
@@ -4231,12 +4319,28 @@ let genType (t: Type) =
             | [] -> genType node.ReturnType
             | (ht, ha) :: rest ->
 
+            let genTypeAfterArrow (t: Type) (ctx: Context) : Context =
+                if hasWriteBeforeNewlineContent ctx then
+                    // a
+                    //     -> // trivia
+                    //         int *
+                    //         Long    under `int`: already past the `->` lines, so no extra level
+                    //     -> unit
+                    indentSepNlnUnindent (genType t) ctx
+                elif startsWithTuple t then
+                    // a
+                    //     -> int *
+                    //         Long    one level in: on the `->` column, the next `->` does not parse
+                    //     -> unit
+                    (sepSpace +> indent +> genType t +> unindent) ctx
+                else
+                    (sepSpace +> genType t) ctx
+
             genType ht
             +> indentSepNlnUnindent (
                 genSingleTextNode ha
-                +> sepSpace
-                +> col sepNone rest (fun (t, arrow) -> genType t +> sepNln +> genSingleTextNode arrow +> sepSpace)
-                +> genType node.ReturnType
+                +> col sepNone rest (fun (t, arrow) -> genTypeAfterArrow t +> sepNln +> genSingleTextNode arrow)
+                +> genTypeAfterArrow node.ReturnType
             )
 
         expressionFitsOnRestOfLine short long |> genNode node
@@ -4264,6 +4368,9 @@ let genType (t: Type) =
     | Type.Var node -> genSingleTextNode node
     | Type.AppPostfix node -> genType node.First +> sepSpace +> genType node.Last |> genNode node
     | Type.AppPrefix node ->
+        // Foo< ^T >           a space inside both brackets: older compilers read `<^` as an
+        //                     operator (#803, #984); SDK 8 and 10 no longer do
+        // Csv< @"data.csv" >  `<@` opens a quotation (#1209)
         let addExtraSpace =
             match node.Arguments with
             | [] -> sepNone
@@ -4273,16 +4380,34 @@ let genType (t: Type) =
         genPrefixApp
             (genType node.Identifier +> optSingle genIdentListNodeWithDot node.PostIdentifier)
             node.LessThen
-            (addExtraSpace +> colGenericTypeParameters node.Arguments +> addExtraSpace)
+            node.Arguments
+            addExtraSpace
             node.GreaterThan
         |> genNode node
     | Type.StructTuple node ->
-        genSingleTextNode node.Keyword
-        +> sepSpace
-        +> sepOpenT
-        +> genSynTupleTypeSegments node.Path
-        +> genSingleTextNode node.ClosingParen
-        |> genNode node
+        let genOpening: Context -> Context =
+            genSingleTextNode node.Keyword +> sepSpace +> sepOpenT
+
+        let short: Context -> Context =
+            genOpening
+            +> genSynTupleTypeSegments node.Path
+            +> genSingleTextNode node.ClosingParen
+
+        let long: Context -> Context =
+            // struct (
+            //     int *
+            //     string
+            //     // trivia    after the last element: its newline is the one before the `)`
+            // )
+            genOpening
+            +> indent
+            +> sepNln
+            +> genSynTupleTypeSegments node.Path
+            +> unindentWithTriviaAwareness
+            +> sepNlnUnlessLastEventIsNewline
+            +> genSingleTextNode node.ClosingParen
+
+        expressionFitsOnRestOfLine short long |> genNode node
     | Type.WithSubTypeConstraint tc -> genTypeConstraint tc
     | Type.WithGlobalConstraints node -> genType node.Type +> genTypeConstraints node.TypeConstraints |> genNode node
     | Type.LongIdent idn -> genIdentListNode idn
@@ -4329,26 +4454,37 @@ let genType (t: Type) =
             genNode node (isSmallExpression size smallExpression longExpression) ctx
 
     | Type.Paren node ->
-        match node.Type with
-        | Type.Funs _ ->
-            let short =
-                genSingleTextNode node.OpeningParen
-                +> genType node.Type
-                +> genSingleTextNode node.ClosingParen
+        let genInner (columnAfterParen: int) (ctx: Context) : Context =
+            // ( // trivia
+            //     Map<string, int>)    a trivia line comment after the `(` ends its line
+            let startsOnFreshLine: bool = hasWriteBeforeNewlineContent ctx
 
-            let long =
-                genSingleTextNode node.OpeningParen
-                +> indent
-                +> genType node.Type
-                +> unindent
-                +> genSingleTextNode node.ClosingParen
+            if not startsOnFreshLine && not node.Type.IsFuns then
+                genType node.Type ctx
+            else
 
-            expressionFitsOnRestOfLine short long |> genNode node
-        | _ ->
-            genSingleTextNode node.OpeningParen
-            +> genType node.Type
-            +> genSingleTextNode node.ClosingParen
-            |> genNode node
+            // The parenthesis opens an offside context at the first token inside it, and a line
+            // starting on that column ends it. The lines the type indents clear that column, taken
+            // before the trivia after the `(`: a block comment there moves the first token right,
+            // and a line left of that token parses. Lines at the type's own indent, a function type's
+            // leading tuple or the first after a trivia line comment, come a level before them
+            // and clear the `(`:
+            // ((string option *
+            //     string option)
+            //         -> unit)
+            let columnToClear: int =
+                if startsOnFreshLine || startsWithTuple node.Type then
+                    columnAfterParen - 1 + ctx.Config.IndentSize
+                else
+                    columnAfterParen
+
+            indentPast columnToClear (onlyIf startsOnFreshLine sepNln +> genType node.Type) ctx
+
+        enterNode node.OpeningParen
+        +> genSingleTextNodeText node.OpeningParen
+        +> (fun ctx -> (leaveNode node.OpeningParen +> genInner ctx.Column) ctx)
+        +> genSingleTextNode node.ClosingParen
+        |> genNode node
     | Type.SignatureParameter node ->
         genOnelinerAttributes node.Attributes
         +> optSingle (fun id -> genSingleTextNode id +> sepColon) node.Identifier

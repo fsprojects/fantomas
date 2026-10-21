@@ -5,7 +5,7 @@ match
                 {|
                     ChooseAsync:
                         (('T -> Async<_ option>)
-                                -> AsyncSeq<_>) option
+                            -> AsyncSeq<_>) option
                 |} option
         |}
       >(

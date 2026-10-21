@@ -5,3 +5,7 @@ scripts/hero-video/fixture
 
 # The snapshot cases: inputs and golds are what they are, not code to format
 src/Fantomas.Core.SnapshotTests/cases/
+
+# A question or review findings for the user, written by an agent: the examples are the point, not code to format
+/question.fs
+/review.fs
