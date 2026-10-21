@@ -4397,20 +4397,26 @@ let genType (t: Type) =
             genNode node (isSmallExpression size smallExpression longExpression) ctx
 
     | Type.Paren node ->
-        let genOpeningAndInner: Context -> Context =
-            if not node.Type.IsFuns then
-                genSingleTextNode node.OpeningParen +> genType node.Type
+        let genInner (columnAfterParen: int) (ctx: Context) : Context =
+            if hasWriteBeforeNewlineContent ctx then
+                // ( // trivia
+                //     Map<string, int>)    on a line of its own, past the `(`: the trivia line comment
+                //                          ends the line the `(` is on
+                indentPast (columnAfterParen - 1) (indentSepNlnUnindent (genType node.Type)) ctx
+            elif node.Type.IsFuns then
+                // The parenthesis opens an offside context at the first token inside it, and a line
+                // starting on that column ends it. The `->` lines of the function type start past the
+                // column right after the parenthesis, taken before its trivia: a block comment there
+                // moves the first token right, and a line left of that token parses.
+                indentPast columnAfterParen (genType node.Type) ctx
             else
+                genType node.Type ctx
 
-            // The parenthesis opens an offside context at the first token inside it, and a line
-            // starting on that column ends it. The `->` lines of the function type start past the
-            // column right after the parenthesis, taken before its trivia: a comment there moves
-            // the first token right, and a line left of that token parses.
-            enterNode node.OpeningParen
-            +> genSingleTextNodeText node.OpeningParen
-            +> fun ctx -> (leaveNode node.OpeningParen +> indentPast ctx.Column (genType node.Type)) ctx
-
-        genOpeningAndInner +> genSingleTextNode node.ClosingParen |> genNode node
+        enterNode node.OpeningParen
+        +> genSingleTextNodeText node.OpeningParen
+        +> (fun ctx -> (leaveNode node.OpeningParen +> genInner ctx.Column) ctx)
+        +> genSingleTextNode node.ClosingParen
+        |> genNode node
     | Type.SignatureParameter node ->
         genOnelinerAttributes node.Attributes
         +> optSingle (fun id -> genSingleTextNode id +> sepColon) node.Identifier

@@ -8,6 +8,7 @@
 - Multiline tuple in the middle of a function type gives invalid code. [#3556](https://github.com/fsprojects/fantomas/issues/3556)
 - Parenthesized function type after an arrow gives invalid code with indent_size 2. [#3557](https://github.com/fsprojects/fantomas/issues/3557)
 - Long type test with :? gives invalid code. [#3558](https://github.com/fsprojects/fantomas/issues/3558)
+- Line comment after the opening parenthesis of a type moves and breaks the type. [#3559](https://github.com/fsprojects/fantomas/issues/3559)
 
 ## [8.0.10] - 2026-10-14
 
