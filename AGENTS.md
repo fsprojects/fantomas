@@ -14,6 +14,9 @@ Formatting is tested by snapshot cases, files under `src/Fantomas.Core.SnapshotT
 beside the result formatting gives for it; that project's README says how to write one.
 `Fantomas.Core.Tests` holds the unit tests of internals.
 
+A layout you check by hand while working, at another setting or in another position, becomes a case
+when no case covers it yet. A check that ran once guards nothing the next time that code changes.
+
 ## Diagnostic Scripts
 
 All of these accept a file path or stdin, with optional `--signature` and `--editorconfig <content>` flags.

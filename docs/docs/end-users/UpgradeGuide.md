@@ -620,7 +620,8 @@ The examples use the default settings.
 
 Since 8.0, every multiline function type in parentheses got an extra level, to avoid a compiler
 error after an outer `->` ([#3043](https://github.com/fsprojects/fantomas/issues/3043)). There it
-stays; everywhere else this is the 7.0.6 layout again.
+stays, and so it does when the function type starts with a tuple: the tuple's lines go one level
+past the `(`, the `->` lines two. Everywhere else this is the 7.0.6 layout again.
 
 ```fsharp
 // v8.0
@@ -643,7 +644,8 @@ type T =
 #### A return type lands on a multiple of the indent size
 
 The lines of a return type no longer hang off the column after `: `. They go one level past the
-binding.
+binding. With `indent_size = 2` that level would be the column after `: `, so there the lines are
+measured from that column, as in 8.0.
 
 ```fsharp
 // v8.0

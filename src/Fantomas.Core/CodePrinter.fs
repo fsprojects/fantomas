@@ -3920,11 +3920,18 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
     // A line of the return type that starts on the column of the `:` ends it. The indent stays the
     // binding's, so a type that indents its own lines lands on a multiple of the indent size. Where
     // a tuple starts the lines of the type, AtColumn keeps them past the `:`.
-    let genReturnTypeAfterColon (t: Type) : Context -> Context =
+    let genReturnTypeAfterColon (t: Type) (ctx: Context) : Context =
         if startsWithTuple t then
-            atCurrentColumn (genType t)
+            atCurrentColumn (genType t) ctx
+        elif ctx.Config.IndentSize = 2 then
+            // let items
+            //   : Dictionary<
+            //       string,    a level past `Dictionary`: `: ` is one level wide, so a level past the
+            //                  binding would be its column
+            //      >
+            atCurrentColumnIndent (genType t) ctx
         else
-            genType t
+            genType t ctx
 
     let isRecursiveLetOrUseFunction =
         match b.LeadingKeyword.Content with
@@ -4448,19 +4455,30 @@ let genType (t: Type) =
 
     | Type.Paren node ->
         let genInner (columnAfterParen: int) (ctx: Context) : Context =
-            if hasWriteBeforeNewlineContent ctx then
-                // ( // trivia
-                //     Map<string, int>)    on a line of its own, past the `(`: the trivia line comment
-                //                          ends the line the `(` is on
-                indentPast (columnAfterParen - 1) (indentSepNlnUnindent (genType node.Type)) ctx
-            elif node.Type.IsFuns then
-                // The parenthesis opens an offside context at the first token inside it, and a line
-                // starting on that column ends it. The `->` lines of the function type start past the
-                // column right after the parenthesis, taken before its trivia: a block comment there
-                // moves the first token right, and a line left of that token parses.
-                indentPast columnAfterParen (genType node.Type) ctx
-            else
+            // ( // trivia
+            //     Map<string, int>)    a trivia line comment after the `(` ends its line
+            let startsOnFreshLine: bool = hasWriteBeforeNewlineContent ctx
+
+            if not startsOnFreshLine && not node.Type.IsFuns then
                 genType node.Type ctx
+            else
+
+            // The parenthesis opens an offside context at the first token inside it, and a line
+            // starting on that column ends it. The lines the type indents clear that column, taken
+            // before the trivia after the `(`: a block comment there moves the first token right,
+            // and a line left of that token parses. Lines at the type's own indent, a function type's
+            // leading tuple or the first after a trivia line comment, come a level before them
+            // and clear the `(`:
+            // ((string option *
+            //     string option)
+            //         -> unit)
+            let columnToClear: int =
+                if startsOnFreshLine || startsWithTuple node.Type then
+                    columnAfterParen - 1 + ctx.Config.IndentSize
+                else
+                    columnAfterParen
+
+            indentPast columnToClear (onlyIf startsOnFreshLine sepNln +> genType node.Type) ctx
 
         enterNode node.OpeningParen
         +> genSingleTextNodeText node.OpeningParen
