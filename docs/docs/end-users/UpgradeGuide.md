@@ -607,7 +607,7 @@ has to be rebuilt against `v8`.
 8.1 fixes a handful of layouts where the formatted code did not compile, or changed again on the
 next format; the [changelog](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md) lists
 them. Fixing them at the cause, rather than with a special case each, also moves a few layouts of
-code that was already valid. Two ideas are behind every change below:
+code that was already valid. Two ideas are behind most changes below:
 
 - Indent only as far as the parser needs, and on a multiple of `indent_size`: the
   [rule of multitudes](./RuleOfMultitudes.html). 8.0 added extra indentation in places to keep the
@@ -756,6 +756,40 @@ let a =
         (7, 8, 9)
         // some line comment
     ]
+```
+
+#### A single anonymous record type argument stays attached in Stroustrup
+
+This applies with **`fsharp_multiline_bracket_style = stroustrup`**. `aligned` and `cramped` are
+untouched.
+
+A type application whose only type argument is an anonymous record keeps `<{|` and `|}>` together,
+the way Stroustrup puts the bracket of a record at the end of the line before it. Since 6.3.0 the
+record went on lines of its own, one level in, with the closing `>` on a line by itself. With more
+than one type argument, the arguments still go on lines of their own.
+
+```fsharp
+// v8.0
+let asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<
+        {|
+            kind: string
+            properties: {| statisticsEnabled: bool |}
+            location: string
+            sku: string
+        |}
+        >
+
+// v8.1
+let asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+        location: string
+        sku: string
+    |}>
 ```
 
 <fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>
