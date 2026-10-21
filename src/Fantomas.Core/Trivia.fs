@@ -6,7 +6,8 @@ open Fantomas.FCS.SyntaxTrivia
 open Fantomas.FCS.Text
 open Fantomas.Core.SyntaxOak
 
-let closingDelimiters = Set.ofList [ "]"; "}"; "|}"; ")"; "|)" ]
+let openingDelimiters: Set<string> = Set.ofList [ "["; "[|"; "{"; "{|"; "(" ]
+let closingDelimiters: Set<string> = Set.ofList [ "]"; "}"; "|}"; ")"; "|)" ]
 
 type CommentTrivia with
 
@@ -293,67 +294,73 @@ let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia:
         node.AddAfter(trivia)
     )
 
-/// Find a node that ended before the trivia and whose start column matches the trivia's column.
-/// Searches top-down and returns the outermost match that is the first code on its line,
-/// as its column is the indentation the comment lines up with.
-/// Without such a node, the deepest node at the comment's column is returned.
+/// Find a node to add a line comment to as trivia after.
 ///
-/// Used for indented single-line comments that sit between a parent's children.
-/// For example, in:
-///     try ... with exn -> ()
-///     // comment here
-/// The comment at column 4 should attach to the try-with (which also starts at column 4),
-/// not to the next top-level binding at column 0.
-///
-/// When a node and its last child both start at the comment's column, the node wins:
+/// The candidates are the nodes the comment directly follows: the child of the container that ends
+/// last above the comment, then that child's child that ends last above it, and so on down. In
 ///     c +
 ///     d
 ///     // comment
-/// The comment belongs to the infix expression `c + d`, not to `d`.
-/// Placing it after `d` would make the expression multiline and move the operator,
-/// which then no longer produces the same attachment on the next format.
-///
-/// A node that follows other code on its line is only picked when nothing else matches:
-///     |> run (fun changes ->
-///             printfn "%A" changes
-///             // comment
-/// The lambda starts at the comment's column, but after `|> run (`. The comment belongs to its body.
-let findNodeBeforeWithMatchingColumn (node: Node) (triviaRange: range) : Node option =
-    let triviaColumn = triviaRange.StartColumn
-    let triviaLine = triviaRange.StartLine
+/// they are `c + d` and then `d`. The comment's column picks one of them.
+let findNodeBeforeWithMatchingColumn (sourceText: ISourceText) (container: Node) (triviaRange: range) : Node option =
+    let triviaColumn: int = triviaRange.StartColumn
+    let triviaLine: int = triviaRange.StartLine
 
-    // `endLineOfPrevious` is the line where the node before `node` ends.
-    // A child starts its line when the node before it ends on an earlier line.
-    // Both are found by range rather than by index, so the order of `Children` does not matter.
-    let rec visit (endLineOfPrevious: int) (node: Node) : Node option =
-        let before: Node array =
-            node.Children |> Array.filter (fun child -> child.Range.EndLine < triviaLine)
+    let endsAboveComment (node: Node) : bool = node.Range.EndLine < triviaLine
+    let startsOnCommentColumn (node: Node) : bool = node.Range.StartColumn = triviaColumn
 
-        if Array.isEmpty before then
-            None
-        else
+    // Only whitespace comes before the node on its line.
+    let startsItsLine (node: Node) : bool =
+        let line: string = sourceText.GetLineString(node.Range.StartLine - 1)
+        MemoryExtensions.IsWhiteSpace(line.AsSpan(0, min node.Range.StartColumn line.Length))
 
-        let child: Node =
-            before |> Array.maxBy (fun child -> child.Range.EndLine, child.Range.EndColumn)
+    // Outermost first. `Children` are in source order, so searching them from the end finds the
+    // child that ends last above the comment.
+    let candidates: Node list =
+        container
+        |> List.unfold (fun (parent: Node) ->
+            Array.tryFindBack endsAboveComment parent.Children
+            |> Option.map (fun (child: Node) -> child, child)
+        )
 
-        let endLineBeforeChild: int =
-            node.Children
-            |> Array.filter (fun sibling ->
-                not (obj.ReferenceEquals(sibling, child))
-                && Position.posGeq child.Range.Start sibling.Range.End
-            )
-            |> Array.fold (fun endLine sibling -> max endLine sibling.Range.EndLine) endLineOfPrevious
+    let candidatesOnColumn: Node list = List.filter startsOnCommentColumn candidates
 
-        let matchesColumn: bool = child.Range.StartColumn = triviaColumn
+    // A comment on the column of what opens the container lines up with the container, not its
+    // content: its first child (`[`, `<@`, `begin`, `task`, `foo` of `foo<...>`), and an opening
+    // bracket after it (`{|` of `struct {|`).
+    let isContentOnCommentColumn (child: Node) : bool =
+        match child with
+        | :? SingleTextNode as stn when Set.contains stn.Text openingDelimiters -> false
+        | _ -> startsOnCommentColumn child
 
-        if matchesColumn && endLineBeforeChild < child.Range.StartLine then
-            Some child
-        else
-            visit endLineBeforeChild child
-            |> Option.orElse (if matchesColumn then Some child else None)
+    // From the second child on, while they end above the comment.
+    let linesUpWithEarlierContent: bool =
+        let children: Node array = container.Children
 
-    // What precedes the container is unknown, so its first child is taken to start its line.
-    visit 0 node
+        let rec linesUpFrom (index: int) : bool =
+            index < children.Length
+            && endsAboveComment children.[index]
+            && (isContentOnCommentColumn children.[index] || linesUpFrom (index + 1))
+
+        linesUpFrom 1
+
+    match List.tryFind startsItsLine candidatesOnColumn, List.tryLast candidatesOnColumn with
+    | Some outermost, _ ->
+        // c +
+        // d
+        // // comment    after `c + d`, not `d`: after `d` the infix turns multiline and
+        //               the comment lands elsewhere on the next format
+        Some outermost
+    | None, Some innermost ->
+        // let a =     b
+        //             // comment    after `b`, on the column after other code on its line
+        Some innermost
+    | None, None when linesUpWithEarlierContent ->
+        // struct (int * string * bool
+        //         // comment    after `bool`, the first candidate: no candidate is on the column,
+        //         )             but `int`, an earlier child of the container, is
+        List.tryHead candidates
+    | None, None -> None
 
 /// Assigns a trivia node (comment, blank line, directive) to the appropriate child
 /// of containerNode as either ContentBefore or ContentAfter.
@@ -370,7 +377,7 @@ let findNodeBeforeWithMatchingColumn (node: Node) (triviaRange: range) : Node op
 ///   - the successor is at a different column, OR
 ///   - the successor is a leaf node (no children, e.g. closing brackets like `|}`, `]`, `)`)
 /// Leaf nodes are syntactic delimiters, not content — the comment belongs to the preceding content.
-let assignTriviaToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
+let assignTriviaToTriviaInstruction (sourceText: ISourceText) (containerNode: Node) (trivia: TriviaNode) : unit =
     let nodeAfter =
         containerNode.Children
         |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
@@ -379,7 +386,7 @@ let assignTriviaToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) :
         match trivia.Content with
         | CommentOnSingleLine _
         | CommentOnSingleLineWithLeadingNewlines _ when trivia.Range.StartColumn > 0 ->
-            findNodeBeforeWithMatchingColumn containerNode trivia.Range
+            findNodeBeforeWithMatchingColumn sourceText containerNode trivia.Range
         | _ -> None
 
     match nodeBefore, nodeAfter with
@@ -520,7 +527,7 @@ let promoteNewlinesBeforeComments (trivia: TriviaNode array) : TriviaNode array 
     flushPendingNewlines ()
     result.ToArray()
 
-let addToTree (tree: Oak) (trivia: TriviaNode array) : unit =
+let addToTree (sourceText: ISourceText) (tree: Oak) (trivia: TriviaNode array) : unit =
     for trivia in trivia do
         let smallestNodeThatContainsTrivia = findNodeWhereRangeFitsIn tree trivia.Range
 
@@ -533,7 +540,7 @@ let addToTree (tree: Oak) (trivia: TriviaNode array) : unit =
         | CommentOnSingleLine _
         | CommentOnSingleLineWithLeadingNewlines _
         | Newline
-        | Directive _ -> assignTriviaToTriviaInstruction parentNode trivia
+        | Directive _ -> assignTriviaToTriviaInstruction sourceText parentNode trivia
         | BlockComment _
         | Cursor -> blockCommentToTriviaInstruction parentNode trivia
 
@@ -589,15 +596,16 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
         [| yield! comments; yield! newlines; yield! directives |]
         |> Array.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
-    addToTree tree (promoteNewlinesBeforeComments trivia)
+    addToTree sourceText tree (promoteNewlinesBeforeComments trivia)
     tree
 
 let insertCursor (tree: Oak) (cursor: pos) =
     let cursorRange = Range.mkRange (tree :> Node).Range.FileName cursor cursor
-    let nodeWithCursor = findNodeWhereRangeFitsIn tree cursorRange
+    let cursorTrivia: TriviaNode = TriviaNode(TriviaContent.Cursor, cursorRange)
 
-    match nodeWithCursor with
+    match findNodeWhereRangeFitsIn tree cursorRange with
     | Some(:? SingleTextNode as node) -> node.AddCursor cursor
-    | _ -> addToTree tree [| TriviaNode(TriviaContent.Cursor, cursorRange) |]
+    | Some parentNode -> blockCommentToTriviaInstruction parentNode cursorTrivia
+    | None -> triviaBeforeOrAfterEntireTree tree cursorTrivia
 
     tree

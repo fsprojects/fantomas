@@ -4345,9 +4345,17 @@ let genType (t: Type) =
             +> genSingleTextNode node.ClosingParen
 
         let long: Context -> Context =
+            // struct (
+            //     int *
+            //     string
+            //     // trivia    after the last element: its newline is the one before the `)`
+            // )
             genOpening
-            +> indentSepNlnUnindent (genSynTupleTypeSegments node.Path)
+            +> indent
             +> sepNln
+            +> genSynTupleTypeSegments node.Path
+            +> unindentWithTriviaAwareness
+            +> sepNlnUnlessLastEventIsNewline
             +> genSingleTextNode node.ClosingParen
 
         expressionFitsOnRestOfLine short long |> genNode node
