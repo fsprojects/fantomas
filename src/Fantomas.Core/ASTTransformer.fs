@@ -418,7 +418,7 @@ let rec collectComputationExpressionStatements
     | SynExpr.Sequential(expr1 = e1; expr2 = e2; trivia = trivia) ->
         let continuations
             : ((ComputationExpressionStatement list -> ComputationExpressionStatement list)
-                      -> ComputationExpressionStatement list) list =
+                -> ComputationExpressionStatement list) list =
             let c2 =
                 match trivia.SeparatorRange with
                 // detect then keyword in explicit constructor

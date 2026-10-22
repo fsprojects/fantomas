@@ -24,7 +24,7 @@
       "rollForward": false
     },
     "fantomas": {
-      "version": "9.0.0-alpha-001",
+      "version": "9.0.0-alpha-002",
       "commands": [
         "fantomas"
       ],
