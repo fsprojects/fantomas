@@ -20,12 +20,16 @@ downloads only when the document changed and is free otherwise:
 
 ```bash
 mkdir -p .deps/style-guides
-cd .deps/style-guides
-fetch() { curl -sS --etag-compare "$2.etag" --etag-save "$2.etag" -o "$2" "$1"; }
-fetch https://raw.githubusercontent.com/dotnet/docs/main/docs/fsharp/style-guide/formatting.md microsoft-formatting.md
-fetch https://raw.githubusercontent.com/G-Research/fsharp-formatting-conventions/master/README.md g-research-conventions.md
-fetch https://raw.githubusercontent.com/G-Research/fsharp-formatting-conventions/master/.editorconfig g-research.editorconfig
+(cd .deps/style-guides && while read -r url file; do
+  curl -sS --etag-compare "$file.etag" --etag-save "$file.etag" -o "$file" "$url"
+done) <<'EOF'
+https://raw.githubusercontent.com/dotnet/docs/main/docs/fsharp/style-guide/formatting.md microsoft-formatting.md
+https://raw.githubusercontent.com/G-Research/fsharp-formatting-conventions/master/README.md g-research-conventions.md
+https://raw.githubusercontent.com/G-Research/fsharp-formatting-conventions/master/.editorconfig g-research.editorconfig
+EOF
 ```
+
+The variables are named because Claude Code rewrites positional ones in a skill's text.
 
 The `.etag` files next to the documents are what make the second run free; keep them. On a match
 curl writes nothing, so the document is left intact.

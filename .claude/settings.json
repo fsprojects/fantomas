@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "file=$(jq -r '.tool_input.file_path'); case \"$file\" in *.fs|*.fsx|*.fsi) dotnet fantomas \"$file\" >/dev/null 2>&1 ;; esac; exit 0"
+            "command": "file=$(jq -r '.tool_input.file_path'); root=$(git -C \"$(dirname \"$file\")\" rev-parse --show-toplevel 2>/dev/null); case \"$file\" in \"${root:-/nonexistent}\"/tmp/*) ;; *.fs|*.fsx|*.fsi) dotnet fantomas \"$file\" >/dev/null 2>&1 ;; esac; exit 0"
           }
         ]
       }
