@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Closing bracket after a trailing comment lands at the comment's column. [#3564](https://github.com/fsprojects/fantomas/issues/3564)
+
 ## [9.0.0-alpha-002] - 2026-10-21
 
 ### Changed

@@ -683,7 +683,7 @@ let genMultilineParenArg (position: ChainCallPosition) (parenNode: ExprParenNode
     // The argument on its own indented lines, with the closing `)` back at the method's column.
     let genArgumentBelow: Context -> Context =
         genExpr parenNode.Expr
-        +> unindent
+        +> unindentWithTriviaAwareness
         +> sepNlnUnlessLastEventIsNewline
         +> genSingleTextNode parenNode.ClosingParen
 
@@ -2604,7 +2604,7 @@ let genMultilineRecord (node: ExprRecordNode) (ctx: Context) =
                 (indent +> sepNln)
                 sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
             +> genMultilineRecordCopyExpr additionalIndent fieldsExpr ci
-            +> onlyIfCtx (fun ctx -> ctx.Config.IsStroustrupStyle) unindent
+            +> onlyIfCtx (fun ctx -> ctx.Config.IsStroustrupStyle) unindentWithTriviaAwareness
             +> sepNlnUnlessLastEventIsNewline
             +> genSingleTextNode node.ClosingBrace
         | None ->
