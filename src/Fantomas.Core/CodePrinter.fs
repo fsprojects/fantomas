@@ -4584,16 +4584,17 @@ let genLongParenPatParameter (pat: Pattern) =
     | _ -> genPat pat
 
 let genImplicitConstructor (node: ImplicitConstructorNode) =
-    let short =
+    let short: Context -> Context =
         genXml node.XmlDoc
         +> onlyIf node.Attributes.IsSome sepSpace
         +> genOnelinerAttributes node.Attributes
         +> onlyIf node.Accessibility.IsSome sepSpace
         +> genAccessOpt node.Accessibility
         +> genPat node.Pattern
+        |> genNode node
 
-    let long =
-        indentSepNlnUnindent (
+    let long: Context -> Context =
+        let content: Context -> Context =
             genXml node.XmlDoc
             +> genOnelinerAttributes node.Attributes
             +> onlyIf node.Attributes.IsSome sepNln
@@ -4602,10 +4603,25 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
                 (genAccessOpt node.Accessibility
                  +> optSingle (fun _ -> sepNln) node.Accessibility
                  +> genLongParenPatParameter node.Pattern)
+            |> genNode node
+
+        indentSepNlnUnindent (
+            content
             +> (fun ctx -> onlyIf ctx.Config.AlternativeLongMemberDefinitions sepNln ctx)
         )
 
-    expressionFitsOnRestOfLine short long
+    let layout: Context -> Context =
+        if node.HasContentBefore then
+            // Trivia before the constructor, such as a trivia line comment, takes a line of its own, which only the long layout has:
+            //
+            //     type Foo
+            //         // comment
+            //         (x: int) =
+            long
+        else
+            expressionFitsOnRestOfLine short long
+
+    layout
     +> optSingle
         (fun (selfNode: AsSelfIdentifierNode) ->
             sepSpace
