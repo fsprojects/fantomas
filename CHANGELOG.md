@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Comment between the type name and the primary constructor is removed. [#3569](https://github.com/fsprojects/fantomas/issues/3569)
+
 ## [8.1.0] - 2026-10-21
 
 ### Changed
