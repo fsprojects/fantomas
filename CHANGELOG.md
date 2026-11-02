@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Warn directives are indented instead of staying at the start of the line. [#3570](https://github.com/fsprojects/fantomas/issues/3570)
+
 ## [8.1.0] - 2026-10-21
 
 ### Changed
