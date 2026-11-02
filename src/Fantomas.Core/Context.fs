@@ -323,6 +323,21 @@ let finalizeWriterModel (ctx: Context) =
     else
         ctx
 
+/// The trivia text of a `#nowarn` or `#warnon` directive.
+let isWarnDirective (trivia: string) : bool =
+    String.startsWithOrdinal "#nowarn" trivia
+    || String.startsWithOrdinal "#warnon" trivia
+
+/// Takes back the spaces at the end of the output, when they are all there is on the last line.
+let removeIndentationOfLastLine (sb: System.Text.StringBuilder) : unit =
+    let mutable start = sb.Length
+
+    while start > 0 && sb.[start - 1] = ' ' do
+        start <- start - 1
+
+    if start = 0 || sb.[start - 1] = '\n' || sb.[start - 1] = '\r' then
+        sb.Length <- start
+
 let dump (isSelection: bool) (ctx: Context) =
     let ctx = finalizeWriterModel ctx
     let newline = ctx.Config.EndOfLine.NewLineString
@@ -347,6 +362,11 @@ let dump (isSelection: bool) (ctx: Context) =
 
     for ev in ctx.WriterEvents.ToSeq() do
         match ev with
+        | WriteTrivia s when isWarnDirective s ->
+            // A warn directive starts the line, as the conditional directives do after the defines are merged.
+            // The newline before it already wrote the indentation of the code around it: take that back.
+            removeIndentationOfLastLine sb
+            sb.Append(s) |> ignore
         | Write s
         | WriteTrivia s -> sb.Append(s) |> ignore
         | WriteLine

@@ -3,7 +3,7 @@ let SingleChoiceTextValueType =
         name = "SingleChoiceTextValue",
         fields =
             [
-                #nowarn 25 // Incomplete pattern match
+#nowarn 25 // Incomplete pattern match
                 Define.Field("options", ListOf StringType, fun _ (SingleChoiceTextValue sctv) -> sctv.Options)
                 Define.Field(
                     "optionsTranslations",
@@ -15,7 +15,7 @@ let SingleChoiceTextValueType =
                     "renderType",
                     StructNullable CustomFieldRenderTypeType,
                     fun _ (SingleChoiceTextValue sctv) -> sctv.RenderType
-                #warnon 25 // Incomplete pattern match
+#warnon 25 // Incomplete pattern match
                 )
             ]
     )

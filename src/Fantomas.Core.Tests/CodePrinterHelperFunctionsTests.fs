@@ -567,6 +567,31 @@ let ``WriteLineInsideTrivia produces a raw newline without indentation`` () =
     Assert.AreEqual("(* comment\n   continued *)", code)
 
 [<Test>]
+let ``a warn directive starts the line, wherever the code around it is indented`` () =
+    let f =
+        !-"let f ="
+        +> indentSepNlnUnindent (
+            !-"let y = 1"
+            +> sepNlnForTrivia
+            +> writeTrivia "#nowarn 25"
+            +> sepNlnForTrivia
+            +> !-"y"
+        )
+
+    let code = f (mkLfCtx ()) |> dump
+    // The newline before the directive wrote four spaces, which `dump` takes back; the line after it is indented again.
+    Assert.AreEqual("let f =\n    let y = 1\n#nowarn 25\n    y", code)
+
+[<Test>]
+let ``a line comment keeps the indentation of the code around it`` () =
+    let f =
+        !-"let f ="
+        +> indentSepNlnUnindent (writeTrivia "// comment" +> sepNlnForTrivia +> !-"y")
+
+    let code = f (mkLfCtx ()) |> dump
+    Assert.AreEqual("let f =\n    // comment\n    y", code)
+
+[<Test>]
 let ``WriteBeforeNewline queues text that appears before the next newline`` () =
     // WriteBeforeNewline is used for trailing line comments: "code // comment\n"
     let f =
