@@ -4585,34 +4585,40 @@ let genLongParenPatParameter (pat: Pattern) =
 
 let genImplicitConstructor (node: ImplicitConstructorNode) =
     let short: Context -> Context =
-        genXml node.XmlDoc
+        enterNode node
+        +> genXml node.XmlDoc
         +> onlyIf node.Attributes.IsSome sepSpace
         +> genOnelinerAttributes node.Attributes
         +> onlyIf node.Accessibility.IsSome sepSpace
         +> genAccessOpt node.Accessibility
         +> genPat node.Pattern
-        |> genNode node
 
     let long: Context -> Context =
         indentSepNlnUnindent (
-            (genXml node.XmlDoc
+            (enterNode node
+             +> genXml node.XmlDoc
              +> genOnelinerAttributes node.Attributes
              +> onlyIf node.Attributes.IsSome sepNln
              +> expressionFitsOnRestOfLine
                  (genAccessOpt node.Accessibility +> genLongParenPatParameter node.Pattern)
                  (genAccessOpt node.Accessibility
                   +> optSingle (fun _ -> sepNln) node.Accessibility
-                  +> genLongParenPatParameter node.Pattern)
-             |> genNode node)
+                  +> genLongParenPatParameter node.Pattern))
             +> (fun ctx -> onlyIf ctx.Config.AlternativeLongMemberDefinitions sepNln ctx)
         )
 
-    // Trivia before the constructor, such as a trivia line comment, takes a line of its own, which only the long layout has:
+    // Each layout writes the trivia before the constructor itself, so that it takes the indentation of the long one.
+    // Trivia there starts on a line of its own, which makes the short layout multiline and picks the long one:
     //
     //     type Foo
     //         // comment
     //         (x: int) =
-    ifElse node.HasContentBefore long (expressionFitsOnRestOfLine short long)
+    //
+    // The trivia after the constructor comes after `as self`, which is part of the node:
+    //
+    //     type Foo(x: int) as self // comment
+    //         =
+    expressionFitsOnRestOfLine short long
     +> optSingle
         (fun (selfNode: AsSelfIdentifierNode) ->
             sepSpace
@@ -4623,6 +4629,7 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
             +> sepSpace
         )
         node.Self
+    +> leaveNode node
 
 let hasTriviaAfterLeadingKeyword (identifier: Node) (accessibility: SingleTextNode option) =
     let beforeAccess =
