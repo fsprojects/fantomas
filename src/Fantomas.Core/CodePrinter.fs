@@ -4594,34 +4594,25 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
         |> genNode node
 
     let long: Context -> Context =
-        let content: Context -> Context =
-            genXml node.XmlDoc
-            +> genOnelinerAttributes node.Attributes
-            +> onlyIf node.Attributes.IsSome sepNln
-            +> expressionFitsOnRestOfLine
-                (genAccessOpt node.Accessibility +> genLongParenPatParameter node.Pattern)
-                (genAccessOpt node.Accessibility
-                 +> optSingle (fun _ -> sepNln) node.Accessibility
-                 +> genLongParenPatParameter node.Pattern)
-            |> genNode node
-
         indentSepNlnUnindent (
-            content
+            (genXml node.XmlDoc
+             +> genOnelinerAttributes node.Attributes
+             +> onlyIf node.Attributes.IsSome sepNln
+             +> expressionFitsOnRestOfLine
+                 (genAccessOpt node.Accessibility +> genLongParenPatParameter node.Pattern)
+                 (genAccessOpt node.Accessibility
+                  +> optSingle (fun _ -> sepNln) node.Accessibility
+                  +> genLongParenPatParameter node.Pattern)
+             |> genNode node)
             +> (fun ctx -> onlyIf ctx.Config.AlternativeLongMemberDefinitions sepNln ctx)
         )
 
-    let layout: Context -> Context =
-        if node.HasContentBefore then
-            // Trivia before the constructor, such as a trivia line comment, takes a line of its own, which only the long layout has:
-            //
-            //     type Foo
-            //         // comment
-            //         (x: int) =
-            long
-        else
-            expressionFitsOnRestOfLine short long
-
-    layout
+    // Trivia before the constructor, such as a trivia line comment, takes a line of its own, which only the long layout has:
+    //
+    //     type Foo
+    //         // comment
+    //         (x: int) =
+    ifElse node.HasContentBefore long (expressionFitsOnRestOfLine short long)
     +> optSingle
         (fun (selfNode: AsSelfIdentifierNode) ->
             sepSpace

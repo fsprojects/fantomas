@@ -3,5 +3,5 @@
 ---*)
 type Foo
 
-    (x:int) =
+    (x: int) =
     member _.X = x
