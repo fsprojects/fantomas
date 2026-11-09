@@ -14,7 +14,8 @@ description: |
   Always polite, constructive, and mindful of the project's goals.
 
 on:
-  schedule: every 30d
+  schedule:
+    - cron: "0 0 1 * *"
   workflow_dispatch:
     inputs:
       command:
@@ -72,9 +73,7 @@ tools:
     min-integrity: none # This workflow is allowed to examine and comment on any issues or PRs
   bash: true
   playwright:
-    mode: cli
     #allowed_domains: ["defaults", "github", "*.custom.com", "fsprojects.github.io"]
-    version: "1.56.1" # Optional: defaults to 1.56.1, use "latest" for newest
   repo-memory:
     branch-name: memory/repo-assist-memory
     max-file-size: 65536
