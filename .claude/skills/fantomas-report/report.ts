@@ -400,8 +400,14 @@ function openIssue(title: string, body: string) {
 
   console.log(url);
   if (!values["no-open"]) {
-    const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "explorer" : "xdg-open";
-    spawnSync(opener, [url], { stdio: "ignore" });
+    // `explorer <url>` opens File Explorer rather than the browser.
+    const [opener, ...openerArgs] =
+      process.platform === "darwin"
+        ? ["open"]
+        : process.platform === "win32"
+          ? ["rundll32", "url.dll,FileProtocolHandler"]
+          : ["xdg-open"];
+    spawnSync(opener, [...openerArgs, url], { stdio: "ignore" });
   }
 }
 
