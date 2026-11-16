@@ -46,7 +46,7 @@ let toEditorConfigName value =
     value
     |> Seq.map (fun c ->
         if System.Char.IsUpper(c) then
-            $"_%s{c.ToString().ToLower()}"
+            $"_%c{System.Char.ToLowerInvariant c}"
         else
             c.ToString()
     )
