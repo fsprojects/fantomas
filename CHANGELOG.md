@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Settings with a word starting with `i` in their editorconfig name, such as `fsharp_keep_indent_in_branch`, are ignored on a system with a Turkish culture. [#3581](https://github.com/fsprojects/fantomas/pull/3581)
+
 ## [8.1.1] - 2026-11-03
 
 ### Fixed

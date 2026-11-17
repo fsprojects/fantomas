@@ -1006,3 +1006,10 @@ let ``a configuration with nothing behind it credits nothing`` () =
     resolved.Settings
     |> List.forall (fun (setting: EditorConfigFiles.ResolvedSetting) -> setting.SetBy.IsNone)
     == true
+
+[<Test>]
+[<SetCulture("tr-TR")>]
+let ``editorconfig names do not depend on the current culture`` () =
+    // In Turkish, 'I' lowercases to the dotless 'ı'.
+    EditorConfig.toEditorConfigName "KeepIndentInBranch"
+    == "fsharp_keep_indent_in_branch"
