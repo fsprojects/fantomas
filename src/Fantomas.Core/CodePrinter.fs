@@ -3438,7 +3438,9 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                         leadingExpressionIsMultiline
                             (genSingleTextNode node.OpeningParen +> genLambdaWithParen lambdaNode)
                             (fun isMultiline ->
-                                onlyIf (isMultiline && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)) sepNln
+                                onlyIf
+                                    (isMultiline && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr))
+                                    sepNlnUnlessLastEventIsNewline
                                 +> genSingleTextNode node.ClosingParen
                             )
                     | Choice2Of2 matchLambdaNode ->
@@ -3449,7 +3451,6 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                             +> genClauses matchLambdaNode.Clauses
                             |> genNode matchLambdaNode
                         )
-                        // A trivia comment after the clauses already ended its line.
                         +> sepNlnUnlessLastEventIsNewline
                         +> genSingleTextNode node.ClosingParen
                 | es ->
@@ -3461,7 +3462,6 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                             leadingExpressionIsMultiline
                                 (genSingleTextNode node.OpeningParen +> genLambdaWithParen lambdaNode)
                                 (fun isMultiline ->
-                                    // A trivia comment after the lambda already ended its line.
                                     onlyIf
                                         (isMultiline && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr))
                                         sepNlnUnlessLastEventIsNewline
@@ -3473,7 +3473,6 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                                  +> sepNln
                                  +> genClauses matchLambdaNode.Clauses
                                  |> genNode matchLambdaNode)
-                             // As for the lambda above.
                              +> sepNlnUnlessLastEventIsNewline
                              +> genSingleTextNode node.ClosingParen)
                     )
