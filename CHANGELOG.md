@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- `doctor` reports a file whose only change is the newline at its end as a line endings change. It now reports the final newline and the line endings each on its own, against `insert_final_newline` and `end_of_line`, and `--json` carries them as `finalNewline` and `lineEndings` in place of the `line-endings` status. [#3524](https://github.com/fsprojects/fantomas/issues/3524)
+
 ## [8.1.2] - 2026-11-18
 
 ### Fixed

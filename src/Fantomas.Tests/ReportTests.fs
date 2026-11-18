@@ -804,6 +804,37 @@ let private diagnosed (report: Fantomas.DoctorCommand.DoctorReport) : string =
 
     recorded.Log().Information |> String.concat "\n"
 
+/// What the format step found of a file.
+let private formatChange
+    (wouldWrite: bool)
+    (lines: Fantomas.DoctorCommand.LineChange option)
+    (finalNewline: Fantomas.DoctorCommand.FinalNewline)
+    (lineEndings: Fantomas.DoctorCommand.LineEndings)
+    : Fantomas.DoctorCommand.FormatChange
+    =
+    {
+        WouldWrite = wouldWrite
+        Lines = lines
+        FinalNewline = finalNewline
+        LineEndings = lineEndings
+    }
+
+let private finalNewlineAsAsked: Fantomas.DoctorCommand.FinalNewline =
+    { Expected = true; Found = true }
+
+let private lineEndingsAsAsked: Fantomas.DoctorCommand.LineEndings =
+    {
+        Expected = EndOfLineStyle.LF
+        Found = Some Fantomas.DoctorCommand.LineEndingsUsed.LF
+    }
+
+let private linesChange (firstChangedLine: int) (lineCountAfter: int) : Fantomas.DoctorCommand.LineChange option =
+    Some
+        {
+            FirstChangedLine = firstChangedLine
+            LineCountAfter = lineCountAfter
+        }
+
 /// A file that came through every step with nothing wrong with it, for a test to break one step of.
 let private healthy: Fantomas.DoctorCommand.DoctorReport =
     {
@@ -818,7 +849,12 @@ let private healthy: Fantomas.DoctorCommand.DoctorReport =
         Ignore = Some Fantomas.DoctorCommand.IgnoreStep.NoIgnoreFile
         Settings = Some(Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default)
         Format =
-            Some(Fantomas.DoctorCommand.FormatStep.Produced("let a = 1\n", Fantomas.DoctorCommand.FormatChange.Nothing))
+            Some(
+                Fantomas.DoctorCommand.FormatStep.Produced(
+                    "let a = 1\n",
+                    formatChange false None finalNewlineAsAsked lineEndingsAsAsked
+                )
+            )
         Validity = Some Fantomas.DoctorCommand.ValidityStep.Valid
         Idempotency = Some Fantomas.DoctorCommand.IdempotencyStep.Idempotent
     }
@@ -1229,24 +1265,172 @@ let ``each way the format step can end has a sentence of its own`` () =
                 Idempotency = None
             }
 
-    says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.Nothing))
-    |> shouldContainText "Already formatted. Nothing would change."
+    let produced (change: Fantomas.DoctorCommand.FormatChange) : string =
+        says (Fantomas.DoctorCommand.FormatStep.Produced("let a = 1\n", change))
+
+    produced (formatChange false None finalNewlineAsAsked lineEndingsAsAsked)
+    |> shouldContainText "Already formatted."
 
     // The file keeps its length, so where it parts from the result is the whole answer.
-    says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.Reformatted(12, 20)))
+    produced (formatChange true (linesChange 12 20) finalNewlineAsAsked lineEndingsAsAsked)
     |> shouldContainText "Not formatted: the first change is at line 12."
 
     // It does not, so the lengths are worth saying as well.
-    says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.Reformatted(1, 24)))
+    produced (formatChange true (linesChange 1 24) finalNewlineAsAsked lineEndingsAsAsked)
     |> shouldContainText "the first change is at line 1, and the file would go from 20 lines to 24."
 
     // Not a count of nought, which reads as nothing to do. Every line is right and the file would
-    // still be rewritten, so it gets a sentence rather than a number.
-    says (Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.LineEndingsOnly))
-    |> shouldContainText "the line endings are not, so the whole file would be rewritten"
+    // still be rewritten, and the lines under it say why.
+    produced (
+        formatChange
+            true
+            None
+            finalNewlineAsAsked
+            { lineEndingsAsAsked with
+                Found = Some Fantomas.DoctorCommand.LineEndingsUsed.CRLF
+            }
+    )
+    |> shouldContainText "Not formatted: every line is as it should be."
 
     says (Fantomas.DoctorCommand.FormatStep.Failed(exn "Access to the path is denied"))
     |> shouldContainText "Formatting failed: Access to the path is denied"
+
+/// The lines the format step writes, for a file whose format step found `change`, every other step
+/// as it is in `healthy`.
+let private formatLines (change: Fantomas.DoctorCommand.FormatChange) : string list =
+    let written: string list =
+        (diagnosed
+            { healthy with
+                Format = Some(Fantomas.DoctorCommand.FormatStep.Produced("let a = 1\n", change))
+            })
+            .Split('\n')
+        |> List.ofArray
+
+    let start: int =
+        written |> List.findIndex (fun (line: string) -> line.Contains(" Format "))
+
+    written |> List.skip start |> List.take 3
+
+[<Test>]
+let ``the format step says where the lines change, the final newline and the line endings, a line each`` () =
+    // A file that gets all three wrong, with each named on its own line straight under the step.
+    formatLines (
+        formatChange
+            true
+            (linesChange 12 20)
+            { Expected = true; Found = false }
+            { lineEndingsAsAsked with
+                Found = Some Fantomas.DoctorCommand.LineEndingsUsed.CRLF
+            }
+    )
+    |> shouldEqual
+        [
+            "! Format      Not formatted: the first change is at line 12."
+            "              Final newline: the file has none, and insert_final_newline is true, so formatting adds one."
+            "              Line endings: crlf, and end_of_line is lf, so every line would be rewritten."
+        ]
+
+    // The line endings on their own, which every comparison of lines misses.
+    formatLines (
+        formatChange
+            true
+            None
+            finalNewlineAsAsked
+            { lineEndingsAsAsked with
+                Found = Some Fantomas.DoctorCommand.LineEndingsUsed.CRLF
+            }
+    )
+    |> shouldEqual
+        [
+            "! Format      Not formatted: every line is as it should be."
+            "              Final newline: as insert_final_newline asks."
+            "              Line endings: crlf, and end_of_line is lf, so every line would be rewritten."
+        ]
+
+    // Nothing wrong, and both facts said all the same: that they were looked at is the answer.
+    formatLines (formatChange false None finalNewlineAsAsked lineEndingsAsAsked)
+    |> shouldEqual
+        [
+            "= Format      Already formatted."
+            "              Final newline: as insert_final_newline asks."
+            "              Line endings: lf, as end_of_line asks."
+        ]
+
+[<Test>]
+let ``each way the final newline can be found has a sentence of its own`` () =
+    let says (finalNewline: Fantomas.DoctorCommand.FinalNewline) : string =
+        diagnosed
+            { healthy with
+                Format =
+                    Some(
+                        Fantomas.DoctorCommand.FormatStep.Produced(
+                            "let a = 1\n",
+                            formatChange true None finalNewline lineEndingsAsAsked
+                        )
+                    )
+            }
+
+    says { Expected = true; Found = false }
+    |> shouldContainText "Final newline: the file has none, and insert_final_newline is true, so formatting adds one."
+
+    says { Expected = false; Found = true }
+    |> shouldContainText "Final newline: the file has one, and insert_final_newline is false, so formatting removes it."
+
+    says { Expected = false; Found = false }
+    |> shouldContainText "Final newline: as insert_final_newline asks."
+
+[<Test>]
+let ``a file that formats to nothing does not blame insert_final_newline for its final newline`` () =
+    // Left empty whatever the setting asks, so naming the setting would say it asked for something
+    // it did not.
+    let says (finalNewline: Fantomas.DoctorCommand.FinalNewline) : string =
+        diagnosed
+            { healthy with
+                Format =
+                    Some(
+                        Fantomas.DoctorCommand.FormatStep.Produced(
+                            "",
+                            formatChange true None finalNewline lineEndingsAsAsked
+                        )
+                    )
+            }
+
+    says { Expected = false; Found = true }
+    |> shouldContainText "Final newline: the file has one, and it formats to nothing, so formatting removes it."
+
+    says { Expected = false; Found = false }
+    |> shouldContainText "Final newline: none, and the file formats to nothing, so none is added."
+
+[<Test>]
+let ``each way the line endings can be found has a sentence of its own`` () =
+    let says (expected: EndOfLineStyle) (found: Fantomas.DoctorCommand.LineEndingsUsed option) : string =
+        diagnosed
+            { healthy with
+                Format =
+                    Some(
+                        Fantomas.DoctorCommand.FormatStep.Produced(
+                            "let a = 1\n",
+                            formatChange true None finalNewlineAsAsked { Expected = expected; Found = found }
+                        )
+                    )
+            }
+
+    says EndOfLineStyle.CRLF (Some Fantomas.DoctorCommand.LineEndingsUsed.CRLF)
+    |> shouldContainText "Line endings: crlf, as end_of_line asks."
+
+    says EndOfLineStyle.CRLF (Some Fantomas.DoctorCommand.LineEndingsUsed.LF)
+    |> shouldContainText "Line endings: lf, and end_of_line is crlf, so every line would be rewritten."
+
+    // Only the lines that end the other way are rewritten, so those are the ones named.
+    says EndOfLineStyle.LF (Some Fantomas.DoctorCommand.LineEndingsUsed.Mixed)
+    |> shouldContainText
+        "Line endings: mixed, and end_of_line is lf, so every line that ends in crlf would be rewritten."
+
+    says EndOfLineStyle.CRLF (Some Fantomas.DoctorCommand.LineEndingsUsed.Mixed)
+    |> shouldContainText "so every line that ends in lf would be rewritten."
+
+    says EndOfLineStyle.LF None
+    |> shouldContainText "Line endings: none, the file has no line break."
 
 [<Test>]
 let ``a failure with nothing to say for itself still says that it happened`` () =
@@ -1267,7 +1451,7 @@ let ``output Fantomas will not accept is reported with what the parser said abou
                     Some(
                         Fantomas.DoctorCommand.FormatStep.Produced(
                             rejectedOutput,
-                            Fantomas.DoctorCommand.FormatChange.Reformatted(3, 3)
+                            formatChange true (linesChange 3 3) finalNewlineAsAsked lineEndingsAsAsked
                         )
                     )
                 Validity = Some(Fantomas.DoctorCommand.ValidityStep.Invalid rejection)

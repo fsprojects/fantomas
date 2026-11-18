@@ -489,14 +489,38 @@ let writeDoctorFormat (json: Utf8JsonWriter) (path: string) (step: FormatStep op
     json.WriteStartObject "format"
 
     match step with
-    | FormatStep.Produced(_, FormatChange.Nothing) -> json.WriteString("status", "unchanged")
-    // No line of the file changes and the file is still rewritten. `status` is what tells this
-    // apart from a file that needs nothing, which is why there is no count here to read instead.
-    | FormatStep.Produced(_, FormatChange.LineEndingsOnly) -> json.WriteString("status", "line-endings")
-    | FormatStep.Produced(_, FormatChange.Reformatted(firstChangedLine, lineCountAfter)) ->
-        json.WriteString("status", "changed")
-        json.WriteNumber("firstChangedLine", firstChangedLine)
-        json.WriteNumber("lineCountAfter", lineCountAfter)
+    | FormatStep.Produced(_, change) ->
+        // Whether the file would be written and nothing else. A file whose every line is right can
+        // still be rewritten for its final newline or its line endings, and the keys below are
+        // what says which.
+        json.WriteString("status", (if change.WouldWrite then "changed" else "unchanged"))
+
+        // `null` rather than absent when every line is as it should be, so a reader can ask for
+        // the key without asking first whether it is there.
+        match change.Lines with
+        | Some lines ->
+            json.WriteNumber("firstChangedLine", lines.FirstChangedLine)
+            json.WriteNumber("lineCountAfter", lines.LineCountAfter)
+        | None ->
+            json.WriteNull "firstChangedLine"
+            json.WriteNull "lineCountAfter"
+
+        json.WriteStartObject "finalNewline"
+        json.WriteBoolean("expected", change.FinalNewline.Expected)
+        json.WriteBoolean("found", change.FinalNewline.Found)
+        json.WriteEndObject()
+
+        json.WriteStartObject "lineEndings"
+        json.WriteString("expected", EndOfLineStyle.ToConfigString change.LineEndings.Expected)
+
+        // `null` for a file with no line break, which has no endings to get wrong.
+        match change.LineEndings.Found with
+        | None -> json.WriteNull "found"
+        | Some LineEndingsUsed.LF -> json.WriteString("found", "lf")
+        | Some LineEndingsUsed.CRLF -> json.WriteString("found", "crlf")
+        | Some LineEndingsUsed.Mixed -> json.WriteString("found", "mixed")
+
+        json.WriteEndObject()
     | FormatStep.Failed error ->
         json.WriteString("status", "failed")
 

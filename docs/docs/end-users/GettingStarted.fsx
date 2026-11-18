@@ -176,6 +176,8 @@ Fantomas 8.0.0+8f4c2b1a9 on /home/you/my-project/src/App.fs
               insert_final_newline = true                  the Fantomas default
               ...
 ! Format      Not formatted: the first change is at line 37.
+              Final newline: as insert_final_newline asks.
+              Line endings: lf, as end_of_line asks.
 + Valid       Fantomas accepts what it produced.
 + Idempotent  Formatting the result again changes nothing.
 ```
@@ -200,11 +202,13 @@ The steps are the ones Fantomas takes, in the order it takes them, and each one 
   line, then everything left at its Fantomas default. The line above them names the files that set
   something, which is not always every file in the chain. Anything Fantomas could not use out of
   the chain is reported here too, below both.
-* **Format** — whether the file would be rewritten, and where it first parts from the result. That
-  is decided the way a format run decides it, by comparing the text as it is, so a file whose line
-  endings are the only thing out of step is reported as needing formatting rather than as already
-  formatted. A file that will not parse fails here, with the parser's diagnostics and a snippet
-  under the table.
+* **Format** — whether the file would be rewritten, and where its lines first part from the result.
+  That is decided the way a format run decides it, by comparing the text as it is, so a file whose
+  line endings are the only thing out of step is reported as needing formatting rather than as
+  already formatted. Two lines under it say, each on its own, whether the file's final newline is
+  what `insert_final_newline` asks for and whether its line endings are what `end_of_line` asks
+  for, since a file can get either wrong, or both. A file that will not parse fails here, with the
+  parser's diagnostics and a snippet under the table.
 * **Valid** — whether Fantomas accepts what it produced. It always should; when it does not, that
   is a bug in Fantomas rather than a problem with the file.
 * **Idempotent** — whether formatting the result again leaves it alone. It should, and when it does
@@ -221,7 +225,9 @@ not a failure; `fantomas check` is what fails over that.
 
 `--json` writes the same walk as one document, with a key per step and `null` where the walk
 stopped before reaching it. The `configuration` key carries every setting, with `setBy` naming the
-file for each one an `.editorconfig` set and `null` for the rest.
+file for each one an `.editorconfig` set and `null` for the rest. The `format` key's `status` says
+whether the file would be written, and `finalNewline` and `lineEndings` beside it each hold what the
+settings expect and what the file has.
 
 ### Multiple paths
 

@@ -4,6 +4,7 @@ open System.IO.Abstractions
 open System.IO.Abstractions.TestingHelpers
 open NUnit.Framework
 open FsUnitTyped
+open Fantomas.Core
 open Fantomas
 open Fantomas.Arguments
 open Fantomas.DoctorCommand
@@ -28,6 +29,21 @@ let private diagnosing (content: string) : DoctorReport =
     let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
     write fs file content
     doctor fs None (InputPath.File file) |> completed
+
+/// A file in the mock root put through every step under `config`, rather than under the settings
+/// every other test reads.
+let private diagnosingUnder (config: FormatConfig) (content: string) : DoctorReport =
+    let fs: IFileSystem = MockFileSystem()
+    let file: string = fs.Path.Combine(mockRoot fs, "A.fs")
+    write fs file content
+    let recorded: RecordedRun = recordingEnvironment fs None
+
+    let environment: Fantomas.Cli.CliEnvironment =
+        { recorded.Environment with
+            ResolveConfiguration = fun _ -> EditorConfigFiles.withoutEditorConfig config
+        }
+
+    runDoctorCommand environment (InputPath.File file) |> completed
 
 /// The doctor over a tree whose ignore files it resolves itself, rather than being handed the one
 /// that governs. What is being tested is which ignore file was reached and which were passed over,
@@ -290,17 +306,49 @@ let ``nothing is written`` () =
 
     fs.File.ReadAllText file |> shouldEqual before
 
-[<Test>]
-let ``a file that is already formatted changes no lines`` () =
-    match (diagnosing "let a = 1\n").Format with
-    | Some(FormatStep.Produced(_, change)) -> change |> shouldEqual FormatChange.Nothing
+/// What the format step found, for a walk that got as far as producing something.
+let private changeOf (report: DoctorReport) : FormatChange =
+    match report.Format with
+    | Some(FormatStep.Produced(_, change)) -> change
     | other -> failwith $"Expected formatting to produce something, got %A{other}"
 
+let private finalNewline (expected: bool) (found: bool) : FinalNewline = { Expected = expected; Found = found }
+
+let private lineEndings (expected: EndOfLineStyle) (found: LineEndingsUsed option) : LineEndings =
+    { Expected = expected; Found = found }
+
+let private underSettings (endOfLine: EndOfLineStyle) (insertFinalNewline: bool) : FormatConfig =
+    { FormatConfig.Default with
+        EndOfLine = endOfLine
+        InsertFinalNewline = insertFinalNewline
+    }
+
 [<Test>]
-let ``a file that needs formatting says how many lines would change`` () =
+let ``a file that is already formatted changes nothing, and says its final newline and line endings are as asked`` () =
+    changeOf (diagnosing "let a = 1\n")
+    |> shouldEqual
+        {
+            WouldWrite = false
+            Lines = None
+            FinalNewline = finalNewline true true
+            LineEndings = lineEndings EndOfLineStyle.LF (Some LineEndingsUsed.LF)
+        }
+
+[<Test>]
+let ``a file that needs formatting says where its lines first change`` () =
     match (diagnosing "let  a =   1\nlet b = 2\n").Format with
     | Some(FormatStep.Produced(formatted, change)) ->
-        change |> shouldEqual (FormatChange.Reformatted(1, 2))
+        change.WouldWrite |> shouldEqual true
+
+        change.Lines
+        |> shouldEqual (
+            Some
+                {
+                    FirstChangedLine = 1
+                    LineCountAfter = 2
+                }
+        )
+
         formatted |> shouldEqual "let a = 1\nlet b = 2\n"
     | other -> failwith $"Expected formatting to produce something, got %A{other}"
 
@@ -324,9 +372,188 @@ let ``a file whose only fault is its line endings is not reported as already for
 
     match (doctor fs None (InputPath.File file) |> completed).Format with
     | Some(FormatStep.Produced(formatted, change)) ->
-        change |> shouldEqual FormatChange.LineEndingsOnly
+        change
+        |> shouldEqual
+            {
+                WouldWrite = true
+                Lines = None
+                FinalNewline = finalNewline true true
+                LineEndings = lineEndings EndOfLineStyle.LF (Some LineEndingsUsed.CRLF)
+            }
+
         formatted |> shouldEqual "let a = 1\nlet b = 2\n"
     | other -> failwith $"Expected formatting to produce something, got %A{other}"
+
+[<Test>]
+let ``a file whose only fault is its final newline is not reported as a line endings change`` () =
+    // The endings are already the configured ones, only the newline after the last line is added.
+    match (diagnosing "let a = 1\nlet b = 2").Format with
+    | Some(FormatStep.Produced(formatted, change)) ->
+        change
+        |> shouldEqual
+            {
+                WouldWrite = true
+                Lines = None
+                FinalNewline = finalNewline true false
+                LineEndings = lineEndings EndOfLineStyle.LF (Some LineEndingsUsed.LF)
+            }
+
+        formatted |> shouldEqual "let a = 1\nlet b = 2\n"
+    | other -> failwith $"Expected formatting to produce something, got %A{other}"
+
+[<Test>]
+let ``a file that gets both its final newline and its line endings wrong says both`` () =
+    // The ordinary case on Windows: `core.autocrlf=true`, an `.editorconfig` asking for `lf`, and an
+    // editor that adds no final newline. Naming only the final newline hides that every line of
+    // the file is about to be rewritten.
+    changeOf (diagnosing "let a = 1\r\nlet b = 2")
+    |> shouldEqual
+        {
+            WouldWrite = true
+            Lines = None
+            FinalNewline = finalNewline true false
+            LineEndings = lineEndings EndOfLineStyle.LF (Some LineEndingsUsed.CRLF)
+        }
+
+[<Test>]
+let ``the final newline is measured against insert_final_newline in both directions`` () =
+    let noFinalNewline: FormatConfig = underSettings EndOfLineStyle.LF false
+
+    // The file has one and the settings ask for none.
+    let removed: FormatChange =
+        changeOf (diagnosingUnder noFinalNewline "let a = 1\nlet b = 2\n")
+
+    removed.WouldWrite |> shouldEqual true
+    removed.FinalNewline |> shouldEqual (finalNewline false true)
+
+    // The file has none, which is what the settings ask for.
+    let kept: FormatChange =
+        changeOf (diagnosingUnder noFinalNewline "let a = 1\nlet b = 2")
+
+    kept.WouldWrite |> shouldEqual false
+    kept.FinalNewline |> shouldEqual (finalNewline false false)
+
+    // Both wrong, the other way round from the Windows case: CRLF where `lf` is asked for, and a
+    // final newline where none is.
+    let both: FormatChange =
+        changeOf (diagnosingUnder noFinalNewline "let a = 1\r\nlet b = 2\r\n")
+
+    both.Lines |> shouldEqual None
+    both.FinalNewline |> shouldEqual (finalNewline false true)
+
+    both.LineEndings
+    |> shouldEqual (lineEndings EndOfLineStyle.LF (Some LineEndingsUsed.CRLF))
+
+[<Test>]
+let ``the line endings are measured against end_of_line whichever it asks for`` () =
+    let crlf: FormatConfig = underSettings EndOfLineStyle.CRLF true
+
+    let asked: FormatChange =
+        changeOf (diagnosingUnder crlf "let a = 1\r\nlet b = 2\r\n")
+
+    asked.WouldWrite |> shouldEqual false
+
+    asked.LineEndings
+    |> shouldEqual (lineEndings EndOfLineStyle.CRLF (Some LineEndingsUsed.CRLF))
+
+    let other: FormatChange = changeOf (diagnosingUnder crlf "let a = 1\nlet b = 2\n")
+    other.WouldWrite |> shouldEqual true
+    other.Lines |> shouldEqual None
+
+    other.LineEndings
+    |> shouldEqual (lineEndings EndOfLineStyle.CRLF (Some LineEndingsUsed.LF))
+
+[<Test>]
+let ``a file that ends some lines one way and some the other has mixed line endings`` () =
+    let change: FormatChange =
+        changeOf (diagnosing "let a = 1\r\nlet b = 2\nlet c = 3\n")
+
+    change.WouldWrite |> shouldEqual true
+    change.Lines |> shouldEqual None
+
+    change.LineEndings
+    |> shouldEqual (lineEndings EndOfLineStyle.LF (Some LineEndingsUsed.Mixed))
+
+[<Test>]
+let ``a file with no line break has no line endings to get wrong`` () =
+    let change: FormatChange =
+        changeOf (diagnosingUnder (underSettings EndOfLineStyle.LF false) "let a = 1")
+
+    change.WouldWrite |> shouldEqual false
+    change.LineEndings |> shouldEqual (lineEndings EndOfLineStyle.LF None)
+
+[<Test>]
+let ``a file that formats to nothing is expected to have no final newline, whatever the setting asks`` () =
+    // Fantomas leaves it empty, so a final newline is neither added to an empty file nor kept on a
+    // file of blank lines.
+    let empty: FormatChange = changeOf (diagnosing "")
+    empty.WouldWrite |> shouldEqual false
+    empty.FinalNewline |> shouldEqual (finalNewline false false)
+    empty.LineEndings |> shouldEqual (lineEndings EndOfLineStyle.LF None)
+
+    let blank: FormatChange = changeOf (diagnosing "\n\n")
+    blank.WouldWrite |> shouldEqual true
+    blank.FinalNewline |> shouldEqual (finalNewline false true)
+
+[<Test>]
+let ``a reformatted file says what is wrong with its final newline and line endings as well`` () =
+    let endings: FormatChange = changeOf (diagnosing "let  a = 1\r\nlet b = 2\r\n")
+
+    endings.Lines
+    |> shouldEqual (
+        Some
+            {
+                FirstChangedLine = 1
+                LineCountAfter = 2
+            }
+    )
+
+    endings.FinalNewline |> shouldEqual (finalNewline true true)
+
+    endings.LineEndings
+    |> shouldEqual (lineEndings EndOfLineStyle.LF (Some LineEndingsUsed.CRLF))
+
+    let newline: FormatChange = changeOf (diagnosing "let  a = 1\nlet b = 2")
+
+    newline.Lines
+    |> shouldEqual (
+        Some
+            {
+                FirstChangedLine = 1
+                LineCountAfter = 2
+            }
+    )
+
+    newline.FinalNewline |> shouldEqual (finalNewline true false)
+
+    newline.LineEndings
+    |> shouldEqual (lineEndings EndOfLineStyle.LF (Some LineEndingsUsed.LF))
+
+[<Test>]
+let ``what formatting produces follows both settings, which is what lets them be read off the file`` () =
+    // The final newline and the line endings are measured against the settings rather than against
+    // the result. That is only the same thing if the result always follows them, whatever the file
+    // it was formatted from got wrong, so that is asked of the formatter itself. A file that formats
+    // to nothing is the exception, and has a test of its own.
+    for endOfLine in [ EndOfLineStyle.LF; EndOfLineStyle.CRLF ] do
+        for insertFinalNewline in [ true; false ] do
+            for content in
+                [
+                    "let a = 1\nlet b = 2\n"
+                    "let a = 1\r\nlet b = 2"
+                    "let  a = 1\r\nlet b = 2\n"
+                ] do
+                match (diagnosingUnder (underSettings endOfLine insertFinalNewline) content).Format with
+                | Some(FormatStep.Produced(formatted, _)) ->
+                    formatted.EndsWith('\n') |> shouldEqual insertFinalNewline
+
+                    // Every line break is the asked-for one: CRLF and no lone LF, or the other way round.
+                    let crlf: bool = formatted.Contains("\r\n")
+                    let lf: bool = formatted.Replace("\r\n", "").Contains('\n')
+
+                    crlf |> shouldEqual (endOfLine = EndOfLineStyle.CRLF)
+                    lf |> shouldEqual (endOfLine = EndOfLineStyle.LF)
+                | other -> failwith $"Expected formatting to produce something, got %A{other}"
 
 [<Test>]
 let ``what the doctor says would change is what a format run changes`` () =
@@ -338,10 +565,7 @@ let ``what the doctor says would change is what a format run changes`` () =
         write fs file content
 
         let saidByTheDoctor: bool =
-            match (doctor fs None (InputPath.File file) |> completed).Format with
-            | Some(FormatStep.Produced(_, FormatChange.Nothing)) -> false
-            | Some(FormatStep.Produced _) -> true
-            | other -> failwith $"Expected formatting to produce something, got %A{other}"
+            (changeOf (doctor fs None (InputPath.File file) |> completed)).WouldWrite
 
         let recorded: RecordedRun = recordingEnvironment fs None
 
@@ -365,6 +589,8 @@ let ``what the doctor says would change is what a format run changes`` () =
             "let a = 1\n" // nothing to do
             "let  a =   1\n" // whitespace to settle
             "let a = 1\r\nlet b = 2\r\n" // only the line endings
+            "let a = 1\nlet b = 2" // only the final newline
+            "let a = 1\r\nlet b = 2" // both
         ] do
         let saidByTheDoctor, doneByARun = wouldChange content
         saidByTheDoctor |> shouldEqual doneByARun
@@ -434,7 +660,7 @@ let private formattingWith (format: string -> string) (content: string) : Doctor
             Idempotency = None
         }
 
-    walkFormatting start false format content
+    walkFormatting start false (underSettings EndOfLineStyle.LF true) format content
 
 [<Test>]
 let ``output Fantomas will not accept is reported, and stops the walk before the second pass`` () =
@@ -504,9 +730,14 @@ let ``a second pass that fails is reported as a failure of the second pass`` () 
 
 [<Test>]
 let ``a file the formatter only adds to parts at the line only the result has`` () =
-    match (formattingWith (fun _ -> "let a = 1\nlet b = 2\n") "let a = 1\n").Format with
-    | Some(FormatStep.Produced(_, change)) -> change |> shouldEqual (FormatChange.Reformatted(2, 2))
-    | other -> failwith $"Expected formatting to produce something, got %A{other}"
+    (changeOf (formattingWith (fun _ -> "let a = 1\nlet b = 2\n") "let a = 1\n")).Lines
+    |> shouldEqual (
+        Some
+            {
+                FirstChangedLine = 2
+                LineCountAfter = 2
+            }
+    )
 
 [<Test>]
 let ``one line split into several is not reported as more lines than the file has`` () =
@@ -515,9 +746,14 @@ let ``one line split into several is not reported as more lines than the file ha
     // and how long the result is are both exact and neither can read as nonsense.
     let split: string = "let a = 1\nlet b = 2\nlet c = 3\n"
 
-    match (formattingWith (fun _ -> "let a =\n    1\nlet b = 2\nlet c = 3\n") split).Format with
-    | Some(FormatStep.Produced(_, change)) -> change |> shouldEqual (FormatChange.Reformatted(1, 4))
-    | other -> failwith $"Expected formatting to produce something, got %A{other}"
+    (changeOf (formattingWith (fun _ -> "let a =\n    1\nlet b = 2\nlet c = 3\n") split)).Lines
+    |> shouldEqual (
+        Some
+            {
+                FirstChangedLine = 1
+                LineCountAfter = 4
+            }
+    )
 
 // ---- what the run ends with ----
 
@@ -534,7 +770,18 @@ let private healthy: DoctorReport =
                 }
         Ignore = Some IgnoreStep.NoIgnoreFile
         Settings = None
-        Format = Some(FormatStep.Produced("let a = 1\n", FormatChange.Nothing))
+        Format =
+            Some(
+                FormatStep.Produced(
+                    "let a = 1\n",
+                    {
+                        WouldWrite = false
+                        Lines = None
+                        FinalNewline = finalNewline true true
+                        LineEndings = lineEndings EndOfLineStyle.LF (Some LineEndingsUsed.LF)
+                    }
+                )
+            )
         Validity = Some ValidityStep.Valid
         Idempotency = Some IdempotencyStep.Idempotent
     }
