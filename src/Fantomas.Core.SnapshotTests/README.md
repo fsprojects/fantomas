@@ -49,8 +49,21 @@ dotnet fsi build.fsx -- -p UpdateSnapshots
 
 1. Decide what the case shows. Either formatting changes the input, and the gold shows how, or
    formatting must leave the input as it is, and the case goes in a `negative/` folder, where it is
-   its own gold. A case outside `negative/` whose result is its input fails: change the input so the
-   result earns its gold.
+   its own gold. A case outside `negative/` whose result is its input fails. Which kind to write
+   follows from the bug:
+   - **A layout.** The point is how something is laid out: code as a user writes it, a construct
+     that goes from one line to several. Write a regular case, with the input as a user would
+     write it and the gold showing the layout.
+   - **Something mechanical.** The bug is that formatting is not stable: it is not idempotent, adds
+     a blank line on every pass, or moves a comment, and the right result is the input itself.
+     Write a negative case. Do not make the input untidy (`a()` for `a ()`, clauses indented
+     differently) only so that the case gets a gold. The change the case then shows has nothing to
+     do with the bug, and a reader must work out which part of the diff matters.
+   - **A negative case under a setting** must come back unchanged at every value of that setting.
+     When another value reformats it, look for an input that every value leaves alone: a narrow
+     `max_line_length` can make every value break the code the same way. Add a `#` line saying why
+     the width is set. When no such input exists, write a regular case whose input is what the
+     other value produces, so that the only change the case shows is what the setting does.
 2. Put the input in the right folder (see below), named after what it shows:
    `cases/oak/TypeDefn/Union/single-case-with-members.fs`. Add a `#` description when the name
    does not say the point on its own.

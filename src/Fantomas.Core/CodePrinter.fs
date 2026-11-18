@@ -3438,7 +3438,9 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                         leadingExpressionIsMultiline
                             (genSingleTextNode node.OpeningParen +> genLambdaWithParen lambdaNode)
                             (fun isMultiline ->
-                                onlyIf (isMultiline && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)) sepNln
+                                onlyIf
+                                    (isMultiline && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr))
+                                    sepNlnUnlessLastEventIsNewline
                                 +> genSingleTextNode node.ClosingParen
                             )
                     | Choice2Of2 matchLambdaNode ->
@@ -3449,7 +3451,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                             +> genClauses matchLambdaNode.Clauses
                             |> genNode matchLambdaNode
                         )
-                        +> sepNln
+                        +> sepNlnUnlessLastEventIsNewline
                         +> genSingleTextNode node.ClosingParen
                 | es ->
                     col sepNln es genExpr
@@ -3462,7 +3464,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                                 (fun isMultiline ->
                                     onlyIf
                                         (isMultiline && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr))
-                                        sepNln
+                                        sepNlnUnlessLastEventIsNewline
                                     +> genSingleTextNode node.ClosingParen
                                 )
                         | Choice2Of2 matchLambdaNode ->
@@ -3471,7 +3473,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                                  +> sepNln
                                  +> genClauses matchLambdaNode.Clauses
                                  |> genNode matchLambdaNode)
-                             +> sepNln
+                             +> sepNlnUnlessLastEventIsNewline
                              +> genSingleTextNode node.ClosingParen)
                     )
                     +> unindent

@@ -1,10 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [8.1.2] - 2026-11-18
 
 ### Fixed
 
 - Settings with a word starting with `i` in their editorconfig name, such as `fsharp_keep_indent_in_branch`, are ignored on a system with a Turkish culture. [#3581](https://github.com/fsprojects/fantomas/pull/3581)
+- With `fsharp_multi_line_lambda_closing_newline = true`, a comment between a lambda argument and its closing `)` gets one more blank line above the `)` on every format. [#3577](https://github.com/fsprojects/fantomas/issues/3577)
 
 ## [8.1.1] - 2026-11-03
 
