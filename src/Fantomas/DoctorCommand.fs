@@ -59,6 +59,7 @@ and [<NoComparison>] DoctorFile =
         Path: string
         Kind: FileKind
         LineCount: int
+        WhitespaceOnly: bool
         UnreachableUnder: string option
     }
 
@@ -224,6 +225,7 @@ let describeFile (fs: IFileSystem) (path: string) (content: string) : DoctorFile
         Path = path
         Kind = fileKind path
         LineCount = Array.length (lines content)
+        WhitespaceOnly = String.IsNullOrWhiteSpace content
         UnreachableUnder = unreachableUnder fs path
     }
 

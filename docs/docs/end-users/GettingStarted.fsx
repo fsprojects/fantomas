@@ -208,7 +208,11 @@ The steps are the ones Fantomas takes, in the order it takes them, and each one 
   already formatted. Two lines under it say, each on its own, whether the file's final newline is
   what `insert_final_newline` asks for and whether its line endings are what `end_of_line` asks
   for, since a file can get either wrong, or both. A file that will not parse fails here, with the
-  parser's diagnostics and a snippet under the table.
+  parser's diagnostics and a snippet under the table. A file that is empty, or holds nothing but
+  spaces, tabs and line breaks, gets a `Content` warning just above this step. Fantomas formats it
+  to an empty file whatever `insert_final_newline` asks, and an F# file with no code in it is rarely
+  what anybody meant. For such a file the Format row is a single line, saying the file ends up
+  empty, in place of the final newline and line endings lines.
 * **Valid** — whether Fantomas accepts what it produced. It always should; when it does not, that
   is a bug in Fantomas rather than a problem with the file.
 * **Idempotent** — whether formatting the result again leaves it alone. It should, and when it does
@@ -227,7 +231,8 @@ not a failure; `fantomas check` is what fails over that.
 stopped before reaching it. The `configuration` key carries every setting, with `setBy` naming the
 file for each one an `.editorconfig` set and `null` for the rest. The `format` key's `status` says
 whether the file would be written, and `finalNewline` and `lineEndings` beside it each hold what the
-settings expect and what the file has.
+settings expect and what the file has. The `file` key's `whitespaceOnly` says whether the file
+holds no code at all.
 
 ### Multiple paths
 

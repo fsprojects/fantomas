@@ -49,6 +49,10 @@ and [<NoComparison>] DoctorFile =
         Path: string
         Kind: FileKind
         LineCount: int
+        /// Whether the file holds no code at all: it is empty, or holds only spaces, tabs and line
+        /// breaks. Fantomas formats such a file to nothing, whatever `insert_final_newline` asks,
+        /// and an empty F# file is usually a sign that something went wrong before Fantomas saw it.
+        WhitespaceOnly: bool
         /// The folder a walk would refuse to open, when the file sits under one a compiler or a
         /// package manager wrote. Naming the file itself still formats it, so this is a note about
         /// why a run over the tree above it does nothing, rather than a reason to stop.

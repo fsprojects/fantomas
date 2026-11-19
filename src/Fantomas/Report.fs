@@ -895,17 +895,12 @@ let describeDoctorSettings (theme: Theme) (glyphs: StatusGlyphs) (resolved: Reso
         Detail = settings @ problems
     }
 
-// The final newline and the line endings are said every time, the ones that are right included: a
-// file can get either wrong without the other, and a report that only spoke up about one of them
-// would leave the reader unsure whether the other was looked at.
-let describeFinalNewline (formatsToNothing: bool) (finalNewline: FinalNewline) : string =
+// The final newline and the line endings are said for every file that formats to something, the
+// ones that are right included: a file can get either wrong without the other, and a report that
+// only spoke up about one of them would leave the reader unsure whether the other was looked at.
+let describeFinalNewline (finalNewline: FinalNewline) : string =
     match finalNewline.Found, finalNewline.Expected with
     | false, true -> "Final newline: the file has none, and insert_final_newline is true, so formatting adds one."
-    // Expected of no file that formats to nothing, whatever the setting says, so the setting is not
-    // what to name.
-    | true, false when formatsToNothing ->
-        "Final newline: the file has one, and it formats to nothing, so formatting removes it."
-    | false, false when formatsToNothing -> "Final newline: none, and the file formats to nothing, so none is added."
     | true, false -> "Final newline: the file has one, and insert_final_newline is false, so formatting removes it."
     | _ -> "Final newline: as insert_final_newline asks."
 
@@ -949,7 +944,15 @@ let describeDoctorFormat (glyphs: StatusGlyphs) (lineCount: int) (step: FormatSt
                 String.Concat("Formatting failed: ", (message.Split('\n')).[0])
 
         doctorRow glyphs.Errored "Format" says
-    | FormatStep.Produced(formatted, change) ->
+    // A file that formats to nothing is left empty whatever `insert_final_newline` asks, so the
+    // final newline and line endings lines would blame settings that played no part. The row
+    // above it has already said why the file is empty.
+    | FormatStep.Produced(formatted, change) when String.IsNullOrEmpty formatted ->
+        if change.WouldWrite then
+            doctorRow glyphs.NeedsFormatting "Format" "Not formatted: formatting leaves the file empty."
+        else
+            doctorRow glyphs.Unchanged "Format" "Already formatted: the file is empty."
+    | FormatStep.Produced(_, change) ->
         let says: string =
             match change.Lines with
             | Some lines ->
@@ -975,10 +978,24 @@ let describeDoctorFormat (glyphs: StatusGlyphs) (lineCount: int) (step: FormatSt
         { doctorRow glyph "Format" says with
             Continued =
                 [
-                    describeFinalNewline (String.IsNullOrEmpty formatted) change.FinalNewline
+                    describeFinalNewline change.FinalNewline
                     describeLineEndings change.LineEndings
                 ]
         }
+
+// Not a step Fantomas takes, and not a failure either: such a file formats fine. It is a warning
+// because an F# file with no code in it is rarely what anybody meant, and the Format row below it
+// only says the file ends up empty.
+//
+//   ! Content     Only whitespace: the file holds no code, only spaces, tabs or line breaks.
+let describeDoctorWhitespaceOnly (glyphs: StatusGlyphs) (file: DoctorFile) : DoctorRow =
+    let says: string =
+        if file.LineCount = 0 then
+            "Empty: the file holds nothing at all."
+        else
+            "Only whitespace: the file holds no code, only spaces, tabs or line breaks."
+
+    doctorRow glyphs.NeedsFormatting "Content" says
 
 let describeDoctorValidity (glyphs: StatusGlyphs) (step: ValidityStep) : DoctorRow =
     match step with
@@ -1046,6 +1063,14 @@ let reportDoctorReport (env: CliEnvironment) (settings: CliSettings) (report: Do
     rows.Add(describeDoctorFile theme glyphs report.File)
     step "Ignore" (describeDoctorIgnore theme glyphs verbose) report.Ignore
     step "Settings" (describeDoctorSettings theme glyphs) report.Settings
+
+    // Between the settings and the format step, because it is what the format step's verdict on
+    // the file follows from. Only once the walk got that far: an ignored file is never formatted,
+    // so what it holds says nothing about what Fantomas would do to it.
+    match report.File, report.Format with
+    | FileStep.Candidate file, Some _ when file.WhitespaceOnly -> rows.Add(describeDoctorWhitespaceOnly glyphs file)
+    | _ -> ()
+
     step "Format" (describeDoctorFormat glyphs lineCount) report.Format
     step "Valid" (describeDoctorValidity glyphs) report.Validity
     step "Idempotent" (describeDoctorIdempotency theme glyphs) report.Idempotency

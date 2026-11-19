@@ -397,6 +397,7 @@ let private healthy: Fantomas.DoctorCommand.DoctorReport =
                     Path = "/repo/A.fs"
                     Kind = Fantomas.DoctorCommand.FileKind.Implementation
                     LineCount = 20
+                    WhitespaceOnly = false
                     UnreachableUnder = None
                 }
         Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, [], []))
@@ -609,6 +610,7 @@ let ``the kind of file is carried, and the folder a walk will not open`` () =
                     Path = "/repo/A.fs"
                     Kind = kind
                     LineCount = 20
+                    WhitespaceOnly = false
                     UnreachableUnder = under
                 }
         )
@@ -623,6 +625,25 @@ let ``the kind of file is carried, and the folder a walk will not open`` () =
         .GetProperty("unreachableUnder")
         .GetString()
     |> shouldEqual "/repo/obj"
+
+[<Test>]
+let ``a file with no code in it is carried as whitespace only`` () =
+    let whitespaceOnly (value: bool) : bool =
+        (fileStatusOf (
+            Fantomas.DoctorCommand.FileStep.Candidate
+                {
+                    Path = "/repo/A.fs"
+                    Kind = Fantomas.DoctorCommand.FileKind.Implementation
+                    LineCount = 2
+                    WhitespaceOnly = value
+                    UnreachableUnder = None
+                }
+        ))
+            .GetProperty("whitespaceOnly")
+            .GetBoolean()
+
+    whitespaceOnly true |> shouldEqual true
+    whitespaceOnly false |> shouldEqual false
 
 [<Test>]
 let ``a file with no ignore file above it says so, and names none`` () =

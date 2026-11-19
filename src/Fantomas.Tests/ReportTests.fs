@@ -844,6 +844,7 @@ let private healthy: Fantomas.DoctorCommand.DoctorReport =
                     Path = "/repo/A.fs"
                     Kind = Fantomas.DoctorCommand.FileKind.Implementation
                     LineCount = 20
+                    WhitespaceOnly = false
                     UnreachableUnder = None
                 }
         Ignore = Some Fantomas.DoctorCommand.IgnoreStep.NoIgnoreFile
@@ -1039,6 +1040,7 @@ let private candidate (kind: Fantomas.DoctorCommand.FileKind) (under: string opt
             Path = "/repo/A.fs"
             Kind = kind
             LineCount = 20
+            WhitespaceOnly = false
             UnreachableUnder = under
         }
 
@@ -1379,27 +1381,92 @@ let ``each way the final newline can be found has a sentence of its own`` () =
     says { Expected = false; Found = false }
     |> shouldContainText "Final newline: as insert_final_newline asks."
 
-[<Test>]
-let ``a file that formats to nothing does not blame insert_final_newline for its final newline`` () =
-    // Left empty whatever the setting asks, so naming the setting would say it asked for something
-    // it did not.
-    let says (finalNewline: Fantomas.DoctorCommand.FinalNewline) : string =
-        diagnosed
-            { healthy with
-                Format =
-                    Some(
-                        Fantomas.DoctorCommand.FormatStep.Produced(
-                            "",
-                            formatChange true None finalNewline lineEndingsAsAsked
-                        )
+/// The report for a file that holds `lineCount` lines of nothing but whitespace, formatted to
+/// nothing, with `wouldWrite` saying whether that rewrites it.
+let private whitespaceOnly (lineCount: int) (wouldWrite: bool) : string =
+    diagnosed
+        { healthy with
+            File =
+                Fantomas.DoctorCommand.FileStep.Candidate
+                    {
+                        Path = "/repo/A.fs"
+                        Kind = Fantomas.DoctorCommand.FileKind.Implementation
+                        LineCount = lineCount
+                        WhitespaceOnly = true
+                        UnreachableUnder = None
+                    }
+            Format =
+                Some(
+                    Fantomas.DoctorCommand.FormatStep.Produced(
+                        "",
+                        formatChange wouldWrite None { Expected = false; Found = wouldWrite } lineEndingsAsAsked
                     )
-            }
+                )
+        }
 
-    says { Expected = false; Found = true }
-    |> shouldContainText "Final newline: the file has one, and it formats to nothing, so formatting removes it."
+[<Test>]
+let ``a file of only whitespace is warned about between the settings and the format step`` () =
+    let written: string = whitespaceOnly 2 true
 
-    says { Expected = false; Found = false }
-    |> shouldContainText "Final newline: none, and the file formats to nothing, so none is added."
+    let labels: string list =
+        written.Split('\n')
+        |> Array.toList
+        |> List.choose (fun (line: string) ->
+            [ "Settings"; "Content"; "Format" ]
+            |> List.tryFind (fun (label: string) -> line.Contains(" " + label + " "))
+        )
+
+    labels |> shouldEqual [ "Settings"; "Content"; "Format" ]
+
+    written
+    |> shouldContainText "! Content     Only whitespace: the file holds no code, only spaces, tabs or line breaks."
+
+    written
+    |> shouldContainText "! Format      Not formatted: formatting leaves the file empty."
+
+[<Test>]
+let ``a file that formats to nothing does not blame insert_final_newline or end_of_line`` () =
+    // Left empty whatever the settings ask, so naming either would say it asked for something it
+    // did not.
+    let written: string = whitespaceOnly 2 true
+    written |> shouldNotContainText "Final newline:"
+    written |> shouldNotContainText "Line endings:"
+
+[<Test>]
+let ``an empty file is warned about as empty and is already formatted`` () =
+    let written: string = whitespaceOnly 0 false
+
+    written
+    |> shouldContainText "! Content     Empty: the file holds nothing at all."
+
+    written
+    |> shouldContainText "= Format      Already formatted: the file is empty."
+
+[<Test>]
+let ``an ignored file of only whitespace has no content row`` () =
+    // Fantomas never formats it, so what it holds says nothing about what Fantomas would do to it.
+    diagnosed
+        { healthy with
+            File =
+                Fantomas.DoctorCommand.FileStep.Candidate
+                    {
+                        Path = "/repo/A.fs"
+                        Kind = Fantomas.DoctorCommand.FileKind.Implementation
+                        LineCount = 2
+                        WhitespaceOnly = true
+                        UnreachableUnder = None
+                    }
+            Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", true, [], []))
+            Settings = None
+            Format = None
+            Validity = None
+            Idempotency = None
+        }
+    |> shouldNotContainText "Content"
+
+[<Test>]
+let ``a file with code in it has no content row`` () =
+    diagnosed healthy |> shouldNotContainText "Content"
 
 [<Test>]
 let ``each way the line endings can be found has a sentence of its own`` () =
@@ -1556,6 +1623,7 @@ let ``a file that will not parse is reported with the parser's own diagnostics a
                           Path = fileFixture.Filename
                           Kind = Fantomas.DoctorCommand.FileKind.Implementation
                           LineCount = 3
+                          WhitespaceOnly = false
                           UnreachableUnder = None
                       }
               ) with

@@ -374,6 +374,7 @@ let writeDoctorFile (json: Utf8JsonWriter) (step: FileStep) : unit =
         json.WriteString("status", "candidate")
         json.WriteString("kind", kind)
         json.WriteNumber("lineCount", file.LineCount)
+        json.WriteBoolean("whitespaceOnly", file.WhitespaceOnly)
 
         match file.UnreachableUnder with
         | None -> json.WriteNull "unreachableUnder"

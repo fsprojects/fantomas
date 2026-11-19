@@ -496,6 +496,20 @@ let ``a file that formats to nothing is expected to have no final newline, whate
     blank.FinalNewline |> shouldEqual (finalNewline false true)
 
 [<Test>]
+let ``a file with no code in it is said to hold only whitespace`` () =
+    let whitespaceOnly (content: string) : bool =
+        match (diagnosing content).File with
+        | FileStep.Candidate file -> file.WhitespaceOnly
+        | other -> failwith $"Expected a candidate file, got %A{other}"
+
+    whitespaceOnly "" |> shouldEqual true
+    whitespaceOnly "\n\n" |> shouldEqual true
+    whitespaceOnly "  \t\r\n \r\n" |> shouldEqual true
+    whitespaceOnly "let a = 1\n" |> shouldEqual false
+    // A trivia comment is not whitespace, and formatting keeps it.
+    whitespaceOnly "// nothing yet\n" |> shouldEqual false
+
+[<Test>]
 let ``a reformatted file says what is wrong with its final newline and line endings as well`` () =
     let endings: FormatChange = changeOf (diagnosing "let  a = 1\r\nlet b = 2\r\n")
 
@@ -651,6 +665,7 @@ let private formattingWith (format: string -> string) (content: string) : Doctor
                         Path = "/repo/A.fs"
                         Kind = FileKind.Implementation
                         LineCount = Array.length (lines content)
+                        WhitespaceOnly = false
                         UnreachableUnder = None
                     }
             Ignore = Some IgnoreStep.NoIgnoreFile
@@ -766,6 +781,7 @@ let private healthy: DoctorReport =
                     Path = "/repo/A.fs"
                     Kind = FileKind.Implementation
                     LineCount = 2
+                    WhitespaceOnly = false
                     UnreachableUnder = None
                 }
         Ignore = Some IgnoreStep.NoIgnoreFile
