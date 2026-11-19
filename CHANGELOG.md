@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.1.3] - 2026-11-19
+
+### Fixed
+
+- `doctor` reports a file whose only change is the newline at its end as a line endings change. It now reports the final newline and the line endings each on its own, against `insert_final_newline` and `end_of_line`, and `--json` carries them as `finalNewline` and `lineEndings` in place of the `line-endings` status. A file that is empty or holds only whitespace gets a warning of its own, since Fantomas leaves it empty whatever `insert_final_newline` asks, and `--json` carries that as `whitespaceOnly` on the `file` key. [#3524](https://github.com/fsprojects/fantomas/issues/3524)
+
 ## [8.1.2] - 2026-11-18
 
 ### Fixed

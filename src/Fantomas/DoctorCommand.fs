@@ -59,6 +59,7 @@ and [<NoComparison>] DoctorFile =
         Path: string
         Kind: FileKind
         LineCount: int
+        WhitespaceOnly: bool
         UnreachableUnder: string option
     }
 
@@ -74,11 +75,37 @@ and [<NoComparison>] ShadowedIgnoreFile =
         Matches: IgnoreMatch list
     }
 
+[<Struct>]
+type LineChange =
+    {
+        FirstChangedLine: int
+        LineCountAfter: int
+    }
+
+[<Struct>]
+type FinalNewline = { Expected: bool; Found: bool }
+
 [<RequireQualifiedAccess; Struct>]
+type LineEndingsUsed =
+    | LF
+    | CRLF
+    | Mixed
+
+[<Struct>]
+type LineEndings =
+    {
+        Expected: EndOfLineStyle
+        Found: LineEndingsUsed option
+    }
+
+[<Struct>]
 type FormatChange =
-    | Nothing
-    | LineEndingsOnly
-    | Reformatted of firstChangedLine: int * lineCountAfter: int
+    {
+        WouldWrite: bool
+        Lines: LineChange option
+        FinalNewline: FinalNewline
+        LineEndings: LineEndings
+    }
 
 [<RequireQualifiedAccess; NoComparison>]
 type FormatStep =
@@ -198,6 +225,7 @@ let describeFile (fs: IFileSystem) (path: string) (content: string) : DoctorFile
         Path = path
         Kind = fileKind path
         LineCount = Array.length (lines content)
+        WhitespaceOnly = String.IsNullOrWhiteSpace content
         UnreachableUnder = unreachableUnder fs path
     }
 
@@ -236,9 +264,21 @@ let formatOnce (isSignature: bool) (config: FormatConfig) (content: string) : st
     |> Async.RunSynchronously
     |> fun (result: Fantomas.Core.FormatResult) -> result.Code
 
+// Every `\n` breaks a line, and the ones with a `\r` before them are CRLF. A `\r` on its own breaks
+// no line, here as in `lines`.
+let lineEndingsUsed (content: string) : LineEndingsUsed option =
+    let breaks: int = content |> Seq.filter (fun (c: char) -> c = '\n') |> Seq.length
+    let crlf: int = (content.Length - content.Replace("\r\n", String.Empty).Length) / 2
+
+    if breaks = 0 then None
+    elif crlf = 0 then Some LineEndingsUsed.LF
+    elif crlf = breaks then Some LineEndingsUsed.CRLF
+    else Some LineEndingsUsed.Mixed
+
 let walkFormatting
     (report: DoctorReport)
     (isSignature: bool)
+    (config: FormatConfig)
     (format: string -> string)
     (content: string)
     : DoctorReport
@@ -260,20 +300,42 @@ let walkFormatting
 
     let after: string array = lines formatted
 
-    // Whether the file would be rewritten is asked of the text as it is, which is what a format run
-    // compares and therefore what this has to predict. `lines` folds the line endings away, so a
-    // file whose endings are the only thing the configuration disagrees with parts at no line at
-    // all and would otherwise be reported as already formatted, while a run over it rewrites every
-    // line of it.
-    let change: FormatChange =
-        match firstDifference original after with
-        | Some line -> FormatChange.Reformatted(line, after.Length)
-        | None ->
+    // `lines` folds away the line endings and the newline after the last line, so where the lines
+    // part says nothing about either. Those two are asked of the file and the settings on their own,
+    // because a file can get both wrong and a report that named one would hide the other.
+    let changedLines: LineChange option =
+        firstDifference original after
+        |> Option.map (fun (line: int) ->
+            {
+                FirstChangedLine = line
+                LineCountAfter = after.Length
+            }
+        )
 
-        if content <> formatted then
-            FormatChange.LineEndingsOnly
-        else
-            FormatChange.Nothing
+    // A final newline is a `\n` whichever endings the file uses. A file that formats to nothing,
+    // such as one holding only blank lines, is left empty whatever `insert_final_newline` asks,
+    // because there is no last line for a newline to end.
+    let finalNewline: FinalNewline =
+        {
+            Expected = config.InsertFinalNewline && not (String.IsNullOrEmpty formatted)
+            Found = content.EndsWith('\n')
+        }
+
+    let lineEndings: LineEndings =
+        {
+            Expected = config.EndOfLine
+            Found = lineEndingsUsed content
+        }
+
+    let change: FormatChange =
+        {
+            // Asked of the text as it is, which is what a format run compares and therefore what
+            // this has to predict, rather than put together from the facts beside it.
+            WouldWrite = content <> formatted
+            Lines = changedLines
+            FinalNewline = finalNewline
+            LineEndings = lineEndings
+        }
 
     let report: DoctorReport =
         { report with
@@ -346,7 +408,7 @@ let diagnose (env: CliEnvironment) (given: string) : DoctorReport =
 
     let isSignature: bool = file.Kind = FileKind.Signature
 
-    walkFormatting report isSignature (formatOnce isSignature settings.Config) content
+    walkFormatting report isSignature settings.Config (formatOnce isSignature settings.Config) content
 
 let runDoctorCommand (env: CliEnvironment) (inputPath: InputPath) : DoctorCommandResult =
     try

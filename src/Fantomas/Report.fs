@@ -601,14 +601,17 @@ let reportCheckCommand (env: CliEnvironment) (inputPath: InputPath) (result: Che
 
     result.ExitCode
 
-// One row of the doctor report: the status column, the step's name, what that step came to, and
-// the lines that belong under it.
+// One row of the doctor report: the status column, the step's name, what that step came to, the
+// lines that go on saying it, and the lines that belong under it.
 [<NoComparison; NoEquality>]
 type DoctorRow =
     {
         Glyph: string
         Label: string
         Says: string
+        // More of what the step came to, a line each, straight under `Says` and read as part of it.
+        // Set apart from it only because each is a fact of its own.
+        Continued: string list
         Detail: string list
     }
 
@@ -617,6 +620,7 @@ let doctorRow (glyph: string) (label: string) (says: string) : DoctorRow =
         Glyph = glyph
         Label = label
         Says = says
+        Continued = []
         Detail = []
     }
 
@@ -887,8 +891,44 @@ let describeDoctorSettings (theme: Theme) (glyphs: StatusGlyphs) (resolved: Reso
                  glyphs.NeedsFormatting)
         Label = "Settings"
         Says = says
+        Continued = []
         Detail = settings @ problems
     }
+
+// The final newline and the line endings are said for every file that formats to something, the
+// ones that are right included: a file can get either wrong without the other, and a report that
+// only spoke up about one of them would leave the reader unsure whether the other was looked at.
+let describeFinalNewline (finalNewline: FinalNewline) : string =
+    match finalNewline.Found, finalNewline.Expected with
+    | false, true -> "Final newline: the file has none, and insert_final_newline is true, so formatting adds one."
+    | true, false -> "Final newline: the file has one, and insert_final_newline is false, so formatting removes it."
+    | _ -> "Final newline: as insert_final_newline asks."
+
+let describeLineEndings (lineEndings: LineEndings) : string =
+    let expected: string = EndOfLineStyle.ToConfigString lineEndings.Expected
+
+    let asked: LineEndingsUsed option =
+        match lineEndings.Expected with
+        | EndOfLineStyle.LF -> Some LineEndingsUsed.LF
+        | EndOfLineStyle.CRLF -> Some LineEndingsUsed.CRLF
+        // Not a setting an `.editorconfig` can make, and no file is read as using it.
+        | EndOfLineStyle.CR -> None
+
+    match lineEndings.Found with
+    | None -> "Line endings: none, the file has no line break."
+    | Some found when Some found = asked -> $"Line endings: %s{expected}, as end_of_line asks."
+    | Some LineEndingsUsed.Mixed ->
+        // Only the lines that end the other way are rewritten, so those are the ones to name.
+        let other: string =
+            match lineEndings.Expected with
+            | EndOfLineStyle.CRLF -> "lf"
+            | EndOfLineStyle.LF
+            | EndOfLineStyle.CR -> "crlf"
+
+        $"Line endings: mixed, and end_of_line is %s{expected}, so every line that ends in %s{other} would be rewritten."
+    | Some LineEndingsUsed.LF -> $"Line endings: lf, and end_of_line is %s{expected}, so every line would be rewritten."
+    | Some LineEndingsUsed.CRLF ->
+        $"Line endings: crlf, and end_of_line is %s{expected}, so every line would be rewritten."
 
 let describeDoctorFormat (glyphs: StatusGlyphs) (lineCount: int) (step: FormatStep) : DoctorRow =
     match step with
@@ -904,27 +944,58 @@ let describeDoctorFormat (glyphs: StatusGlyphs) (lineCount: int) (step: FormatSt
                 String.Concat("Formatting failed: ", (message.Split('\n')).[0])
 
         doctorRow glyphs.Errored "Format" says
-    | FormatStep.Produced(_, FormatChange.Nothing) ->
-        doctorRow glyphs.Unchanged "Format" "Already formatted. Nothing would change."
-    | FormatStep.Produced(_, FormatChange.LineEndingsOnly) ->
-        // Worth its own sentence rather than a count of nought. It is the state that reads as
-        // already formatted to everything that compares line by line, and the one a working tree
-        // checked out with the other platform's endings is in.
-        doctorRow
-            glyphs.NeedsFormatting
-            "Format"
-            "Not formatted: every line is as it should be and the line endings are not, so the whole file would be rewritten."
-    | FormatStep.Produced(_, FormatChange.Reformatted(firstChangedLine, lineCountAfter)) ->
-        // Where to look, and what the file becomes when it becomes a different length. Both exact,
-        // where a count of the lines that differ by position is not a count of edits and read as
-        // nonsense the moment one line was split into several.
+    // A file that formats to nothing is left empty whatever `insert_final_newline` asks, so the
+    // final newline and line endings lines would blame settings that played no part. The row
+    // above it has already said why the file is empty.
+    | FormatStep.Produced(formatted, change) when String.IsNullOrEmpty formatted ->
+        if change.WouldWrite then
+            doctorRow glyphs.NeedsFormatting "Format" "Not formatted: formatting leaves the file empty."
+        else
+            doctorRow glyphs.Unchanged "Format" "Already formatted: the file is empty."
+    | FormatStep.Produced(_, change) ->
         let says: string =
-            if lineCountAfter = lineCount then
-                $"Not formatted: the first change is at line %d{firstChangedLine}."
-            else
-                $"Not formatted: the first change is at line %d{firstChangedLine}, and the file would go from %s{describeLines lineCount} to %d{lineCountAfter}."
+            match change.Lines with
+            | Some lines ->
+                // Where to look, and what the file becomes when it becomes a different length.
+                // Both exact, where a count of the lines that differ by position is not a count of
+                // edits and read as nonsense the moment one line was split into several.
+                if lines.LineCountAfter = lineCount then
+                    $"Not formatted: the first change is at line %d{lines.FirstChangedLine}."
+                else
+                    $"Not formatted: the first change is at line %d{lines.FirstChangedLine}, and the file would go from %s{describeLines lineCount} to %d{lines.LineCountAfter}."
+            | None when change.WouldWrite ->
+                // Not a count of nought, which reads as nothing to do. The two lines below say
+                // what would still be rewritten.
+                "Not formatted: every line is as it should be."
+            | None -> "Already formatted."
 
-        doctorRow glyphs.NeedsFormatting "Format" says
+        let glyph: string =
+            if change.WouldWrite then
+                glyphs.NeedsFormatting
+            else
+                glyphs.Unchanged
+
+        { doctorRow glyph "Format" says with
+            Continued =
+                [
+                    describeFinalNewline change.FinalNewline
+                    describeLineEndings change.LineEndings
+                ]
+        }
+
+// Not a step Fantomas takes, and not a failure either: such a file formats fine. It is a warning
+// because an F# file with no code in it is rarely what anybody meant, and the Format row below it
+// only says the file ends up empty.
+//
+//   ! Content     Only whitespace: the file holds no code, only spaces, tabs or line breaks.
+let describeDoctorWhitespaceOnly (glyphs: StatusGlyphs) (file: DoctorFile) : DoctorRow =
+    let says: string =
+        if file.LineCount = 0 then
+            "Empty: the file holds nothing at all."
+        else
+            "Only whitespace: the file holds no code, only spaces, tabs or line breaks."
+
+    doctorRow glyphs.NeedsFormatting "Content" says
 
 let describeDoctorValidity (glyphs: StatusGlyphs) (step: ValidityStep) : DoctorRow =
     match step with
@@ -992,6 +1063,14 @@ let reportDoctorReport (env: CliEnvironment) (settings: CliSettings) (report: Do
     rows.Add(describeDoctorFile theme glyphs report.File)
     step "Ignore" (describeDoctorIgnore theme glyphs verbose) report.Ignore
     step "Settings" (describeDoctorSettings theme glyphs) report.Settings
+
+    // Between the settings and the format step, because it is what the format step's verdict on
+    // the file follows from. Only once the walk got that far: an ignored file is never formatted,
+    // so what it holds says nothing about what Fantomas would do to it.
+    match report.File, report.Format with
+    | FileStep.Candidate file, Some _ when file.WhitespaceOnly -> rows.Add(describeDoctorWhitespaceOnly glyphs file)
+    | _ -> ()
+
     step "Format" (describeDoctorFormat glyphs lineCount) report.Format
     step "Valid" (describeDoctorValidity glyphs) report.Validity
     step "Idempotent" (describeDoctorIdempotency theme glyphs) report.Idempotency
@@ -1019,6 +1098,9 @@ let reportDoctorReport (env: CliEnvironment) (settings: CliSettings) (report: Do
 
     for row in rows do
         writeRow write column (String.Concat(row.Glyph, " ", row.Label)) row.Says
+
+        for line in row.Continued do
+            writeContinuation write column line
 
         // A blank line either side of the detail, and the detail in the same column as the line it
         // hangs under. Indenting it further made it a second table inside the first, and what it

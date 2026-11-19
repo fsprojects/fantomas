@@ -367,6 +367,28 @@ let private diagnosed (report: Fantomas.DoctorCommand.DoctorReport) : JsonElemen
         .Parse(renderDoctorReport workingDirectory (Fantomas.DoctorCommand.DoctorCommandResult.Completed report))
         .RootElement
 
+let private finalNewlineAsAsked: Fantomas.DoctorCommand.FinalNewline =
+    { Expected = true; Found = true }
+
+let private lineEndingsAsAsked: Fantomas.DoctorCommand.LineEndings =
+    {
+        Expected = EndOfLineStyle.LF
+        Found = Some Fantomas.DoctorCommand.LineEndingsUsed.LF
+    }
+
+let private reformatted: Fantomas.DoctorCommand.FormatChange =
+    {
+        WouldWrite = true
+        Lines =
+            Some
+                {
+                    FirstChangedLine = 4
+                    LineCountAfter = 25
+                }
+        FinalNewline = finalNewlineAsAsked
+        LineEndings = lineEndingsAsAsked
+    }
+
 let private healthy: Fantomas.DoctorCommand.DoctorReport =
     {
         File =
@@ -375,17 +397,12 @@ let private healthy: Fantomas.DoctorCommand.DoctorReport =
                     Path = "/repo/A.fs"
                     Kind = Fantomas.DoctorCommand.FileKind.Implementation
                     LineCount = 20
+                    WhitespaceOnly = false
                     UnreachableUnder = None
                 }
         Ignore = Some(Fantomas.DoctorCommand.IgnoreStep.Governed("/repo/.fantomasignore", false, [], []))
         Settings = Some(Fantomas.EditorConfigFiles.withoutEditorConfig FormatConfig.Default)
-        Format =
-            Some(
-                Fantomas.DoctorCommand.FormatStep.Produced(
-                    "let a = 1\n",
-                    Fantomas.DoctorCommand.FormatChange.Reformatted(4, 25)
-                )
-            )
+        Format = Some(Fantomas.DoctorCommand.FormatStep.Produced("let a = 1\n", reformatted))
         Validity = Some Fantomas.DoctorCommand.ValidityStep.Valid
         Idempotency = Some Fantomas.DoctorCommand.IdempotencyStep.Idempotent
     }
@@ -593,6 +610,7 @@ let ``the kind of file is carried, and the folder a walk will not open`` () =
                     Path = "/repo/A.fs"
                     Kind = kind
                     LineCount = 20
+                    WhitespaceOnly = false
                     UnreachableUnder = under
                 }
         )
@@ -607,6 +625,25 @@ let ``the kind of file is carried, and the folder a walk will not open`` () =
         .GetProperty("unreachableUnder")
         .GetString()
     |> shouldEqual "/repo/obj"
+
+[<Test>]
+let ``a file with no code in it is carried as whitespace only`` () =
+    let whitespaceOnly (value: bool) : bool =
+        (fileStatusOf (
+            Fantomas.DoctorCommand.FileStep.Candidate
+                {
+                    Path = "/repo/A.fs"
+                    Kind = Fantomas.DoctorCommand.FileKind.Implementation
+                    LineCount = 2
+                    WhitespaceOnly = value
+                    UnreachableUnder = None
+                }
+        ))
+            .GetProperty("whitespaceOnly")
+            .GetBoolean()
+
+    whitespaceOnly true |> shouldEqual true
+    whitespaceOnly false |> shouldEqual false
 
 [<Test>]
 let ``a file with no ignore file above it says so, and names none`` () =
@@ -690,38 +727,85 @@ let ``a setting Fantomas cannot use is carried with what is wrong with it`` () =
     problems.[0].GetProperty("message").GetString()
     |> shouldContainText "is not a Fantomas setting"
 
+/// The `format` key of the document for a file whose format step found `change`.
+let private formatKey (change: Fantomas.DoctorCommand.FormatChange) : JsonElement =
+    (diagnosed
+        { healthy with
+            Format = Some(Fantomas.DoctorCommand.FormatStep.Produced("", change))
+        })
+        .GetProperty
+        "format"
+
 [<Test>]
 let ``a file that needs no formatting is unchanged rather than changed`` () =
     let format: JsonElement =
-        (diagnosed
-            { healthy with
-                Format =
-                    Some(Fantomas.DoctorCommand.FormatStep.Produced("", Fantomas.DoctorCommand.FormatChange.Nothing))
-            })
-            .GetProperty
-            "format"
+        formatKey
+            { reformatted with
+                WouldWrite = false
+                Lines = None
+            }
 
     format.GetProperty("status").GetString() |> shouldEqual "unchanged"
 
-[<Test>]
-let ``a file whose only fault is its line endings has a status of its own`` () =
-    // Nothing about the lines changes, so `status` is the only thing telling this apart from a
-    // file that needs nothing at all.
-    let format: JsonElement =
-        (diagnosed
-            { healthy with
-                Format =
-                    Some(
-                        Fantomas.DoctorCommand.FormatStep.Produced(
-                            "",
-                            Fantomas.DoctorCommand.FormatChange.LineEndingsOnly
-                        )
-                    )
-            })
-            .GetProperty
-            "format"
+    // Null rather than absent, like every key that has nothing to say.
+    format.GetProperty("firstChangedLine").ValueKind
+    |> shouldEqual JsonValueKind.Null
 
-    format.GetProperty("status").GetString() |> shouldEqual "line-endings"
+    format.GetProperty("lineCountAfter").ValueKind |> shouldEqual JsonValueKind.Null
+
+[<Test>]
+let ``the final newline and the line endings are keys of their own beside the status`` () =
+    let format: JsonElement = formatKey reformatted
+
+    let finalNewline: JsonElement = format.GetProperty "finalNewline"
+    finalNewline.GetProperty("expected").GetBoolean() |> shouldEqual true
+    finalNewline.GetProperty("found").GetBoolean() |> shouldEqual true
+
+    let lineEndings: JsonElement = format.GetProperty "lineEndings"
+    lineEndings.GetProperty("expected").GetString() |> shouldEqual "lf"
+    lineEndings.GetProperty("found").GetString() |> shouldEqual "lf"
+
+[<Test>]
+let ``a file whose every line is right and that is still rewritten is changed, and the two keys say why`` () =
+    // Both wrong at once: CRLF where `lf` is asked for, and no final newline where one is. `status`
+    // says only that the file would be written, and no line is named because none changes.
+    let format: JsonElement =
+        formatKey
+            { reformatted with
+                Lines = None
+                FinalNewline = { Expected = true; Found = false }
+                LineEndings =
+                    { lineEndingsAsAsked with
+                        Found = Some Fantomas.DoctorCommand.LineEndingsUsed.CRLF
+                    }
+            }
+
+    format.GetProperty("status").GetString() |> shouldEqual "changed"
+
+    format.GetProperty("firstChangedLine").ValueKind
+    |> shouldEqual JsonValueKind.Null
+
+    format.GetProperty("finalNewline").GetProperty("found").GetBoolean()
+    |> shouldEqual false
+
+    format.GetProperty("lineEndings").GetProperty("found").GetString()
+    |> shouldEqual "crlf"
+
+[<Test>]
+let ``line endings that are mixed or absent are said so`` () =
+    let found (used: Fantomas.DoctorCommand.LineEndingsUsed option) : JsonElement =
+        (formatKey
+            { reformatted with
+                LineEndings = { lineEndingsAsAsked with Found = used }
+            })
+            .GetProperty("lineEndings")
+            .GetProperty("found")
+
+    (found (Some Fantomas.DoctorCommand.LineEndingsUsed.Mixed)).GetString()
+    |> shouldEqual "mixed"
+
+    // A file with no line break has no endings to get wrong.
+    (found None).ValueKind |> shouldEqual JsonValueKind.Null
 
 [<Test>]
 let ``formatting that failed carries what went wrong and where`` () =

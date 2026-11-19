@@ -1,6 +1,7 @@
 module Fantomas.DoctorCommand
 
 open Fantomas.FCS.Parse
+open Fantomas.Core
 open Fantomas
 open Fantomas.Arguments
 open Fantomas.Cli
@@ -48,6 +49,10 @@ and [<NoComparison>] DoctorFile =
         Path: string
         Kind: FileKind
         LineCount: int
+        /// Whether the file holds no code at all: it is empty, or holds only spaces, tabs and line
+        /// breaks. Fantomas formats such a file to nothing, whatever `insert_final_newline` asks,
+        /// and an empty F# file is usually a sign that something went wrong before Fantomas saw it.
+        WhitespaceOnly: bool
         /// The folder a walk would refuse to open, when the file sits under one a compiler or a
         /// package manager wrote. Naming the file itself still formats it, so this is a note about
         /// why a run over the tree above it does nothing, rather than a reason to stop.
@@ -83,26 +88,68 @@ and [<NoComparison>] ShadowedIgnoreFile =
         Matches: IgnoreMatch list
     }
 
-/// How the formatted text differs from the file, decided the way a format run decides whether to
-/// write: by comparing the text as it is. A `check` run is the one that overlooks a difference in
-/// line endings, and this reports what formatting would do rather than what checking would say.
+/// Where the lines of the file and of the result first part, counting from one, and how many lines
+/// the result has.
+///
+/// Two exact facts rather than one count of what changed. Counting lines that differ by position is
+/// not a count of edits: splitting one long line into five moves every line below it, and a file of
+/// five lines came back as `9 lines of 5 would change`, which is a number a reader can see is wrong.
+/// Saying where the first change is and how long the file becomes answers what somebody wants
+/// without claiming to have diffed anything.
+[<Struct>]
+type LineChange =
+    {
+        FirstChangedLine: int
+        LineCountAfter: int
+    }
+
+/// Whether the file ends in a newline, and whether `insert_final_newline` asks for one.
+///
+/// A file that formats to nothing is the one exception to the setting: it is left empty whatever
+/// the setting asks, so nothing is expected of it.
+[<Struct>]
+type FinalNewline = { Expected: bool; Found: bool }
+
+/// The line endings a file uses.
 [<RequireQualifiedAccess; Struct>]
+type LineEndingsUsed =
+    | LF
+    | CRLF
+    /// Some lines end in one and some in the other.
+    | Mixed
+
+/// The line endings `end_of_line` asks for, and the ones the file uses: `None` for a file with no
+/// line break, which has no endings to get wrong.
+[<Struct>]
+type LineEndings =
+    {
+        Expected: EndOfLineStyle
+        Found: LineEndingsUsed option
+    }
+
+/// How the formatted text differs from the file: whether it would be written at all, and three
+/// facts about why, each found on its own. A file can get any of them wrong without the others, or
+/// all of them at once. A file with the other platform's line endings and no final newline is the
+/// ordinary case on Windows, and a report that picked one of the two to name would hide the one
+/// that rewrites every line.
+///
+/// The final newline and the line endings are read off the file and the settings rather than off
+/// the result, which follows both settings whatever it was formatted from. The one exception is a
+/// file that formats to nothing, which is left empty.
+[<Struct>]
 type FormatChange =
-    | Nothing
-    /// The text is the same line for line and the file would still be rewritten, because the line
-    /// endings are not what the configuration asks for. The state that reads as "already
-    /// formatted" to everything that compares line by line, and is why a working tree checked out
-    /// with the other platform's endings looks untouched right up until it is formatted.
-    | LineEndingsOnly
-    /// Where the file and the result first part, counting from one, and how many lines the result
-    /// has.
-    ///
-    /// Two exact facts rather than one count of what changed. Counting lines that differ by
-    /// position is not a count of edits: splitting one long line into five moves every line below
-    /// it, and a file of five lines came back as `9 lines of 5 would change`, which is a number a
-    /// reader can see is wrong. Saying where the first change is and how long the file becomes
-    /// answers what somebody wants without claiming to have diffed anything.
-    | Reformatted of firstChangedLine: int * lineCountAfter: int
+    {
+        /// Whether a format run would write the file, decided the way it decides: by comparing the
+        /// text as it is. A `check` run is the one that overlooks a difference in line endings, and
+        /// this reports what formatting would do rather than what checking would say.
+        WouldWrite: bool
+        /// `None` when every line is as it should be. The lines are compared with their endings and
+        /// the newline after the last of them left out, so this says nothing about either: the two
+        /// facts below are what does.
+        Lines: LineChange option
+        FinalNewline: FinalNewline
+        LineEndings: LineEndings
+    }
 
 /// What formatting the file produced.
 [<RequireQualifiedAccess; NoComparison>]
@@ -184,8 +231,18 @@ type DoctorCommandResult =
 ///
 /// Whether the output parses is still asked of the real parser, whatever `format` returned. That
 /// is the question the step exists to ask, and a stubbed answer to it would be worth nothing.
+///
+/// `config` is what the file is formatted under, and what its final newline and line endings are
+/// measured against. Measured against the settings rather than against the result, so that what
+/// they report is what the settings ask for, said in their terms, whichever formatter was handed
+/// over.
 val walkFormatting:
-    report: DoctorReport -> isSignature: bool -> format: (string -> string) -> content: string -> DoctorReport
+    report: DoctorReport ->
+    isSignature: bool ->
+    config: FormatConfig ->
+    format: (string -> string) ->
+    content: string ->
+        DoctorReport
 
 /// Walk one file through everything Fantomas does to it and report what happened at each step:
 /// whether the file is there and is one Fantomas formats, which `.fantomasignore` governs it and
