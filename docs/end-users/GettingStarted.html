@@ -374,7 +374,7 @@ You can skip this step if you wish to install Fantomas globally.</p>
 <p>For the overview how to use the tool, you can type the command</p>
 <div class="fsdocs-snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="o">--</span><span class="id">help</span>
 </code></pre></div>
-<div class="fsdocs-snippet"><pre><code>Fantomas is an opinionated source code formatter for F#. (8.1.2+708f821d3)
+<div class="fsdocs-snippet"><pre><code>Fantomas is an opinionated source code formatter for F#. (8.1.3+0749cfc6f)
 
 Usage: dotnet fantomas [command] [...flags] [...paths]
 
@@ -536,6 +536,8 @@ file you expected it to touch.</p>
               <span class="id">insert_final_newline</span> <span class="o">=</span> <span class="k">true</span>                  <span class="id">the</span> <span class="id">Fantomas</span> <span class="k">default</span>
               <span class="o">..</span><span class="pn">.</span>
 <span class="o">!</span> <span data-fsdocs-tip="fs22" data-fsdocs-tip-unique="33" class="id">Format</span>      <span class="id">Not</span> <span class="id">formatted</span><span class="pn">:</span> <span class="id">the</span> <span class="id">first</span> <span class="id">change</span> <span class="id">is</span> <span class="id">at</span> <span class="id">line</span> <span class="n">37.</span>
+              <span class="id">Final</span> <span class="id">newline</span><span class="pn">:</span> <span class="k">as</span> <span class="id">insert_final_newline</span> <span class="id">asks</span><span class="pn">.</span>
+              <span class="id">Line</span> <span class="id">endings</span><span class="pn">:</span> <span class="id">lf</span><span class="pn">,</span> <span class="k">as</span> <span class="id">end_of_line</span> <span class="id">asks</span><span class="pn">.</span>
 <span class="o">+</span> <span class="id">Valid</span>       <span class="id">Fantomas</span> <span class="id">accepts</span> <span class="id">what</span> <span class="id">it</span> <span class="id">produced</span><span class="pn">.</span>
 <span class="o">+</span> <span class="id">Idempotent</span>  <span class="id">Formatting</span> <span class="id">the</span> <span class="id">result</span> <span class="id">again</span> <span class="id">changes</span> <span class="id">nothing</span><span class="pn">.</span>
 </code></pre></div>
@@ -565,11 +567,17 @@ something, which is not always every file in the chain. Anything Fantomas could 
 the chain is reported here too, below both.
 </li>
 <li>
-<strong>Format</strong> — whether the file would be rewritten, and where it first parts from the result. That
-is decided the way a format run decides it, by comparing the text as it is, so a file whose line
-endings are the only thing out of step is reported as needing formatting rather than as already
-formatted. A file that will not parse fails here, with the parser's diagnostics and a snippet
-under the table.
+<strong>Format</strong> — whether the file would be rewritten, and where its lines first part from the result.
+That is decided the way a format run decides it, by comparing the text as it is, so a file whose
+line endings are the only thing out of step is reported as needing formatting rather than as
+already formatted. Two lines under it say, each on its own, whether the file's final newline is
+what <code>insert_final_newline</code> asks for and whether its line endings are what <code>end_of_line</code> asks
+for, since a file can get either wrong, or both. A file that will not parse fails here, with the
+parser's diagnostics and a snippet under the table. A file that is empty, or holds nothing but
+spaces, tabs and line breaks, gets a <code>Content</code> warning just above this step. Fantomas formats it
+to an empty file whatever <code>insert_final_newline</code> asks, and an F# file with no code in it is rarely
+what anybody meant. For such a file the Format row is a single line, saying the file ends up
+empty, in place of the final newline and line endings lines.
 </li>
 <li>
 <strong>Valid</strong> — whether Fantomas accepts what it produced. It always should; when it does not, that
@@ -589,7 +597,10 @@ Fantomas will not accept, or a second pass that changed the first. A file that n
 not a failure; <code>fantomas check</code> is what fails over that.</p>
 <p><code>--json</code> writes the same walk as one document, with a key per step and <code>null</code> where the walk
 stopped before reaching it. The <code>configuration</code> key carries every setting, with <code>setBy</code> naming the
-file for each one an <code>.editorconfig</code> set and <code>null</code> for the rest.</p>
+file for each one an <code>.editorconfig</code> set and <code>null</code> for the rest. The <code>format</code> key's <code>status</code> says
+whether the file would be written, and <code>finalNewline</code> and <code>lineEndings</code> beside it each hold what the
+settings expect and what the file has. The <code>file</code> key's <code>whitespaceOnly</code> says whether the file
+holds no code at all.</p>
 <h3 data-fsdocs-heading="6"><a name="Multiple-paths" class="anchor" href="#Multiple-paths">Multiple paths</a></h3>
 <p><em>starting version 4.5</em></p>
 <p>Multiple paths can be passed as last argument, these can be both files and folders.
