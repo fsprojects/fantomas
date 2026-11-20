@@ -551,10 +551,11 @@ and hands back empty options, which surfaces later as an
 exception about critical errors in the project options and names nothing useful, so the fixture
 checks the options came back non-empty and says so plainly if they did not.
 
-The options it returns are a fresh project's defaults, not this repository's. Of everything
-`Directory.Build.props` adds, only `--strict-indentation+` reaches the parser, and the fixture
-appends it. `--realsig+` and the `--test:` switches are for later compiler phases and cannot change
-a tree, and LangVersion is never set here at all. If you want to check that for yourself, a design
+The options it returns are a fresh project's defaults, not this repository's, and the fixture uses
+them as they are. Nothing `Directory.Build.props` adds reaches the parser: strict indentation is the
+only mode the compiler has since FSharp.Compiler.Service 43.13, which removed the
+`--strict-indentation` option, and `--realsig+` and the `--test:` switches are for later compiler
+phases and cannot change a tree, and LangVersion is never set here at all. If you want to check that for yourself, a design
 time build prints the real command line in about half a second:
 
 ```bash

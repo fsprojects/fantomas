@@ -22,19 +22,12 @@ type ProjectOptionsFixture() =
     [<OneTimeSetUp>]
     member _.Setup() : Task =
         task {
-            let! fresh = mkOptionsFromProject "net11.0" []
-
             // The helper builds a bare class library, so its command line is a fresh project's
-            // defaults. Strict indentation is the only mode the compiler in SDK 11 has, but the
-            // FSharp.Compiler.Service the analyzers SDK brings along is older and still defaults to
-            // the lenient one, so ask for it and a snippet is held to the same standard as the code
-            // the rules run over. `--realsig+`, the one flag left in Directory.Build.props, is for a
-            // later compiler phase and cannot change a tree, and LangVersion is never set here at
-            // all, as a design time build of Fantomas.Core confirms.
-            let options: FSharpProjectOptions =
-                { fresh with
-                    OtherOptions = Array.append fresh.OtherOptions [| "--strict-indentation+" |]
-                }
+            // defaults, and nothing in Directory.Build.props reaches the parser: strict indentation
+            // is the only mode the compiler has since FSharp.Compiler.Service 43.13, `--realsig+`
+            // is for a later compiler phase and cannot change a tree, and LangVersion is never set
+            // here at all, as a design time build of Fantomas.Core confirms.
+            let! options = mkOptionsFromProject "net11.0" []
 
             // `mkOptionsFromProject` catches whatever goes wrong and hands back options with
             // nothing in them, which shows up much later as an exception about critical errors in

@@ -11,8 +11,8 @@
     <RootNamespace>Fantomas.Analyzers</RootNamespace>
     <IsPackable>false</IsPackable>
     <!--
-    FSharp.Analyzers.SDK depends on FSharp.Core at exactly 10.1.400, where the repository pins
-    10.1.401 centrally. Under central package management that is NU1109, a hard error, so this
+    FSharp.Analyzers.SDK depends on FSharp.Core at exactly 10.1.404, where the repository pins
+    10.1.203 centrally. Under central package management that is NU1109, a hard error, so this
     project opts out and carries its versions inline. Keeping them here also puts the SDK version
     next to the analyzers rather than in the product's package list.
     -->
@@ -50,7 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Must track the fsharp-analyzers version pinned in .config/dotnet-tools.json. -->
-    <PackageReference Include="FSharp.Analyzers.SDK" Version="0.39.2" />
-    <PackageReference Include="FSharp.Core" Version="10.1.400" />
+    <PackageReference Include="FSharp.Analyzers.SDK" Version="0.43.0" />
+    <PackageReference Include="FSharp.Core" Version="10.1.404" />
   </ItemGroup>
 </Project>
