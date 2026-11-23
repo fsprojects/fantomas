@@ -720,7 +720,7 @@ pipeline "Analyze" {
 
                 Scripts analyzableScripts
             ]
-            |> analyzeTargets ctx localAdvisoryAnalyzers [] everyFinding
+            |> analyzeTargets ctx localAdvisoryAnalyzers ("--treat-as-error" :: packageRulesPatterns) everyFinding
         )
     }
     runIfOnlySpecified true

@@ -365,6 +365,14 @@ let mergeSarifReports (reports: string list) (target: string) : unit =
 /// already report at warning, and a demotion to what they are is a no-op.
 let localRulesPattern: string = "FANTOMAS-*"
 
+/// Every rule of the two analyzer packages, which `Analyze` raises to error.
+///
+/// Most of them report at note or warning, and the run only fails on an error, so a finding of
+/// theirs passed CI and became a code scanning alert that nobody had to look at before merging.
+/// The patterns rather than the codes, so that a rule a package upgrade brings in fails the run
+/// too. `AnalyzeChanged` leaves them at the severity they report with, as it stops for nothing.
+let packageRulesPatterns: string list = [ "IONIDE-*"; "GRA-*" ]
+
 /// The local analyzers that are kept out of the full run.
 ///
 /// They report on debt that predates them, and a finding in `Analyze` becomes a code scanning alert
