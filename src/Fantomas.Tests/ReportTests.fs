@@ -1446,7 +1446,7 @@ let ``an empty file is warned about as empty and is already formatted`` () =
 let ``an ignored file of only whitespace has no content row`` () =
     // Fantomas never formats it, so what it holds says nothing about what Fantomas would do to it.
     diagnosed
-        { healthy with
+        {
             File =
                 Fantomas.DoctorCommand.FileStep.Candidate
                     {
