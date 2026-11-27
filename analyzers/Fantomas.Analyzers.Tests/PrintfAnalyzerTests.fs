@@ -89,6 +89,26 @@ let f (x: int) : string = $"100%%d{x}"
 
     analyzeToolSource source |> assertLines []
 
+// An odd run: an escaped percent sign, and then a bare `%d` the compiler lowers.
+[<Test>]
+let ``an escaped percent sign before a lowered specifier is not reported`` () =
+    let source: string =
+        """module M
+
+let f (x: int) : string = $"100%%%d{x}"
+"""
+
+    analyzeToolSource source |> assertLines []
+
+// In a `$$` string the specifier is written `%%`, and the compiler still builds a printf format
+// for `%.0f`.
+[<Test>]
+let ``a precision in a double dollar string is reported`` () =
+    let source: string =
+        "module M\n\nlet f (x: float) : string = $$\"\"\"took %%.0f{{x}}\"\"\"\n"
+
+    analyzeToolSource source |> assertLines [ 3 ]
+
 [<Test>]
 let ``a hole with a dotnet format is not reported`` () =
     let source: string =
@@ -107,6 +127,35 @@ let ``kprintf is reported`` () =
 let f (format: Printf.StringFormat<'T, string>) : 'T = Printf.kprintf id format"""
 
     analyzeToolSource source |> assertLines [ 3 ]
+
+// Whatever its holes are, a string handed to a `Printf.StringFormat` is a printf format, and the
+// typed tree shows it being built at the call: line 5, as well as the forwarding on line 3.
+[<Test>]
+let ``an interpolated string handed to a format parameter of your own is reported`` () =
+    let source: string =
+        """module M
+
+let fail (format: Printf.StringFormat<'T, string>) : 'T = Printf.ksprintf failwith format
+
+let f (x: int) : string = fail $"{x} is not a setting"
+"""
+
+    analyzeToolSource source |> assertLines [ 3; 5 ]
+
+[<Test>]
+let ``printf in a member and in an object expression is reported`` () =
+    let source: string =
+        """module M
+
+type T(x: int) =
+    override _.ToString() : string = sprintf "T %d" x
+
+let o (x: int) : obj =
+    { new obj() with
+        override _.ToString() : string = $"%A{x}" }
+"""
+
+    analyzeToolSource source |> assertLines [ 4; 8 ]
 
 [<Test>]
 let ``sprintf passed as a value is reported`` () =

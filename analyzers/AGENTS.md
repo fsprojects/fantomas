@@ -449,16 +449,24 @@ The tests, `Fantomas.Client` and the build scripts only ever run on the JIT, whe
 the rule says nothing there. It decides by the folder the file is in, because the editor hands an
 analyzer the file and not its project.
 
-**It reads the untyped tree and states the compiler's rule itself.** The typed tree would show the
-lowering already done, but it is the analyzer SDK's own compiler that builds it, and FCS 43.12 predates
-#19971: it lowers only string holes, so every `{count}` of an `int` would read as printf. Once the SDK
-ships an FCS with #19971, the rule can move to the typed tree and report every `PrintfFormat` being
-constructed, which needs no rule of its own. Until then, a change to what the compiler lowers means
-a change here.
+**It reads the typed tree, where the compiler has already lowered what it can.** An interpolated
+string with only bare or lowered holes is a `String.Concat` there, and everything that still goes
+through printf constructs a `PrintfFormat`: the format after `sprintf`, a printf hole inside an
+interpolated string, and a string handed to a function of your own that takes a
+`Printf.StringFormat`, which is a printf format whatever its holes are. The rule reports each of
+those on the format, and so keeps no list of what the compiler lowers. A change to the lowering
+shows up here without a change to the rule.
 
-What it cannot see is an interpolated string handed to a function of your own that takes a
-`Printf.StringFormat`: that string is a printf format whatever its holes are. Such a function has to
-pass the format on to `kprintf` or one of its kin, and that call is reported.
+That needs FCS 43.13, which FSharp.Analyzers.SDK 0.43 brings: it includes dotnet/fsharp#19971, so
+its typed tree lowers what the compiler that builds the tool lowers. FCS 43.12 lowered only string
+holes, and every `{count}` of an `int` read as printf there, which is why the rule read the untyped
+tree before.
+
+A format that is passed along rather than built constructs nothing where it is used. A function of
+your own that takes one hands it to `kprintf` or one of its kin, and that call is reported too, on
+the call: it is any call into FSharp.Core with a `PrintfFormat` value as an argument.
+
+The rule needs the typed tree, so in the editor it says nothing until the file is checked.
 
 `nothing the tool runs goes through printf` in `Fantomas.Tests` is the same rule checked against
 the compiled assemblies rather than the source, and so against whatever the compiler that built them
@@ -562,7 +570,8 @@ as `CliContext` does.
 
 `FANTOMAS-XMLDOC-001` and `FANTOMAS-OPENS-001` also read `ctx.CheckFileResults`, because the untyped
 tree can say neither whether the signature file declares the same binding nor what a name resolved
-through. That does not cost the editor registration:
+through, and `FANTOMAS-PRINTF-001` reads `ctx.TypedTree`, because only that shows what the compiler
+lowered. That does not cost the editor registration:
 `EditorContext` carries check results too, as an option rather than outright, so the editor analyzer
 matches on it and says nothing when they are absent. A rule that needs the typed tree is fine; one
 that cannot answer without it has to be quiet in the editor rather than wrong there.
@@ -618,6 +627,6 @@ dotnet msbuild src/Fantomas.Core/Fantomas.Core.fsproj -t:CoreCompile \
 None of this is currently load bearing for the rules that read only the untyped tree. Parsing
 every file of `Fantomas.Core` under the default options, both define sets, `--strict-indentation+`
 and `--langversion:preview` produces identical findings from them, which is what you would expect.
-`FANTOMAS-XMLDOC-001` and `FANTOMAS-OPENS-001` read the typed tree and so do depend on the project
-options resolving, which is another reason the fixture checks they came back non-empty. The defines are the only option that could change a verdict, since they decide which branch of
+`FANTOMAS-XMLDOC-001`, `FANTOMAS-OPENS-001` and `FANTOMAS-PRINTF-001` read the typed tree and so do
+depend on the project options resolving, which is another reason the fixture checks they came back non-empty. The defines are the only option that could change a verdict, since they decide which branch of
 an `#if` reaches the tree, and `DEBUG` in `Selection.fs` is the only one in real source anywhere.

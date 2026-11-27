@@ -154,7 +154,5 @@ each can go when the reason does.
 - **The release runs on `ubuntu-22.04`**, for the glibc it links against. When GitHub retires that
   runner, the next one raises the glibc the executable needs, unless the release compiles it in a
   container with an older glibc.
-- **FANTOMAS-PRINTF-001 reads the untyped tree** until the analyzer SDK ships a compiler with
-  dotnet/fsharp#19971. Its section in `analyzers/AGENTS.md` has the details.
 
 <fantomas-nav source="{{fsdocs-source-filename}}" previous="{{fsdocs-previous-page-link}}" next="{{fsdocs-next-page-link}}"></fantomas-nav>

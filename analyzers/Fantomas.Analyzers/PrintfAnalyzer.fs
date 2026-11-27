@@ -1,10 +1,9 @@
 module Fantomas.Analyzers.PrintfAnalyzer
 
 open System
-open System.Text.RegularExpressions
 open FSharp.Analyzers.SDK
-open FSharp.Analyzers.SDK.ASTCollecting
-open FSharp.Compiler.Syntax
+open FSharp.Compiler.Symbols
+open FSharp.Compiler.Symbols.FSharpExprPatterns
 open FSharp.Compiler.Text
 
 [<Literal>]
@@ -30,76 +29,54 @@ let isToolCode (fileName: string) : bool =
     path.Contains("/src/Fantomas/", StringComparison.Ordinal)
     || path.Contains("/src/Fantomas.Core/", StringComparison.Ordinal)
 
-// The functions that take a printf format. `kprintf` and its kin are here too: a function that
-// forwards a format to one of them makes its callers' interpolated strings printf formats, which is
-// not something the syntax at those calls can show.
-let printfFunctions: Set<string> =
-    set
-        [
-            "sprintf"
-            "printf"
-            "printfn"
-            "eprintf"
-            "eprintfn"
-            "fprintf"
-            "fprintfn"
-            "bprintf"
-            "failwithf"
-            "kprintf"
-            "ksprintf"
-            "kfprintf"
-            "kbprintf"
-        ]
+// A printf format, under whichever abbreviation it was written: `Printf.StringFormat`,
+// `Printf.TextWriterFormat` and `Format` all stand for one of the two `PrintfFormat` classes.
+let isPrintfFormat (t: FSharpType) : bool =
+    let stripped: FSharpType = t.StripAbbreviations()
 
-// A printf specifier at the very end of the text before a hole, which is where the untyped tree
-// keeps it: `$"took %.0f{x}"` is the text `took %.0f` and then the hole. The run of percent signs
-// before it has to be odd, since `%%` is an escaped percent sign and `%%d{x}` a bare hole.
-let trailingSpecifier: Regex =
-    Regex(@"(?<percents>%+)(?<spec>[-+ 0#]*(\d+|\*)?(\.\d+)?[a-zA-Z])$", RegexOptions.Compiled)
+    stripped.HasTypeDefinition
+    && stripped.TypeDefinition.TryFullName
+       |> Option.exists (fun (name: string) ->
+           name.StartsWith("Microsoft.FSharp.Core.PrintfFormat`", StringComparison.Ordinal)
+       )
 
-// The specifiers an interpolated string that produces a string turns into `String.Concat` rather
-// than printf, since dotnet/fsharp#19971: a bare `%s`, `%c`, `%d`, `%i` or `%M`, with no flags,
-// width or precision. A hole without a specifier, or with a .NET format such as `{x:N2}`, needs no
-// printf either. Every other specifier becomes a `sprintf` call.
-let loweredSpecifiers: Set<string> = set [ "s"; "c"; "d"; "i"; "M" ]
-
-let needsPrintf (textBeforeHole: string) : bool =
-    let found: Match = trailingSpecifier.Match textBeforeHole
-
-    found.Success
-    && found.Groups.["percents"].Length % 2 = 1
-    && not (loweredSpecifiers.Contains found.Groups.["spec"].Value)
-
-let rec interpolatedStringNeedsPrintf (parts: SynInterpolatedStringPart list) : bool =
-    match parts with
-    | SynInterpolatedStringPart.String(text, _) :: (SynInterpolatedStringPart.FillExpr _ :: _ as rest) ->
-        needsPrintf text || interpolatedStringNeedsPrintf rest
-    | _ :: rest -> interpolatedStringNeedsPrintf rest
-    | [] -> false
-
-// Reported on the format, or on the function that takes one, which is the part to rewrite.
-let analyze (fileName: string) (parsedInput: ParsedInput) : Message list =
-    if not (isToolCode fileName) then
-        []
-    else
+// Reported on the format being constructed: the string after `sprintf`, or the interpolated
+// string itself, which the compiler has already lowered to `String.Concat` where it can, so what
+// is left is printf. And on a call into FSharp.Core that is handed a format as a value rather than
+// built in place, which is a function of your own forwarding its format to `kprintf` or one of its
+// kin: the construction is at every call of that function, and is reported there.
+let analyze (fileName: string) (typedTree: FSharpImplementationFileContents option) : Message list =
+    match typedTree with
+    | None -> []
+    | Some _ when not (isToolCode fileName) -> []
+    | Some typedTree ->
 
     let found: ResizeArray<range> = ResizeArray<range>()
 
-    let walker: SyntaxCollectorBase =
-        { new SyntaxCollectorBase() with
-            override _.WalkExpr(_path: SyntaxVisitorPath, expr: SynExpr) : unit =
-                match expr with
-                | SynExpr.InterpolatedString(contents = parts; range = range) when interpolatedStringNeedsPrintf parts ->
-                    found.Add range
-                | SynExpr.Ident ident when printfFunctions.Contains ident.idText -> found.Add ident.idRange
-                | SynExpr.LongIdent(longDotId = SynLongIdent(id = ids)) ->
-                    match List.tryLast ids with
-                    | Some ident when printfFunctions.Contains ident.idText -> found.Add ident.idRange
-                    | _ -> ()
-                | _ -> ()
-        }
+    let rec walk (expr: FSharpExpr) : unit =
+        match expr with
+        | NewObject _ when isPrintfFormat expr.Type -> found.Add expr.Range
+        | Call(_, called, _, _, arguments) when
+            called.FullName.StartsWith("Microsoft.FSharp.Core.", StringComparison.Ordinal)
+            && arguments
+               |> List.exists (fun (argument: FSharpExpr) ->
+                   match argument with
+                   | Value _ -> isPrintfFormat argument.Type
+                   | _ -> false
+               )
+            ->
+            found.Add expr.Range
+        | _ -> ()
 
-    walkAst walker parsedInput
+        List.iter walk expr.ImmediateSubExpressions
+
+    let rec walkDeclaration (declaration: FSharpImplementationFileDeclaration) : unit =
+        match declaration with
+        | FSharpImplementationFileDeclaration.Entity(_, declarations) -> List.iter walkDeclaration declarations
+        | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue(_, _, body) -> walk body
+        | FSharpImplementationFileDeclaration.InitAction action -> walk action
+
+    List.iter walkDeclaration typedTree.Declarations
 
     found
     |> Seq.distinct
@@ -117,7 +94,8 @@ let analyze (fileName: string) (parsedInput: ParsedInput) : Message list =
     |> Seq.toList
 
 let cliAnalyzer (ctx: CliContext) : Async<Message list> =
-    async { return analyze ctx.FileName ctx.ParseFileResults.ParseTree }
+    async { return analyze ctx.FileName ctx.TypedTree }
 
+// The editor has a typed tree only once the file is checked, and says nothing until then.
 let editorAnalyzer (ctx: EditorContext) : Async<Message list> =
-    async { return analyze ctx.FileName ctx.ParseFileResults.ParseTree }
+    async { return analyze ctx.FileName ctx.TypedTree }
